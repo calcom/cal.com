@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable prettier/prettier */
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -12,8 +13,6 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
-import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,7 +22,6 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { AssignmentReason } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -60,34 +58,18 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { BookingActionsDropdown } from "./BookingActionsDropdown";
+import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
 import {
   getPendingActions,
   getCancelEventAction,
-  getEditEventActions,
-  getAfterEventActions,
-  getReportAction,
   shouldShowPendingActions,
-  shouldShowEditActions,
   shouldShowRecurringCancelAction,
   shouldShowIndividualReportButton,
   type BookingActionContext,
+  getReportAction,
 } from "./bookingActions";
-
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
-
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
-
-export type BookingItemProps = BookingItem & {
-  listingStatus: BookingListingStatus;
-  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
-  isToday: boolean;
-};
+import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
@@ -137,6 +119,8 @@ function BookingListItem(booking: BookingItemProps) {
   const { dialogState, openDialog, closeDialog, rejectionReason, setRejectionReason } = useBookingItemState();
 
   const cardCharged = booking?.payment[0]?.success;
+  const [rejectionReason, setRejectionReason] = useState<string>("");
+  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
   const attendeeList = booking.attendees.map((attendee) => {
     return {
@@ -146,17 +130,6 @@ function BookingListItem(booking: BookingItemProps) {
       noShow: attendee.noShow || false,
       phoneNumber: attendee.phoneNumber,
     };
-  });
-
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(data.message, "success");
-      // Invalidate and refetch the bookings query to update the UI
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
   });
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
@@ -185,12 +158,6 @@ function BookingListItem(booking: BookingItemProps) {
   const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
 
-  const getBookingStatus = (): "upcoming" | "past" | "cancelled" | "rejected" => {
-    if (isCancelled) return "cancelled";
-    if (isRejected) return "rejected";
-    if (isBookingInPast) return "past";
-    return "upcoming";
-  };
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
@@ -219,6 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const cardCharged = booking?.payment[0]?.success;
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -298,49 +266,6 @@ function BookingListItem(booking: BookingItemProps) {
     .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
-  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
-  const [isOpenReportDialog, setIsOpenReportDialog] = useState(false);
-  const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
-  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
-    onSuccess: () => {
-      showToast(t("location_updated"), "success");
-      setIsOpenLocationDialog(false);
-      utils.viewer.bookings.invalidate();
-    },
-    onError: (e) => {
-      const errorMessages: Record<string, string> = {
-        UNAUTHORIZED: t("you_are_unauthorized_to_make_this_change_to_the_booking"),
-        BAD_REQUEST: e.message,
-      };
-
-      const message = errorMessages[e.data?.code as string] || t("location_update_failed");
-      showToast(message, "error");
-    },
-  });
-
-  const saveLocation = async ({
-    newLocation,
-    credentialId,
-  }: {
-    newLocation: string;
-    /**
-     * It could be set for conferencing locations that support team level installations.
-     */
-    credentialId: number | null;
-  }) => {
-    try {
-      await setLocationMutation.mutateAsync({
-        bookingId: booking.id,
-        newLocation,
-        credentialId,
-      });
-    } catch {
-      // Errors are shown through the mutation onError handler
-    }
-  };
 
   // Getting accepted recurring dates to show
   const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
@@ -359,11 +284,6 @@ function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
-
-  const isCalVideoLocation =
-    !booking.location ||
-    booking.location === "integrations:daily" ||
-    (typeof booking.location === "string" && booking.location.trim() === "");
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
@@ -412,6 +332,7 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
+  const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
 
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
@@ -492,6 +413,7 @@ function BookingListItem(booking: BookingItemProps) {
       <Dialog
         open={dialogState.rejection}
         onOpenChange={(open) => (open ? openDialog("rejection") : closeDialog("rejection"))}>
+      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
             <TextAreaField
@@ -559,8 +481,10 @@ function BookingListItem(booking: BookingItemProps) {
                             className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
-                                <img
+                                <Image
                                   src={provider.iconUrl}
+                                  width={16}
+                                  height={16}
                                   className="h-4 w-4 rounded-sm"
                                   alt={`${provider?.label} logo`}
                                 />
@@ -665,94 +589,7 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            {shouldShowEditActions(actionContext) && (
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    color="secondary"
-                    variant="icon"
-                    StartIcon="ellipsis"
-                    data-testid="booking-actions-dropdown"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-                    {editEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          disabled={action.disabled}
-                          onClick={action.onClick}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-                    {afterEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          onClick={action.onClick}
-                          disabled={action.disabled}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="rounded-lg"
-                        key={reportActionWithHandler.id}
-                        disabled={reportActionWithHandler.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={reportActionWithHandler.color}
-                          StartIcon={reportActionWithHandler.icon}
-                          onClick={reportActionWithHandler.onClick}
-                          disabled={reportActionWithHandler.disabled}
-                          data-testid={reportActionWithHandler.id}
-                          className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
-                          {reportActionWithHandler.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    </>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="rounded-lg"
-                      key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
-                      <DropdownItem
-                        type="button"
-                        color={cancelEventAction.color}
-                        StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
-                        onClick={cancelEventAction.onClick}
-                        disabled={cancelEventAction.disabled}
-                        data-bookingid={cancelEventAction.bookingId}
-                        data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                        {cancelEventAction.label}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenuPortal>
-              </Dropdown>
-            )}
+            <BookingActionsDropdown booking={booking} />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
             {shouldShowIndividualReportButton(actionContext) && (
               <div className="flex items-center space-x-2">
@@ -764,7 +601,7 @@ function BookingListItem(booking: BookingItemProps) {
                   onClick={reportActionWithHandler.onClick}
                   disabled={reportActionWithHandler.disabled}
                   data-testid={reportActionWithHandler.id}
-                  className="h-8 w-8"
+                  className="min-h-[34px] min-w-[34px]"
                   tooltip={reportActionWithHandler.label}
                 />
               </div>
@@ -907,7 +744,7 @@ const RecurringBookingsTooltip = ({
 
   return (
     (booking.recurringInfo &&
-      booking.eventType?.recurringEvent?.freq &&
+      booking.eventType?.recurringEvent?.freq != null &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
         booking.listingStatus === "cancelled") && (
@@ -1178,79 +1015,6 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   );
 };
 
-const NoShowAttendeesDialog = ({
-  attendees,
-  isOpen,
-  setIsOpen,
-  bookingUid,
-}: {
-  attendees: AttendeeProps[];
-  isOpen: boolean;
-  setIsOpen: (value: boolean) => void;
-  bookingUid: string;
-}) => {
-  const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
-
-  const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
-        )
-      );
-      showToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
-
-  return (
-    <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
-      <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")} enableOverflow>
-        {noShowAttendees.map((attendee, index) => (
-          <form
-            key={attendee.id}
-            onSubmit={(e) => {
-              e.preventDefault();
-              noShowMutation.mutate({
-                bookingUid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-            }}>
-            <div
-              className={`bg-muted flex items-center justify-between px-4 py-2 ${
-                index === 0 ? "rounded-t-md" : ""
-              } ${index === noShowAttendees.length - 1 ? "rounded-b-md" : "border-subtle border-b"}`}>
-              <span className="text-emphasis flex flex-col text-sm">
-                {attendee.name}
-                {attendee.email && <span className="text-muted">({attendee.email})</span>}
-              </span>
-              <Button color="minimal" type="submit" StartIcon={attendee.noShow ? "eye-off" : "eye"}>
-                {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
-              </Button>
-            </div>
-          </form>
-        ))}
-        <DialogFooter noSticky>
-          <DialogClose>{t("done")}</DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
@@ -1373,4 +1137,13 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
   );
 };
 
-export default BookingListItem;
+// Wrap BookingListItem with BookingActionsStoreProvider to provide isolated store for each booking
+const BookingListItemWithProvider = (props: BookingItemProps) => {
+  return (
+    <BookingActionsStoreProvider>
+      <BookingListItem {...props} />
+    </BookingActionsStoreProvider>
+  );
+};
+
+export default BookingListItemWithProvider;
