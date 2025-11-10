@@ -2,46 +2,18 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 const verifySchema = z.object({
   token: z.string(),
 });
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
-
-// TODO: To be unit tested
-export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const organizationRepository = getOrganizationRepository();
-  const org = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
-
-  if (!org) {
-    return;
-  }
-
-  await inviteMembersWithNoInviterPermissionCheck({
-    inviterName: null,
-    teamId: org.id,
-    language: "en",
-    creationSource: CreationSource.WEBAPP,
-    invitations: [
-      {
-        usernameOrEmail: email,
-        role: MembershipRole.MEMBER,
-      },
-    ],
-    orgSlug: org.slug || org.requestedSlug,
-  });
-}
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
@@ -171,8 +143,6 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   const hasCompletedOnboarding = user.completedOnboarding;
-
-  await moveUserToMatchingOrg({ email: user.email });
 
   const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
 
