@@ -44,4 +44,32 @@ export class TeamRepository {
       },
     });
   }
+
+  async findUserMembershipsInOrg({
+    userEmail,
+    organizationId,
+  }: {
+    userEmail: string;
+    organizationId: number;
+  }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        user: {
+          email: userEmail,
+        },
+        teamId: organizationId,
+      },
+      select: {
+        id: true,
+        role: true,
+        accepted: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

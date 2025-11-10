@@ -29,6 +29,16 @@ export default async function globalSetup() {
       orgAutoAcceptEmail: "acme.com",
     });
     console.log("[global-setup] Seeded acme org with isAdminAPIEnabled: true");
+
+    const owner1Memberships = await teamRepo.findUserMembershipsInOrg({
+      userEmail: "owner1-acme@example.com",
+      organizationId: acmeOrg.id,
+    });
+    console.log(
+      "[global-setup] owner1-acme@example.com memberships in acme org:",
+      owner1Memberships.length,
+      owner1Memberships.map((m) => ({ role: m.role, accepted: m.accepted }))
+    );
   } else {
     console.warn("[global-setup] WARNING: acme org not found!");
   }
