@@ -305,11 +305,24 @@ export class BillingService implements IBillingService, OnModuleDestroy {
         new Date(invoice.period_end * 1000)
       );
 
+      const existingSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      const perActiveUserPrice = this.billingConfigService.get(PlatformPlan.PER_ACTIVE_USER)?.base;
+      const subscriptionItem = existingSubscription.items.data.find(
+        (item) => item.price?.id === perActiveUserPrice
+      );
+
+      if (!subscriptionItem) {
+        throw new NotFoundException(
+          "No subscription item found for PER_ACTIVE_USER plan with matching price ID"
+        );
+      }
+
       await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
         items: [
-          {
-            quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1,
-          },
+          { id: subscriptionItem.id, quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1 },
         ],
       });
     }
