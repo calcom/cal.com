@@ -227,7 +227,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
 
@@ -272,7 +272,7 @@ test.describe("Organization", () => {
     });
 
     // Such a user has user.username changed directly in addition to having the new username in the profile.username
-    test("existing user migrated to an organization", async ({ users, page, emails }) => {
+    test("existing user migrated to an organization", async ({ users, page, emails: _emails }) => {
       const orgOwner = await users.create(undefined, {
         hasTeam: true,
         isOrg: true,
@@ -351,7 +351,7 @@ test.describe("Organization", () => {
           teamId: team.id,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
 
@@ -360,7 +360,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
         const inviteLink = await expectInvitationEmailToBeReceived(
@@ -594,7 +594,7 @@ async function expectUserToBeAMemberOfTeam({
   page,
   teamId,
   email,
-  role,
+  role: _role,
   username,
   isMemberShipAccepted,
 }: {
