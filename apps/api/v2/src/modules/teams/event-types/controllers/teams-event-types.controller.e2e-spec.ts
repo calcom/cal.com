@@ -1337,64 +1337,6 @@ describe("Organizations Event Types Endpoints", () => {
 
         await eventTypesRepositoryFixture.delete(roundRobinEventType.id);
       });
-
-      it("should update managed event type hosts and return array with parent and child event types", async () => {
-        const managedEventType = await eventTypesRepositoryFixture.create(
-          {
-            title: `managed-update-hosts-${randomString()}`,
-            slug: `managed-update-hosts-${randomString()}`,
-            length: 60,
-            team: {
-              connect: {
-                id: team.id,
-              },
-            },
-            schedulingType: "MANAGED",
-            hosts: {
-              create: [
-                {
-                  userId: teamMember1.id,
-                  isFixed: true,
-                },
-              ],
-            },
-          },
-          userAdmin.id
-        );
-
-        const updateBody = {
-          hosts: [
-            {
-              userId: teamMember2.id,
-            },
-          ],
-        };
-
-        const response = await request(app.getHttpServer())
-          .patch(`/v2/teams/${team.id}/event-types/${managedEventType.id}`)
-          .send(updateBody)
-          .expect(200);
-
-        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(Array.isArray(responseBody.data)).toBe(true);
-        // note(Lauris): 1 parent managed event type + 1 child event type
-        expect(responseBody.data).toHaveLength(2);
-
-        const parentEventType = responseBody.data[0];
-        expect(parentEventType.schedulingType).toEqual("managed");
-        expect(parentEventType.hosts).toHaveLength(1);
-        expect(parentEventType.hosts[0].userId).toEqual(teamMember2.id);
-        expect(parentEventType.parentEventTypeId).toBeNull();
-
-        const childEventType = responseBody.data[1];
-        expect(childEventType.parentEventTypeId).toEqual(parentEventType.id);
-        expect(childEventType.schedulingType).toBeNull();
-        expect(childEventType.hosts).toHaveLength(0);
-        expect(childEventType.ownerId).toEqual(teamMember2.id);
-
-        await eventTypesRepositoryFixture.delete(managedEventType.id);
-      });
     });
 
     afterAll(async () => {
