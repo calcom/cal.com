@@ -47,14 +47,14 @@ describe("GlobalBlockingService", () => {
       expect(result.reason).toBe(WatchlistType.EMAIL);
       expect(result.watchlistEntry).toEqual(mockEntry);
       expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("blocked@example.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("@example.com");
+      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("example.com");
     });
 
     test("should return blocked when domain matches", async () => {
       const mockEntry = {
         id: "456",
         type: WatchlistType.DOMAIN,
-        value: "@spam.com",
+        value: "spam.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: true,
@@ -72,7 +72,7 @@ describe("GlobalBlockingService", () => {
       expect(result.reason).toBe(WatchlistType.DOMAIN);
       expect(result.watchlistEntry).toEqual(mockEntry);
       expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("user@spam.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("@spam.com");
+      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("spam.com");
     });
 
     test("should return not blocked when no matches", async () => {
@@ -93,7 +93,7 @@ describe("GlobalBlockingService", () => {
       await service.isBlocked("USER@EXAMPLE.COM");
 
       expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("user@example.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("@example.com");
+      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("example.com");
     });
 
     test("should check both email and domain in parallel", async () => {
@@ -126,7 +126,7 @@ describe("GlobalBlockingService", () => {
       const domainEntry = {
         id: "456",
         type: WatchlistType.DOMAIN,
-        value: "@example.com",
+        value: "example.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: true,
@@ -151,7 +151,7 @@ describe("GlobalBlockingService", () => {
       const mockEntry = {
         id: "789",
         type: WatchlistType.DOMAIN,
-        value: "@yahoo.com",
+        value: "yahoo.com",
         description: null,
         action: WatchlistAction.REPORT,
         isGlobal: true,
@@ -165,7 +165,7 @@ describe("GlobalBlockingService", () => {
       const result = await service.isFreeEmailDomain("yahoo.com");
 
       expect(result).toBe(true);
-      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("@yahoo.com");
+      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("yahoo.com");
     });
 
     test("should return false when domain is not in free email list", async () => {
@@ -174,7 +174,7 @@ describe("GlobalBlockingService", () => {
       const result = await service.isFreeEmailDomain("corporatedomain.com");
 
       expect(result).toBe(false);
-      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("@corporatedomain.com");
+      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("corporatedomain.com");
     });
 
     test("should normalize domain before checking", async () => {
@@ -182,7 +182,7 @@ describe("GlobalBlockingService", () => {
 
       await service.isFreeEmailDomain("GMAIL.COM");
 
-      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("@gmail.com");
+      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("gmail.com");
     });
 
     test("should handle domain with @ prefix", async () => {
@@ -190,7 +190,7 @@ describe("GlobalBlockingService", () => {
 
       await service.isFreeEmailDomain("@hotmail.com");
 
-      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("@hotmail.com");
+      expect(mockGlobalRepo.findFreeEmailDomain).toHaveBeenCalledWith("hotmail.com");
     });
   });
 });

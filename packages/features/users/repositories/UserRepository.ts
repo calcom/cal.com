@@ -11,8 +11,8 @@ import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -49,18 +49,19 @@ export type SessionUser = {
   darkBrandColor: string | null;
   movedToProfileId: number | null;
   completedOnboarding: boolean;
-  destinationCalendar: any;
+  destinationCalendar: DestinationCalendar | null;
   locale: string;
   timeFormat: number | null;
   trialEndsAt: Date | null;
-  metadata: any;
+  metadata: z.infer<typeof userMetadata>;
   role: string;
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  profiles: any[];
-  allSelectedCalendars: any[];
-  userLevelSelectedCalendars: any[];
+  requiresBookerEmailVerification: boolean;
+  profiles: UserProfile[];
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
 };
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -108,6 +109,7 @@ const userSelect = {
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
+  requiresBookerEmailVerification: true,
   verified: true,
   disableImpersonation: true,
   locked: true,
@@ -275,6 +277,58 @@ export class UserRepository {
     return user;
   }
 
+  async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+
+    if (!normalizedEmails.length) return [];
+    const users = await this.findVerifiedUsersByEmailsRaw(normalizedEmails);
+
+    if (!users.length) return [];
+    return users.map((u) => ({
+      email: u.email,
+      matchedEmail: u.matchedEmail,
+      requiresBookerEmailVerification: u.requiresBookerEmailVerification,
+    }));
+  }
+
+  private async findVerifiedUsersByEmailsRaw(emails: string[]) {
+    const emailListSql = Prisma.join(emails.map((e) => Prisma.sql`${e}`));
+    return this.prismaClient.$queryRaw<
+      Array<{
+        id: number;
+        email: string;
+        matchedEmail: string;
+        requiresBookerEmailVerification: boolean;
+      }>
+    >(Prisma.sql`
+      SELECT
+        u."id",
+        u."email",
+        u."email" AS "matchedEmail",
+        u."requiresBookerEmailVerification"
+      FROM
+        "public"."users" AS u
+      WHERE
+        u."email" IN (${emailListSql})
+        AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      UNION
+      SELECT
+        u."id",
+        u."email",
+        t0."email" AS "matchedEmail",
+        u."requiresBookerEmailVerification"
+      FROM
+        "public"."users" AS u
+      INNER JOIN "public"."SecondaryEmail" AS t0
+        ON t0."userId" = u."id"
+      WHERE
+        t0."email" IN (${emailListSql})
+        AND t0."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+    `);
+  }
+
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await this.prismaClient.user.findUnique({
       where: {
@@ -422,7 +476,6 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-      [key: string]: any;
     }
   >({
     user,
@@ -923,6 +976,7 @@ export class UserRepository {
         allowDynamicBooking: true,
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
+        requiresBookerEmailVerification: true,
         profiles: true,
       },
     });
@@ -1038,6 +1092,19 @@ export class UserRepository {
         credentials: {
           select: credentialForCalendarServiceSelect,
         },
+      },
+    });
+  }
+
+  async findUsersByIds(userIds: number[]) {
+    return this.prismaClient.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
       },
     });
   }

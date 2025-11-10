@@ -52,14 +52,14 @@ describe("OrganizationBlockingService", () => {
         email: "blocked@example.com",
         organizationId: ORGANIZATION_ID,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("@example.com", ORGANIZATION_ID);
+      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORGANIZATION_ID);
     });
 
     test("should return blocked when domain matches for organization", async () => {
       const mockEntry = {
         id: "456",
         type: WatchlistType.DOMAIN,
-        value: "@competitor.com",
+        value: "competitor.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: false,
@@ -99,7 +99,7 @@ describe("OrganizationBlockingService", () => {
         email: "user@example.com",
         organizationId: ORGANIZATION_ID,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("@example.com", ORGANIZATION_ID);
+      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORGANIZATION_ID);
     });
 
     test("should check both email and domain in parallel", async () => {
@@ -132,7 +132,7 @@ describe("OrganizationBlockingService", () => {
       const domainEntry = {
         id: "456",
         type: WatchlistType.DOMAIN,
-        value: "@example.com",
+        value: "example.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: false,
@@ -165,7 +165,7 @@ describe("OrganizationBlockingService", () => {
         email: "test@example.com",
         organizationId: ORG_A,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("@example.com", ORG_A);
+      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORG_A);
       expect(mockOrgRepo.findBlockedEmail).not.toHaveBeenCalledWith({
         email: "test@example.com",
         organizationId: ORG_B,

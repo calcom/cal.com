@@ -1,5 +1,4 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -69,6 +68,35 @@ export type AttributeOptionValueWithType = {
   type: Attribute["type"];
   attributeOption: AttributeOptionValue | AttributeOptionValue[];
 };
+
+async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const memberships = await prisma.membership.findMany({
+    where: {
+      teamId: {
+        in: [orgId, teamId],
+      },
+    },
+  });
+
+  type Membership = (typeof memberships)[number];
+
+  const { teamMemberships, orgMemberships } = memberships.reduce(
+    (acc, membership) => {
+      if (membership.teamId === teamId) {
+        acc.teamMemberships.push(membership);
+      } else if (membership.teamId === orgId) {
+        acc.orgMemberships.push(membership);
+      }
+      return acc;
+    },
+    { teamMemberships: [] as Membership[], orgMemberships: [] as Membership[] }
+  );
+
+  return {
+    teamMemberships,
+    orgMemberships,
+  };
+}
 
 function _prepareAssignmentData({
   assignmentsForTheTeam,
@@ -184,7 +212,7 @@ function _getAttributeOptionFromAttributeOption({
 }
 
 async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
-  const { orgMemberships, teamMemberships } = await MembershipRepository.findMembershipsForBothOrgAndTeam({
+  const { orgMemberships, teamMemberships } = await _findMembershipsForBothOrgAndTeam({
     orgId,
     teamId,
   });

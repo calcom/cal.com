@@ -243,8 +243,8 @@ describe("handleNewBooking - Spam Detection", () => {
       "should block booking when domain is in global watchlist and return decoy response",
       async () => {
         const handleNewBooking = getNewBookingHandler();
-        const blockedDomain = "@globalspammydomain.com";
-        const blockedEmail = `user${blockedDomain}`;
+        const blockedDomain = "globalspammydomain.com";
+        const blockedEmail = `user@${blockedDomain}`;
 
         const booker = getBooker({
           email: blockedEmail,
@@ -496,8 +496,8 @@ describe("handleNewBooking - Spam Detection", () => {
       "should block booking when domain is in organization watchlist and return decoy response",
       async () => {
         const handleNewBooking = getNewBookingHandler();
-        const blockedDomain = "@spammydomain.com";
-        const blockedEmail = `user${blockedDomain}`;
+        const blockedDomain = "spammydomain.com";
+        const blockedEmail = `user@${blockedDomain}`;
 
         // Create organization with a team
         const org = await createOrganization({
@@ -766,6 +766,90 @@ describe("handleNewBooking - Spam Detection", () => {
           data: {
             user: organizer.username,
             eventTypeId: 2, // Booking the managed event
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        // Should return a decoy response since email is blocked in the organization
+        expectDecoyBookingResponse(createdBooking);
+        expect(createdBooking.attendees[0].email).toBe(blockedEmail);
+        await expectNoBookingInDatabase(blockedEmail);
+      },
+      timeout
+    );
+
+    test(
+      "should block booking for user event in organization when email is in organization watchlist",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const blockedEmail = "user-event-spammer@example.com";
+
+        // Create organization
+        const org = await createOrganization({
+          name: "User Event Org",
+          slug: "user-event-org",
+          withTeam: false,
+        });
+
+        const booker = getBooker({
+          email: blockedEmail,
+          name: "User Event Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          organizationId: org.id,
+        });
+
+        await createOrganizationWatchlistEntry(org.id, {
+          type: WatchlistType.EMAIL,
+          value: blockedEmail,
+          action: "BLOCK",
+        });
+
+        // Create a user event (no teamId) but with a profile linking to the organization
+        await createBookingScenario(
+          getScenarioData(
+            {
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  // User Event Type has userId set
+                  userId: 101,
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            },
+            { id: org.id }
+          )
+        );
+
+        await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            eventTypeId: 1,
             responses: {
               email: booker.email,
               name: booker.name,
