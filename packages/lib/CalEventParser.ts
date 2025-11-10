@@ -66,7 +66,7 @@ export const getWho = (
   }`;
 };
 
-export const getAdditionalNotes = (
+export const getAdditionalNote = (
   calEvent: Pick<CalendarEvent, "additionalNotes">,
   t: TFunction,
   stripMarkdownForIcs = false
@@ -324,7 +324,7 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getWhen>[0] &
   Parameters<typeof getLocation>[0] &
   Parameters<typeof getDescription>[0] &
-  Parameters<typeof getAdditionalNotes>[0] &
+  Parameters<typeof getAdditionalNote>[0] &
   Parameters<typeof getUserFieldsResponses>[0] &
   Parameters<typeof getAppsStatus>[0] &
   Parameters<typeof getManageLink>[0] &
@@ -410,7 +410,7 @@ export const getRichDescription = (
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t, true), // Strip markdown for ICS
-    getAdditionalNotes(calEvent, t, true), // Strip markdown for ICS
+    getAdditionalNote(calEvent, t, true), // Strip markdown for ICS
     getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(calEvent, t) : "",
     // TODO: Only the original attendee can make changes to the event

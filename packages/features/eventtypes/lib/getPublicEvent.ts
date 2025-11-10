@@ -526,6 +526,7 @@ export const getPublicEvent = async (
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
+    description: markdownToSafeHTML(eventWithUserProfiles.description),
     descriptionAsSafeHTML: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
@@ -734,6 +735,7 @@ export const processEventDataShared = async ({
   return {
     ...eventData,
     bookerLayouts: bookerLayoutsSchema.parse(metadata?.bookerLayouts || null),
+    description: markdownToSafeHTML(eventData.description),
     descriptionAsSafeHTML: markdownToSafeHTML(eventData.description),
     metadata,
     customInputs: customInputSchema.array().parse(eventData.customInputs || []),

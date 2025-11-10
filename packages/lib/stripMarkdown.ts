@@ -23,7 +23,7 @@ export function stripMarkdown(
     // Additional cleanup for any remaining markdown artifacts
     stripped = stripped.replace(/\\/g, ""); // Remove escape characters
     stripped = stripped.replace(/[*_~`#>]{1,}/g, " "); // Remove any remaining markdown syntax
-    stripped = stripped.replace(/[[\]()]/g, " "); // Remove brackets from links
+    stripped = stripped.replace(/[[\]]/g, " "); // Remove brackets from links
 
     // Restore newlines
     stripped = stripped
@@ -46,7 +46,7 @@ export function stripMarkdown(
   stripped = stripped
     .replace(/\\/g, "") // Remove escape characters
     .replace(/[*_~`#>]{1,}/g, " ") // Remove markdown syntax
-    .replace(/[[\]()]/g, " ") // Remove brackets
+    .replace(/[[\]]/g, " ") // Remove brackets
     .replace(/\s{2,}/g, " ") // Collapse whitespace
     .replace(/\r\n/g, "\n") // Normalize line endings
     .trim();
