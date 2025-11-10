@@ -151,7 +151,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       className={classNames(
         "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
-        !isDisabled && "bg-default dark:bg-muted",
+        !isDisabled && "bg-default dark:bg-muted border-[1px] border-default rounded-[4px]",
         topOffsetMinutes && "absolute"
       )}
       data-disabled={isDisabled}
