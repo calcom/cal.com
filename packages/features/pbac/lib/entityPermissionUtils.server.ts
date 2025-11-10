@@ -73,6 +73,7 @@ export const entityPrismaWhereClause = ({ userId }: { userId: number }) => ({
           some: {
             userId: userId,
             accepted: true,
+            role: "OWNER",
           },
         },
       },
