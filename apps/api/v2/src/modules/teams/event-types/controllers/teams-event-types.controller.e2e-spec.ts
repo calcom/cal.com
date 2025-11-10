@@ -1241,12 +1241,108 @@ describe("Organizations Event Types Endpoints", () => {
 
         await eventTypesRepositoryFixture.delete(roundRobinEventType.id);
       });
+    });
 
-      it("should preserve managed event type when updating title", async () => {
+    describe("should update event type hosts", () => {
+      it("should update collective event type hosts", async () => {
+        const collectiveEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `collective-update-hosts-${randomString()}`,
+            slug: `collective-update-hosts-${randomString()}`,
+            length: 60,
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            schedulingType: "COLLECTIVE",
+            hosts: {
+              create: [
+                {
+                  userId: teamMember1.id,
+                  isFixed: true,
+                },
+              ],
+            },
+          },
+          userAdmin.id
+        );
+
+        const updateBody = {
+          hosts: [
+            {
+              userId: teamMember2.id,
+            },
+          ],
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${collectiveEventType.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toHaveLength(1);
+        expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
+
+        await eventTypesRepositoryFixture.delete(collectiveEventType.id);
+      });
+
+      it("should update round robin event type hosts", async () => {
+        const roundRobinEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `roundrobin-update-hosts-${randomString()}`,
+            slug: `roundrobin-update-hosts-${randomString()}`,
+            length: 60,
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            schedulingType: "ROUND_ROBIN",
+            hosts: {
+              create: [
+                {
+                  userId: teamMember1.id,
+                  isFixed: true,
+                  priority: 1,
+                },
+              ],
+            },
+          },
+          userAdmin.id
+        );
+
+        const updateBody = {
+          hosts: [
+            {
+              userId: teamMember2.id,
+              priority: "high",
+            },
+          ],
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${roundRobinEventType.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("roundRobin");
+        expect(responseBody.data.hosts).toHaveLength(1);
+        expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
+
+        await eventTypesRepositoryFixture.delete(roundRobinEventType.id);
+      });
+
+      it("should update managed event type hosts and return array with parent and child event types", async () => {
         const managedEventType = await eventTypesRepositoryFixture.create(
           {
-            title: `managed-preserve-${randomString()}`,
-            slug: `managed-preserve-${randomString()}`,
+            title: `managed-update-hosts-${randomString()}`,
+            slug: `managed-update-hosts-${randomString()}`,
             length: 60,
             team: {
               connect: {
@@ -1254,13 +1350,24 @@ describe("Organizations Event Types Endpoints", () => {
               },
             },
             schedulingType: "MANAGED",
+            hosts: {
+              create: [
+                {
+                  userId: teamMember1.id,
+                  isFixed: true,
+                },
+              ],
+            },
           },
           userAdmin.id
         );
 
-        const newTitle = `updated-managed-title-${randomString()}`;
         const updateBody = {
-          title: newTitle,
+          hosts: [
+            {
+              userId: teamMember2.id,
+            },
+          ],
         };
 
         const response = await request(app.getHttpServer())
@@ -1268,10 +1375,23 @@ describe("Organizations Event Types Endpoints", () => {
           .send(updateBody)
           .expect(200);
 
-        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.title).toEqual(newTitle);
-        expect(responseBody.data.schedulingType).toEqual("managed");
+        expect(Array.isArray(responseBody.data)).toBe(true);
+        // note(Lauris): 1 parent managed event type + 1 child event type
+        expect(responseBody.data).toHaveLength(2);
+
+        const parentEventType = responseBody.data[0];
+        expect(parentEventType.schedulingType).toEqual("managed");
+        expect(parentEventType.hosts).toHaveLength(1);
+        expect(parentEventType.hosts[0].userId).toEqual(teamMember2.id);
+        expect(parentEventType.parentEventTypeId).toBeNull();
+
+        const childEventType = responseBody.data[1];
+        expect(childEventType.parentEventTypeId).toEqual(parentEventType.id);
+        expect(childEventType.schedulingType).toBeNull();
+        expect(childEventType.hosts).toHaveLength(0);
+        expect(childEventType.ownerId).toEqual(teamMember2.id);
 
         await eventTypesRepositoryFixture.delete(managedEventType.id);
       });
