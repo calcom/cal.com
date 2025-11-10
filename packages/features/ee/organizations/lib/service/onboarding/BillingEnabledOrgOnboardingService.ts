@@ -1,5 +1,5 @@
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -143,6 +143,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
     organizationOnboarding: OrganizationOnboardingData,
     paymentDetails?: { subscriptionId: string; subscriptionItemId: string }
   ): Promise<{ organization: Team; owner: User }> {
+    const organizationRepository = getOrganizationRepository();
     log.info(
       "createOrganization (billing-enabled)",
       safeStringify({
@@ -245,7 +246,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
 
     if (!organization.slug) {
       try {
-        const { slug } = await OrganizationRepository.setSlug({
+        const { slug } = await organizationRepository.setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });
