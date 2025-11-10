@@ -1,6 +1,6 @@
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
-import { vi, expect, beforeAll } from "vitest";
+import { vi, expect } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
 import type { CalendarService } from "@calcom/types/Calendar";
 
@@ -11,58 +11,6 @@ const fetchMocker = createFetchMock(vi);
 fetchMocker.enableMocks();
 
 expect.extend(matchers);
-
-beforeAll(async () => {
-  if (process.env.INTEGRATION_TEST_MODE === "true") {
-    const { prisma } = await import("@calcom/prisma");
-    
-    const acmeOrg = await prisma.team.findFirst({
-      where: {
-        slug: "acme",
-        isOrganization: true,
-      },
-    });
-
-    if (acmeOrg) {
-      await prisma.organizationSettings.upsert({
-        where: {
-          organizationId: acmeOrg.id,
-        },
-        update: {
-          isAdminAPIEnabled: true,
-        },
-        create: {
-          organizationId: acmeOrg.id,
-          orgAutoAcceptEmail: "acme.com",
-          isAdminAPIEnabled: true,
-        },
-      });
-    }
-
-    const dunderOrg = await prisma.team.findFirst({
-      where: {
-        slug: "dunder-mifflin",
-        isOrganization: true,
-      },
-    });
-
-    if (dunderOrg) {
-      await prisma.organizationSettings.upsert({
-        where: {
-          organizationId: dunderOrg.id,
-        },
-        update: {
-          isAdminAPIEnabled: false,
-        },
-        create: {
-          organizationId: dunderOrg.id,
-          orgAutoAcceptEmail: "dunder-mifflin.com",
-          isAdminAPIEnabled: false,
-        },
-      });
-    }
-  }
-});
 
 class MockExchangeCalendarService implements CalendarService {
   constructor() {}
