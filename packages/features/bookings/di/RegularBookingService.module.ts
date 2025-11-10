@@ -7,7 +7,7 @@ import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/d
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { moduleLoader as hashedLinkServiceModuleLoader } from "@calcom/features/hashedLink/di/HashedLinkService.module";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 const thisModule = createModule();
 const token = DI_TOKENS.REGULAR_BOOKING_SERVICE;
