@@ -16,11 +16,13 @@ generator client {
   importFileExtension = ""
 }
 
-generator trigger {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
-  output          = "./generated/prisma"
-}
+/**
+ * generator trigger {
+ * provider        = "prisma-client-js"
+ * previewFeatures = ["views"]
+ * output          = "./generated/prisma"
+ * }
+ */
 
 generator zod {
   provider                 = "zod-prisma-types"

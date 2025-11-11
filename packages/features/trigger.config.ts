@@ -6,7 +6,7 @@ export default defineConfig({
   project: "proj_klpqoyhxnkrxlceolbfy", // e.g., "proj_abc123"
 
   // Directories containing your tasks
-  dirs: ["./bookings/lib/tasker/trigger"], // Customize based on your project structure
+  dirs: ["./bookings/lib/tasker/trigger/notifications"], // Customize based on your project structure
 
   // Retry configuration
   retries: {

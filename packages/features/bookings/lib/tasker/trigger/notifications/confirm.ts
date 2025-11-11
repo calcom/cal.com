@@ -1,19 +1,19 @@
 import { schemaTask } from "@trigger.dev/sdk";
-import { z } from "zod";
 
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
 import { prisma } from "@calcom/prisma";
 
-import { BookingEmailAndSmsTaskService } from "../BookingEmailAndSmsTaskService";
+import { BookingEmailAndSmsTaskService } from "../../BookingEmailAndSmsTaskService";
+import { taskMachineAndRetryConfig } from "./config";
+import { bookingNotificationTaskSchema, BookingNotificationPayload } from "./schema";
 
-export const request = schemaTask({
-  id: "booking.request",
-  schema: z.object({
-    bookingId: z.number(),
-  }),
-  run: async (payload: { bookingId: number }) => {
+export const confirm = schemaTask({
+  id: "booking.send.confirm.notifications",
+  ...taskMachineAndRetryConfig,
+  schema: bookingNotificationTaskSchema,
+  run: async (payload: BookingNotificationPayload) => {
     const triggerDevLogger = new TriggerDevLogger();
     const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: triggerDevLogger });
     const bookingRepo = new BookingRepository(prisma);
@@ -22,6 +22,6 @@ export const request = schemaTask({
       bookingRepository: bookingRepo,
       emailsAndSmsHandler: emailsAndSmsHandler,
     });
-    await bookingTaskService.request(payload);
+    await bookingTaskService.confirm(payload);
   },
 });
