@@ -1,7 +1,11 @@
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { checkRateLimitAndThrowError, handleRateLimitForNextJs } from "./checkRateLimitAndThrowError";
+import {
+  checkRateLimitAndThrowError,
+  handleRateLimitForNextJs,
+  withRateLimit,
+} from "./checkRateLimitAndThrowError";
 import { rateLimiter } from "./rateLimit";
 import type { RatelimitResponse } from "./rateLimit";
 
@@ -219,5 +223,210 @@ describe("handleRateLimitForNextJs", () => {
     await handleRateLimitForNextJs(context, identifier, "core", opts);
 
     expect(mockRateLimiter).toHaveBeenCalled();
+  });
+});
+
+describe("withRateLimit", () => {
+  const createMockContext = (): GetServerSidePropsContext => {
+    return {
+      req: {
+        headers: {
+          "cf-connecting-ip": "192.168.1.1",
+        },
+      } as unknown as GetServerSidePropsContext["req"],
+      res: {
+        statusCode: 200,
+      } as unknown as GetServerSidePropsContext["res"],
+    } as GetServerSidePropsContext;
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should use IP-based identifier by default and call handler when rate limit passes", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    const mockRateLimiter = vi.fn(() => {
+      return {
+        limit: 10,
+        remaining: 5,
+        reset: Date.now() + 10000,
+        success: true,
+      } as RatelimitResponse;
+    });
+
+    vi.mocked(rateLimiter).mockReturnValue(mockRateLimiter);
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(async () => ({
+      props: { test: "data" },
+    }));
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler);
+    const result = await wrappedHandler(context);
+
+    expect(mockRateLimiter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identifier: "[user]/[type]-hashed-127.0.0.1",
+      })
+    );
+    expect(mockHandler).toHaveBeenCalledWith(context);
+    expect(result).toEqual({ props: { test: "data" } });
+  });
+
+  it("should return rate limit error when rate limit is exceeded", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    const resetTime = Date.now() + 10000;
+    vi.mocked(rateLimiter).mockReturnValue(() => {
+      return {
+        limit: 10,
+        remaining: -1,
+        reset: resetTime,
+        success: false,
+      } as RatelimitResponse;
+    });
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(async () => ({
+      props: { test: "data" },
+    }));
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler);
+    const result = await wrappedHandler(context);
+
+    expect(mockHandler).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      props: {
+        errorMessage: expect.stringContaining("Rate limit exceeded. Try again in"),
+      },
+    });
+    expect(context.res.statusCode).toBe(429);
+  });
+
+  it("should use custom identifier function when provided", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    const mockRateLimiter = vi.fn(() => {
+      return {
+        limit: 10,
+        remaining: 5,
+        reset: Date.now() + 10000,
+        success: true,
+      } as RatelimitResponse;
+    });
+
+    vi.mocked(rateLimiter).mockReturnValue(mockRateLimiter);
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(async () => ({
+      props: { test: "data" },
+    }));
+
+    const customIdentifier = vi.fn((ctx: GetServerSidePropsContext) => {
+      return `custom-${ctx.req.headers["cf-connecting-ip"]}`;
+    });
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler, "core", customIdentifier);
+    await wrappedHandler(context);
+
+    expect(customIdentifier).toHaveBeenCalledWith(context);
+    expect(mockRateLimiter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identifier: "custom-192.168.1.1",
+      })
+    );
+    expect(mockHandler).toHaveBeenCalledWith(context);
+  });
+
+  it("should use custom rate limiting type", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    const mockRateLimiter = vi.fn(() => {
+      return {
+        limit: 10,
+        remaining: 5,
+        reset: Date.now() + 10000,
+        success: true,
+      } as RatelimitResponse;
+    });
+
+    vi.mocked(rateLimiter).mockReturnValue(mockRateLimiter);
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(async () => ({
+      props: { test: "data" },
+    }));
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler, "common");
+    await wrappedHandler(context);
+
+    expect(mockRateLimiter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rateLimitingType: "common",
+      })
+    );
+  });
+
+  it("should pass through redirect responses from handler", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    vi.mocked(rateLimiter).mockReturnValue(() => {
+      return {
+        limit: 10,
+        remaining: 5,
+        reset: Date.now() + 10000,
+        success: true,
+      } as RatelimitResponse;
+    });
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(async () => ({
+      redirect: {
+        permanent: false,
+        destination: "/somewhere",
+      },
+    }));
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler);
+    const result = await wrappedHandler(context);
+
+    expect(mockHandler).toHaveBeenCalled();
+    expect(result).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "/somewhere",
+      },
+    });
+  });
+
+  it("should pass through notFound responses from handler", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+
+    vi.mocked(rateLimiter).mockReturnValue(() => {
+      return {
+        limit: 10,
+        remaining: 5,
+        reset: Date.now() + 10000,
+        success: true,
+      } as RatelimitResponse;
+    });
+
+    const context = createMockContext();
+    const mockHandler = vi.fn(
+      async () =>
+        ({
+          notFound: true,
+        } as const)
+    );
+
+    const wrappedHandler = withRateLimit("[user]/[type]", mockHandler);
+    const result = await wrappedHandler(context);
+
+    expect(mockHandler).toHaveBeenCalled();
+    expect(result).toEqual({
+      notFound: true,
+    });
   });
 });
