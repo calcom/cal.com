@@ -8,14 +8,12 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
@@ -83,11 +81,9 @@ type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   // handle IP based rate limiting
-  const requestorIp = getIP(context.req as unknown as Request);
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: `[user]-${piiHasher.hash(requestorIp)}`,
-  });
+  const rateLimitResponse = await handleRateLimitForNextJs(context, "[user]");
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
