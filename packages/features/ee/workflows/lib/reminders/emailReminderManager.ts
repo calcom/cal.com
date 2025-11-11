@@ -21,7 +21,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
-import type { FormSubmissionData } from "./reminderScheduler";
+import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -45,13 +45,7 @@ export type ScheduleReminderArgs = {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
-} & (
-  | { evt: BookingInfo; formData?: never }
-  | {
-      evt?: never;
-      formData: FormSubmissionData;
-    }
-);
+} & WorkflowContextData;
 
 type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   sendTo: string[];
