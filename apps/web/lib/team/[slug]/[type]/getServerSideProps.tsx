@@ -9,7 +9,6 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
-import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
@@ -20,6 +19,7 @@ import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enum
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { handleRateLimitForNextJs } from "@lib/handleRatelimit";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),

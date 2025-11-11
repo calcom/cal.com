@@ -11,7 +11,6 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
@@ -19,6 +18,7 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { handleRateLimitForNextJs } from "@lib/handleRatelimit";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
