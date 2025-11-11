@@ -1,4 +1,4 @@
-import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";

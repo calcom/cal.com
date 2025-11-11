@@ -1,13 +1,13 @@
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 
-import type { Feedback } from "./templates/feedback-email";
-import FeedbackEmail from "./templates/feedback-email";
-import type { WorkflowEmailData } from "./templates/workflow-email";
-import WorkflowEmail from "./templates/workflow-email";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
-import MonthlyDigestEmail from "./templates/monthly-digest-email";
 import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
+import type { Feedback } from "./templates/feedback-email";
+import FeedbackEmail from "./templates/feedback-email";
+import MonthlyDigestEmail from "./templates/monthly-digest-email";
+import type { WorkflowEmailData } from "./templates/workflow-email";
+import WorkflowEmail from "./templates/workflow-email";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -28,7 +28,7 @@ export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
   await sendEmail(() => new WorkflowEmail(emailData));
 };
 
-export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
+export const sendMonthlyDigestEmail = async (eventData: MonthlyDigestEmailData) => {
   await sendEmail(() => new MonthlyDigestEmail(eventData));
 };
 

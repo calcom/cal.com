@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
+import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
