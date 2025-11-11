@@ -7,6 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
+import { HttpError } from "@calcom/lib/http-error";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
@@ -60,13 +61,18 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
   if (isStaticFile) return isStaticFile;
 
-  // This is where we do our rate limiting
   const requestorIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: `${req.nextUrl.pathname}-${piiHasher.hash(requestorIp)}`,
-  });
+  try {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `${req.nextUrl.pathname}-${piiHasher.hash(requestorIp)}`,
+    });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return new NextResponse(error.message, { status: error.statusCode });
+    }
+    throw error;
+  }
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
