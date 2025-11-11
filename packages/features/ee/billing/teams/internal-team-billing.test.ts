@@ -5,10 +5,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import * as billingModule from "..";
 import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { TeamBillingPublishResponseStatus } from "./team-billing";
+
+const mockBillingServiceMethods = {
+  handleSubscriptionCancel: vi.fn(),
+  handleSubscriptionUpdate: vi.fn(),
+  checkoutSessionIsPaid: vi.fn(),
+  getSubscriptionStatus: vi.fn(),
+  handleEndTrial: vi.fn(),
+};
+
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
+  StripeBillingService: vi.fn().mockImplementation(() => mockBillingServiceMethods),
+}));
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");
@@ -43,8 +54,11 @@ const mockTeam = {
 };
 
 describe("InternalTeamBilling", () => {
+  let internalTeamBilling: InternalTeamBilling;
+
   beforeEach(() => {
     vi.resetAllMocks();
+    internalTeamBilling = new InternalTeamBilling(mockTeam);
   });
 
   afterEach(() => {
@@ -52,11 +66,10 @@ describe("InternalTeamBilling", () => {
   });
 
   describe("cancel", () => {
-    const internalTeamBilling = new InternalTeamBilling(mockTeam);
     it("should cancel the subscription and downgrade the team", async () => {
       await internalTeamBilling.cancel();
 
-      expect(billingModule.default.handleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
+      expect(mockBillingServiceMethods.handleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
       expect(prismaMock.team.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
@@ -69,7 +82,7 @@ describe("InternalTeamBilling", () => {
   describe("publish", () => {
     const internalTeamBilling = new InternalTeamBilling(mockTeam);
     it("should create a checkout session and update the team", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(false);
+      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(false);
       vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
         url: "http://checkout.url",
       });
@@ -123,7 +136,7 @@ describe("InternalTeamBilling", () => {
 
       await internalTeamBilling.updateQuantity();
 
-      expect(billingModule.default.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      expect(mockBillingServiceMethods.handleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_456",
         membershipCount: 10,
@@ -141,12 +154,11 @@ describe("InternalTeamBilling", () => {
 
       await internalTeamBilling.updateQuantity();
 
-      expect(billingModule.default.handleSubscriptionUpdate).not.toHaveBeenCalled();
+      expect(mockBillingServiceMethods.handleSubscriptionUpdate).not.toHaveBeenCalled();
     });
   });
 
   describe("checkIfTeamPaymentRequired", () => {
-    const internalTeamBilling = new InternalTeamBilling(mockTeam);
     it("should return payment required if no paymentId", async () => {
       internalTeamBilling.team.metadata.paymentId = undefined;
 
@@ -156,7 +168,7 @@ describe("InternalTeamBilling", () => {
     });
 
     it("should return payment required if checkout session is not paid", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(false);
+      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(false);
       const internalTeamBilling = new InternalTeamBilling(mockTeam);
 
       const result = await internalTeamBilling.checkIfTeamPaymentRequired();
@@ -165,8 +177,7 @@ describe("InternalTeamBilling", () => {
     });
 
     it("should return upgrade URL if checkout session is paid", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(true);
-      const internalTeamBilling = new InternalTeamBilling(mockTeam);
+      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(true);
       const result = await internalTeamBilling.checkIfTeamPaymentRequired();
 
       expect(result).toEqual({
