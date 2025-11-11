@@ -18,7 +18,6 @@ import {
   PHONE_NUMBER,
   EMAIL,
   WorkflowEmailAttendeeStepDto,
-  WorkflowEmailAddressStepDto,
   UpdateEmailAddressWorkflowStepDto,
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";
@@ -425,18 +424,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             text: "Update Reminder for your event {EVENT_NAME}.</p>",
           },
         },
-        {
-          stepNumber: 3,
-          action: "cal_ai_phone_call",
-          recipient: PHONE_NUMBER,
-          template: REMINDER,
-          verifiedPhoneId: verifiedPhoneId,
-          sender: "CalcomE2EStep3",
-          message: {
-            subject: "Upcoming: {EVENT_NAME}",
-            text: "Reminder for your event {EVENT_NAME}.",
-          },
-        } as unknown as WorkflowEmailAddressStepDto,
       ];
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
