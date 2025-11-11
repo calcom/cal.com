@@ -1,5 +1,4 @@
 import { schemaTask } from "@trigger.dev/sdk";
-import { taskMachineAndRetryConfig } from "bookings/lib/tasker/trigger/notifications/config";
 
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -7,6 +6,7 @@ import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
 import { prisma } from "@calcom/prisma";
 
 import { BookingEmailAndSmsTaskService } from "../../BookingEmailAndSmsTaskService";
+import { taskMachineAndRetryConfig } from "./config";
 import { bookingNotificationTaskSchema, BookingNotificationPayload } from "./schema";
 
 export const rrReschedule = schemaTask({
