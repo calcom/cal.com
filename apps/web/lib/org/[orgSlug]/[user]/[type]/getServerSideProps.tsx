@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
@@ -25,35 +25,22 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (rateLimitResponse) return rateLimitResponse;
 
   const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
-    const team = await prisma.team.findFirst({
-      where: {
-        slug: slugify(teamOrUserSlugOrDynamicGroup),
-        parentId: {
-          not: null,
-        },
-        parent: getSlugOrRequestedSlug(orgSlug),
+  const team = await prisma.team.findFirst({
+    where: {
+      slug: slugify(teamOrUserSlugOrDynamicGroup),
+      parentId: {
+        not: null,
       },
-      select: {
-        id: true,
-      },
-    });
+      parent: getSlugOrRequestedSlug(orgSlug),
+    },
+    select: {
+      id: true,
+    },
+  });
 
-    if (team) {
-      const params = { slug: teamOrUserSlugOrDynamicGroup, type };
-      return GSSTeamTypePage({
-        ...ctx,
-        params: {
-          ...ctx.params,
-          ...params,
-        },
-        query: {
-          ...ctx.query,
-          ...params,
-        },
-      });
-    }
-    const params = { user: teamOrUserSlugOrDynamicGroup, type };
-    return GSSUserTypePage({
+  if (team) {
+    const params = { slug: teamOrUserSlugOrDynamicGroup, type };
+    return GSSTeamTypePage({
       ...ctx,
       params: {
         ...ctx.params,
@@ -65,4 +52,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     });
   }
-);
+  const params = { user: teamOrUserSlugOrDynamicGroup, type };
+  return GSSUserTypePage({
+    ...ctx,
+    params: {
+      ...ctx.params,
+      ...params,
+    },
+    query: {
+      ...ctx.query,
+      ...params,
+    },
+  });
+};
