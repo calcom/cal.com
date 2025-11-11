@@ -2,11 +2,11 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
 import type { TMoveToOrganizationSchema } from "./moveToOrganization.schema";
 
 type MoveToOrganizationOptions = {
