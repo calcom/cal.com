@@ -6,6 +6,7 @@ import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/l
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
@@ -24,6 +25,7 @@ export async function handleBookingRequested(args: {
   booking: {
     smsReminderNumber: string | null;
     eventType: {
+      parentId?: number | null;
       workflows: {
         workflow: Workflow;
       }[];
@@ -75,11 +77,18 @@ export async function handleBookingRequested(args: {
     log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,
-      organizationId: booking.eventType?.team?.parentId ?? null,
+      organizationId: orgId ?? null,
     });
   }
 

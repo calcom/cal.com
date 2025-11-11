@@ -11,6 +11,8 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -97,11 +99,18 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
     const hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: booking.eventType?.id ?? 0,
       team: booking.eventType?.team ?? null,
       owner: userWithCredentials ?? null,
-      organizationId: booking.eventType?.team?.parentId ?? userWithCredentials?.organizationId ?? null,
+      organizationId: orgId ?? null,
     });
 
     await sendScheduledEmailsAndSMS(
