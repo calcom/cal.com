@@ -35,14 +35,6 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
-export function checkStaticFiles(pathname: string) {
-  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
-  // Skip Next.js internal paths (_next) and static assets
-  if (pathname.startsWith("/_next") || hasFileExtension) {
-    return NextResponse.next();
-  }
-}
-
 const isPagePathRequest = (url: URL) => {
   const isNonPagePathPrefix = /^\/(?:_next|api)\//;
   const isFile = /\..*$/;
@@ -57,9 +49,6 @@ const shouldEnforceCsp = (url: URL) => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
-
-  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
-  if (isStaticFile) return isStaticFile;
 
   const requestorIp = getIP(req);
   try {
