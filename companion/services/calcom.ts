@@ -262,6 +262,34 @@ export class CalComAPIService {
     return response.json();
   }
 
+  // Delete an event type
+  static async deleteEventType(eventTypeId: number): Promise<void> {
+    try {
+      await this.makeRequest(`/event-types/${eventTypeId}`, {
+        method: 'DELETE',
+      }, '2024-06-14');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Cancel a booking
+  static async cancelBooking(bookingUid: string, reason?: string): Promise<void> {
+    try {
+      const body: { reason?: string } = {};
+      if (reason) {
+        body.reason = reason;
+      }
+
+      await this.makeRequest(`/bookings/${bookingUid}/cancel`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async getEventTypes(): Promise<EventType[]> {
     try {
       // Get current user to extract username
@@ -494,6 +522,40 @@ export class CalComAPIService {
 
       return null;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get specific schedule by ID
+  static async getScheduleById(scheduleId: number): Promise<Schedule | null> {
+    try {
+      const response = await this.makeRequest<any>(
+        `/schedules/${scheduleId}`,
+        {
+          headers: {
+            "cal-api-version": "2024-06-11", // Override version for schedules
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("getScheduleById raw response:", JSON.stringify(response, null, 2));
+
+      if (response && response.data) {
+        console.log("Returning schedule data:", response.data);
+        return response.data;
+      }
+
+      // Sometimes the response might be the schedule directly
+      if (response && response.id) {
+        console.log("Returning schedule directly:", response);
+        return response;
+      }
+
+      console.log("No schedule data found in response");
+      return null;
+    } catch (error) {
+      console.error("getScheduleById error:", error);
       throw error;
     }
   }
