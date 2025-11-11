@@ -62,6 +62,7 @@ export const ZUpdateInputSchema = z.object({
     .optional(),
   voiceId: z.string().optional(),
   language: languageSchema.optional(),
+  outboundEventTypeId: z.number().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
