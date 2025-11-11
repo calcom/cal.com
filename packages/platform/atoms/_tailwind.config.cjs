@@ -3,6 +3,17 @@ const base = require("@calcom/config/tailwind-preset");
 module.exports = {
   ...base,
   content: [...base.content, "../../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx,mdx}", "./**/*.tsx"],
+  safelist: [
+    {
+      pattern: /^max-w-(2xl|3xl|4xl|5xl|6xl)$/,
+      variants: ["sm"],
+    },
+    // Arbitrary values must be listed as explicit strings
+    "sm:max-w-[35rem]",
+    "sm:max-w-[48rem]", // This is what the Dialog md size uses
+    "sm:max-w-[70rem]",
+    "sm:max-w-[90rem]",
+  ],
   plugins: [...base.plugins, require("tailwindcss-animate")],
   theme: {
     ...base.theme,

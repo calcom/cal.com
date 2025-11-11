@@ -1,10 +1,6 @@
-const config = {
+export default {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-    "postcss-import": {},
-    "postcss-prefixwrap": `.calcom-atoms`,
+    "@tailwindcss/postcss": {},
+    "postcss-prefixwrap": ".calcom-atoms",
   },
 };
-
-export default config;
