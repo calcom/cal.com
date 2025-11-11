@@ -8,7 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-import { moveTeamToOrg } from "../../../playwright/lib/orgMigration";
+import { moveTeamToOrg } from "../../../lib/orgMigration";
 
 const log = logger.getSubLogger({ prefix: ["moveTeamToOrg"] });
 
