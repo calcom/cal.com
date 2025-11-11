@@ -608,4 +608,36 @@ export class CalComAPIService {
       throw error;
     }
   }
+
+  // Update an event type
+  static async updateEventType(
+    eventTypeId: number,
+    updates: {
+      locations?: Array<{
+        type: string;
+        integration: string;
+        public: boolean;
+      }>;
+    }
+  ): Promise<EventType> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: EventType }>(
+        `/event-types/${eventTypeId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(updates),
+        },
+        "2024-06-14"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update event type API");
+    } catch (error) {
+      console.error("updateEventType error:", error);
+      throw error;
+    }
+  }
 }

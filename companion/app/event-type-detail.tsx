@@ -2,7 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Modal } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Switch,
+  Modal,
+  Alert,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
@@ -54,6 +64,7 @@ export default function EventTypeDetail() {
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
+  const [saving, setSaving] = useState(false);
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -95,6 +106,13 @@ export default function EventTypeDetail() {
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+  };
+
+  const displayNameToAppId = (displayName: string): string | null => {
+    // Convert display name like "Google Meet" back to "google-meet"
+    // Find matching conferencing option
+    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    return option ? option.appId : null;
   };
 
   const getLocationOptions = (): string[] => {
@@ -299,6 +317,61 @@ export default function EventTypeDetail() {
     // In a real app, you'd show an alert and call the delete API
   };
 
+  const handleSave = async () => {
+    if (!id) {
+      Alert.alert("Error", "Event type ID is missing");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Prepare location update if a location is selected
+      const updates: {
+        locations?: Array<{
+          type: string;
+          integration: string;
+          public: boolean;
+        }>;
+      } = {};
+
+      if (selectedLocation) {
+        const integrationId = displayNameToAppId(selectedLocation);
+        if (!integrationId) {
+          Alert.alert("Error", "Invalid location selected");
+          setSaving(false);
+          return;
+        }
+
+        // The API accepts: cal-video, google-meet, zoom
+        // Use the appId directly from conferencing options
+        updates.locations = [
+          {
+            type: "integration",
+            integration: integrationId,
+            public: true,
+          },
+        ];
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updates).length > 0) {
+        await CalComAPIService.updateEventType(parseInt(id), updates);
+        Alert.alert("Success", "Event type updated successfully");
+
+        // Refresh event type data
+        await fetchEventTypeData();
+      } else {
+        Alert.alert("Info", "No changes to save");
+      }
+    } catch (error) {
+      console.error("Failed to update event type:", error);
+      Alert.alert("Error", "Failed to update event type. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -314,8 +387,11 @@ export default function EventTypeDetail() {
               {truncateTitle(title)}
             </Text>
 
-            <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
-              <Text style={styles.saveButtonText}>Save</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={saving}>
+              <Text style={styles.saveButtonText}>{saving ? "Saving..." : "Save"}</Text>
             </TouchableOpacity>
           </View>
         </GlassView>
@@ -796,6 +872,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   tabsContainer: {
     position: "absolute",
