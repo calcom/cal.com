@@ -174,6 +174,7 @@ export class RetellAIServiceMapper {
       userId: agent.userId,
       teamId: agent.teamId,
       inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       outboundPhoneNumbers: agent.outboundPhoneNumbers,
       retellData: {
         agentId: retellAgent.agent_id,

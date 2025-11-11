@@ -325,7 +325,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
 
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent title={t("mark_as_no_show")}>
+        <DialogContent title={t("mark_as_no_show")} enableOverflow>
           <div className="space-y-2">
             {attendees.map((attendee, index) => (
               <label key={attendee.email} className="flex items-center space-x-2">
@@ -514,7 +514,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuContent>
-            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
+            <DropdownMenuLabel className="p-2">{t("edit_event")}</DropdownMenuLabel>
             {editEventActions.map((action) => (
               <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
@@ -531,8 +531,8 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
+            <DropdownMenuSeparator className="!my-1 bg-subtle" />
+            <DropdownMenuLabel className="p-2">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
               <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
@@ -550,7 +550,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
               </DropdownMenuItem>
             ))}
             <>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="!my-1 bg-subtle" />
               <DropdownMenuItem
                 className="rounded-lg"
                 key={reportActionWithHandler.id}
@@ -567,7 +567,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                 </DropdownItem>
               </DropdownMenuItem>
             </>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="!my-1 bg-subtle" />
             <DropdownMenuItem
               className="rounded-lg"
               key={cancelEventAction.id}
