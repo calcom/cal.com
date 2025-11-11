@@ -11,7 +11,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -325,16 +325,23 @@ async function sendGuestNotifications(
   booking: Booking,
   uniqueGuests: string[]
 ): Promise<void> {
+  const shouldSendAddGuestsEmail = booking.status === BookingStatus.ACCEPTED;
+  if (!shouldSendAddGuestsEmail) return;
+
   const emailsAndSmsHandler = new BookingEmailSmsHandler({
     logger: logger,
   });
 
-  await emailsAndSmsHandler.handleAddGuests({
-    evt,
-    eventType: {
-      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
-      schedulingType: booking.eventType?.schedulingType || null,
-    },
-    newGuests: uniqueGuests,
-  });
+  try {
+    await emailsAndSmsHandler.handleAddGuests({
+      evt,
+      eventType: {
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
+        schedulingType: booking.eventType?.schedulingType || null,
+      },
+      newGuests: uniqueGuests,
+    });
+  } catch (err) {
+    console.error("Error sending AddGuestsEmails", err);
+  }
 }

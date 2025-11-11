@@ -105,34 +105,39 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     isBookingFromRoutingForm,
     getSeatReferenceUid,
     isAttendee,
+    isPending,
     t,
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
   const actions: (ActionType | null)[] = [
-    {
-      id: "reschedule",
-      icon: "clock",
-      label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length && isAttendee && seatReferenceUid
-          ? `?seatReferenceUid=${seatReferenceUid}`
-          : ""
-      }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    },
-    {
-      id: "reschedule_request",
-      icon: "send",
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
-        isDisabledRescheduling ||
-        booking.seatsReferences.length > 0,
-    },
-    isBookingFromRoutingForm
+    !isPending
+      ? {
+          id: "reschedule",
+          icon: "clock",
+          label: t("reschedule_booking"),
+          href: `/reschedule/${booking.uid}${
+            booking.seatsReferences.length && isAttendee && seatReferenceUid
+              ? `?seatReferenceUid=${seatReferenceUid}`
+              : ""
+          }`,
+          disabled:
+            (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+        }
+      : null,
+    !isPending
+      ? {
+          id: "reschedule_request",
+          icon: "send",
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("send_reschedule_request"),
+          disabled:
+            (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+            isDisabledRescheduling ||
+            booking.seatsReferences.length > 0,
+        }
+      : null,
+    isBookingFromRoutingForm && !isPending
       ? {
           id: "reroute",
           label: t("reroute"),
@@ -154,7 +159,8 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
-    // Reassign if round robin with no or one host groups
+    // Reassign if round robin with no or one host groups (only for accepted bookings)
+    !isPending &&
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
       ? {
@@ -212,8 +218,8 @@ export function shouldShowPendingActions(context: BookingActionContext): boolean
 }
 
 export function shouldShowEditActions(context: BookingActionContext): boolean {
-  const { isPending, isTabRecurring, isRecurring, isCancelled } = context;
-  return !isPending && !(isTabRecurring && isRecurring) && !isCancelled;
+  const { isTabRecurring, isRecurring, isCancelled } = context;
+  return !(isTabRecurring && isRecurring) && !isCancelled;
 }
 
 export function shouldShowRecurringCancelAction(context: BookingActionContext): boolean {
