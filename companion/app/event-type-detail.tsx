@@ -582,8 +582,6 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
-          {/* thanks, now If I open a location dropdown and select a value from dropdown and click save button , I should be able to  */}
-
           {/* Location Dropdown Modal */}
           <Modal
             visible={showLocationDropdown}
