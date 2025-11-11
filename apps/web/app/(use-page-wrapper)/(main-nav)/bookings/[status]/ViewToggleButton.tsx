@@ -3,6 +3,7 @@
 import { useQueryState } from "nuqs";
 import { useEffect } from "react";
 
+import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -16,6 +17,7 @@ export function ViewToggleButton() {
     "view",
     viewParser.withDefault("list").withOptions({ clearOnDefault: true })
   );
+  const [, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
   const isMobile = !useMediaQuery("(min-width: 640px)");
 
   useEffect(() => {
@@ -31,7 +33,14 @@ export function ViewToggleButton() {
         value={view}
         onValueChange={(value) => {
           if (!value) return;
-          setView(value as BookingView);
+          const newView = value as BookingView;
+
+          // When switching from calendar to list view, remove the dateRange filter
+          if (view === "calendar" && newView === "list") {
+            setActiveFilters((prev) => prev?.filter((filter) => filter.f !== "dateRange") ?? []);
+          }
+
+          setView(newView);
         }}
         options={[
           {
