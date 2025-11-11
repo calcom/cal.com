@@ -8,6 +8,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -22,7 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -337,13 +339,19 @@ async function sendGuestNotifications(
         }
       : null;
 
-    const organizationId = booking.eventType?.team?.parentId ?? null;
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId,
       team,
       owner: booking.eventType?.owner ?? null,
-      organizationId,
+      organizationId: orgId ?? null,
     });
   }
 

@@ -8,10 +8,11 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -252,7 +253,6 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { booking, user: loggedInUser } = ctx;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
-  const ownerProfile = await ProfileRepository.findFirstForUserId({ userId: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
@@ -290,11 +290,18 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
     if (eventTypeId) {
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
+        },
+      });
+      const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
       hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
-        organizationId: booking.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null,
+        organizationId: orgId ?? null,
       });
     }
 
