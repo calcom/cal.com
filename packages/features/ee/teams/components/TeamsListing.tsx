@@ -22,8 +22,10 @@ type TeamsListingProps = {
   orgId: number | null;
   permissions: {
     canCreateTeam: boolean;
+    canMoveTeams?: boolean;
   };
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  standaloneTeams?: RouterOutputs["viewer"]["teams"]["list"];
   teamNameFromInvite: string | null;
   errorMsgFromInvite: string | null;
 };
@@ -33,6 +35,7 @@ export function TeamsListing({
   orgId,
   permissions,
   teams: data,
+  standaloneTeams = [],
   teamNameFromInvite,
   errorMsgFromInvite,
 }: TeamsListingProps) {
@@ -128,6 +131,13 @@ export function TeamsListing({
       )}
 
       {teams.length > 0 && <TeamList orgId={orgId} teams={teams} />}
+
+      {standaloneTeams.length > 0 && orgId && permissions.canMoveTeams && (
+        <div className="bg-subtle mb-6 rounded-md p-5">
+          <Label className="text-emphasis pb-2  font-semibold">{t("teams_not_in_organization")}</Label>
+          <TeamList orgId={orgId} teams={standaloneTeams} showMoveToOrg />
+        </div>
+      )}
 
       {teams.length === 0 && (
         <UpgradeTip

@@ -22,6 +22,10 @@ interface Props {
    * True for teams that are pending invite acceptance
    */
   pending?: boolean;
+  /**
+   * True to show "Move to Organization" action
+   */
+  showMoveToOrg?: boolean;
 }
 
 export default function TeamList(props: Props) {
@@ -121,6 +125,7 @@ export default function TeamList(props: Props) {
           isPending={deleteTeamMutation.isPending}
           hideDropdown={hideDropdown}
           setHideDropdown={setHideDropdown}
+          showMoveToOrg={props.showMoveToOrg}
         />
       ))}
       {/* only show recommended steps when there is only one team */}

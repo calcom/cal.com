@@ -541,6 +541,46 @@ export class TeamRepository {
     return users;
   }
 
+  async findStandaloneTeamsByUserId({ userId }: { userId: number }) {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        userId: userId,
+        accepted: true,
+        team: {
+          isOrganization: false,
+          parentId: null,
+        },
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            isOrganization: true,
+            metadata: true,
+            parentId: true,
+            _count: {
+              select: {
+                members: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { role: "desc" },
+    });
+
+    return memberships.map(({ team, ...membership }) => ({
+      role: membership.role,
+      accepted: membership.accepted,
+      ...team,
+      metadata: teamMetadataSchema.parse(team.metadata),
+      memberCount: team._count.members,
+    }));
+  }
+
   private parsePermission(permission: string): { resource: string; action: string } {
     const lastDotIndex = permission.lastIndexOf(".");
     const resource = permission.substring(0, lastDotIndex);

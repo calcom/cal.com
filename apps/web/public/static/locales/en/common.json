@@ -3959,5 +3959,8 @@
   "team_invite": "Team Invite",
   "team_invite_subtitle": "Invite team members to collaborate and schedule together",
   "team_onboarding_details_subtitle": "Add your team's name and create a unique URL for your team",
+  "teams_not_in_organization": "Teams not in organization",
+  "move_team_to_organization": "Move team to organization",
+  "team_moved_to_organization_successfully": "Team successfully moved to organization",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

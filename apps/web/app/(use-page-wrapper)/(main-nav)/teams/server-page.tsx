@@ -25,6 +25,15 @@ const getCachedTeams = unstable_cache(
   { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
 );
 
+const getCachedStandaloneTeams = unstable_cache(
+  async (userId: number) => {
+    const teamRepo = new TeamRepository(prisma);
+    return await teamRepo.findStandaloneTeamsByUserId({ userId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.teams.listStandalone"] } // Cache for 1 hour
+);
+
 export const ServerTeamsListing = async ({
   searchParams,
   session,
@@ -57,6 +66,7 @@ export const ServerTeamsListing = async ({
   }
 
   const teams = await getCachedTeams(userId);
+  const standaloneTeams = await getCachedStandaloneTeams(userId);
   const userProfile = session?.user?.profile;
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
 
@@ -70,14 +80,25 @@ export const ServerTeamsListing = async ({
       })
     : false;
 
+  const canMoveTeams = orgId
+    ? await permissionCheckService.checkPermission({
+        userId: session.user.id,
+        teamId: orgId,
+        permission: "team.create",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })
+    : false;
+
   return {
     Main: (
       <TeamsListing
         invitationAccepted={invitationAccepted}
         teams={teams}
+        standaloneTeams={standaloneTeams}
         orgId={orgId ?? null}
         permissions={{
           canCreateTeam: canCreateTeam,
+          canMoveTeams: canMoveTeams,
         }}
         teamNameFromInvite={teamNameFromInvite ?? null}
         errorMsgFromInvite={errorMsgFromInvite}
