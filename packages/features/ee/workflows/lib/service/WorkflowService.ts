@@ -86,10 +86,12 @@ export class WorkflowService {
     responses,
     form,
     responseId,
+    routedEventTypeId,
   }: {
     responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    routedEventTypeId: number | null;
     form: {
       id: string;
       userId: number;
@@ -131,6 +133,7 @@ export class WorkflowService {
       formData: {
         responses,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
+        routedEventTypeId,
       },
       hideBranding,
       workflows: workflowsToTrigger,
@@ -156,6 +159,7 @@ export class WorkflowService {
           responses,
           smsReminderNumber,
           hideBranding,
+          routedEventTypeId,
           form: {
             id: form.id,
             userId: form.userId,
