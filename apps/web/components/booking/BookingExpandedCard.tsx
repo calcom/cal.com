@@ -130,7 +130,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.phone as string | undefined;
+  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.attendeePhoneNumber as string | undefined;
   const openWhatsAppChat = (phoneNumber: string) => {
     const width = 800;
     const height = 600;
