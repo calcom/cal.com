@@ -12,19 +12,25 @@ type UpdateHandlerOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
-  const { id, teamId, name, enabled, ...retellUpdates } = input;
+  const { id, teamId, name, outboundEventTypeId, ...retellUpdates } = input;
 
   const aiService = createDefaultAIPhoneServiceProvider();
+  const userId = ctx.user.id;
+  const userTimeZone = ctx.user.timeZone || "UTC";
+
+  const updatedPrompt = retellUpdates.generalPrompt ?? undefined;
 
   return await aiService.updateAgentConfiguration({
     id,
-    userId: ctx.user.id,
+    userId,
     teamId,
     name,
-    generalPrompt: retellUpdates.generalPrompt ?? undefined,
+    generalPrompt: updatedPrompt,
     beginMessage: retellUpdates.beginMessage ?? undefined,
     generalTools: retellUpdates.generalTools as RetellLLMGeneralTools,
     voiceId: retellUpdates.voiceId,
     language: retellUpdates.language,
+    outboundEventTypeId,
+    timeZone: userTimeZone,
   });
 };
