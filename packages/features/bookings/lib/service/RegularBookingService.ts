@@ -567,7 +567,7 @@ async function handler(
     });
   }
 
-  if (eventType.requiresBookerEmailVerification) {
+  if (eventType.requiresBookerEmailVerification && !rawBookingData.rescheduleUid) {
     const verificationCode = reqBody.verificationCode;
     if (!verificationCode) {
       throw new HttpError({
