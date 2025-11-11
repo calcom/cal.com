@@ -7,24 +7,24 @@ export interface PiiHasher {
 export class Md5PiiHasher implements PiiHasher {
   constructor(private readonly salt: string) {}
   hash(input: string) {
-    // FNV-1a 64-bit implemented with BigInt, repeated twice with variant salt to get 128-bit hex
-    const fnv1a64 = (str: string) => {
+    // FNV-1a 32-bit using Math.imul, repeated 4 times with variant salt to get 128-bit hex
+    const fnv1a32 = (str: string) => {
       // Convert to UTF-8 bytes without relying on TextEncoder/Buffer
       const data = unescape(encodeURIComponent(str));
-      let hash = 0xcbf29ce484222325n; // offset basis
-      const prime = 0x100000001b3n; // FNV prime
+      let hash = 0x811c9dc5; // offset basis (2166136261)
       for (let i = 0; i < data.length; i++) {
-        hash ^= BigInt(data.charCodeAt(i));
-        hash = (hash * prime) & 0xffffffffffffffffn; // keep 64-bit
+        hash = Math.imul(hash ^ data.charCodeAt(i), 0x01000193); // 16777619
       }
-      return hash;
+      return hash >>> 0; // unsigned 32-bit
     };
 
-    // Two independent 64-bit hashes to produce a stable 128-bit hex string
-    const h1 = fnv1a64(`${this.salt}::a::${input}`);
-    const h2 = fnv1a64(`${this.salt}::b::${input}`);
-    const toHex16 = (n: bigint) => n.toString(16).padStart(16, "0");
-    return `${toHex16(h1)}${toHex16(h2)}`;
+    // Four independent 32-bit hashes to produce a stable 128-bit hex string
+    const h1 = fnv1a32(`${this.salt}::1::${input}`);
+    const h2 = fnv1a32(`${this.salt}::2::${input}`);
+    const h3 = fnv1a32(`${this.salt}::3::${input}`);
+    const h4 = fnv1a32(`${this.salt}::4::${input}`);
+    const toHex8 = (n: number) => n.toString(16).padStart(8, "0");
+    return `${toHex8(h1)}${toHex8(h2)}${toHex8(h3)}${toHex8(h4)}`;
   }
 }
 
