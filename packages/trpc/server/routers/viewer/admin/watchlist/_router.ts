@@ -50,8 +50,8 @@ export const watchlistRouter = router({
     const { default: handler } = await import("./addToWatchlist.handler");
     return handler(opts);
   }),
-  pendingReportsCount: authedAdminProcedure.query(async (opts) => {
+  pendingReportsCount: authedAdminProcedure.query(async () => {
     const { default: handler } = await import("./pendingReportsCount.handler");
-    return handler(opts);
+    return handler();
   }),
 });
