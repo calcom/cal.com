@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable prettier/prettier */
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -45,6 +48,15 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
+
+import { useBookingItemState } from "@components/booking/hooks/useBookingItemState";
+import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
+import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
+import { RerouteDialog } from "@components/dialog/RerouteDialog";
+import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 import { BookingActionsDropdown } from "./BookingActionsDropdown";
 import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
@@ -96,13 +108,17 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
-
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
+
+  // Use our centralized state hook
+  const { dialogState, openDialog, closeDialog, rejectionReason, setRejectionReason } = useBookingItemState();
+
+  const cardCharged = booking?.payment[0]?.success;
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
@@ -119,13 +135,12 @@ function BookingListItem(booking: BookingItemProps) {
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
+        closeDialog("rejection");
         showToast(t("booking_rejection_success"), "success");
       } else {
         showToast(t("booking_confirmation_success"), "success");
       }
       utils.viewer.bookings.invalidate();
-      utils.viewer.me.bookingUnconfirmedCount.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");
@@ -226,7 +241,7 @@ function BookingListItem(booking: BookingItemProps) {
     ...action,
     onClick:
       action.id === "reject"
-        ? () => setRejectionDialogIsOpen(true)
+        ? () => openDialog("rejection")
         : action.id === "confirm"
         ? () => bookingConfirm(true)
         : undefined,
@@ -272,6 +287,51 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const baseEditEventActions = getEditEventActions(actionContext);
+  const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
+    ...action,
+    onClick:
+      action.id === "reschedule_request"
+        ? () => openDialog("reschedule")
+        : action.id === "reroute"
+        ? () => openDialog("reroute")
+        : action.id === "change_location"
+        ? () => openDialog("editLocation")
+        : action.id === "add_members"
+        ? () => openDialog("addGuests")
+        : action.id === "reassign"
+        ? () => openDialog("reassign")
+        : undefined,
+  })) as ActionType[];
+
+  const baseAfterEventActions = getAfterEventActions(actionContext);
+  const afterEventActions: ActionType[] = baseAfterEventActions.map((action) => ({
+    ...action,
+    onClick:
+      action.id === "view_recordings"
+        ? () => openDialog("viewRecordings")
+        : action.id === "meeting_session_details"
+        ? () => openDialog("meetingSessionDetails")
+        : action.id === "charge_card"
+        ? () => openDialog("chargeCard")
+        : action.id === "no_show"
+        ? () => {
+            if (attendeeList.length === 1) {
+              const attendee = attendeeList[0];
+              noShowMutation.mutate({
+                bookingUid: booking.uid,
+                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+              });
+              return;
+            }
+            openDialog("noShowAttendees");
+          }
+        : undefined,
+    disabled:
+      action.disabled ||
+      (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
+      (action.id === "view_recordings" && !booking.isRecorded),
+  })) as ActionType[];
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
 
   const reportAction = getReportAction(actionContext);
@@ -282,6 +342,77 @@ function BookingListItem(booking: BookingItemProps) {
 
   return (
     <>
+      <RescheduleDialog
+        isOpenDialog={dialogState.reschedule}
+        setIsOpenDialog={(open) => (open ? openDialog("reschedule") : closeDialog("reschedule"))}
+        bookingUId={booking.uid}
+      />
+      {dialogState.reassign && (
+        <ReassignDialog
+          isOpenDialog={dialogState.reassign}
+          setIsOpenDialog={(open) => (open ? openDialog("reassign") : closeDialog("reassign"))}
+          bookingId={booking.id}
+          teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingFromRoutingForm}
+        />
+      )}
+      <EditLocationDialog
+        booking={booking}
+        saveLocation={saveLocation}
+        isOpenDialog={dialogState.editLocation}
+        setShowLocationModal={(open) => (open ? openDialog("editLocation") : closeDialog("editLocation"))}
+        teamId={booking.eventType?.team?.id}
+      />
+      <AddGuestsDialog
+        isOpenDialog={dialogState.addGuests}
+        setIsOpenDialog={(open) => (open ? openDialog("addGuests") : closeDialog("addGuests"))}
+        bookingId={booking.id}
+      />
+      <ReportBookingDialog
+        isOpenDialog={isOpenReportDialog}
+        setIsOpenDialog={setIsOpenReportDialog}
+        bookingUid={booking.uid}
+        isRecurring={isRecurring}
+        status={getBookingStatus()}
+      />
+      {booking.paid && booking.payment[0] && (
+        <ChargeCardDialog
+          isOpenDialog={dialogState.chargeCard}
+          setIsOpenDialog={(open) => (open ? openDialog("chargeCard") : closeDialog("chargeCard"))}
+          bookingId={booking.id}
+          paymentAmount={booking.payment[0].amount}
+          paymentCurrency={booking.payment[0].currency}
+        />
+      )}
+      {isCalVideoLocation && (
+        <ViewRecordingsDialog
+          booking={booking}
+          isOpenDialog={dialogState.viewRecordings}
+          setIsOpenDialog={(open) => (open ? openDialog("viewRecordings") : closeDialog("viewRecordings"))}
+          timeFormat={userTimeFormat ?? null}
+        />
+      )}
+      {isCalVideoLocation && dialogState.meetingSessionDetails && (
+        <MeetingSessionDetailsDialog
+          booking={booking}
+          isOpenDialog={dialogState.meetingSessionDetails}
+          setIsOpenDialog={(open) =>
+            open ? openDialog("meetingSessionDetails") : closeDialog("meetingSessionDetails")
+          }
+          timeFormat={userTimeFormat ?? null}
+        />
+      )}
+      {dialogState.noShowAttendees && (
+        <NoShowAttendeesDialog
+          bookingUid={booking.uid}
+          attendees={attendeeList}
+          setIsOpen={(open) => (open ? openDialog("noShowAttendees") : closeDialog("noShowAttendees"))}
+          isOpen={dialogState.noShowAttendees}
+        />
+      )}
+      <Dialog
+        open={dialogState.rejection}
+        onOpenChange={(open) => (open ? openDialog("rejection") : closeDialog("rejection"))}>
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -492,6 +623,14 @@ function BookingListItem(booking: BookingItemProps) {
           isRescheduled={isRescheduled}
         />
       </div>
+
+      {isBookingFromRoutingForm && (
+        <RerouteDialog
+          isOpenDialog={dialogState.reroute}
+          setIsOpenDialog={() => closeDialog("reroute")}
+          booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
+        />
+      )}
     </>
   );
 }
@@ -598,7 +737,7 @@ const RecurringBookingsTooltip = ({
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toString())
+        .map((date: { toString: () => any }) => date.toString())
         .includes(recurringDate.toString())
     );
   }).length;
@@ -616,7 +755,7 @@ const RecurringBookingsTooltip = ({
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toString())
+                    .map((date: { toString: () => any }) => date.toString())
                     .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
