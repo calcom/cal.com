@@ -58,7 +58,7 @@ export interface BookingReportWithDetails {
   organization: {
     id: number;
     name: string;
-    slug: string;
+    slug: string | null;
   } | null;
 }
 
