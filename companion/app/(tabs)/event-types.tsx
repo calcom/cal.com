@@ -403,6 +403,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingVertical: 0,
+    paddingBottom: 90,
   },
   loadingText: {
     marginTop: 16,

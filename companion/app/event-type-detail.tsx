@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CalComAPIService, Schedule } from "../services/calcom";
+import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -38,7 +38,7 @@ export default function EventTypeDetail() {
   const [eventSlug, setEventSlug] = useState("example-meeting");
   const [eventDuration, setEventDuration] = useState(duration || "30");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("Cal Video");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
@@ -51,9 +51,9 @@ export default function EventTypeDetail() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
-
-  // TODO: get locations from API
-  const locationOptions = ["Cal Video", "Google Meet"];
+  const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
+  const [conferencingLoading, setConferencingLoading] = useState(false);
+  const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -87,6 +87,18 @@ export default function EventTypeDetail() {
 
   const truncateTitle = (text: string, maxLength: number = 20) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+  const formatAppIdToDisplayName = (appId: string): string => {
+    // Convert appId like "google-meet" to "Google Meet"
+    return appId
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const getLocationOptions = (): string[] => {
+    return conferencingOptions.map((option) => formatAppIdToDisplayName(option.appId));
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -136,11 +148,55 @@ export default function EventTypeDetail() {
     }
   };
 
+  const fetchConferencingOptions = async () => {
+    try {
+      setConferencingLoading(true);
+      const options = await CalComAPIService.getConferencingOptions();
+      setConferencingOptions(options);
+    } catch (error) {
+      console.error("Failed to fetch conferencing options:", error);
+    } finally {
+      setConferencingLoading(false);
+    }
+  };
+
+  const fetchEventTypeData = async () => {
+    if (!id) return;
+
+    try {
+      const eventType = await CalComAPIService.getEventTypeById(parseInt(id));
+      if (eventType) {
+        setEventTypeData(eventType);
+
+        // Extract location from event type
+        if (eventType.locations && eventType.locations.length > 0) {
+          const firstLocation = eventType.locations[0];
+          if (firstLocation.integration) {
+            // Format the integration name (e.g., "google-meet" -> "Google Meet")
+            const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
+            setSelectedLocation(formattedLocation);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch event type data:", error);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "availability") {
       fetchSchedules();
     }
+    if (activeTab === "basics") {
+      fetchConferencingOptions();
+    }
   }, [activeTab]);
+
+  useEffect(() => {
+    // Fetch event type data and conferencing options on initial load
+    fetchEventTypeData();
+    fetchConferencingOptions();
+  }, [id]);
 
   const formatTime = (time: string) => {
     try {
@@ -401,8 +457,11 @@ export default function EventTypeDetail() {
                   <Text style={styles.fieldLabel}>Location</Text>
                   <TouchableOpacity
                     style={styles.dropdownButton}
-                    onPress={() => setShowLocationDropdown(true)}>
-                    <Text style={styles.dropdownText}>{selectedLocation}</Text>
+                    onPress={() => setShowLocationDropdown(true)}
+                    disabled={conferencingLoading}>
+                    <Text style={styles.dropdownText}>
+                      {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
+                    </Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
                 </View>
@@ -523,6 +582,8 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* thanks, now If I open a location dropdown and select a value from dropdown and click save button , I should be able to  */}
+
           {/* Location Dropdown Modal */}
           <Modal
             visible={showLocationDropdown}
@@ -532,24 +593,30 @@ export default function EventTypeDetail() {
             <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowLocationDropdown(false)}>
               <View style={styles.dropdownModal}>
                 <Text style={styles.modalTitle}>Select Location</Text>
-                {locationOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option}
-                    style={[styles.dropdownOption, selectedLocation === option && styles.selectedOption]}
-                    onPress={() => {
-                      setSelectedLocation(option);
-                      setShowLocationDropdown(false);
-                    }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        selectedLocation === option && styles.selectedOptionText,
-                      ]}>
-                      {option}
-                    </Text>
-                    {selectedLocation === option && <Ionicons name="checkmark" size={20} color="#000" />}
-                  </TouchableOpacity>
-                ))}
+                {conferencingLoading ? (
+                  <Text style={styles.loadingText}>Loading locations...</Text>
+                ) : getLocationOptions().length === 0 ? (
+                  <Text style={styles.emptyText}>No locations available</Text>
+                ) : (
+                  getLocationOptions().map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, selectedLocation === option && styles.selectedOption]}
+                      onPress={() => {
+                        setSelectedLocation(option);
+                        setShowLocationDropdown(false);
+                      }}>
+                      <Text
+                        style={[
+                          styles.dropdownOptionText,
+                          selectedLocation === option && styles.selectedOptionText,
+                        ]}>
+                        {option}
+                      </Text>
+                      {selectedLocation === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1056,6 +1123,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 120,
   },
   card: {
     backgroundColor: "#fff",
@@ -1167,5 +1235,17 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#8E8E93",
+    textAlign: "center",
+    paddingVertical: 16,
   },
 });

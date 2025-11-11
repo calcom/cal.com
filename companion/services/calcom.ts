@@ -14,6 +14,8 @@ export interface EventType {
     type: string;
     address?: string;
     link?: string;
+    integration?: string;
+    credentialId?: number;
   }>;
   price?: number;
   currency?: string;
@@ -171,9 +173,22 @@ export interface UserProfile {
   theme?: string;
 }
 
+export interface ConferencingOption {
+  id: number;
+  type: string;
+  userId: number;
+  teamId: number | null;
+  appId: string;
+  subscriptionId: number | null;
+  paymentStatus: string | null;
+  billingCycleStart: string | null;
+  invalid: boolean;
+  delegationCredentialId: number | null;
+}
+
 export class CalComAPIService {
   private static userProfile: UserProfile | null = null;
-  
+
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
     try {
@@ -189,7 +204,7 @@ export class CalComAPIService {
     if (this.userProfile) {
       return this.userProfile;
     }
-    
+
     this.userProfile = await this.getCurrentUser();
     return this.userProfile;
   }
@@ -224,15 +239,12 @@ export class CalComAPIService {
         },
       });
 
-
       const responseText = await response.text();
 
       try {
         const responseJson = JSON.parse(responseText);
-      } catch (parseError) {
-      }
-    } catch (error) {
-    }
+      } catch (parseError) {}
+    } catch (error) {}
   }
 
   private static async makeRequest<T>(
@@ -241,7 +253,6 @@ export class CalComAPIService {
     apiVersion: string = "2024-08-13"
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-
 
     const response = await fetch(url, {
       ...options,
@@ -252,7 +263,6 @@ export class CalComAPIService {
         ...options.headers,
       },
     });
-
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -265,9 +275,13 @@ export class CalComAPIService {
   // Delete an event type
   static async deleteEventType(eventTypeId: number): Promise<void> {
     try {
-      await this.makeRequest(`/event-types/${eventTypeId}`, {
-        method: 'DELETE',
-      }, '2024-06-14');
+      await this.makeRequest(
+        `/event-types/${eventTypeId}`,
+        {
+          method: "DELETE",
+        },
+        "2024-06-14"
+      );
     } catch (error) {
       throw error;
     }
@@ -282,7 +296,7 @@ export class CalComAPIService {
       }
 
       await this.makeRequest(`/bookings/${bookingUid}/cancel`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(body),
       });
     } catch (error) {
@@ -302,8 +316,7 @@ export class CalComAPIService {
         } else if (currentUser?.username) {
           username = currentUser.username;
         }
-      } catch (error) {
-      }
+      } catch (error) {}
 
       // Build query string with username if available
       const params = new URLSearchParams();
@@ -313,7 +326,6 @@ export class CalComAPIService {
 
       const queryString = params.toString();
       const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
-
 
       const response = await this.makeRequest<any>(endpoint, {}, "2024-06-14");
 
@@ -365,7 +377,6 @@ export class CalComAPIService {
     offset?: number;
   }): Promise<Booking[]> {
     try {
-
       // Build query parameters
       const params = new URLSearchParams();
 
@@ -391,9 +402,7 @@ export class CalComAPIService {
       const queryString = params.toString();
       const endpoint = `/bookings${queryString ? `?${queryString}` : ""}`;
 
-
       const response = await this.makeRequest<any>(endpoint);
-
 
       // Handle different possible response structures (same logic as event types)
       let bookingsArray: Booking[] = [];
@@ -408,7 +417,6 @@ export class CalComAPIService {
         } else if (response.items && Array.isArray(response.items)) {
           bookingsArray = response.items;
         } else if (response.data && typeof response.data === "object") {
-
           if (response.data.bookings && Array.isArray(response.data.bookings)) {
             bookingsArray = response.data.bookings;
           } else if (response.data.items && Array.isArray(response.data.items)) {
@@ -430,7 +438,6 @@ export class CalComAPIService {
           }
         }
       }
-
 
       // Get current user to filter bookings
       let currentUser;
@@ -454,7 +461,6 @@ export class CalComAPIService {
         }
       }
 
-
       // Filter bookings to only show ones where the current user is participating
       const userBookings = bookingsArray.filter((booking) => {
         const { isOrganizer, isHost, isAttendee, isParticipating } = getBookingParticipation(
@@ -463,10 +469,8 @@ export class CalComAPIService {
           userEmail
         );
 
-
         return isParticipating;
       });
-
 
       return userBookings;
     } catch (error) {
@@ -486,7 +490,6 @@ export class CalComAPIService {
         },
         "2024-06-11"
       );
-
 
       let schedulesArray: Schedule[] = [];
 
@@ -514,7 +517,6 @@ export class CalComAPIService {
         },
         "2024-06-11"
       );
-
 
       if (response && response.data) {
         return response.data;
@@ -556,6 +558,53 @@ export class CalComAPIService {
       return null;
     } catch (error) {
       console.error("getScheduleById error:", error);
+      throw error;
+    }
+  }
+
+  // Get conferencing options
+  static async getConferencingOptions(): Promise<ConferencingOption[]> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: ConferencingOption[] }>(
+        "/conferencing"
+      );
+
+      if (response && response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("getConferencingOptions error:", error);
+      throw error;
+    }
+  }
+
+  // Get a single event type by ID
+  static async getEventTypeById(eventTypeId: number): Promise<EventType | null> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: EventType }>(
+        `/event-types/${eventTypeId}`,
+        {},
+        "2024-06-14"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      // Handle 404 errors gracefully - resource doesn't exist or user doesn't have access
+      if (error instanceof Error) {
+        // Check if error message contains 404 status code
+        const statusMatch = error.message.match(/API Error: (\d+)/);
+        if (statusMatch && statusMatch[1] === "404") {
+          console.warn(`Event type ${eventTypeId} not found`);
+          return null;
+        }
+      }
+      console.error("getEventTypeById error:", error);
       throw error;
     }
   }

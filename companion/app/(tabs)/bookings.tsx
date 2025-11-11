@@ -293,9 +293,9 @@ export default function Bookings() {
 
       Alert.alert(
         booking.title,
-        `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(startTime)} - ${formatTime(
-          endTime
-        )}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
+        `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
+          startTime
+        )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
           booking.location ? `\nLocation: ${booking.location}` : ""
         }`,
         alertActions
@@ -331,9 +331,9 @@ export default function Bookings() {
     const startTime = booking.start || booking.startTime || "";
     const endTime = booking.end || booking.endTime || "";
 
-    return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(startTime)} - ${formatTime(
-      endTime
-    )}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
+    return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
+      startTime
+    )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
       booking.location ? `\nLocation: ${booking.location}` : ""
     }`;
   };
@@ -474,18 +474,18 @@ export default function Bookings() {
                   try {
                     const cancellationReason = reason?.trim() || "Event cancelled by host";
                     await CalComAPIService.cancelBooking(booking.uid, cancellationReason);
-                    
+
                     // Remove the cancelled booking from local state or refresh the list
-                    if (activeFilter === 'upcoming') {
+                    if (activeFilter === "upcoming") {
                       // For upcoming bookings, remove from list since it's now cancelled
-                      const updatedBookings = bookings.filter(b => b.uid !== booking.uid);
+                      const updatedBookings = bookings.filter((b) => b.uid !== booking.uid);
                       setBookings(updatedBookings);
                       setFilteredBookings(updatedBookings);
                     } else {
                       // For other filters, refresh to get updated data
                       await fetchBookings();
                     }
-                    
+
                     Alert.alert("Success", "Event cancelled successfully");
                   } catch (error) {
                     console.error("Failed to cancel booking:", error);
@@ -747,6 +747,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    paddingBottom: 90,
   },
   loadingText: {
     marginTop: 16,
