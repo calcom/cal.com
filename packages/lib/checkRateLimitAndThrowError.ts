@@ -61,7 +61,7 @@ async function checkRateLimitForNextJs({
  *
  * @param context - Next.js GetServerSidePropsContext
  * @param identifierSuffix - Suffix to append to the rate limit identifier (e.g., "[user]/[type]")
- * @param rateLimitingType - Type of rate limiting (default: "core")
+ * @param rateLimitingType - Type of rate limiting (default: "core") (see RateLimitHelper["rateLimitingType"])
  * @param opts - Optional rate limit options
  * @returns null if rate limit passes, or a Next.js response object with props containing errorMessage if rate limited
  *
