@@ -8,7 +8,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
-vi.mock("@calcom/lib/checkRateLimitAndThrowError");
+vi.mock("@calcom/lib/smsLockState");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
 vi.mock("@calcom/prisma", () => ({
   default: {
