@@ -6,23 +6,26 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
+import { StripeBillingService } from "../stripe-billing-service";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { TeamBillingPublishResponseStatus } from "./team-billing";
 
-const mockHandleSubscriptionCancel = vi.fn();
-const mockHandleSubscriptionUpdate = vi.fn();
-const mockCheckoutSessionIsPaid = vi.fn();
-const mockGetSubscriptionStatus = vi.fn();
-const mockHandleEndTrial = vi.fn();
+const {
+  mockHandleSubscriptionCancel,
+  mockHandleSubscriptionUpdate,
+  mockCheckoutSessionIsPaid,
+  mockGetSubscriptionStatus,
+  mockHandleEndTrial,
+} = vi.hoisted(() => ({
+  mockHandleSubscriptionCancel: vi.fn(),
+  mockHandleSubscriptionUpdate: vi.fn(),
+  mockCheckoutSessionIsPaid: vi.fn(),
+  mockGetSubscriptionStatus: vi.fn(),
+  mockHandleEndTrial: vi.fn(),
+}));
 
-vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
-  StripeBillingService: vi.fn().mockImplementation(() => ({
-    handleSubscriptionCancel: mockHandleSubscriptionCancel,
-    handleSubscriptionUpdate: mockHandleSubscriptionUpdate,
-    checkoutSessionIsPaid: mockCheckoutSessionIsPaid,
-    getSubscriptionStatus: mockGetSubscriptionStatus,
-    handleEndTrial: mockHandleEndTrial,
-  })),
+vi.mock("../stripe-billing-service", () => ({
+  StripeBillingService: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/constants", async () => {
@@ -32,14 +35,6 @@ vi.mock("@calcom/lib/constants", async () => {
     WEBAPP_URL: "http://localhost:3000",
   };
 });
-
-vi.mock("..", () => ({
-  default: {
-    handleSubscriptionCancel: vi.fn(),
-    handleSubscriptionUpdate: vi.fn(),
-    checkoutSessionIsPaid: vi.fn(),
-  },
-}));
 
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
@@ -61,7 +56,14 @@ describe("InternalTeamBilling", () => {
   let internalTeamBilling: InternalTeamBilling;
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.mocked(StripeBillingService).mockImplementation(() => ({
+      handleSubscriptionCancel: mockHandleSubscriptionCancel,
+      handleSubscriptionUpdate: mockHandleSubscriptionUpdate,
+      checkoutSessionIsPaid: mockCheckoutSessionIsPaid,
+      getSubscriptionStatus: mockGetSubscriptionStatus,
+      handleEndTrial: mockHandleEndTrial,
+    }));
     internalTeamBilling = new InternalTeamBilling(mockTeam);
   });
 
@@ -73,7 +75,7 @@ describe("InternalTeamBilling", () => {
     it("should cancel the subscription and downgrade the team", async () => {
       await internalTeamBilling.cancel();
 
-      expect(mockBillingServiceMethods.handleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
+      expect(mockHandleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
       expect(prismaMock.team.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
@@ -84,9 +86,8 @@ describe("InternalTeamBilling", () => {
   });
 
   describe("publish", () => {
-    const internalTeamBilling = new InternalTeamBilling(mockTeam);
     it("should create a checkout session and update the team", async () => {
-      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(false);
+      mockCheckoutSessionIsPaid.mockResolvedValue(false);
       vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
         url: "http://checkout.url",
       });
@@ -106,7 +107,6 @@ describe("InternalTeamBilling", () => {
       });
     });
     it("should return upgrade url if upgrade is required", async () => {
-      const internalTeamBilling = new InternalTeamBilling(mockTeam);
       const mockUrl = `${WEBAPP_URL}/api/teams/${mockTeam.id}/upgrade?session_id=cs_789`;
       vi.spyOn(internalTeamBilling, "checkIfTeamPaymentRequired").mockResolvedValue({
         url: mockUrl,
@@ -140,7 +140,7 @@ describe("InternalTeamBilling", () => {
 
       await internalTeamBilling.updateQuantity();
 
-      expect(mockBillingServiceMethods.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      expect(mockHandleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_456",
         membershipCount: 10,
@@ -158,13 +158,20 @@ describe("InternalTeamBilling", () => {
 
       await internalTeamBilling.updateQuantity();
 
-      expect(mockBillingServiceMethods.handleSubscriptionUpdate).not.toHaveBeenCalled();
+      expect(mockHandleSubscriptionUpdate).not.toHaveBeenCalled();
     });
   });
 
   describe("checkIfTeamPaymentRequired", () => {
     it("should return payment required if no paymentId", async () => {
-      internalTeamBilling.team.metadata.paymentId = undefined;
+      const mockTeamNoPayment = {
+        ...mockTeam,
+        metadata: {
+          ...mockTeam.metadata,
+          paymentId: undefined,
+        },
+      };
+      const internalTeamBilling = new InternalTeamBilling(mockTeamNoPayment);
 
       const result = await internalTeamBilling.checkIfTeamPaymentRequired();
 
@@ -172,7 +179,7 @@ describe("InternalTeamBilling", () => {
     });
 
     it("should return payment required if checkout session is not paid", async () => {
-      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(false);
+      mockCheckoutSessionIsPaid.mockResolvedValue(false);
       const internalTeamBilling = new InternalTeamBilling(mockTeam);
 
       const result = await internalTeamBilling.checkIfTeamPaymentRequired();
@@ -181,7 +188,9 @@ describe("InternalTeamBilling", () => {
     });
 
     it("should return upgrade URL if checkout session is paid", async () => {
-      mockBillingServiceMethods.checkoutSessionIsPaid.mockResolvedValue(true);
+      mockCheckoutSessionIsPaid.mockResolvedValue(true);
+      const internalTeamBilling = new InternalTeamBilling(mockTeam);
+
       const result = await internalTeamBilling.checkIfTeamPaymentRequired();
 
       expect(result).toEqual({
