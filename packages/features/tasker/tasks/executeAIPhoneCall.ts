@@ -196,9 +196,9 @@ export async function executeAIPhoneCall(payload: string) {
 
     // form triggers don't have a booking
     const booking = workflowReminder.booking as BookingWithRelations | null;
-    const responses = data.responses;
+    const routingFormResponses = data.responses;
 
-    if (!booking && !responses) {
+    if (!booking && !routingFormResponses) {
       log.warn(`No form responses or booking found for workflow reminder ${data.workflowReminderId}`);
       throw new Error("No booking, response, or form responses found");
     }
@@ -218,7 +218,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     // Prefer response variables if present, else fall back to booking
     let dynamicVariables: VariablesType | undefined;
-    if (responses) {
+    if (routingFormResponses) {
       const workflowStep = workflowReminder.workflowStep;
       const eventTypeId =
         data.routedEventTypeId ??
@@ -232,7 +232,7 @@ export async function executeAIPhoneCall(payload: string) {
         return;
       }
       dynamicVariables = getVariablesFromFormResponse({
-        responses,
+        responses: routingFormResponses,
         eventTypeId,
         numberToCall,
       });
