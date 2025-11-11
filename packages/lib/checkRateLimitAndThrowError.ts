@@ -1,8 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
+import getIP from "./getIP";
 import { HttpError } from "./http-error";
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
@@ -100,6 +102,59 @@ export async function handleRateLimitForNextJs(
   }
 
   return null;
+}
+
+/**
+ * @param identifierSuffix - Suffix to append to the rate limit identifier (e.g., "[user]/[type]")
+ * @param handler - The getServerSideProps handler function to wrap
+ * @param rateLimitingType - Type of rate limiting (default: "core")
+ * @param opts - Optional rate limit options
+ * @param getIdentifier - Optional function to generate a custom identifier. If provided, overrides the default IP-based identifier.
+ * @returns A getServerSideProps function with rate limiting applied
+ *
+ * @example
+ * ```ts
+ * // Using default IP-based identifier
+ * export const getServerSideProps = withRateLimit(
+ *   "[user]/[type]",
+ *   async (context) => {
+ *     // Your getServerSideProps logic here
+ *     return { props: { ... } };
+ *   }
+ * );
+ *
+ * // Using custom identifier (e.g., based on user ID)
+ * export const getServerSideProps = withRateLimit(
+ *   "[user]/[type]",
+ *   async (context) => {
+ *     // Your getServerSideProps logic here
+ *     return { props: { ... } };
+ *   },
+ *   "core",
+ *   (ctx) => {
+ *     const session = await getServerSession({ req: ctx.req });
+ *     return `[user]/[type]-${session?.user?.id || 'anonymous'}`;
+ *   }
+ * );
+ * ```
+ */
+export function withRateLimit<T extends Record<string, unknown>>(
+  identifierSuffix: string,
+  handler: (ctx: GetServerSidePropsContext) => Promise<GetServerSidePropsResult<T>>,
+  rateLimitingType: RateLimitHelper["rateLimitingType"] = "core",
+  getIdentifier?: (ctx: GetServerSidePropsContext) => string
+) {
+  return async (ctx: GetServerSidePropsContext): Promise<GetServerSidePropsResult<T>> => {
+    const identifier = getIdentifier
+      ? getIdentifier(ctx)
+      : `${identifierSuffix}-${piiHasher.hash(getIP(ctx.req as unknown as Request))}`;
+    const rateLimitResponse = await handleRateLimitForNextJs(ctx, identifier, rateLimitingType);
+    if (rateLimitResponse) {
+      // Type assertion needed because rate limit response has errorMessage prop
+      return rateLimitResponse as unknown as GetServerSidePropsResult<T>;
+    }
+    return handler(ctx);
+  };
 }
 
 export async function checkSMSRateLimit({
