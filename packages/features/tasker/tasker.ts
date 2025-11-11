@@ -1,5 +1,7 @@
 import type { z } from "zod";
 
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendWebhook: string;
@@ -28,10 +30,12 @@ type TaskPayloads = {
     agentId: string;
     fromNumber: string;
     toNumber: string;
-    bookingUid: string;
+    bookingUid: string | null;
     userId: number | null;
     teamId: number | null;
     providerAgentId: string;
+    responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
+    routedEventTypeId?: number | null;
   };
 };
 export type TaskTypes = keyof TaskPayloads;
