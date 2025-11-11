@@ -560,24 +560,22 @@ export class TeamRepository {
             logoUrl: true,
             isOrganization: true,
             metadata: true,
+            inviteTokens: true,
+            parent: true,
             parentId: true,
-            _count: {
-              select: {
-                members: true,
-              },
-            },
           },
         },
       },
       orderBy: { role: "desc" },
     });
 
-    return memberships.map(({ team, ...membership }) => ({
+    return memberships.map(({ team: { inviteTokens, ...team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
       ...team,
       metadata: teamMetadataSchema.parse(team.metadata),
-      memberCount: team._count.members,
+      /** To prevent breaking we only return non-email attached token here, if we have one */
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
     }));
   }
 
