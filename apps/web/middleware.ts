@@ -3,14 +3,18 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch (error) {
+  } catch {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
@@ -55,6 +59,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
   if (isStaticFile) return isStaticFile;
+
+  // This is where we do our rate limiting
+  const requestorIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `${req.nextUrl.pathname}-${piiHasher.hash(requestorIp)}`,
+  });
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
@@ -168,23 +180,8 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
-  // https://github.com/vercel/next.js/discussions/42458
-  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
-  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
-  matcher: [
-    // Routes to enforce CSP
-    "/auth/login",
-    "/login",
-    // Routes to set cookies
-    "/apps/installed",
-    "/auth/logout",
-    // Embed Routes,
-    "/:path*/embed",
-    // API routes
-    "/api/auth/signup",
-  ],
-};
+  matcher: '/((?!_next|static|public|favicon.ico).*)'
+}
 
 export default collectEvents({
   middleware,
