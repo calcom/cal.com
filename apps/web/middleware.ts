@@ -64,7 +64,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestorIp = getIP(req);
   try {
     await checkRateLimitAndThrowError({
-      rateLimitingType: "core",
+      rateLimitingType: "common",
       identifier: `${req.nextUrl.pathname}-${piiHasher.hash(requestorIp)}`,
     });
   } catch (error) {
