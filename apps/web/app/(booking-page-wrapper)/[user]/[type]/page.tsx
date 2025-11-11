@@ -3,6 +3,7 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
+import { unstable_cache } from 'next/cache';
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
@@ -15,11 +16,11 @@ import type { PageProps as LegacyPageProps } from "~/users/views/users-type-publ
 import LegacyPage from "~/users/views/users-type-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
 
-  const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
-  const rescheduleUid = booking?.uid;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  delete legacyCtx.res; // appDir can't talk to the response object, so let's just delete it
+
+  const { isSEOIndexable = true, eventData, isBrandingHidden } = await getCachedData(legacyCtx);
   const profileName = eventData?.profile?.name ?? "";
   const profileImage = eventData?.profile.image;
   const title = eventData?.title ?? "";
@@ -35,8 +36,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(
     meeting,
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    () => `${title} | ${profileName}`,
+    () => title,
     isBrandingHidden,
     getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
     `/${decodedParams.user}/${decodedParams.type}`
@@ -50,11 +51,21 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     },
   };
 };
+
+
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
+const getCachedData = unstable_cache(async (ctx: { 
+  req: GetServerSidePropsContext["req"], 
+  params: GetServerSidePropsContext["params"],
+  query: GetServerSidePropsContext["query"],
+}) => getData(ctx));
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
+
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+  delete legacyCtx.res;
+
+  const props = await getCachedData(legacyCtx);
 
   const locale = props.eventData?.interfaceLanguage;
   if (locale) {
