@@ -8,14 +8,12 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
+import { withRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
@@ -81,15 +79,7 @@ type UserPageProps = {
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
-// @ts-expect-error - handleRateLimitForNextJs returns error props which are valid GetServerSidePropsResult but TypeScript can't infer the union type
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  // handle IP based rate limiting
-  const requestorIp = getIP(context.req as unknown as Request);
-  const identifier = `[user]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
-  // @ts-expect-error - handleRateLimitForNextJs returns error props which are valid GetServerSidePropsResult
-  if (rateLimitResponse) return rateLimitResponse;
-
+export const getServerSideProps = withRateLimit("[user]", async (context: GetServerSidePropsContext) => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
@@ -213,7 +203,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
-};
+});
 
 export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
   const userRepo = new UserRepository(prisma);

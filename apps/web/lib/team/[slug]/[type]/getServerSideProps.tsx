@@ -9,10 +9,8 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
-import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
+import { withRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -30,172 +28,172 @@ function hasApiV2RouteInEnv() {
   return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const requestorIp = getIP(context.req as unknown as Request);
-  const identifier = `team/[slug]/[type]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
-  if (rateLimitResponse) return rateLimitResponse;
+export const getServerSideProps = withRateLimit(
+  "team/[slug]/[type]",
+  async (context: GetServerSidePropsContext) => {
+    const { req, params, query } = context;
+    const session = await getServerSession({ req });
+    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+    const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
+    const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
+    const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
 
-  const { req, params, query } = context;
-  const session = await getServerSession({ req });
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
-  const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
-
-  const redirect = await handleOrgRedirect({
-    slugs: [teamSlug],
-    redirectType: RedirectType.Team,
-    eventTypeSlug: meetingSlug,
-    context,
-    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
-  });
-
-  if (redirect) {
-    return redirect;
-  }
-
-  const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
-
-  if (!team || !team.eventTypes?.[0]) {
-    return { notFound: true } as const;
-  }
-
-  const eventData = team.eventTypes[0];
-
-  if (eventData.schedulingType === SchedulingType.MANAGED) {
-    return { notFound: true } as const;
-  }
-
-  if (rescheduleUid && eventData.disableRescheduling) {
-    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
-  }
-
-  const eventTypeId = eventData.id;
-  const eventHostsUserData = await getUsersData(
-    team.isPrivate,
-    eventTypeId,
-    eventData.hosts.map((h) => h.user)
-  );
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const name = team.parent?.name ?? team.name ?? null;
-
-  let booking: GetBookingType | null = null;
-  if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (
-      booking?.status === BookingStatus.CANCELLED &&
-      !allowRescheduleForCancelledBooking &&
-      !eventData.allowReschedulingCancelledBookings
-    ) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/team/${teamSlug}/${meetingSlug}`,
-        },
-      };
-    }
-  }
-
-  const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
-  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
-
-  const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
-  const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
-  const crmAppSlugParam = query["cal.crmAppSlug"];
-  const crmRecordIdParam = query["cal.crmRecordId"];
-
-  // Handle string[] type from query params
-  let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
-
-  let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
-    ? crmContactOwnerRecordType[0]
-    : crmContactOwnerRecordType;
-
-  let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
-  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
-
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
-    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
-    );
-    const {
-      email,
-      recordType,
-      crmAppSlug: crmAppSlugQuery,
-      recordId,
-    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-      query,
-      eventData,
+    const redirect = await handleOrgRedirect({
+      slugs: [teamSlug],
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+      context,
+      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
     });
 
-    teamMemberEmail = email ?? undefined;
-    crmOwnerRecordType = recordType ?? undefined;
-    crmAppSlug = crmAppSlugQuery ?? undefined;
-    crmRecordId = recordId ?? undefined;
-  }
+    if (redirect) {
+      return redirect;
+    }
 
-  const organizationSettings = getOrganizationSEOSettings(team);
-  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+    const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
 
-  const featureRepo = new FeaturesRepository(prisma);
-  const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
-  const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
+    if (!team || !team.eventTypes?.[0]) {
+      return { notFound: true } as const;
+    }
 
-  const branding = getBrandingForEventType({
-    eventType: {
-      team: team.parent ?? team,
-      users: [],
-      profile: null,
-    },
-  });
+    const eventData = team.eventTypes[0];
 
-  return {
-    props: {
-      useApiV2,
-      eventData: {
-        eventTypeId,
-        entity: {
-          fromRedirectOfNonOrgLink,
-          considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-          orgSlug,
-          teamSlug: team.slug ?? null,
-          name,
-        },
-        length: eventData.length,
-        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: {
-          image: team.parent
-            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-            : getPlaceholderAvatar(team.logoUrl, team.name),
-          name,
-          username: orgSlug ?? null,
-          ...branding,
-        },
-        title: eventData.title,
-        users: eventHostsUserData,
-        hidden: eventData.hidden,
-        interfaceLanguage: eventData.interfaceLanguage,
+    if (eventData.schedulingType === SchedulingType.MANAGED) {
+      return { notFound: true } as const;
+    }
+
+    if (rescheduleUid && eventData.disableRescheduling) {
+      return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+    }
+
+    const eventTypeId = eventData.id;
+    const eventHostsUserData = await getUsersData(
+      team.isPrivate,
+      eventTypeId,
+      eventData.hosts.map((h) => h.user)
+    );
+    const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+    const name = team.parent?.name ?? team.name ?? null;
+
+    let booking: GetBookingType | null = null;
+    if (rescheduleUid) {
+      booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+      if (
+        booking?.status === BookingStatus.CANCELLED &&
+        !allowRescheduleForCancelledBooking &&
+        !eventData.allowReschedulingCancelledBookings
+      ) {
+        return {
+          redirect: {
+            permanent: false,
+            destination: `/team/${teamSlug}/${meetingSlug}`,
+          },
+        };
+      }
+    }
+
+    const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
+    const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+
+    const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
+    const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
+    const crmAppSlugParam = query["cal.crmAppSlug"];
+    const crmRecordIdParam = query["cal.crmRecordId"];
+
+    // Handle string[] type from query params
+    let teamMemberEmail = Array.isArray(crmContactOwnerEmail)
+      ? crmContactOwnerEmail[0]
+      : crmContactOwnerEmail;
+
+    let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
+      ? crmContactOwnerRecordType[0]
+      : crmContactOwnerRecordType;
+
+    let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+    let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
+
+    if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+      const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+        "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
+      );
+      const {
+        email,
+        recordType,
+        crmAppSlug: crmAppSlugQuery,
+        recordId,
+      } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+        query,
+        eventData,
+      });
+
+      teamMemberEmail = email ?? undefined;
+      crmOwnerRecordType = recordType ?? undefined;
+      crmAppSlug = crmAppSlugQuery ?? undefined;
+      crmRecordId = recordId ?? undefined;
+    }
+
+    const organizationSettings = getOrganizationSEOSettings(team);
+    const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+    const featureRepo = new FeaturesRepository(prisma);
+    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
+    const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
+
+    const branding = getBrandingForEventType({
+      eventType: {
+        team: team.parent ?? team,
+        users: [],
+        profile: null,
       },
-      booking,
-      user: teamSlug,
-      teamId: team.id,
-      slug: meetingSlug,
-      isBrandingHidden: shouldHideBrandingForTeamEvent({
-        eventTypeId: eventData.id,
-        team,
-      }),
-      isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
-      themeBasis: null,
-      orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail,
-      crmOwnerRecordType,
-      crmAppSlug,
-      crmRecordId,
-      isSEOIndexable: allowSEOIndexing,
-    },
-  };
-};
+    });
+
+    return {
+      props: {
+        useApiV2,
+        eventData: {
+          eventTypeId,
+          entity: {
+            fromRedirectOfNonOrgLink,
+            considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
+            orgSlug,
+            teamSlug: team.slug ?? null,
+            name,
+          },
+          length: eventData.length,
+          metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+          profile: {
+            image: team.parent
+              ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+              : getPlaceholderAvatar(team.logoUrl, team.name),
+            name,
+            username: orgSlug ?? null,
+            ...branding,
+          },
+          title: eventData.title,
+          users: eventHostsUserData,
+          hidden: eventData.hidden,
+          interfaceLanguage: eventData.interfaceLanguage,
+        },
+        booking,
+        user: teamSlug,
+        teamId: team.id,
+        slug: meetingSlug,
+        isBrandingHidden: shouldHideBrandingForTeamEvent({
+          eventTypeId: eventData.id,
+          team,
+        }),
+        isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
+        themeBasis: null,
+        orgBannerUrl: team.parent?.bannerUrl ?? "",
+        teamMemberEmail,
+        crmOwnerRecordType,
+        crmAppSlug,
+        crmRecordId,
+        isSEOIndexable: allowSEOIndexing,
+      },
+    };
+  }
+);
 
 const getTeamWithEventsData = async (
   teamSlug: string,
