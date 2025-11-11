@@ -50,6 +50,7 @@ export default function EventTypeDetail() {
   const [showScheduleDropdown, setShowScheduleDropdown] = useState(false);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
 
   // TODO: get locations from API
   const locationOptions = ["Cal Video", "Google Meet"];
@@ -209,6 +210,37 @@ export default function EventTypeDetail() {
     });
 
     return daySchedule;
+  };
+
+  const handlePreview = async () => {
+    try {
+      // Build the event type link and open it
+      const eventTypeSlug = eventSlug || "preview"; // Use current slug or fallback
+      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
+      // You can open this link externally or show it in a webview
+      console.log("Preview link:", link);
+      // For now, we'll just log it. In a real app, you'd open it with Linking.openURL
+    } catch (error) {
+      console.error("Failed to generate preview link:", error);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      const eventTypeSlug = eventSlug || "event-link";
+      const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
+      // Copy to clipboard (you'd use Clipboard.setString in a real app)
+      console.log("Link copied:", link);
+      // Show success message
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+    }
+  };
+
+  const handleDelete = () => {
+    // Show confirmation dialog
+    console.log("Delete event type:", id);
+    // In a real app, you'd show an alert and call the delete API
   };
 
   return (
@@ -613,6 +645,41 @@ export default function EventTypeDetail() {
             </View>
           )}
         </ScrollView>
+
+        {/* Bottom Action Bar */}
+        <GlassView style={[styles.bottomActionBar, { paddingBottom: insets.bottom + 12 }]}>
+          <View style={styles.actionBarContent}>
+            <View style={styles.hiddenSection}>
+              <Text style={styles.hiddenLabel}>Hidden</Text>
+              <Switch
+                value={isHidden}
+                onValueChange={setIsHidden}
+                trackColor={{ false: "#E5E5EA", true: "#000" }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View style={styles.actionButtons}>
+              <GlassView style={styles.glassButton} glassEffectStyle="clear">
+                <TouchableOpacity style={styles.actionButton} onPress={handlePreview}>
+                  <Ionicons name="open-outline" size={20} color="#000" />
+                </TouchableOpacity>
+              </GlassView>
+
+              <GlassView style={styles.glassButton} glassEffectStyle="clear">
+                <TouchableOpacity style={styles.actionButton} onPress={handleCopyLink}>
+                  <Ionicons name="link-outline" size={20} color="#000" />
+                </TouchableOpacity>
+              </GlassView>
+
+              <GlassView style={styles.glassDeleteButton} glassEffectStyle="clear">
+                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </GlassView>
+            </View>
+          </View>
+        </GlassView>
       </View>
     </>
   );
@@ -932,6 +999,60 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 180,
+    paddingBottom: 100, // Add bottom padding for action bar
+  },
+  bottomActionBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 0.5,
+    borderTopColor: "#E5E5EA",
+  },
+  actionBarContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  hiddenSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  hiddenLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  glassButton: {
+    borderRadius: 999,
+    overflow: "hidden",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  glassDeleteButton: {
+    borderRadius: 999,
+    overflow: "hidden",
+    backgroundColor: "rgba(255, 59, 48, 0.2)",
+  },
+  actionButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FF3B30",
   },
   contentContainer: {
     padding: 20,

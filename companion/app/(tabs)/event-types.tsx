@@ -219,12 +219,12 @@ export default function EventTypes() {
         onPress: async () => {
           try {
             await CalComAPIService.deleteEventType(eventType.id);
-            
+
             // Remove the deleted event type from local state
-            const updatedEventTypes = eventTypes.filter(et => et.id !== eventType.id);
+            const updatedEventTypes = eventTypes.filter((et) => et.id !== eventType.id);
             setEventTypes(updatedEventTypes);
             setFilteredEventTypes(updatedEventTypes);
-            
+
             Alert.alert("Success", "Event type deleted successfully");
           } catch (error) {
             console.error("Failed to delete event type:", error);
