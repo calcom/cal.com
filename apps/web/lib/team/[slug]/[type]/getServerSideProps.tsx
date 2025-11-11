@@ -31,7 +31,7 @@ function hasApiV2RouteInEnv() {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const requestorIp = getIP(context.req);
+  const requestorIp = getIP(context.req as unknown as Request);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `team/[slug]/[type]-${piiHasher.hash(requestorIp)}`,
