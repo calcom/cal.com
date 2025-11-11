@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { sendCustomWorkflowEmail } from "@calcom/emails";
+import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 
 export const ZSendWorkflowEmailsSchema = z.object({
   to: z.array(z.string()),

@@ -4,7 +4,6 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing
 
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
-  sendEmail: string;
   sendWebhook: string;
   sendSms: string;
   triggerHostNoShowWebhook: z.infer<
