@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
-} from "@calcom/emails/email-manager";
+} from "@calcom/emails/billing-email-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";

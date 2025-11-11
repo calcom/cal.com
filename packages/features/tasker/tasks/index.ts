@@ -8,7 +8,6 @@ import type { TaskHandler, TaskTypes } from "../tasker";
  * The task handlers are imported dynamically to avoid circular dependencies.
  */
 const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
-  sendEmail: () => import("./sendEmail").then((module) => module.sendEmail),
   sendWebhook: () => import("./sendWebook").then((module) => module.sendWebhook),
   triggerHostNoShowWebhook: () =>
     import("./triggerNoShow/triggerHostNoShow").then((module) => module.triggerHostNoShow),

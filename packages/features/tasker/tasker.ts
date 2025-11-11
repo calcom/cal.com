@@ -2,7 +2,6 @@ import type { z } from "zod";
 
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
-  sendEmail: string;
   sendWebhook: string;
   sendSms: string;
   triggerHostNoShowWebhook: z.infer<
