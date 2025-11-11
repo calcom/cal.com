@@ -4,3 +4,8 @@ export const extractBaseEmail = (email: string): string => {
   const baseLocalPart = localPart.split("+")[0];
   return `${baseLocalPart}@${domain}`;
 };
+
+export const getValidBaseEmail = (email: string): string => {
+  const trimmed = email.trim();
+  return extractBaseEmail(trimmed);
+};
