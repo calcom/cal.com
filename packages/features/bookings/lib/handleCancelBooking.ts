@@ -606,7 +606,6 @@ async function handler(input: CancelBookingInput) {
     if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
       log.debug("Sending cancellation emails with branding config", {
         hideBranding: evt.hideBranding,
-        platformClientId,
         arePlatformEmailsEnabled,
       });
 

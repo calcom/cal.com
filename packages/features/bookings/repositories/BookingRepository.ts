@@ -1414,7 +1414,17 @@ export class BookingRepository {
         destinationCalendar: true,
         references: true,
         eventType: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            bookingFields: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            customReplyToEmail: true,
+            schedulingType: true,
+            metadata: true,
+            teamId: true,
             team: {
               select: {
                 id: true,
