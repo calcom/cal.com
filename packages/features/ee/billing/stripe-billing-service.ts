@@ -1,5 +1,6 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 
 import type { BillingService } from "./billing-service";
@@ -8,9 +9,7 @@ import { SubscriptionStatus } from "./repository/IBillingRepository";
 export class StripeBillingService implements BillingService {
   private stripe: Stripe;
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
-      apiVersion: "2020-08-27",
-    });
+    this.stripe = stripe;
   }
 
   async createCustomer(args: Parameters<BillingService["createCustomer"]>[0]) {
