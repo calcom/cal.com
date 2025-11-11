@@ -2,7 +2,9 @@ import type { GetServerSidePropsContext } from "next";
 import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { withRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -16,10 +18,13 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
-export const getServerSideProps = withRateLimit(
-  "[orgSlug]/[user]/[type]",
-  async (ctx: GetServerSidePropsContext) => {
-    const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const requestorIp = getIP(ctx.req as unknown as Request);
+  const identifier = `[orgSlug]/[user]/[type]-${piiHasher.hash(requestorIp)}`;
+  const rateLimitResponse = await handleRateLimitForNextJs(ctx, identifier);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
     const team = await prisma.team.findFirst({
       where: {
         slug: slugify(teamOrUserSlugOrDynamicGroup),

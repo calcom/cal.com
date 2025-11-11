@@ -8,10 +8,12 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { withRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
@@ -79,7 +81,12 @@ type UserPageProps = {
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
-export const getServerSideProps = withRateLimit("[user]", async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const requestorIp = getIP(context.req as unknown as Request);
+  const identifier = `[user]-${piiHasher.hash(requestorIp)}`;
+  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
+  if (rateLimitResponse) return rateLimitResponse;
+
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
