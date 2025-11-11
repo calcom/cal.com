@@ -140,7 +140,7 @@ export class CalendarAuth {
         delegationError = new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
       }
 
-      if (user && user.email) {
+      if (user && user.email && this.credential.appId) {
         await triggerDelegationCredentialErrorWebhook({
           error: delegationError,
           credential: {
