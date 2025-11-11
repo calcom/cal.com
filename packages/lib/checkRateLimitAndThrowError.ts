@@ -31,6 +31,30 @@ export async function checkRateLimitAndThrowError({
   return response;
 }
 
+async function checkRateLimitForNextJs({
+  rateLimitingType = "core",
+  identifier,
+  opts,
+}: Pick<RateLimitHelper, "rateLimitingType" | "identifier" | "opts">): Promise<
+  { success: true } | { success: false; error: { statusCode: number; message: string } }
+> {
+  try {
+    await checkRateLimitAndThrowError({ rateLimitingType, identifier, opts });
+    return { success: true };
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return {
+        success: false,
+        error: {
+          statusCode: error.statusCode,
+          message: error.message,
+        },
+      };
+    }
+    throw error;
+  }
+}
+
 /**
  * Sets context.res.statusCode to 429 and returns props with errorMessage when rate limited.
  * This ensures the 429 status code is properly returned (unlike notFound which returns 404).
