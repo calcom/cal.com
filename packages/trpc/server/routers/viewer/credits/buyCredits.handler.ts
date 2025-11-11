@@ -1,4 +1,3 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -69,7 +68,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
       redirectUrl = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
     }
   }
-
+  const { StripeBillingService } = await import("@calcom/features/ee/billing/stripe-billing-service");
   const billingService = new StripeBillingService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
