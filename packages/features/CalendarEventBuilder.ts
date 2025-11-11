@@ -12,7 +12,7 @@ import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-u
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-type BookingForCalEventBuilder = NonNullable<
+export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
 export type BookingMetaOptions = {
