@@ -36,6 +36,7 @@ interface PhoneNumberTabProps {
   workflowId?: string;
   isOrganization?: boolean;
   form?: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
 }
 
 export function PhoneNumberTab({
@@ -46,6 +47,7 @@ export function PhoneNumberTab({
   workflowId,
   isOrganization = false,
   form,
+  eventTypeIds = [],
 }: PhoneNumberTabProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -110,6 +112,9 @@ export function PhoneNumberTab({
       (phone) =>
         phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE || !phone.subscriptionStatus
     ).length > 0;
+
+  const outboundEventTypeId =
+    form?.watch("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null;
 
   if (hasActivePhoneNumbers) {
     const activePhoneNumbers = agentData.outboundPhoneNumbers.filter(
@@ -238,6 +243,8 @@ export function PhoneNumberTab({
             agentId={agentId}
             teamId={teamId}
             form={form}
+            eventTypeIds={eventTypeIds}
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -249,6 +256,8 @@ export function PhoneNumberTab({
             teamId={teamId}
             isOrganization={isOrganization}
             form={form}
+            eventTypeIds={eventTypeIds}
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -326,6 +335,8 @@ export function PhoneNumberTab({
           agentId={agentId}
           teamId={teamId}
           form={form}
+          eventTypeIds={eventTypeIds}
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 
@@ -337,6 +348,8 @@ export function PhoneNumberTab({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
+          eventTypeIds={eventTypeIds}
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 
