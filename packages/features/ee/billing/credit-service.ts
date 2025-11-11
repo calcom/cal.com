@@ -17,6 +17,8 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
+import { StripeBillingService } from "./stripe-billing-service";
+
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
 type LowCreditBalanceResultBase = {
@@ -473,7 +475,6 @@ export class CreditService {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
       warningLimit = totalMonthlyCredits * 0.2;
     } else if (userId) {
-      const { StripeBillingService } = await import("@calcom/features/ee/billing/stripe-billing-service");
       const billingService = new StripeBillingService();
       const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
       const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
@@ -668,7 +669,6 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
-    const { StripeBillingService } = await import("@calcom/features/ee/billing/stripe-billing-service");
     const billingService = new StripeBillingService();
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
