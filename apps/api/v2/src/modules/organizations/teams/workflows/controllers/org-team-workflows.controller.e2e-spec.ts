@@ -18,6 +18,7 @@ import {
   PHONE_NUMBER,
   EMAIL,
   WorkflowEmailAttendeeStepDto,
+  WorkflowEmailAddressStepDto,
   UpdateEmailAddressWorkflowStepDto,
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";
@@ -388,6 +389,32 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         sampleCreateWorkflowRoutingFormDto
       ) as unknown as CreateEventTypeWorkflowDto;
       invalidWorkflow.trigger.type = AFTER_EVENT;
+      return request(app.getHttpServer())
+        .post(`${basePath}/routing-form`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(invalidWorkflow)
+        .expect(400);
+    });
+
+    it("should not create a new routing form workflow with not allowed actions", async () => {
+      // force impossible step to test validation, should fail with 400
+      const invalidWorkflow = structuredClone(
+        sampleCreateWorkflowRoutingFormDto
+      ) as unknown as CreateEventTypeWorkflowDto;
+      invalidWorkflow.steps = [
+        {
+          stepNumber: 1,
+          action: "cal_ai_phone_call",
+          recipient: PHONE_NUMBER,
+          template: REMINDER,
+          verifiedPhoneId: verifiedPhoneId,
+          sender: "CalcomE2EStep2",
+          message: {
+            subject: "Upcoming: {EVENT_NAME}",
+            text: "Reminder for your event {EVENT_NAME}.",
+          },
+        } as unknown as WorkflowEmailAddressStepDto,
+      ];
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
