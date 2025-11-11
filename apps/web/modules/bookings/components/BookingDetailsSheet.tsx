@@ -55,6 +55,17 @@ export function BookingDetailsSheet({
 }: BookingDetailsSheetProps) {
   const { t } = useLocale();
 
+  const parsedMetadata = bookingMetadataSchema.safeParse(booking?.metadata ?? null);
+  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+
+  // Get conference link info for Join button - must be called before early return
+  const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
+    location: booking?.location ?? null,
+    videoCallUrl: bookingMetadata?.videoCallUrl,
+    t,
+    bookingStatus: booking?.status ?? "ACCEPTED",
+  });
+
   if (!booking) return null;
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
@@ -84,17 +95,6 @@ export function BookingDetailsSheet({
   };
 
   const statusBadge = getStatusBadge();
-
-  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
-  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
-
-  // Get conference link info for Join button
-  const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
-    location: booking.location,
-    videoCallUrl: bookingMetadata?.videoCallUrl,
-    t,
-    bookingStatus: booking.status,
-  });
 
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent

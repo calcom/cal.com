@@ -42,6 +42,7 @@ interface Props {
   isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
+  showMoveToOrg?: boolean;
 }
 
 export default function TeamListItem(props: Props) {
@@ -70,6 +71,19 @@ export default function TeamListItem(props: Props) {
       if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
         refreshData();
       }
+    },
+  });
+
+  const moveToOrganizationMutation = trpc.viewer.teams.moveToOrganization.useMutation({
+    onSuccess: () => {
+      showToast(t("team_moved_to_organization_successfully"), "success");
+      utils.viewer.teams.list.invalidate();
+      utils.viewer.teams.listStandalone.invalidate();
+      revalidateTeamsList();
+      refreshData();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     },
   });
 
@@ -196,6 +210,21 @@ export default function TeamListItem(props: Props) {
           ) : (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
+              {props.showMoveToOrg && (
+                <Tooltip content={t("move_team_to_organization")}>
+                  <Button
+                    color="secondary"
+                    onClick={() => {
+                      moveToOrganizationMutation.mutate({
+                        teamId: team.id,
+                      });
+                    }}
+                    loading={moveToOrganizationMutation.isPending}
+                    variant="icon"
+                    StartIcon="arrow-right"
+                  />
+                </Tooltip>
+              )}
               <ButtonGroup combined>
                 {team.slug && (
                   <Tooltip content={t("copy_link_team")}>

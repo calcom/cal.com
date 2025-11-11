@@ -20,6 +20,8 @@ import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.sch
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZListStandaloneSchema } from "./listStandalone.schema";
+import { ZMoveToOrganizationSchema } from "./moveToOrganization.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
@@ -33,9 +35,6 @@ import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
-
-const NAMESPACE = "teams";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
@@ -51,6 +50,15 @@ export const viewerTeamsRouter = router({
   // Returns Teams I am a owner/admin of
   listOwnedTeams: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./list.handler");
+    return handler(opts);
+  }),
+  // Returns standalone teams (not in any organization)
+  listStandalone: authedProcedure.input(ZListStandaloneSchema).query(async (opts) => {
+    const { default: handler } = await import("./listStandalone.handler");
+    return handler(opts);
+  }),
+  moveToOrganization: authedProcedure.input(ZMoveToOrganizationSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./moveToOrganization.handler");
     return handler(opts);
   }),
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {

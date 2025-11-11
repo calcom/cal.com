@@ -541,6 +541,44 @@ export class TeamRepository {
     return users;
   }
 
+  async findStandaloneTeamsByUserId({ userId }: { userId: number }) {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        userId: userId,
+        accepted: true,
+        team: {
+          isOrganization: false,
+          parentId: null,
+        },
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            isOrganization: true,
+            metadata: true,
+            inviteTokens: true,
+            parent: true,
+            parentId: true,
+          },
+        },
+      },
+      orderBy: { role: "desc" },
+    });
+
+    return memberships.map(({ team: { inviteTokens, ...team }, ...membership }) => ({
+      role: membership.role,
+      accepted: membership.accepted,
+      ...team,
+      metadata: teamMetadataSchema.parse(team.metadata),
+      /** To prevent breaking we only return non-email attached token here, if we have one */
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
+    }));
+  }
+
   private parsePermission(permission: string): { resource: string; action: string } {
     const lastDotIndex = permission.lastIndexOf(".");
     const resource = permission.substring(0, lastDotIndex);
