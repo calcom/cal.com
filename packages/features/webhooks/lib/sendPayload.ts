@@ -3,6 +3,7 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -93,22 +94,6 @@ export type EventPayloadType = CalendarEvent &
     cancelledBy?: string;
     paymentData?: Payment;
   };
-
-export type DelegationCredentialErrorPayloadType = {
-  error: {
-    type: string;
-    message: string;
-  };
-  credential: {
-    id: number;
-    type: string;
-    appId: string;
-  };
-  user: {
-    id: number;
-    email: string;
-  };
-};
 
 export type WebhookPayloadType =
   | EventPayloadType
@@ -221,9 +206,7 @@ export function isDelegationCredentialErrorPayload(
 }
 
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
-  return (
-    !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data)
-  );
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
 }
 
 const sendPayload = async (

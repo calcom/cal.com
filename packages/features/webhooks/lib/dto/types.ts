@@ -331,21 +331,10 @@ export interface AfterGuestsNoShowDTO extends BaseEventDTO {
   };
 }
 
-export interface DelegationCredentialErrorDTO extends BaseEventDTO {
+export interface DelegationCredentialErrorDTO
+  extends BaseEventDTO,
+    Pick<DelegationCredentialErrorPayloadType, "error" | "credential" | "user"> {
   triggerEvent: typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
-  error: {
-    type: string;
-    message: string;
-  };
-  credential: {
-    id: number;
-    type: string;
-    appId: string;
-  };
-  user: {
-    id: number;
-    email: string;
-  };
 }
 
 export type WebhookEventDTO =

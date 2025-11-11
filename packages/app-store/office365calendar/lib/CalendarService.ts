@@ -4,6 +4,7 @@ import { findIana } from "windows-iana";
 
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -26,7 +27,6 @@ import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectF
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
-import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 
 interface IRequest {
   method: string;
@@ -130,8 +130,8 @@ export default class Office365CalendarService implements Calendar {
         const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
-        
-        if (this.credential.user?.email) {
+
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -140,13 +140,13 @@ export default class Office365CalendarService implements Calendar {
               appId: this.credential.appId,
             },
             user: {
-              id: this.credential.userId ?? 0,
+              id: this.credential.userId,
               email: this.credential.user.email,
             },
             orgId: this.credential.teamId,
           });
         }
-        
+
         throw error;
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -164,8 +164,8 @@ export default class Office365CalendarService implements Calendar {
         const error = new CalendarAppDelegationCredentialConfigurationError(
           "Delegation credential without clientId or Secret"
         );
-        
-        if (this.credential.user?.email) {
+
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -174,13 +174,13 @@ export default class Office365CalendarService implements Calendar {
               appId: this.credential.appId,
             },
             user: {
-              id: this.credential.userId ?? 0,
+              id: this.credential.userId,
               email: this.credential.user.email,
             },
             orgId: this.credential.teamId,
           });
         }
-        
+
         throw error;
       }
 
@@ -206,8 +206,8 @@ export default class Office365CalendarService implements Calendar {
       const error = new CalendarAppDelegationCredentialConfigurationError(
         "Delegation credential without clientId or Secret"
       );
-      
-      if (this.credential.user?.email) {
+
+      if (this.credential.userId && this.credential.user && this.credential.appId) {
         await triggerDelegationCredentialErrorWebhook({
           error,
           credential: {
@@ -216,13 +216,13 @@ export default class Office365CalendarService implements Calendar {
             appId: this.credential.appId,
           },
           user: {
-            id: this.credential.userId ?? 0,
+            id: this.credential.userId,
             email: this.credential.user.email,
           },
           orgId: this.credential.teamId,
         });
       }
-      
+
       throw error;
     }
     const loginResponse = await fetch(url, {
@@ -259,8 +259,8 @@ export default class Office365CalendarService implements Calendar {
         const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "User might not exist in Microsoft Azure Active Directory"
         );
-        
-        if (this.credential.user?.email) {
+
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -275,7 +275,7 @@ export default class Office365CalendarService implements Calendar {
             orgId: this.credential.teamId,
           });
         }
-        
+
         throw error;
       }
       this.azureUserId = parsedBody.value[0].id;

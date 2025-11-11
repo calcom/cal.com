@@ -1,7 +1,7 @@
- 
 import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client, JWT } from "googleapis-common";
 
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -23,7 +23,6 @@ import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
-import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 
 type DelegatedTo = NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });
@@ -127,20 +126,7 @@ export class CalendarAuth {
 
       let delegationError: CalendarAppDelegationCredentialError;
 
-      const getGoogleAuthErrorCode = (e: unknown): "unauthorized_client" | "invalid_grant" | undefined => {
-        if (typeof e !== "object" || e === null || !("response" in e)) return undefined;
-        const resp = (e as { response?: unknown }).response;
-        if (typeof resp !== "object" || resp === null || !("data" in resp)) return undefined;
-        const data = (resp as { data?: unknown }).data;
-        if (typeof data !== "object" || data === null || !("error" in data)) return undefined;
-        const errorCode = (data as { error?: unknown }).error;
-        return typeof errorCode === "string" &&
-          (errorCode === "unauthorized_client" || errorCode === "invalid_grant")
-          ? errorCode
-          : undefined;
-      };
-
-      const errorCode = getGoogleAuthErrorCode(error);
+      const errorCode = (error as { response?: { data?: { error?: string } } }).response?.data?.error;
       if (errorCode === "unauthorized_client") {
         delegationError = new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
           "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
@@ -154,7 +140,7 @@ export class CalendarAuth {
         delegationError = new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
       }
 
-      if (user && user.email) {
+      if (user && user.email && this.credential.appId) {
         await triggerDelegationCredentialErrorWebhook({
           error: delegationError,
           credential: {

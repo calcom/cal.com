@@ -1,3 +1,4 @@
+import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import type { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -12,15 +13,8 @@ const log = logger.getSubLogger({ prefix: ["triggerDelegationCredentialErrorWebh
  */
 export async function triggerDelegationCredentialErrorWebhook(params: {
   error: CalendarAppDelegationCredentialError;
-  credential: {
-    id: number;
-    type: string;
-    appId: string | null;
-  };
-  user: {
-    id: number;
-    email: string;
-  };
+  credential: DelegationCredentialErrorPayloadType["credential"];
+  user: DelegationCredentialErrorPayloadType["user"];
   orgId?: number | null;
 }): Promise<void> {
   try {
@@ -56,7 +50,7 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
         id: user.id,
         email: user.email,
       },
-    };
+    } satisfies DelegationCredentialErrorPayloadType;
 
     const webhookPromises = webhooks.map((webhook) =>
       sendPayload(
