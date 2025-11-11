@@ -23,8 +23,6 @@ export const OnboardingCalendarBrowserView = () => {
       startDate,
       endDate,
       events: events || [],
-      startHour: 0,
-      endHour: 23,
       gridCellsPerHour: 4,
       hoverEventDuration: 0,
       showBackgroundPattern: false,
