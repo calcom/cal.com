@@ -115,10 +115,10 @@ describe("handleRateLimitForNextJs", () => {
     });
 
     const context = createMockContext();
-    const identifierSuffix = "[user]/[type]";
+    const identifier = "[user]/[type]-hashed-127.0.0.1";
     const rateLimitingType = "core";
 
-    const result = await handleRateLimitForNextJs(context, identifierSuffix, rateLimitingType);
+    const result = await handleRateLimitForNextJs(context, identifier, rateLimitingType);
 
     expect(result).toBeNull();
     expect(context.res.statusCode).toBe(200);
@@ -138,10 +138,10 @@ describe("handleRateLimitForNextJs", () => {
     });
 
     const context = createMockContext();
-    const identifierSuffix = "[user]/[type]";
+    const identifier = "[user]/[type]-hashed-127.0.0.1";
     const rateLimitingType = "core";
 
-    const result = await handleRateLimitForNextJs(context, identifierSuffix, rateLimitingType);
+    const result = await handleRateLimitForNextJs(context, identifier, rateLimitingType);
 
     expect(result).not.toBeNull();
     expect(result).toEqual({
@@ -165,14 +165,14 @@ describe("handleRateLimitForNextJs", () => {
     });
 
     const context = createMockContext();
-    const identifierSuffix = "[user]/[type]";
+    const identifier = "[user]/[type]-hashed-127.0.0.1";
 
-    const result = await handleRateLimitForNextJs(context, identifierSuffix, "common");
+    const result = await handleRateLimitForNextJs(context, identifier, "common");
 
     expect(result).toBeNull();
   });
 
-  it("should hash the IP address in the identifier", async () => {
+  it("should use the provided identifier directly", async () => {
     process.env.UNKEY_ROOT_KEY = "unkey_mock";
 
     const mockRateLimiter = vi.fn(() => {
@@ -187,13 +187,13 @@ describe("handleRateLimitForNextJs", () => {
     vi.mocked(rateLimiter).mockReturnValue(mockRateLimiter);
 
     const context = createMockContext();
-    const identifierSuffix = "test-suffix";
+    const identifier = "test-suffix-hashed-127.0.0.1";
 
-    await handleRateLimitForNextJs(context, identifierSuffix);
+    await handleRateLimitForNextJs(context, identifier);
 
     expect(mockRateLimiter).toHaveBeenCalledWith(
       expect.objectContaining({
-        identifier: expect.stringContaining("test-suffix-hashed-127.0.0.1"),
+        identifier: "test-suffix-hashed-127.0.0.1",
       })
     );
   });
@@ -213,10 +213,10 @@ describe("handleRateLimitForNextJs", () => {
     vi.mocked(rateLimiter).mockReturnValue(mockRateLimiter);
 
     const context = createMockContext();
-    const identifierSuffix = "[user]/[type]";
+    const identifier = "[user]/[type]-hashed-127.0.0.1";
     const opts = undefined;
 
-    await handleRateLimitForNextJs(context, identifierSuffix, "core", opts);
+    await handleRateLimitForNextJs(context, identifier, "core", opts);
 
     expect(mockRateLimiter).toHaveBeenCalled();
   });

@@ -1,10 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
-import getIP from "./getIP";
 import { HttpError } from "./http-error";
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
@@ -60,15 +58,20 @@ async function checkRateLimitForNextJs({
  * This ensures the 429 status code is properly returned (unlike notFound which returns 404).
  *
  * @param context - Next.js GetServerSidePropsContext
- * @param identifierSuffix - Suffix to append to the rate limit identifier (e.g., "[user]/[type]")
+ * @param identifier - Full identifier string for rate limiting (e.g., "[user]/[type]-hashed-ip")
  * @param rateLimitingType - Type of rate limiting (default: "core") (see RateLimitHelper["rateLimitingType"])
  * @param opts - Optional rate limit options
  * @returns null if rate limit passes, or a Next.js response object with props containing errorMessage if rate limited
  *
  * @example
  * ```ts
+ * import { getIP } from "@calcom/lib/getIP";
+ * import { piiHasher } from "@calcom/lib/server/PiiHasher";
+ *
  * export const getServerSideProps = async (context: GetServerSidePropsContext) => {
- *   const rateLimitResponse = await handleRateLimitForNextJs(context, "[user]/[type]");
+ *   const requestorIp = getIP(context.req as unknown as Request);
+ *   const identifier = `[user]/[type]-${piiHasher.hash(requestorIp)}`;
+ *   const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
  *   if (rateLimitResponse) return rateLimitResponse;
  *
  *   // Continue with normal logic...
@@ -77,14 +80,13 @@ async function checkRateLimitForNextJs({
  */
 export async function handleRateLimitForNextJs(
   context: GetServerSidePropsContext,
-  identifierSuffix: string,
+  identifier: string,
   rateLimitingType: RateLimitHelper["rateLimitingType"] = "core",
   opts?: RateLimitHelper["opts"]
 ): Promise<{ props: { errorMessage: string } } | null> {
-  const requestorIp = getIP(context.req as unknown as Request);
   const rateLimitResult = await checkRateLimitForNextJs({
     rateLimitingType,
-    identifier: `${identifierSuffix}-${piiHasher.hash(requestorIp)}`,
+    identifier,
     opts,
   });
 

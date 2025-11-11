@@ -12,6 +12,8 @@ import { EventRepository } from "@calcom/features/eventtypes/repositories/EventR
 import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
@@ -316,7 +318,9 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const rateLimitResponse = await handleRateLimitForNextJs(context, "[user]/[type]");
+  const requestorIp = getIP(context.req as unknown as Request);
+  const identifier = `[user]/[type]-${piiHasher.hash(requestorIp)}`;
+  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
   if (rateLimitResponse) return rateLimitResponse;
 
   const { user } = paramsSchema.parse(context.params);

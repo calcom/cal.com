@@ -1,5 +1,5 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSideProps } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
@@ -11,9 +11,11 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
@@ -79,9 +81,13 @@ type UserPageProps = {
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
-export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
+// @ts-expect-error - handleRateLimitForNextJs returns error props which are valid GetServerSidePropsResult but TypeScript can't infer the union type
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   // handle IP based rate limiting
-  const rateLimitResponse = await handleRateLimitForNextJs(context, "[user]");
+  const requestorIp = getIP(context.req as unknown as Request);
+  const identifier = `[user]-${piiHasher.hash(requestorIp)}`;
+  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
+  // @ts-expect-error - handleRateLimitForNextJs returns error props which are valid GetServerSidePropsResult
   if (rateLimitResponse) return rateLimitResponse;
 
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);

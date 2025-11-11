@@ -11,6 +11,8 @@ import { getBrandingForEventType } from "@calcom/features/profile/lib/getBrandin
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { handleRateLimitForNextJs } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -29,7 +31,9 @@ function hasApiV2RouteInEnv() {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const rateLimitResponse = await handleRateLimitForNextJs(context, "team/[slug]/[type]");
+  const requestorIp = getIP(context.req as unknown as Request);
+  const identifier = `team/[slug]/[type]-${piiHasher.hash(requestorIp)}`;
+  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
   if (rateLimitResponse) return rateLimitResponse;
 
   const { req, params, query } = context;
