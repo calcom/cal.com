@@ -5,6 +5,7 @@ import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/billing-email-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -16,8 +17,6 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
-
-import { StripeBillingService } from "./stripe-billing-service";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
