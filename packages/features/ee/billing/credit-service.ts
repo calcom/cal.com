@@ -5,7 +5,6 @@ import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/email-manager";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -474,6 +473,7 @@ export class CreditService {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
       warningLimit = totalMonthlyCredits * 0.2;
     } else if (userId) {
+      const { StripeBillingService } = await import("@calcom/features/ee/billing/stripe-billing-service");
       const billingService = new StripeBillingService();
       const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
       const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
@@ -668,6 +668,7 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
+    const { StripeBillingService } = await import("@calcom/features/ee/billing/stripe-billing-service");
     const billingService = new StripeBillingService();
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
