@@ -396,32 +396,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         .expect(400);
     });
 
-    it("should not create a new routing form workflow with not allowed actions", async () => {
-      // force impossible step to test validation, should fail with 400
-      const invalidWorkflow = structuredClone(
-        sampleCreateWorkflowRoutingFormDto
-      ) as unknown as CreateEventTypeWorkflowDto;
-      invalidWorkflow.steps = [
-        {
-          stepNumber: 1,
-          action: "cal_ai_phone_call",
-          recipient: PHONE_NUMBER,
-          template: REMINDER,
-          verifiedPhoneId: verifiedPhoneId,
-          sender: "CalcomE2EStep2",
-          message: {
-            subject: "Upcoming: {EVENT_NAME}",
-            text: "Reminder for your event {EVENT_NAME}.",
-          },
-        } as unknown as WorkflowEmailAddressStepDto,
-      ];
-      return request(app.getHttpServer())
-        .post(`${basePath}/routing-form`)
-        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send(invalidWorkflow)
-        .expect(400);
-    });
-
     it("should create a new routing form workflow with  allowed actions", async () => {
       const validWorkflow = structuredClone(
         sampleCreateWorkflowRoutingFormDto
@@ -451,6 +425,18 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             text: "Update Reminder for your event {EVENT_NAME}.</p>",
           },
         },
+        {
+          stepNumber: 3,
+          action: "cal_ai_phone_call",
+          recipient: PHONE_NUMBER,
+          template: REMINDER,
+          verifiedPhoneId: verifiedPhoneId,
+          sender: "CalcomE2EStep3",
+          message: {
+            subject: "Upcoming: {EVENT_NAME}",
+            text: "Reminder for your event {EVENT_NAME}.",
+          },
+        } as unknown as WorkflowEmailAddressStepDto,
       ];
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
