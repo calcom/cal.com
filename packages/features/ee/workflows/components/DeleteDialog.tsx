@@ -23,7 +23,13 @@ export const DeleteDialog = (props: IDeleteDialog) => {
   const deleteMutation = trpc.viewer.workflows.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.workflows.filteredList.invalidate();
-      if (onRevalidate) await onRevalidate();
+      if (onRevalidate) {
+        try {
+          await onRevalidate();
+        } catch (error) {
+          console.error("Failed to revalidate workflows cache:", error);
+        }
+      }
       additionalFunction();
       showToast(t("workflow_deleted_successfully"), "success");
       setIsOpenDialog(false);

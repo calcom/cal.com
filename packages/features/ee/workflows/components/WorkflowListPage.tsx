@@ -60,7 +60,7 @@ interface Props {
   workflows: WorkflowType[] | undefined;
   onRevalidate?: () => Promise<void>;
 }
-export default function WorkflowListPage({ workflows }: Props) {
+export default function WorkflowListPage({ workflows, onRevalidate }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -337,6 +337,7 @@ export default function WorkflowListPage({ workflows }: Props) {
             additionalFunction={async () => {
               await utils.viewer.workflows.filteredList.invalidate();
             }}
+            onRevalidate={onRevalidate}
           />
         </div>
       ) : (
