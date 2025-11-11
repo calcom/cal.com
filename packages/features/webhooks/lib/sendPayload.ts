@@ -288,16 +288,11 @@ const _sendPayload = async (
     body,
   });
 
-  const text = await response.text();
-
+  // SECURITY: Don't read or return response body to prevent data exfiltration/theft
+  // Only return status information
   return {
     ok: response.ok,
     status: response.status,
-    ...(text
-      ? {
-          message: text,
-        }
-      : {}),
   };
 };
 
