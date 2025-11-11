@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
 
-import { handleRateLimitForNextJs } from "./handleRatelimit";
+import { handleRateLimitForNextJs, RateLimitExceededError } from "./handleRatelimit";
 
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => {
   return {
@@ -30,7 +29,7 @@ describe("handleRateLimitForNextJs", () => {
     expect(result).toBeNull();
   });
 
-  it("should return NextResponse with 429 status when rate limit is exceeded", async () => {
+  it("should throw RateLimitExceededError when rate limit is exceeded", async () => {
     process.env.UNKEY_ROOT_KEY = "unkey_mock";
 
     const resetTime = Date.now() + 10000;
@@ -44,13 +43,9 @@ describe("handleRateLimitForNextJs", () => {
     const identifier = "[user]/[type]-hashed-127.0.0.1";
     const rateLimitingType = "core";
 
-    const result = await handleRateLimitForNextJs(identifier, rateLimitingType);
-
-    expect(result).not.toBeNull();
-    expect(result).toBeInstanceOf(NextResponse);
-    expect(result?.status).toBe(429);
-    const json = await result?.json();
-    expect(json.message).toContain("Rate limit exceeded. Try again in");
+    await expect(handleRateLimitForNextJs(identifier, rateLimitingType)).rejects.toThrow(
+      RateLimitExceededError
+    );
   });
 
   it("should use different rate limiting types", async () => {
