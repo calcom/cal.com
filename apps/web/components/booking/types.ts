@@ -14,4 +14,5 @@ export type BookingItemProps = BookingItem & {
     userEmail: string | undefined;
   };
   isToday: boolean;
+  onClick?: () => void;
 };
