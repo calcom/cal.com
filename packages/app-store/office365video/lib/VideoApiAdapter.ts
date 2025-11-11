@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -14,7 +15,6 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
-import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import { OFFICE365_VIDEO_SCOPES } from "../api/add";
 import config from "../config.json";
 
@@ -67,8 +67,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         const error = new CalendarAppDelegationCredentialConfigurationError(
           "Delegation credential without clientId or Secret"
         );
-        
-        if (credential.user?.email) {
+
+        if (credential.userId && credential.user && credential.appId) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -83,7 +83,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
             orgId: credential.teamId,
           });
         }
-        
+
         throw error;
       }
 
@@ -129,8 +129,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
-        
-        if (credential.user?.email) {
+
+        if (credential.userId && credential.user && credential.appId) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -145,7 +145,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
             orgId: credential.teamId,
           });
         }
-        
+
         throw error;
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -178,8 +178,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       const error = new CalendarAppDelegationCredentialConfigurationError(
         "Delegation credential without clientId or Secret"
       );
-      
-      if (credential.user?.email) {
+
+      if (credential.userId && credential.user && credential.appId) {
         await triggerDelegationCredentialErrorWebhook({
           error,
           credential: {
@@ -194,7 +194,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           orgId: credential.teamId,
         });
       }
-      
+
       throw error;
     }
     const loginResponse = await fetch(url, {
@@ -230,8 +230,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       const error = new CalendarAppDelegationCredentialInvalidGrantError(
         "User might not exist in Microsoft Azure Active Directory"
       );
-      
-      if (credential.user?.email) {
+
+      if (credential.userId && credential.user && credential.appId) {
         await triggerDelegationCredentialErrorWebhook({
           error,
           credential: {
@@ -246,7 +246,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           orgId: credential.teamId,
         });
       }
-      
+
       throw error;
     }
     azureUserId = parsedBody.value[0].id;
