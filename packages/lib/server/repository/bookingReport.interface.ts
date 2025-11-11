@@ -55,6 +55,11 @@ export interface BookingReportWithDetails {
     action: string;
     description: string | null;
   } | null;
+  organization: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
 }
 
 export interface IBookingReportRepository {

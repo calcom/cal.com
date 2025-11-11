@@ -20,14 +20,7 @@ export const bulkDeleteWatchlistEntriesHandler = async ({
   const { user } = ctx;
   const watchlistRepo = new WatchlistRepository(prisma);
 
-  const entries = await prisma.watchlist.findMany({
-    where: { id: { in: input.ids } },
-    select: {
-      id: true,
-      isGlobal: true,
-      organizationId: true,
-    },
-  });
+  const entries = await watchlistRepo.findEntriesByIds(input.ids);
 
   const entryMap = new Map(entries.map((e) => [e.id, e]));
   const validIds: string[] = [];

@@ -76,6 +76,13 @@ export interface IWatchlistRepository {
       | null;
     auditHistory: WatchlistAuditEntry[];
   }>;
+  findEntriesByIds(ids: string[]): Promise<
+    Array<{
+      id: string;
+      isGlobal: boolean;
+      organizationId: number | null;
+    }>
+  >;
   deleteEntry(id: string, userId: number): Promise<void>;
   bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }>;
 }

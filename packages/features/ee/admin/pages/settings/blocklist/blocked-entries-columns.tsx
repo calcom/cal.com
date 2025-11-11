@@ -74,8 +74,6 @@ export function useBlockedEntriesColumns({
           let label = t("manual");
           if (source === "FREE_DOMAIN_POLICY") {
             label = t("free_domain_policy");
-          } else if (source === "AUTO") {
-            label = t("automatic");
           }
           return <span className="text-default">{label}</span>;
         },

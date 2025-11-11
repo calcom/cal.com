@@ -92,9 +92,11 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
         <DialogHeader title={t("add_to_system_blocklist")} />
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            <Alert severity="warning" title={t("system_wide_blocklist_warning")}>
-              {t("system_wide_blocklist_warning_description")}
-            </Alert>
+            <Alert
+              severity="warning"
+              title={t("system_wide_blocklist_warning")}
+              message={t("system_wide_blocklist_warning_description")}
+            />
 
             <div>
               <Label htmlFor="type" className="text-emphasis mb-2 block text-sm font-medium">
