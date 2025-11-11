@@ -3,12 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { TFunction } from "next-i18next";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getStringAsNumberRequiredSchema } from "@calcom/prisma/zod-utils";
-import { Button, Form, Meta, SelectField, TextField, showToast } from "@calcom/ui";
+import { Button, Form, Meta, TextField, showToast } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/settings/admin/orgMigrations/moveTeamToOrg/getServerSideProps";
 
@@ -22,7 +22,6 @@ export const getFormSchema = (t: TFunction) => {
   return z.object({
     teamId: z.number().or(getStringAsNumberRequiredSchema(t)),
     targetOrgId: z.number().or(getStringAsNumberRequiredSchema(t)),
-    moveMembers: z.boolean(),
     teamSlugInOrganization: z.string(),
   });
 };
@@ -45,16 +44,6 @@ const enum State {
 
 export default function MoveTeamToOrg() {
   const [state, setState] = useState(State.IDLE);
-  const moveUsersOptions = [
-    {
-      label: "No",
-      value: "false",
-    },
-    {
-      label: "Yes",
-      value: "true",
-    },
-  ];
   const { t } = useLocale();
   const formSchema = getFormSchema(t);
   const formMethods = useForm({
@@ -62,8 +51,7 @@ export default function MoveTeamToOrg() {
     resolver: zodResolver(formSchema),
   });
 
-  const { register, watch } = formMethods;
-  const moveMembers = watch("moveMembers");
+  const { register } = formMethods;
   return (
     <Wrapper>
       <Form
@@ -118,27 +106,8 @@ export default function MoveTeamToOrg() {
             required
             placeholder="Enter Target organization ID"
           />
-          <div>
-            <Controller
-              name="moveMembers"
-              render={({ field: { value, onChange } }) => (
-                <SelectField
-                  containerClassName="mb-0"
-                  label="Move users"
-                  onChange={(option) => {
-                    onChange(option?.value === "true");
-                  }}
-                  value={moveUsersOptions.find((opt) => opt.value === value)}
-                  options={moveUsersOptions}
-                />
-              )}
-            />
-
-            {moveMembers === true ? (
-              <div className="mt-2">Members of the team will also be moved to the organization</div>
-            ) : moveMembers === false ? (
-              <div className="mt-2">Members of the team will not be moved to the organization</div>
-            ) : null}
+          <div className="mt-2 text-sm text-gray-600">
+            Note: Team members will automatically be invited to the organization when the team is moved.
           </div>
         </div>
         <Button type="submit" loading={state === State.LOADING}>
