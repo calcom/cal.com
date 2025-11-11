@@ -320,8 +320,7 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const requestorIp = getIP(context.req as unknown as Request);
   const identifier = `[user]/[type]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
-  if (rateLimitResponse) return rateLimitResponse;
+  await handleRateLimitForNextJs(identifier);
 
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;

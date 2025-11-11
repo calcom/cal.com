@@ -41,6 +41,15 @@ export default function Error({ error, reset }: ErrorProps) {
       };
     }
 
+    if (error.message === "RATE_LIMIT_EXCEEDED") {
+      return {
+        statusCode: 429,
+        title: "Rate Limit Exceeded",
+        name: "Rate Limit Exceeded",
+        message: "Rate limit exceeded. Please try again later.",
+      };
+    }
+
     return {
       statusCode: 500,
       title: "Internal Server Error",

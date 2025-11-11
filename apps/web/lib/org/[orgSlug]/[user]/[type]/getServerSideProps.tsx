@@ -21,8 +21,7 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const requestorIp = getIP(ctx.req as unknown as Request);
   const identifier = `[orgSlug]/[user]/[type]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(ctx, identifier);
-  if (rateLimitResponse) return rateLimitResponse;
+  await handleRateLimitForNextJs(identifier);
 
   const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
   const team = await prisma.team.findFirst({

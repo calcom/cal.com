@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext } from "next";
+import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -13,19 +13,6 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => {
 });
 
 describe("handleRateLimitForNextJs", () => {
-  const createMockContext = (): GetServerSidePropsContext => {
-    return {
-      req: {
-        headers: {
-          "cf-connecting-ip": "192.168.1.1",
-        },
-      } as unknown as GetServerSidePropsContext["req"],
-      res: {
-        statusCode: 200,
-      } as unknown as GetServerSidePropsContext["res"],
-    } as GetServerSidePropsContext;
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -35,17 +22,15 @@ describe("handleRateLimitForNextJs", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    const context = createMockContext();
     const identifier = "[user]/[type]-hashed-127.0.0.1";
     const rateLimitingType = "core";
 
-    const result = await handleRateLimitForNextJs(context, identifier, rateLimitingType);
+    const result = await handleRateLimitForNextJs(identifier, rateLimitingType);
 
     expect(result).toBeNull();
-    expect(context.res.statusCode).toBe(200);
   });
 
-  it("should return error props and set statusCode to 429 when rate limit is exceeded", async () => {
+  it("should return NextResponse with 429 status when rate limit is exceeded", async () => {
     process.env.UNKEY_ROOT_KEY = "unkey_mock";
 
     const resetTime = Date.now() + 10000;
@@ -56,19 +41,16 @@ describe("handleRateLimitForNextJs", () => {
       })
     );
 
-    const context = createMockContext();
     const identifier = "[user]/[type]-hashed-127.0.0.1";
     const rateLimitingType = "core";
 
-    const result = await handleRateLimitForNextJs(context, identifier, rateLimitingType);
+    const result = await handleRateLimitForNextJs(identifier, rateLimitingType);
 
     expect(result).not.toBeNull();
-    expect(result).toEqual({
-      props: {
-        errorMessage: expect.stringContaining("Rate limit exceeded. Try again in"),
-      },
-    });
-    expect(context.res.statusCode).toBe(429);
+    expect(result).toBeInstanceOf(NextResponse);
+    expect(result?.status).toBe(429);
+    const json = await result?.json();
+    expect(json.message).toContain("Rate limit exceeded. Try again in");
   });
 
   it("should use different rate limiting types", async () => {
@@ -76,10 +58,9 @@ describe("handleRateLimitForNextJs", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    const context = createMockContext();
     const identifier = "[user]/[type]-hashed-127.0.0.1";
 
-    const result = await handleRateLimitForNextJs(context, identifier, "common");
+    const result = await handleRateLimitForNextJs(identifier, "common");
 
     expect(result).toBeNull();
   });
@@ -89,10 +70,9 @@ describe("handleRateLimitForNextJs", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    const context = createMockContext();
     const identifier = "test-suffix-hashed-127.0.0.1";
 
-    await handleRateLimitForNextJs(context, identifier);
+    await handleRateLimitForNextJs(identifier);
 
     expect(checkRateLimitAndThrowError).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -106,11 +86,10 @@ describe("handleRateLimitForNextJs", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    const context = createMockContext();
     const identifier = "[user]/[type]-hashed-127.0.0.1";
     const opts = undefined;
 
-    await handleRateLimitForNextJs(context, identifier, "core", opts);
+    await handleRateLimitForNextJs(identifier, "core", opts);
 
     expect(checkRateLimitAndThrowError).toHaveBeenCalled();
   });

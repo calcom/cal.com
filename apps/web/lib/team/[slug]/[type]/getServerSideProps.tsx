@@ -33,8 +33,7 @@ function hasApiV2RouteInEnv() {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const requestorIp = getIP(context.req as unknown as Request);
   const identifier = `team/[slug]/[type]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
-  if (rateLimitResponse) return rateLimitResponse;
+  await handleRateLimitForNextJs(identifier);
 
   const { req, params, query } = context;
   const session = await getServerSession({ req });

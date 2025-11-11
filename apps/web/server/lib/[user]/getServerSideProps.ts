@@ -84,8 +84,7 @@ type UserPageProps = {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const requestorIp = getIP(context.req as unknown as Request);
   const identifier = `[user]-${piiHasher.hash(requestorIp)}`;
-  const rateLimitResponse = await handleRateLimitForNextJs(context, identifier);
-  if (rateLimitResponse) return rateLimitResponse;
+  await handleRateLimitForNextJs(identifier);
 
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
