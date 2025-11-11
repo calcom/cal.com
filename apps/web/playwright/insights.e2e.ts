@@ -271,7 +271,9 @@ test.describe("Insights", async () => {
     ];
 
     for (const title of expectedChartTitles) {
-      const chartCard = page.locator("[data-testid='panel-card'] h2").filter({ hasText: title });
+      const chartCard = page
+        .locator("[data-testid='panel-card'] h2")
+        .filter({ hasText: new RegExp(`^${title}$`) });
       await expect(chartCard).toBeVisible();
     }
   });

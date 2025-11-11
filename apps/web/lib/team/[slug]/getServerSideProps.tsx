@@ -1,17 +1,17 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getOrganizationSettings,
   getVerifiedDomain,
 } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";

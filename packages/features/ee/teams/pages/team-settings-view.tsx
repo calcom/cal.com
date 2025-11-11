@@ -173,12 +173,14 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
         )}
 
         {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
-          <MakeTeamPrivateSwitch
-            isOrg={false}
-            teamId={team.id}
-            isPrivate={team.isPrivate ?? false}
-            disabled={isInviteOpen}
-          />
+          <div className="mt-6">
+            <MakeTeamPrivateSwitch
+              isOrg={false}
+              teamId={team.id}
+              isPrivate={team.isPrivate ?? false}
+              disabled={isInviteOpen}
+            />
+          </div>
         )}
       </div>
     </>

@@ -6,11 +6,14 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
+import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
@@ -63,6 +66,7 @@ async function processReschedule({
     (booking?.eventTypeId === props.eventData?.id &&
       (booking.status !== BookingStatus.CANCELLED ||
         allowRescheduleForCancelledBooking ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         !!(props.eventData as any)?.allowReschedulingCancelledBookings))
   ) {
     props.booking = booking;
@@ -314,6 +318,12 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const requestorIp = getIP(context.req as unknown as Request);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `[user]/[type]-${piiHasher.hash(requestorIp)}`,
+  });
+
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

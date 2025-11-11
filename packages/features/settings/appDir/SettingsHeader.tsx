@@ -1,7 +1,12 @@
+"use client";
+
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@calcom/ui/components/button";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -22,20 +27,29 @@ export default function Header({
   borderInShellHeader,
   backButton,
 }: HeaderProps) {
+  const router = useRouter();
+  const { t } = useLocale();
+  
   return (
     <div>
       <header
         className={classNames(
-          "border-subtle mx-auto block justify-between sm:flex",
+          "border-subtle mx-auto flex justify-between",
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex w-full items-center">
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex items-center">
             {backButton && (
-              <a href="javascript:history.back()">
-                <Icon name="arrow-left" className="mr-7" />
-              </a>
+              <Button
+                variant="icon"
+                size="sm"
+                color="minimal"
+                onClick={() => router.back()}
+                className="rounded-md ltr:mr-2 rtl:ml-2"
+                StartIcon="arrow-left"
+                aria-label={t("go_back")}
+              />
             )}
             <div>
               {title ? (
@@ -52,7 +66,7 @@ export default function Header({
               )}
             </div>
           </div>
-          <div className={classNames("flex-shrink-0 sm:ms-auto", ctaClassName)}>{CTA}</div>
+          <div className={classNames("flex-shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>

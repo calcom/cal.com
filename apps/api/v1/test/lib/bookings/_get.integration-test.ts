@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import { ZodError } from "zod";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { handler } from "../../../pages/api/bookings/_get";
 
@@ -16,9 +16,14 @@ const DefaultPagination = {
   skip: 0,
 };
 
-describe("GET /api/bookings", async () => {
-  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-  const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
+describe("GET /api/bookings", () => {
+  let proUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
+  let proUserBooking: Awaited<ReturnType<typeof prisma.booking.findFirstOrThrow>>;
+
+  beforeAll(async () => {
+    proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
+    proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
+  });
 
   it("Does not return bookings of other users when user has no permission", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
@@ -193,6 +198,22 @@ describe("GET /api/bookings", async () => {
   describe("Expand feature to add relational data in return payload", () => {
     it("Returns only team data when expand=team is set", async () => {
       const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+
+      // Find a team booking and a non-team booking from seed data
+      const team1 = await prisma.team.findFirst({ where: { slug: "team1" } });
+      const teamEventType = await prisma.eventType.findFirst({
+        where: { teamId: team1?.id },
+        include: { bookings: true },
+      });
+      const teamBooking = teamEventType?.bookings[0];
+
+      const nonTeamBooking = await prisma.booking.findFirst({
+        where: {
+          eventType: { teamId: null },
+          userId: proUser.id,
+        },
+      });
+
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
@@ -205,14 +226,23 @@ describe("GET /api/bookings", async () => {
       req.isOrganizationOwnerOrAdmin = true;
 
       const responseData = await handler(req);
-      console.log("bookings=>", responseData.bookings);
-      responseData.bookings.forEach((booking) => {
-        if (booking.id === 31) expect(booking.eventType?.team?.slug).toBe("team1");
-        if (booking.id === 19) {
-          // The team field can be either null or undefined due to nullish() in the schema
-          expect(booking.eventType?.team === null || booking.eventType?.team === undefined).toBe(true);
+
+      // Verify team booking has team data
+      if (teamBooking) {
+        const returnedTeamBooking = responseData.bookings.find((b) => b.id === teamBooking.id);
+        expect(returnedTeamBooking?.eventType?.team?.slug).toBe("team1");
+      }
+
+      // Verify non-team booking has null/undefined team
+      if (nonTeamBooking) {
+        const returnedNonTeamBooking = responseData.bookings.find((b) => b.id === nonTeamBooking.id);
+        if (returnedNonTeamBooking) {
+          expect(
+            returnedNonTeamBooking.eventType?.team === null ||
+              returnedNonTeamBooking.eventType?.team === undefined
+          ).toBe(true);
         }
-      });
+      }
     });
   });
 
@@ -317,11 +347,6 @@ describe("GET /api/bookings", async () => {
       const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
       const testUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-
-      const testUserBooking = await prisma.booking.findFirstOrThrow({
-        where: { userId: testUser.id },
-        include: { attendees: true },
-      });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
