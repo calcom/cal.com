@@ -7,6 +7,8 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import { webhookUrlValidationService } from "./WebhookUrlValidationService";
+
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
 export type EventTypeInfo = {
@@ -276,6 +278,13 @@ const _sendPayload = async (
   const { subscriberUrl } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");
+  }
+
+  // SECURITY: Validate URL to prevent SSRF attacks
+  try {
+    await webhookUrlValidationService.validateAsync(subscriberUrl);
+  } catch (error) {
+    throw new Error(`Invalid webhook URL: ${(error as Error).message}`);
   }
 
   const response = await fetch(subscriberUrl, {

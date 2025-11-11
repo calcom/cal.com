@@ -3,6 +3,7 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { createWebhookSignature, jsonParse } from "./sendPayload";
+import { webhookUrlValidationService } from "./WebhookUrlValidationService";
 
 export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
   await prisma.webhookScheduledTriggers.deleteMany({
@@ -36,6 +37,20 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
 
   // run jobs
   for (const job of jobsToRun) {
+    // SECURITY: Validate URL before making request
+    try {
+      await webhookUrlValidationService.validateAsync(job.subscriberUrl);
+    } catch (error) {
+      logger.error(`Invalid webhook URL for job ${job.id}: ${(error as Error).message}`, {
+        subscriberUrl: job.subscriberUrl,
+      });
+      // Skip this job and delete it
+      await prisma.webhookScheduledTriggers.delete({
+        where: { id: job.id },
+      });
+      continue;
+    }
+
     // Fetch the webhook configuration so that we can get the secret.
     let webhook = job.webhook;
 
@@ -64,6 +79,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
         method: "POST",
         body: job.payload,
         headers,
+        redirect: "manual", // SECURITY: Prevent following redirects to internal IPs
       }).catch((error) => {
         console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
       })
