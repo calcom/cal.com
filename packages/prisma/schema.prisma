@@ -2651,6 +2651,9 @@ model Agent {
   // Event type association for inbound agents
   inboundEventTypeId Int?
 
+  // Event type association for outbound agents
+  outboundEventTypeId Int?
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2663,6 +2666,7 @@ model Agent {
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {
