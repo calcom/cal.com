@@ -92,6 +92,26 @@ export const fieldTypeConfigSchema = z
 
 export const fieldsSchema = z.array(fieldSchema);
 
+/**
+ * Schema for validating a single field in the FormBuilder dialog.
+ * This enforces that checkbox type fields must have a label.
+ */
+export const fieldEditDialogSchema = fieldSchema.superRefine((field, ctx) => {
+  if (field.type === "checkbox") {
+    const hasLabel = field.label && field.label.trim().length > 0;
+    const hasDefaultLabel = field.defaultLabel && field.defaultLabel.trim().length > 0;
+    const isSystemField = field.editable === "system" || field.editable === "system-but-optional";
+
+    if (!hasLabel && !(isSystemField && hasDefaultLabel)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Label is required for checkbox fields",
+        path: ["label"],
+      });
+    }
+  }
+});
+
 export const fieldTypesSchemaMap: Partial<
   Record<
     FieldType,
@@ -227,7 +247,7 @@ export const fieldTypesSchemaMap: Partial<
       const urlSchema = z.string().url();
 
       // Check for malformed protocols (missing second slash test case)
-      if (value.match(/^https?:\/[^\/]/)) {
+      if (value.match(/^https?:\/[^/]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("url_validation_error"),
