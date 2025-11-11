@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+
+
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,19 +16,16 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
+import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+
 
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
+
 
 export type WorkflowType = Workflow & {
   team: {
@@ -59,6 +58,7 @@ export type WorkflowType = Workflow & {
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
+  onRevalidate?: () => Promise<void>;
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();

@@ -12,16 +12,18 @@ interface IDeleteDialog {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   workflowId: number;
   additionalFunction: () => Promise<boolean | void>;
+  onRevalidate?: () => Promise<void>;
 }
 
 export const DeleteDialog = (props: IDeleteDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, workflowId, additionalFunction } = props;
+  const { isOpenDialog, setIsOpenDialog, workflowId, additionalFunction, onRevalidate } = props;
   const utils = trpc.useUtils();
 
   const deleteMutation = trpc.viewer.workflows.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.workflows.filteredList.invalidate();
+      if (onRevalidate) await onRevalidate();
       additionalFunction();
       showToast(t("workflow_deleted_successfully"), "success");
       setIsOpenDialog(false);
