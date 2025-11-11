@@ -4,9 +4,12 @@ import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-stor
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -117,7 +120,10 @@ async function cancelAttendeeSeat(
     try {
       await Promise.all(integrationsToUpdate);
     } catch (error) {
-      logger.error(`Error updating integrations for event: ${evt.bookingId}, bookingUid: ${evt.uid}`, safeStringify(error));
+      logger.error(
+        `Error updating integrations for event: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(error)
+      );
       // Shouldn't stop code execution if integrations fail
       // as integrations was already updated
     }
@@ -129,11 +135,25 @@ async function cancelAttendeeSeat(
         ...evt,
         hideBranding:
           evt.hideBranding ||
-          !!(
-            bookingToDelete.eventType?.team?.hideBranding ||
-            bookingToDelete.eventType?.team?.parent?.hideBranding ||
-            bookingToDelete.user?.hideBranding
-          ),
+          (await (async () => {
+            if (!bookingToDelete.eventTypeId) return false;
+            const teamId = await getTeamIdFromEventType({
+              eventType: {
+                team: { id: bookingToDelete.eventType?.team?.id ?? null },
+                parentId: bookingToDelete?.eventType?.parentId ?? null,
+              },
+            });
+            const orgId = await getOrgIdFromMemberOrTeamId({
+              memberId: bookingToDelete.userId,
+              teamId,
+            });
+            return await shouldHideBrandingForEventWithPrisma({
+              eventTypeId: bookingToDelete.eventTypeId,
+              team: bookingToDelete.eventType?.team ?? null,
+              owner: bookingToDelete.user ?? null,
+              organizationId: orgId ?? null,
+            });
+          })()),
       },
       {
         ...attendee,
