@@ -9,16 +9,20 @@ import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory
 import { InternalTeamBilling } from "./internal-team-billing";
 import { TeamBillingPublishResponseStatus } from "./team-billing";
 
-const mockBillingServiceMethods = {
-  handleSubscriptionCancel: vi.fn(),
-  handleSubscriptionUpdate: vi.fn(),
-  checkoutSessionIsPaid: vi.fn(),
-  getSubscriptionStatus: vi.fn(),
-  handleEndTrial: vi.fn(),
-};
+const mockHandleSubscriptionCancel = vi.fn();
+const mockHandleSubscriptionUpdate = vi.fn();
+const mockCheckoutSessionIsPaid = vi.fn();
+const mockGetSubscriptionStatus = vi.fn();
+const mockHandleEndTrial = vi.fn();
 
 vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
-  StripeBillingService: vi.fn().mockImplementation(() => mockBillingServiceMethods),
+  StripeBillingService: vi.fn().mockImplementation(() => ({
+    handleSubscriptionCancel: mockHandleSubscriptionCancel,
+    handleSubscriptionUpdate: mockHandleSubscriptionUpdate,
+    checkoutSessionIsPaid: mockCheckoutSessionIsPaid,
+    getSubscriptionStatus: mockGetSubscriptionStatus,
+    handleEndTrial: mockHandleEndTrial,
+  })),
 }));
 
 vi.mock("@calcom/lib/constants", async () => {
