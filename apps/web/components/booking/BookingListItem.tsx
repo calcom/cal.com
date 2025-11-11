@@ -46,8 +46,11 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
-import { BookingActionsDropdown } from "./BookingActionsDropdown";
-import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
+import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
+import {
+  useBookingActionsStoreContext,
+  BookingActionsStoreProvider,
+} from "./actions/BookingActionsStoreProvider";
 import {
   getPendingActions,
   getCancelEventAction,
@@ -56,7 +59,7 @@ import {
   shouldShowIndividualReportButton,
   type BookingActionContext,
   getReportAction,
-} from "./bookingActions";
+} from "./actions/bookingActions";
 import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -496,7 +499,7 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            <BookingActionsDropdown booking={booking} />
+            <BookingActionsDropdown booking={booking} context="booking-list-item" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
             {shouldShowIndividualReportButton(actionContext) && (
               <div className="flex items-center space-x-2">
