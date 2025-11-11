@@ -3865,6 +3865,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
