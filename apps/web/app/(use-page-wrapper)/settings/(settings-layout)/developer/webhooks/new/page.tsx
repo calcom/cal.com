@@ -1,3 +1,5 @@
+import { revalidatePath } from "next/cache";
+
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 
@@ -26,7 +28,12 @@ const Page = async () => {
     webhookCaller.list(),
   ]);
 
-  return <NewWebhookView webhooks={webhooks} installedApps={installedApps} />;
+  const onInvalidate = async () => {
+    "use server";
+    revalidatePath("/settings/developer/webhooks");
+  };
+
+  return <NewWebhookView webhooks={webhooks} installedApps={installedApps} onInvalidate={onInvalidate} />;
 };
 
 export default Page;

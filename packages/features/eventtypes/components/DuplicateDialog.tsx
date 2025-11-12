@@ -33,7 +33,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = () => {
+const DuplicateDialog = ({ onInvalidate }: { onInvalidate?: () => void | Promise<void> } = {}) => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();
@@ -71,6 +71,7 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypesHeavy.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
+      await onInvalidate?.();
       await router.replace(`/event-types/${eventType.id}`);
 
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();

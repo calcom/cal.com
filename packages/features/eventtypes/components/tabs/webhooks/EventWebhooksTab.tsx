@@ -20,7 +20,12 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 
-export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export const EventWebhooksTab = ({ 
+  eventType,
+  onInvalidate 
+}: Pick<EventTypeSetupProps, "eventType"> & {
+  onInvalidate?: () => void | Promise<void>;
+}) => {
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
@@ -172,6 +177,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                                 setWebhookToEdit(webhook);
                               }}
                               readOnly={isChildrenManagedEventType && webhook.eventTypeId !== eventType.id}
+                              onInvalidate={onInvalidate}
                             />
                           );
                         })}

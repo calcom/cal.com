@@ -410,7 +410,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
                       if (typeof ClipboardItem !== "undefined") {
                         const inviteLinkClipbardItem = new ClipboardItem({
-                          "text/plain": new Promise((resolve) => {
+                          "text/plain": new Promise((resolve, reject) => {
                             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
                             createInviteMutation
                               .mutateAsync({
@@ -420,11 +420,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                               .then(({ inviteLink }) => {
                                 showToast(t("invite_link_copied"), "success");
                                 resolve(new Blob([inviteLink], { type: "text/plain" }));
+                              })
+                              .catch((error) => {
+                                reject(error);
                               });
                           }),
                         });
                         await navigator.clipboard.write([inviteLinkClipbardItem]);
-                      } else {
+                      }else {
                         // Fallback for browsers that don't support ClipboardItem e.g. Firefox
                         const { inviteLink } = await createInviteMutation.mutateAsync({
                           teamId: props.teamId,
