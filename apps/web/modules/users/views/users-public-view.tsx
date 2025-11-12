@@ -8,6 +8,7 @@ import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { z } from "zod";
 
@@ -85,6 +86,7 @@ function UserNotFound(props: { slug: string }) {
 
 export function UserPage(props: PageProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const { profile, eventTypes, entity } = props;
   const [user] = props.users || [];
   const isEventListEmpty = (eventTypes || []).length === 0;
@@ -104,7 +106,6 @@ export function UserPage(props: PageProps) {
     const defaultFavicons = document.querySelectorAll('link[rel="icon"]');
     defaultFavicons.forEach((link) => {
       link.rel = "icon";
-      // }
       link.href = user?.faviconUrl;
       link.type = "image/png";
     });
@@ -117,16 +118,6 @@ export function UserPage(props: PageProps) {
     }
   }, [user?.faviconUrl]);
 
-  // useEffect(() => {
-  //   if (user.faviconUrl) {
-  //     const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-
-  //     console.log("Removing default favicons: ", defaultFavicons);
-  //     defaultFavicons.forEach((link) => link.parentNode?.removeChild(link));
-
-  //     console.log("Removed default favicons");
-  //   }
-  // }, [user.faviconUrl]);
   if (entity?.considerUnpublished) {
     return (
       <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
@@ -134,9 +125,22 @@ export function UserPage(props: PageProps) {
       </div>
     );
   }
+
   if (props.userNotFound) {
     return <UserNotFound slug={props.slug ?? "User"} />;
   }
+
+  const handleEventTypeClick = async (type: (typeof eventTypes)[number]) => {
+    const queryString = new URLSearchParams(query as Record<string, string>).toString();
+    const url = `/${user.profile.username}/${type.slug}${queryString ? `?${queryString}` : ""}`;
+
+    await sdkActionManager?.fire("eventTypeSelected", {
+      eventType: type,
+    });
+
+    router.push(url);
+  };
+
   return (
     <>
       <div
@@ -190,8 +194,6 @@ export function UserPage(props: PageProps) {
             )}
           </div>
 
-          <DividerWithText />
-
           <div
             className={classNames("bg-default mx-auto flex flex-col gap-4 rounded-md pb-8 pt-2 lg:max-w-4xl")}
             data-testid="event-types">
@@ -200,9 +202,9 @@ export function UserPage(props: PageProps) {
               return (
                 <div
                   key={type.id}
-                  className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative rounded-md border shadow-md transition hover:scale-[1.02]"
+                  onClick={() => handleEventTypeClick(type)}
+                  className="dark:hover:bg-emphasis hover:bg-muted border-default bg-default group relative cursor-pointer rounded-md border shadow-md transition hover:scale-[1.02]"
                   data-testid="event-type-link">
-                  {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full px-2 py-4">
                     <div className="mb-2 flex flex-row items-center gap-2">
                       <div className="self-start p-2">
@@ -230,29 +232,18 @@ export function UserPage(props: PageProps) {
                     </div>
                     <div className="flex w-full flex-row justify-between">
                       <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                      <Link
-                        key={type.id}
-                        style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                        prefetch={false}
-                        href={{
-                          pathname: `/${user.profile.username}/${type.slug}`,
-                          query,
-                        }}
-                        passHref
-                        onClick={async () => {
-                          sdkActionManager?.fire("eventTypeSelected", {
-                            eventType: type,
-                          });
+                      <Button
+                        variant="button"
+                        brandColor={profile?.brandColor}
+                        darkBrandColor={profile?.darkBrandColor}
+                        type="button"
+                        size="base"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent double navigation
+                          handleEventTypeClick(type);
                         }}>
-                        <Button
-                          variant="button"
-                          brandColor={profile?.brandColor}
-                          darkBrandColor={profile?.darkBrandColor}
-                          type="button"
-                          size="base">
-                          {t("schedule")}
-                        </Button>
-                      </Link>
+                        {t("schedule")}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -275,19 +266,6 @@ export function UserPage(props: PageProps) {
         </div>
       </div>
     </>
-  );
-}
-
-function DividerWithText() {
-  const { t } = useLocale();
-  return (
-    <div className="mb-2 flex items-center justify-center">
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
-      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
-        {t("choose_a_meeting_type")}
-      </span>
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
-    </div>
   );
 }
 
