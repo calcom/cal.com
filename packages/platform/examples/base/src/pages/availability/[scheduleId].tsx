@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 import { useRef, useCallback } from "react";
 
@@ -56,7 +55,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
           id={router.query.scheduleId as string}
           ref={availabilityRef}
           enableOverrides={true}
-          customClassNames={{
+          /* customClassNames={{
             subtitlesClassName: "text-red-500",
             ctaClassName: "border p-4 rounded-md",
             editableHeadingClassName: "underline font-semibold",
@@ -82,7 +81,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
               description: "text-white",
               button: "text-black",
             },
-          }}
+          }} */
           onFormStateChange={handleFormStateChange}
           onUpdateSuccess={() => {
             console.log("Updated successfully");
