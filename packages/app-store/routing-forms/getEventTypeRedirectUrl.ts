@@ -58,7 +58,13 @@ export function getAbsoluteEventTypeRedirectUrl({
      * The origin for the team the form belongs to
      */
     teamOrigin: string;
+    /**
+     * The profile user who owns the form
+     */
     user: {
+      /**
+       * Current username on the profile
+       */
       username: string | null;
     };
   };
