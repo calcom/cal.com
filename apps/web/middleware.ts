@@ -58,6 +58,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
   "/api/webhooks/retell-ai",
   "/api/workflows/sms/user-response",
+  "/api/trpc/" // for tRPC
 ]
 
 export function checkPostMethod(req: NextRequest) {
