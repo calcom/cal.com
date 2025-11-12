@@ -11,7 +11,10 @@ import {
   TextInput,
   Switch,
   Modal,
+  Linking,
   Alert,
+  Clipboard,
+  Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -30,13 +33,14 @@ const tabs = [
 
 export default function EventTypeDetail() {
   const router = useRouter();
-  const { id, title, description, duration, price, currency } = useLocalSearchParams<{
+  const { id, title, description, duration, price, currency, slug } = useLocalSearchParams<{
     id: string;
     title: string;
     description?: string;
     duration: string;
     price?: string;
     currency?: string;
+    slug?: string;
   }>();
 
   const insets = useSafeAreaInsets();
@@ -45,8 +49,9 @@ export default function EventTypeDetail() {
   // Form state
   const [eventTitle, setEventTitle] = useState(title || "");
   const [eventDescription, setEventDescription] = useState(description || "");
-  const [eventSlug, setEventSlug] = useState("example-meeting");
+  const [eventSlug, setEventSlug] = useState(slug || "");
   const [eventDuration, setEventDuration] = useState(duration || "30");
+  const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -65,6 +70,36 @@ export default function EventTypeDetail() {
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
   const [saving, setSaving] = useState(false);
+  const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
+  const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
+  const [showBeforeBufferDropdown, setShowBeforeBufferDropdown] = useState(false);
+  const [showAfterBufferDropdown, setShowAfterBufferDropdown] = useState(false);
+  const [minimumNoticeValue, setMinimumNoticeValue] = useState("1");
+  const [minimumNoticeUnit, setMinimumNoticeUnit] = useState("Hours");
+  const [showMinimumNoticeUnitDropdown, setShowMinimumNoticeUnitDropdown] = useState(false);
+  const [limitBookingFrequency, setLimitBookingFrequency] = useState(false);
+  const [frequencyLimits, setFrequencyLimits] = useState([{ id: 1, value: "1", unit: "Per day" }]);
+  const [showFrequencyUnitDropdown, setShowFrequencyUnitDropdown] = useState<number | null>(null);
+  const [frequencyAnimationValue] = useState(new Animated.Value(0));
+  const [limitTotalDuration, setLimitTotalDuration] = useState(false);
+  const [durationLimits, setDurationLimits] = useState([{ id: 1, value: "60", unit: "Per day" }]);
+  const [showDurationUnitDropdown, setShowDurationUnitDropdown] = useState<number | null>(null);
+  const [durationAnimationValue] = useState(new Animated.Value(0));
+  const bufferTimeOptions = [
+    "No buffer time",
+    "5 Minutes",
+    "10 Minutes",
+    "15 Minutes",
+    "20 Minutes",
+    "30 Minutes",
+    "45 Minutes",
+    "60 Minutes",
+    "90 Minutes",
+    "120 Minutes",
+  ];
+  const timeUnitOptions = ["Minutes", "Hours", "Days"];
+  const frequencyUnitOptions = ["Per day", "Per Month", "Per year"];
+  const durationUnitOptions = ["Per day", "Per week", "Per month"];
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -130,6 +165,56 @@ export default function EventTypeDetail() {
     if (!newSelected.includes(defaultDuration)) {
       setDefaultDuration("");
     }
+  };
+
+  const toggleBookingFrequency = (value: boolean) => {
+    setLimitBookingFrequency(value);
+
+    Animated.timing(frequencyAnimationValue, {
+      toValue: value ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const addFrequencyLimit = () => {
+    const newId = Math.max(...frequencyLimits.map((limit) => limit.id)) + 1;
+    setFrequencyLimits([...frequencyLimits, { id: newId, value: "1", unit: "Per day" }]);
+  };
+
+  const removeFrequencyLimit = (id: number) => {
+    setFrequencyLimits(frequencyLimits.filter((limit) => limit.id !== id));
+  };
+
+  const updateFrequencyLimit = (id: number, field: "value" | "unit", newValue: string) => {
+    setFrequencyLimits(
+      frequencyLimits.map((limit) => (limit.id === id ? { ...limit, [field]: newValue } : limit))
+    );
+  };
+
+  const toggleTotalDuration = (value: boolean) => {
+    setLimitTotalDuration(value);
+
+    Animated.timing(durationAnimationValue, {
+      toValue: value ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const addDurationLimit = () => {
+    const newId = Math.max(...durationLimits.map((limit) => limit.id)) + 1;
+    setDurationLimits([...durationLimits, { id: newId, value: "60", unit: "Per day" }]);
+  };
+
+  const removeDurationLimit = (id: number) => {
+    setDurationLimits(durationLimits.filter((limit) => limit.id !== id));
+  };
+
+  const updateDurationLimit = (id: number, field: "value" | "unit", newValue: string) => {
+    setDurationLimits(
+      durationLimits.map((limit) => (limit.id === id ? { ...limit, [field]: newValue } : limit))
+    );
   };
 
   const fetchSchedules = async () => {
@@ -216,6 +301,18 @@ export default function EventTypeDetail() {
     fetchConferencingOptions();
   }, [id]);
 
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const userUsername = await CalComAPIService.getUsername();
+        setUsername(userUsername);
+      } catch (error) {
+        console.error("Failed to fetch username:", error);
+      }
+    };
+    fetchUsername();
+  }, []);
+
   const formatTime = (time: string) => {
     try {
       // Handle different time formats that might come from the API
@@ -288,14 +385,18 @@ export default function EventTypeDetail() {
 
   const handlePreview = async () => {
     try {
-      // Build the event type link and open it
-      const eventTypeSlug = eventSlug || "preview"; // Use current slug or fallback
+      const eventTypeSlug = eventSlug || "preview";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      // You can open this link externally or show it in a webview
-      console.log("Preview link:", link);
-      // For now, we'll just log it. In a real app, you'd open it with Linking.openURL
+
+      const supported = await Linking.canOpenURL(link);
+      if (supported) {
+        await Linking.openURL(link);
+      } else {
+        Alert.alert("Error", "Cannot open this URL on your device.");
+      }
     } catch (error) {
       console.error("Failed to generate preview link:", error);
+      Alert.alert("Error", "Failed to generate preview link. Please try again.");
     }
   };
 
@@ -303,18 +404,50 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "event-link";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      // Copy to clipboard (you'd use Clipboard.setString in a real app)
-      console.log("Link copied:", link);
-      // Show success message
+
+      Clipboard.setString(link);
+      Alert.alert("Success", "Link copied to clipboard");
     } catch (error) {
       console.error("Failed to copy link:", error);
+      Alert.alert("Error", "Failed to copy link. Please try again.");
     }
   };
 
   const handleDelete = () => {
-    // Show confirmation dialog
-    console.log("Delete event type:", id);
-    // In a real app, you'd show an alert and call the delete API
+    Alert.alert("Delete Event Type", `Are you sure you want to delete "${eventTitle}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("Attempting to delete event type with ID:", id);
+            const eventTypeId = parseInt(id);
+
+            if (isNaN(eventTypeId)) {
+              throw new Error("Invalid event type ID");
+            }
+
+            await CalComAPIService.deleteEventType(eventTypeId);
+            console.log("Event type deleted successfully");
+
+            Alert.alert("Success", "Event type deleted successfully", [
+              {
+                text: "OK",
+                onPress: () => {
+                  console.log("Navigating back after successful deletion");
+                  router.back();
+                },
+              },
+            ]);
+          } catch (error) {
+            console.error("Failed to delete event type:", error);
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            Alert.alert("Error", `Failed to delete event type: ${errorMessage}`);
+          }
+        },
+      },
+    ]);
   };
 
   const handleSave = async () => {
@@ -451,7 +584,7 @@ export default function EventTypeDetail() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.fieldLabel}>URL</Text>
                   <View style={styles.urlInputContainer}>
-                    <Text style={styles.urlPrefix}>cal.com/username/</Text>
+                    <Text style={styles.urlPrefix}>cal.com/{username}/</Text>
                     <TextInput
                       style={styles.urlInput}
                       value={eventSlug}
@@ -695,6 +828,169 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Before Event Buffer Dropdown Modal */}
+          <Modal
+            visible={showBeforeBufferDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowBeforeBufferDropdown(false)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowBeforeBufferDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Before event buffer</Text>
+                {bufferTimeOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, beforeEventBuffer === option && styles.selectedOption]}
+                    onPress={() => {
+                      setBeforeEventBuffer(option);
+                      setShowBeforeBufferDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        beforeEventBuffer === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {beforeEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* After Event Buffer Dropdown Modal */}
+          <Modal
+            visible={showAfterBufferDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowAfterBufferDropdown(false)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowAfterBufferDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>After event buffer</Text>
+                {bufferTimeOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, afterEventBuffer === option && styles.selectedOption]}
+                    onPress={() => {
+                      setAfterEventBuffer(option);
+                      setShowAfterBufferDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        afterEventBuffer === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {afterEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Minimum Notice Unit Dropdown Modal */}
+          <Modal
+            visible={showMinimumNoticeUnitDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}>
+            <TouchableOpacity
+              style={styles.modalOverlay}
+              onPress={() => setShowMinimumNoticeUnitDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Time unit</Text>
+                {timeUnitOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, minimumNoticeUnit === option && styles.selectedOption]}
+                    onPress={() => {
+                      setMinimumNoticeUnit(option);
+                      setShowMinimumNoticeUnitDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        minimumNoticeUnit === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {minimumNoticeUnit === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Frequency Unit Dropdown Modal */}
+          <Modal
+            visible={showFrequencyUnitDropdown !== null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowFrequencyUnitDropdown(null)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowFrequencyUnitDropdown(null)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Frequency unit</Text>
+                {frequencyUnitOptions.map((option) => {
+                  const selectedLimit = frequencyLimits.find(
+                    (limit) => limit.id === showFrequencyUnitDropdown
+                  );
+                  const isSelected = selectedLimit?.unit === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      onPress={() => {
+                        if (showFrequencyUnitDropdown) {
+                          updateFrequencyLimit(showFrequencyUnitDropdown, "unit", option);
+                        }
+                        setShowFrequencyUnitDropdown(null);
+                      }}>
+                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
+                        {option}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Duration Unit Dropdown Modal */}
+          <Modal
+            visible={showDurationUnitDropdown !== null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDurationUnitDropdown(null)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowDurationUnitDropdown(null)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Duration unit</Text>
+                {durationUnitOptions.map((option) => {
+                  const selectedLimit = durationLimits.find((limit) => limit.id === showDurationUnitDropdown);
+                  const isSelected = selectedLimit?.unit === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      onPress={() => {
+                        if (showDurationUnitDropdown) {
+                          updateDurationLimit(showDurationUnitDropdown, "unit", option);
+                        }
+                        setShowDurationUnitDropdown(null);
+                      }}>
+                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
+                        {option}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {activeTab === "availability" && (
             <View style={styles.card}>
               <View style={styles.fieldGroup}>
@@ -745,9 +1041,201 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "limits" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Event Limits</Text>
-              <Text style={styles.description}>Set booking limits and restrictions.</Text>
+            <View style={styles.basicsTabs}>
+              {/* Buffer Time Card */}
+              <View style={styles.card}>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Before event</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowBeforeBufferDropdown(true)}>
+                    <Text style={styles.dropdownText}>{beforeEventBuffer}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>After event</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowAfterBufferDropdown(true)}>
+                    <Text style={styles.dropdownText}>{afterEventBuffer}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Minimum Notice Card */}
+              <View style={styles.card}>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Minimum Notice</Text>
+                  <View style={styles.durationInputContainer}>
+                    <TextInput
+                      style={styles.numberInput}
+                      value={minimumNoticeValue}
+                      onChangeText={(text) => {
+                        const numericValue = text.replace(/[^0-9]/g, "");
+                        const num = parseInt(numericValue) || 0;
+                        if (num >= 0) {
+                          setMinimumNoticeValue(numericValue || "0");
+                        }
+                      }}
+                      placeholder="1"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="numeric"
+                    />
+                    <TouchableOpacity
+                      style={styles.timeUnitDropdown}
+                      onPress={() => setShowMinimumNoticeUnitDropdown(true)}>
+                      <Text style={styles.dropdownText}>{minimumNoticeUnit}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Booking Frequency Limit Card */}
+              <View style={styles.card}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLabelContainer}>
+                    <Text style={styles.switchLabel}>Limit booking frequency</Text>
+                    <Text style={styles.switchDescription}>
+                      Limit how many times this event can be booked.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={limitBookingFrequency}
+                    onValueChange={toggleBookingFrequency}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.frequencyLimitsSection,
+                    {
+                      opacity: frequencyAnimationValue,
+                      maxHeight: frequencyAnimationValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 500],
+                      }),
+                    },
+                  ]}>
+                  {limitBookingFrequency && (
+                    <>
+                      {frequencyLimits.map((limit, index) => (
+                        <View key={limit.id} style={styles.frequencyLimitRow}>
+                          <TextInput
+                            style={styles.numberInput}
+                            value={limit.value}
+                            onChangeText={(text) => {
+                              const numericValue = text.replace(/[^0-9]/g, "");
+                              const num = parseInt(numericValue) || 0;
+                              if (num >= 0) {
+                                updateFrequencyLimit(limit.id, "value", numericValue || "0");
+                              }
+                            }}
+                            placeholder="1"
+                            placeholderTextColor="#8E8E93"
+                            keyboardType="numeric"
+                          />
+                          <TouchableOpacity
+                            style={styles.timeUnitDropdown}
+                            onPress={() => setShowFrequencyUnitDropdown(limit.id)}>
+                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                          </TouchableOpacity>
+                          {frequencyLimits.length > 1 && (
+                            <TouchableOpacity
+                              style={styles.deleteButton}
+                              onPress={() => removeFrequencyLimit(limit.id)}>
+                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+                      <TouchableOpacity style={styles.addLimitButton} onPress={addFrequencyLimit}>
+                        <Ionicons name="add" size={20} color="#000" />
+                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </Animated.View>
+              </View>
+
+              {/* Total Booking Duration Limit Card */}
+              <View style={styles.card}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLabelContainer}>
+                    <Text style={styles.switchLabel}>Limit total booking duration</Text>
+                    <Text style={styles.switchDescription}>
+                      Limit total amount of time that this event can be booked.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={limitTotalDuration}
+                    onValueChange={toggleTotalDuration}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.frequencyLimitsSection,
+                    {
+                      opacity: durationAnimationValue,
+                      maxHeight: durationAnimationValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 500],
+                      }),
+                    },
+                  ]}>
+                  {limitTotalDuration && (
+                    <>
+                      {durationLimits.map((limit, index) => (
+                        <View key={limit.id} style={styles.frequencyLimitRow}>
+                          <View style={styles.durationInputContainer}>
+                            <TextInput
+                              style={styles.numberInput}
+                              value={limit.value}
+                              onChangeText={(text) => {
+                                const numericValue = text.replace(/[^0-9]/g, "");
+                                const num = parseInt(numericValue) || 0;
+                                if (num >= 0) {
+                                  updateDurationLimit(limit.id, "value", numericValue || "0");
+                                }
+                              }}
+                              placeholder="60"
+                              placeholderTextColor="#8E8E93"
+                              keyboardType="numeric"
+                            />
+                            <Text style={styles.durationSuffix}>Minutes</Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.timeUnitDropdown}
+                            onPress={() => setShowDurationUnitDropdown(limit.id)}>
+                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                          </TouchableOpacity>
+                          {durationLimits.length > 1 && (
+                            <TouchableOpacity
+                              style={styles.deleteButton}
+                              onPress={() => removeDurationLimit(limit.id)}>
+                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+                      <TouchableOpacity style={styles.addLimitButton} onPress={addDurationLimit}>
+                        <Ionicons name="add" size={20} color="#000" />
+                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </Animated.View>
+              </View>
             </View>
           )}
 
@@ -813,9 +1301,9 @@ export default function EventTypeDetail() {
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView style={styles.glassDeleteButton} glassEffectStyle="clear">
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                  <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+              <GlassView style={styles.glassButton} glassEffectStyle="clear">
+                <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
               </GlassView>
             </View>
@@ -864,7 +1352,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: "#000000",
-    borderRadius: 16,
+    borderRadius: 10,
     minWidth: 60,
     alignItems: "center",
   },
@@ -989,18 +1477,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
-  switchContainer: {
+  timeUnitDropdown: {
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
+    minWidth: 100,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  switchLabelContainer: {
+    flex: 1,
+    marginRight: 16,
   },
   switchLabel: {
     fontSize: 16,
     color: "#333",
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  switchDescription: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+  },
+  frequencyLimitsSection: {
+    overflow: "hidden",
+  },
+  frequencyLimitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    gap: 12,
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFF1F0",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FFCCC7",
+  },
+  addLimitButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#000",
+    borderRadius: 8,
+    gap: 8,
+  },
+  addLimitButtonText: {
+    fontSize: 16,
+    color: "#000",
     fontWeight: "500",
   },
   dropdownButton: {
@@ -1143,7 +1686,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 180,
-    paddingBottom: 100, // Add bottom padding for action bar
+    paddingBottom: 250, // Add bottom padding for action bar
   },
   bottomActionBar: {
     position: "absolute",
@@ -1152,6 +1695,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingTop: 16,
     paddingHorizontal: 20,
+    backgroundColor: "#f8f9fa",
     borderTopWidth: 0.5,
     borderTopColor: "#E5E5EA",
   },
@@ -1180,27 +1724,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
-  glassDeleteButton: {
-    borderRadius: 999,
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 59, 48, 0.2)",
-  },
   actionButton: {
     width: 44,
     height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
-  deleteButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FF3B30",
-  },
   contentContainer: {
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 150,
   },
   card: {
     backgroundColor: "#fff",

@@ -131,6 +131,10 @@ export default function EventTypes() {
   };
 
   const handleEventTypePress = (eventType: EventType) => {
+    handleEdit(eventType);
+  };
+
+  const handleEventTypeLongPress = (eventType: EventType) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms
       Alert.alert(eventType.title, eventType.description || "", [
@@ -206,6 +210,7 @@ export default function EventTypes() {
         duration: duration.toString(),
         price: eventType.price?.toString() || "",
         currency: eventType.currency || "",
+        slug: eventType.slug || "",
       },
     });
   };
@@ -235,11 +240,29 @@ export default function EventTypes() {
     ]);
   };
 
+  const handleCreateNew = () => {
+    // Navigate to create new event type
+    router.push({
+      pathname: "/event-type-detail",
+      params: {
+        id: "new",
+        title: "",
+        description: "",
+        duration: "30",
+        price: "",
+        currency: "",
+      },
+    });
+  };
+
   const renderEventType = ({ item }: { item: EventType }) => {
     const duration = getDuration(item);
 
     return (
-      <TouchableOpacity style={styles.listItem} onPress={() => handleEventTypePress(item)}>
+      <TouchableOpacity
+        style={styles.listItem}
+        onPress={() => handleEventTypePress(item)}
+        onLongPress={() => handleEventTypeLongPress(item)}>
         <View style={styles.listItemContent}>
           <View style={styles.listItemMain}>
             <Text style={styles.listItemTitle}>{item.title}</Text>
@@ -358,6 +381,10 @@ export default function EventTypes() {
           autoCorrect={false}
           clearButtonMode="while-editing"
         />
+        <TouchableOpacity style={styles.newButton} onPress={handleCreateNew}>
+          <Ionicons name="add" size={18} color="#fff" />
+          <Text style={styles.newButtonText}>New</Text>
+        </TouchableOpacity>
       </View>
       <FlatList
         data={filteredEventTypes}
@@ -383,8 +410,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 0.5,
     borderBottomColor: "#C6C6C8",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   searchBar: {
+    flex: 1,
     backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -393,6 +424,22 @@ const styles = StyleSheet.create({
     color: "#000",
     borderWidth: 1,
     borderColor: "#E5E5EA",
+  },
+  newButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: "#000000",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 60,
+  },
+  newButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   centerContainer: {
     flex: 1,
