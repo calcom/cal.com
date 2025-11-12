@@ -892,7 +892,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
       config: {
         layout: "month_view",
       },
-      buttonText: "Book my Cal",
+      buttonText: "Book my Cal ID",
       hideButtonIcon: false,
       buttonPosition: "bottom-right",
       buttonColor: "#000000",
@@ -1048,7 +1048,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                             <div>
                               <Label className="mb-2 block text-sm font-medium">Button text</Label>
                               <TextField
-                                value={previewState.floatingPopup.buttonText || "Book my Cal"}
+                                value={previewState.floatingPopup.buttonText || "Book my Cal ID"}
                                 onChange={(e) =>
                                   updatePreviewState({
                                     floatingPopup: {

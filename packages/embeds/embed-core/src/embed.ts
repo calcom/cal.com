@@ -962,7 +962,7 @@ class CalApi {
 
   floatingButton({
     calLink,
-    buttonText = "Book my Cal",
+    buttonText = "Book my Cal ID",
     hideButtonIcon = false,
     attributes,
     buttonPosition = "bottom-right",
