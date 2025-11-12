@@ -678,7 +678,7 @@ export function BookingActionsDropdown({
                   StartIcon={reportActionWithHandler.icon}
                   onClick={(e) => {
                     e.stopPropagation();
-                    reportActionWithHandler.onClick?.(e);
+                    reportActionWithHandler.onClick?.();
                   }}
                   disabled={reportActionWithHandler.disabled}
                   data-testid={reportActionWithHandler.id}
