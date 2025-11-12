@@ -466,8 +466,8 @@ describe("roundRobinManualReassignment test", () => {
     await mockEventManagerReschedule();
 
     const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
-      await import("@calcom/emails"),
-      "sendReassignedEmailsAndSMS"
+      await import("@calcom/emails/email-manager"),
+      "sendRoundRobinReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();

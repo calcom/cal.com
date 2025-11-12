@@ -1,7 +1,5 @@
 import { cloneDeep } from "lodash";
 
-
-
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -10,10 +8,10 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendReassignedEmailsAndSMS,
-  sendReassignedScheduledEmailsAndSMS,
-  sendReassignedUpdatedEmailsAndSMS,
-} from "@calcom/emails";
+  sendRoundRobinReassignedEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendRoundRobinUpdatedEmailsAndSMS,
+} from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -422,7 +420,7 @@ export const roundRobinReassignment = async ({
 
   // Send to new RR host
   if (emailsEnabled) {
-    await sendReassignedScheduledEmailsAndSMS({
+    await sendRoundRobinScheduledEmailsAndSMS({
       calEvent: evtWithoutCancellationReason,
       members: [
         {
@@ -473,7 +471,7 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendReassignedEmailsAndSMS({
+      await sendRoundRobinReassignedEmailsAndSMS({
         calEvent: cancelledRRHostEvt,
         members: [
           {
@@ -494,7 +492,7 @@ export const roundRobinReassignment = async ({
   if (hasOrganizerChanged) {
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
-      await sendReassignedUpdatedEmailsAndSMS({
+      await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });

@@ -498,6 +498,7 @@ export async function getBookings({
                 "EventType.currency",
                 "EventType.metadata",
                 "EventType.disableGuests",
+                "EventType.bookingFields",
                 "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
