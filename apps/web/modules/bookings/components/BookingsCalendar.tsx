@@ -19,7 +19,6 @@ type BookingsCalendarProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
   isPending?: boolean;
-  onOpenDetails: (bookingId: number) => void;
   currentWeekStart: dayjs.Dayjs;
   setCurrentWeekStart: (
     value: dayjs.Dayjs | ((old: dayjs.Dayjs) => dayjs.Dayjs | null) | null
@@ -32,7 +31,6 @@ const COLUMN_IDS_TO_HIDE = ["dateRange"];
 export function BookingsCalendar({
   table,
   isPending = false,
-  onOpenDetails,
   currentWeekStart,
   setCurrentWeekStart,
   bookings,
@@ -77,7 +75,6 @@ export function BookingsCalendar({
         currentWeekStart={currentWeekStart}
         onWeekStartChange={handleWeekStartChange}
         isPending={isPending}
-        onOpenDetails={onOpenDetails}
       />
     </>
   );

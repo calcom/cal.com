@@ -29,37 +29,84 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
-  booking: BookingOutput | null;
+  userTimeZone?: string;
+  userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
+}
+
+export function BookingDetailsSheet({
+  userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
+}: BookingDetailsSheetProps) {
+  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
+  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+
+  const handleClose = () => {
+    setSelectedBookingId(null);
+  };
+
+  const handleNext = () => {
+    const nextId = useBookingDetailsSheetStore.getState().getNextBookingId();
+    if (nextId !== null) {
+      setSelectedBookingId(nextId);
+    }
+  };
+
+  const handlePrevious = () => {
+    const prevId = useBookingDetailsSheetStore.getState().getPreviousBookingId();
+    if (prevId !== null) {
+      setSelectedBookingId(prevId);
+    }
+  };
+
+  // Return null if no booking is selected (sheet is closed)
+  if (!booking) return null;
+
+  const isOpen = true; // If we have a booking, sheet should be open
+
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner
+        booking={booking}
+        isOpen={isOpen}
+        onClose={handleClose}
+        userTimeZone={userTimeZone}
+        userTimeFormat={userTimeFormat}
+        userId={userId}
+        userEmail={userEmail}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        hasNext={hasNext}
+        hasPrevious={hasPrevious}
+      />
+    </BookingActionsStoreProvider>
+  );
+}
+
+interface BookingDetailsSheetInnerProps {
+  booking: BookingOutput;
   isOpen: boolean;
   onClose: () => void;
   userTimeZone?: string;
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
-  onPrevious?: () => void;
-  hasPrevious?: boolean;
-  onNext?: () => void;
-  hasNext?: boolean;
-}
-
-interface BookingDetailsSheetInnerProps extends Omit<BookingDetailsSheetProps, "booking"> {
-  booking: BookingOutput;
-}
-
-export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
-  if (!props.booking) return null;
-
-  return (
-    <BookingActionsStoreProvider>
-      <BookingDetailsSheetInner {...props} booking={props.booking} />
-    </BookingActionsStoreProvider>
-  );
+  onPrevious: () => void;
+  hasPrevious: boolean;
+  onNext: () => void;
+  hasNext: boolean;
 }
 
 function BookingDetailsSheetInner({
@@ -71,9 +118,9 @@ function BookingDetailsSheetInner({
   userId,
   userEmail,
   onPrevious,
-  hasPrevious = false,
+  hasPrevious,
   onNext,
-  hasNext = false,
+  hasNext,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
 
@@ -128,7 +175,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasPrevious}
                 onClick={(e) => {
                   e.preventDefault();
-                  onPrevious?.();
+                  onPrevious();
                 }}
               />
               <Button
@@ -138,7 +185,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasNext}
                 onClick={(e) => {
                   e.preventDefault();
-                  onNext?.();
+                  onNext();
                 }}
               />
             </div>
