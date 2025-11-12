@@ -107,77 +107,14 @@ export class BusyTimesService {
     // Will keep support for retrieving a user's bookings if the caller does not already supply them.
     // This function is called from multiple places but we aren't refactoring all of them at this moment
     // to avoid potential side effects.
-    const bookings = params.currentBookings;
-    // if (!bookings) {
-    //   const bookingRepo = this.dependencies.bookingRepo;
-    //   bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
-    //     userIdAndEmailMap: new Map([[userId, userEmail]]),
-    //     eventTypeId,
-    //     startDate: startTimeAdjustedWithMaxBuffer,
-    //     endDate: endTimeAdjustedWithMaxBuffer,
-    //     seatedEvent,
-    //   });
-    // }
+    let bookings = params.currentBookings;
+
     // explicit bypass: treat as no bookings
     logger.debug("Bypassing Cal.com internal bookings when computing busy times");
-
+    if(!bookings)
+      bookings = [];
     const bookingSeatCountMap: { [x: string]: number } = {};
-    const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-      const { id, startTime, endTime, eventType, title, ...rest } = booking;
-
-      const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
-      const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
-
-      if (rest._count?.seatsReferences) {
-        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
-        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-        bookingSeatCountMap[bookedAt]++;
-        // Seat references on the current event are non-blocking until the event is fully booked.
-        if (
-          // there are still seats available.
-          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
-          // and this is the seated event, other event types should be blocked.
-          eventTypeId === eventType?.id
-        ) {
-          // then we ONLY add the before/after buffer times as busy times.
-          if (minutesToBlockBeforeEvent) {
-            aggregate.push({
-              start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-              end: dayjs(startTime).toDate(), // The event starts after the buffer
-            });
-          }
-          if (minutesToBlockAfterEvent) {
-            aggregate.push({
-              start: dayjs(endTime).toDate(), // The event ends before the buffer
-              end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-            });
-          }
-          return aggregate;
-        }
-        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
-        // doing this allows using the map later to remove the ranges from calendar busy times.
-        delete bookingSeatCountMap[bookedAt];
-      }
-      // rescheduling the same booking to the same time should be possible. Why?
-      if (rest.uid === rescheduleUid) {
-        return aggregate;
-      }
-      aggregate.push({
-        start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-        end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-        title,
-        source: `eventType-${eventType?.id}-booking-${id}`,
-      });
-      return aggregate;
-    }, []);
-
-    logger.debug(
-      `Busy Time from Cal Bookings ${JSON.stringify({
-        busyTimes,
-        bookings: bookings?.map((booking) => getPiiFreeBooking(booking)),
-        numCredentials: credentials?.length,
-      })}`
-    );
+    const busyTimes = [];
     performance.mark("prismaBookingGetEnd");
     performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
     if (credentials?.length > 0 && !bypassBusyCalendarTimes) {

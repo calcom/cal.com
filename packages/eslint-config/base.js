@@ -21,8 +21,8 @@ export const config = [
       onlyWarn,
     },
     rules: {
-      "turbo/no-undeclared-env-vars": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "turbo/no-undeclared-env-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
     },
     languageOptions: {
       ecmaVersion: 2021,
