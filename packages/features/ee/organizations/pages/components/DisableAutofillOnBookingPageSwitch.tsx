@@ -20,7 +20,8 @@ export const DisableAutofillOnBookingPageSwitch = ({ currentOrg }: GeneralViewPr
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
+      setDisableAutofillOnBookingPageActive(!!variables.disableAutofillOnBookingPage);
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
@@ -43,7 +44,6 @@ export const DisableAutofillOnBookingPageSwitch = ({ currentOrg }: GeneralViewPr
           mutation.mutate({
             disableAutofillOnBookingPage: checked,
           });
-          setDisableAutofillOnBookingPageActive(checked);
         }}
         switchContainerClassName="mt-6"
       />

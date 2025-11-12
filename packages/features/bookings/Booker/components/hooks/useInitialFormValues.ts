@@ -81,7 +81,7 @@ export function useInitialFormValues({
 
   // Check if organization has disabled autofill from URL parameters
   const isAutofillDisabledByOrg =
-    eventType?.team?.organizationSettings?.disableAutofillOnBookingPage ??
+    eventType?.parent?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
     eventType?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
     eventType?.owner?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
     false;
@@ -116,20 +116,28 @@ export function useInitialFormValues({
 
       const parsedQuery = await querySchema.parseAsync(urlParamsToUse);
 
-      const defaultUserValues = {
-        email:
+      const defaultUserValues = (() => {
+        const rescheduledEmail =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData?.attendees[0].email
-            : parsedQuery["email"]
-            ? parsedQuery["email"]
-            : email ?? "",
-        name:
+            ? bookingData.attendees[0].email ?? ""
+            : "";
+        const rescheduledName =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData?.attendees[0].name
-            : parsedQuery["name"]
-            ? parsedQuery["name"]
-            : name ?? username ?? "",
-      };
+            ? bookingData.attendees[0].name ?? ""
+            : "";
+
+        if (isAutofillDisabledByOrg) {
+          return {
+            email: rescheduledEmail,
+            name: rescheduledName,
+          };
+        }
+
+        return {
+          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : email ?? ""),
+          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : name ?? username ?? ""),
+        };
+      })();
 
       if (clientId) {
         defaultUserValues.email = defaultUserValues.email.replace(`+${clientId}`, "");
