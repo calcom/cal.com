@@ -269,6 +269,24 @@ export default function Signup({
     </p>
   );
 
+  // console.log all these
+  //
+  // !!formMethods.formState.errors.email ||
+  // !formMethods.getValues("email") ||
+  // !formMethods.getValues("password") ||
+  // (CLOUDFLARE_SITE_ID &&
+  //   !process.env.NEXT_PUBLIC_IS_E2E &&
+  //   !formMethods.getValues("cfToken")) ||
+  // isSubmitting
+
+  console.log("Render Signup Component", {
+    formErrors: formMethods.formState.errors,
+    emailValue: formMethods.getValues("email"),
+    passwordValue: formMethods.getValues("password"),
+    cfTokenValue: formMethods.getValues("cfToken"),
+    isSubmitting,
+  });
+
   return (
     <>
       <style jsx global>{`
@@ -377,7 +395,7 @@ export default function Signup({
                         }}>
                         {t("continue_with_google")}
                       </Button>
-                      <span className="text-white absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold shadow">
+                      <span className="absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold text-white shadow">
                         ⭐ Popular
                       </span>
                     </div>

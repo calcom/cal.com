@@ -273,7 +273,7 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  if (bookingToDelete.eventType?.disableCancelling && bookingToDelete.eventType.owner?.id !== userId) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -454,9 +454,7 @@ async function handler(input: CancelBookingInput) {
     : null;
   const eventType = { ...bookingToDelete.eventType, workflows: eventTypeRelated };
 
-  const workflows: CalIdWorkflow[] = eventType?.workflows?.map(
-    (workflow) => workflow as CalIdWorkflow
-  );
+  const workflows: CalIdWorkflow[] = eventType?.workflows?.map((workflow) => workflow as CalIdWorkflow);
 
   if (workflows.length > 0) {
     await sendCancelledReminders({
