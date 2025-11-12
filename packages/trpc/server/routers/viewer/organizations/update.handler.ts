@@ -65,23 +65,23 @@ const updateOrganizationSettings = async ({
 }) => {
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
-  if (input.hasOwnProperty("lockEventTypeCreation")) {
+  if (Object.hasOwn(input, "lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
-  if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
+  if (Object.hasOwn(input, "adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
-  if (input.hasOwnProperty("allowSEOIndexing")) {
+  if (Object.hasOwn(input, "allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
-  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
+  if (Object.hasOwn(input, "orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
-  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
+  if (Object.hasOwn(input, "disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
