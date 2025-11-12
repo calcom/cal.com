@@ -4,11 +4,13 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { CalendarEvent } from "@calcom/types/Calendar";
 import { JsonObject } from "@calcom/types/Json";
 
-import { BookingTasks } from "./types";
+import { BookingEmailAndSmsAsyncTasksPayload, BookingTasks } from "./types";
 
 export interface IBookingTaskServiceDependencies {
   emailsAndSmsHandler: BookingEmailSmsHandler;
@@ -20,21 +22,32 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
     public readonly dependencies: { logger: ITaskerDependencies["logger"] } & IBookingTaskServiceDependencies
   ) {}
 
-  async request(payload: Parameters<BookingTasks["request"]>[0]) {
+  private async _getVerifiedBookingData(payload: BookingEmailAndSmsAsyncTasksPayload) {
     const { bookingId, ...bookingMeta } = payload;
+    const { bookingRepository } = this.dependencies;
 
-    const booking = await this.dependencies.bookingRepository.getBookingForCalEventBuilder(bookingId);
+    const booking = await bookingRepository.getBookingForCalEventBuilder(bookingId);
     if (!booking) {
-      throw new Error(`Booking with id ${bookingId} was not found.`);
+      throw new Error(`Booking with id '${bookingId}' was not found.`);
     }
     if (!booking.eventType) {
-      throw new Error(`EventType of Booking with id ${bookingId} was not found.`);
+      throw new Error(`EventType of Booking with id '${bookingId}' was not found.`);
     }
 
     const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, bookingMeta)).build();
     if (!calendarEvent) {
-      throw new Error(`CalendarEvent could not be built from Booking with id ${bookingId}.`);
+      throw new Error(`CalendarEvent could not be built from Booking with id '${bookingId}'.`);
     }
+
+    return {
+      booking: booking,
+      eventType: booking.eventType,
+      calendarEvent: calendarEvent as NonNullable<CalendarEvent>,
+    };
+  }
+
+  async request(payload: Parameters<BookingTasks["request"]>[0]) {
+    const { eventType, calendarEvent } = await this._getVerifiedBookingData(payload);
 
     await this.dependencies.emailsAndSmsHandler.send({
       action: "BOOKING_REQUESTED",
@@ -42,8 +55,8 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
         evt: calendarEvent,
         attendees: calendarEvent.attendees,
         eventType: {
-          schedulingType: booking.eventType?.schedulingType ?? null,
-          metadata: (booking.eventType?.metadata as object) ?? null,
+          schedulingType: eventType.schedulingType ?? null,
+          metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
         },
         additionalNotes: calendarEvent.additionalNotes,
       },
@@ -51,45 +64,33 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
   }
 
   async confirm(payload: Parameters<BookingTasks["confirm"]>[0]) {
-    const { bookingId, ...bookingMeta } = payload;
-
-    const booking = await this.dependencies.bookingRepository.getBookingForCalEventBuilder(bookingId);
-    if (!booking) {
-      throw new Error(`Booking with id ${bookingId} was not found.`);
-    }
-    if (!booking.eventType) {
-      throw new Error(`EventType of Booking with id ${bookingId} was not found.`);
-    }
-
-    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, bookingMeta)).build();
-    if (!calendarEvent) {
-      throw new Error(`CalendarEvent could not be built from Booking with id ${bookingId}.`);
-    }
+    const { booking, eventType, calendarEvent } = await this._getVerifiedBookingData(payload);
 
     const attendeesEmail = booking.attendees.map((attendee) => attendee.email);
-    const bookedTeamMembers = booking.eventType.team
-      ? booking.eventType.team.members.filter((teamUser) => attendeesEmail.includes(teamUser.user.email))
+    const bookedTeamMembers = eventType.team
+      ? eventType.team.members.filter((teamUser) => attendeesEmail.includes(teamUser.user.email))
       : [];
 
     const eventNameObject = {
       attendeeName: calendarEvent.organizer.name || "Nameless",
-      eventType: booking.eventType.title,
-      eventName: booking.eventType.eventName,
+      eventType: eventType.title,
+      eventName: eventType.eventName,
       // we send on behalf of team if >1 round robin attendee | collective
       teamName:
-        booking.eventType.schedulingType === "COLLECTIVE" || bookedTeamMembers.length > 1
-          ? booking.eventType.team?.name
+        eventType.schedulingType === "COLLECTIVE" || bookedTeamMembers.length > 1
+          ? eventType.team?.name
           : null,
       host: calendarEvent.organizer.name || "Nameless",
       location: booking.location,
       eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
-      bookingFields: booking.eventType.bookingFields as JsonObject,
+      bookingFields: eventType.bookingFields as JsonObject,
       t: calendarEvent.organizer.language.translate,
-    };
+    } satisfies EventNameObjectType;
+
     const workflows = await getAllWorkflowsFromEventType(
       {
-        ...booking.eventType,
-        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking.eventType.metadata),
+        ...eventType,
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
       },
       calendarEvent.organizer.id
     );
@@ -99,7 +100,7 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
       data: {
         eventType: {
           schedulingType: booking.eventType?.schedulingType ?? null,
-          metadata: (booking.eventType?.metadata as object) ?? null,
+          metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
         },
         eventNameObject,
         workflows: workflows,
@@ -112,20 +113,7 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
   }
 
   async reschedule(payload: Parameters<BookingTasks["reschedule"]>[0]) {
-    const { bookingId, ...bookingMeta } = payload;
-
-    const booking = await this.dependencies.bookingRepository.getBookingForCalEventBuilder(bookingId);
-    if (!booking) {
-      throw new Error(`Booking with id ${bookingId} was not found.`);
-    }
-    if (!booking.eventType) {
-      throw new Error(`EventType of Booking with id ${bookingId} was not found.`);
-    }
-
-    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, bookingMeta)).build();
-    if (!calendarEvent) {
-      throw new Error(`CalendarEvent could not be built from Booking with id ${bookingId}.`);
-    }
+    const { booking, eventType, calendarEvent } = await this._getVerifiedBookingData(payload);
 
     const originalBookingData = await getOriginalRescheduledBooking(
       booking.uid,
@@ -137,15 +125,15 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
       data: {
         evt: calendarEvent,
         eventType: {
-          schedulingType: booking.eventType.schedulingType ?? null,
-          metadata: (booking.eventType.metadata as object) ?? null,
+          schedulingType: eventType.schedulingType ?? null,
+          metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
         },
         additionalInformation: calendarEvent.additionalInformation ?? {},
         additionalNotes: calendarEvent.additionalNotes,
         iCalUID: calendarEvent.iCalUID ?? "",
         originalRescheduledBooking: originalBookingData,
         rescheduleReason: (calendarEvent?.responses?.["rescheduleReason"]?.value as string) ?? undefined,
-        users: booking.eventType.hosts.map((h) => h.user) ?? [],
+        users: eventType.hosts.map((h) => h.user) ?? [],
         changedOrganizer: true,
         isRescheduledByBooker: true,
       },

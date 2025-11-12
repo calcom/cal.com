@@ -14,29 +14,48 @@ export class BookingEmailAndSmsSyncTasker implements IBookingEmailAndSmsTasker {
 
   async request(payload: Parameters<IBookingEmailAndSmsTasker["request"]>[0]) {
     this.dependencies.logger.info(`request booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.request(payload);
     const runId = `sync_${nanoid(10)}`;
+    try {
+      await this.dependencies.bookingTaskService.request(payload);
+    } catch (err) {
+      this.dependencies.logger.error(err);
+    }
+
     return { runId };
   }
 
   async confirm(payload: Parameters<IBookingEmailAndSmsTasker["confirm"]>[0]) {
     this.dependencies.logger.info(`confirm booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.confirm(payload);
     const runId = `sync_${nanoid(10)}`;
+    try {
+      await this.dependencies.bookingTaskService.confirm(payload);
+    } catch (err) {
+      this.dependencies.logger.error(err);
+    }
     return { runId };
   }
 
   async reschedule(payload: Parameters<IBookingEmailAndSmsTasker["reschedule"]>[0]) {
-    this.dependencies.logger.info(`reschedule booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.reschedule(payload);
     const runId = `sync_${nanoid(10)}`;
+    this.dependencies.logger.info(`reschedule booking task ${payload.bookingId}`);
+    try {
+      await this.dependencies.bookingTaskService.reschedule(payload);
+    } catch (err) {
+      this.dependencies.logger.error(err);
+    }
+
     return { runId };
   }
 
   async rrReschedule(payload: Parameters<IBookingEmailAndSmsTasker["rrReschedule"]>[0]) {
-    this.dependencies.logger.info(`rrReschedule booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.rrReschedule(payload);
     const runId = `sync_${nanoid(10)}`;
+    this.dependencies.logger.info(`rrReschedule booking task ${payload.bookingId}`);
+    try {
+      await this.dependencies.bookingTaskService.rrReschedule(payload);
+    } catch (err) {
+      this.dependencies.logger.error(err);
+    }
+
     return { runId };
   }
 }
