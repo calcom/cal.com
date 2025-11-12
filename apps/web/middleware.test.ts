@@ -494,7 +494,8 @@ describe("Middleware Integration Tests", () => {
 
 describe("Middleware Matcher - Comprehensive Coverage", () => {
   const matcher = config.matcher[0];
-  const regex = new RegExp(matcher);
+  const pattern = matcher.replace(/^\/|\/$/g, "");
+  const regex = new RegExp(`^/${pattern}`);
 
   const cases = [
     // pages & apis
