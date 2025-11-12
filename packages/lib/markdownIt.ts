@@ -3,22 +3,142 @@ import MarkdownIt from "markdown-it";
 export const md = new MarkdownIt({ html: true, breaks: true, linkify: true });
 
 /**
- * Unescapes markdown characters that may have been escaped by turndown
- * This handles legacy data where turndown escaped markdown syntax
+ * Style map for email compatibility
+ * Inline styles are required because many email clients don't support external CSS
+ */
+const STYLES = {
+  text: "color: #101010; font-weight: 400; line-height: 24px; margin: 8px 0;",
+  list: "list-style-type: disc; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; color: #101010; line-height: 24px;",
+  orderedList:
+    "list-style-type: decimal; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; color: #101010; line-height: 24px;",
+  listItem: "color: #101010; font-weight: 400; line-height: 24px; margin: 4px 0;",
+  header: "color: #101010; font-weight: 600; line-height: 1.4; margin: 16px 0 8px 0;",
+  h1: "font-size: 2em;",
+  h2: "font-size: 1.5em;",
+  h3: "font-size: 1.25em;",
+  h4: "font-size: 1.1em;",
+  h5: "font-size: 1em;",
+  h6: "font-size: 0.9em;",
+} as const;
+
+type StyleKey = keyof typeof STYLES;
+
+/**
+ * Minimal Token interface matching what we use from markdown-it tokens
+ */
+interface Token {
+  attrGet(name: string): string | null;
+  attrSet(name: string, value: string): void;
+  tag: string;
+}
+
+/**
+ * Helper function to add style attribute to token
+ */
+function addStyle(token: Token, ...styles: StyleKey[]) {
+  const styleStr = styles.map((key) => STYLES[key]).join(" ");
+  const existingStyle = token.attrGet("style") || "";
+  const newStyle = existingStyle ? `${existingStyle}; ${styleStr}` : styleStr;
+  token.attrSet("style", newStyle);
+}
+
+// Store original renderer functions BEFORE overriding (to avoid infinite recursion)
+const originalHeadingOpen = md.renderer.rules.heading_open;
+const originalParagraphOpen = md.renderer.rules.paragraph_open;
+const originalBulletListOpen = md.renderer.rules.bullet_list_open;
+const originalOrderedListOpen = md.renderer.rules.ordered_list_open;
+const originalListItemOpen = md.renderer.rules.list_item_open;
+const originalLinkOpen = md.renderer.rules.link_open;
+
+/**
+ * Override heading renderer to add inline styles
+ */
+md.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
+  const token = tokens[idx];
+  const level = token.tag.match(/h(\d)/)?.[1];
+  if (level && parseInt(level) <= 6) {
+    addStyle(token, "header", `h${level}` as StyleKey);
+  }
+  return originalHeadingOpen
+    ? originalHeadingOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Override paragraph renderer to add inline styles
+ */
+md.renderer.rules.paragraph_open = (tokens, idx, options, env, self) => {
+  addStyle(tokens[idx], "text");
+  return originalParagraphOpen
+    ? originalParagraphOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Override bullet list renderer to add inline styles
+ */
+md.renderer.rules.bullet_list_open = (tokens, idx, options, env, self) => {
+  addStyle(tokens[idx], "list");
+  return originalBulletListOpen
+    ? originalBulletListOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Override ordered list renderer to add inline styles
+ */
+md.renderer.rules.ordered_list_open = (tokens, idx, options, env, self) => {
+  addStyle(tokens[idx], "orderedList");
+  return originalOrderedListOpen
+    ? originalOrderedListOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Override list item renderer to add inline styles
+ */
+md.renderer.rules.list_item_open = (tokens, idx, options, env, self) => {
+  addStyle(tokens[idx], "listItem");
+  return originalListItemOpen
+    ? originalListItemOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Override link renderer to add security attributes and styles
+ */
+md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+  const token = tokens[idx];
+  token.attrSet("target", "_blank");
+  token.attrSet("rel", "noopener noreferrer");
+  return originalLinkOpen
+    ? originalLinkOpen(tokens, idx, options, env, self)
+    : self.renderToken(tokens, idx, options);
+};
+
+/**
+ * Unescapes markdown characters that may have been escaped by turndown.
+ * This handles legacy data where turndown escaped markdown syntax.
+ * It also normalizes list markers to ensure they have proper spacing.
  */
 export function unescapeMarkdown(markdown: string): string {
   if (!markdown) return "";
 
-  return markdown
-    .replace(/\\#/g, "#")
-    .replace(/\\\*/g, "*")
+  // Unescape legacy backslashes for specific characters.
+  // This is safer than a broad unescape that might break valid markdown.
+  let result = markdown
+    .replace(/\\([#`[\]()~>])/g, "$1")
     .replace(/\\_/g, "_")
-    .replace(/\\`/g, "`")
-    .replace(/\\\[/g, "[")
-    .replace(/\\\]/g, "]")
-    .replace(/\\\(/g, "(")
-    .replace(/\\\)/g, ")")
-    .replace(/\\-/g, "-")
-    .replace(/\\~/g, "~")
-    .replace(/\\>/g, ">");
+    .replace(/\\\*/g, "*") // Specifically handle escaped asterisks
+    .replace(/\\-/g, "-");
+
+  // For unordered lists: ensure a single leading `-` or `*` used as a bullet has a trailing space.
+  // The negative character class avoids matching emphasis/bold like `**` or `--`.
+  const unorderedListRegex = /^(\s*[-*])([^\s*-])/gm;
+  // For numbered lists: `  1.item` -> `  1. item`
+  const orderedListRegex = /^(\s*\d+\.)(\S)/gm;
+
+  result = result.replace(unorderedListRegex, "$1 $2").replace(orderedListRegex, "$1 $2");
+
+  return result;
 }
