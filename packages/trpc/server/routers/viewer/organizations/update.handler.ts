@@ -65,27 +65,33 @@ const updateOrganizationSettings = async ({
 }) => {
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
-  if (Object.hasOwn(input, "lockEventTypeCreation")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
-  if (Object.hasOwn(input, "adminGetsNoSlotsNotification")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
-  if (Object.hasOwn(input, "allowSEOIndexing")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
-  if (Object.hasOwn(input, "orgProfileRedirectsToVerifiedDomain")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
-  if (Object.hasOwn(input, "disablePhoneOnlySMSNotifications")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
-  if (Object.hasOwn(input, "orgAutoJoinOnSignup")) {
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("orgAutoJoinOnSignup")) {
     data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
   }
 
