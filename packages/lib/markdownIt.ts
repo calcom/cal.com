@@ -120,25 +120,44 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
  * Unescapes markdown characters that may have been escaped by turndown.
  * This handles legacy data where turndown escaped markdown syntax.
  * It also normalizes list markers to ensure they have proper spacing.
+ * 
+ * Note: Only unescapes if input appears to be legacy data (has multiple escaped
+ * markdown characters), to avoid corrupting fresh input with intentional escapes.
  */
 export function unescapeMarkdown(markdown: string): string {
   if (!markdown) return "";
 
-  // Unescape legacy backslashes for specific characters.
-  // This is safer than a broad unescape that might break valid markdown.
-  let result = markdown
-    .replace(/\\([#`[\]()~>])/g, "$1")
-    .replace(/\\_/g, "_")
-    .replace(/\\\*/g, "*") // Specifically handle escaped asterisks
-    .replace(/\\-/g, "-");
+  // Detect if this is likely legacy data from Turndown
+  // Look for patterns that suggest Turndown escaping:
+  // - Escaped headers at start of line: \#header
+  // - Escaped blockquotes: \> quote
+  // - Multiple escaped formatting chars in a row
+  const hasEscapedHeaders = /^\\#+\s/m.test(markdown);
+  const hasEscapedBlockquotes = /^\\>\s/m.test(markdown);
+  const escapedMarkdownChars = (markdown.match(/\\([*_`#[\]()~>-])/g) || []).length;
+  // Only treat as legacy if we see clear Turndown patterns or many escaped chars
+  const isLikelyLegacyData = hasEscapedHeaders || hasEscapedBlockquotes || escapedMarkdownChars >= 3;
+
+  let result = markdown;
+
+  // Only unescape if it's likely legacy data to avoid corrupting intentional escapes
+  if (isLikelyLegacyData) {
+    // Unescape legacy backslashes for specific characters.
+    result = result
+      .replace(/\\([#`[\]()~>])/g, "$1")
+      .replace(/\\_/g, "_")
+      .replace(/\\\*/g, "*") // Specifically handle escaped asterisks
+      .replace(/\\-/g, "-");
+  }
 
   // For unordered lists: ensure a single leading `-` or `*` used as a bullet has a trailing space.
+  // Only match at start of line (after optional whitespace) and ensure it's not part of emphasis
   // The negative character class avoids matching emphasis/bold like `**` or `--`.
-  const unorderedListRegex = /^(\s*[-*])([^\s*-])/gm;
+  const unorderedListRegex = /^(\s*)([-*])([^\s*-])/gm;
   // For numbered lists: `  1.item` -> `  1. item`
   const orderedListRegex = /^(\s*\d+\.)(\S)/gm;
 
-  result = result.replace(unorderedListRegex, "$1 $2").replace(orderedListRegex, "$1 $2");
+  result = result.replace(unorderedListRegex, "$1$2 $3").replace(orderedListRegex, "$1 $2");
 
   return result;
 }
