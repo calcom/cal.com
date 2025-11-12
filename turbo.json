@@ -2,6 +2,7 @@
   "$schema": "https://turborepo.org/schema.json",
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
+    "ALLOW_LOCALHOST_WEBHOOKS",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "API_KEY_PREFIX",
