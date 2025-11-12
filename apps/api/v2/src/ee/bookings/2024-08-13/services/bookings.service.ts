@@ -236,7 +236,12 @@ export class BookingsService_2024_08_13 {
 
     return await this.organizationsTeamsRepository.findOrgTeamBySlug(organization.id, teamSlug);
   }
-
+/**
+ * Refactor (2025-11-12):
+ * - Added support for required system fields (e.g. "title").
+ * - Introduced `systemFieldExceptions` array for explicit handling.
+ * - Improved clarity of validation error messages.
+ */
   async hasRequiredBookingFieldsResponses(body: CreateBookingInput, eventType: EventType | null) {
     const bookingFieldsResponses: Record<string, unknown> = {
       ...body.bookingFieldsResponses,
@@ -247,11 +252,12 @@ export class BookingsService_2024_08_13 {
       return true;
     }
 
-    // note(Lauris): we filter out system fields, because some of them are set by default and name and email are passed in the body.attendee. Only exception
-    // is smsReminderNumber, because if it is required and not passed sms workflow won't work.
+    // note(Lauris + refactor): we filter out most system fields by default,
+    // but allow specific required ones like "smsReminderNumber" and "title" to be validated properly.
+    const systemFieldExceptions = ["smsReminderNumber", "title"] as const;
     const eventTypeBookingFields = eventTypeBookingFieldsSchema
       .parse(eventType.bookingFields)
-      .filter((field) => !field.editable.startsWith("system") || field.name === "smsReminderNumber");
+      .filter((field) => !field.editable.startsWith("system") || systemFieldExceptions.includes(field.name as typeof systemFieldExceptions[number]));
 
     if (!eventTypeBookingFields.length) {
       return true;
@@ -263,17 +269,21 @@ export class BookingsService_2024_08_13 {
         (bookingFieldsResponses[eventTypeBookingField.name] === null ||
           bookingFieldsResponses[eventTypeBookingField.name] === undefined)
       ) {
-        if (
-          eventTypeBookingField.name === "attendeePhoneNumber" ||
-          eventTypeBookingField.name === "smsReminderNumber"
-        ) {
-          throw new BadRequestException(
-            `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
-          );
+       switch (eventTypeBookingField.name) {
+          case "attendeePhoneNumber":
+          case "smsReminderNumber":
+            throw new BadRequestException(
+              `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
+            );
+          case "title":
+            throw new BadRequestException(
+              `Missing title for the booking - it is required by the event type. Pass it as "bookingFieldsResponses.title" string in the request (e.g., "what_is_this_meeting_about" as default label). You can fetch the event type with ID ${eventType.id} to see the required fields.`
+            );
+          default:
+            throw new BadRequestException(
+              `Missing required booking field response: ${eventTypeBookingField.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
+            );
         }
-        throw new BadRequestException(
-          `Missing required booking field response: ${eventTypeBookingField.name} - it is required by the event type booking fields, but missing in the bookingFieldsResponses. You can fetch the event type with ID ${eventType.id} to see the required fields.`
-        );
       }
 
       const bookingFieldResponseValue = bookingFieldsResponses[eventTypeBookingField.name];
