@@ -26,7 +26,7 @@ import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/li
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -580,14 +580,16 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {isCancelled && bookingInfo?.cancelledBy && (
-                          <>
-                            <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
-                            </div>
-                          </>
-                        )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(bookingInfo.eventType?.hideOrganizerEmail && !isHost) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
@@ -743,7 +745,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                    0 ? (
+                                  0 ? (
                                     <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -774,15 +776,9 @@ export default function Success(props: PageProps) {
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
 
-                          const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
-                          if (
-                            isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                            field.name !== TITLE_FIELD
-                          )
+                          if (!shouldShowFieldInCustomResponses(field.name)) {
                             return null;
+                          }
 
                           const label = field.label || t(field.defaultLabel);
 
@@ -851,10 +847,11 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
-                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                          : ""
-                                          }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                          currentUserEmail
+                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                            : ""
+                                        }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
