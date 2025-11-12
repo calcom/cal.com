@@ -1,24 +1,19 @@
 import matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
-import React, { useEffect, useLayoutEffect } from "react";
+import React, { useLayoutEffect } from "react";
 import { afterEach, expect, vi } from "vitest";
 
 // For next.js webapp compponent that use "preserve" for jsx in tsconfig.json
 global.React = React;
 
 // Ensure useLayoutEffect is available for react-select v5
-// In jsdom/test environments, useLayoutEffect should fall back to useEffect
-// This polyfill ensures react-select can use useLayoutEffect when it imports React
-// Make useLayoutEffect available as a property on React for compatibility
 // Note: useLayoutEffect is typically a named export, but some libraries access it via React.useLayoutEffect
 type ReactWithLayoutEffect = typeof React & {
   useLayoutEffect: typeof useLayoutEffect;
 };
 
 if (!("useLayoutEffect" in React)) {
-  const layoutEffect = useLayoutEffect || useEffect;
-  // Type assertion to properly type the assignment
-  (React as ReactWithLayoutEffect).useLayoutEffect = layoutEffect;
+  (React as ReactWithLayoutEffect).useLayoutEffect = useLayoutEffect;
 }
 
 vi.mock("framer-motion", () => ({
