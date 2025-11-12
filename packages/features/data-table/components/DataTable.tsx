@@ -259,7 +259,7 @@ type DataTableBodyProps<TData> = {
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   paginationMode?: "infinite" | "standard";
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
   hideSeparatorsOnSort?: boolean;
   hideSeparatorsOnFilter?: boolean;
   separatorClassName?: string;
@@ -389,7 +389,11 @@ function DataTableBody<TData>({
                 width: "100%",
               }),
             }}
-            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+            className={classNames(
+              onRowMouseclick && "hover:cursor-pointer",
+              "group",
+              typeof rowClassName === "function" ? rowClassName(row) : rowClassName
+            )}>
             {row.getVisibleCells().map((cell) => {
               const column = cell.column;
               return (
