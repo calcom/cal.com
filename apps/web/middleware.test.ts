@@ -9,6 +9,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { checkPostMethod } from "./middleware";
 // We'll test the wrapped middleware as it would be used in production
 import middleware from "./middleware";
+import { config } from "./middleware";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
@@ -16,6 +17,7 @@ vi.mock("@vercel/edge-config", () => ({
 }));
 
 vi.mock("next-collect/server", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   collectEvents: vi.fn((config: any) => config.middleware),
 }));
 
@@ -29,11 +31,13 @@ vi.mock("next/server", async () => {
   const actual = await vi.importActual<typeof import("next/server")>("next/server");
 
   // Create a NextResponse constructor that returns Response objects
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const NextResponse = function (body: any, init?: ResponseInit) {
     return new Response(body, init);
   };
 
   // Add static methods
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   NextResponse.json = (body: any, init?: ResponseInit) => {
     return new Response(JSON.stringify(body), {
       ...init,
@@ -55,6 +59,7 @@ vi.mock("next/server", async () => {
     });
 
     // Add cookies property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response as any).cookies = {
       delete: vi.fn(),
       set: vi.fn(),
@@ -91,6 +96,7 @@ vi.mock("next/server", async () => {
     });
 
     // Add cookies property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response as any).cookies = {
       delete: vi.fn(),
       set: vi.fn(),
@@ -128,6 +134,7 @@ const createTestRequest = (overrides?: {
   return req;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createEdgeConfigMock = (config: Record<string, any>) => {
   return (key: string) => {
     if (key in config) return Promise.resolve(config[key]);
@@ -147,6 +154,7 @@ const expectStatus = (res: Response, status: number) => {
 
 // Wrapper for middleware calls to handle type casting
 const callMiddleware = async (req: NextRequest): Promise<Response> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (await (middleware as any)(req)) as Response;
 };
 
@@ -481,5 +489,64 @@ describe("Middleware Integration Tests", () => {
       const res = await callMiddleware(req);
       expect(res).toBeDefined();
     });
+  });
+});
+
+describe("Middleware Matcher - Comprehensive Coverage", () => {
+  const matcher = config.matcher[0];
+  const regex = new RegExp(matcher);
+
+  const cases = [
+    // pages & apis
+    { path: "/", expected: true, reason: "Root page" },
+    { path: "/home", expected: true, reason: "Regular page" },
+    { path: "/team/abc", expected: true, reason: "Nested page" },
+    { path: "/api/auth/login", expected: true, reason: "API route" },
+    { path: "/api/bookings", expected: true, reason: "Top-level API" },
+    { path: "/dashboard/settings", expected: true, reason: "Deep nested page" },
+    { path: "/user/john/profile", expected: true, reason: "Multiple nested path" },
+    { path: "/apps/routing_forms/form", expected: true, reason: "App page under /apps" },
+    { path: "/embed?ui.color-scheme=dark", expected: true, reason: "Embed query param" },
+
+    // should be ignored
+    { path: "/_next/static/chunks/app.js", expected: false, reason: "Internal static asset" },
+    { path: "/_next/image?url=%2Flogo.png&w=256&q=75", expected: false, reason: "Internal image handler" },
+    { path: "/_next/data/build-id/page.json", expected: false, reason: "Next.js data route" },
+    { path: "/favicon.ico", expected: false, reason: "Favicon asset" },
+    { path: "/robots.txt", expected: false, reason: "Robots file" },
+    { path: "/sitemap.xml", expected: false, reason: "Sitemap file" },
+    { path: "/manifest.json", expected: true, reason: "Manifest is a public page, not ignored" },
+
+    // edge cases
+    { path: "/_nextsomething", expected: true, reason: "Looks like _next but not reserved" },
+    { path: "/nextconfig", expected: true, reason: "Normal route with 'next' in name" },
+    { path: "/_NEXT/image", expected: true, reason: "Case-sensitive test (should match)" },
+    { path: "/favicon-abc.ico", expected: true, reason: "Favicon variant should still match" },
+    { path: "/robots-custom.txt", expected: true, reason: "Custom robots file should match" },
+    { path: "/sitemap-other.xml", expected: true, reason: "Custom sitemap file should match" },
+    { path: "/api_", expected: true, reason: "Partial match with api underscore" },
+    { path: "//double-slash", expected: true, reason: "Double slash URL" },
+    { path: "/_next", expected: false, reason: "Bare _next path" },
+  ];
+
+  it("should match only the intended routes", () => {
+    for (const { path, expected, reason } of cases) {
+      const result = regex.test(path);
+      expect(result, `${path} → ${reason}`).toBe(expected);
+    }
+  });
+
+  it("should not accidentally match internal Next.js routes", () => {
+    const internalPaths = ["/_next/static", "/_next/image", "/_next/data"];
+    for (const path of internalPaths) {
+      expect(regex.test(path)).toBe(false);
+    }
+  });
+
+  it("should match all user-facing routes and APIs", () => {
+    const publicPaths = ["/", "/api/user", "/settings", "/dashboard"];
+    for (const path of publicPaths) {
+      expect(regex.test(path)).toBe(true);
+    }
   });
 });

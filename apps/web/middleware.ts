@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
-import { HttpError } from "@calcom/lib/http-error";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
@@ -58,8 +58,8 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
   "/api/webhooks/retell-ai",
   "/api/workflows/sms/user-response",
-  "/api/trpc/" // for tRPC
-]
+  "/api/trpc/", // for tRPC
+];
 
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -215,8 +215,8 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: '/((?!_next|static|public|favicon.ico).*)'
-}
+  matcher: ["^/(?!(_next/|_next$|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$)).*"],
+};
 
 export default collectEvents({
   middleware,
