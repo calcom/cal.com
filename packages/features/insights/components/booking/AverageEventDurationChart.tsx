@@ -8,7 +8,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   AVERAGE: "#3b82f6",
@@ -80,8 +79,7 @@ export const AverageEventDurationChart = () => {
     }
   );
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("average_event_duration")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
   const isNoData = data.every((item) => item["Average"] === 0);

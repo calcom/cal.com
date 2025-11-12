@@ -9,7 +9,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../../lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   NO_SHOW_HOST: "#64748b",
@@ -67,8 +66,7 @@ export const NoShowHostsOverTimeChart = () => {
     },
   });
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("no_show_hosts_over_time")} className="h-full" isPending={isPending} isError={isError} />;
 
   if (!isSuccess) return null;
 

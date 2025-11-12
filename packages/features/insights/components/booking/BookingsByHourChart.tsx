@@ -17,7 +17,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 type BookingsByHourData = RouterOutputs["viewer"]["insights"]["bookingsByHourStats"][number];
 
@@ -108,8 +107,7 @@ export const BookingsByHourChart = () => {
     }
   );
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("bookings_by_hour")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

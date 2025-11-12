@@ -10,7 +10,6 @@ import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingPara
 import { useToggleableLegend } from "../../hooks/useToggleableLegend";
 import { valueFormatter } from "../../lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   CREATED: "#a855f7",
@@ -82,8 +81,7 @@ export const EventTrendsChart = () => {
     },
   });
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("event_trends")} legend={legend} enabledLegend={enabledLegend} onSeriesToggle={toggleSeries} isPending={isPending} isError={isError} />;
 
   if (!isSuccess) return null;
 

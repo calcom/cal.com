@@ -5,7 +5,6 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 import { UserStatsTable } from "../UserStatsTable";
 
 export const LeastBookedTeamMembersTable = () => {
@@ -23,8 +22,7 @@ export const LeastBookedTeamMembersTable = () => {
     }
   );
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("least_bookings_scheduled")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

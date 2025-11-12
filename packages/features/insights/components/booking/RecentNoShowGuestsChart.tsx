@@ -8,7 +8,6 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard, ChartCardItem } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
@@ -27,8 +26,7 @@ export const RecentNoShowGuestsChart = () => {
     }
   );
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("recent_no_show_guests")} titleTooltip={t("recent_no_show_guests_tooltip")} className="h-full" isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

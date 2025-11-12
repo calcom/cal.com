@@ -5,7 +5,6 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 import { RecentFeedbackTableContent } from "./RecentFeedbackTableContent";
 
 export const RecentFeedbackTable = () => {
@@ -21,7 +20,7 @@ export const RecentFeedbackTable = () => {
   });
 
 
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("recent_ratings")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

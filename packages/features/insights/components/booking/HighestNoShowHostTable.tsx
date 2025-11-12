@@ -5,7 +5,6 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestNoShowHostTable = () => {
@@ -23,8 +22,7 @@ export const HighestNoShowHostTable = () => {
     }
   );
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("most_no_show_host")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

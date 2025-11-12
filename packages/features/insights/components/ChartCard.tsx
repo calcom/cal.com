@@ -4,6 +4,8 @@ import { Fragment, useMemo, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
+import { Spinner } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type PanelCardProps = React.ComponentProps<typeof PanelCard>;
@@ -57,9 +59,14 @@ export function ChartCard({
     return "loaded";
   }, [loadingState, isPending, isError]);
 
+  const shouldShowDefaultLoading = isPending && !panelCardProps.children;
+
+  const displayTitle = shouldShowDefaultLoading ? <SkeletonText className="w-32" /> : panelCardProps.title;
+
   return (
     <PanelCard
       {...panelCardProps}
+      title={displayTitle}
       data-testid="chart-card"
       data-chart-id={chartId}
       data-loading-state={computedLoadingState}
@@ -73,7 +80,13 @@ export function ChartCard({
           legendComponent
         )
       }>
-      {panelCardProps.children}
+      {shouldShowDefaultLoading ? (
+        <div className="m-auto flex h-80 flex-col items-center justify-center">
+          <Spinner className="h-6 w-6" />
+        </div>
+      ) : (
+        panelCardProps.children
+      )}
     </PanelCard>
   );
 }

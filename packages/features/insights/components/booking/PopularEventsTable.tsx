@@ -5,7 +5,6 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard, ChartCardItem } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
@@ -19,8 +18,7 @@ export const PopularEventsTable = () => {
     },
   });
 
-
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("popular_events")} isPending={isPending} isError={isError} />;
 
   if (!isSuccess || !data) return null;
 

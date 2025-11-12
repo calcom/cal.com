@@ -8,7 +8,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   CSAT: "#22c55e",
@@ -67,7 +66,7 @@ export const CSATOverTimeChart = () => {
   });
 
 
-  if (isPending) return <LoadingInsight />;
+  if (isPending) return <ChartCard title={t("csat_over_time")} className="h-full" isPending={isPending} isError={isError} />;
 
   if (!isSuccess) return null;
 
