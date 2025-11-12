@@ -3975,7 +3975,6 @@
   "team_onboarding_details_subtitle": "Add your team's name and create a unique URL for your team",
   "repeats_num_times": "Repeats {{count}} times",
   "view_booking_details": "View Booking Details",
-  "view": "View",
   "recurring_booking_description": "Recurring {{frequency}} event with {{count}} occurrences",
   "team_bio": "Team Bio",
   "team_bio_placeholder": "Tell us about your team...",
@@ -4005,5 +4004,9 @@
   "onboarding_browser_view_ask_question_description": "Ask a question",
   "onboarding_browser_view_default_bio": "Find a time that suits you",
   "book_now": "Book now",
+  "view": "View",
+  "booking_response": "Booking Response",
+  "list_view": "List view",
+  "calendar_view": "Calendar view",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

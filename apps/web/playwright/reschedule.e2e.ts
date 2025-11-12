@@ -14,6 +14,7 @@ import {
   doOnOrgDomain,
   goToUrlWithErrorHandling,
   IS_STRIPE_ENABLED,
+  openBookingActionsDropdown,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -33,8 +34,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
 
     await page.locator('[data-testid="reschedule_request"]').click();
 
@@ -58,7 +59,7 @@ test.describe("Reschedule Tests", async () => {
   }) => {
     const user = await users.create();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
+    await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
       startTime: dayjs().subtract(2, "day").toDate(),
       endTime: dayjs().subtract(2, "day").add(30, "minutes").toDate(),
@@ -76,8 +77,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/past");
 
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
 
     await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
     await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
@@ -93,8 +94,8 @@ test.describe("Reschedule Tests", async () => {
 
     await page.reload();
 
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
 
     // Check that the reschedule options are visible but disabled
     await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
@@ -196,7 +197,7 @@ test.describe("Reschedule Tests", async () => {
         },
       },
     });
-    const payment = await payments.create(booking.id);
+    await payments.create(booking.id);
     await page.goto(`/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -226,7 +227,7 @@ test.describe("Reschedule Tests", async () => {
       paid: true,
     });
 
-    const payment = await payments.create(booking.id);
+    await payments.create(booking.id);
     await page.goto(`/reschedule/${booking?.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -330,7 +331,6 @@ test.describe("Reschedule Tests", async () => {
   test("Should load Valid Cal video url after rescheduling Opt in events", async ({
     page,
     users,
-    bookings,
     browser,
   }) => {
     // eslint-disable-next-line playwright/no-skipped-test
