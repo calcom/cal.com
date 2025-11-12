@@ -1,5 +1,6 @@
 import prisma from "@calcom/prisma";
 
+import { VerifiedNumberRepository } from "../../repositories/VerifiedNumberRepository";
 import * as twilio from "./providers/twilioProvider";
 
 export const sendVerificationCode = async (phoneNumber: string) => {
@@ -17,12 +18,11 @@ export const verifyPhoneNumber = async (
   const verificationStatus = await twilio.verifyNumber(phoneNumber, code);
 
   if (verificationStatus === "approved") {
-    await prisma.verifiedNumber.create({
-      data: {
-        userId,
-        teamId,
-        phoneNumber,
-      },
+    const verifiedNumberRepository = new VerifiedNumberRepository(prisma);
+    await verifiedNumberRepository.createVerifiedNumber({
+      userId,
+      teamId,
+      phoneNumber,
     });
     return true;
   }

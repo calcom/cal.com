@@ -19,7 +19,6 @@ import {
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
-import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
@@ -139,22 +138,6 @@ export class WorkflowRepository {
         },
       },
     });
-  }
-
-  async getVerifiedNumbers({
-    userId,
-    teamId,
-  }: TGetVerifiedNumbersInputSchema & { userId: number | null }) {
-    if (!userId) {
-      throw new Error("User Id not found");
-    }
-    const verifiedNumbers = await this.prismaClient.verifiedNumber.findMany({
-      where: {
-        OR: [{ userId }, { teamId }],
-      },
-    });
-
-    return verifiedNumbers;
   }
 
   async getVerifiedEmails({

@@ -18,6 +18,7 @@ import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/pri
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
+import { VerifiedNumberRepository } from "../../repositories/VerifiedNumberRepository";
 import { WorkflowOptOutContactRepository } from "../../repositories/WorkflowOptOutContactRepository";
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
@@ -127,12 +128,13 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
   async function getIsNumberVerified() {
     if (action === WorkflowActions.SMS_ATTENDEE) return true;
-    const verifiedNumber = await prisma.verifiedNumber.findFirst({
-      where: {
-        OR: [{ userId }, { teamId }],
-        phoneNumber: reminderPhone || "",
-      },
+    const verifiedNumberRepository = new VerifiedNumberRepository(prisma);
+    const verifiedNumber = await verifiedNumberRepository.findVerifiedNumber({
+      userId,
+      teamId,
+      phoneNumber: reminderPhone || "",
     });
+
     if (verifiedNumber) return true;
     return isVerificationPending;
   }
