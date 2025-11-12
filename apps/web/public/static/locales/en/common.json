@@ -568,6 +568,7 @@
   "booking_paid": "Booking Paid",
   "ooo_created": "Out of Office Created",
   "booking_no_show_updated": "Booking No-Show Updated",
+  "delegation_credential_error": "Delegation Credential Error",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber URL",
   "create_new_webhook": "Create a new webhook",
@@ -3248,6 +3249,8 @@
   "lock_attribute_for_assignment": "Lock for assignment",
   "lock_attribute_for_assignment_description": "Locking would only allow assignments from Directory Sync",
   "attribute_edited_successfully": "Attribute edited successfully",
+  "group_options": "Group Options",
+  "group_options_description": "When a group option is assigned to a user, they behave as if all options within that group are assigned to them.",
   "new_group_option": "New group option",
   "attribute_weight_enabled": "Weights enabled",
   "attribute_weight_enabled_description": "By enabling weights, it would be possible to assign higher priority to certain attributes per user. The higher the weight, the higher the priority.",
@@ -3967,5 +3970,6 @@
   "team_invite_subtitle": "Invite team members to collaborate and schedule together",
   "team_onboarding_details_subtitle": "Add your team's name and create a unique URL for your team",
   "view_booking_details": "View Booking Details",
+  "view": "View",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
