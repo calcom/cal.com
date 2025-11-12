@@ -362,6 +362,7 @@ export const InputField = forwardRef<
             )}
             {...passThrough}
             onChange={onChange}
+            value={value}
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);

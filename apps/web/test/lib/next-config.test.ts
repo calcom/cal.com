@@ -138,8 +138,8 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserTypeRouteMatch("/_next/def")).toEqual(false);
       expect(orgUserTypeRouteMatch("/public/def")).toEqual(false);
       expect(orgUserRouteMatch("/embed.js")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/embed/embed.js")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/embed/preview.html")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/embed-link/embed.js")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/embed-link/preview.html")).toEqual(false);
 
       expect(orgUserRouteMatch("/_next/")).toEqual(false);
       expect(orgUserRouteMatch("/public/")).toEqual(false);

@@ -29,7 +29,7 @@ declare global {
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
+const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): NavigationItemType[] => [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -106,9 +106,13 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "workflows",
-    href: "/workflows",
+    href: `/workflows?userIds=${userId}`,
     icon: "workflow",
     moreOnMobile: true,
+    isCurrent: ({ pathname }) => {
+      if (!pathname) return false;
+      return pathname.startsWith("/workflows");
+    },
   },
   {
     name: "insights",
@@ -177,8 +181,11 @@ const platformNavigationItems: NavigationItemType[] = [
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
+  const session = useSession();
+  const userId = session.data?.user.id || 0;
+
   return useMemo(() => {
-    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding, userId) : platformNavigationItems;
 
     const desktopNavigationItems = items.filter(
       (item) => item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile

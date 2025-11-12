@@ -510,7 +510,7 @@ Something went wrong.
     }
     floatingButton({
       calLink: t,
-      buttonText: e = "Book my Cal",
+      buttonText: e = "Book my Cal ID",
       hideButtonIcon: o = !1,
       attributes: r,
       buttonPosition: i = "bottom-right",

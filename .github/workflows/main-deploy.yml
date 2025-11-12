@@ -271,7 +271,7 @@ jobs:
             NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
-            NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
+            NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed-link/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
             NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
@@ -384,7 +384,7 @@ jobs:
       #       NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
       #       NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
       #       NEXT_PUBLIC_API_V2_URL=${{ secrets.NEXT_PUBLIC_API_V2_URL }}
-      #       NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
+      #       NEXT_PUBLIC_EMBED_LIB_URL=${{ format('https://{0}/embed-link/embed.js', steps.key_values.outputs.DOMAIN_NAME) }}
       #       NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
       #       NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
       #       NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}

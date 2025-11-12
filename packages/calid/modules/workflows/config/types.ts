@@ -238,7 +238,7 @@ export type CalIdBookingInfo = {
 export interface CalIdTeamProfile {
   readOnly?: boolean;
   slug: string | null;
-  name: string | null;
+  name: string;
   id: number | null;
   logoUrl?: string | null;
 }
