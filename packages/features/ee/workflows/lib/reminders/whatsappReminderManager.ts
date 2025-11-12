@@ -9,6 +9,8 @@ import {
   WorkflowMethods,
 } from "@calcom/prisma/enums";
 
+import { VerifiedNumberRepository } from "../../repositories/VerifiedNumberRepository";
+
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import {
@@ -58,11 +60,11 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
   async function getIsNumberVerified() {
     if (action === WorkflowActions.WHATSAPP_ATTENDEE) return true;
-    const verifiedNumber = await prisma.verifiedNumber.findFirst({
-      where: {
-        OR: [{ userId }, { teamId }],
-        phoneNumber: reminderPhone || "",
-      },
+    const verifiedNumberRepository = new VerifiedNumberRepository(prisma);
+    const verifiedNumber = await verifiedNumberRepository.findVerifiedNumber({
+      userId,
+      teamId,
+      phoneNumber: reminderPhone || "",
     });
     if (verifiedNumber) return true;
     return isVerificationPending;

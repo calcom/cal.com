@@ -1,9 +1,11 @@
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { WorkflowContactType } from "@calcom/prisma/enums";
 
 export class WorkflowOptOutContactRepository {
-  static async addPhoneNumber(phoneNumber: string) {
-    await prisma.workflowOptOutContact.upsert({
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  async addPhoneNumber(phoneNumber: string) {
+    await this.prismaClient.workflowOptOutContact.upsert({
       where: {
         type_value: {
           type: WorkflowContactType.PHONE,
@@ -21,8 +23,8 @@ export class WorkflowOptOutContactRepository {
     });
   }
 
-  static async removePhoneNumber(phoneNumber: string) {
-    await prisma.workflowOptOutContact.update({
+  async removePhoneNumber(phoneNumber: string) {
+    await this.prismaClient.workflowOptOutContact.update({
       where: {
         type_value: {
           type: WorkflowContactType.PHONE,
@@ -35,8 +37,8 @@ export class WorkflowOptOutContactRepository {
     });
   }
 
-  static async isOptedOut(phoneNumber: string) {
-    const optOutContact = await prisma.workflowOptOutContact.findFirst({
+  async isOptedOut(phoneNumber: string) {
+    const optOutContact = await this.prismaClient.workflowOptOutContact.findFirst({
       where: {
         type: WorkflowContactType.PHONE,
         value: phoneNumber,
