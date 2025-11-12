@@ -1339,21 +1339,6 @@ export const EventAdvancedTab = ({
         />
       </>
       <Controller
-        name="bypassCalcomBusyTimes"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("bypass_calcom_busy_times")}
-            description={t("bypass_calcom_busy_times_description")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-
-      <Controller
         name="eventTypeColor"
         render={() => (
           <SettingsToggle
