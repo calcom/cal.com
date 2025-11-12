@@ -246,10 +246,12 @@ export class SlotsController_2024_09_04 {
     @Query(new GetSlotsInputPipe()) query: GetSlotsInput_2024_09_04
   ): Promise<GetSlotsOutput_2024_09_04> {
     const slots = await this.slotsService.getAvailableSlots(query);
+    const hasSlotsAvailable = Object.keys(slots).length > 0;
 
     return {
       data: slots,
       status: SUCCESS_STATUS,
+      ...(hasSlotsAvailable ? {} : { message: "No slots available" }),
     };
   }
 
