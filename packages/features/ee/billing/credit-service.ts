@@ -1,17 +1,11 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import {
-  sendCreditBalanceLimitReachedEmails,
-  sendCreditBalanceLowWarningEmails,
-} from "@calcom/emails/email-manager";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
@@ -496,6 +490,8 @@ export class CreditService {
         return null; // user has limit already reached or team has already reached limit this month
       }
 
+      const { getTranslation } = await import("@calcom/lib/server/i18n");
+
       const teamWithAdmins = creditBalance?.team
         ? {
             ...creditBalance.team,
@@ -592,6 +588,10 @@ export class CreditService {
 
     try {
       if (result.type === "LIMIT_REACHED") {
+        const { sendCreditBalanceLimitReachedEmails } = await import(
+          "@calcom/emails/billing-email-service"
+        );
+
         const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
             team: result.team,
@@ -603,6 +603,9 @@ export class CreditService {
         ];
 
         if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
+          const { cancelScheduledMessagesAndScheduleEmails } = await import(
+            "@calcom/features/ee/workflows/lib/reminders/reminderScheduler"
+          );
           promises.push(
             cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
               (error) => {
@@ -614,6 +617,7 @@ export class CreditService {
 
         await Promise.all(promises);
       } else if (result.type === "WARNING") {
+        const { sendCreditBalanceLowWarningEmails } = await import("@calcom/emails/billing-email-service");
         await sendCreditBalanceLowWarningEmails({
           balance: result.balance,
           team: result.team,
@@ -673,7 +677,11 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
+<<<<<<< HEAD
     const billingService = getBillingProviderService();
+=======
+    const billing = (await import("@calcom/features/ee/billing")).default;
+>>>>>>> main
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
@@ -681,7 +689,11 @@ export class CreditService {
       return 0;
     }
 
-    const monthlyPrice = await billingService.getPrice(priceId);
+    const monthlyPrice = await billing.getPrice(priceId);
+    if (!monthlyPrice) {
+      log.warn("Failed to retrieve monthly price", { teamId, priceId });
+      return 0;
+    }
     const pricePerSeat = monthlyPrice.unit_amount ?? 0;
     const creditsPerSeat = pricePerSeat * 0.5;
 

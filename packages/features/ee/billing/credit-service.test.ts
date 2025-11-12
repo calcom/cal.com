@@ -1,12 +1,11 @@
-import Stripe from "stripe";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import * as EmailManager from "@calcom/emails/email-manager";
+import * as EmailManager from "@calcom/emails/billing-email-service";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
@@ -32,7 +31,32 @@ vi.mock("@calcom/prisma", async (importOriginal) => {
   };
 });
 
-vi.mock("stripe");
+const mockStripe = vi.hoisted(() => ({
+  prices: {
+    list: vi.fn().mockResolvedValue({ data: [] }),
+    retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
+  },
+  customers: {
+    create: vi.fn().mockResolvedValue({ id: "cus_123" }),
+  },
+  subscriptions: {
+    cancel: vi.fn(),
+    retrieve: vi.fn(),
+    update: vi.fn(),
+  },
+  checkout: {
+    sessions: {
+      retrieve: vi.fn(),
+    },
+  },
+  paymentIntents: {
+    create: vi.fn(),
+  },
+}));
+
+vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
+  default: mockStripe,
+}));
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
@@ -67,7 +91,7 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 vi.mock("@calcom/lib/server/repository/credits");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
-vi.mock("@calcom/emails/email-manager", () => ({
+vi.mock("@calcom/emails/billing-email-service", () => ({
   sendCreditBalanceLimitReachedEmails: vi.fn().mockResolvedValue(undefined),
   sendCreditBalanceLowWarningEmails: vi.fn().mockResolvedValue(undefined),
 }));
@@ -77,6 +101,20 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
+  return {
+    StripeBillingService: vi.fn().mockImplementation(() => ({
+      getPrice: async (priceId: string) => {
+        const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+        return stripe.prices.retrieve(priceId);
+      },
+      checkoutSessionIsPaid: vi.fn(),
+      handleSubscriptionCancel: vi.fn(),
+      handleSubscriptionCreation: vi.fn(),
+      handleSubscriptionUpdate: vi.fn(),
+    })),
+  };
+});
 
 vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: vi.fn(),
@@ -107,18 +145,13 @@ CreditsRepository.findCreditBalance.mockResolvedValueOnce({
 
 describe("CreditService", () => {
   let creditService: CreditService;
-  let stripeMock: Partial<Stripe>;
 
   beforeEach(async () => {
     vi.restoreAllMocks();
 
-    stripeMock = {
-      prices: {
-        list: vi.fn().mockResolvedValue({ data: [] }),
-        retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
-      },
-    };
-    vi.mocked(Stripe).mockImplementation(() => stripeMock as Stripe);
+    mockStripe.prices.retrieve.mockResolvedValue({ id: "price_123", unit_amount: 1000 });
+    mockStripe.customers.create.mockResolvedValue({ id: "cus_123" });
+
     creditService = new CreditService();
 
     vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
