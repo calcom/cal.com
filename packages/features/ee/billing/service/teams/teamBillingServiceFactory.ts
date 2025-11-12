@@ -39,7 +39,7 @@ export class TeamBillingServiceFactory {
     return teams.map((team) => this.init(team));
   }
 
-  /** Fetch and initialize multiple team billings in one go */
+  /** Fetch and initialize a single team billing in one go */
   async findAndInit(teamId: number) {
     const team = await this.deps.teamBillingDataRepository.find(teamId);
     return this.init(team);
