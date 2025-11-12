@@ -29,7 +29,6 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
-import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 import { useJoinableLocation } from "./useJoinableLocation";
@@ -81,14 +80,6 @@ function BookingDetailsSheetInner({
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
-
-  // Build booking confirmation link
-  const isRecurring = booking.recurringEventId !== null;
-  const bookingLink = buildBookingLink({
-    bookingUid: booking.uid,
-    allRemainingBookings: isRecurring,
-    email: booking.attendees?.[0]?.email,
-  });
 
   const getStatusBadge = () => {
     switch (booking.status) {
@@ -213,11 +204,7 @@ function BookingDetailsSheetInner({
               t={t}
             />
             {shouldShowJoinButton && <div className="border-subtle h-3 w-px border-r" />}
-            <Button color="secondary" EndIcon="external-link" href={bookingLink} target="_blank">
-              {t("view")}
-            </Button>
             <BookingActionsDropdown
-              context="booking-details-sheet"
               booking={{
                 ...booking,
                 listingStatus: booking.status.toLowerCase() as BookingListingStatus,

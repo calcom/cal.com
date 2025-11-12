@@ -30,6 +30,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { buildBookingLink } from "../../../modules/bookings/lib/buildBookingLink";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
@@ -163,6 +164,13 @@ export function BookingActionsDropdown({ booking, size = "base" }: BookingAction
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const isBookingFromRoutingForm = !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
+
+  // Build booking confirmation link
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
 
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
@@ -553,6 +561,17 @@ export function BookingActionsDropdown({ booking, size = "base" }: BookingAction
           <Button type="button" color="secondary" size={size} StartIcon="ellipsis" className="px-2" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuItem className="rounded-lg">
+            <DropdownItem
+              type="button"
+              StartIcon="external-link"
+              href={bookingLink}
+              target="_blank"
+              data-testid="view-booking">
+              {t("view")}
+            </DropdownItem>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {pendingActions.length > 0 && (
             <>
               <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
