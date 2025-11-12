@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
@@ -271,7 +271,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         };
       }
 
-      const remindersFromStep = await WorkflowReminderRepository.findWorkflowRemindersByStepId(oldStep.id);
+      const workflowReminderRepository = new WorkflowReminderRepository(ctx.prisma);
+      const remindersFromStep = await workflowReminderRepository.findWorkflowRemindersByStepId(oldStep.id);
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {

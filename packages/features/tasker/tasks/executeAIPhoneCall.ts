@@ -4,7 +4,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
 import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
   getSubmitterEmail,
@@ -30,10 +30,8 @@ interface ExecuteAIPhoneCallPayload {
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
 type BookingWithRelations = NonNullable<
-  NonNullable<
-    Awaited<ReturnType<typeof WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution>>
-  >["booking"]
->;
+  Awaited<ReturnType<WorkflowReminderRepository["findWorkflowReminderForAIPhoneCallExecution"]>>
+>["booking"];
 
 function getVariablesFromFormResponse({
   responses,
@@ -132,7 +130,8 @@ export async function executeAIPhoneCall(payload: string) {
   log.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
 
   try {
-    const workflowReminder = await WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution(
+    const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+    const workflowReminder = await workflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution(
       data.workflowReminderId
     );
 
@@ -195,7 +194,7 @@ export async function executeAIPhoneCall(payload: string) {
     });
 
     // form triggers don't have a booking
-    const booking = workflowReminder.booking as BookingWithRelations | null;
+    const booking = workflowReminder.booking as BookingWithRelations;
     const routingFormResponses = data.responses;
 
     if (!booking && !routingFormResponses) {
@@ -259,7 +258,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     log.info("AI phone call created successfully:", call);
 
-    await WorkflowReminderRepository.updateWorkflowReminderReferenceAndScheduled(data.workflowReminderId, {
+    await workflowReminderRepository.updateWorkflowReminderReferenceAndScheduled(data.workflowReminderId, {
       referenceId: call.call_id,
       scheduled: true,
     });
