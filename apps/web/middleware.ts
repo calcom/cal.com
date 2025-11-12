@@ -60,6 +60,9 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/workflows/sms/user-response",
   "/api/trpc/", // for tRPC
   "/api/auth/callback/", // for NextAuth
+  "/api/book/event",
+  "/api/book/instant-event",
+  "/api/book/recurring-event",
 ];
 
 export function checkPostMethod(req: NextRequest) {
