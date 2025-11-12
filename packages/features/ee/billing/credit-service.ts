@@ -468,7 +468,7 @@ export class CreditService {
     } else if (userId) {
       const billing = (await import("@calcom/features/ee/billing")).default;
       const teamMonthlyPrice = await billing.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
-      const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
+      const pricePerSeat = teamMonthlyPrice?.unit_amount ?? 0;
       warningLimit = (pricePerSeat / 2) * 0.2;
     }
 
@@ -680,6 +680,10 @@ export class CreditService {
     }
 
     const monthlyPrice = await billing.getPrice(priceId);
+    if (!monthlyPrice) {
+      log.warn("Failed to retrieve monthly price", { teamId, priceId });
+      return 0;
+    }
     const pricePerSeat = monthlyPrice.unit_amount ?? 0;
     const creditsPerSeat = pricePerSeat * 0.5;
 
