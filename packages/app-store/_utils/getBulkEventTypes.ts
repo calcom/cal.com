@@ -48,7 +48,13 @@ export const getBulkUserEventTypes = async (userId: number) => {
 
   const filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed(eventTypes);
 
-  return processEventTypes(filteredEventTypes);
+  return processEventTypes(
+    filteredEventTypes.map((eventType) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { metadata, ...rest } = eventType;
+      return { ...rest };
+    })
+  );
 };
 
 export const getBulkTeamEventTypes = async (teamId: number) => {
