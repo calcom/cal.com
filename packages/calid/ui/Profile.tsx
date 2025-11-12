@@ -89,7 +89,7 @@ export const Profile = ({ small }: ProfileProps) => {
           <Icon name="moon" className="mr-2 h-4 w-4" />
           {t("out_of_office")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => window.open("https://roadmap.onehash.ai/", "_blank")}>
+        <DropdownMenuItem onClick={() => window.open("https://roadmap.cal.id/", "_blank")}>
           <Icon name="map-pin" className="mr-2 h-4 w-4" />
           {t("visit_roadmap")}
         </DropdownMenuItem>
