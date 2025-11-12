@@ -15,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
@@ -47,9 +48,21 @@ import {
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;
   size?: "xs" | "sm" | "base" | "lg";
+  className?: string;
+  /**
+   * Whether to use a portal for the dropdown menu.
+   * Set to false when rendering inside a Sheet/Dialog to keep the dropdown within the modal's stacking context.
+   * @default true
+   */
+  usePortal?: boolean;
 }
 
-export function BookingActionsDropdown({ booking, size = "base" }: BookingActionsDropdownProps) {
+export function BookingActionsDropdown({
+  booking,
+  size = "base",
+  className,
+  usePortal = true,
+}: BookingActionsDropdownProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -553,119 +566,134 @@ export function BookingActionsDropdown({ booking, size = "base" }: BookingAction
     return dialogs;
   }
 
+  // Conditional portal wrapper to avoid portal when inside Sheet/Dialog
+  const ConditionalPortal = usePortal
+    ? DropdownMenuPortal
+    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
   return (
     <>
       {dialogs}
       <Dropdown modal={false}>
         <DropdownMenuTrigger asChild data-testid="booking-actions-dropdown">
-          <Button type="button" color="secondary" size={size} StartIcon="ellipsis" className="px-2" />
+          <Button
+            type="button"
+            color="secondary"
+            size={size}
+            StartIcon="ellipsis"
+            className={className}
+            // Prevent click from bubbling to parent row/container click handlers
+            onClick={(e) => e.stopPropagation()}
+          />
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem className="rounded-lg">
-            <DropdownItem
-              type="button"
-              StartIcon="external-link"
-              href={bookingLink}
-              target="_blank"
-              data-testid="view-booking">
-              {t("view")}
-            </DropdownItem>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {pendingActions.length > 0 && (
+        <ConditionalPortal>
+          <DropdownMenuContent>
+            <DropdownMenuItem className="rounded-lg">
+              <DropdownItem
+                type="button"
+                StartIcon="external-link"
+                href={bookingLink}
+                target="_blank"
+                data-testid="view-booking">
+                {t("view")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {pendingActions.length > 0 && (
+              <>
+                <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
+                {pendingActions.map((action) => (
+                  <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                    <DropdownItem
+                      type="button"
+                      color={action.color}
+                      StartIcon={action.icon}
+                      href={action.href}
+                      disabled={action.disabled}
+                      onClick={action.onClick}
+                      data-bookingid={action.bookingId}
+                      data-testid={action.id}
+                      className={action.disabled ? "text-muted" : undefined}>
+                      {action.label}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
+            {editEventActions.map((action) => (
+              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={action.color}
+                  StartIcon={action.icon}
+                  href={action.href}
+                  disabled={action.disabled}
+                  onClick={action.onClick}
+                  data-bookingid={action.bookingId}
+                  data-testid={action.id}
+                  className={action.disabled ? "text-muted" : undefined}>
+                  {action.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
+            {afterEventActions.map((action) => (
+              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={action.color}
+                  StartIcon={action.icon}
+                  href={action.href}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                  data-bookingid={action.bookingId}
+                  data-testid={action.id}
+                  className={action.disabled ? "text-muted" : undefined}>
+                  {action.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
             <>
-              <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
-              {pendingActions.map((action) => (
-                <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                  <DropdownItem
-                    type="button"
-                    color={action.color}
-                    StartIcon={action.icon}
-                    href={action.href}
-                    disabled={action.disabled}
-                    onClick={action.onClick}
-                    data-bookingid={action.bookingId}
-                    data-testid={action.id}
-                    className={action.disabled ? "text-muted" : undefined}>
-                    {action.label}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              ))}
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="rounded-lg"
+                key={reportActionWithHandler.id}
+                disabled={reportActionWithHandler.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={reportActionWithHandler.color}
+                  StartIcon={reportActionWithHandler.icon}
+                  onClick={reportActionWithHandler.onClick}
+                  disabled={reportActionWithHandler.disabled}
+                  data-testid={reportActionWithHandler.id}
+                  className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
+                  {reportActionWithHandler.label}
+                </DropdownItem>
+              </DropdownMenuItem>
             </>
-          )}
-          <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-          {editEventActions.map((action) => (
-            <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-              <DropdownItem
-                type="button"
-                color={action.color}
-                StartIcon={action.icon}
-                href={action.href}
-                disabled={action.disabled}
-                onClick={action.onClick}
-                data-bookingid={action.bookingId}
-                data-testid={action.id}
-                className={action.disabled ? "text-muted" : undefined}>
-                {action.label}
-              </DropdownItem>
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-          {afterEventActions.map((action) => (
-            <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-              <DropdownItem
-                type="button"
-                color={action.color}
-                StartIcon={action.icon}
-                href={action.href}
-                onClick={action.onClick}
-                disabled={action.disabled}
-                data-bookingid={action.bookingId}
-                data-testid={action.id}
-                className={action.disabled ? "text-muted" : undefined}>
-                {action.label}
-              </DropdownItem>
-            </DropdownMenuItem>
-          ))}
-          <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="rounded-lg"
-              key={reportActionWithHandler.id}
-              disabled={reportActionWithHandler.disabled}>
+              key={cancelEventAction.id}
+              disabled={cancelEventAction.disabled}>
               <DropdownItem
                 type="button"
-                color={reportActionWithHandler.color}
-                StartIcon={reportActionWithHandler.icon}
-                onClick={reportActionWithHandler.onClick}
-                disabled={reportActionWithHandler.disabled}
-                data-testid={reportActionWithHandler.id}
-                className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
-                {reportActionWithHandler.label}
+                color={cancelEventAction.color}
+                StartIcon={cancelEventAction.icon}
+                href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
+                onClick={cancelEventAction.onClick}
+                disabled={cancelEventAction.disabled}
+                data-bookingid={cancelEventAction.bookingId}
+                data-testid={cancelEventAction.id}
+                className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                {cancelEventAction.label}
               </DropdownItem>
             </DropdownMenuItem>
-          </>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="rounded-lg"
-            key={cancelEventAction.id}
-            disabled={cancelEventAction.disabled}>
-            <DropdownItem
-              type="button"
-              color={cancelEventAction.color}
-              StartIcon={cancelEventAction.icon}
-              href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
-              onClick={cancelEventAction.onClick}
-              disabled={cancelEventAction.disabled}
-              data-bookingid={cancelEventAction.bookingId}
-              data-testid={cancelEventAction.id}
-              className={cancelEventAction.disabled ? "text-muted" : undefined}>
-              {cancelEventAction.label}
-            </DropdownItem>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+          </DropdownMenuContent>
+        </ConditionalPortal>
       </Dropdown>
     </>
   );

@@ -7,6 +7,9 @@ import { AvatarGroup } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 
+import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
+import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
+import type { BookingListingStatus } from "../../../components/booking/types";
 import { JoinMeetingButton } from "../components/JoinMeetingButton";
 import type { RowData } from "../types";
 
@@ -19,19 +22,15 @@ interface PendingActionHandlers {
 interface BuildListDisplayColumnsParams {
   t: (key: string) => string;
   user?: {
+    id?: number;
+    email?: string;
     timeZone?: string;
     timeFormat?: number | null;
   };
-  onOpenDetails: (bookingId: number) => void;
   pendingActionHandlers: PendingActionHandlers;
 }
 
-export function buildListDisplayColumns({
-  t,
-  user,
-  onOpenDetails,
-  pendingActionHandlers,
-}: BuildListDisplayColumnsParams) {
+export function buildListDisplayColumns({ t, user, pendingActionHandlers }: BuildListDisplayColumnsParams) {
   const columnHelper = createColumnHelper<RowData>();
 
   return [
@@ -211,17 +210,24 @@ export function buildListDisplayColumns({
                 t={t}
               />
             )}
-            <Button
-              size="sm"
-              className="px-1.5"
-              color="secondary"
-              StartIcon="ellipsis"
-              data-testid="booking-options"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenDetails(row.booking.id);
-              }}
-            />
+            <BookingActionsStoreProvider>
+              <BookingActionsDropdown
+                booking={{
+                  ...booking,
+                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                  recurringInfo: row.type === "data" ? row.recurringInfo : undefined,
+                  loggedInUser: {
+                    userId: user?.id,
+                    userTimeZone: user?.timeZone,
+                    userTimeFormat: user?.timeFormat,
+                    userEmail: user?.email,
+                  },
+                  isToday: row.type === "data" ? row.isToday : false,
+                }}
+                className="px-1.5"
+                size="sm"
+              />
+            </BookingActionsStoreProvider>
           </div>
         );
       },

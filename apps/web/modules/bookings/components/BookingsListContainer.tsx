@@ -129,7 +129,6 @@ export function BookingsListContainer({
     const listCols = buildListDisplayColumns({
       t,
       user,
-      onOpenDetails,
       pendingActionHandlers: {
         onAccept: handleAccept,
         onReject: handleReject,
@@ -137,7 +136,7 @@ export function BookingsListContainer({
       },
     });
     return [...filterCols, ...listCols];
-  }, [t, permissions, status, user, onOpenDetails, handleAccept, handleReject, confirmMutation.isPending]);
+  }, [t, permissions, status, user, handleAccept, handleReject, confirmMutation.isPending]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
