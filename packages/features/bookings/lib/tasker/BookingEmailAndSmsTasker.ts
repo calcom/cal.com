@@ -7,14 +7,14 @@ import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
 import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
 import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
-export interface IBookingTaskerDependencies {
+export interface IBookingEmailAndSmsTaskerDependencies {
   primaryTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
   fallbackTasker: BookingEmailAndSmsSyncTasker;
   logger: ILogger;
 }
 
 export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> {
-  constructor(public readonly dependencies: IBookingTaskerDependencies) {
+  constructor(public readonly dependencies: IBookingEmailAndSmsTaskerDependencies) {
     super(dependencies);
   }
 
@@ -36,14 +36,3 @@ export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> 
     this.logger.warn("Unknown email/SMS action requested.", { action });
   }
 }
-
-/* 
-this is how we can now create the google calendar tasker, we will use dependency injection in web/v2 
-const tasker = new GoogleCalendarTasker({
-  primaryTasker: new GoogleCalendarTriggerDevTasker({ logger: logger as unknown as ILogger }),
-  fallbackTasker: new GoogleCalendarSyncTasker({ logger: logger as unknown as ILogger }),
-  logger: logger as unknown as ILogger,
-});
-
-tasker.dispatch("createEvent", { name: "" });
- */

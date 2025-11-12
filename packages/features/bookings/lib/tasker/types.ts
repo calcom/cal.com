@@ -1,14 +1,4 @@
 import { EmailsAndSmsSideEffectsPayload } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import type { ILogger } from "@calcom/lib/tasker/types";
-
-import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
-import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
-
-export interface IBookingTaskerDependencies {
-  primaryTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
-  fallbackTasker: BookingEmailAndSmsSyncTasker;
-  logger: ILogger;
-}
 
 export type BookingEmailAndSmsTaskPayload = {
   bookingId: number;
