@@ -588,9 +588,7 @@ export class CreditService {
 
     try {
       if (result.type === "LIMIT_REACHED") {
-        const { sendCreditBalanceLimitReachedEmails } = await import(
-          "@calcom/emails/billing-email-service"
-        );
+        const { sendCreditBalanceLimitReachedEmails } = await import("@calcom/emails/billing-email-service");
 
         const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
@@ -677,11 +675,7 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
-<<<<<<< HEAD
     const billingService = getBillingProviderService();
-=======
-    const billing = (await import("@calcom/features/ee/billing")).default;
->>>>>>> main
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
@@ -689,7 +683,7 @@ export class CreditService {
       return 0;
     }
 
-    const monthlyPrice = await billing.getPrice(priceId);
+    const monthlyPrice = await billingService.getPrice(priceId);
     if (!monthlyPrice) {
       log.warn("Failed to retrieve monthly price", { teamId, priceId });
       return 0;
