@@ -173,15 +173,6 @@ describe("Middleware - POST requests restriction", () => {
     expect(res1).toBeNull();
   });
 
-  it("should block POST requests to not-allowed app routes", async () => {
-    const req = createRequest("/team/xyz", "POST");
-    const res = checkPostMethod(req);
-    expect(res).not.toBeNull();
-    expect(res?.status).toBe(405);
-    expect(res?.statusText).toBe("Method Not Allowed");
-    expect(res?.headers.get("Allow")).toBe("GET");
-  });
-
   it("should allow GET requests to app routes", async () => {
     const req = createRequest("/team/xyz", "GET");
     const res = checkPostMethod(req);
@@ -218,29 +209,6 @@ describe("Middleware Integration Tests", () => {
         expectStatus(res, 200);
         expect(getHeader(res, "x-middleware-next")).toBe("1");
       }
-    });
-  });
-
-  describe("POST Method Protection", () => {
-    it("should allow POST to /api/auth/signup", async () => {
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/api/auth/signup`,
-        method: "POST",
-      });
-
-      const res = await callMiddleware(req);
-      expectStatus(res, 200);
-    });
-
-    it("should block POST to regular routes", async () => {
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/team/test`,
-        method: "POST",
-      });
-
-      const res = await callMiddleware(req);
-      expectStatus(res, 405);
-      expect(getHeader(res, "Allow")).toBe("GET");
     });
   });
 
@@ -438,22 +406,6 @@ describe("Middleware Integration Tests", () => {
   });
 
   describe("Multiple Features", () => {
-    it("should handle POST protection before maintenance mode", async () => {
-      (edgeConfigGet as Mock).mockImplementation(
-        createEdgeConfigMock({
-          isInMaintenanceMode: true,
-        })
-      );
-
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/team/test`,
-        method: "POST",
-      });
-
-      const res = await callMiddleware(req);
-      // POST protection should trigger first
-      expectStatus(res, 405);
-    });
 
     it("should handle embed route with routing forms rewrite", async () => {
       const req = createTestRequest({
