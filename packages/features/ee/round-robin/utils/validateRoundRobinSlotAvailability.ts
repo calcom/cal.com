@@ -53,16 +53,13 @@ async function validateFixedHostsAvailability(
 
   if (existingSlotReservation > 0) {
     throw new ErrorWithCode(
-      ErrorCode.BookingConflict,
+      ErrorCode.InvalidInput,
       "Can't reserve the slot because the round robin event type has no available hosts left at this time slot."
     );
   }
 
   if (hasHostAsAttendee) {
-    throw new ErrorWithCode(
-      ErrorCode.BookingConflict,
-      "Can't reserve a slot if the event is already booked."
-    );
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "Can't reserve a slot if the event is already booked.");
   }
 }
 
@@ -84,7 +81,7 @@ async function validateNonFixedHostsAvailability(
 
   if (existingSlotReservations === hosts.length) {
     throw new ErrorWithCode(
-      ErrorCode.BookingConflict,
+      ErrorCode.InvalidInput,
       "Can't reserve the slot because the round robin event type has no available hosts left at this time slot."
     );
   }
