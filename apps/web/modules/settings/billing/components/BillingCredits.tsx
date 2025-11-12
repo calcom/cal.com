@@ -157,7 +157,7 @@ export default function BillingCredits() {
       } else {
         showToast(t("error_downloading_expense_log"), "error");
       }
-    } catch (error) {
+    } catch {
       showToast(t("error_downloading_expense_log"), "error");
     } finally {
       setIsDownloading(false);
@@ -209,7 +209,7 @@ export default function BillingCredits() {
                       {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
                     </p>
                     <Button onClick={() => setShowMemberInvitationModal(true)} size="sm" color="secondary">
-                      {t("add_members_no_ellipsis")}
+                      {t("add_org_members")}
                     </Button>
                   </div>
                 </div>

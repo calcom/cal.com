@@ -22,6 +22,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import Image from "next/image";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
@@ -197,7 +198,7 @@ export const AppPage = ({
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
     }
-  }, []);
+  }, [mutation, searchParams, slug, type, variant]);
 
   const installOrDisconnectAppButton = () => {
     if (isRedirectApp(slug)) {
@@ -315,7 +316,7 @@ export const AppPage = ({
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
-                <img
+                <Image
                   key={descriptionItem}
                   src={descriptionItem}
                   alt={`Screenshot of app ${name}`}
@@ -336,7 +337,7 @@ export const AppPage = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
-              <img
+              <Image
                 className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
                 src={logo}
                 alt={name}
@@ -402,7 +403,7 @@ export const AppPage = ({
               {teamsPlanRequired ? (
                 t("teams_plan_required")
               ) : price === 0 ? (
-                t("free_to_use_apps")
+                t("free")
               ) : (
                 <>
                   {Intl.NumberFormat(i18n.language, {

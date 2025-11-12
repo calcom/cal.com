@@ -1,7 +1,5 @@
 "use client";
 
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -75,7 +73,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
       });
     }
 
-    tabs.includes("availability") &&
+    if (tabs.includes("availability")) {
       navigation.splice(1, 0, {
         name: t("availability"),
         onClick: () => setCurrentTab("availability"),
@@ -96,6 +94,7 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
             : formMethods.getValues("scheduleName") ?? t("default_schedule_name"),
         "data-testid": "availability",
       });
+    }
 
     // If there is a team put this navigation item within the tabs
     if (team && tabs.includes("team")) {
@@ -147,7 +146,7 @@ type getNavigationProps = {
 function getNavigation({ length, multipleDuration, t, tabs, url, onClick, currentTab }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
   const tabsNavigation: VerticalTabItemProps[] = [];
-  tabs.includes("setup") &&
+  if (tabs.includes("setup")) {
     tabsNavigation.push({
       name: t("basics"),
       onClick: () => onClick("setup"),
@@ -157,7 +156,8 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
       "data-testid": `basics`,
     });
-  tabs.includes("limits") &&
+  }
+  if (tabs.includes("limits")) {
     tabsNavigation.push({
       name: t("event_limit_tab_title"),
       onClick: () => onClick("limits"),
@@ -167,10 +167,11 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       info: t(`event_limit_tab_description`),
       "data-testid": "event_limit_tab_title",
     });
+  }
 
-  tabs.includes("advanced") &&
+  if (tabs.includes("advanced")) {
     tabsNavigation.push({
-      name: t("event_advanced_tab_title"),
+      name: t("advanced"),
       onClick: () => onClick("advanced"),
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
@@ -178,7 +179,8 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       info: t(`event_advanced_tab_description`),
       "data-testid": "event_advanced_tab_title",
     });
-  tabs.includes("payments") &&
+  }
+  if (tabs.includes("payments")) {
     tabsNavigation.push({
       name: t("payments"),
       onClick: () => onClick("payments"),
@@ -188,6 +190,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       info: t(`event_payments_tab_description`),
       "data-testid": "payments",
     });
+  }
 
   return tabsNavigation;
 }

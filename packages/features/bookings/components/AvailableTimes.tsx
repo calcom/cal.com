@@ -233,7 +233,7 @@ const SlotItem = ({
                   {(() => {
                     if (layout === "column_view") return "";
                     if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
-                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_button");
+                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email");
                     return isPaidEvent ? t("pay_and_book") : t("confirm");
                   })()}
                 </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -70,7 +70,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     {
       id: "personal" as PlanType,
       title: t("onboarding_plan_personal_title"),
-      badge: t("onboarding_plan_personal_badge"),
+      badge: t("free"),
       description: t("onboarding_plan_personal_description"),
       icon: planIconByType.personal,
       variant: "single" as const,

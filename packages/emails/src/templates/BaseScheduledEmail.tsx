@@ -90,7 +90,7 @@ export const BaseScheduledEmail = (
           label={t(
             props.calEvent.cancellationReason.startsWith("$RCH$")
               ? "reason_for_reschedule"
-              : "cancellation_reason"
+              : "cancellation_reason_optional"
           )}
           description={
             !!props.calEvent.cancellationReason && props.calEvent.cancellationReason.replace("$RCH$", "")

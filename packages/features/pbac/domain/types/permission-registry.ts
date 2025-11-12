@@ -203,7 +203,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Role]: {
     _resource: {
-      i18nKey: "pbac_resource_role",
+      i18nKey: "roles",
     },
     [CrudAction.Create]: {
       description: "Create roles",
@@ -235,7 +235,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.EventType]: {
     _resource: {
-      i18nKey: "pbac_resource_event_type",
+      i18nKey: "event_types_page_title",
     },
     [CrudAction.Create]: {
       description: "Create event types",
@@ -267,7 +267,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Team]: {
     _resource: {
-      i18nKey: "pbac_resource_team",
+      i18nKey: "teams",
     },
     [CrudAction.Create]: {
       description: "Create teams",
@@ -300,14 +300,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CustomAction.Invite]: {
       description: "Invite team members",
       category: "team",
-      i18nKey: "pbac_action_invite",
-      descriptionI18nKey: "pbac_desc_invite_team_members",
+      i18nKey: "invite",
+      descriptionI18nKey: "invite_team_members",
       dependsOn: ["team.read", "team.listMembers", "role.read"],
     },
     [CustomAction.Remove]: {
       description: "Remove team members",
       category: "team",
-      i18nKey: "pbac_action_remove",
+      i18nKey: "remove",
       descriptionI18nKey: "pbac_desc_remove_team_members",
       dependsOn: ["team.read", "team.listMembers"],
     },
@@ -340,7 +340,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CustomAction.Impersonate]: {
       description: "Impersonate team members",
       category: "team",
-      i18nKey: "pbac_action_impersonate",
+      i18nKey: "impersonate",
       descriptionI18nKey: "pbac_desc_impersonate_team_members",
       dependsOn: ["team.read", "team.listMembers"],
     },
@@ -354,13 +354,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Organization]: {
     _resource: {
-      i18nKey: "pbac_resource_organization",
+      i18nKey: "organization",
     },
     [CrudAction.Create]: {
       description: "Create organization",
       category: "org",
       i18nKey: "pbac_action_create",
-      descriptionI18nKey: "pbac_desc_create_organization",
+      descriptionI18nKey: "create_org",
       scope: [Scope.Organization],
     },
     [CrudAction.Read]: {
@@ -396,7 +396,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       description: "Invite organization members",
       category: "org",
       i18nKey: "pbac_action_invite",
-      descriptionI18nKey: "pbac_desc_invite_organization_members",
+      descriptionI18nKey: "invite_organization_admins",
       scope: [Scope.Organization],
       dependsOn: ["organization.listMembers"],
     },
@@ -442,7 +442,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Booking]: {
     _resource: {
-      i18nKey: "pbac_resource_booking",
+      i18nKey: "bookings",
     },
     [CrudAction.Read]: {
       description: "View bookings",
@@ -483,7 +483,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Insights]: {
     _resource: {
-      i18nKey: "pbac_resource_insights",
+      i18nKey: "insights",
     },
     [CrudAction.Read]: {
       description: "View team insights and analytics",
@@ -494,12 +494,12 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Workflow]: {
     _resource: {
-      i18nKey: "pbac_resource_workflow",
+      i18nKey: "workflows",
     },
     [CrudAction.Create]: {
       description: "Create workflows",
       category: "workflow",
-      i18nKey: "pbac_action_create",
+      i18nKey: "create",
       descriptionI18nKey: "pbac_desc_create_workflows",
       dependsOn: ["workflow.read"],
     },
@@ -512,21 +512,21 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CrudAction.Update]: {
       description: "Update workflows",
       category: "workflow",
-      i18nKey: "pbac_action_update",
+      i18nKey: "edit",
       descriptionI18nKey: "pbac_desc_update_workflows",
       dependsOn: ["workflow.read"],
     },
     [CrudAction.Delete]: {
       description: "Delete workflows",
       category: "workflow",
-      i18nKey: "pbac_action_delete",
+      i18nKey: "delete",
       descriptionI18nKey: "pbac_desc_delete_workflows",
       dependsOn: ["workflow.read"],
     },
   },
   [Resource.Attributes]: {
     _resource: {
-      i18nKey: "pbac_resource_attributes",
+      i18nKey: "attributes",
     },
     [CrudAction.Read]: {
       description: "View organization attributes",
@@ -626,7 +626,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Availability]: {
     _resource: {
-      i18nKey: "pbac_resource_availability",
+      i18nKey: "availability",
     },
     [CrudAction.Create]: {
       description: "Create availability",

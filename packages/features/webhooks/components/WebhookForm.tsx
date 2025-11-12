@@ -127,7 +127,7 @@ function getWebhookVariables(t: (key: string) => string) {
           name: "cancellationReason",
           variable: "{{cancellationReason}}",
           type: "String",
-          description: t("webhook_cancellation_reason"),
+          description: t("cancellation_reason"),
         },
         {
           name: "rejectionReason",
@@ -138,7 +138,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: t("webhook_people"),
+      category: t("people"),
       variables: [
         {
           name: "organizer.name",
@@ -203,7 +203,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: t("webhook_teams"),
+      category: t("teams"),
       variables: [
         {
           name: "team.name",

@@ -413,7 +413,7 @@ export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellatio
   const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
     ? calEvent.cancellationReason.substring(5).trim()
     : calEvent.cancellationReason.trim();
-  return `${t("cancellation_reason")}:\n${sanitized}`;
+  return `${t("cancellation_reason_optional")}:\n${sanitized}`;
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {

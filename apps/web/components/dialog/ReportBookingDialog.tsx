@@ -67,7 +67,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const reasonOptions = [
     { label: t("report_reason_spam"), value: BookingReportReason.SPAM },
     { label: t("report_reason_dont_know_person"), value: BookingReportReason.DONT_KNOW_PERSON },
-    { label: t("report_reason_other"), value: BookingReportReason.OTHER },
+    { label: t("other"), value: BookingReportReason.OTHER },
   ];
 
   return (

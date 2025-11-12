@@ -146,12 +146,12 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                       // Initial invite options view
                       <div className="flex w-full flex-col gap-4">
                         <Button color="secondary" className="w-full justify-center" StartIcon="mail">
-                          {t("onboarding_connect_google_workspace")}
+                          {t("connect_google_workspace")}
                         </Button>
 
                         <div className="flex items-center gap-2">
                           <div className="bg-subtle h-px flex-1" />
-                          <span className="text-subtle text-xs">{t("onboarding_or_divider")}</span>
+                          <span className="text-subtle text-xs">{t("or_lowercase")}</span>
                           <div className="bg-subtle h-px flex-1" />
                         </div>
 
@@ -166,7 +166,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             {t("onboarding_upload_csv")}
                           </Button>
                           <Button color="secondary" className="flex-1 justify-center" StartIcon="link">
-                            {t("onboarding_copy_invite_link")}
+                            {t("copy_invite_link")}
                           </Button>
                         </div>
 
