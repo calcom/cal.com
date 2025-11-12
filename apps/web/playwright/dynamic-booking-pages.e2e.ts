@@ -8,6 +8,7 @@ import {
   confirmReschedule,
   confirmBooking,
   doOnOrgDomain,
+  openBookingActionsDropdown,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
@@ -37,8 +38,8 @@ test("dynamic booking", async ({ page, users }) => {
   await test.step("can reschedule a booking", async () => {
     // Logged in
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
     // Click the reschedule option in the dropdown
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
@@ -57,8 +58,8 @@ test("dynamic booking", async ({ page, users }) => {
 
   await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
     // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
@@ -148,7 +149,6 @@ test("multiple duration selection updates event length correctly", async ({ page
   });
 });
 
-// eslint-disable-next-line playwright/no-skipped-test
 test.skip("it contains the right event details", async ({ page }) => {
   const response = await page.goto(`http://acme.cal.local:3000/owner1+member1`);
   expect(response?.status()).toBe(200);
@@ -193,9 +193,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-         
+
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-         
+
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

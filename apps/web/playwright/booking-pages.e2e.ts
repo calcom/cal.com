@@ -15,6 +15,7 @@ import {
   confirmBooking,
   confirmReschedule,
   expectSlotNotAllowedToBook,
+  openBookingActionsDropdown,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
@@ -105,7 +106,7 @@ test.describe("free user", () => {
     await page.goto(`/${free.username}`);
   });
 
-  test("cannot book same slot multiple times", async ({ page, users, emails }) => {
+  test("cannot book same slot multiple times", async ({ page, users }) => {
     const [user] = users.get();
 
     const bookerObj = {
@@ -124,7 +125,7 @@ test.describe("free user", () => {
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-    const { title: eventTitle } = await user.getFirstEventAsOwner();
+    await user.getFirstEventAsOwner();
 
     await page.goto(bookingUrl);
 
@@ -155,8 +156,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -206,8 +207,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
     // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
@@ -241,8 +242,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
-    // Click the ellipsis menu button to open the dropdown
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Open the booking actions dropdown
+    await openBookingActionsDropdown(page, 0);
     // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
@@ -255,7 +256,7 @@ test.describe("pro user", () => {
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
 
-    const { slug: eventSlug } = await pro.getFirstEventAsOwner();
+    await pro.getFirstEventAsOwner();
 
     await page.goto(`/reschedule/${bookingCancelledId}`);
 
@@ -280,7 +281,7 @@ test.describe("pro user", () => {
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
 
-  test("can book an unconfirmed event multiple times", async ({ page, users }) => {
+  test("can book an unconfirmed event multiple times", async ({ page }) => {
     await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -297,7 +298,6 @@ test.describe("pro user", () => {
 
   test("booking an unconfirmed event with the same email brings you to the original request", async ({
     page,
-    users,
   }) => {
     await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -312,7 +312,7 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("can book with multiple guests", async ({ page, users }) => {
+  test("can book with multiple guests", async ({ page }) => {
     const additionalGuests = ["test@gmail.com", "test2@gmail.com"];
 
     await page.click('[data-testid="event-type-link"]');
@@ -335,7 +335,7 @@ test.describe("pro user", () => {
     await Promise.all(promises);
   });
 
-  test("Time slots should be reserved when selected", async ({ context, page, browser }) => {
+  test("Time slots should be reserved when selected", async ({ page, browser }) => {
     const initialUrl = page.url();
     await page.locator('[data-testid="event-type-link"]').first().click();
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -417,10 +417,7 @@ test.describe("prefill", () => {
     });
   });
 
-  test("Persist the field values when going back and coming back to the booking form", async ({
-    page,
-    users,
-  }) => {
+  test("Persist the field values when going back and coming back to the booking form", async ({ page }) => {
     await page.goto("/pro/30min");
     await selectFirstAvailableTimeSlotNextMonth(page);
     await page.fill('[name="name"]', "John Doe");
@@ -434,7 +431,7 @@ test.describe("prefill", () => {
     await expect(page.locator('[name="notes"]')).toHaveValue("Test notes");
   });
 
-  test("logged out", async ({ page, users }) => {
+  test("logged out", async ({ page }) => {
     await page.goto("/pro/30min");
 
     await test.step("from query params", async () => {
@@ -708,11 +705,11 @@ test("Should throw error when both seatsPerTimeSlot and recurringEvent are set",
 });
 
 test.describe("GTM container", () => {
-  test.beforeEach(async ({ page, users }) => {
+  test.beforeEach(async ({ users }) => {
     await users.create();
   });
 
-  test("global GTM should not be loaded on private booking link", async ({ page, users, emails, prisma }) => {
+  test("global GTM should not be loaded on private booking link", async ({ page, users, prisma }) => {
     const [user] = users.get();
     const eventType = await user.getFirstEventAsOwner();
 
@@ -787,7 +784,7 @@ test.describe("Past booking cancellation", () => {
     });
 
     await page.goto("/bookings/past");
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await openBookingActionsDropdown(page, 0);
     await expect(page.locator('[data-testid="cancel"]')).toBeDisabled();
 
     await page.goto(`/booking/${booking.uid}`);

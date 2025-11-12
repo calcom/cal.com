@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useSearchParams, usePathname } from "next/navigation";
-import { createParser, useQueryState } from "nuqs";
+import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -26,16 +26,17 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
+import { viewParser } from "~/bookings/lib/viewParser";
 
-import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
-import { useBookingCursor } from "../hooks/useBookingCursor";
 import type { RowData, BookingOutput } from "../types";
 
 const BookingsListContainer = dynamic(() =>
   import("../components/BookingsListContainer").then((mod) => ({ default: mod.BookingsListContainer }))
 );
 const BookingsCalendarContainer = dynamic(() =>
-  import("../components/BookingsCalendarContainer").then((mod) => ({ default: mod.BookingsCalendarContainer }))
+  import("../components/BookingsCalendarContainer").then((mod) => ({
+    default: mod.BookingsCalendarContainer,
+  }))
 );
 
 type BookingsProps = {
@@ -44,7 +45,6 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
-  isCalendarViewEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -86,27 +86,12 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-const viewParser = createParser({
-  parse: (value: string) => {
-    if (value === "calendar") return "calendar";
-    return "list";
-  },
-  serialize: (value: "list" | "calendar") => value,
-});
-
-function BookingsContent({ status, permissions, isCalendarViewEnabled }: BookingsProps) {
-  const [_view] = useQueryState("view", viewParser.withDefault("list"));
+function BookingsContent({ status, permissions }: BookingsProps) {
+  const [view] = useQueryState("view", viewParser.withDefault("list"));
   // Force view to be "list" if calendar view is disabled
-  const view = isCalendarViewEnabled ? _view : "list";
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
-  const [selectedBookingId, setSelectedBookingId] = useQueryState("selectedId", {
-    defaultValue: null,
-    parse: (value) => (value ? parseInt(value, 10) : null),
-    serialize: (value) => (value ? String(value) : ""),
-    clearOnDefault: true,
-  });
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -156,23 +141,34 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
 
   const { limit, offset } = useDataTable();
 
-  const query = trpc.viewer.bookings.get.useQuery({
-    limit,
-    offset,
-    filters: {
-      status,
-      eventTypeIds,
-      teamIds,
-      userIds,
-      attendeeName,
-      attendeeEmail,
-      bookingUid,
-      afterStartDate: dateRange?.startDate
-        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-        : undefined,
-      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+  // Only apply pagination for list view, calendar view needs all bookings
+  const shouldPaginate = view === "list";
+  const queryLimit = shouldPaginate ? limit : 100; // Use max limit for calendar view
+  const queryOffset = shouldPaginate ? offset : 0; // Reset offset for calendar view
+
+  const query = trpc.viewer.bookings.get.useQuery(
+    {
+      limit: queryLimit,
+      offset: queryOffset,
+      filters: {
+        status,
+        eventTypeIds,
+        teamIds,
+        userIds,
+        attendeeName,
+        attendeeEmail,
+        bookingUid,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+      },
     },
-  });
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    }
+  );
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -231,6 +227,12 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
           monthBuckets[monthKey] = [];
         }
         monthBuckets[monthKey].push(rowData);
+      } else if (bookingDate.isBefore(currentMonthStart)) {
+        // Handle bookings from months before the current month
+        if (!monthBuckets[monthKey]) {
+          monthBuckets[monthKey] = [];
+        }
+        monthBuckets[monthKey].push(rowData);
       }
     });
 
@@ -275,29 +277,8 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
     return merged;
   }, [groupedBookings, status, t, flatData]);
 
-  const selectedBooking = useMemo(() => {
-    if (!selectedBookingId) return null;
-    const dataRow = finalData.find(
-      (row): row is Extract<RowData, { type: "data" }> =>
-        row.type === "data" && row.booking.id === selectedBookingId
-    );
-    return dataRow?.booking ?? null;
-  }, [selectedBookingId, finalData]);
-
-  const bookingNavigation = useBookingCursor({
-    bookings: finalData,
-    selectedBookingId,
-    setSelectedBookingId,
-  });
-
   const isPending = query.isPending;
   const totalRowCount = query.data?.totalCount;
-
-  const handleRowClick = (row: { original: RowData }) => {
-    if (row.original.type === "data") {
-      setSelectedBookingId(row.original.booking.id);
-    }
-  };
 
   return (
     <div className="flex flex-col">
@@ -325,28 +306,19 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                   data={finalData}
                   isPending={isPending}
                   totalRowCount={totalRowCount}
-                  onRowClick={handleRowClick}
                 />
               ) : (
-                <BookingsCalendarContainer status={status} permissions={permissions} data={finalData} />
+                <BookingsCalendarContainer
+                  status={status}
+                  permissions={permissions}
+                  data={finalData}
+                  isPending={isPending}
+                />
               )}
             </>
           )}
         </div>
       </main>
-      <BookingDetailsSheet
-        booking={selectedBooking}
-        isOpen={!!selectedBooking}
-        onClose={() => setSelectedBookingId(null)}
-        userTimeZone={user?.timeZone}
-        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
-        userId={user?.id}
-        userEmail={user?.email}
-        onPrevious={bookingNavigation.onPrevious}
-        hasPrevious={bookingNavigation.hasPrevious}
-        onNext={bookingNavigation.onNext}
-        hasNext={bookingNavigation.hasNext}
-      />
     </div>
   );
 }
