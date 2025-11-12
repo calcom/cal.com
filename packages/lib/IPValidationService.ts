@@ -266,6 +266,14 @@ export class IPValidationService {
             }
 
             // Both IPv4 and IPv6 resolution failed
+            if (allowLocalhost) {
+                log.debug("Allowing DNS resolution failure in development/test environment", {
+                    hostname,
+                    env: process.env.NODE_ENV,
+                });
+                return;
+            }
+
             throw new Error(`Failed to resolve hostname '${hostname}': No valid DNS records found`);
         } catch (error) {
             // Check if this is our custom error from private IP detection
