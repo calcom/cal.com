@@ -12,7 +12,7 @@ export class PrismaTeamBillingDataRepository implements ITeamBillingDataReposito
   }
   /** Fetch a single team with minimal data needed for billing */
   async findBySubscriptionId(subscriptionId: string) {
-    return this.prisma.team.findFirstOrThrow({
+    return this.prisma.team.findFirst({
       where: {
         metadata: {
           path: ["subscriptionId"],

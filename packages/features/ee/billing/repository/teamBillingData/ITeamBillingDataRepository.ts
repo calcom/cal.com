@@ -14,6 +14,6 @@ export type TeamBillingType = Prisma.TeamGetPayload<{
 
 export interface ITeamBillingDataRepository {
   find(teamId: number): Promise<TeamBillingType>;
-  findBySubscriptionId(subscriptionId: string): Promise<TeamBillingType>;
+  findBySubscriptionId(subscriptionId: string): Promise<TeamBillingType | null>;
   findMany(teamIds: number[]): Promise<TeamBillingType[]>;
 }
