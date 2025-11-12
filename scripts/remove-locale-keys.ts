@@ -5,7 +5,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const localesDir = path.join(repoRoot, 'apps', 'web', 'public', 'static', 'locales');
 
 const keysToRemove = [
-  'webhook_cancellation_reason',
+  // Add keys to remove
 ];
 
 function walkDir(dir) {
