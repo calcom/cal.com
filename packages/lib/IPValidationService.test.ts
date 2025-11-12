@@ -172,14 +172,34 @@ describe("IPValidationService", () => {
         mockResolve.mockRestore();
       });
 
-      it("should handle DNS resolution failures", async () => {
-        const mockResolve = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+      it("should allow DNS resolution failures in test environment", async () => {
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = "test";
+
+        const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+        const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+
+        await expect(service.resolveAndValidateIP("nonexistent.example")).resolves.not.toThrow();
+
+        process.env.NODE_ENV = originalEnv;
+        mockResolve4.mockRestore();
+        mockResolve6.mockRestore();
+      });
+
+      it("should reject DNS resolution failures in production", async () => {
+        const originalEnv = process.env.NODE_ENV;
+        process.env.NODE_ENV = "production";
+
+        const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+        const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
         await expect(service.resolveAndValidateIP("nonexistent.example")).rejects.toThrow(
           "Failed to resolve hostname"
         );
 
-        mockResolve.mockRestore();
+        process.env.NODE_ENV = originalEnv;
+        mockResolve4.mockRestore();
+        mockResolve6.mockRestore();
       });
     });
 

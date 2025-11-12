@@ -280,7 +280,24 @@ describe("WebhookUrlValidationService", () => {
         });
 
         describe("DNS resolution failures", () => {
-            it("should handle DNS resolution errors", async () => {
+            it("should allow DNS resolution errors in test environment", async () => {
+                const originalEnv = process.env.NODE_ENV;
+                process.env.NODE_ENV = "test";
+
+                const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+
+                await expect(service.validateAsync("https://nonexistent.example")).resolves.not.toThrow();
+
+                process.env.NODE_ENV = originalEnv;
+                mockResolve4.mockRestore();
+                mockResolve6.mockRestore();
+            });
+
+            it("should reject DNS resolution errors in production", async () => {
+                const originalEnv = process.env.NODE_ENV;
+                process.env.NODE_ENV = "production";
+
                 const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
                 const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
@@ -288,6 +305,7 @@ describe("WebhookUrlValidationService", () => {
                     "Failed to resolve hostname"
                 );
 
+                process.env.NODE_ENV = originalEnv;
                 mockResolve4.mockRestore();
                 mockResolve6.mockRestore();
             });
