@@ -3,19 +3,74 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { HttpError } from "@calcom/lib/http-error";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch (error) {
+  } catch {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
+export const POST_METHODS_ALLOWED_API_ROUTES = [
+  "/api/auth/forgot-password",
+  "/api/auth/oauth/me",
+  "/api/auth/oauth/refreshToken",
+  "/api/auth/oauth/token",
+  "/api/auth/reset-password",
+  "/api/auth/saml/callback",
+  "/api/auth/saml/token",
+  "/api/auth/setup",
+  "/api/auth/signup",
+  "/api/auth/two-factor/totp/disable",
+  "/api/auth/two-factor/totp/enable",
+  "/api/auth/two-factor/totp/setup",
+  "/api/auth/session",
+  "/api/availability/calendar",
+  "/api/cancel",
+  "/api/cron/bookingReminder",
+  "/api/cron/calendar-cache-cleanup",
+  "/api/cron/changeTimeZone",
+  "/api/cron/checkSmsPrices",
+  "/api/cron/downgradeUsers",
+  "/api/cron/monthlyDigestEmail",
+  "/api/cron/syncAppMeta",
+  "/api/cron/webhookTriggers",
+  "/api/cron/workflows/scheduleEmailReminders",
+  "/api/cron/workflows/scheduleSMSReminders",
+  "/api/cron/workflows/scheduleWhatsappReminders",
+  "/api/get-inbound-dynamic-variables",
+  "/api/integrations/", // for /api/integrations/[...args] and webhooks
+  "/api/recorded-daily-video",
+  "/api/router",
+  "/api/routing-forms/queued-response",
+  "/api/scim/v2.0/", // /api/scim/v2.0/[...directory]
+  "/api/support/conversation",
+  "/api/sync/helpscout",
+  "/api/twilio/webhook",
+  "/api/username",
+  "/api/verify-booking-token",
+  "/api/video/guest-session",
+  "/api/webhook/app-credential",
+  "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
+  "/api/webhooks/retell-ai",
+  "/api/workflows/sms/user-response",
+  "/api/trpc/", // for tRPC
+  "/api/auth/callback/", // for NextAuth
+  "/api/book/event",
+  "/api/book/instant-event",
+  "/api/book/recurring-event",
+  "/availability",
+];
+
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
@@ -30,14 +85,6 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
-export function checkStaticFiles(pathname: string) {
-  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
-  // Skip Next.js internal paths (_next) and static assets
-  if (pathname.startsWith("/_next") || hasFileExtension) {
-    return NextResponse.next();
-  }
-}
-
 const isPagePathRequest = (url: URL) => {
   const isNonPagePathPrefix = /^\/(?:_next|api)\//;
   const isFile = /\..*$/;
@@ -50,11 +97,21 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const postCheckResult = checkPostMethod(req);
-  if (postCheckResult) return postCheckResult;
+  const requestorIp = getIP(req);
+  try {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "common",
+      identifier: `${req.nextUrl.pathname}-${piiHasher.hash(requestorIp)}`,
+    });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return new NextResponse(error.message, { status: error.statusCode });
+    }
+    throw error;
+  }
 
-  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
-  if (isStaticFile) return isStaticFile;
+  // const postCheckResult = checkPostMethod(req);
+  // if (postCheckResult) return postCheckResult;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
@@ -168,22 +225,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
-  // https://github.com/vercel/next.js/discussions/42458
-  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
-  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
-  matcher: [
-    // Routes to enforce CSP
-    "/auth/login",
-    "/login",
-    // Routes to set cookies
-    "/apps/installed",
-    "/auth/logout",
-    // Embed Routes,
-    "/:path*/embed",
-    // API routes
-    "/api/auth/signup",
-  ],
+  matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
 };
 
 export default collectEvents({
