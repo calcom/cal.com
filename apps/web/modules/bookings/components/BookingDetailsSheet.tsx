@@ -31,7 +31,6 @@ import { BookingActionsStoreProvider } from "../../../components/booking/actions
 import type { BookingListingStatus } from "../../../components/booking/types";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-import { useJoinableLocation } from "./useJoinableLocation";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
@@ -100,13 +99,6 @@ function BookingDetailsSheetInner({
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
-
-  const { isJoinable: shouldShowJoinButton } = useJoinableLocation({
-    location: booking.location,
-    metadata: booking.metadata,
-    bookingStatus: booking.status,
-    t,
-  });
 
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
@@ -195,31 +187,34 @@ function BookingDetailsSheetInner({
         </SheetBody>
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
-          <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
-            <JoinMeetingButton
-              location={booking.location}
-              metadata={booking.metadata}
-              bookingStatus={booking.status}
-              t={t}
-            />
-            {shouldShowJoinButton && <div className="border-subtle h-3 w-px border-r" />}
+          <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
             <Button color="secondary" StartIcon="x" onClick={onClose}>
-              <span className="sr-only">{t("close")}</span>
+              {t("close")}
             </Button>
-            <BookingActionsDropdown
-              booking={{
-                ...booking,
-                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
-                recurringInfo: undefined,
-                loggedInUser: {
-                  userId,
-                  userTimeZone,
-                  userTimeFormat: userTimeFormat ?? null,
-                  userEmail,
-                },
-                isToday: false,
-              }}
-            />
+
+            <div className="flex gap-2">
+              <JoinMeetingButton
+                location={booking.location}
+                metadata={booking.metadata}
+                bookingStatus={booking.status}
+                t={t}
+              />
+
+              <BookingActionsDropdown
+                booking={{
+                  ...booking,
+                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                  recurringInfo: undefined,
+                  loggedInUser: {
+                    userId,
+                    userTimeZone,
+                    userTimeFormat: userTimeFormat ?? null,
+                    userEmail,
+                  },
+                  isToday: false,
+                }}
+              />
+            </div>
           </div>
         </SheetFooter>
       </SheetContent>
