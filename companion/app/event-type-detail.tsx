@@ -75,6 +75,10 @@ export default function EventTypeDetail() {
   const [frequencyLimits, setFrequencyLimits] = useState([{ id: 1, value: "1", unit: "Per day" }]);
   const [showFrequencyUnitDropdown, setShowFrequencyUnitDropdown] = useState<number | null>(null);
   const [frequencyAnimationValue] = useState(new Animated.Value(0));
+  const [limitTotalDuration, setLimitTotalDuration] = useState(false);
+  const [durationLimits, setDurationLimits] = useState([{ id: 1, value: "60", unit: "Per day" }]);
+  const [showDurationUnitDropdown, setShowDurationUnitDropdown] = useState<number | null>(null);
+  const [durationAnimationValue] = useState(new Animated.Value(0));
 
   // TODO: get locations from API
   const locationOptions = ["Cal Video", "Google Meet"];
@@ -92,6 +96,7 @@ export default function EventTypeDetail() {
   ];
   const timeUnitOptions = ["Minutes", "Hours", "Days"];
   const frequencyUnitOptions = ["Per day", "Per Month", "Per year"];
+  const durationUnitOptions = ["Per day", "Per week", "Per month"];
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -162,6 +167,31 @@ export default function EventTypeDetail() {
   const updateFrequencyLimit = (id: number, field: "value" | "unit", newValue: string) => {
     setFrequencyLimits(
       frequencyLimits.map((limit) => (limit.id === id ? { ...limit, [field]: newValue } : limit))
+    );
+  };
+
+  const toggleTotalDuration = (value: boolean) => {
+    setLimitTotalDuration(value);
+    
+    Animated.timing(durationAnimationValue, {
+      toValue: value ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const addDurationLimit = () => {
+    const newId = Math.max(...durationLimits.map(limit => limit.id)) + 1;
+    setDurationLimits([...durationLimits, { id: newId, value: "60", unit: "Per day" }]);
+  };
+
+  const removeDurationLimit = (id: number) => {
+    setDurationLimits(durationLimits.filter(limit => limit.id !== id));
+  };
+
+  const updateDurationLimit = (id: number, field: "value" | "unit", newValue: string) => {
+    setDurationLimits(
+      durationLimits.map((limit) => (limit.id === id ? { ...limit, [field]: newValue } : limit))
     );
   };
 
@@ -783,6 +813,43 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Duration Unit Dropdown Modal */}
+          <Modal
+            visible={showDurationUnitDropdown !== null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDurationUnitDropdown(null)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowDurationUnitDropdown(null)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Duration unit</Text>
+                {durationUnitOptions.map((option) => {
+                  const selectedLimit = durationLimits.find(limit => limit.id === showDurationUnitDropdown);
+                  const isSelected = selectedLimit?.unit === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      onPress={() => {
+                        if (showDurationUnitDropdown) {
+                          updateDurationLimit(showDurationUnitDropdown, 'unit', option);
+                        }
+                        setShowDurationUnitDropdown(null);
+                      }}>
+                      <Text
+                        style={[
+                          styles.dropdownOptionText,
+                          isSelected && styles.selectedOptionText,
+                        ]}>
+                        {option}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {activeTab === "availability" && (
             <View style={styles.card}>
               <View style={styles.fieldGroup}>
@@ -948,6 +1015,79 @@ export default function EventTypeDetail() {
                         </View>
                       ))}
                       <TouchableOpacity style={styles.addLimitButton} onPress={addFrequencyLimit}>
+                        <Ionicons name="add" size={20} color="#000" />
+                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </Animated.View>
+              </View>
+
+              {/* Total Booking Duration Limit Card */}
+              <View style={styles.card}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLabelContainer}>
+                    <Text style={styles.switchLabel}>Limit total booking duration</Text>
+                    <Text style={styles.switchDescription}>
+                      Limit total amount of time that this event can be booked.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={limitTotalDuration}
+                    onValueChange={toggleTotalDuration}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.frequencyLimitsSection,
+                    {
+                      opacity: durationAnimationValue,
+                      maxHeight: durationAnimationValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 500],
+                      }),
+                    },
+                  ]}>
+                  {limitTotalDuration && (
+                    <>
+                      {durationLimits.map((limit, index) => (
+                        <View key={limit.id} style={styles.frequencyLimitRow}>
+                          <View style={styles.durationInputContainer}>
+                            <TextInput
+                              style={styles.numberInput}
+                              value={limit.value}
+                              onChangeText={(text) => {
+                                const numericValue = text.replace(/[^0-9]/g, "");
+                                const num = parseInt(numericValue) || 0;
+                                if (num >= 0) {
+                                  updateDurationLimit(limit.id, "value", numericValue || "0");
+                                }
+                              }}
+                              placeholder="60"
+                              placeholderTextColor="#8E8E93"
+                              keyboardType="numeric"
+                            />
+                            <Text style={styles.durationSuffix}>Minutes</Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.timeUnitDropdown}
+                            onPress={() => setShowDurationUnitDropdown(limit.id)}>
+                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                          </TouchableOpacity>
+                          {durationLimits.length > 1 && (
+                            <TouchableOpacity
+                              style={styles.deleteButton}
+                              onPress={() => removeDurationLimit(limit.id)}>
+                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+                      <TouchableOpacity style={styles.addLimitButton} onPress={addDurationLimit}>
                         <Ionicons name="add" size={20} color="#000" />
                         <Text style={styles.addLimitButtonText}>Add Limit</Text>
                       </TouchableOpacity>
