@@ -57,7 +57,7 @@ interface FormCardProps {
   fields: Record<string, { optionId: string; count: number; optionLabel: string }[]>;
 }
 
-function FormCard({ formName, fields }: FormCardProps) {
+function FormCard({ fields }: FormCardProps) {
   const { t } = useLocale();
   const fieldNames = Object.keys(fields);
   const [selectedField, setSelectedField] = useState(fieldNames[0]);
@@ -132,7 +132,8 @@ function FormCard({ formName, fields }: FormCardProps) {
 export function FailedBookingsByField() {
   const { t } = useLocale();
   const insightsRoutingParams = useInsightsRoutingParameters();
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
+  const { data, isLoading, isError } =
+    trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
 
   if (!data || Object.entries(data).length === 0) return null;
 
@@ -140,7 +141,7 @@ export function FailedBookingsByField() {
   const [formName, fields] = Object.entries(data)[0];
 
   return (
-    <ChartCard title={t("failed_bookings_by_field")}>
+    <ChartCard title={t("failed_bookings_by_field")} isPending={isLoading} isError={isError}>
       <FormCard key={formName} formName={formName} fields={fields} />
     </ChartCard>
   );

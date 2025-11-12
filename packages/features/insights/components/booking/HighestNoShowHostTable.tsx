@@ -12,7 +12,7 @@ export const HighestNoShowHostTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -23,12 +23,13 @@ export const HighestNoShowHostTable = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("most_no_show_host")}>
+    <ChartCard title={t("most_no_show_host")} isPending={isPending} isError={isError}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

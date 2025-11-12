@@ -12,7 +12,7 @@ export const MostCancelledBookingsTables = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -23,12 +23,13 @@ export const MostCancelledBookingsTables = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("most_cancelled_bookings")}>
+    <ChartCard title={t("most_cancelled_bookings")} isPending={isPending} isError={isError}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

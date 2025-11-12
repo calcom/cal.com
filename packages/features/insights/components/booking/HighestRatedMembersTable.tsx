@@ -12,7 +12,7 @@ export const HighestRatedMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -23,12 +23,13 @@ export const HighestRatedMembersTable = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("highest_rated")}>
+    <ChartCard title={t("highest_rated")} isPending={isPending} isError={isError}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

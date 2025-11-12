@@ -97,7 +97,7 @@ export const BookingsByHourChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingsByHourStats.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.bookingsByHourStats.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -108,12 +108,13 @@ export const BookingsByHourChart = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("bookings_by_hour")}>
+    <ChartCard title={t("bookings_by_hour")} isPending={isPending} isError={isError}>
       <BookingsByHourChartContent data={data} />
     </ChartCard>
   );

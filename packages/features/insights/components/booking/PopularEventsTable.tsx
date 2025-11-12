@@ -11,7 +11,7 @@ export const PopularEventsTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEvents.useQuery(insightsBookingParams, {
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.popularEvents.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {
@@ -19,12 +19,13 @@ export const PopularEventsTable = () => {
     },
   });
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("popular_events")}>
+    <ChartCard title={t("popular_events")} isPending={isPending} isError={isError}>
       <div>
         {data
           .filter((item) => item.eventTypeId)

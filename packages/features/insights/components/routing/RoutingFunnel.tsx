@@ -13,7 +13,7 @@ export function RoutingFunnel() {
   const { t } = useLocale();
   const insightsRoutingParams = useInsightsRoutingParameters();
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
+  const { data, isSuccess, isLoading, isError } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
     insightsRoutingParams,
     {
       staleTime: 30000,
@@ -29,7 +29,9 @@ export function RoutingFunnel() {
         title={t("routing_funnel")}
         legend={legend}
         enabledLegend={enabledLegend}
-        onSeriesToggle={toggleSeries}>
+        onSeriesToggle={toggleSeries}
+        isPending={isLoading}
+        isError={isError}>
         <RoutingFunnelSkeleton />
       </ChartCard>
     );
@@ -40,7 +42,9 @@ export function RoutingFunnel() {
       title={t("routing_funnel")}
       legend={legend}
       enabledLegend={enabledLegend}
-      onSeriesToggle={toggleSeries}>
+      onSeriesToggle={toggleSeries}
+      isPending={isLoading}
+      isError={isError}>
       <RoutingFunnelContent data={data} enabledLegend={enabledLegend} />
     </ChartCard>
   );

@@ -1,8 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -13,25 +10,23 @@ import { UserStatsTable } from "../UserStatsTable";
 
 export const MostCompletedTeamMembersTable = () => {
   const { t } = useLocale();
-  let insightsBookingParams = useInsightsBookingParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCompletedBookings.useQuery(
-    insightsBookingParams,
-    {
+  const { data, isSuccess, isPending, isError } =
+    trpc.viewer.insights.membersWithMostCompletedBookings.useQuery(insightsBookingParams, {
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
-    }
-  );
+    });
 
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("most_bookings_completed")}>
+    <ChartCard title={t("most_bookings_completed")} isPending={isPending} isError={isError}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

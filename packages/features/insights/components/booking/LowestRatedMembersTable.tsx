@@ -12,7 +12,7 @@ export const LowestRatedMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLowestRatings.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithLowestRatings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -23,12 +23,13 @@ export const LowestRatedMembersTable = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("lowest_rated")}>
+    <ChartCard title={t("lowest_rated")} isPending={isPending} isError={isError}>
       <UserStatsTable data={data} />
     </ChartCard>
   );

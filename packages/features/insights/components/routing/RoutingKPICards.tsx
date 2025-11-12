@@ -13,12 +13,15 @@ export const RoutingKPICards = () => {
   const { t } = useLocale();
   const insightsRoutingParameters = useInsightsRoutingParameters();
 
-  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(insightsRoutingParameters, {
-    staleTime: 30000,
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.routingFormsByStatus.useQuery(
+    insightsRoutingParameters,
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const categories: {
     title: string;
@@ -39,15 +42,13 @@ export const RoutingKPICards = () => {
   ];
 
   if (isPending) {
-    return <LoadingKPICards categories={categories} />;
+    return <LoadingKPICards categories={categories} isPending={isPending} isError={isError} />;
   }
 
-  if (!data) {
-    return null;
-  }
+  if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("stats")}>
+    <ChartCard title={t("stats")} isPending={isPending} isError={isError}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {categories.map((item) => (
           <div
@@ -66,11 +67,16 @@ export const RoutingKPICards = () => {
   );
 };
 
-const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
+const LoadingKPICards = (props: {
+  categories: { title: string; index: string }[];
+  isPending: boolean;
+  isError: boolean;
+}) => {
   const { t } = useLocale();
-  const { categories } = props;
+  const { categories, isPending, isError } = props;
+
   return (
-    <ChartCard title={t("stats")}>
+    <ChartCard title={t("stats")} isPending={isPending} isError={isError}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {categories.map((item) => (
           <div

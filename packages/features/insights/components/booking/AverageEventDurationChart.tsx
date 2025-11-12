@@ -69,7 +69,7 @@ export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.averageEventDuration.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -80,12 +80,13 @@ export const AverageEventDurationChart = () => {
     }
   );
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
   const isNoData = data.every((item) => item["Average"] === 0);
   return (
-    <ChartCard title={t("average_event_duration")}>
+    <ChartCard title={t("average_event_duration")} isPending={isPending} isError={isError}>
       {isNoData && (
         <div className="text-default flex h-60 text-center">
           <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>

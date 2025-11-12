@@ -73,6 +73,7 @@ export const EventTrendsChart = () => {
     data: eventTrends,
     isSuccess,
     isPending,
+    isError,
   } = trpc.viewer.insights.eventTrends.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
@@ -80,6 +81,7 @@ export const EventTrendsChart = () => {
       context: { skipBatch: true },
     },
   });
+
 
   if (isPending) return <LoadingInsight />;
 
@@ -90,7 +92,8 @@ export const EventTrendsChart = () => {
       title={t("event_trends")}
       legend={legend}
       enabledLegend={enabledLegend}
-      onSeriesToggle={toggleSeries}>
+      onSeriesToggle={toggleSeries}
+      isPending={isPending} isError={isError}>
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={eventTrends ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>

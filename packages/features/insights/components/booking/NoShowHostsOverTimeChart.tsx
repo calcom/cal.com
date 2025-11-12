@@ -58,6 +58,7 @@ export const NoShowHostsOverTimeChart = () => {
     data: noShowHostsData,
     isSuccess,
     isPending,
+    isError,
   } = trpc.viewer.insights.noShowHostsOverTime.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
@@ -66,12 +67,13 @@ export const NoShowHostsOverTimeChart = () => {
     },
   });
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess) return null;
 
   return (
-    <ChartCard title={t("no_show_hosts_over_time")} className="h-full">
+    <ChartCard title={t("no_show_hosts_over_time")} className="h-full" isPending={isPending} isError={isError}>
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={noShowHostsData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>

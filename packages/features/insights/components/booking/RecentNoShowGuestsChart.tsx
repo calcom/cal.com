@@ -16,7 +16,7 @@ export const RecentNoShowGuestsChart = () => {
   const insightsBookingParams = useInsightsBookingParameters();
   const timeZone = insightsBookingParams.timeZone;
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.recentNoShowGuests.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.recentNoShowGuests.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -26,6 +26,7 @@ export const RecentNoShowGuestsChart = () => {
       },
     }
   );
+
 
   if (isPending) return <LoadingInsight />;
 
@@ -40,7 +41,8 @@ export const RecentNoShowGuestsChart = () => {
     <ChartCard
       title={t("recent_no_show_guests")}
       titleTooltip={t("recent_no_show_guests_tooltip")}
-      className="h-full">
+      className="h-full"
+      isPending={isPending} isError={isError}>
       <div className="h-full">
         <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
           {data.map((item) => (

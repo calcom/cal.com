@@ -15,26 +15,54 @@ type LegendItem = {
 
 export type LegendSize = "sm" | "default";
 
+export type ChartLoadingState = "initial" | "loading" | "loaded" | "error";
+
 export function ChartCard({
   legend,
   legendSize,
   enabledLegend,
   onSeriesToggle,
+  loadingState,
+  isPending,
+  isError,
   ...panelCardProps
 }: PanelCardProps & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
   enabledLegend?: Array<LegendItem>;
   onSeriesToggle?: (label: string) => void;
+  loadingState?: ChartLoadingState;
+  isPending?: boolean;
+  isError?: boolean;
 }) {
   const legendComponent =
     legend && legend.length > 0 ? (
       <Legend items={legend} size={legendSize} enabledItems={enabledLegend} onItemToggle={onSeriesToggle} />
     ) : null;
 
+  // Generate a chart ID from the title for testing purposes
+  const chartId = useMemo(() => {
+    if (typeof panelCardProps.title === "string") {
+      return panelCardProps.title.toLowerCase().replace(/\s+/g, "-");
+    }
+    return undefined;
+  }, [panelCardProps.title]);
+
+  // Calculate loading state from isPending/isError if provided, otherwise use explicit loadingState
+  const computedLoadingState = useMemo(() => {
+    if (loadingState) return loadingState;
+    if (isPending !== undefined || isError !== undefined) {
+      return isPending ? "loading" : isError ? "error" : "loaded";
+    }
+    return "loaded";
+  }, [loadingState, isPending, isError]);
+
   return (
     <PanelCard
       {...panelCardProps}
+      data-testid="chart-card"
+      data-chart-id={chartId}
+      data-loading-state={computedLoadingState}
       headerContent={
         panelCardProps.headerContent ? (
           <div className="flex items-center gap-2">

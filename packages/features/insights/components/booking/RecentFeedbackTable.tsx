@@ -12,7 +12,7 @@ export const RecentFeedbackTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.recentRatings.useQuery(insightsBookingParams, {
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.recentRatings.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {
@@ -20,12 +20,13 @@ export const RecentFeedbackTable = () => {
     },
   });
 
+
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("recent_ratings")}>
+    <ChartCard title={t("recent_ratings")} isPending={isPending} isError={isError}>
       <RecentFeedbackTableContent data={data} />
     </ChartCard>
   );
