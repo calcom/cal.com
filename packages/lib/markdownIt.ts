@@ -136,7 +136,7 @@ export function unescapeMarkdown(markdown: string): string {
   const hasEscapedBlockquotes = /^\\>\s/m.test(markdown);
   const escapedMarkdownChars = (markdown.match(/\\([*_`#[\]()~>-])/g) || []).length;
   // Only treat as legacy if we see clear Turndown patterns or 2+ escaped chars
-  const isLikelyLegacyData = hasEscapedHeaders || hasEscapedBlockquotes || escapedMarkdownChars >= 2;
+  const isLikelyLegacyData = hasEscapedHeaders || hasEscapedBlockquotes || escapedMarkdownChars >= 3;
 
   let result = markdown;
 
