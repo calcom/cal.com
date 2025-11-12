@@ -585,7 +585,21 @@ const WebhookForm = (props: {
         <Button
           type="submit"
           data-testid="create_webhook"
-          disabled={!formMethods.formState.isDirty && !changeSecret}
+          disabled={(() => {
+            const isCreating = !props?.webhook?.id;
+            const triggers = formMethods.watch("eventTriggers") || [];
+            const hasUrl = !!formMethods.watch("subscriberUrl");
+            const needsTime = triggers.some(
+              (t) =>
+                t === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                t === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+            );
+            const hasTime = !!formMethods.watch("time") && !!formMethods.watch("timeUnit");
+            const canSubmit = isCreating
+              ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
+              : formMethods.formState.isDirty || changeSecret;
+            return !canSubmit;
+          })()}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>
