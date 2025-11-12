@@ -215,7 +215,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: ["^/(?!(_next/|_next$|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$)).*"],
+  matcher: ["^/(?!(_next/|_next$|static/|public/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$)).*"],
 };
 
 export default collectEvents({

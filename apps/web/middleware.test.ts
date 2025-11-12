@@ -508,16 +508,20 @@ describe("Middleware Matcher - Comprehensive Coverage", () => {
     { path: "/apps/routing_forms/form", expected: true, reason: "App page under /apps" },
     { path: "/embed?ui.color-scheme=dark", expected: true, reason: "Embed query param" },
 
-    // should be ignored
+    // should be ignored (internal / static / public)
     { path: "/_next/static/chunks/app.js", expected: false, reason: "Internal static asset" },
     { path: "/_next/image?url=%2Flogo.png&w=256&q=75", expected: false, reason: "Internal image handler" },
     { path: "/_next/data/build-id/page.json", expected: false, reason: "Next.js data route" },
     { path: "/favicon.ico", expected: false, reason: "Favicon asset" },
     { path: "/robots.txt", expected: false, reason: "Robots file" },
     { path: "/sitemap.xml", expected: false, reason: "Sitemap file" },
-    { path: "/manifest.json", expected: true, reason: "Manifest is a public page, not ignored" },
+    { path: "/public/images/logo.png", expected: false, reason: "Public folder asset" },
+    { path: "/public/fonts/inter.woff2", expected: false, reason: "Public folder font" },
+    { path: "/static/js/main.js", expected: false, reason: "Static folder JavaScript" },
+    { path: "/static/css/app.css", expected: false, reason: "Static folder stylesheet" },
 
     // edge cases
+    { path: "/manifest.json", expected: true, reason: "Manifest is a public page, not ignored" },
     { path: "/_nextsomething", expected: true, reason: "Looks like _next but not reserved" },
     { path: "/nextconfig", expected: true, reason: "Normal route with 'next' in name" },
     { path: "/_NEXT/image", expected: true, reason: "Case-sensitive test (should match)" },
