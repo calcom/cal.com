@@ -197,7 +197,6 @@ function BookingDetailsSheetInner({
                 location={booking.location}
                 metadata={booking.metadata}
                 bookingStatus={booking.status}
-                t={t}
               />
 
               <BookingActionsDropdown

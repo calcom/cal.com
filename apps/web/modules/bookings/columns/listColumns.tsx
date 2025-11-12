@@ -207,7 +207,6 @@ export function buildListDisplayColumns({ t, user, pendingActionHandlers }: Buil
                 location={booking.location}
                 metadata={booking.metadata}
                 bookingStatus={booking.status}
-                t={t}
               />
             )}
             <BookingActionsStoreProvider>

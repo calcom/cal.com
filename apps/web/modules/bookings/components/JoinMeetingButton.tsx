@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -10,7 +11,6 @@ interface JoinMeetingButtonProps {
   location: string | null;
   metadata?: unknown;
   bookingStatus: BookingStatus;
-  t: (key: string, options?: Record<string, unknown>) => string;
   size?: "sm" | "base" | "lg";
   color?: "primary" | "secondary" | "minimal" | "destructive";
   className?: string;
@@ -21,12 +21,12 @@ export function JoinMeetingButton({
   location,
   metadata,
   bookingStatus,
-  t,
   size = "base",
   color = "secondary",
   className,
   onClick,
 }: JoinMeetingButtonProps) {
+  const { t } = useLocale();
   const { isJoinable, locationToDisplay, provider } = useJoinableLocation({
     location,
     metadata,
