@@ -82,6 +82,27 @@ async function handler(req: NextRequest) {
       token_type: "Refresh Token",
       clientId: client_id,
     };
+  const payloadAuthToken: OAuthTokenPayload = {
+    userId: accessCode.userId,
+    teamId: accessCode.teamId,
+    scope: accessCode.scopes,
+    token_type: "Access Token",
+    clientId: client_id,
+  };
+
+  const payloadRefreshToken: OAuthTokenPayload = {
+    userId: accessCode.userId,
+    teamId: accessCode.teamId,
+    scope: accessCode.scopes,
+    token_type: "Refresh Token",
+    clientId: client_id,
+  };
+
+  const accessTokenExpiresIn = 1800; // 30 minutes
+
+  const access_token = jwt.sign(payloadAuthToken, secretKey, {
+    expiresIn: accessTokenExpiresIn,
+  });
 
     const access_token = jwt.sign(payloadAuthToken, secretKey, {
       expiresIn: 1800, // 30 min
@@ -133,6 +154,18 @@ async function handler(req: NextRequest) {
   } else {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
+  // @see https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
+  return NextResponse.json(
+    { access_token, token_type: "bearer", refresh_token, expires_in: accessTokenExpiresIn },
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Cache-Control": "no-store",
+        Pragma: "no-cache",
+      },
+    }
+  );
 }
 
 export const POST = defaultResponderForAppDir(handler);

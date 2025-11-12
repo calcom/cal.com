@@ -26,7 +26,7 @@ import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/li
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -100,7 +100,14 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const {
+    eventType,
+    bookingInfo,
+    previousBooking,
+    requiresLoginToUpdate,
+    rescheduledToUid,
+    canViewHiddenData,
+  } = props;
 
   const {
     allRemainingBookings,
@@ -139,6 +146,7 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
+  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
 
   const attendees = bookingInfo?.attendees;
 
@@ -296,6 +304,12 @@ export default function Success(props: PageProps) {
     if (isCancelled) {
       return "";
     }
+    if (isAwaitingPayment && !isCancelled) {
+      return t("complete_your_booking_subject", {
+        title: eventName,
+        date: formatToLocalizedDate(date, undefined, "long", tz),
+      });
+    }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
@@ -374,12 +388,17 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
+    if (isAwaitingPayment && !isCancelled) {
+      return props.paymentStatus?.paymentOption === "HOLD"
+        ? t("meeting_awaiting_payment_method")
+        : t("meeting_awaiting_payment");
+    }
+
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
@@ -478,14 +497,18 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                          !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
+                            ? "bg-success"
+                            : "",
+                          !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
+                            ? "bg-subtle"
+                            : "",
                           isCancelled ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
+                        {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && isReschedulable && (
+                        {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
                         {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
@@ -557,14 +580,16 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {isCancelled && bookingInfo?.cancelledBy && (
-                          <>
-                            <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
-                            </div>
-                          </>
-                        )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(bookingInfo.eventType?.hideOrganizerEmail && !isHost) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
@@ -698,7 +723,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewHiddenData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
@@ -751,15 +776,9 @@ export default function Success(props: PageProps) {
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
 
-                          const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
-                          if (
-                            isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                            field.name !== TITLE_FIELD
-                          )
+                          if (!shouldShowFieldInCustomResponses(field.name)) {
                             return null;
+                          }
 
                           const label = field.label || t(field.defaultLabel);
 
