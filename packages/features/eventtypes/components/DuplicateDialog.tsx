@@ -92,6 +92,13 @@ const DuplicateDialog = ({ onInvalidate }: { onInvalidate?: () => void | Promise
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+        return;
+      }
+
+      if (err.data?.code === "CONFLICT") {
+        const message = t("duplicate_event_slug_conflict");
+        showToast(message, "error");
+        return;
       }
 
       if (err.data?.code === "INTERNAL_SERVER_ERROR" || err.data?.code === "BAD_REQUEST") {
