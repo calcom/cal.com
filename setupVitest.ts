@@ -2,6 +2,7 @@ import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
 import { vi, expect } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
+
 import type { CalendarService } from "@calcom/types/Calendar";
 
 global.ResizeObserver = ResizeObserver;
@@ -61,9 +62,9 @@ class MockPaymentService {
   constructor(credentials?: any) {
     this.credentials = credentials;
   }
-  
+
   private credentials: any;
-  
+
   async create(
     payment: any,
     bookingId: number,
@@ -78,7 +79,7 @@ class MockPaymentService {
   ) {
     const { default: prismaMock } = await import("./tests/libs/__mocks__/prisma");
     const externalId = "mock_payment_external_id";
-    
+
     const paymentCreateData = {
       uid: MOCK_PAYMENT_UID,
       appId: null,
@@ -96,7 +97,7 @@ class MockPaymentService {
     const createdPayment = await prismaMock.payment.create({
       data: paymentCreateData,
     });
-    
+
     return createdPayment;
   }
   async collectCard() {
@@ -112,7 +113,7 @@ class MockPaymentService {
     return { success: true };
   }
   async afterPayment(event: any, booking: any, paymentData: any) {
-    const { sendAwaitingPaymentEmailAndSMS } = await import("@calcom/emails");
+    const { sendAwaitingPaymentEmailAndSMS } = await import("@calcom/emails/email-manager");
     await sendAwaitingPaymentEmailAndSMS({
       ...event,
       paymentInfo: {
