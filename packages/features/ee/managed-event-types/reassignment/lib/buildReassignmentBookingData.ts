@@ -42,18 +42,14 @@ interface BuildReassignmentBookingDataParams {
     team?: { name: string } | null;
   };
   newUser: Pick<User, "id" | "username" | "email" | "timeZone" | "locale" | "name">;
-  reassignReason?: string;
   reassignedById: number;
-  originalUserId: number;
 }
 
 export async function buildReassignmentBookingData({
   originalBooking,
   targetEventType,
   newUser,
-  reassignReason,
   reassignedById,
-  originalUserId,
 }: BuildReassignmentBookingDataParams) {
 
   const bookerName = originalBooking.attendees[0]?.name || "Nameless";
@@ -113,19 +109,10 @@ export async function buildReassignmentBookingData({
     payment: originalBooking.payment.length > 0 && originalBooking.payment[0]?.id
       ? { connect: { id: originalBooking.payment[0].id } }
       : undefined,
-    metadata: {
-      ...(typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
+    metadata:
+      typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
         ? originalBooking.metadata
-        : {}),
-      reassignment: {
-        fromBookingId: originalBooking.id,
-        fromUserId: originalUserId,
-        fromEventTypeId: originalBooking.eventTypeId,
-        reason: reassignReason,
-        reassignedAt: new Date().toISOString(),
-        reassignedById,
-      },
-    },
+        : undefined,
     idempotencyKey: IdempotencyKeyService.generate({
       startTime: originalBooking.startTime,
       endTime: originalBooking.endTime,
@@ -139,18 +126,10 @@ export async function buildReassignmentBookingData({
     data: {
       status: BookingStatus.CANCELLED,
       cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
-      metadata: {
-        ...(typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
+      metadata:
+        typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
           ? originalBooking.metadata
-          : {}),
-        reassignment: {
-          reassignedToUserId: newUser.id,
-          reassignedToEventTypeId: targetEventType.id,
-          reason: reassignReason,
-          reassignedAt: new Date().toISOString(),
-          reassignedById,
-        },
-      },
+          : undefined,
     },
     select: {
       id: true,

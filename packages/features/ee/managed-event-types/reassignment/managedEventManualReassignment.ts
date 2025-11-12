@@ -121,9 +121,7 @@ export async function managedEventManualReassignment({
       team: targetEventTypeDetails.team,
     },
     newUser,
-    reassignReason,
     reassignedById,
-    originalUserId: originalUser.id,
   });
 
   // Execute the reassignment in a transaction (cancel + create)
@@ -146,29 +144,6 @@ export async function managedEventManualReassignment({
       },
     });
 
-    const existingReassignment =
-      typeof cancelled.metadata === "object" &&
-      cancelled.metadata &&
-      "reassignment" in cancelled.metadata &&
-      typeof cancelled.metadata.reassignment === "object" &&
-      cancelled.metadata.reassignment !== null
-        ? cancelled.metadata.reassignment
-        : {};
-
-    await tx.booking.update({
-      where: { id: cancelled.id },
-      data: {
-        metadata: {
-          ...(typeof cancelled.metadata === "object" && cancelled.metadata !== null
-            ? cancelled.metadata
-            : {}),
-          reassignment: {
-            ...existingReassignment,
-            reassignedToBookingId: created.id,
-          },
-        },
-      },
-    });
 
     return { newBooking: created, cancelledBooking: cancelled };
   });
@@ -373,7 +348,10 @@ export async function managedEventManualReassignment({
         where: { id: newBooking.id },
         data: {
           location: bookingLocation,
-          metadata: bookingMetadataUpdate.videoCallUrl ? { videoCallUrl: bookingMetadataUpdate.videoCallUrl } : {},
+          metadata: {
+            ...(typeof newBooking.metadata === "object" && newBooking.metadata ? newBooking.metadata : {}),
+            ...bookingMetadataUpdate,
+          },
           referencesToCreate: referencesToCreateForDb,
           responses,
           iCalSequence: (newBooking.iCalSequence || 0) + 1,
