@@ -1,7 +1,7 @@
 import { lookup } from "dns";
 import { type TFunction } from "i18next";
 
-import { sendAdminOrganizationNotification } from "@calcom/emails";
+import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
@@ -191,14 +191,9 @@ export async function assertCanCreateOrg({
     "email-verification"
   );
 
-  const verifiedUser =
-    orgOwner.completedOnboarding && (emailVerificationEnabled ? !!orgOwner.emailVerified : true);
+  const verifiedUser = emailVerificationEnabled ? !!orgOwner.emailVerified : true;
   if (!verifiedUser) {
-    log.warn(
-      "you_need_to_complete_user_onboarding_before_creating_an_organization",
-      safeStringify({ userId: orgOwner.id })
-    );
-    throw new OrgCreationError("you_need_to_complete_user_onboarding_before_creating_an_organization");
+    throw new OrgCreationError("you_need_to_verify_your_email_before_creating_an_organization");
   }
 
   if (isNotACompanyEmail(orgOwner.email) && !isPlatform) {

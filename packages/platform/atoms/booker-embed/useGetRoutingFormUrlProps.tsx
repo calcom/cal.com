@@ -71,9 +71,6 @@ export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?:
         ...(routingSearchParams.get("cal.isBookingDryRun") && {
           ["cal.isBookingDryRun"]: routingSearchParams.get("cal.isBookingDryRun") ?? undefined,
         }),
-        ...(routingSearchParams.get("cal.cache") && {
-          ["cal.cache"]: routingSearchParams.get("cal.cache") ?? undefined,
-        }),
         ...(routingSearchParams.get("cal.routingFormResponseId") && {
           ["cal.routingFormResponseId"]: routingSearchParams.get("cal.routingFormResponseId") ?? undefined,
         }),
