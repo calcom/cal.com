@@ -23,13 +23,9 @@ export const LowestRatedMembersTable = () => {
   );
 
 
-  if (isPending) return <ChartCard title={t("lowest_rated")} isPending={isPending} isError={isError} />;
-
-  if (!isSuccess || !data) return null;
-
   return (
     <ChartCard title={t("lowest_rated")} isPending={isPending} isError={isError}>
-      <UserStatsTable data={data} />
+      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };

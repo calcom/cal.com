@@ -20,13 +20,9 @@ export const RecentFeedbackTable = () => {
   });
 
 
-  if (isPending) return <ChartCard title={t("recent_ratings")} isPending={isPending} isError={isError} />;
-
-  if (!isSuccess || !data) return null;
-
   return (
     <ChartCard title={t("recent_ratings")} isPending={isPending} isError={isError}>
-      <RecentFeedbackTableContent data={data} />
+      {!isPending && isSuccess && data ? <RecentFeedbackTableContent data={data} /> : null}
     </ChartCard>
   );
 };

@@ -20,13 +20,9 @@ export const LeastCompletedTeamMembersTable = () => {
       },
     });
 
-  if (isPending) return <ChartCard title={t("least_bookings_completed")} isPending={isPending} isError={isError} />;
-
-  if (!isSuccess || !data) return null;
-
   return (
     <ChartCard title={t("least_bookings_completed")} isPending={isPending} isError={isError}>
-      <UserStatsTable data={data} />
+      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };
