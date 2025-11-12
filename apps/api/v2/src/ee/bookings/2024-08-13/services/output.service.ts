@@ -162,13 +162,13 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
-  private async getRescheduledToUid(databaseBooking: DatabaseBooking): Promise<string | undefined> {
+  private async getRescheduledToUid(databaseBooking: DatabaseBooking) {
     if (!databaseBooking.rescheduled) return undefined;
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(databaseBooking.uid);
     return rescheduledTo?.uid;
   }
 
-  private async getRescheduledByEmail(databaseBooking: DatabaseBooking): Promise<string | null | undefined> {
+  private async getRescheduledByEmail(databaseBooking: DatabaseBooking) {
     if (databaseBooking.rescheduled) {
       return databaseBooking.rescheduledBy;
     }
