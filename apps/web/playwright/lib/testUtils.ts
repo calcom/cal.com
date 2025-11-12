@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
+ 
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -212,7 +213,7 @@ export async function setupManagedEvent({
     addManagedEventToTeamMates: true,
     managedEventUnlockedFields: unlockedFields,
   });
-
+   
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
@@ -370,7 +371,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
       },
     ],
   });
-
+   
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
   return { user, eventType };
 }
@@ -424,8 +425,7 @@ export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: strin
     page.on("requestfailed", onRequestFailed);
     try {
       await page.goto(url);
-      // eslint-disable-next-line no-empty
-    } catch {}
+    } catch (e) {}
     page.off("requestfailed", onRequestFailed);
     resolve({ success: true, url: page.url() });
   });
@@ -441,7 +441,6 @@ export async function doOnOrgDomain(
   }: {
     page: Page;
     goToUrlWithErrorHandling: (url: string) => ReturnType<typeof goToUrlWithErrorHandling>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }) => Promise<any>
 ) {
   if (!orgSlug) {
@@ -595,14 +594,4 @@ export async function setupOrgMember(users: CreateUsersFixture) {
   await orgMember.apiLogin();
 
   return { orgMember, org, team, teamEvent, userEvent };
-}
-
-/**
- * Opens the booking actions dropdown for a specific booking item on /bookings/[status]
- *
- * @param page - Playwright Page object
- * @param index - Index of the booking actions dropdown to click (0-based)
- */
-export function openBookingActionsDropdown(page: Page, index = 0) {
-  return page.locator('[data-testid="booking-actions-dropdown"]').nth(index).click();
 }

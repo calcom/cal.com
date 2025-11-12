@@ -8,7 +8,7 @@ import { addFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
-import { openBookingActionsDropdown, setupManagedEvent } from "./lib/testUtils";
+import { setupManagedEvent } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -67,7 +67,7 @@ test.describe("Bookings", () => {
       ).toBeVisible();
     });
 
-    test("Cannot choose date range presets", async ({ page, users }) => {
+    test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
@@ -91,7 +91,7 @@ test.describe("Bookings", () => {
   test.describe("Past bookings", () => {
     test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
-      await users.create();
+      const secondUser = await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -112,6 +112,7 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
       await expect(page.locator('[data-testid="unmark-no-show"]')).toBeHidden();
@@ -141,7 +142,7 @@ test.describe("Bookings", () => {
     });
     test("Mark 3rd attendee as no-show", async ({ page, users, bookings }) => {
       const firstUser = await users.create();
-      await users.create();
+      const secondUser = await users.create();
 
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
@@ -157,12 +158,13 @@ test.describe("Bookings", () => {
           { name: "Fourth", email: "fourth@cal.com", timeZone: "Europe/Berlin" },
         ],
       });
-      await bookingWhereFirstUserIsOrganizerFixture.self();
+      const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
 
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const moreGuests = firstPastBooking.locator('[data-testid="more-guests"]');
       await moreGuests.click();
       const firstGuestInMore = page.getByRole("menuitemcheckbox").nth(0);
@@ -197,10 +199,11 @@ test.describe("Bookings", () => {
       });
       const booking = await bookingFixture.self();
       await adminUser.apiLogin();
-      const { webhookReceiver } = await webhooks.createTeamReceiver();
+      const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
       await page.goto(`/bookings/past`);
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
@@ -229,7 +232,7 @@ test.describe("Bookings", () => {
       webhookReceiver.close();
     });
 
-    test("Can choose date range presets", async ({ page, users }) => {
+    test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       await firstUser.apiLogin();
       const bookingsGetResponse = page.waitForResponse((response) =>
@@ -356,8 +359,8 @@ test.describe("Bookings", () => {
       .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
     await bookingsGetResponse2;
-    // Open the booking actions dropdown
-    await openBookingActionsDropdown(page, 0);
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
     // Check that the cancel option is visible in the dropdown
     await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
 
@@ -411,7 +414,7 @@ test.describe("Bookings", () => {
 
     const { team } = await owner.getFirstTeamMembership();
     const eventType = await owner.getFirstTeamEvent(team.id);
-    const { id: eventTypeId } = eventType;
+    const { id: eventTypeId, title: teamEventTitle, slug: teamEventSlug } = eventType;
 
     // remove myself from host of this event type
     await prisma.host.delete({
