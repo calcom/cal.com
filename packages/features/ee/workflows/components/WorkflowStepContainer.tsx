@@ -6,12 +6,12 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
-import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -89,6 +89,7 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
@@ -101,6 +102,7 @@ type WorkflowStepProps = {
     creditsTeamId?: number;
     isOrganization: boolean;
     isCalAi: boolean;
+    needsTeamsUpgrade?: boolean;
   }[];
   updateTemplate: boolean;
   setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
@@ -371,7 +373,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     handleCreateAgent,
   ]);
 
-  const triggerOptions = getWorkflowTriggerOptions(t);
+  const triggerOptions = getWorkflowTriggerOptions(t, hasActiveTeamPlan);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
   const steps = useWatch({
@@ -379,12 +381,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  const hasAiAction = hasCalAIAction(steps);
-  const hasSMSAction = steps.some((s) => isSMSAction(s.action));
-  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
 
-  const disallowFormTriggers = hasAiAction || hasSMSAction || hasEmailToHostAction || hasWhatsappAction;
+  const disallowFormTriggers = hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
@@ -532,11 +532,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   isDisabled={props.readOnly}
                   onChange={(val) => {
                     if (val) {
-                      const currentTrigger = form.getValues("trigger");
+                      const triggerValue = val.value as WorkflowTriggerEvents;
+                      const currentTrigger = form.getValues("trigger") as WorkflowTriggerEvents;
                       const isCurrentFormTrigger = isFormTrigger(currentTrigger);
-                      const isNewFormTrigger = isFormTrigger(val.value);
+                      const isNewFormTrigger = isFormTrigger(triggerValue);
 
-                      form.setValue("trigger", val.value);
+                      form.setValue("trigger", triggerValue);
 
                       // Reset activeOn when switching between form and non-form triggers
                       if (isCurrentFormTrigger !== isNewFormTrigger) {
@@ -547,12 +548,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.setValue("selectAll", false);
                       }
 
-                      const newTimeSectionText = getTimeSectionText(val.value, t);
+                      const newTimeSectionText = getTimeSectionText(triggerValue, t);
                       if (newTimeSectionText) {
                         setTimeSectionText(newTimeSectionText);
                         if (
-                          val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                          val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                          triggerValue === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                          triggerValue === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
                           form.setValue("time", 5);
                           form.setValue("timeUnit", TimeUnit.MINUTE);
@@ -565,7 +566,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.unregister("time");
                         form.unregister("timeUnit");
                       }
-                      if (isFormTrigger(val.value)) {
+                      if (isFormTrigger(triggerValue)) {
                         const steps = form.getValues("steps");
                         if (steps?.length) {
                           const updatedSteps = steps.map((step) =>
@@ -585,7 +586,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     }
                   }}
                   defaultValue={selectedTrigger}
-                  options={filteredTriggerOptions}
+                  options={filteredTriggerOptions.map((option) => ({
+                    label: option.label,
+                    value: option.value,
+                    needsTeamsUpgrade: option.needsTeamsUpgrade,
+                  }))}
+                  isOptionDisabled={(option: { label: string; value: string; needsTeamsUpgrade?: boolean }) =>
+                    !!option.needsTeamsUpgrade
+                  }
                 />
               );
             }}
@@ -1579,7 +1587,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
-            eventTypeOptions={props.allOptions}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1590,6 +1598,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 
@@ -1601,6 +1611,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10)) || []}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 

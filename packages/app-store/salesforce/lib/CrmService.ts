@@ -553,8 +553,11 @@ export default class SalesforceCRMService implements CRM {
     setFallbackToContact?: boolean;
     conn: Connection;
   }) {
+    // Escape SOSL reserved characters: ? & | ! { } [ ] ( ) ^ ~ * : \ " ' + -
+    // eslint-disable-next-line no-useless-escape
+    const escapedEmail = email.replace(/([?&|!{}[\]()^~*:\\"'+\-])/g, "\\$1");
     const searchResult = await conn.search(
-      `FIND {${email}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
+      `FIND {${escapedEmail}} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)`
     );
 
     if (searchResult.searchRecords.length === 0) {
@@ -741,6 +744,7 @@ export default class SalesforceCRMService implements CRM {
         booking: {
           uid: bookingUid,
         },
+        deleted: null,
       },
     });
 

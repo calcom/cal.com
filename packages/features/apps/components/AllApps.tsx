@@ -4,8 +4,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
