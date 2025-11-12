@@ -6,7 +6,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamService } from "./teamService";
 
-vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
+// Mock the DI container
+vi.mock("@calcom/ee/billing/di/containers/Billing", () => {
   const mockUpdateQuantity = vi.fn().mockResolvedValue(undefined);
   const mockTeamBillingService = {
     updateQuantity: mockUpdateQuantity,
@@ -14,15 +15,10 @@ vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
 
   const mockFactory = {
     findAndInitMany: vi.fn().mockResolvedValue([mockTeamBillingService]),
-    findAndInit: vi.fn().mockResolvedValue(mockTeamBillingService),
-    init: vi.fn().mockReturnValue(mockTeamBillingService),
-    initMany: vi.fn().mockReturnValue([mockTeamBillingService]),
   };
 
   return {
-    getTeamBillingServiceFactory: vi.fn().mockReturnValue(mockFactory),
-    getBillingProviderService: vi.fn(),
-    getTeamBillingDataRepository: vi.fn(),
+    getTeamBillingServiceFactory: vi.fn(() => mockFactory),
   };
 });
 
@@ -959,16 +955,15 @@ describe("TeamService.removeMembers Integration Tests", () => {
   });
 
   describe("Common Behaviors and Edge Cases", () => {
-    it("should call TeamBilling.updateQuantity for each team", async () => {
-      const { getTeamBillingServiceFactory } = await import(
-        "@calcom/features/ee/billing/di/containers/Billing"
-      );
+    it("should call TeamBillingService.updateQuantity for each team", async () => {
+      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
 
       await TeamService.removeMembers({
         teamIds: [regularTeamTestData.team.id],
         userIds: [orgTestData.members[0].id, orgTestData.members[1].id],
       });
 
+      expect(getTeamBillingServiceFactory).toHaveBeenCalled();
       const mockFactory = getTeamBillingServiceFactory();
       expect(mockFactory.findAndInitMany).toHaveBeenCalledWith([regularTeamTestData.team.id]);
       const mockInstances = await mockFactory.findAndInitMany([regularTeamTestData.team.id]);
