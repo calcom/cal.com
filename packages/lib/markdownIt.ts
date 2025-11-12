@@ -120,7 +120,7 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
  * Unescapes markdown characters that may have been escaped by turndown.
  * This handles legacy data where turndown escaped markdown syntax.
  * It also normalizes list markers to ensure they have proper spacing.
- * 
+ *
  * Note: Only unescapes if input appears to be legacy data (has multiple escaped
  * markdown characters), to avoid corrupting fresh input with intentional escapes.
  */
@@ -131,12 +131,12 @@ export function unescapeMarkdown(markdown: string): string {
   // Look for patterns that suggest Turndown escaping:
   // - Escaped headers at start of line: \#header
   // - Escaped blockquotes: \> quote
-  // - Multiple escaped formatting chars in a row
+  // - Multiple escaped formatting chars (2+ to catch cases like \*Important\*)
   const hasEscapedHeaders = /^\\#+\s/m.test(markdown);
   const hasEscapedBlockquotes = /^\\>\s/m.test(markdown);
   const escapedMarkdownChars = (markdown.match(/\\([*_`#[\]()~>-])/g) || []).length;
-  // Only treat as legacy if we see clear Turndown patterns or many escaped chars
-  const isLikelyLegacyData = hasEscapedHeaders || hasEscapedBlockquotes || escapedMarkdownChars >= 3;
+  // Only treat as legacy if we see clear Turndown patterns or 2+ escaped chars
+  const isLikelyLegacyData = hasEscapedHeaders || hasEscapedBlockquotes || escapedMarkdownChars >= 2;
 
   let result = markdown;
 
