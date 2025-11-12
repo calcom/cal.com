@@ -265,10 +265,15 @@ export class CalComAPIService {
   // Delete an event type
   static async deleteEventType(eventTypeId: number): Promise<void> {
     try {
-      await this.makeRequest(`/event-types/${eventTypeId}`, {
+      console.log(`Deleting event type with ID: ${eventTypeId}`);
+      
+      const response = await this.makeRequest(`/event-types/${eventTypeId}`, {
         method: 'DELETE',
       }, '2024-06-14');
+      
+      console.log("Delete response:", response);
     } catch (error) {
+      console.error("Delete API error:", error);
       throw error;
     }
   }

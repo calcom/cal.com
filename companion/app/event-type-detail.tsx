@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Modal, Linking, Alert, Clipboard } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule } from "../services/calcom";
@@ -214,14 +214,18 @@ export default function EventTypeDetail() {
 
   const handlePreview = async () => {
     try {
-      // Build the event type link and open it
-      const eventTypeSlug = eventSlug || "preview"; // Use current slug or fallback
+      const eventTypeSlug = eventSlug || "preview";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      // You can open this link externally or show it in a webview
-      console.log("Preview link:", link);
-      // For now, we'll just log it. In a real app, you'd open it with Linking.openURL
+      
+      const supported = await Linking.canOpenURL(link);
+      if (supported) {
+        await Linking.openURL(link);
+      } else {
+        Alert.alert("Error", "Cannot open this URL on your device.");
+      }
     } catch (error) {
       console.error("Failed to generate preview link:", error);
+      Alert.alert("Error", "Failed to generate preview link. Please try again.");
     }
   };
 
@@ -229,18 +233,50 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "event-link";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      // Copy to clipboard (you'd use Clipboard.setString in a real app)
-      console.log("Link copied:", link);
-      // Show success message
+      
+      await Clipboard.setStringAsync(link);
+      Alert.alert("Success", "Link copied to clipboard");
     } catch (error) {
       console.error("Failed to copy link:", error);
+      Alert.alert("Error", "Failed to copy link. Please try again.");
     }
   };
 
   const handleDelete = () => {
-    // Show confirmation dialog
-    console.log("Delete event type:", id);
-    // In a real app, you'd show an alert and call the delete API
+    Alert.alert("Delete Event Type", `Are you sure you want to delete "${eventTitle}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("Attempting to delete event type with ID:", id);
+            const eventTypeId = parseInt(id);
+            
+            if (isNaN(eventTypeId)) {
+              throw new Error("Invalid event type ID");
+            }
+            
+            await CalComAPIService.deleteEventType(eventTypeId);
+            console.log("Event type deleted successfully");
+            
+            Alert.alert("Success", "Event type deleted successfully", [
+              {
+                text: "OK",
+                onPress: () => {
+                  console.log("Navigating back after successful deletion");
+                  router.back();
+                },
+              },
+            ]);
+          } catch (error) {
+            console.error("Failed to delete event type:", error);
+            const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+            Alert.alert("Error", `Failed to delete event type: ${errorMessage}`);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -672,9 +708,9 @@ export default function EventTypeDetail() {
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView style={styles.glassDeleteButton} glassEffectStyle="clear">
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                  <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+              <GlassView style={styles.glassButton} glassEffectStyle="clear">
+                <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
               </GlassView>
             </View>
@@ -1008,6 +1044,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingTop: 16,
     paddingHorizontal: 20,
+    backgroundColor: "#f8f9fa",
     borderTopWidth: 0.5,
     borderTopColor: "#E5E5EA",
   },
@@ -1036,23 +1073,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
-  glassDeleteButton: {
-    borderRadius: 999,
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 59, 48, 0.2)",
-  },
   actionButton: {
     width: 44,
     height: 44,
     alignItems: "center",
     justifyContent: "center",
-  },
-  deleteButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FF3B30",
   },
   contentContainer: {
     padding: 20,
