@@ -740,7 +740,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {!isCancelled && !isPending && !isRejected && (
+                    {!isCancelled && !isPending && !isRejected && !isBookingInPast && (
                       <Button
                         color="secondary"
                         onClick={() => setIsOpenCancellationDialog(true)}

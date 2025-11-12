@@ -1,8 +1,7 @@
 "use client";
 
-import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
-import { Button } from "@calid/features/ui/components/button";
-import { BlankCard } from "@calid/features/ui/components/card";
+import type { WorkflowTemplate } from "@calid/features/modules/workflows/config/workflow_templates";
+import { templates } from "@calid/features/modules/workflows/config/workflow_templates";
 import React, { useState, useMemo, useCallback } from "react";
 
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -12,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import type { CalIdWorkflowsProps } from "../config/types";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
+import { TemplatesContent } from "./workflow_builder_templates";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 import { WorkflowLoading } from "./workflow_loading_state";
 import { TeamsFilter } from "./workflow_teams_filter";
@@ -25,7 +25,6 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   // Local state for UI interactions only
   const [workflowDeleteDialogOpen, setWorkflowDeleteDialogOpen] = useState(false);
   const [workflowIdToDelete, setWorkflowIdToDelete] = useState(0);
-  const [teamSelectionDialogOpen, setTeamSelectionDialogOpen] = useState(false);
 
   // Single source of truth - extract filters from query
   const filters = useMemo(() => getTeamsFiltersFromQuery(routerQuery), [routerQuery]);
@@ -40,47 +39,28 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
   const isPending = filteredList ? false : _isPending;
 
   // Custom hook for mutations and handlers
-  const { mutations, handlers } = useWorkflowMutations(filters);
+  const { handlers } = useWorkflowMutations(filters);
 
   const handleWorkflowDelete = useCallback((workflowId: number) => {
     setWorkflowIdToDelete(workflowId);
     setWorkflowDeleteDialogOpen(true);
   }, []);
 
-  let teamsAndUserProfiles = [];
-
-  const query = trpc.viewer.loggedInViewerRouter.calid_teamsAndUserProfilesQuery.useQuery();
-
-  // Team selection dialog handlers
-  const handleOpenTeamSelectionDialog = useCallback(() => {
-    if (query.data) {
-      // Transform the query data to match the Option interface
-      teamsAndUserProfiles = query.data
-        .filter((profile) => !profile.readOnly)
-        .map((profile) => ({
-          teamId: profile.teamId,
-          label: profile.name || profile.slug || "",
-          image: profile.image,
-          slug: profile.slug,
-        }));
-    }
-
-    console.log("teamsAndUserProfiles and query.data", teamsAndUserProfiles, ", ", query);
-
-    if (teamsAndUserProfiles && teamsAndUserProfiles.length > 1) {
-      setTeamSelectionDialogOpen(true);
-    } else {
-      handlers.handleTeamSelect(null);
-    }
-  }, [query.data]);
-
-  const handleTeamSelect = useCallback(
-    (teamId: string) => {
-      const numericTeamId = teamId ? parseInt(teamId, 10) : null;
-      handlers.handleTeamSelect(numericTeamId);
-      setTeamSelectionDialogOpen(false);
+  const handleWorkflowCreate = useCallback(
+    (builderTemplate?: WorkflowTemplate) => {
+      const teamId =
+        filters?.calIdTeamIds && filters.calIdTeamIds?.length > 0 ? filters.calIdTeamIds[0] : undefined;
+      const _teamId =
+        typeof teamId === "number"
+          ? teamId
+          : typeof teamId === "string"
+          ? teamId === ""
+            ? undefined
+            : parseInt(teamId, 10)
+          : undefined;
+      handlers.handleCreateWorkflow(_teamId, builderTemplate);
     },
-    [handlers]
+    [handlers, filters]
   );
 
   // Derived values
@@ -104,43 +84,25 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
             </div>
           )}
 
-          <BlankCard
-            Icon="workflow"
-            headline={t("workflows")}
-            description={t("no_workflows_description")}
-            buttonText={t("create_workflow")}
-            buttonOnClick={handleOpenTeamSelectionDialog}
-            buttonRaw={
-              <Button
-                color="primary"
-                onClick={handleOpenTeamSelectionDialog}
-                loading={mutations.create.isPending}>
-                {t("create_workflow")}
-              </Button>
-            }
-          />
+          <TemplatesContent templates={templates} onCreateWorkflow={handleWorkflowCreate} />
         </div>
       ) : (
-        // Workflows display
-        <WorkflowsList
-          workflows={workflows}
-          teamProfiles={teamProfiles}
-          onCreateWorkflow={handleOpenTeamSelectionDialog}
-          onEdit={handlers.handleWorkflowEdit}
-          onToggle={handlers.handleWorkflowToggle}
-          onDuplicate={handlers.handleWorkflowDuplicate}
-          onDelete={handleWorkflowDelete}
-          isCreating={mutations.create.isPending}
-        />
+        <div>
+          {teamProfiles.length > 0 && (
+            <div className="mb-8">
+              <TeamsFilter profiles={teamProfiles} />
+            </div>
+          )}
+          <TemplatesContent templates={templates} onCreateWorkflow={handleWorkflowCreate} />
+          <WorkflowsList
+            workflows={workflows}
+            onEdit={handlers.handleWorkflowEdit}
+            onToggle={handlers.handleWorkflowToggle}
+            onDuplicate={handlers.handleWorkflowDuplicate}
+            onDelete={handleWorkflowDelete}
+          />
+        </div>
       )}
-
-      {/* Team Selection Dialog */}
-      <TeamSelectionDialog
-        open={teamSelectionDialogOpen}
-        openChange={setTeamSelectionDialogOpen}
-        onTeamSelect={handleTeamSelect}
-      />
-
       {/* Delete Dialog */}
       <WorkflowDeleteDialog
         isOpenDialog={workflowDeleteDialogOpen}

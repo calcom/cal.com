@@ -215,8 +215,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           )}
         </div>
 
-        <DividerWithText showMembers={showMembers.isOn} />
-
         {team.isOrganization ? (
           !teamOrOrgIsPrivate ? (
             <SubTeams />
@@ -292,19 +290,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       <div className="fixed bottom-4 right-4 z-50">
         <ProductHuntBadge />
       </div>
-    </div>
-  );
-}
-
-function DividerWithText({ showMembers }: { showMembers: boolean }) {
-  const { t } = useLocale();
-  return (
-    <div className="mb-2 flex items-center justify-center">
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
-      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
-        {showMembers ? t("choose_a_team_member") : t("choose_a_meeting_type")}
-      </span>
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
     </div>
   );
 }
