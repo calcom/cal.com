@@ -85,6 +85,10 @@ const updateOrganizationSettings = async ({
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
+  if (Object.hasOwn(input, "orgAutoJoinOnSignup")) {
+    data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
+  }
+
   // If no settings values have changed lets skip this update
   if (Object.keys(data).length === 0) return;
 
