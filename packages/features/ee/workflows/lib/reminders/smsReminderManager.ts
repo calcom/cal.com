@@ -18,10 +18,10 @@ import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/pri
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
+import { WorkflowOptOutContactRepository } from "../../repositories/WorkflowOptOutContactRepository";
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
-import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";

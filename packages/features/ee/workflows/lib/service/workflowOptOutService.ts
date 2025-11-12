@@ -1,9 +1,9 @@
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
+import { WorkflowOptOutContactRepository } from "../../repositories/WorkflowOptOutContactRepository";
 import { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import { deleteMultipleScheduledSMS } from "../reminders/providers/twilioProvider";
-import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 
 export class WorkflowOptOutService {
   static async optOutPhoneNumber(phoneNumber: string) {
