@@ -37,6 +37,9 @@ export const getBulkUserEventTypes = async (userId: number) => {
     select: {
       id: true,
       title: true,
+      slug: true,
+      description: true,
+      length: true,
       locations: true,
     },
   });
@@ -53,6 +56,9 @@ export const getBulkTeamEventTypes = async (teamId: number) => {
     select: {
       id: true,
       title: true,
+      slug: true,
+      description: true,
+      length: true,
       locations: true,
     },
   });
