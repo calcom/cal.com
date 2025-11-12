@@ -6,20 +6,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
+import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
 
 import type { UserTableAction } from "./types";
 
 interface Props {
   dispatch: Dispatch<UserTableAction>;
-  platformUserInfo?: {
-    organizationId?: number | null;
-    isPlatform?: boolean;
-  };
 }
 
 export function InviteMemberModal(props: Props) {
   const { data: session } = useSession();
-  const platformUser = props.platformUserInfo;
+  const { data: platformUser } = usePlatformMe();
   const utils = trpc.useUtils();
   const { t, i18n } = useLocale();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
@@ -73,7 +70,7 @@ export function InviteMemberModal(props: Props) {
           language: i18n.language,
           role: values.role,
           usernameOrEmail: values.emailOrUsername,
-          isPlatform: platformUser?.isPlatform,
+          isPlatform: platformUser?.organization.isPlatform,
           creationSource: CreationSource.WEBAPP,
         });
       }}
