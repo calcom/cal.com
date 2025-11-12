@@ -20,7 +20,46 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
+export const POST_METHODS_ALLOWED_API_ROUTES = [
+  "/api/auth/forgot-password",
+  "/api/auth/oauth/me",
+  "/api/auth/oauth/refreshToken",
+  "/api/auth/oauth/token",
+  "/api/auth/reset-password",
+  "/api/auth/saml/callback",
+  "/api/auth/saml/token",
+  "/api/auth/setup",
+  "/api/auth/signup",
+  "/api/auth/two-factor/totp/disable",
+  "/api/auth/two-factor/totp/enable",
+  "/api/auth/two-factor/totp/setup",
+  "/api/availability/calendar",
+  "/api/cancel",
+  "/api/cron/bookingReminder",
+  "/api/cron/calendar-cache-cleanup",
+  "/api/cron/changeTimeZone",
+  "/api/cron/checkSmsPrices",
+  "/api/cron/downgradeUsers",
+  "/api/cron/monthlyDigestEmail",
+  "/api/cron/syncAppMeta",
+  "/api/cron/webhookTriggers",
+  "/api/cron/workflows/scheduleEmailReminders",
+  "/api/cron/workflows/scheduleSMSReminders",
+  "/api/cron/workflows/scheduleWhatsappReminders",
+  "/api/recorded-daily-video",
+  "/api/routing-forms/queued-response",
+  "/api/scim/v2.0/", // /api/scim/v2.0/[...directory]
+  "/api/support/conversation",
+  "/api/sync/helpscout",
+  "/api/username",
+  "/api/verify-booking-token",
+  "/api/video/guest-session",
+  "/api/webhook/app-credential",
+  "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
+  "/api/webhooks/retell-ai",
+  "/api/workflows/sms/user-response",
+]
+
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
@@ -47,9 +86,6 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const postCheckResult = checkPostMethod(req);
-  if (postCheckResult) return postCheckResult;
-
   const requestorIp = getIP(req);
   try {
     await checkRateLimitAndThrowError({
@@ -62,6 +98,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
     throw error;
   }
+
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
