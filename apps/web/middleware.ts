@@ -33,6 +33,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/auth/two-factor/totp/disable",
   "/api/auth/two-factor/totp/enable",
   "/api/auth/two-factor/totp/setup",
+  "/api/auth/session",
   "/api/availability/calendar",
   "/api/cancel",
   "/api/cron/bookingReminder",
@@ -67,6 +68,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/book/event",
   "/api/book/instant-event",
   "/api/book/recurring-event",
+  "/availability",
 ];
 
 export function checkPostMethod(req: NextRequest) {
@@ -108,8 +110,8 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     throw error;
   }
 
-  const postCheckResult = checkPostMethod(req);
-  if (postCheckResult) return postCheckResult;
+  // const postCheckResult = checkPostMethod(req);
+  // if (postCheckResult) return postCheckResult;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
