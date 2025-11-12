@@ -46,11 +46,15 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/cron/workflows/scheduleEmailReminders",
   "/api/cron/workflows/scheduleSMSReminders",
   "/api/cron/workflows/scheduleWhatsappReminders",
+  "/api/get-inbound-dynamic-variables",
+  "/api/integrations/", // for /api/integrations/[...args] and webhooks
   "/api/recorded-daily-video",
+  "/api/router",
   "/api/routing-forms/queued-response",
   "/api/scim/v2.0/", // /api/scim/v2.0/[...directory]
   "/api/support/conversation",
   "/api/sync/helpscout",
+  "/api/twilio/webhook",
   "/api/username",
   "/api/verify-booking-token",
   "/api/video/guest-session",
