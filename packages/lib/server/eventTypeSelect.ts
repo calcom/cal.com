@@ -88,10 +88,8 @@ const eventTypeBaseSelect = {
   },
 } satisfies Prisma.EventTypeSelect;
 
-// Extend base select with fields pending Prisma regeneration
 export const eventTypeSelect = {
   ...eventTypeBaseSelect,
-  // @ts-expect-error: Added field pending Prisma client regeneration
   firstAvailableSlotsPerDay: true,
 } as unknown as Prisma.EventTypeSelect;
 
