@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -26,6 +26,8 @@ import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
@@ -37,6 +39,8 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 
 export function RoutingFormResponsesTable() {
   const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
+
+  const { t } = useLocale();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -130,6 +134,14 @@ export function RoutingFormResponsesTable() {
               <DataTableSegment.SaveButton />
               <DataTableSegment.Select />
             </>
+          }
+          EmptyView={
+            <EmptyScreen
+              headline={t("no_results")}
+              className="bg-muted mb-16"
+              iconWrapperClassName="bg-default"
+              dashedBorder={false}
+            />
           }>
           <RoutingKPICards />
         </DataTableWrapper>
