@@ -53,7 +53,7 @@ export class WorkflowReminderRepository {
     });
   }
 
-  async findForAIPhoneCallExecution(id: number) {
+  async findByIdForAiPhoneCallExecution(id: number) {
     const bookingSelect = {
       uid: true,
       startTime: true,

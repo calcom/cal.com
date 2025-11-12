@@ -131,7 +131,7 @@ export async function executeAIPhoneCall(payload: string) {
 
   try {
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-    const workflowReminder = await workflowReminderRepository.findForAIPhoneCallExecution(
+    const workflowReminder = await workflowReminderRepository.findByIdForAiPhoneCallExecution(
       data.workflowReminderId
     );
 
