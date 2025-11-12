@@ -16,9 +16,6 @@ import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from ".
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
-/**
- * Recursively extract field IDs from a query value object
- */
 function extractFieldIdsFromQuery(queryValue: unknown): string[] {
   const fieldIds: Set<string> = new Set();
 
@@ -32,7 +29,6 @@ function extractFieldIdsFromQuery(queryValue: unknown): string[] {
 
     const record = obj as Record<string, unknown>;
 
-    // If this is a rule with a field property, add it
     if (typeof record.properties === "object" && record.properties !== null) {
       const props = record.properties as Record<string, unknown>;
       if (typeof props.field === "string") {
@@ -40,12 +36,10 @@ function extractFieldIdsFromQuery(queryValue: unknown): string[] {
       }
     }
 
-    // Traverse children
     if (record.children1 && typeof record.children1 === "object") {
       traverse(record.children1);
     }
 
-    // Traverse other properties
     for (const value of Object.values(record)) {
       if (value && typeof value === "object") {
         traverse(value);
@@ -97,14 +91,10 @@ const _handleResponse = async ({
       fields: form.fields,
     };
 
-    // Check if form fields are defined for all required fields in routes
-    // This must be done before checking for missing required fields to provide a better error message
     const fieldIds = serializableFormWithFields.fields.map((f) => f.id);
     const routesWithMissingFields =
       serializableFormWithFields.routes?.filter((route) => {
-        // queryValue might not exist on router routes
         if (!("queryValue" in route) || !route.queryValue) return false;
-        // Check if the route references any fields that don't exist in the form
         const referencedFieldIds = extractFieldIdsFromQuery(route.queryValue);
         return referencedFieldIds.some((fieldId: string) => !fieldIds.includes(fieldId));
       }) || [];

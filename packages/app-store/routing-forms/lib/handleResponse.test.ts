@@ -370,7 +370,7 @@ describe("handleResponse", () => {
           "1": {
             type: "rule" as const,
             properties: {
-              field: "non-existent-field", // This field doesn't exist in mockForm.fields
+              field: "non-existent-field",
               operator: "equal",
               value: ["some-value"],
               valueSrc: ["value"],
