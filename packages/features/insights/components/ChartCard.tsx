@@ -17,14 +17,11 @@ type LegendItem = {
 
 export type LegendSize = "sm" | "default";
 
-export type ChartLoadingState = "initial" | "loading" | "loaded" | "error";
-
 export function ChartCard({
   legend,
   legendSize,
   enabledLegend,
   onSeriesToggle,
-  loadingState,
   isPending,
   isError,
   ...panelCardProps
@@ -33,7 +30,6 @@ export function ChartCard({
   legendSize?: LegendSize;
   enabledLegend?: Array<LegendItem>;
   onSeriesToggle?: (label: string) => void;
-  loadingState?: ChartLoadingState;
   isPending?: boolean;
   isError?: boolean;
   children?: ReactNode;
@@ -51,14 +47,12 @@ export function ChartCard({
     return undefined;
   }, [panelCardProps.title]);
 
-  // Calculate loading state from isPending/isError if provided, otherwise use explicit loadingState
+  // Calculate loading state from isPending/isError
   const computedLoadingState = useMemo(() => {
-    if (loadingState) return loadingState;
-    if (isPending !== undefined || isError !== undefined) {
-      return isPending ? "loading" : isError ? "error" : "loaded";
-    }
+    if (isPending) return "loading";
+    if (isError) return "error";
     return "loaded";
-  }, [loadingState, isPending, isError]);
+  }, [isPending, isError]);
 
   const shouldShowDefaultLoading = isPending && !panelCardProps.children;
 
