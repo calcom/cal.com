@@ -197,13 +197,15 @@ function BookingDetailsSheetInner({
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
           <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
             <JoinMeetingButton
-              size="sm"
               location={booking.location}
               metadata={booking.metadata}
               bookingStatus={booking.status}
               t={t}
             />
             {shouldShowJoinButton && <div className="border-subtle h-3 w-px border-r" />}
+            <Button color="secondary" StartIcon="x" onClick={onClose}>
+              <span className="sr-only">{t("close")}</span>
+            </Button>
             <BookingActionsDropdown
               booking={{
                 ...booking,

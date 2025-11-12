@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { useMemo } from "react";
 
 import { useBookingLocation } from "@calcom/features/bookings/hooks";
@@ -8,7 +9,7 @@ interface UseJoinableLocationParams {
   location: string | null;
   metadata?: unknown;
   bookingStatus: BookingStatus;
-  t: (key: string, options?: Record<string, unknown>) => string;
+  t: TFunction;
 }
 
 /**

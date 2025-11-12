@@ -34,7 +34,7 @@ export function JoinMeetingButton({
     t,
   });
 
-  if (!isJoinable) {
+  if (!isJoinable || !locationToDisplay) {
     return null;
   }
 
