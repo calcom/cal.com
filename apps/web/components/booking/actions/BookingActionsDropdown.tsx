@@ -594,7 +594,8 @@ export function BookingActionsDropdown({
                 StartIcon="external-link"
                 href={bookingLink}
                 target="_blank"
-                data-testid="view-booking">
+                data-testid="view-booking"
+                onClick={(e) => e.stopPropagation()}>
                 {t("view")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -610,7 +611,10 @@ export function BookingActionsDropdown({
                       StartIcon={action.icon}
                       href={action.href}
                       disabled={action.disabled}
-                      onClick={action.onClick}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        action.onClick?.(e);
+                      }}
                       data-bookingid={action.bookingId}
                       data-testid={action.id}
                       className={action.disabled ? "text-muted" : undefined}>
@@ -630,7 +634,10 @@ export function BookingActionsDropdown({
                   StartIcon={action.icon}
                   href={action.href}
                   disabled={action.disabled}
-                  onClick={action.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    action.onClick?.(e);
+                  }}
                   data-bookingid={action.bookingId}
                   data-testid={action.id}
                   className={action.disabled ? "text-muted" : undefined}>
@@ -647,7 +654,10 @@ export function BookingActionsDropdown({
                   color={action.color}
                   StartIcon={action.icon}
                   href={action.href}
-                  onClick={action.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    action.onClick?.(e);
+                  }}
                   disabled={action.disabled}
                   data-bookingid={action.bookingId}
                   data-testid={action.id}
@@ -666,7 +676,10 @@ export function BookingActionsDropdown({
                   type="button"
                   color={reportActionWithHandler.color}
                   StartIcon={reportActionWithHandler.icon}
-                  onClick={reportActionWithHandler.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    reportActionWithHandler.onClick?.(e);
+                  }}
                   disabled={reportActionWithHandler.disabled}
                   data-testid={reportActionWithHandler.id}
                   className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
@@ -684,7 +697,10 @@ export function BookingActionsDropdown({
                 color={cancelEventAction.color}
                 StartIcon={cancelEventAction.icon}
                 href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
-                onClick={cancelEventAction.onClick}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelEventAction.onClick?.(e);
+                }}
                 disabled={cancelEventAction.disabled}
                 data-bookingid={cancelEventAction.bookingId}
                 data-testid={cancelEventAction.id}
