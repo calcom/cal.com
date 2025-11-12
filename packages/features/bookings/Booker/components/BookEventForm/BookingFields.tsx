@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
+import { DEFAULT_WORKFLOW_PHONE_FIELD } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -49,10 +50,44 @@ export const BookingFields = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   // Identify all phone fields (except location field)
-  const otherPhoneFieldNames = useMemo(
-    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
-    [fields]
+  const allPhoneFields = useMemo(() => fields.filter((f) => f.type === "phone"), [fields]);
+  const otherPhoneFieldNames = useMemo(() => allPhoneFields.map((f) => f.name), [allPhoneFields]);
+
+  // Determine if event has Location: Phone option configured
+  const hasLocationPhoneOption = useMemo(
+    () => locations?.some((l) => l?.type === DefaultEventLocationTypeEnum.Phone) ?? false,
+    [locations]
   );
+
+  // Decide the primary phone source shown by default:
+  // 1) Location phone when configured
+  // 2) Workflow default phone (configurable one-liner)
+  // 3) attendeePhoneNumber
+  // 4) first custom phone
+  const primaryPhoneSource = useMemo<{ kind: "location" } | { kind: "field"; name: string } | null>(() => {
+    if (hasLocationPhoneOption) return { kind: "location" } as const;
+    const hasDefaultWorkflow = allPhoneFields.find((f) => f.name === DEFAULT_WORKFLOW_PHONE_FIELD);
+    if (hasDefaultWorkflow) return { kind: "field", name: hasDefaultWorkflow.name } as const;
+    const attendeePhone = allPhoneFields.find((f) => f.name === SystemField.Enum.attendeePhoneNumber);
+    if (attendeePhone) return { kind: "field", name: attendeePhone.name } as const;
+    if (allPhoneFields.length > 0) return { kind: "field", name: allPhoneFields[0].name } as const;
+    return null;
+  }, [hasLocationPhoneOption, allPhoneFields]);
+
+  // Hosts can explicitly unhide phone fields; respect that intent
+  const hostUnhiddenPhoneNames = useMemo(
+    () => new Set(allPhoneFields.filter((f) => f.hidden === false).map((f) => f.name)),
+    [allPhoneFields]
+  );
+
+  // Helper to decide default-hidden for phone fields (unless host unhid)
+  const isPhoneHiddenByDefault = (fieldName: string) => {
+    if (hostUnhiddenPhoneNames.has(fieldName)) return false;
+    if (!primaryPhoneSource) return true;
+    if (primaryPhoneSource.kind === "location") return true;
+    // primary is a phone field
+    return primaryPhoneSource.name !== fieldName;
+  };
 
   // Track last synced value to avoid redundant updates
   const lastSyncedPhoneRef = useRef<string | null>(null);
@@ -81,6 +116,71 @@ export const BookingFields = ({
 
     lastSyncedPhoneRef.current = phone;
   };
+
+  // If primary phone is a phone field, propagate its value to other hidden phone fields
+  const primaryPhoneValue =
+    primaryPhoneSource?.kind === "field" ? watch(`responses.${primaryPhoneSource.name}`) : undefined;
+  useEffect(() => {
+    if (!primaryPhoneSource || primaryPhoneSource.kind !== "field") return;
+    const phone = (primaryPhoneValue ?? "").trim();
+    if (!phone) return;
+    otherPhoneFieldNames.forEach((name) => {
+      if (name === primaryPhoneSource.name) return;
+      // Prefill hidden phone fields and any untouched targets
+      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+      const targetIsHiddenByDefault = isPhoneHiddenByDefault(name);
+      if (!targetTouched && targetIsHiddenByDefault) {
+        setValue(`responses.${name}`, phone, {
+          shouldDirty: false,
+          shouldValidate: false,
+        });
+      }
+    });
+  }, [primaryPhoneSource, primaryPhoneValue, otherPhoneFieldNames, formState.touchedFields, setValue]);
+
+  // Bidirectional sync among visible phone fields (host unhid >= 2)
+  const visiblePhoneFieldNames = useMemo(() => {
+    return allPhoneFields.filter((f) => !isPhoneHiddenByDefault(f.name)).map((f) => f.name);
+  }, [allPhoneFields, hostUnhiddenPhoneNames, primaryPhoneSource]);
+
+  // Watch all visible phone values together
+  const visiblePhoneWatchKeys = useMemo(
+    () => visiblePhoneFieldNames.map((n) => `responses.${n}`),
+    [visiblePhoneFieldNames]
+  );
+  const visiblePhoneValues = watch(visiblePhoneWatchKeys as any) as (string | undefined)[];
+  const lastValuesRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    if (!visiblePhoneFieldNames.length || visiblePhoneFieldNames.length < 2) return;
+    // Build current map
+    const current: Record<string, string> = {};
+    visiblePhoneFieldNames.forEach((name, idx) => {
+      const v = (visiblePhoneValues?.[idx] ?? "").trim();
+      current[name] = v;
+    });
+    // Detect which field changed
+    const changed = visiblePhoneFieldNames.filter(
+      (name) => current[name] !== (lastValuesRef.current[name] ?? "")
+    );
+    if (changed.length === 1) {
+      const source = changed[0];
+      const value = current[source];
+      // Propagate to others if they are untouched
+      visiblePhoneFieldNames.forEach((target) => {
+        if (target === source) return;
+        const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[target];
+        if (!targetTouched && current[target] !== value) {
+          setValue(`responses.${target}`, value, {
+            shouldDirty: false,
+            shouldValidate: false,
+          });
+          current[target] = value;
+        }
+      });
+    }
+    // Update last seen values
+    lastValuesRef.current = current;
+  }, [visiblePhoneFieldNames, visiblePhoneValues, formState.touchedFields, setValue]);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
@@ -169,6 +269,16 @@ export const BookingFields = ({
           }
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
           readOnly = false;
+        }
+
+        // Enforce single visible phone field by default; hosts can unhide more
+        if (field.type === "phone") {
+          // If host explicitly unhid it, do not hide
+          if (field.hidden !== false) {
+            hidden = isPhoneHiddenByDefault(field.name);
+          } else {
+            hidden = false;
+          }
         }
 
         if (field.name === SystemField.Enum.guests) {
