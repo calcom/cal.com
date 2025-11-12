@@ -59,6 +59,7 @@ export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/webhooks/retell-ai",
   "/api/workflows/sms/user-response",
   "/api/trpc/", // for tRPC
+  "/api/auth/callback/", // for NextAuth
 ];
 
 export function checkPostMethod(req: NextRequest) {
