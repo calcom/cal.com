@@ -4,37 +4,7 @@ import { WorkflowMethods, WorkflowActions } from "@calcom/prisma/enums";
 export class WorkflowReminderRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async getFutureScheduledAttendeeSMSReminders(phoneNumber: string) {
-    return await this.prismaClient.workflowReminder.findMany({
-      where: {
-        method: WorkflowMethods.SMS,
-        cancelled: null,
-        scheduledDate: { gte: new Date() },
-        booking: {
-          smsReminderNumber: phoneNumber,
-        },
-        workflowStep: {
-          action: WorkflowActions.SMS_ATTENDEE,
-        },
-      },
-    });
-  }
-
-  async deleteWorkflowReminders(ids: number[]) {
-    if (!ids.length) {
-      return [];
-    }
-
-    return this.prismaClient.workflowReminder.deleteMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
-  }
-
-  async findWorkflowRemindersByStepId(workflowStepId: number) {
+  async findByStepId(workflowStepId: number) {
     return await this.prismaClient.workflowReminder.findMany({
       where: { workflowStepId },
       select: {
@@ -50,7 +20,40 @@ export class WorkflowReminderRepository {
     });
   }
 
-  async findWorkflowReminderForAIPhoneCallExecution(id: number) {
+  async deleteMany(ids: number[]) {
+    if (!ids.length) {
+      return { count: 0 };
+    }
+
+    return await this.prismaClient.workflowReminder.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  }
+
+  async markAsScheduled(id: number, referenceId: string) {
+    return await this.prismaClient.workflowReminder.update({
+      where: { id },
+      data: { referenceId, scheduled: true },
+    });
+  }
+
+  async findScheduledSMSByPhoneNumber(phoneNumber: string) {
+    return await this.prismaClient.workflowReminder.findMany({
+      where: {
+        method: WorkflowMethods.SMS,
+        cancelled: null,
+        scheduledDate: { gte: new Date() },
+        booking: { smsReminderNumber: phoneNumber },
+        workflowStep: { action: WorkflowActions.SMS_ATTENDEE },
+      },
+    });
+  }
+
+  async findForAIPhoneCallExecution(id: number) {
     const bookingSelect = {
       uid: true,
       startTime: true,
@@ -106,19 +109,6 @@ export class WorkflowReminderRepository {
     return await this.prismaClient.workflowReminder.findUnique({
       where: { id },
       select,
-    });
-  }
-
-  async updateWorkflowReminderReferenceAndScheduled(
-    id: number,
-    data: {
-      referenceId: string;
-      scheduled: boolean;
-    }
-  ) {
-    return await this.prismaClient.workflowReminder.update({
-      where: { id },
-      data,
     });
   }
 }

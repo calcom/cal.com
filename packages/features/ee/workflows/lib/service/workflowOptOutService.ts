@@ -1,18 +1,16 @@
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
+import { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import { deleteMultipleScheduledSMS } from "../reminders/providers/twilioProvider";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
-import { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 
 export class WorkflowOptOutService {
   static async optOutPhoneNumber(phoneNumber: string) {
     await WorkflowOptOutContactRepository.addPhoneNumber(phoneNumber);
     // Delete scheduled workflows
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-    const scheduledReminders = await workflowReminderRepository.getFutureScheduledAttendeeSMSReminders(
-      phoneNumber
-    );
+    const scheduledReminders = await workflowReminderRepository.findScheduledSMSByPhoneNumber(phoneNumber);
 
     // Get twilio scheduled workflows reminders
     await deleteMultipleScheduledSMS(
@@ -22,7 +20,7 @@ export class WorkflowOptOutService {
     );
 
     // Get not twilio scheduled yet workflows
-    await workflowReminderRepository.deleteWorkflowReminders(
+    await workflowReminderRepository.deleteMany(
       scheduledReminders.filter((reminder) => !reminder.referenceId).map((reminder) => reminder.id)
     );
   }

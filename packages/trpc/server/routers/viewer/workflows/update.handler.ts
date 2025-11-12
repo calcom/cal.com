@@ -272,7 +272,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       }
 
       const workflowReminderRepository = new WorkflowReminderRepository(ctx.prisma);
-      const remindersFromStep = await workflowReminderRepository.findWorkflowRemindersByStepId(oldStep.id);
+      const remindersFromStep = await workflowReminderRepository.findByStepId(oldStep.id);
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {

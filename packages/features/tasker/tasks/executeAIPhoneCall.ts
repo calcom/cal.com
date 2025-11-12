@@ -30,7 +30,7 @@ interface ExecuteAIPhoneCallPayload {
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
 type BookingWithRelations = NonNullable<
-  Awaited<ReturnType<WorkflowReminderRepository["findWorkflowReminderForAIPhoneCallExecution"]>>
+  Awaited<ReturnType<WorkflowReminderRepository["findForAIPhoneCallExecution"]>>
 >["booking"];
 
 function getVariablesFromFormResponse({
@@ -131,7 +131,7 @@ export async function executeAIPhoneCall(payload: string) {
 
   try {
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
-    const workflowReminder = await workflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution(
+    const workflowReminder = await workflowReminderRepository.findForAIPhoneCallExecution(
       data.workflowReminderId
     );
 
@@ -258,10 +258,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     log.info("AI phone call created successfully:", call);
 
-    await workflowReminderRepository.updateWorkflowReminderReferenceAndScheduled(data.workflowReminderId, {
-      referenceId: call.call_id,
-      scheduled: true,
-    });
+    await workflowReminderRepository.markAsScheduled(data.workflowReminderId, call.call_id);
 
     log.info(`AI phone call executed successfully for workflow reminder ${data.workflowReminderId}`, {
       callId: call.call_id,
