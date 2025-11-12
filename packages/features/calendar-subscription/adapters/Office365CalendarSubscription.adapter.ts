@@ -140,7 +140,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     let deltaLink = selectedCalendar.syncToken ?? null;
 
     if (deltaLink) {
-      log.info("Fetching with deltaLink", { url: deltaLink });
+      log.info("Fetching with deltaLink");
       const response = await this.request<MicrosoftGraphEventsResponse>(client, "GET", deltaLink);
       items.push(...response.value);
       deltaLink = response["@odata.deltaLink"] ?? deltaLink;
