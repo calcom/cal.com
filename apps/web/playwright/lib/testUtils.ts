@@ -599,19 +599,10 @@ export async function setupOrgMember(users: CreateUsersFixture) {
 
 /**
  * Opens the booking actions dropdown for a specific booking item on /bookings/[status]
- * This helper handles the new flow where you must first click a booking list item
- * to open the BookingDetailsSheet, then the booking-actions-dropdown is available.
  *
  * @param page - Playwright Page object
- * @param bookingItemIndex - Index of the booking item to click (0-based)
+ * @param index - Index of the booking actions dropdown to click (0-based)
  */
-export async function openBookingActionsDropdown(page: Page, bookingItemIndex = 0) {
-  // First, click the booking item to open the BookingDetailsSheet
-  await page.locator('[data-testid="booking-item"]').nth(bookingItemIndex).click();
-
-  // Wait for the BookingDetailsSheet to be visible
-  await page.waitForSelector('[data-testid="booking-actions-dropdown"]', { state: "visible" });
-
-  // Click the booking actions dropdown
-  await page.locator('[data-testid="booking-actions-dropdown"]').click();
+export function openBookingActionsDropdown(page: Page, index = 0) {
+  return page.locator('[data-testid="booking-actions-dropdown"]').nth(index).click();
 }
