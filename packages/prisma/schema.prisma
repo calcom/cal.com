@@ -192,6 +192,7 @@ model EventType {
   beforeEventBuffer                        Int                       @default(0)
   afterEventBuffer                         Int                       @default(0)
   seatsPerTimeSlot                         Int?
+  firstAvailableSlotsPerDay                Int?
   onlyShowFirstAvailableSlot               Boolean                   @default(false)
   showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)

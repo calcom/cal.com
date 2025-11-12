@@ -12,6 +12,7 @@ import {
   ArrayUnique,
   IsUrl,
   IsIn,
+  ValidateIf,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -278,6 +279,16 @@ class BaseUpdateEventTypeInput {
       "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time.",
   })
   onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsInt()
+  @Min(1)
+  @DocsPropertyOptional({
+    description:
+      "Limit the number of available slots shown per day to the first N slots. When omitted, the legacy boolean `onlyShowFirstAvailableSlot` may still restrict to the first slot.",
+  })
+  firstAvailableSlotsPerDay?: number | null;
 
   @IsOptional()
   @ValidateBookingLimistsDuration()

@@ -16,6 +16,7 @@ import {
   IsString,
   Min,
   ValidateNested,
+  ValidateIf,
 } from "class-validator";
 
 import type { BookingWindow_2024_06_14, BookingLimitsDuration_2024_06_14 } from "../inputs";
@@ -358,6 +359,16 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @ApiPropertyOptional()
   onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsInt()
+  @Min(1)
+  @ApiPropertyOptional({
+    description: "Limit the number of available slots shown per day to the first N slots.",
+    nullable: true,
+  })
+  firstAvailableSlotsPerDay?: number | null;
 
   @IsOptional()
   @ApiPropertyOptional()

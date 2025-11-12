@@ -65,6 +65,11 @@ import type { GetScheduleOptions } from "./types";
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
+export type EventTypeWithFirstSlots = {
+  firstAvailableSlotsPerDay?: number | null;
+  onlyShowFirstAvailableSlot?: boolean;
+};
+
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
@@ -149,7 +154,7 @@ function withSlotsCache(
 }
 
 export class AvailableSlotsService {
-  constructor(public readonly dependencies: IAvailableSlotsService) { }
+  constructor(public readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -200,8 +205,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-          ? [input.usernameList]
-          : [],
+        ? [input.usernameList]
+        : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -460,7 +465,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -661,7 +666,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -791,15 +796,15 @@ export class AvailableSlotsService {
 
     const bookingLimits =
       eventType?.bookingLimits &&
-        typeof eventType?.bookingLimits === "object" &&
-        Object.keys(eventType?.bookingLimits).length > 0
+      typeof eventType?.bookingLimits === "object" &&
+      Object.keys(eventType?.bookingLimits).length > 0
         ? parseBookingLimit(eventType?.bookingLimits)
         : null;
 
     const durationLimits =
       eventType?.durationLimits &&
-        typeof eventType?.durationLimits === "object" &&
-        Object.keys(eventType?.durationLimits).length > 0
+      typeof eventType?.durationLimits === "object" &&
+      Object.keys(eventType?.durationLimits).length > 0
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
 
@@ -967,9 +972,9 @@ export class AvailableSlotsService {
     } = input;
     const orgDetails = input?.orgSlug
       ? {
-        currentOrgDomain: input.orgSlug,
-        isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
-      }
+          currentOrgDomain: input.orgSlug,
+          isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+        }
       : orgDomainConfig(ctx?.req);
 
     if (process.env.INTEGRATION_TEST_MODE === "true") {
@@ -982,7 +987,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = false
+    const shouldServeCache = false;
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1185,10 +1190,10 @@ export class AvailableSlotsService {
         const travelSchedules =
           isDefaultSchedule && !eventType.useBookerTimezone
             ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-              timeZone: schedule.timeZone,
-            }))
+                startDate: dayjs(schedule.startDate),
+                endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+                timeZone: schedule.timeZone,
+              }))
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
@@ -1283,9 +1288,9 @@ export class AvailableSlotsService {
           (
             item:
               | {
-                time: dayjs.Dayjs;
-                userIds?: number[] | undefined;
-              }
+                  time: dayjs.Dayjs;
+                  userIds?: number[] | undefined;
+                }
               | undefined
           ): item is {
             time: dayjs.Dayjs;
@@ -1328,7 +1333,15 @@ export class AvailableSlotsService {
           const timeISO = time.toISOString();
 
           r[dateString] = r[dateString] || [];
-          if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+          
+          const firstSlotsCap = (eventType as EventTypeWithFirstSlots).firstAvailableSlotsPerDay ?? null;
+          if (
+            !shouldIncludeSlotForDay(
+              r[dateString].length,
+              firstSlotsCap,
+              !!eventType?.onlyShowFirstAvailableSlot
+            )
+          ) {
             return r;
           }
 
@@ -1454,23 +1467,23 @@ export class AvailableSlotsService {
 
     const troubleshooterData = enableTroubleshooter
       ? {
-        troubleshooter: {
-          routedTeamMemberIds: routedTeamMemberIds,
-          // One that Salesforce asked for
-          askedContactOwner: contactOwnerEmailFromInput,
-          // One that we used as per Routing skipContactOwner flag
-          consideredContactOwner: contactOwnerEmail,
-          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
-          routedHosts: usersWithCredentials.map((user) => {
-            return {
-              userId: user.id,
-            };
-          }),
-          hostsAfterSegmentMatching: allHosts.map((host) => ({
-            userId: host.user.id,
-          })),
-        },
-      }
+          troubleshooter: {
+            routedTeamMemberIds: routedTeamMemberIds,
+            // One that Salesforce asked for
+            askedContactOwner: contactOwnerEmailFromInput,
+            // One that we used as per Routing skipContactOwner flag
+            consideredContactOwner: contactOwnerEmail,
+            // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+            routedHosts: usersWithCredentials.map((user) => {
+              return {
+                userId: user.id,
+              };
+            }),
+            hostsAfterSegmentMatching: allHosts.map((host) => ({
+              userId: host.user.id,
+            })),
+          },
+        }
       : null;
 
     return {
@@ -1478,4 +1491,19 @@ export class AvailableSlotsService {
       ...troubleshooterData,
     };
   }
+}
+
+/** Exported for unit testing. Decides whether to include another slot for a given day. */
+export function shouldIncludeSlotForDay(
+  currentCount: number,
+  n: number | undefined | null,
+  legacyFirstOnly: boolean
+): boolean {
+  if (typeof n === "number" && n > 0) {
+    return currentCount < n;
+  }
+  if (legacyFirstOnly) {
+    return currentCount < 1;
+  }
+  return true;
 }
