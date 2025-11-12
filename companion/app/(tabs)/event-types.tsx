@@ -210,6 +210,7 @@ export default function EventTypes() {
         duration: duration.toString(),
         price: eventType.price?.toString() || "",
         currency: eventType.currency || "",
+        slug: eventType.slug || "",
       },
     });
   };

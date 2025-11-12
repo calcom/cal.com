@@ -33,13 +33,14 @@ const tabs = [
 
 export default function EventTypeDetail() {
   const router = useRouter();
-  const { id, title, description, duration, price, currency } = useLocalSearchParams<{
+  const { id, title, description, duration, price, currency, slug } = useLocalSearchParams<{
     id: string;
     title: string;
     description?: string;
     duration: string;
     price?: string;
     currency?: string;
+    slug?: string;
   }>();
 
   const insets = useSafeAreaInsets();
@@ -48,8 +49,9 @@ export default function EventTypeDetail() {
   // Form state
   const [eventTitle, setEventTitle] = useState(title || "");
   const [eventDescription, setEventDescription] = useState(description || "");
-  const [eventSlug, setEventSlug] = useState("example-meeting");
+  const [eventSlug, setEventSlug] = useState(slug || "");
   const [eventDuration, setEventDuration] = useState(duration || "30");
+  const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("Cal Video");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -235,6 +237,20 @@ export default function EventTypeDetail() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const userUsername = await CalComAPIService.getUsername();
+        setUsername(userUsername);
+      } catch (error) {
+        console.error("Failed to fetch username:", error);
+        // Keep the fallback "username"
+      }
+    };
+
+    fetchUsername();
+  }, []);
+
   const formatTime = (time: string) => {
     try {
       // Handle different time formats that might come from the API
@@ -327,7 +343,7 @@ export default function EventTypeDetail() {
       const eventTypeSlug = eventSlug || "event-link";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
 
-      await Clipboard.setStringAsync(link);
+      Clipboard.setString(link);
       Alert.alert("Success", "Link copied to clipboard");
     } catch (error) {
       console.error("Failed to copy link:", error);
@@ -448,7 +464,7 @@ export default function EventTypeDetail() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.fieldLabel}>URL</Text>
                   <View style={styles.urlInputContainer}>
-                    <Text style={styles.urlPrefix}>cal.com/username/</Text>
+                    <Text style={styles.urlPrefix}>cal.com/{username}/</Text>
                     <TextInput
                       style={styles.urlInput}
                       value={eventSlug}
