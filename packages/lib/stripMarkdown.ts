@@ -22,7 +22,17 @@ export function stripMarkdown(
 
     // Additional cleanup for any remaining markdown artifacts
     stripped = stripped.replace(/\\/g, ""); // Remove escape characters
-    stripped = stripped.replace(/[*_~`#>]{1,}/g, " "); // Remove any remaining markdown syntax
+    // Only remove markdown syntax patterns, not all punctuation:
+    // - Headers: # at start of line
+    // - Blockquotes: > at start of line
+    // - Emphasis: * or _ when used as markdown (paired or at word boundaries)
+    stripped = stripped
+      .replace(/^#+\s/gm, "") // Remove header markers at start of line
+      .replace(/^>\s/gm, "") // Remove blockquote markers at start of line
+      .replace(/\*{2,}/g, " ") // Remove bold markers (multiple asterisks)
+      .replace(/_{2,}/g, " ") // Remove bold markers (multiple underscores)
+      .replace(/`+/g, " ") // Remove code markers (backticks)
+      .replace(/~{2,}/g, " "); // Remove strikethrough markers
     stripped = stripped.replace(/[[\]]/g, " "); // Remove brackets from links
 
     // Restore newlines
@@ -43,9 +53,15 @@ export function stripMarkdown(
   let stripped = removeMd(md);
 
   // Clean up any remaining markdown artifacts
+  stripped = stripped.replace(/\\/g, ""); // Remove escape characters
+  // Only remove markdown syntax patterns, not all punctuation:
   stripped = stripped
-    .replace(/\\/g, "") // Remove escape characters
-    .replace(/[*_~`#>]{1,}/g, " ") // Remove markdown syntax
+    .replace(/^#+\s/gm, "") // Remove header markers at start of line
+    .replace(/^>\s/gm, "") // Remove blockquote markers at start of line
+    .replace(/\*{2,}/g, " ") // Remove bold markers (multiple asterisks)
+    .replace(/_{2,}/g, " ") // Remove bold markers (multiple underscores)
+    .replace(/`+/g, " ") // Remove code markers (backticks)
+    .replace(/~{2,}/g, " ") // Remove strikethrough markers
     .replace(/[[\]]/g, " ") // Remove brackets
     .replace(/\s{2,}/g, " ") // Collapse whitespace
     .replace(/\r\n/g, "\n") // Normalize line endings
