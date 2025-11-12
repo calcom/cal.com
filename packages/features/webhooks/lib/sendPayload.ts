@@ -3,11 +3,10 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { getUrlValidationService } from "@calcom/features/url-validation/di/UrlValidationService.container";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
-import { webhookUrlValidationService } from "./WebhookUrlValidationService";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -281,8 +280,9 @@ const _sendPayload = async (
   }
 
   // SECURITY: Validate URL to prevent SSRF attacks
+  const urlValidationService = getUrlValidationService();
   try {
-    await webhookUrlValidationService.validateAsync(subscriberUrl);
+    await urlValidationService.validateAsync(subscriberUrl);
   } catch (error) {
     throw new Error(`Invalid webhook URL: ${(error as Error).message}`);
   }

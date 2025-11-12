@@ -152,54 +152,54 @@ describe("IPValidationService", () => {
 
     describe("DNS resolution", () => {
       it("should resolve and validate domain to public IP", async () => {
-        const mockResolve = vi.spyOn(dns, "resolve4").mockResolvedValue(["1.1.1.1"]);
+        const mockLookup = vi
+          .spyOn(dns, "lookup")
+          .mockResolvedValue([{ address: "1.1.1.1", family: 4 }]);
 
         await expect(service.resolveAndValidateIP("example.com")).resolves.not.toThrow();
 
-        expect(mockResolve).toHaveBeenCalledWith("example.com");
-        mockResolve.mockRestore();
+        expect(mockLookup).toHaveBeenCalledWith("example.com", { all: true });
+        mockLookup.mockRestore();
       });
 
       it("should block domain that resolves to private IP in production", async () => {
         const originalEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "production";
 
-        const mockResolve = vi.spyOn(dns, "resolve4").mockResolvedValue(["192.168.1.1"]);
+        const mockLookup = vi
+          .spyOn(dns, "lookup")
+          .mockResolvedValue([{ address: "192.168.1.1", family: 4 }]);
 
         await expect(service.resolveAndValidateIP("evil.com")).rejects.toThrow(/private or reserved/);
 
         process.env.NODE_ENV = originalEnv;
-        mockResolve.mockRestore();
+        mockLookup.mockRestore();
       });
 
       it("should allow DNS resolution failures in test environment", async () => {
         const originalEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "test";
 
-        const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
-        const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+        const mockLookup = vi.spyOn(dns, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
 
         await expect(service.resolveAndValidateIP("nonexistent.example")).resolves.not.toThrow();
 
         process.env.NODE_ENV = originalEnv;
-        mockResolve4.mockRestore();
-        mockResolve6.mockRestore();
+        mockLookup.mockRestore();
       });
 
       it("should reject DNS resolution failures in production", async () => {
         const originalEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "production";
 
-        const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
-        const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+        const mockLookup = vi.spyOn(dns, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
 
         await expect(service.resolveAndValidateIP("nonexistent.example")).rejects.toThrow(
           "Failed to resolve hostname"
         );
 
         process.env.NODE_ENV = originalEnv;
-        mockResolve4.mockRestore();
-        mockResolve6.mockRestore();
+        mockLookup.mockRestore();
       });
     });
 

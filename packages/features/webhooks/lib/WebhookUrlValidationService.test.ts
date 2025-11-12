@@ -160,14 +160,14 @@ describe("WebhookUrlValidationService", () => {
     describe("validateAsync", () => {
         describe("protocol validation", () => {
             it("should allow HTTP and HTTPS", async () => {
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockResolvedValue(["1.1.1.1"]);
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("No AAAA records"));
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "1.1.1.1", family: 4 }]);
 
                 await expect(service.validateAsync("http://example.com")).resolves.not.toThrow();
                 await expect(service.validateAsync("https://example.com")).resolves.not.toThrow();
 
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should reject non-HTTP(S) protocols", async () => {
@@ -210,65 +210,65 @@ describe("WebhookUrlValidationService", () => {
 
         describe("DNS resolution and private IP detection", () => {
             it("should allow domains resolving to public IPv4", async () => {
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockResolvedValue(["1.1.1.1"]);
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("No AAAA records"));
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "1.1.1.1", family: 4 }]);
 
                 await expect(service.validateAsync("https://example.com")).resolves.not.toThrow();
 
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should allow domains resolving to public IPv6", async () => {
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("No A records"));
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockResolvedValue(["2001:4860:4860::8888"]);
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "2001:4860:4860::8888", family: 6 }]);
 
                 await expect(service.validateAsync("https://example.com")).resolves.not.toThrow();
 
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should block domains resolving to private IPv4 in production", async () => {
                 const originalEnv = process.env.NODE_ENV;
                 process.env.NODE_ENV = "production";
 
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockResolvedValue(["192.168.1.1"]);
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("No AAAA records"));
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "192.168.1.1", family: 4 }]);
 
                 await expect(service.validateAsync("https://evil.com")).rejects.toThrow("private or reserved");
 
                 process.env.NODE_ENV = originalEnv;
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should block domains resolving to private IPv6 in production", async () => {
                 const originalEnv = process.env.NODE_ENV;
                 process.env.NODE_ENV = "production";
 
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("No A records"));
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockResolvedValue(["fc00::1"]);
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "fc00::1", family: 6 }]);
 
                 await expect(service.validateAsync("https://evil.com")).rejects.toThrow("private or reserved");
 
                 process.env.NODE_ENV = originalEnv;
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should allow domains resolving to private IPs in development", async () => {
                 const originalEnv = process.env.NODE_ENV;
                 process.env.NODE_ENV = "development";
 
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockResolvedValue(["192.168.1.1"]);
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("No AAAA records"));
+                const mockLookup = vi
+                    .spyOn(dns, "lookup")
+                    .mockResolvedValue([{ address: "192.168.1.1", family: 4 }]);
 
                 await expect(service.validateAsync("https://internal.dev")).resolves.not.toThrow();
 
                 process.env.NODE_ENV = originalEnv;
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
         });
 
@@ -284,30 +284,26 @@ describe("WebhookUrlValidationService", () => {
                 const originalEnv = process.env.NODE_ENV;
                 process.env.NODE_ENV = "test";
 
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+                const mockLookup = vi.spyOn(dns, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
 
                 await expect(service.validateAsync("https://nonexistent.example")).resolves.not.toThrow();
 
                 process.env.NODE_ENV = originalEnv;
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
 
             it("should reject DNS resolution errors in production", async () => {
                 const originalEnv = process.env.NODE_ENV;
                 process.env.NODE_ENV = "production";
 
-                const mockResolve4 = vi.spyOn(dns, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
-                const mockResolve6 = vi.spyOn(dns, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+                const mockLookup = vi.spyOn(dns, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
 
                 await expect(service.validateAsync("https://nonexistent.example")).rejects.toThrow(
                     "Failed to resolve hostname"
                 );
 
                 process.env.NODE_ENV = originalEnv;
-                mockResolve4.mockRestore();
-                mockResolve6.mockRestore();
+                mockLookup.mockRestore();
             });
         });
 
