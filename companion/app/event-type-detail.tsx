@@ -2,7 +2,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Modal, Linking, Alert, Clipboard } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Switch,
+  Modal,
+  Linking,
+  Alert,
+  Clipboard,
+  Animated,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule } from "../services/calcom";
@@ -51,9 +64,34 @@ export default function EventTypeDetail() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
+  const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
+  const [showBeforeBufferDropdown, setShowBeforeBufferDropdown] = useState(false);
+  const [showAfterBufferDropdown, setShowAfterBufferDropdown] = useState(false);
+  const [minimumNoticeValue, setMinimumNoticeValue] = useState("1");
+  const [minimumNoticeUnit, setMinimumNoticeUnit] = useState("Hours");
+  const [showMinimumNoticeUnitDropdown, setShowMinimumNoticeUnitDropdown] = useState(false);
+  const [limitBookingFrequency, setLimitBookingFrequency] = useState(false);
+  const [frequencyLimits, setFrequencyLimits] = useState([{ id: 1, value: "1", unit: "Per day" }]);
+  const [showFrequencyUnitDropdown, setShowFrequencyUnitDropdown] = useState<number | null>(null);
+  const [frequencyAnimationValue] = useState(new Animated.Value(0));
 
   // TODO: get locations from API
   const locationOptions = ["Cal Video", "Google Meet"];
+  const bufferTimeOptions = [
+    "No buffer time",
+    "5 Minutes",
+    "10 Minutes",
+    "15 Minutes",
+    "20 Minutes",
+    "30 Minutes",
+    "45 Minutes",
+    "60 Minutes",
+    "90 Minutes",
+    "120 Minutes",
+  ];
+  const timeUnitOptions = ["Minutes", "Hours", "Days"];
+  const frequencyUnitOptions = ["Per day", "Per Month", "Per year"];
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -100,6 +138,31 @@ export default function EventTypeDetail() {
     if (!newSelected.includes(defaultDuration)) {
       setDefaultDuration("");
     }
+  };
+
+  const toggleBookingFrequency = (value: boolean) => {
+    setLimitBookingFrequency(value);
+
+    Animated.timing(frequencyAnimationValue, {
+      toValue: value ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const addFrequencyLimit = () => {
+    const newId = Math.max(...frequencyLimits.map((limit) => limit.id)) + 1;
+    setFrequencyLimits([...frequencyLimits, { id: newId, value: "1", unit: "Per day" }]);
+  };
+
+  const removeFrequencyLimit = (id: number) => {
+    setFrequencyLimits(frequencyLimits.filter((limit) => limit.id !== id));
+  };
+
+  const updateFrequencyLimit = (id: number, field: "value" | "unit", newValue: string) => {
+    setFrequencyLimits(
+      frequencyLimits.map((limit) => (limit.id === id ? { ...limit, [field]: newValue } : limit))
+    );
   };
 
   const fetchSchedules = async () => {
@@ -216,7 +279,7 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "preview";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      
+
       const supported = await Linking.canOpenURL(link);
       if (supported) {
         await Linking.openURL(link);
@@ -233,7 +296,7 @@ export default function EventTypeDetail() {
     try {
       const eventTypeSlug = eventSlug || "event-link";
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
-      
+
       await Clipboard.setStringAsync(link);
       Alert.alert("Success", "Link copied to clipboard");
     } catch (error) {
@@ -252,14 +315,14 @@ export default function EventTypeDetail() {
           try {
             console.log("Attempting to delete event type with ID:", id);
             const eventTypeId = parseInt(id);
-            
+
             if (isNaN(eventTypeId)) {
               throw new Error("Invalid event type ID");
             }
-            
+
             await CalComAPIService.deleteEventType(eventTypeId);
             console.log("Event type deleted successfully");
-            
+
             Alert.alert("Success", "Event type deleted successfully", [
               {
                 text: "OK",
@@ -590,6 +653,136 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Before Event Buffer Dropdown Modal */}
+          <Modal
+            visible={showBeforeBufferDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowBeforeBufferDropdown(false)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowBeforeBufferDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Before event buffer</Text>
+                {bufferTimeOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, beforeEventBuffer === option && styles.selectedOption]}
+                    onPress={() => {
+                      setBeforeEventBuffer(option);
+                      setShowBeforeBufferDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        beforeEventBuffer === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {beforeEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* After Event Buffer Dropdown Modal */}
+          <Modal
+            visible={showAfterBufferDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowAfterBufferDropdown(false)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowAfterBufferDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>After event buffer</Text>
+                {bufferTimeOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, afterEventBuffer === option && styles.selectedOption]}
+                    onPress={() => {
+                      setAfterEventBuffer(option);
+                      setShowAfterBufferDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        afterEventBuffer === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {afterEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Minimum Notice Unit Dropdown Modal */}
+          <Modal
+            visible={showMinimumNoticeUnitDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}>
+            <TouchableOpacity
+              style={styles.modalOverlay}
+              onPress={() => setShowMinimumNoticeUnitDropdown(false)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Time unit</Text>
+                {timeUnitOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[styles.dropdownOption, minimumNoticeUnit === option && styles.selectedOption]}
+                    onPress={() => {
+                      setMinimumNoticeUnit(option);
+                      setShowMinimumNoticeUnitDropdown(false);
+                    }}>
+                    <Text
+                      style={[
+                        styles.dropdownOptionText,
+                        minimumNoticeUnit === option && styles.selectedOptionText,
+                      ]}>
+                      {option}
+                    </Text>
+                    {minimumNoticeUnit === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Frequency Unit Dropdown Modal */}
+          <Modal
+            visible={showFrequencyUnitDropdown !== null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowFrequencyUnitDropdown(null)}>
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowFrequencyUnitDropdown(null)}>
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Frequency unit</Text>
+                {frequencyUnitOptions.map((option) => {
+                  const selectedLimit = frequencyLimits.find(
+                    (limit) => limit.id === showFrequencyUnitDropdown
+                  );
+                  const isSelected = selectedLimit?.unit === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      onPress={() => {
+                        if (showFrequencyUnitDropdown) {
+                          updateFrequencyLimit(showFrequencyUnitDropdown, "unit", option);
+                        }
+                        setShowFrequencyUnitDropdown(null);
+                      }}>
+                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
+                        {option}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {activeTab === "availability" && (
             <View style={styles.card}>
               <View style={styles.fieldGroup}>
@@ -640,9 +833,128 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "limits" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Event Limits</Text>
-              <Text style={styles.description}>Set booking limits and restrictions.</Text>
+            <View style={styles.basicsTabs}>
+              {/* Buffer Time Card */}
+              <View style={styles.card}>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Before event</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowBeforeBufferDropdown(true)}>
+                    <Text style={styles.dropdownText}>{beforeEventBuffer}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>After event</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowAfterBufferDropdown(true)}>
+                    <Text style={styles.dropdownText}>{afterEventBuffer}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Minimum Notice Card */}
+              <View style={styles.card}>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>Minimum Notice</Text>
+                  <View style={styles.durationInputContainer}>
+                    <TextInput
+                      style={styles.numberInput}
+                      value={minimumNoticeValue}
+                      onChangeText={(text) => {
+                        const numericValue = text.replace(/[^0-9]/g, "");
+                        const num = parseInt(numericValue) || 0;
+                        if (num >= 0) {
+                          setMinimumNoticeValue(numericValue || "0");
+                        }
+                      }}
+                      placeholder="1"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="numeric"
+                    />
+                    <TouchableOpacity
+                      style={styles.timeUnitDropdown}
+                      onPress={() => setShowMinimumNoticeUnitDropdown(true)}>
+                      <Text style={styles.dropdownText}>{minimumNoticeUnit}</Text>
+                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Booking Frequency Limit Card */}
+              <View style={styles.card}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLabelContainer}>
+                    <Text style={styles.switchLabel}>Limit booking frequency</Text>
+                    <Text style={styles.switchDescription}>
+                      Limit how many times this event can be booked.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={limitBookingFrequency}
+                    onValueChange={toggleBookingFrequency}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.frequencyLimitsSection,
+                    {
+                      opacity: frequencyAnimationValue,
+                      maxHeight: frequencyAnimationValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 500],
+                      }),
+                    },
+                  ]}>
+                  {limitBookingFrequency && (
+                    <>
+                      {frequencyLimits.map((limit, index) => (
+                        <View key={limit.id} style={styles.frequencyLimitRow}>
+                          <TextInput
+                            style={styles.numberInput}
+                            value={limit.value}
+                            onChangeText={(text) => {
+                              const numericValue = text.replace(/[^0-9]/g, "");
+                              const num = parseInt(numericValue) || 0;
+                              if (num >= 0) {
+                                updateFrequencyLimit(limit.id, "value", numericValue || "0");
+                              }
+                            }}
+                            placeholder="1"
+                            placeholderTextColor="#8E8E93"
+                            keyboardType="numeric"
+                          />
+                          <TouchableOpacity
+                            style={styles.timeUnitDropdown}
+                            onPress={() => setShowFrequencyUnitDropdown(limit.id)}>
+                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                          </TouchableOpacity>
+                          {frequencyLimits.length > 1 && (
+                            <TouchableOpacity
+                              style={styles.deleteButton}
+                              onPress={() => removeFrequencyLimit(limit.id)}>
+                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+                      <TouchableOpacity style={styles.addLimitButton} onPress={addFrequencyLimit}>
+                        <Ionicons name="add" size={20} color="#000" />
+                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </Animated.View>
+              </View>
             </View>
           )}
 
@@ -881,18 +1193,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
   },
-  switchContainer: {
+  timeUnitDropdown: {
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
+    minWidth: 100,
+  },
+  switchContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  switchLabelContainer: {
+    flex: 1,
+    marginRight: 16,
   },
   switchLabel: {
     fontSize: 16,
     color: "#333",
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  switchDescription: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+  },
+  frequencyLimitsSection: {
+    overflow: "hidden",
+  },
+  frequencyLimitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    gap: 12,
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFF1F0",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FFCCC7",
+  },
+  addLimitButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#000",
+    borderRadius: 8,
+    gap: 8,
+  },
+  addLimitButtonText: {
+    fontSize: 16,
+    color: "#000",
     fontWeight: "500",
   },
   dropdownButton: {
@@ -1035,7 +1402,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 180,
-    paddingBottom: 100, // Add bottom padding for action bar
+    paddingBottom: 250, // Add bottom padding for action bar
   },
   bottomActionBar: {
     position: "absolute",
@@ -1081,6 +1448,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 150,
   },
   card: {
     backgroundColor: "#fff",
