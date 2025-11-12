@@ -9,8 +9,7 @@ import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient, Prisma } from "@calcom/prisma/client";
 import {
   MembershipRole,
   TimeUnit,
@@ -88,8 +87,10 @@ const includedFields = {
 export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });
 
-  static async getById({ id }: TGetInputSchema) {
-    return await prisma.workflow.findUnique({
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  async getById({ id }: TGetInputSchema) {
+    return await this.prismaClient.workflow.findUnique({
       where: {
         id,
       },
@@ -140,14 +141,14 @@ export class WorkflowRepository {
     });
   }
 
-  static async getVerifiedNumbers({
+  async getVerifiedNumbers({
     userId,
     teamId,
   }: TGetVerifiedNumbersInputSchema & { userId: number | null }) {
     if (!userId) {
       throw new Error("User Id not found");
     }
-    const verifiedNumbers = await prisma.verifiedNumber.findMany({
+    const verifiedNumbers = await this.prismaClient.verifiedNumber.findMany({
       where: {
         OR: [{ userId }, { teamId }],
       },
@@ -156,7 +157,7 @@ export class WorkflowRepository {
     return verifiedNumbers;
   }
 
-  static async getVerifiedEmails({
+  async getVerifiedEmails({
     userEmail,
     userId,
     teamId,
@@ -170,7 +171,7 @@ export class WorkflowRepository {
 
     let verifiedEmails: string[] = [userEmail];
 
-    const secondaryEmails = await prisma.secondaryEmail.findMany({
+    const secondaryEmails = await this.prismaClient.secondaryEmail.findMany({
       where: {
         userId,
         emailVerified: {
@@ -180,7 +181,7 @@ export class WorkflowRepository {
     });
     verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
     if (teamId) {
-      const teamMembers = await prisma.user.findMany({
+      const teamMembers = await this.prismaClient.user.findMany({
         where: {
           teams: {
             some: {
@@ -225,7 +226,7 @@ export class WorkflowRepository {
     }
 
     const emails = (
-      await prisma.verifiedEmail.findMany({
+      await this.prismaClient.verifiedEmail.findMany({
         where: {
           OR: [{ userId }, { teamId }],
         },
@@ -237,12 +238,12 @@ export class WorkflowRepository {
     return verifiedEmails;
   }
 
-  static async getFilteredList({ userId, input }: { userId?: number; input: TFilteredListInputSchema }) {
+  async getFilteredList({ userId, input }: { userId?: number; input: TFilteredListInputSchema }) {
     const filters = input?.filters;
 
     const filtered = filters && hasFilter(filters);
 
-    const allWorkflows = await prisma.workflow.findMany({
+    const allWorkflows = await this.prismaClient.workflow.findMany({
       where: {
         OR: [
           {
@@ -316,7 +317,7 @@ export class WorkflowRepository {
         });
       }
 
-      const filteredWorkflows = await prisma.workflow.findMany({
+      const filteredWorkflows = await this.prismaClient.workflow.findMany({
         where,
         include: includedFields,
         orderBy: {
@@ -338,7 +339,7 @@ export class WorkflowRepository {
       };
     }
   }
-  static async getRemindersFromRemovedTeams(
+  async getRemindersFromRemovedTeams(
     removedTeams: number[],
     workflowSteps: WorkflowStep[],
     activeOn?: number[]
@@ -352,7 +353,7 @@ export class WorkflowRepository {
     >[] = [];
 
     removedTeams.forEach((teamId) => {
-      const reminderToDelete = prisma.workflowReminder.findMany({
+      const reminderToDelete = this.prismaClient.workflowReminder.findMany({
         where: {
           OR: [
             {
@@ -414,7 +415,7 @@ export class WorkflowRepository {
     return remindersToDelete;
   }
 
-  static async getActiveOnEventTypeIds({
+  async getActiveOnEventTypeIds({
     workflowId,
     userId,
     teamId,
@@ -423,7 +424,7 @@ export class WorkflowRepository {
     userId: number;
     teamId?: number | null;
   }) {
-    const workflow = await prisma.workflow.findFirst({
+    const workflow = await this.prismaClient.workflow.findFirst({
       where: {
         id: workflowId,
         userId,
@@ -448,7 +449,7 @@ export class WorkflowRepository {
     return workflow.activeOn.map((active) => active.eventTypeId);
   }
 
-  static async deleteAllWorkflowReminders(
+  async deleteAllWorkflowReminders(
     remindersToDelete:
       | {
           id: number;
@@ -484,8 +485,8 @@ export class WorkflowRepository {
     });
   }
 
-  static async findUniqueForUpdate(id: number) {
-    return await prisma.workflow.findUnique({
+  async findUniqueForUpdate(id: number) {
+    return await this.prismaClient.workflow.findUnique({
       where: { id },
       select: {
         id: true,
@@ -513,7 +514,7 @@ export class WorkflowRepository {
     });
   }
 
-  static async updateWorkflow(
+  async updateWorkflow(
     id: number,
     data: {
       name: string;
@@ -524,7 +525,7 @@ export class WorkflowRepository {
     }
   ) {
     const type = getWorkflowType(data.trigger);
-    return await prisma.workflow.update({
+    return await this.prismaClient.workflow.update({
       where: { id },
       data: {
         ...data,
@@ -533,8 +534,8 @@ export class WorkflowRepository {
     });
   }
 
-  static async findUniqueWithRelations(id: number) {
-    return await prisma.workflow.findUnique({
+  async findUniqueWithRelations(id: number) {
+    return await this.prismaClient.workflow.findUnique({
       where: { id },
       include: {
         activeOn: {
@@ -575,7 +576,7 @@ export class WorkflowRepository {
     });
   }
 
-  static async findActiveOrgWorkflows({
+  async findActiveOrgWorkflows({
     orgId,
     userId,
     teamId,
@@ -586,7 +587,7 @@ export class WorkflowRepository {
     teamId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    return await this.prismaClient.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         team: {
@@ -647,7 +648,7 @@ export class WorkflowRepository {
     });
   }
 
-  static async findTeamWorkflows({
+  async findTeamWorkflows({
     teamId,
     userId,
     excludeFormTriggers,
@@ -656,7 +657,7 @@ export class WorkflowRepository {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    return await this.prismaClient.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         team: {
@@ -702,14 +703,14 @@ export class WorkflowRepository {
     });
   }
 
-  static async findUserWorkflows({
+  async findUserWorkflows({
     userId,
     excludeFormTriggers,
   }: {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    return await this.prismaClient.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         userId,
@@ -747,14 +748,14 @@ export class WorkflowRepository {
     });
   }
 
-  static async findAllWorkflows({
+  async findAllWorkflows({
     userId,
     excludeFormTriggers,
   }: {
     userId: number;
     excludeFormTriggers: boolean;
   }) {
-    return await prisma.workflow.findMany({
+    return await this.prismaClient.workflow.findMany({
       where: {
         ...(excludeFormTriggers ? excludeFormTriggersWhereClause : {}),
         OR: [
@@ -804,8 +805,8 @@ export class WorkflowRepository {
     });
   }
 
-  static async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
-    return await prisma.workflow.findMany({
+  async findWorkflowsActiveOnRoutingForm({ routingFormId }: { routingFormId: string }) {
+    return await this.prismaClient.workflow.findMany({
       where: {
         activeOnRoutingForms: {
           some: {
@@ -833,8 +834,8 @@ export class WorkflowRepository {
     });
   }
 
-  static async findActiveWorkflowsOnTeam({ parentTeamId, teamId }: { parentTeamId: number; teamId: number }) {
-    return await prisma.workflow.findMany({
+  async findActiveWorkflowsOnTeam({ parentTeamId, teamId }: { parentTeamId: number; teamId: number }) {
+    return await this.prismaClient.workflow.findMany({
       where: {
         teamId: parentTeamId,
         OR: [
