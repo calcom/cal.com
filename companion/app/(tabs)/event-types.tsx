@@ -258,11 +258,10 @@ export default function EventTypes() {
     const duration = getDuration(item);
 
     return (
-      <TouchableOpacity 
-        style={styles.listItem} 
+      <TouchableOpacity
+        style={styles.listItem}
         onPress={() => handleEventTypePress(item)}
-        onLongPress={() => handleEventTypeLongPress(item)}
-      >
+        onLongPress={() => handleEventTypeLongPress(item)}>
         <View style={styles.listItemContent}>
           <View style={styles.listItemMain}>
             <Text style={styles.listItemTitle}>{item.title}</Text>
@@ -382,6 +381,7 @@ export default function EventTypes() {
           clearButtonMode="while-editing"
         />
         <TouchableOpacity style={styles.newButton} onPress={handleCreateNew}>
+          <Ionicons name="add" size={18} color="#fff" />
           <Text style={styles.newButtonText}>New</Text>
         </TouchableOpacity>
       </View>
@@ -425,13 +425,15 @@ const styles = StyleSheet.create({
     borderColor: "#E5E5EA",
   },
   newButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
     backgroundColor: "#000000",
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 8,
     minWidth: 60,
-    alignItems: "center",
-    justifyContent: "center",
   },
   newButtonText: {
     color: "#fff",

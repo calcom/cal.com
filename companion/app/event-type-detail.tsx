@@ -172,7 +172,7 @@ export default function EventTypeDetail() {
 
   const toggleTotalDuration = (value: boolean) => {
     setLimitTotalDuration(value);
-    
+
     Animated.timing(durationAnimationValue, {
       toValue: value ? 1 : 0,
       duration: 300,
@@ -181,12 +181,12 @@ export default function EventTypeDetail() {
   };
 
   const addDurationLimit = () => {
-    const newId = Math.max(...durationLimits.map(limit => limit.id)) + 1;
+    const newId = Math.max(...durationLimits.map((limit) => limit.id)) + 1;
     setDurationLimits([...durationLimits, { id: newId, value: "60", unit: "Per day" }]);
   };
 
   const removeDurationLimit = (id: number) => {
-    setDurationLimits(durationLimits.filter(limit => limit.id !== id));
+    setDurationLimits(durationLimits.filter((limit) => limit.id !== id));
   };
 
   const updateDurationLimit = (id: number, field: "value" | "unit", newValue: string) => {
@@ -823,7 +823,7 @@ export default function EventTypeDetail() {
               <View style={styles.dropdownModal}>
                 <Text style={styles.modalTitle}>Duration unit</Text>
                 {durationUnitOptions.map((option) => {
-                  const selectedLimit = durationLimits.find(limit => limit.id === showDurationUnitDropdown);
+                  const selectedLimit = durationLimits.find((limit) => limit.id === showDurationUnitDropdown);
                   const isSelected = selectedLimit?.unit === option;
                   return (
                     <TouchableOpacity
@@ -831,15 +831,11 @@ export default function EventTypeDetail() {
                       style={[styles.dropdownOption, isSelected && styles.selectedOption]}
                       onPress={() => {
                         if (showDurationUnitDropdown) {
-                          updateDurationLimit(showDurationUnitDropdown, 'unit', option);
+                          updateDurationLimit(showDurationUnitDropdown, "unit", option);
                         }
                         setShowDurationUnitDropdown(null);
                       }}>
-                      <Text
-                        style={[
-                          styles.dropdownOptionText,
-                          isSelected && styles.selectedOptionText,
-                        ]}>
+                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
                         {option}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -1211,7 +1207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: "#000000",
-    borderRadius: 16,
+    borderRadius: 10,
     minWidth: 60,
     alignItems: "center",
   },
