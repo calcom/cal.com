@@ -304,11 +304,6 @@ const WebhookForm = (props: {
   );
   const hasTime = !!time && !!timeUnit;
   const hasUrl = !!subscriberUrl;
-
-  const canSubmit = isCreating
-    ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
-    : formMethods.formState.isDirty || changeSecret;
-
   const showTimeSection = needsTime;
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(
@@ -340,6 +335,10 @@ const WebhookForm = (props: {
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
+
+  const canSubmit = isCreating
+    ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
+    : formMethods.formState.isDirty || changeSecret;
 
   useEffect(() => {
     if (changeSecret) {
