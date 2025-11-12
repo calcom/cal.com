@@ -13,6 +13,7 @@ import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.ser
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
@@ -108,6 +109,7 @@ import { Module } from "@nestjs/common";
   ],
   providers: [
     OrganizationsRepository,
+    OrganizationMembershipService,
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
@@ -200,4 +202,4 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesPrivateLinksController,
   ],
 })
-export class OrganizationsModule {}
+export class OrganizationsModule { }
