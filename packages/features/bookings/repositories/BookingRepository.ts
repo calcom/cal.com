@@ -1436,6 +1436,9 @@ export class BookingRepository {
           select: {
             uid: true,
             type: true,
+            meetingUrl: true,
+            meetingId: true,
+            meetingPassword: true,
             externalCalendarId: true,
             credentialId: true,
             thirdPartyRecurringEventId: true,

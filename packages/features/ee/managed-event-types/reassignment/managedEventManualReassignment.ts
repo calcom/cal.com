@@ -226,8 +226,7 @@ export async function managedEventManualReassignment({
 
   const newEventManager = new EventManager(newUserWithCredentials, apps);
 
-  // Determine the proper location and conferenceCredentialId for the new event type
-  let bookingLocation = newBooking.location || null;
+  let bookingLocation = originalBookingFull.location || newBooking.location || null;
   let conferenceCredentialId: number | null = null;
 
   const locationResult = BookingLocationService.getLocationForHost({
@@ -327,7 +326,6 @@ export async function managedEventManualReassignment({
       }
     }
     
-    // Extract videoCallUrl from evt.videoCallData first (Cal Video, Teams, etc.)
     videoCallUrl = evt.videoCallData?.url ?? null;
 
     // Extract additional information from calendar creation results
@@ -339,10 +337,10 @@ export async function managedEventManualReassignment({
       additionalInformation.entryPoints = createdEvent?.entryPoints;
       evt.additionalInformation = additionalInformation;
 
-      // Build videoCallUrl with fallback chain
       videoCallUrl =
         additionalInformation.hangoutLink ||
         createdEvent?.url ||
+        getVideoCallUrlFromCalEvent(evt) ||
         videoCallUrl;
     }
 
@@ -358,10 +356,9 @@ export async function managedEventManualReassignment({
         },
       };
 
-      // Update booking metadata with video call URL for success page display
-      // This matches the pattern used in RegularBookingService
-      const bookingMetadataUpdate = videoCallUrl
-        ? { videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl }
+      const finalVideoCallUrlForMetadata = videoCallUrl ? (getVideoCallUrlFromCalEvent(evt) || videoCallUrl) : null;
+      const bookingMetadataUpdate = finalVideoCallUrlForMetadata
+        ? { videoCallUrl: finalVideoCallUrlForMetadata }
         : {};
 
       const referencesToCreateForDb = referencesToCreate.map((reference) => {
@@ -376,16 +373,13 @@ export async function managedEventManualReassignment({
         where: { id: newBooking.id },
         data: {
           location: bookingLocation,
-          metadata: {
-            ...(typeof newBooking.metadata === "object" && newBooking.metadata ? newBooking.metadata : {}),
-            ...bookingMetadataUpdate,
-          },
+          metadata: bookingMetadataUpdate.videoCallUrl ? { videoCallUrl: bookingMetadataUpdate.videoCallUrl } : {},
           referencesToCreate: referencesToCreateForDb,
           responses,
           iCalSequence: (newBooking.iCalSequence || 0) + 1,
         },
       });
-      
+
       reassignLogger.info("Updated booking location and created calendar references", {
         location: bookingLocation,
         referencesCount: referencesToCreate.length,
@@ -570,8 +564,6 @@ export async function managedEventManualReassignment({
   } catch (error) {
     reassignLogger.error("Error recording assignment reason", error);
   }
-
-  // TODO: Send webhook event BOOKING_REASSIGNED
 
   reassignLogger.info("Reassignment completed successfully", {
     originalBookingId: cancelledBooking.id,
