@@ -28,7 +28,7 @@ export function ChartCard({
   isPending,
   isError,
   ...panelCardProps
-}: PanelCardProps & {
+}: Omit<PanelCardProps, 'children'> & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
   enabledLegend?: Array<LegendItem>;
@@ -36,6 +36,7 @@ export function ChartCard({
   loadingState?: ChartLoadingState;
   isPending?: boolean;
   isError?: boolean;
+  children?: ReactNode;
 }) {
   const legendComponent =
     legend && legend.length > 0 ? (
