@@ -341,6 +341,13 @@ const WebhookForm = (props: {
     : formMethods.formState.isDirty || changeSecret;
 
   useEffect(() => {
+    if (isCreating && needsTime && !time && !timeUnit) {
+      formMethods.setValue("time", 5, { shouldDirty: true });
+      formMethods.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
+    }
+  }, [isCreating, needsTime, time, timeUnit, formMethods]);
+
+  useEffect(() => {
     if (changeSecret) {
       formMethods.unregister("secret", { keepDefaultValue: false });
     }
