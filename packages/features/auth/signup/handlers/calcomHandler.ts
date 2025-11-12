@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
+import type { NextApiRequest } from "next";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
@@ -215,7 +216,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     }
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      language: await getLocaleFromRequest(
+        buildLegacyRequest(await headers(), await cookies()) as unknown as NextApiRequest
+      ),
       username: username || "",
     });
   }
