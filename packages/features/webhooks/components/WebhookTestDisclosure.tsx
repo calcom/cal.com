@@ -72,10 +72,7 @@ export default function WebhookTestDisclosure() {
           {mutation.status === "success" && mutation.data && (
             <div className="space-y-2">
               <div>
-                <span className="text-subtle">Status:</span> <span className="text-emphasis">{mutation.data.status}</span>
-              </div>
-              <div>
-                <span className="text-subtle">OK:</span> <span className="text-emphasis">{mutation.data.ok ? "true" : "false"}</span>
+                <span className="text-subtle">{t("status")}:</span> <span className="text-emphasis">{mutation.data.status}</span>
               </div>
             </div>
           )}

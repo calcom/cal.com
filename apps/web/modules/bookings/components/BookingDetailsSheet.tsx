@@ -26,6 +26,9 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 
+import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
+import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
+import type { BookingListingStatus } from "../../../components/booking/types";
 import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
 
@@ -37,25 +40,42 @@ interface BookingDetailsSheetProps {
   onClose: () => void;
   userTimeZone?: string;
   userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
   onPrevious?: () => void;
   hasPrevious?: boolean;
   onNext?: () => void;
   hasNext?: boolean;
 }
 
-export function BookingDetailsSheet({
+interface BookingDetailsSheetInnerProps extends Omit<BookingDetailsSheetProps, "booking"> {
+  booking: BookingOutput;
+}
+
+export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
+  if (!props.booking) return null;
+
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner {...props} booking={props.booking} />
+    </BookingActionsStoreProvider>
+  );
+}
+
+function BookingDetailsSheetInner({
   booking,
   isOpen,
   onClose,
   userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
   onPrevious,
   hasPrevious = false,
   onNext,
   hasNext = false,
-}: BookingDetailsSheetProps) {
+}: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
-
-  if (!booking) return null;
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
@@ -210,6 +230,22 @@ export function BookingDetailsSheet({
             <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
               {t("view")}
             </Button>
+            <BookingActionsDropdown
+              context="booking-details-sheet"
+              size="sm"
+              booking={{
+                ...booking,
+                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                recurringInfo: undefined,
+                loggedInUser: {
+                  userId,
+                  userTimeZone,
+                  userTimeFormat: userTimeFormat ?? null,
+                  userEmail,
+                },
+                isToday: false,
+              }}
+            />
           </div>
         </SheetFooter>
       </SheetContent>

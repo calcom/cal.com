@@ -42,8 +42,7 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
   try {
     const webhook = { subscriberUrl: url, appId: null, payloadTemplate };
     return await sendPayload(secret, type, new Date().toISOString(), webhook, data);
-  } catch (_err) {
-    // SECURITY: Return only status information, no error details to prevent information disclosure
+  } catch {
     return {
       ok: false,
       status: 500,
