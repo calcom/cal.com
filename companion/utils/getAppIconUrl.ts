@@ -36,6 +36,7 @@ const APP_TYPE_TO_DIR_NAME: Record<string, string> = {
   skype_video: "skype",
   signal_video: "signal",
   sirius_video: "sirius_video",
+  sirius_video_video: "sirius_video", // Handle double _video suffix
   salesroom_video: "salesroom",
 };
 
@@ -105,9 +106,16 @@ export function getAppIconUrl(type: string, appId: string | null): string | null
     return null;
   }
 
-  // Special case: Google Meet uses logo.webp instead of icon.svg
+  // Special cases for icon file names
   if (appId === "google-meet" || type === "google_video") {
+    // Google Meet uses logo.webp instead of icon.svg
     iconFileName = "logo.webp";
+  } else if (appId === "riverside" || type === "riverside_video") {
+    // Riverside uses icon-dark.svg
+    iconFileName = "icon-dark.svg";
+  } else if (appId === "sirius_video" || type === "sirius_video" || type === "sirius_video_video") {
+    // Sirius Video uses icon-dark.svg
+    iconFileName = "icon-dark.svg";
   }
 
   return `https://app.cal.com/app-store/${dirName}/${iconFileName}`;
