@@ -261,6 +261,7 @@ const AllAttendeesDropdown = ({
                       color="minimal"
                       StartIcon={attendee.noShow ? "eye" : "eye-off"}
                       className="px-1.5"
+                      data-testid={attendee.noShow ? "unmark-no-show" : "mark-no-show"}
                       tooltip={attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
                       onClick={(e) => {
                         e.stopPropagation();
