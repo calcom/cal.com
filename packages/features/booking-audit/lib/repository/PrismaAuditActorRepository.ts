@@ -25,5 +25,39 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
 
         return actor;
     }
+
+    async upsertUserActor(userUuid: string) {
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { userUuid },
+            create: {
+                type: "USER",
+                userUuid,
+            },
+            update: {},
+        });
+    }
+
+    async upsertGuestActor(email: string, name?: string, phone?: string) {
+        return this.deps.prismaClient.auditActor.upsert({
+            where: { email },
+            create: {
+                type: "GUEST",
+                email,
+                name,
+                phone,
+            },
+            update: {
+                name,
+                phone,
+            },
+        });
+    }
+
+    async findByAttendeeId(attendeeId: number) {
+        return this.deps.prismaClient.auditActor.findUnique({
+            where: { attendeeId },
+        });
+    }
+
 }
 

@@ -21,4 +21,3 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
         });
     }
 }
-
