@@ -1,3 +1,5 @@
+import { Unkey } from "@unkey/api";
+import { HTTPClient } from "@unkey/api/dist/esm/lib/http";
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
@@ -19,6 +21,24 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
+
+const httpClient = new HTTPClient();
+
+httpClient.addHook("beforeRequest", (request) => {
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(request.headers)) {
+    headers[key] = value;
+  }
+  console.log(`[UNKEY_DEBUG_MIDDLEWARE] Before request ${request.url}`, JSON.stringify(headers));
+
+  return request;
+});
+
+const unkey = new Unkey({
+  rootKey: process.env.UNKEY_ROOT_KEY,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  httpClient: httpClient as any, // cause we import from dist/esm
+});
 
 export const POST_METHODS_ALLOWED_API_ROUTES = [
   "/api/auth/forgot-password",
@@ -97,6 +117,20 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const unkeyRes = await unkey.ratelimit.limit({
+    namespace: "common",
+    identifier: "debugging-middleare",
+    limit: 10,
+    duration: 60_000,
+  });
+
+  console.log("[UNKEY_MIDDLEWARE_DEBUG]", JSON.stringify(unkeyRes));
+
+  if (!unkeyRes.data.success) {
+    console.log("Rate limit exceeded");
+    return new NextResponse("Rate limit exceeded", { status: 429 });
+  }
+
   const requestorIp = getIP(req);
   try {
     await checkRateLimitAndThrowError({
