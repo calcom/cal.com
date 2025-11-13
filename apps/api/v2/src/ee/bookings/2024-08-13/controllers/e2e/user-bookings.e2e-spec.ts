@@ -2389,30 +2389,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
       let oldBookingUid: string;
       let newBookingUid: string;
 
-      const RESCHEDULE_REASON = "Flying to mars that day";
-      const RESCHEDULED_BY = `user-bookings-rescheduler-${randomString(10)}@api.com`;
+      const RESCHEDULE_REASON = "Flying to venus that day";
+      const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(10)}@api.com`;
 
       it("should create a booking to be rescheduled", async () => {
-        const email = `user-bookings-attendee-${randomString(10)}@gmail.com`;
-        const username = `user-bookings-attendee-${randomString(10)}`;
+        const email = `user-venus-bookings-attendee-${randomString(10)}@gmail.com`;
+        const username = `user-venus-bookings-attendee-${randomString(10)}`;
         const locale = "it";
         const timeZone = "Europe/Rome";
-        const user = await userRepositoryFixture.create({
-          email,
-          username,
-          locale,
-          timeZone,
-        });
-
-        const userSchedule: CreateScheduleInput_2024_04_15 = {
-          name: `user-bookings-2024-08-13-schedule-${randomString()}`,
-          timeZone,
-          isDefault: true,
-        };
-        await schedulesService.createUserSchedule(user.id, userSchedule);
 
         const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2060, 0, 9, 11, 0, 0)).toISOString(),
+          start: new Date(Date.UTC(2040, 1, 9, 10, 0, 0)).toISOString(),
           eventTypeId,
           attendee: {
             name: username,
@@ -2420,7 +2407,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone,
             language: locale,
           },
-          location: "https://meet.google.com/abc-def-ghi",
+          location: "https://meet.google.com/oj12u83128u9312ou3",
         };
 
         const bookingResponse = await request(app.getHttpServer())
@@ -2437,13 +2424,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
           oldBookingUid = created.uid;
           expect(oldBookingUid).toBeDefined();
         } else {
-          throw new Error("Invalid response data");
+          throw new Error("should create a booking to be rescheduled - Invalid response data");
         }
       });
 
       it("should reschedule", async () => {
         const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2060, 0, 9, 14, 0, 0)).toISOString(),
+          start: new Date(Date.UTC(2040, 1, 9, 12, 0, 0)).toISOString(),
           reschedulingReason: RESCHEDULE_REASON,
           rescheduledBy: RESCHEDULED_BY,
         };
@@ -2462,7 +2449,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
             expect(data.start).toEqual(body.start);
-            expect(data.end).toEqual(new Date(Date.UTC(2060, 0, 9, 15, 0, 0)).toISOString());
+            expect(data.end).toEqual(new Date(Date.UTC(2040, 1, 9, 12, 0, 0)).toISOString());
             expect(data.rescheduledFromUid).toEqual(oldBookingUid);
             expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
             newBookingUid = data.uid;
