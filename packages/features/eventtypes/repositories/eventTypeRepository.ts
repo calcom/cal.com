@@ -1527,4 +1527,80 @@ export class EventTypeRepository {
       },
     });
   }
+
+  /**
+   * Finds an event type by ID with its parent relationship
+   * @param eventTypeId - The event type ID
+   * @returns Event type with parent ID and user ID or null
+   */
+  async findByIdWithParent(eventTypeId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+      },
+    });
+  }
+
+  /**
+   * Finds all child event types for a parent, optionally excluding a specific user
+   * @param parentId - The parent event type ID
+   * @param excludeUserId - Optional user ID to exclude
+   * @returns Array of child event types with ID and userId
+   */
+  async findManyChildEventTypes(parentId: number, excludeUserId?: number | null) {
+    return this.prismaClient.eventType.findMany({
+      where: {
+        parentId,
+        ...(excludeUserId !== undefined ? { userId: { not: excludeUserId } } : {}),
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+  }
+
+  /**
+   * Finds event types with pagination and returns total count
+   * Efficient alternative to separate count() and findMany() calls
+   * @param params - Query parameters including where, skip, take, orderBy
+   * @returns Object with eventTypes array and total count
+   */
+  async findManyWithPagination(params: {
+    where: Prisma.EventTypeWhereInput;
+    skip: number;
+    take: number;
+    orderBy?: Prisma.EventTypeOrderByWithRelationInput;
+  }) {
+    const [eventTypes, total] = await Promise.all([
+      this.prismaClient.eventType.findMany({
+        where: params.where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: params.orderBy,
+      }),
+      this.prismaClient.eventType.count({ where: params.where }),
+    ]);
+
+    return { eventTypes, total };
+  }
+
+  /**
+   * Finds an event type by ID with minimal data for target search operations
+   * @param eventTypeId - The event type ID
+   * @returns Event type with id, parentId, and userId or null
+   */
+  async findByIdForTargetSearch(eventTypeId: number) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+      },
+    });
+  }
 }

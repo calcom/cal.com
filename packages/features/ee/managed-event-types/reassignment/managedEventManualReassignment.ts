@@ -10,6 +10,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
@@ -124,28 +125,11 @@ export async function managedEventManualReassignment({
     reassignedById,
   });
 
-  // Execute the reassignment in a transaction (cancel + create)
-  const { newBooking, cancelledBooking } = await prisma.$transaction(async (tx) => {
-
-    const cancelled = await tx.booking.update({
-      where: originalBookingCancellationData.where,
-      data: originalBookingCancellationData.data,
-      select: originalBookingCancellationData.select,
-    });
-
-    const created = await tx.booking.create({
-      data: newBookingData,
-      include: {
-        user: true,
-        attendees: true,
-        payment: true,
-        references: true,
-        eventType: true,
-      },
-    });
-
-
-    return { newBooking: created, cancelledBooking: cancelled };
+  // Execute the reassignment in a transaction (cancel + create) using repository
+  const { newBooking, cancelledBooking } = await bookingRepository.reassignBooking({
+    originalBookingId: originalBookingFull.id,
+    cancellationData: originalBookingCancellationData,
+    newBookingData,
   });
 
   reassignLogger.info("Booking duplication completed", {
@@ -220,52 +204,72 @@ export async function managedEventManualReassignment({
   let videoCallData: CalendarEvent["videoCallData"] = undefined;
   const additionalInformation: AdditionalInformation = {};
   try {
-    const evt: CalendarEvent = {
-      organizer: {
+    // Build CalendarEvent using CalendarEventBuilder
+    const bookerUrl = await getBookerBaseUrl(targetEventTypeDetails.team?.parentId ?? null);
+    
+    const attendees = newBooking.attendees.map((att: { name: string; email: string; timeZone: string; locale: string | null }) => ({
+      name: att.name,
+      email: att.email,
+      timeZone: att.timeZone,
+      language: { translate: newUserT, locale: att.locale ?? "en" },
+    }));
+    
+    const builder = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl,
+        title: newBooking.title,
+        startTime: dayjs(newBooking.startTime).utc().format(),
+        endTime: dayjs(newBooking.endTime).utc().format(),
+        additionalNotes: newBooking.description || undefined,
+      })
+      .withEventType({
+        id: targetEventTypeDetails.id,
+        slug: targetEventTypeDetails.slug,
+        description: newBooking.description,
+        hideOrganizerEmail: targetEventTypeDetails.hideOrganizerEmail,
+      })
+      .withOrganizer({
         id: newUser.id,
-        name: newUser.name || "",
+        name: newUser.name,
         email: newUser.email,
         timeZone: newUser.timeZone,
         language: { translate: newUserT, locale: newUser.locale ?? "en" },
-      },
-      startTime: dayjs(newBooking.startTime).utc().format(),
-      endTime: dayjs(newBooking.endTime).utc().format(),
-      title: newBooking.title,
-      type: targetEventTypeDetails.slug,
-      uid: newBooking.uid,
-      iCalUID: newBooking.iCalUID,
-      destinationCalendar: newUser.destinationCalendar ? [newUser.destinationCalendar] : [],
-      attendees: newBooking.attendees.map((att: {
-        name: string;
-        email: string;
-        timeZone: string;
-        locale: string | null;
-      }) => ({
-        name: att.name,
-        email: att.email,
-        timeZone: att.timeZone,
-        language: { translate: newUserT, locale: att.locale ?? "en" },
-      })),
-      team: targetEventTypeDetails.team
-        ? {
-            members: [
-              {
-                id: newUser.id,
-                email: newUser.email,
-                name: newUser.name || "",
-                timeZone: newUser.timeZone,
-                language: { translate: newUserT, locale: newUser.locale ?? "en" },
-              },
-            ],
-            name: targetEventTypeDetails.team.name || "",
-            id: targetEventTypeDetails.team.id || 0,
-          }
-        : undefined,
-      location: bookingLocation || undefined,
-      description: newBooking.description || undefined,
-      hideOrganizerEmail: targetEventTypeDetails.hideOrganizerEmail,
-      conferenceCredentialId: conferenceCredentialId ?? undefined,
-    };
+      })
+      .withAttendees(attendees)
+      .withLocation({
+        location: bookingLocation || undefined,
+        conferenceCredentialId: conferenceCredentialId ?? undefined,
+      })
+      .withIdentifiers({
+        iCalUID: newBooking.iCalUID || undefined,
+      })
+      .withUid(newBooking.uid);
+
+    if (newUser.destinationCalendar) {
+      builder.withDestinationCalendar([newUser.destinationCalendar]);
+    }
+
+    if (targetEventTypeDetails.team) {
+      builder.withTeam({
+        id: targetEventTypeDetails.team.id || 0,
+        name: targetEventTypeDetails.team.name || "",
+        members: [
+          {
+            id: newUser.id,
+            name: newUser.name || "",
+            email: newUser.email,
+            timeZone: newUser.timeZone,
+            language: { translate: newUserT, locale: newUser.locale ?? "en" },
+          },
+        ],
+      });
+    }
+
+    const evt = builder.build();
+    
+    if (!evt) {
+      throw new Error("Failed to build CalendarEvent");
+    }
 
     const createManager = await newEventManager.create(evt);
     const results = createManager.results || [];
@@ -437,33 +441,57 @@ export async function managedEventManualReassignment({
   if (emailsEnabled) {
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
+      
+      // Build CalendarEvent for emails using CalendarEventBuilder
+      const bookerUrlForEmail = await getBookerBaseUrl(targetEventTypeDetails.team?.parentId ?? null);
+      
+      const attendeesForEmail = newBooking.attendees.map((att: { name: string; email: string; timeZone: string; locale: string | null }) => ({
+        name: att.name,
+        email: att.email,
+        timeZone: att.timeZone,
+        language: { translate: newUserT, locale: att.locale ?? "en" },
+      }));
 
-      const calEvent: CalendarEvent = {
-        type: targetEventTypeDetails.slug,
-        uid: newBooking.uid,
-        title: newBooking.title,
-        startTime: dayjs(newBooking.startTime).utc().format(),
-        endTime: dayjs(newBooking.endTime).utc().format(),
-        organizer: {
+      const emailBuilder = new CalendarEventBuilder()
+        .withBasicDetails({
+          bookerUrl: bookerUrlForEmail,
+          title: newBooking.title,
+          startTime: dayjs(newBooking.startTime).utc().format(),
+          endTime: dayjs(newBooking.endTime).utc().format(),
+          additionalNotes: newBooking.description || undefined,
+        })
+        .withEventType({
+          id: targetEventTypeDetails.id,
+          slug: targetEventTypeDetails.slug,
+          description: newBooking.description,
+        })
+        .withOrganizer({
           id: newUser.id,
-          name: newUser.name || "",
+          name: newUser.name,
           email: newUser.email,
           timeZone: newUser.timeZone,
-          language: { translate: newUserT, locale: newUser.locale ?? "en" },
           timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
-        },
-        attendees: newBooking.attendees.map((att) => ({
-          name: att.name,
-          email: att.email,
-          timeZone: att.timeZone,
-          language: { translate: newUserT, locale: att.locale ?? "en" },
-        })),
-        location: bookingLocation || undefined,
-        description: newBooking.description || undefined,
-        videoCallData,
-        additionalInformation,
-        schedulingType: null,
-      };
+          language: { translate: newUserT, locale: newUser.locale ?? "en" },
+        })
+        .withAttendees(attendeesForEmail)
+        .withLocation({
+          location: bookingLocation || undefined,
+        })
+        .withUid(newBooking.uid);
+
+      if (videoCallData) {
+        emailBuilder.withVideoCallData(videoCallData);
+      }
+
+      const calEvent = emailBuilder.build();
+      
+      if (!calEvent) {
+        throw new Error("Failed to build CalendarEvent for emails");
+      }
+      
+      // Manually add properties that don't have builder methods yet
+      calEvent.additionalInformation = additionalInformation;
+      calEvent.schedulingType = null;
 
       await sendReassignedScheduledEmailsAndSMS({
         calEvent,

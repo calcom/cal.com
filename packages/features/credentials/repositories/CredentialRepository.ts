@@ -293,4 +293,17 @@ export class CredentialRepository {
       },
     });
   }
+
+  /**
+   * Finds all credentials for a user with optional user data inclusion
+   * @param userId - The user ID
+   * @param includeUser - Whether to include user data
+   * @returns Array of credentials with optional user data
+   */
+  async findManyByUserId(userId: number, includeUser = false) {
+    return this.primaClient.credential.findMany({
+      where: { userId },
+      include: includeUser ? { user: { select: { email: true } } } : undefined,
+    });
+  }
 }

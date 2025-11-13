@@ -1185,4 +1185,39 @@ export class UserRepository {
       },
     });
   }
+
+  /**
+   * Finds a user by ID returning only their username
+   * @param userId - The user ID
+   * @returns User with username or null
+   */
+  async findByIdWithUsername(userId: number): Promise<{ username: string | null } | null> {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+  }
+
+  /**
+   * Finds multiple users by their IDs with credentials
+   * @param userIds - Array of user IDs
+   * @param select - Optional select object for customizing returned fields
+   * @returns Array of users with credentials
+   */
+  async findManyByIdsWithCredentials<T extends Prisma.UserSelect>({
+    userIds,
+    select,
+  }: {
+    userIds: number[];
+    select: T;
+  }) {
+    return this.prismaClient.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select,
+    });
+  }
 }
