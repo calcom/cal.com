@@ -1,5 +1,5 @@
 import { Unkey } from "@unkey/api";
-import { HTTPClient } from "@unkey/api/dist/esm/lib/http";
+import { HTTPClient } from "@unkey/api/lib/http";
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
