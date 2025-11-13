@@ -1,4 +1,3 @@
-"use client";
 import { platform } from "@todesktop/client-core";
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
