@@ -2397,43 +2397,48 @@ describe("Bookings Endpoints 2024-08-13", () => {
         const username = `user-bookings-attendee-${randomString(10)}`;
         const locale = "it";
         const timeZone = "Europe/Rome";
-        await userRepositoryFixture.create({
+        const user = await userRepositoryFixture.create({
           email,
           username,
           locale,
           timeZone,
         });
 
-        const booking = await bookingsRepositoryFixture.create({
-          uid: `booking-uid-${randomString(10)}`,
-          title: "booking title",
-          startTime: "2060-09-05T11:00:00.000Z",
-          endTime: "2060-09-05T12:00:00.000Z",
-          eventType: {
-            connect: {
-              id: eventTypeId,
-            },
-          },
-          status: "ACCEPTED",
-          metadata: {},
-          responses: "null",
-          user: {
-            connect: {
-              id: user.id,
-            },
-          },
-          attendees: {
-            create: {
-              email: email,
-              name: username,
-              timeZone,
-              locale,
-            },
-          },
-        });
+        const userSchedule: CreateScheduleInput_2024_04_15 = {
+          name: `user-bookings-2024-08-13-schedule-${randomString()}`,
+          timeZone,
+          isDefault: true,
+        };
+        await schedulesService.createUserSchedule(user.id, userSchedule);
 
-        oldBookingUid = booking.uid;
-        expect(oldBookingUid).toBeDefined();
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2060, 0, 9, 11, 0, 0)).toISOString(),
+          eventTypeId,
+          attendee: {
+            name: username,
+            email,
+            timeZone,
+            language: locale,
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        expect(bookingResponseBody.data).toBeDefined();
+        expect(responseDataIsBooking(bookingResponseBody.data)).toBe(true);
+        if (responseDataIsBooking(bookingResponseBody.data)) {
+          const created: BookingOutput_2024_08_13 = bookingResponseBody.data;
+          oldBookingUid = created.uid;
+          expect(oldBookingUid).toBeDefined();
+        } else {
+          throw new Error("Invalid response data");
+        }
       });
 
       it("should reschedule", async () => {
@@ -2481,7 +2486,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.rescheduledToUid).toEqual(newBookingUid);
               expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
             } else {
-              throw new Error("Invalid response data - expected booking but received array of possibly recurring bookings");
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
             }
           });
       });
@@ -2503,7 +2510,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
               expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
             } else {
-              throw new Error("Invalid response data - expected booking but received array of possibly recurring bookings");
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
             }
           });
       });
