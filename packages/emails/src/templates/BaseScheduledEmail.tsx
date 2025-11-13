@@ -199,7 +199,8 @@ export const BaseScheduledEmail = (
                 />
               )
           )
-        : props.calEvent.organizer.phoneNumber && (
+        : props.calEvent.organizer.phoneNumber &&
+          props.calEvent.organizer.usePhoneForWhatsApp && (
             <Info
               label={t("running_late")}
               description={t("connect_with_host")}

@@ -17,6 +17,7 @@ export const updateUserMetadataAllowedKeys = z.object({
       verified: z.boolean().optional(),
     })
     .optional(),
+  usePhoneForWhatsApp: z.boolean().optional(),
 });
 
 export const ZCalIdUpdateProfileInputSchema = z.object({

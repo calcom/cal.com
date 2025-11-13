@@ -376,6 +376,7 @@ export const userMetadata = z
       })
       .optional(),
     currentOnboardingStep: z.string().optional(),
+    usePhoneForWhatsApp: z.boolean().optional(),
   })
   .nullable();
 
