@@ -1381,6 +1381,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
+      expect(Array.isArray(fetchedEventType.users)).toEqual(true);
+      expect(fetchedEventType.users.length).toEqual(1);
+      expect(fetchedEventType.users[0].id).toEqual(fetchedEventType.ownerId);
       expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
