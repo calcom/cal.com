@@ -45,13 +45,12 @@ type CreateBookingAuditInput = {
   timestamp: Date; // Required: actual time of the booking change (business event)
 };
 
-const CURRENT_AUDIT_DATA_VERSION = 2;
 const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
 
 /**
  * BookingAuditService - Central service for all booking audit operations
  * Handles both write (audit creation) and read (display) operations
- * Version is automatically injected into all audit data
+ * Each action service manages its own schema versioning
  */
 export class BookingAuditService {
   private readonly createdActionService: CreatedAuditActionService;
@@ -92,7 +91,8 @@ export class BookingAuditService {
   }
 
   /**
-   * Creates a booking audit record with automatic version injection
+   * Creates a booking audit record
+   * Action services handle their own version wrapping
    */
   private async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
     logger.info("Creating audit record", { input });
@@ -106,12 +106,7 @@ export class BookingAuditService {
       type: input.type,
       action: input.action,
       timestamp: input.timestamp, // Actual time of the booking change
-      data: input.data
-        ? ({
-          ...input.data,
-          version: CURRENT_AUDIT_DATA_VERSION, // Auto-inject version
-        } as Prisma.InputJsonValue)
-        : undefined,
+      data: input.data as Prisma.InputJsonValue,
     };
 
     return this.bookingAuditRepository.create(auditData);
@@ -331,56 +326,56 @@ export class BookingAuditService {
   getDisplaySummary(audit: BookingAudit, t: TFunction): string {
     switch (audit.action) {
       case "CREATED": {
-        const data = this.createdActionService.parse(audit.data);
+        const data = this.createdActionService.parseStored(audit.data);
         return this.createdActionService.getDisplaySummary(data, t);
       }
       case "ACCEPTED": {
-        const data = this.statusChangeActionService.parse(audit.data);
+        const data = this.statusChangeActionService.parseStored(audit.data);
         return this.statusChangeActionService.getDisplaySummary(data, t);
       }
       case "CANCELLED": {
-        const data = this.cancelledActionService.parse(audit.data);
+        const data = this.cancelledActionService.parseStored(audit.data);
         return this.cancelledActionService.getDisplaySummary(data, t);
       }
       case "REJECTED": {
-        const data = this.rejectedActionService.parse(audit.data);
+        const data = this.rejectedActionService.parseStored(audit.data);
         return this.rejectedActionService.getDisplaySummary(data, t);
       }
       case "RESCHEDULED": {
-        const data = this.rescheduledActionService.parse(audit.data);
+        const data = this.rescheduledActionService.parseStored(audit.data);
         return this.rescheduledActionService.getDisplaySummary(data, t);
       }
       case "RESCHEDULE_REQUESTED": {
-        const data = this.rescheduleRequestedActionService.parse(audit.data);
+        const data = this.rescheduleRequestedActionService.parseStored(audit.data);
         return this.rescheduleRequestedActionService.getDisplaySummary(data, t);
       }
       case "ATTENDEE_ADDED": {
-        const data = this.attendeeAddedActionService.parse(audit.data);
+        const data = this.attendeeAddedActionService.parseStored(audit.data);
         return this.attendeeAddedActionService.getDisplaySummary(data, t);
       }
       case "ATTENDEE_REMOVED": {
-        const data = this.attendeeRemovedActionService.parse(audit.data);
+        const data = this.attendeeRemovedActionService.parseStored(audit.data);
         return this.attendeeRemovedActionService.getDisplaySummary(data, t);
       }
       case "REASSIGNMENT": {
-        const data = this.reassignmentActionService.parse(audit.data);
+        const data = this.reassignmentActionService.parseStored(audit.data);
         return this.reassignmentActionService.getDisplaySummary(data, t);
       }
       case "LOCATION_CHANGED": {
-        const data = this.locationChangedActionService.parse(audit.data);
+        const data = this.locationChangedActionService.parseStored(audit.data);
         return this.locationChangedActionService.getDisplaySummary(data, t);
       }
       case "HOST_NO_SHOW_UPDATED": {
-        const data = this.hostNoShowUpdatedActionService.parse(audit.data);
+        const data = this.hostNoShowUpdatedActionService.parseStored(audit.data);
         return this.hostNoShowUpdatedActionService.getDisplaySummary(data, t);
       }
       case "ATTENDEE_NO_SHOW_UPDATED": {
-        const data = this.attendeeNoShowUpdatedActionService.parse(audit.data);
+        const data = this.attendeeNoShowUpdatedActionService.parseStored(audit.data);
         return this.attendeeNoShowUpdatedActionService.getDisplaySummary(data, t);
       }
       default: {
         if (audit.type === "RECORD_CREATED") {
-          const data = this.createdActionService.parse(audit.data);
+          const data = this.createdActionService.parseStored(audit.data);
           return this.createdActionService.getDisplaySummary(data, t);
         }
         return t("audit.action_performed");
@@ -394,56 +389,56 @@ export class BookingAuditService {
   getDisplayDetails(audit: BookingAudit, t: TFunction): Record<string, string> {
     switch (audit.action) {
       case "CREATED": {
-        const data = this.createdActionService.parse(audit.data);
+        const data = this.createdActionService.parseStored(audit.data);
         return this.createdActionService.getDisplayDetails(data, t);
       }
       case "ACCEPTED": {
-        const data = this.statusChangeActionService.parse(audit.data);
+        const data = this.statusChangeActionService.parseStored(audit.data);
         return this.statusChangeActionService.getDisplayDetails(data, t);
       }
       case "CANCELLED": {
-        const data = this.cancelledActionService.parse(audit.data);
+        const data = this.cancelledActionService.parseStored(audit.data);
         return this.cancelledActionService.getDisplayDetails(data, t);
       }
       case "REJECTED": {
-        const data = this.rejectedActionService.parse(audit.data);
+        const data = this.rejectedActionService.parseStored(audit.data);
         return this.rejectedActionService.getDisplayDetails(data, t);
       }
       case "RESCHEDULED": {
-        const data = this.rescheduledActionService.parse(audit.data);
+        const data = this.rescheduledActionService.parseStored(audit.data);
         return this.rescheduledActionService.getDisplayDetails(data, t);
       }
       case "RESCHEDULE_REQUESTED": {
-        const data = this.rescheduleRequestedActionService.parse(audit.data);
+        const data = this.rescheduleRequestedActionService.parseStored(audit.data);
         return this.rescheduleRequestedActionService.getDisplayDetails(data, t);
       }
       case "ATTENDEE_ADDED": {
-        const data = this.attendeeAddedActionService.parse(audit.data);
+        const data = this.attendeeAddedActionService.parseStored(audit.data);
         return this.attendeeAddedActionService.getDisplayDetails(data, t);
       }
       case "ATTENDEE_REMOVED": {
-        const data = this.attendeeRemovedActionService.parse(audit.data);
+        const data = this.attendeeRemovedActionService.parseStored(audit.data);
         return this.attendeeRemovedActionService.getDisplayDetails(data, t);
       }
       case "REASSIGNMENT": {
-        const data = this.reassignmentActionService.parse(audit.data);
+        const data = this.reassignmentActionService.parseStored(audit.data);
         return this.reassignmentActionService.getDisplayDetails(data, t);
       }
       case "LOCATION_CHANGED": {
-        const data = this.locationChangedActionService.parse(audit.data);
+        const data = this.locationChangedActionService.parseStored(audit.data);
         return this.locationChangedActionService.getDisplayDetails(data, t);
       }
       case "HOST_NO_SHOW_UPDATED": {
-        const data = this.hostNoShowUpdatedActionService.parse(audit.data);
+        const data = this.hostNoShowUpdatedActionService.parseStored(audit.data);
         return this.hostNoShowUpdatedActionService.getDisplayDetails(data, t);
       }
       case "ATTENDEE_NO_SHOW_UPDATED": {
-        const data = this.attendeeNoShowUpdatedActionService.parse(audit.data);
+        const data = this.attendeeNoShowUpdatedActionService.parseStored(audit.data);
         return this.attendeeNoShowUpdatedActionService.getDisplayDetails(data, t);
       }
       default: {
         if (audit.type === "RECORD_CREATED") {
-          const data = this.createdActionService.parse(audit.data);
+          const data = this.createdActionService.parseStored(audit.data);
           return this.createdActionService.getDisplayDetails(data, t);
         }
         return {};

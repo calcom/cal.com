@@ -1,6 +1,8 @@
 # Booking Audit System - Database Architecture
 Based on https://github.com/calcom/cal.com/pull/22817
 
+Note: This architecture is not in production yet, so we can make any changes we want to it without worrying about backwards compatibility.
+
 ## Overview
 
 The Booking Audit System tracks all actions and changes related to bookings in Cal.com. The architecture is built around two core tables (`Actor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
@@ -25,6 +27,10 @@ model Actor {
   phone     String?
   name      String?
   
+  // GDPR/HIPAA Compliance fields
+  pseudonymizedAt        DateTime?   // When actor data was pseudonymized for privacy
+  scheduledDeletionDate  DateTime?   // When actor record should be fully anonymized after retention period
+  
   createdAt DateTime  @default(now())
   bookingAudits BookingAudit[]
 
@@ -35,6 +41,7 @@ model Actor {
   @@index([email])
   @@index([userId])
   @@index([attendeeId])
+  @@index([pseudonymizedAt])  // For compliance cleanup jobs
 }
 ```
 
@@ -44,6 +51,7 @@ model Actor {
 - **Unique Constraints**: Prevents duplicate actors for the same user/email/phone
 - **Multiple Identity Fields**: Supports different actor types (users, guests, attendees, system)
 - **Extensible System Actors**: Architecture supports multiple system actors (e.g., Cron, Webhooks, API integrations, Background Workers) for granular tracking of automated operations
+- **Pseudonymization on Deletion**: Actor records are pseudonymized (PII nullified) rather than deleted to maintain HIPAA-compliant immutable audit trails. Supports compliance cleanup jobs via `pseudonymizedAt` and `scheduledDeletionDate` indices
 
 ---
 
@@ -535,11 +543,14 @@ When we update the schema for one action, we don't want to affect other actions.
 
 ### Implementation Approach
 
-Each action has a dedicated Action Helper Service that defines:
-1. **Schema Definition**: Zod schema specifying required/optional fields
-2. **Schema Version**: Tracked per-action type (e.g., `CANCELLED_v1`, `RESCHEDULED_v1`)
-3. **Validation**: Type-safe validation of audit data
-4. **Display Logic**: How to render the audit record in the UI
+Each action has a dedicated Action Service that manages its own versioning independently. The service defines:
+
+1. **Schema Definition**: Zod schemas for data validation
+2. **Schema Version**: Each action maintains its own VERSION constant
+3. **Nested Structure**: Version stored separately from audit data: `{ version, data: {} }`
+4. **Type Separation**: Distinct types for input (no version) and stored format (with version)
+5. **Validation**: Type-safe validation of audit data
+6. **Display Logic**: How to render the audit record in the UI
 
 **Example Action Services:**
 - `CreatedAuditActionService` → Handles `CREATED` action
@@ -547,24 +558,55 @@ Each action has a dedicated Action Helper Service that defines:
 - `RescheduledAuditActionService` → Handles `RESCHEDULED` action
 - `ReassignmentAuditActionService` → Handles `REASSIGNMENT` action
 
+### Version Storage Structure
+
+Audit data is stored with a nested structure that separates version metadata from actual audit data:
+
+```typescript
+{
+  version: 1,
+  data: {
+    cancellationReason: { old: null, new: "Client requested" },
+    cancelledBy: { old: null, new: "user@cal.com" },
+    status: { old: "ACCEPTED", new: "CANCELLED" }
+  }
+}
+```
+
+**Benefits of Nested Structure:**
+- Clear separation between metadata (version) and actual audit data
+- Makes it easy to extract just the data fields for display
+- Version handling is transparent to end users
+- Schema evolution is self-documenting
+
+**Key Points:**
+- Callers pass unversioned data (just the fields)
+- `parse()` automatically wraps input with version before storing
+- `parseStored()` validates stored data including version
+- Display methods receive full stored record but only show data fields
+- Type system enforces correct usage (input vs stored types)
+
 ### Benefits of Per-Action Versioning
 
 - **Independent Evolution**: Update one action's schema without affecting others
 - **Explicit Changes**: Version increments are tied to specific business operations
-- **Easier Migration**: Only need to migrate records for the specific action that changed
+- **No Migration Required**: Old records handled via discriminated unions
 - **Clear History**: Can track schema changes per action type over time
-- **Type Safety**: Each action has a strongly-typed schema
+- **Type Safety**: Each action has strongly-typed schemas for input and storage
+- **Caller Simplicity**: Callers don't need to know about versioning
+- **Display Isolation**: Version handling is internal to Action Services
 
-### Version Tracking
 
-Versions are tracked in the Action Service classes:
-```typescript
-// Example: When CANCELLED schema changes
-CancelledAuditActionService.schema // v1
-// Later, when adding a new field:
-CancelledAuditActionService.schema // v2
-// Other actions remain at their current version
-```
+When adding a new version (e.g., v2 with a new field):
+
+**Migration Steps:**
+1. Create `dataSchemaV2` with new fields
+2. Create `schemaV2` with `version: z.literal(2)`
+3. Update `schema` to discriminated union supporting both v1 and v2
+4. Update `VERSION` constant to 2
+5. Update `parse()` to use v2 schema
+6. Update display methods to handle both versions
+7. No changes needed to callers or database
 
 ---
 
@@ -576,11 +618,11 @@ Audit records are append-only. Once created, they are never modified or deleted.
 - Tamper-proof audit trail
 - Compliance with audit requirements
 
-### 2. Historical Preservation
+### 2. Historical Preservation & Pseudonymization
 Actor information is preserved even after source records are deleted:
-- User deletion doesn't remove Actor records
-- Actor table maintains snapshot of user/guest information
-- Audit trail remains complete and queryable
+- User deletion doesn't remove Actor records - they are pseudonymized instead
+- Actor table maintains pseudonymized snapshot of user/guest information without PII
+- Audit trail remains complete, queryable, and compliant with HIPAA/GDPR requirements
 
 ### 3. Flexibility
 The JSON `data` field provides schema flexibility:
@@ -640,6 +682,33 @@ await auditService.onBookingCreated(bookingId, userId, {
 
 ---
 
+## 7. Compliance & Data Privacy
+
+**GDPR & HIPAA Compliance:**
+- **Actor records are NOT deleted on user deletion** - Instead, Actor records are pseudonymized (email/phone/name nullified) to preserve the immutable audit trail as required by HIPAA §164.312(b)
+- **Cal.com's HIPAA compliance** requires audit records to remain immutable and tamper-proof. The Actor table design ensures BookingAudit records are never modified, only the referenced Actor record is pseudonymized
+- **GDPR Article 17 compliance** is achieved through pseudonymization: When a user/guest requests deletion, set `userId=null`, `email=null`, `phone=null`, `name=null` on the Actor record, and store `pseudonymizedAt` timestamp + `scheduledDeletionDate` for compliance tracking
+- **Retention Policy**: Actor records should be fully anonymized after 6-7 years per legal requirements
+
+**Implementation Pattern:**
+```typescript
+// On user deletion: Pseudonymize, don't delete
+await prisma.actor.update({
+  where: { userId: deletedUserId },
+  data: {
+    userId: null,
+    email: null,
+    phone: null,
+    name: null,
+    pseudonymizedAt: new Date(),
+    scheduledDeletionDate: new Date(Date.now() + 7 * 365 * 24 * 60 * 60 * 1000)
+  }
+});
+// Result: All BookingAudit records reference pseudonymized actor - audit trail preserved, immutable
+```
+
+---
+
 ## Service Layer
 
 ### BookingEventHandlerService - Entry Point
@@ -676,6 +745,38 @@ The audit system is accessed through `BookingAuditService`, which provides:
 - Automatic Actor creation/lookup for registered users
 - System actor for automated actions
 
+### Future: Trigger.dev Task Orchestration
+
+**Current Flow (Synchronous):**
+```
+Booking Endpoint → BookingEventHandler.onBookingCreated() → await auditService, linkService, webhookService
+```
+
+**Future Flow (Async with Trigger.dev):**
+```
+Booking Endpoint 
+  ↓
+BookingEventHandler.onBookingCreated() [orchestrator]
+  ├─ tasks.trigger('bookingAudit', { bookingId, userId, data })
+  ├─ tasks.trigger('invalidateHashedLink', { bookingId, hashedLink })
+  ├─ tasks.trigger('sendNotifications', { bookingId, email, sms })
+  ├─ tasks.trigger('triggerWorkflows', { bookingId, event: 'NEW_EVENT' })
+  └─ Immediately returns to user (non-blocking)
+  
+Trigger.dev Queue
+  ├─ Task: Booking Audit (with retries, monitoring)
+  ├─ Task: Hashed Link Invalidation (independent)
+  ├─ Task: Email & SMS Notifications (independent)
+  └─ Task: Workflow Triggers (independent)
+```
+
+**Key Principles:**
+- **BookingEventHandler remains the single orchestrator** - Entry point for all side effects
+- **Each task is independent** - One task failure doesn't block others
+- **Persistent queue** - Trigger.dev handles retries, monitoring, and observability
+- **Easy to add features** - New side effect = new task definition, no BookingEventHandler complexity
+- **Immutable audit records** - Booking audit is just one of many tasks, preserving the immutability principle
+
 ---
 
 ## Summary
@@ -683,12 +784,12 @@ The audit system is accessed through `BookingAuditService`, which provides:
 The Booking Audit System provides a robust, scalable architecture for tracking all booking-related actions. Key features include:
 
 - ✅ **Complete Audit Trail**: Every action tracked with full context
-- ✅ **Historical Preservation**: Data retained even after deletions
+- ✅ **Historical Preservation**: Data retained even after deletions through pseudonymization
 - ✅ **Flexible Schema**: JSON data supports evolution without migrations
 - ✅ **Strong Integrity**: Database constraints ensure data quality
 - ✅ **Performance**: Strategic indexes for common query patterns
-- ✅ **Compliance Ready**: Immutable, traceable audit records
+- ✅ **HIPAA & GDPR Compliant**: Immutable audit records, pseudonymized actors, compliance-ready
 - ✅ **Reality-Based Recording**: Captures actual state, aiding in debugging and analysis
 
-This architecture supports compliance requirements, debugging, analytics, and provides transparency for both users and administrators.
+This architecture supports compliance requirements (HIPAA §164.312(b), GDPR Article 17), debugging, analytics, and provides transparency for both users and administrators.
 
