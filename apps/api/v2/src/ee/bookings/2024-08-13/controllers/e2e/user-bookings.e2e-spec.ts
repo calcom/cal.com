@@ -3253,7 +3253,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           ]);
 
         const response = await request(app.getHttpServer())
-          .get(`/v2/bookings/${booking.uid}/sessions`)
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200);
 
@@ -3274,6 +3274,285 @@ describe("Bookings Endpoints 2024-08-13", () => {
         );
 
         await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+    });
+
+    describe("GET /v2/bookings/:bookingUid/conferencing-sessions - Authorization", () => {
+      it("should allow booking organizer to access conferencing sessions", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-organizer-${randomString()}`,
+          title: "Test Organizer Access",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getVideoSessions").mockResolvedValue([]);
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unrelated user access to conferencing sessions", async () => {
+        const unrelatedUser = await userRepositoryFixture.create({
+          email: `unrelated-auth-test-${randomString()}@api.com`,
+          platformOAuthClients: {
+            connect: { id: oAuthClient.id },
+          },
+        });
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-unrelated-${randomString()}`,
+          title: "Test Unrelated User Denial",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
+      });
+    });
+
+    describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
+      it("should allow booking organizer to access recordings", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-recordings-organizer-${randomString()}`,
+          title: "Test Recordings Access",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getRecordings").mockResolvedValue([]);
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/recordings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unrelated user access to recordings", async () => {
+        const unrelatedUser = await userRepositoryFixture.create({
+          email: `unrelated-recordings-${randomString()}@api.com`,
+          platformOAuthClients: {
+            connect: { id: oAuthClient.id },
+          },
+        });
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-recordings-unrelated-${randomString()}`,
+          title: "Test Recordings Denial",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/recordings`)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
+      });
+    });
+
+    describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
+      it("should allow booking organizer to access transcripts", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-transcripts-organizer-${randomString()}`,
+          title: "Test Transcripts Access",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getTranscripts").mockResolvedValue([]);
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/transcripts`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unrelated user access to transcripts", async () => {
+        const unrelatedUser = await userRepositoryFixture.create({
+          email: `unrelated-transcripts-${randomString()}@api.com`,
+          platformOAuthClients: {
+            connect: { id: oAuthClient.id },
+          },
+        });
+
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-transcripts-unrelated-${randomString()}`,
+          title: "Test Transcripts Denial",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/transcripts`)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
       });
     });
 
