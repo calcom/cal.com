@@ -138,7 +138,7 @@ export const BookingFields = ({
         }
 
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField className="mb-6" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
         );
       })}
     </div>
