@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const err = getServerErrorFromUnknown(_err);
     return res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
+      stack: IS_PRODUCTION ? undefined : err.stack ?? err.cause?.stack,
     });
   }
 }

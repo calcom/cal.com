@@ -16,8 +16,8 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -184,7 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
+      stack: IS_PRODUCTION ? undefined : err.stack ?? err.cause?.stack,
     });
     return;
   }
