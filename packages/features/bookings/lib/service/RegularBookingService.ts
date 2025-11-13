@@ -34,6 +34,7 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -406,6 +407,43 @@ function formatAvailabilitySnapshot(data: {
       start: start.toISOString(),
       end: end.toISOString(),
     })),
+  };
+}
+
+function buildBookingCreatedPayload({
+  booking,
+  organizerUserId,
+  hashedLink,
+  isDryRun,
+}: {
+  booking: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
+    userId: number | null;
+  };
+  organizerUserId: number;
+  hashedLink: string | null;
+  isDryRun: boolean;
+}) {
+  return {
+    config: {
+      isDryRun,
+    },
+    bookingFormData: {
+      hashedLink,
+    },
+    booking: {
+      id: booking.id,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      userId: booking.userId,
+      user: {
+        id: organizerUserId,
+      },
+    },
   };
 }
 
@@ -2242,31 +2280,27 @@ async function handler(
     }
     : undefined;
 
-  const bookingFlowConfig = {
+  const bookingCreatedPayload = buildBookingCreatedPayload({
+    booking,
+    organizerUserId: organizerUser.id,
+    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     isDryRun,
-  };
-
-  const bookingCreatedPayload = {
-    config: bookingFlowConfig,
-    bookingFormData: {
-      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
-    },
-  };
-
-  // Add more fields here when needed
-  const bookingRescheduledPayload = bookingCreatedPayload;
-
-  const bookingEventHandler = new BookingEventHandlerService({
-    log: tracingLogger,
-    hashedLinkService: deps.hashedLinkService,
   });
+
+
+  const bookingRescheduledPayload: BookingRescheduledPayload = {
+    ...bookingCreatedPayload,
+    oldBooking: originalRescheduledBooking ? {
+      startTime: originalRescheduledBooking.startTime,
+      endTime: originalRescheduledBooking.endTime,
+    } : undefined,
+  };
 
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
-    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    await deps.bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+    await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload);
   }
 
   const webhookData: EventPayloadType = {

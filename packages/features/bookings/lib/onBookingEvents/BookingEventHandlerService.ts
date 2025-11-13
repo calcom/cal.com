@@ -1,25 +1,58 @@
 import type { Logger } from "tslog";
 
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
+import type { CancelledAuditData } from "@calcom/features/booking-audit/lib/actions/CancelledAuditActionService";
+import type { RejectedAuditData } from "@calcom/features/booking-audit/lib/actions/RejectedAuditActionService";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import type { AttendeeAddedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionService";
+import type { AttendeeRemovedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeRemovedAuditActionService";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
+import type { LocationChangedAuditData } from "@calcom/features/booking-audit/lib/actions/LocationChangedAuditActionService";
+import type { HostNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/HostNoShowUpdatedAuditActionService";
+import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeNoShowUpdatedAuditActionService";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
-import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
+import type { Actor } from "../types/actor";
+import { getActorUserId } from "../types/actor";
+import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types.d";
 
 interface BookingEventHandlerDeps {
   log: Logger<unknown>;
   hashedLinkService: HashedLinkService;
-  //TODO: To be made required in followup PR
-  bookingAuditService?: BookingAuditService;
+  bookingAuditService: BookingAuditService;
+}
+
+// Type guard functions for discriminating audit data types
+function isStatusChangeAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is StatusChangeAuditData {
+  return data !== undefined && "status" in data && !("cancellationReason" in data) && !("rejectionReason" in data);
+}
+
+function isCancelledAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is CancelledAuditData {
+  return data !== undefined && "cancellationReason" in data;
+}
+
+function isRejectedAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is RejectedAuditData {
+  return data !== undefined && "rejectionReason" in data;
 }
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
   private readonly hashedLinkService: BookingEventHandlerDeps["hashedLinkService"];
+  private readonly bookingAuditService: BookingEventHandlerDeps["bookingAuditService"];
 
   constructor(private readonly deps: BookingEventHandlerDeps) {
     this.log = deps.log;
     this.hashedLinkService = deps.hashedLinkService;
+    this.bookingAuditService = deps.bookingAuditService;
   }
 
   async onBookingCreated(payload: BookingCreatedPayload) {
@@ -28,6 +61,22 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
+
+    try {
+      const auditData = {
+        startTime: payload.booking.startTime.toISOString(),
+        endTime: payload.booking.endTime.toISOString(),
+        status: payload.booking.status,
+      };
+      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
+      await this.bookingAuditService.onBookingCreated(
+        String(payload.booking.id),
+        userId,
+        auditData
+      );
+    } catch (error) {
+      this.log.error("Error while creating booking audit", safeStringify(error));
+    }
   }
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {
@@ -36,6 +85,27 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
+
+    try {
+      const auditData = {
+        startTime: {
+          old: payload.oldBooking?.startTime.toISOString() ?? null,
+          new: payload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: payload.oldBooking?.endTime.toISOString() ?? null,
+          new: payload.booking.endTime.toISOString(),
+        },
+      };
+      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
+      await this.bookingAuditService.onBookingRescheduled(
+        String(payload.booking.id),
+        userId,
+        auditData
+      );
+    } catch (error) {
+      this.log.error("Error while creating booking rescheduled audit", safeStringify(error));
+    }
   }
 
   /**
@@ -64,6 +134,124 @@ export class BookingEventHandlerService {
       }
     } catch (error) {
       this.log.error("Error while updating hashed link", safeStringify(error));
+    }
+  }
+
+  async onBookingAccepted(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
+    try {
+      await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating booking accepted audit", safeStringify(error));
+    }
+  }
+
+  async onBookingCancelled(bookingId: string, actor: Actor, data: CancelledAuditData) {
+    try {
+      await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating booking cancelled audit", safeStringify(error));
+    }
+  }
+
+  async onRescheduleRequested(bookingId: string, actor: Actor, data: RescheduleRequestedAuditData) {
+    try {
+      await this.bookingAuditService.onRescheduleRequested(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating reschedule requested audit", safeStringify(error));
+    }
+  }
+
+  async onAttendeeAdded(bookingId: string, actor: Actor, data: AttendeeAddedAuditData) {
+    try {
+      await this.bookingAuditService.onAttendeeAdded(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating attendee added audit", safeStringify(error));
+    }
+  }
+
+  async onHostNoShowUpdated(bookingId: string, actor: Actor, data: HostNoShowUpdatedAuditData) {
+    try {
+      await this.bookingAuditService.onHostNoShowUpdated(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating host no-show audit", safeStringify(error));
+    }
+  }
+
+  async onBookingRejected(bookingId: string, actor: Actor, data: RejectedAuditData) {
+    try {
+      await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating booking rejected audit", safeStringify(error));
+    }
+  }
+
+  private async onBookingStatusChange(
+    bookingId: string,
+    actor: Actor,
+    status: BookingStatus,
+    data?: StatusChangeAuditData | CancelledAuditData | RejectedAuditData
+  ) {
+    try {
+      // Route to the appropriate specific method based on status
+      switch (status) {
+        case "ACCEPTED": {
+          // Type guard: ensure data is StatusChangeAuditData or undefined
+          const statusData = isStatusChangeAuditData(data) ? data : undefined;
+          await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), statusData);
+          break;
+        }
+        case "REJECTED": {
+          // Caller must provide RejectedAuditData for REJECTED status
+          if (isRejectedAuditData(data)) {
+            await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
+          }
+          break;
+        }
+        case "CANCELLED": {
+          // Caller must provide CancelledAuditData for CANCELLED status
+          if (isCancelledAuditData(data)) {
+            await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
+          }
+          break;
+        }
+      }
+    } catch (error) {
+      this.log.error(
+        `Error while creating booking status change audit for status: ${status}`,
+        safeStringify(error)
+      );
+    }
+  }
+
+  async onAttendeeRemoved(bookingId: string, actor: Actor, data: AttendeeRemovedAuditData) {
+    try {
+      await this.bookingAuditService.onAttendeeRemoved(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating attendee removed audit", safeStringify(error));
+    }
+  }
+
+  async onReassignment(bookingId: string, actor: Actor, data: ReassignmentAuditData) {
+    try {
+      await this.bookingAuditService.onReassignment(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating reassignment audit", safeStringify(error));
+    }
+  }
+
+  async onLocationChanged(bookingId: string, actor: Actor, data: LocationChangedAuditData) {
+    try {
+      await this.bookingAuditService.onLocationChanged(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating location changed audit", safeStringify(error));
+    }
+  }
+
+  async onAttendeeNoShowUpdated(bookingId: string, actor: Actor, data: AttendeeNoShowUpdatedAuditData) {
+    try {
+      await this.bookingAuditService.onAttendeeNoShowUpdated(bookingId, getActorUserId(actor), data);
+    } catch (error) {
+      this.log.error("Error while creating attendee no-show audit", safeStringify(error));
     }
   }
 }
