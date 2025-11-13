@@ -269,24 +269,6 @@ export default function Signup({
     </p>
   );
 
-  // console.log all these
-  //
-  // !!formMethods.formState.errors.email ||
-  // !formMethods.getValues("email") ||
-  // !formMethods.getValues("password") ||
-  // (CLOUDFLARE_SITE_ID &&
-  //   !process.env.NEXT_PUBLIC_IS_E2E &&
-  //   !formMethods.getValues("cfToken")) ||
-  // isSubmitting
-
-  console.log("Render Signup Component", {
-    formErrors: formMethods.formState.errors,
-    emailValue: formMethods.getValues("email"),
-    passwordValue: formMethods.getValues("password"),
-    cfTokenValue: formMethods.getValues("cfToken"),
-    isSubmitting,
-  });
-
   return (
     <>
       <style jsx global>{`
