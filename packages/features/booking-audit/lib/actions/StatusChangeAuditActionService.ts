@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema } from "../common/changeSchemas";
-import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService } from "./IAuditActionService";
 
 /**
@@ -13,56 +13,46 @@ import type { IAuditActionService } from "./IAuditActionService";
  * - v1: Initial schema with status
  */
 
-const statusChangeDataSchemaV1 = z.object({
+const statusChangeFieldsSchemaV1 = z.object({
   status: StringChangeSchema,
 });
 
-export class StatusChangeAuditActionService implements IAuditActionService<typeof statusChangeDataSchemaV1> {
-  private helper: AuditActionServiceHelper;
+export class StatusChangeAuditActionService implements IAuditActionService<typeof statusChangeFieldsSchemaV1> {
+  private helper: AuditActionServiceHelper<typeof statusChangeFieldsSchemaV1>;
 
   readonly VERSION = 1;
-  readonly dataSchemaV1 = statusChangeDataSchemaV1;
+  readonly fieldsSchemaV1 = statusChangeFieldsSchemaV1;
+  readonly dataSchema = z.object({
+    version: z.literal(this.VERSION),
+    fields: this.fieldsSchemaV1,
+  });
 
-  constructor(helper: AuditActionServiceHelper) {
-    this.helper = helper;
+  constructor() {
+    this.helper = new AuditActionServiceHelper({ fieldsSchema: statusChangeFieldsSchemaV1, version: this.VERSION });
   }
 
-  get schema() {
-    return z.object({
-      version: z.literal(this.VERSION),
-      data: this.dataSchemaV1,
-    });
+  parseFields(input: unknown) {
+    return this.helper.parseFields(input);
   }
 
-  parse(input: unknown): { version: number; data: z.infer<typeof statusChangeDataSchemaV1> } {
-    return this.helper.parse({
-      version: this.VERSION,
-      dataSchema: this.dataSchemaV1,
-      input,
-    }) as { version: number; data: z.infer<typeof statusChangeDataSchemaV1> };
-  }
-
-  parseStored(data: unknown): { version: number; data: z.infer<typeof statusChangeDataSchemaV1> } {
-    return this.helper.parseStored({
-      schema: this.schema,
-      data,
-    }) as { version: number; data: z.infer<typeof statusChangeDataSchemaV1> };
+  parseStored(data: unknown) {
+    return this.helper.parseStored(data);
   }
 
   getVersion(data: unknown): number {
     return this.helper.getVersion(data);
   }
 
-  getDisplaySummary(storedData: { version: number; data: z.infer<typeof statusChangeDataSchemaV1> }, t: TFunction): string {
+  getDisplaySummary(storedData: { version: number; fields: z.infer<typeof statusChangeFieldsSchemaV1> }, t: TFunction): string {
     return t('audit.status_changed');
   }
 
-  getDisplayDetails(storedData: { version: number; data: z.infer<typeof statusChangeDataSchemaV1> }, t: TFunction): Record<string, string> {
-    const { data } = storedData;
+  getDisplayDetails(storedData: { version: number; fields: z.infer<typeof statusChangeFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+    const { fields } = storedData;
     return {
-      'Status': `${data.status.old ?? '-'} → ${data.status.new ?? '-'}`,
+      'Status': `${fields.status.old ?? '-'} → ${fields.status.new ?? '-'}`,
     };
   }
 }
 
-export type StatusChangeAuditData = z.infer<typeof statusChangeDataSchemaV1>;
+export type StatusChangeAuditData = z.infer<typeof statusChangeFieldsSchemaV1>;

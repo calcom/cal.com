@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema } from "../common/changeSchemas";
-import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService } from "./IAuditActionService";
 
 /**
@@ -13,57 +13,47 @@ import type { IAuditActionService } from "./IAuditActionService";
  * - v1: Initial schema with location
  */
 
-const locationChangedDataSchemaV1 = z.object({
+const locationChangedFieldsSchemaV1 = z.object({
   location: StringChangeSchema,
 });
 
-export class LocationChangedAuditActionService implements IAuditActionService<typeof locationChangedDataSchemaV1> {
-  private helper: AuditActionServiceHelper;
+export class LocationChangedAuditActionService implements IAuditActionService<typeof locationChangedFieldsSchemaV1> {
+  private helper: AuditActionServiceHelper<typeof locationChangedFieldsSchemaV1>;
 
   readonly VERSION = 1;
-  readonly dataSchemaV1 = locationChangedDataSchemaV1;
+  readonly fieldsSchemaV1 = locationChangedFieldsSchemaV1;
+  readonly dataSchema = z.object({
+    version: z.literal(this.VERSION),
+    fields: this.fieldsSchemaV1,
+  });
 
-  constructor(helper: AuditActionServiceHelper) {
-    this.helper = helper;
+  constructor() {
+    this.helper = new AuditActionServiceHelper({ fieldsSchema: locationChangedFieldsSchemaV1, version: this.VERSION });
   }
 
-  get schema() {
-    return z.object({
-      version: z.literal(this.VERSION),
-      data: this.dataSchemaV1,
-    });
+  parseFields(input: unknown) {
+    return this.helper.parseFields(input);
   }
 
-  parse(input: unknown): { version: number; data: z.infer<typeof locationChangedDataSchemaV1> } {
-    return this.helper.parse({
-      version: this.VERSION,
-      dataSchema: this.dataSchemaV1,
-      input,
-    }) as { version: number; data: z.infer<typeof locationChangedDataSchemaV1> };
-  }
-
-  parseStored(data: unknown): { version: number; data: z.infer<typeof locationChangedDataSchemaV1> } {
-    return this.helper.parseStored({
-      schema: this.schema,
-      data,
-    }) as { version: number; data: z.infer<typeof locationChangedDataSchemaV1> };
+  parseStored(data: unknown) {
+    return this.helper.parseStored(data);
   }
 
   getVersion(data: unknown): number {
     return this.helper.getVersion(data);
   }
 
-  getDisplaySummary(storedData: { version: number; data: z.infer<typeof locationChangedDataSchemaV1> }, t: TFunction): string {
+  getDisplaySummary(storedData: { version: number; fields: z.infer<typeof locationChangedFieldsSchemaV1> }, t: TFunction): string {
     return t('audit.location_changed');
   }
 
-  getDisplayDetails(storedData: { version: number; data: z.infer<typeof locationChangedDataSchemaV1> }, t: TFunction): Record<string, string> {
-    const { data } = storedData;
+  getDisplayDetails(storedData: { version: number; fields: z.infer<typeof locationChangedFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+    const { fields } = storedData;
     return {
-      'Previous Location': data.location.old ?? '-',
-      'New Location': data.location.new ?? '-',
+      'Previous Location': fields.location.old ?? '-',
+      'New Location': fields.location.new ?? '-',
     };
   }
 }
 
-export type LocationChangedAuditData = z.infer<typeof locationChangedDataSchemaV1>;
+export type LocationChangedAuditData = z.infer<typeof locationChangedFieldsSchemaV1>;

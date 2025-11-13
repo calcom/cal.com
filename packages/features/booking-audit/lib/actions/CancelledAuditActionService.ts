@@ -13,50 +13,50 @@ import type { IAuditActionService } from "./IAuditActionService";
  * - v1: Initial schema with cancellationReason, cancelledBy, status
  */
 
-const cancelledDataSchemaV1 = z.object({
+const cancelledFieldsSchemaV1 = z.object({
     cancellationReason: StringChangeSchema,
     cancelledBy: StringChangeSchema,
     status: StringChangeSchema,
 });
 
-export class CancelledAuditActionService implements IAuditActionService<typeof cancelledDataSchemaV1> {
-    private helper: AuditActionServiceHelper<typeof cancelledDataSchemaV1>;
+export class CancelledAuditActionService implements IAuditActionService<typeof cancelledFieldsSchemaV1> {
+    private helper: AuditActionServiceHelper<typeof cancelledFieldsSchemaV1>;
 
     readonly VERSION = 1;
-    readonly dataSchemaV1 = cancelledDataSchemaV1;
-    readonly schema = z.object({
+    readonly fieldsSchemaV1 = cancelledFieldsSchemaV1;
+    readonly dataSchema = z.object({
         version: z.literal(this.VERSION),
-        data: this.dataSchemaV1,
+        fields: this.fieldsSchemaV1,
     });
 
     constructor() {
-        this.helper = new AuditActionServiceHelper({ dataSchema: cancelledDataSchemaV1, version: this.VERSION });
+        this.helper = new AuditActionServiceHelper({ fieldsSchema: cancelledFieldsSchemaV1, version: this.VERSION });
     }
 
-    parse(input: unknown) {
-        return this.helper.parse(input);
+    parseFields(input: unknown) {
+        return this.helper.parseFields(input);
     }
 
     parseStored(data: unknown) {
         return this.helper.parseStored(data);
     }
 
-    getVersion(data: unknown): number {
+    getVersion(data: unknown) {
         return this.helper.getVersion(data);
     }
 
-    getDisplaySummary(storedData: { version: number; data: z.infer<typeof cancelledDataSchemaV1> }, t: TFunction): string {
+    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof cancelledFieldsSchemaV1> }, t: TFunction): string {
         return t('audit.cancelled_booking');
     }
 
-    getDisplayDetails(storedData: z.infer<typeof this.schema>): Record<string, string> {
-        const { data } = storedData;
+    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof cancelledFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+        const { fields } = storedData;
         return {
-            'Cancellation Reason': data.cancellationReason.new ?? '-',
-            'Previous Reason': data.cancellationReason.old ?? '-',
-            'Cancelled By': `${data.cancelledBy.old ?? '-'} → ${data.cancelledBy.new ?? '-'}`,
+            'Cancellation Reason': fields.cancellationReason.new ?? '-',
+            'Previous Reason': fields.cancellationReason.old ?? '-',
+            'Cancelled By': `${fields.cancelledBy.old ?? '-'} → ${fields.cancelledBy.new ?? '-'}`,
         };
     }
 }
 
-export type CancelledAuditData = z.infer<typeof cancelledDataSchemaV1>;
+export type CancelledAuditData = z.infer<typeof cancelledFieldsSchemaV1>;

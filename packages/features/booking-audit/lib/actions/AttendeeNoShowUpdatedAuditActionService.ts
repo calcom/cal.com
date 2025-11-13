@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { BooleanChangeSchema } from "../common/changeSchemas";
-import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService } from "./IAuditActionService";
 
 /**
@@ -13,56 +13,46 @@ import type { IAuditActionService } from "./IAuditActionService";
  * - v1: Initial schema with noShowAttendee
  */
 
-const attendeeNoShowUpdatedDataSchemaV1 = z.object({
+const attendeeNoShowUpdatedFieldsSchemaV1 = z.object({
     noShowAttendee: BooleanChangeSchema,
 });
 
-export class AttendeeNoShowUpdatedAuditActionService implements IAuditActionService<typeof attendeeNoShowUpdatedDataSchemaV1> {
-    private helper: AuditActionServiceHelper;
+export class AttendeeNoShowUpdatedAuditActionService implements IAuditActionService<typeof attendeeNoShowUpdatedFieldsSchemaV1> {
+    private helper: AuditActionServiceHelper<typeof attendeeNoShowUpdatedFieldsSchemaV1>;
 
     readonly VERSION = 1;
-    readonly dataSchemaV1 = attendeeNoShowUpdatedDataSchemaV1;
+    readonly fieldsSchemaV1 = attendeeNoShowUpdatedFieldsSchemaV1;
+    readonly dataSchema = z.object({
+        version: z.literal(this.VERSION),
+        fields: this.fieldsSchemaV1,
+    });
 
-    constructor(helper: AuditActionServiceHelper) {
-        this.helper = helper;
+    constructor() {
+        this.helper = new AuditActionServiceHelper({ fieldsSchema: attendeeNoShowUpdatedFieldsSchemaV1, version: this.VERSION });
     }
 
-    get schema() {
-        return z.object({
-            version: z.literal(this.VERSION),
-            data: this.dataSchemaV1,
-        });
+    parseFields(input: unknown) {
+        return this.helper.parseFields(input);
     }
 
-    parse(input: unknown): { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> } {
-        return this.helper.parse({
-            version: this.VERSION,
-            dataSchema: this.dataSchemaV1,
-            input,
-        }) as { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> };
-    }
-
-    parseStored(data: unknown): { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> } {
-        return this.helper.parseStored({
-            schema: this.schema,
-            data,
-        }) as { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> };
+    parseStored(data: unknown) {
+        return this.helper.parseStored(data);
     }
 
     getVersion(data: unknown): number {
         return this.helper.getVersion(data);
     }
 
-    getDisplaySummary(storedData: { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> }, t: TFunction): string {
+    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof attendeeNoShowUpdatedFieldsSchemaV1> }, t: TFunction): string {
         return t('audit.attendee_no_show_updated');
     }
 
-    getDisplayDetails(storedData: { version: number; data: z.infer<typeof attendeeNoShowUpdatedDataSchemaV1> }, t: TFunction): Record<string, string> {
-        const { data } = storedData;
+    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof attendeeNoShowUpdatedFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+        const { fields } = storedData;
         return {
-            'Attendee No-Show': `${data.noShowAttendee.old ?? false} → ${data.noShowAttendee.new}`,
+            'Attendee No-Show': `${fields.noShowAttendee.old ?? false} → ${fields.noShowAttendee.new}`,
         };
     }
 }
 
-export type AttendeeNoShowUpdatedAuditData = z.infer<typeof attendeeNoShowUpdatedDataSchemaV1>;
+export type AttendeeNoShowUpdatedAuditData = z.infer<typeof attendeeNoShowUpdatedFieldsSchemaV1>;

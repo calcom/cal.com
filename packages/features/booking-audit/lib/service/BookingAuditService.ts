@@ -40,7 +40,6 @@ const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
  * Each action service manages its own schema versioning
  */
 export class BookingAuditService {
-  private readonly auditActionHelper: AuditActionServiceHelper;
   private readonly createdActionService: CreatedAuditActionService;
   private readonly cancelledActionService: CancelledAuditActionService;
   private readonly rejectedActionService: RejectedAuditActionService;
@@ -60,20 +59,19 @@ export class BookingAuditService {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.actorRepository = deps.actorRepository;
 
-    this.auditActionHelper = new AuditActionServiceHelper();
-
-    this.createdActionService = new CreatedAuditActionService(this.auditActionHelper);
-    this.cancelledActionService = new CancelledAuditActionService(this.auditActionHelper);
-    this.rejectedActionService = new RejectedAuditActionService(this.auditActionHelper);
-    this.rescheduledActionService = new RescheduledAuditActionService(this.auditActionHelper);
-    this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService(this.auditActionHelper);
-    this.attendeeAddedActionService = new AttendeeAddedAuditActionService(this.auditActionHelper);
-    this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService(this.auditActionHelper);
-    this.reassignmentActionService = new ReassignmentAuditActionService(this.auditActionHelper);
-    this.locationChangedActionService = new LocationChangedAuditActionService(this.auditActionHelper);
-    this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService(this.auditActionHelper);
-    this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService(this.auditActionHelper);
-    this.statusChangeActionService = new StatusChangeAuditActionService(this.auditActionHelper);
+    // Each service instantiates its own helper with its specific schema
+    this.createdActionService = new CreatedAuditActionService();
+    this.cancelledActionService = new CancelledAuditActionService();
+    this.rejectedActionService = new RejectedAuditActionService();
+    this.rescheduledActionService = new RescheduledAuditActionService();
+    this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService();
+    this.attendeeAddedActionService = new AttendeeAddedAuditActionService();
+    this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService();
+    this.reassignmentActionService = new ReassignmentAuditActionService();
+    this.locationChangedActionService = new LocationChangedAuditActionService();
+    this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
+    this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
+    this.statusChangeActionService = new StatusChangeAuditActionService();
   }
 
   private async getOrCreateUserActor(userId: number): Promise<string> {
@@ -110,7 +108,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: CreatedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.createdActionService.parse(data);
+    const parsedData = this.createdActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -127,7 +125,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data?: StatusChangeAuditData
   ): Promise<BookingAudit> {
-    const parsedData = data ? this.statusChangeActionService.parse(data) : undefined;
+    const parsedData = data ? this.statusChangeActionService.parseFields(data) : undefined;
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -144,7 +142,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: RejectedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.rejectedActionService.parse(data);
+    const parsedData = this.rejectedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -161,7 +159,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: CancelledAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.cancelledActionService.parse(data);
+    const parsedData = this.cancelledActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -178,7 +176,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: RescheduledAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.rescheduledActionService.parse(data);
+    const parsedData = this.rescheduledActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -195,7 +193,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: RescheduleRequestedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.rescheduleRequestedActionService.parse(data);
+    const parsedData = this.rescheduleRequestedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -212,7 +210,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: AttendeeAddedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.attendeeAddedActionService.parse(data);
+    const parsedData = this.attendeeAddedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -229,7 +227,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: AttendeeRemovedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.attendeeRemovedActionService.parse(data);
+    const parsedData = this.attendeeRemovedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -246,7 +244,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: ReassignmentAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.reassignmentActionService.parse(data);
+    const parsedData = this.reassignmentActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -263,7 +261,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: LocationChangedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.locationChangedActionService.parse(data);
+    const parsedData = this.locationChangedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -280,7 +278,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: HostNoShowUpdatedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.hostNoShowUpdatedActionService.parse(data);
+    const parsedData = this.hostNoShowUpdatedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
@@ -297,7 +295,7 @@ export class BookingAuditService {
     userId: number | undefined,
     data: AttendeeNoShowUpdatedAuditData
   ): Promise<BookingAudit> {
-    const parsedData = this.attendeeNoShowUpdatedActionService.parse(data);
+    const parsedData = this.attendeeNoShowUpdatedActionService.parseFields(data);
     const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,

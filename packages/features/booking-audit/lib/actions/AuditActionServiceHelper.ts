@@ -10,35 +10,35 @@ import { z } from "zod";
  * - Easier to test (inject mock helper)
  * - Looser coupling - services explicitly choose what to delegate
  */
-export class AuditActionServiceHelper<TDataSchema extends z.ZodTypeAny> {
-  private readonly dataSchema: TDataSchema;
+export class AuditActionServiceHelper<TFieldsSchema extends z.ZodTypeAny> {
+  private readonly fieldsSchema: TFieldsSchema;
   private readonly version: number;
-  private readonly schema: z.ZodObject<{ version: z.ZodLiteral<number>; data: TDataSchema }>;
+  private readonly dataSchema: z.ZodObject<{ version: z.ZodLiteral<number>; fields: TFieldsSchema }>;
 
-  constructor({ dataSchema, version }: { dataSchema: TDataSchema, version: number }) {
-    this.dataSchema = dataSchema;
+  constructor({ fieldsSchema, version }: { fieldsSchema: TFieldsSchema, version: number }) {
+    this.fieldsSchema = fieldsSchema;
     this.version = version
-    this.schema = z.object({
+    this.dataSchema = z.object({
       version: z.literal(this.version),
-      data: this.dataSchema,
+      fields: this.fieldsSchema,
     });
   }
   /**
-   * Parse input data and wrap with version for writing to database
+   * Parse input fields and wrap with version for writing to database
    */
-  parse(input: unknown): z.infer<typeof this.schema> {
-    const parsed = this.dataSchema.parse(input);
+  parseFields(input: unknown): z.infer<typeof this.dataSchema> {
+    const parsed = this.fieldsSchema.parse(input);
     return {
       version: this.version,
-      data: parsed,
+      fields: parsed,
     };
   }
 
   /**
    * Parse stored audit record (includes version wrapper)
    */
-  parseStored(data: unknown): z.infer<typeof this.schema> {
-    return this.schema.parse(data);
+  parseStored(data: unknown): z.infer<typeof this.dataSchema> {
+    return this.dataSchema.parse(data);
   }
 
   /**

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
-import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService } from "./IAuditActionService";
 
 /**
@@ -13,58 +13,48 @@ import type { IAuditActionService } from "./IAuditActionService";
  * - v1: Initial schema with addedAttendees
  */
 
-const attendeeAddedDataSchemaV1 = z.object({
+const attendeeAddedFieldsSchemaV1 = z.object({
     addedAttendees: StringArrayChangeSchema,
 });
 
-export class AttendeeAddedAuditActionService implements IAuditActionService<typeof attendeeAddedDataSchemaV1> {
-    private helper: AuditActionServiceHelper;
+export class AttendeeAddedAuditActionService implements IAuditActionService<typeof attendeeAddedFieldsSchemaV1> {
+    private helper: AuditActionServiceHelper<typeof attendeeAddedFieldsSchemaV1>;
 
     readonly VERSION = 1;
-    readonly dataSchemaV1 = attendeeAddedDataSchemaV1;
+    readonly fieldsSchemaV1 = attendeeAddedFieldsSchemaV1;
+    readonly dataSchema = z.object({
+        version: z.literal(this.VERSION),
+        fields: this.fieldsSchemaV1,
+    });
 
-    constructor(helper: AuditActionServiceHelper) {
-        this.helper = helper;
+    constructor() {
+        this.helper = new AuditActionServiceHelper({ fieldsSchema: attendeeAddedFieldsSchemaV1, version: this.VERSION });
     }
 
-    get schema() {
-        return z.object({
-            version: z.literal(this.VERSION),
-            data: this.dataSchemaV1,
-        });
+    parseFields(input: unknown) {
+        return this.helper.parseFields(input);
     }
 
-    parse(input: unknown): { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> } {
-        return this.helper.parse({
-            version: this.VERSION,
-            dataSchema: this.dataSchemaV1,
-            input,
-        }) as { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> };
-    }
-
-    parseStored(data: unknown): { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> } {
-        return this.helper.parseStored({
-            schema: this.schema,
-            data,
-        }) as { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> };
+    parseStored(data: unknown) {
+        return this.helper.parseStored(data);
     }
 
     getVersion(data: unknown): number {
         return this.helper.getVersion(data);
     }
 
-    getDisplaySummary(storedData: { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> }, t: TFunction): string {
-        const { data } = storedData;
-        return t('audit.added_guests', { count: data.addedAttendees.new.length });
+    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof attendeeAddedFieldsSchemaV1> }, t: TFunction): string {
+        const { fields } = storedData;
+        return t('audit.added_guests', { count: fields.addedAttendees.new.length });
     }
 
-    getDisplayDetails(storedData: { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> }, _t: TFunction): Record<string, string> {
-        const { data } = storedData;
+    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof attendeeAddedFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
+        const { fields } = storedData;
         return {
-            'Added Guests': data.addedAttendees.new.join(', '),
-            'Count': data.addedAttendees.new.length.toString(),
+            'Added Guests': fields.addedAttendees.new.join(', '),
+            'Count': fields.addedAttendees.new.length.toString(),
         };
     }
 }
 
-export type AttendeeAddedAuditData = z.infer<typeof attendeeAddedDataSchemaV1>;
+export type AttendeeAddedAuditData = z.infer<typeof attendeeAddedFieldsSchemaV1>;
