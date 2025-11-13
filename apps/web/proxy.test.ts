@@ -6,10 +6,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { checkPostMethod } from "./middleware";
+import { checkPostMethod } from "./proxy";
 // We'll test the wrapped middleware as it would be used in production
-import middleware from "./middleware";
-import { config } from "./middleware";
+import middleware from "./proxy";
+import { config } from "./proxy";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
@@ -406,7 +406,6 @@ describe("Middleware Integration Tests", () => {
   });
 
   describe("Multiple Features", () => {
-
     it("should handle embed route with routing forms rewrite", async () => {
       const req = createTestRequest({
         url: `${WEBAPP_URL}/apps/routing_forms/form/embed?ui.color-scheme=light`,
