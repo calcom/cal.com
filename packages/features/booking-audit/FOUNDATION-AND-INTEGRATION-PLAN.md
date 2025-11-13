@@ -318,7 +318,7 @@ Integrates audit logging for [specific operation] as part of the Booking Audit S
 
 3. **Prepare the audit data**
    ```typescript
-   import type { [ActionName]AuditData } from "@calcom/features/booking-audit/lib/types";
+   import type { [ActionName]AuditData } from "@calcom/features/booking-audit/lib/actions/[ActionName]AuditActionService";
    
    const auditData: [ActionName]AuditData = {
      // Follow the schema defined in the corresponding Action Service
@@ -403,7 +403,7 @@ await bookingAuditService.onBookingCreated(
 
 ### Pattern 3: With Change Tracking
 ```typescript
-import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/types";
+import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
 
 const changes = [
   { field: "status", oldValue: "PENDING", newValue: "ACCEPTED" },
@@ -421,7 +421,7 @@ await bookingAuditService.onBookingAccepted(
 
 ### Pattern 4: With Assignment Context
 ```typescript
-import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/types";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
 
 const auditData: ReassignmentAuditData = {
   reassignmentReason: "Manual reassignment by admin",
@@ -470,7 +470,7 @@ await bookingAuditService.onReassignmentReasonUpdated(
 
 ### Issue: "Type errors in integration code"
 **Cause:** Incorrect type imports or data structure  
-**Solution:** Import types from `@calcom/features/booking-audit/lib/types` and follow the schemas
+**Solution:** Import types directly from their respective action service files (e.g., `@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService`) and follow the schemas
 
 ---
 

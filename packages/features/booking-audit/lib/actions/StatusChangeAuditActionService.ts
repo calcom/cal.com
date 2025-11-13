@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema } from "../common/changeSchemas";
+import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import type { IAuditActionService } from "./IAuditActionService";
 
 /**
  * Status Change Audit Action Service
@@ -10,71 +12,57 @@ import { StringChangeSchema } from "../common/changeSchemas";
  * Version History:
  * - v1: Initial schema with status
  */
-export class StatusChangeAuditActionService {
-    static readonly VERSION = 1;
 
-    // Data schema (without version wrapper) - for input validation
-    static readonly dataSchemaV1 = z.object({
-        status: StringChangeSchema,
+const statusChangeDataSchemaV1 = z.object({
+  status: StringChangeSchema,
+});
+
+export class StatusChangeAuditActionService implements IAuditActionService<typeof statusChangeDataSchemaV1> {
+  private helper: AuditActionServiceHelper;
+
+  readonly VERSION = 1;
+  readonly dataSchemaV1 = statusChangeDataSchemaV1;
+
+  constructor(helper: AuditActionServiceHelper) {
+    this.helper = helper;
+  }
+
+  get schema() {
+    return z.object({
+      version: z.literal(this.VERSION),
+      data: this.dataSchemaV1,
     });
+  }
 
-    // Full schema with version wrapper - for stored data
-    static readonly schemaV1 = z.object({
-        version: z.literal(1),
-        data: StatusChangeAuditActionService.dataSchemaV1,
-    });
+  parse(input: unknown): { version: number; data: z.infer<typeof statusChangeDataSchemaV1> } {
+    return this.helper.parse({
+      version: this.VERSION,
+      dataSchema: this.dataSchemaV1,
+      input,
+    }) as { version: number; data: z.infer<typeof statusChangeDataSchemaV1> };
+  }
 
-    // Current schema (for reading stored data)
-    // When adding v2, this will become a discriminated union: z.discriminatedUnion("version", [schemaV1, schemaV2])
-    static readonly schema = StatusChangeAuditActionService.schemaV1;
+  parseStored(data: unknown): { version: number; data: z.infer<typeof statusChangeDataSchemaV1> } {
+    return this.helper.parseStored({
+      schema: this.schema,
+      data,
+    }) as { version: number; data: z.infer<typeof statusChangeDataSchemaV1> };
+  }
 
-    /**
-     * Parse input data and wrap with version for writing to database
-     * Callers provide just the data fields, this method adds the version wrapper
-     */
-    parse(input: unknown): z.infer<typeof StatusChangeAuditActionService.schema> {
-        const parsedData = StatusChangeAuditActionService.dataSchemaV1.parse(input);
-        return {
-            version: StatusChangeAuditActionService.VERSION,
-            data: parsedData,
-        };
-    }
+  getVersion(data: unknown): number {
+    return this.helper.getVersion(data);
+  }
 
-    /**
-     * Parse stored audit record (includes version wrapper)
-     * Use this when reading from database
-     */
-    parseStored(data: unknown): z.infer<typeof StatusChangeAuditActionService.schema> {
-        return StatusChangeAuditActionService.schema.parse(data);
-    }
+  getDisplaySummary(storedData: { version: number; data: z.infer<typeof statusChangeDataSchemaV1> }, t: TFunction): string {
+    return t('audit.status_changed');
+  }
 
-    /**
-     * Extract version from stored data
-     */
-    getVersion(data: unknown): number {
-        const parsed = z.object({ version: z.number() }).parse(data);
-        return parsed.version;
-    }
-
-    /**
-     * Get human-readable summary for display
-     * Accepts stored format { version, data: {} } and extracts data for display
-     */
-    getDisplaySummary(storedData: z.infer<typeof StatusChangeAuditActionService.schema>, t: TFunction): string {
-        return t('audit.status_changed');
-    }
-
-    /**
-     * Get detailed key-value pairs for display
-     * Accepts stored format { version, data: {} } and shows only data fields
-     */
-    getDisplayDetails(storedData: z.infer<typeof StatusChangeAuditActionService.schema>, t: TFunction): Record<string, string> {
-        const { data } = storedData;
-        return {
-            'Status': `${data.status.old ?? '-'} → ${data.status.new ?? '-'}`,
-        };
-    }
+  getDisplayDetails(storedData: { version: number; data: z.infer<typeof statusChangeDataSchemaV1> }, t: TFunction): Record<string, string> {
+    const { data } = storedData;
+    return {
+      'Status': `${data.status.old ?? '-'} → ${data.status.new ?? '-'}`,
+    };
+  }
 }
 
-// Input type (without version wrapper) - used by callers
-export type StatusChangeAuditData = z.infer<typeof StatusChangeAuditActionService.dataSchemaV1>;
+export type StatusChangeAuditData = z.infer<typeof statusChangeDataSchemaV1>;

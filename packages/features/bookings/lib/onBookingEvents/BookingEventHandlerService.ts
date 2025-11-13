@@ -1,18 +1,16 @@
 import type { Logger } from "tslog";
 
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
-import type {
-  StatusChangeAuditData,
-  CancelledAuditData,
-  RejectedAuditData,
-  RescheduleRequestedAuditData,
-  AttendeeAddedAuditData,
-  AttendeeRemovedAuditData,
-  ReassignmentAuditData,
-  LocationChangedAuditData,
-  HostNoShowUpdatedAuditData,
-  AttendeeNoShowUpdatedAuditData,
-} from "@calcom/features/booking-audit/lib/types";
+import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
+import type { CancelledAuditData } from "@calcom/features/booking-audit/lib/actions/CancelledAuditActionService";
+import type { RejectedAuditData } from "@calcom/features/booking-audit/lib/actions/RejectedAuditActionService";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import type { AttendeeAddedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionService";
+import type { AttendeeRemovedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeRemovedAuditActionService";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
+import type { LocationChangedAuditData } from "@calcom/features/booking-audit/lib/actions/LocationChangedAuditActionService";
+import type { HostNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/HostNoShowUpdatedAuditActionService";
+import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeNoShowUpdatedAuditActionService";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BookingStatus } from "@calcom/prisma/enums";

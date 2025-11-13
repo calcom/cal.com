@@ -2,7 +2,7 @@ import type { BookingAudit, Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 
-import { BookingAuditDataSchema } from "../types";
+import { BookingAuditDataSchema } from "../schemas/BookingAuditDataSchema";
 import type { IBookingAuditRepository } from "./IBookingAuditRepository";
 
 export class PrismaBookingAuditRepository implements IBookingAuditRepository {

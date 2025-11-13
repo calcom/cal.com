@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringArrayChangeSchema } from "../common/changeSchemas";
+import type { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import type { IAuditActionService } from "./IAuditActionService";
 
 /**
  * Attendee Added Audit Action Service
@@ -10,66 +12,53 @@ import { StringArrayChangeSchema } from "../common/changeSchemas";
  * Version History:
  * - v1: Initial schema with addedAttendees
  */
-export class AttendeeAddedAuditActionService {
-    static readonly VERSION = 1;
 
-    // Data schema (without version wrapper) - for input validation
-    static readonly dataSchemaV1 = z.object({
-        addedAttendees: StringArrayChangeSchema,
-    });
+const attendeeAddedDataSchemaV1 = z.object({
+    addedAttendees: StringArrayChangeSchema,
+});
 
-    // Full schema with version wrapper - for stored data
-    static readonly schemaV1 = z.object({
-        version: z.literal(1),
-        data: AttendeeAddedAuditActionService.dataSchemaV1,
-    });
+export class AttendeeAddedAuditActionService implements IAuditActionService<typeof attendeeAddedDataSchemaV1> {
+    private helper: AuditActionServiceHelper;
 
-    // Current schema (for reading stored data)
-    // When adding v2, this will become a discriminated union: z.discriminatedUnion("version", [schemaV1, schemaV2])
-    static readonly schema = AttendeeAddedAuditActionService.schemaV1;
+    readonly VERSION = 1;
+    readonly dataSchemaV1 = attendeeAddedDataSchemaV1;
 
-    /**
-     * Parse input data and wrap with version for writing to database
-     * Callers provide just the data fields, this method adds the version wrapper
-     */
-    parse(input: unknown): z.infer<typeof AttendeeAddedAuditActionService.schema> {
-        const parsedData = AttendeeAddedAuditActionService.dataSchemaV1.parse(input);
-        return {
-            version: AttendeeAddedAuditActionService.VERSION,
-            data: parsedData,
-        };
+    constructor(helper: AuditActionServiceHelper) {
+        this.helper = helper;
     }
 
-    /**
-     * Parse stored audit record (includes version wrapper)
-     * Use this when reading from database
-     */
-    parseStored(data: unknown): z.infer<typeof AttendeeAddedAuditActionService.schema> {
-        return AttendeeAddedAuditActionService.schema.parse(data);
+    get schema() {
+        return z.object({
+            version: z.literal(this.VERSION),
+            data: this.dataSchemaV1,
+        });
     }
 
-    /**
-     * Extract version from stored data
-     */
+    parse(input: unknown): { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> } {
+        return this.helper.parse({
+            version: this.VERSION,
+            dataSchema: this.dataSchemaV1,
+            input,
+        }) as { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> };
+    }
+
+    parseStored(data: unknown): { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> } {
+        return this.helper.parseStored({
+            schema: this.schema,
+            data,
+        }) as { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> };
+    }
+
     getVersion(data: unknown): number {
-        const parsed = z.object({ version: z.number() }).parse(data);
-        return parsed.version;
+        return this.helper.getVersion(data);
     }
 
-    /**
-     * Get human-readable summary for display
-     * Accepts stored format { version, data: {} } and extracts data for display
-     */
-    getDisplaySummary(storedData: z.infer<typeof AttendeeAddedAuditActionService.schema>, t: TFunction): string {
+    getDisplaySummary(storedData: { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> }, t: TFunction): string {
         const { data } = storedData;
         return t('audit.added_guests', { count: data.addedAttendees.new.length });
     }
 
-    /**
-     * Get detailed key-value pairs for display
-     * Accepts stored format { version, data: {} } and shows only data fields
-     */
-    getDisplayDetails(storedData: z.infer<typeof AttendeeAddedAuditActionService.schema>, _t: TFunction): Record<string, string> {
+    getDisplayDetails(storedData: { version: number; data: z.infer<typeof attendeeAddedDataSchemaV1> }, _t: TFunction): Record<string, string> {
         const { data } = storedData;
         return {
             'Added Guests': data.addedAttendees.new.join(', '),
@@ -78,5 +67,4 @@ export class AttendeeAddedAuditActionService {
     }
 }
 
-// Input type (without version wrapper) - used by callers
-export type AttendeeAddedAuditData = z.infer<typeof AttendeeAddedAuditActionService.dataSchemaV1>;
+export type AttendeeAddedAuditData = z.infer<typeof attendeeAddedDataSchemaV1>;

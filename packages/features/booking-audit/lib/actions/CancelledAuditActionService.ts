@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 import { StringChangeSchema } from "../common/changeSchemas";
+import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
+import type { IAuditActionService } from "./IAuditActionService";
 
 /**
  * Cancelled Audit Action Service
@@ -10,67 +12,44 @@ import { StringChangeSchema } from "../common/changeSchemas";
  * Version History:
  * - v1: Initial schema with cancellationReason, cancelledBy, status
  */
-export class CancelledAuditActionService {
-    static readonly VERSION = 1;
 
-    // Data schema (without version wrapper) - for input validation
-    static readonly dataSchemaV1 = z.object({
-        cancellationReason: StringChangeSchema,
-        cancelledBy: StringChangeSchema,
-        status: StringChangeSchema,
+const cancelledDataSchemaV1 = z.object({
+    cancellationReason: StringChangeSchema,
+    cancelledBy: StringChangeSchema,
+    status: StringChangeSchema,
+});
+
+export class CancelledAuditActionService implements IAuditActionService<typeof cancelledDataSchemaV1> {
+    private helper: AuditActionServiceHelper<typeof cancelledDataSchemaV1>;
+
+    readonly VERSION = 1;
+    readonly dataSchemaV1 = cancelledDataSchemaV1;
+    readonly schema = z.object({
+        version: z.literal(this.VERSION),
+        data: this.dataSchemaV1,
     });
 
-    // Full schema with version wrapper - for stored data
-    static readonly schemaV1 = z.object({
-        version: z.literal(1),
-        data: CancelledAuditActionService.dataSchemaV1,
-    });
-
-    // Current schema (for reading stored data)
-    // When adding v2, this will become a discriminated union: z.discriminatedUnion("version", [schemaV1, schemaV2])
-    static readonly schema = CancelledAuditActionService.schemaV1;
-
-    /**
-     * Parse input data and wrap with version for writing to database
-     * Callers provide just the data fields, this method adds the version wrapper
-     */
-    parse(input: unknown): z.infer<typeof CancelledAuditActionService.schema> {
-        const parsedData = CancelledAuditActionService.dataSchemaV1.parse(input);
-        return {
-            version: CancelledAuditActionService.VERSION,
-            data: parsedData,
-        };
+    constructor() {
+        this.helper = new AuditActionServiceHelper({ dataSchema: cancelledDataSchemaV1, version: this.VERSION });
     }
 
-    /**
-     * Parse stored audit record (includes version wrapper)
-     * Use this when reading from database
-     */
-    parseStored(data: unknown): z.infer<typeof CancelledAuditActionService.schema> {
-        return CancelledAuditActionService.schema.parse(data);
+    parse(input: unknown) {
+        return this.helper.parse(input);
     }
 
-    /**
-     * Extract version from stored data
-     */
+    parseStored(data: unknown) {
+        return this.helper.parseStored(data);
+    }
+
     getVersion(data: unknown): number {
-        const parsed = z.object({ version: z.number() }).parse(data);
-        return parsed.version;
+        return this.helper.getVersion(data);
     }
 
-    /**
-     * Get human-readable summary for display
-     * Accepts stored format { version, data: {} } and extracts data for display
-     */
-    getDisplaySummary(storedData: z.infer<typeof CancelledAuditActionService.schema>, t: TFunction): string {
+    getDisplaySummary(storedData: { version: number; data: z.infer<typeof cancelledDataSchemaV1> }, t: TFunction): string {
         return t('audit.cancelled_booking');
     }
 
-    /**
-     * Get detailed key-value pairs for display
-     * Accepts stored format { version, data: {} } and shows only data fields
-     */
-    getDisplayDetails(storedData: z.infer<typeof CancelledAuditActionService.schema>, _t: TFunction): Record<string, string> {
+    getDisplayDetails(storedData: z.infer<typeof this.schema>): Record<string, string> {
         const { data } = storedData;
         return {
             'Cancellation Reason': data.cancellationReason.new ?? '-',
@@ -80,5 +59,4 @@ export class CancelledAuditActionService {
     }
 }
 
-// Input type (without version wrapper) - used by callers
-export type CancelledAuditData = z.infer<typeof CancelledAuditActionService.dataSchemaV1>;
+export type CancelledAuditData = z.infer<typeof cancelledDataSchemaV1>;

@@ -7,34 +7,21 @@ interface BookingAuditServiceDeps {
   actorRepository: IActorRepository;
 }
 
-import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
-import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
-import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
-import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
-import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
-import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
-import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
-import { StatusChangeAuditActionService } from "../actions/StatusChangeAuditActionService";
+import { AuditActionServiceHelper } from "../actions/AuditActionServiceHelper";
+import { AttendeeAddedAuditActionService, type AttendeeAddedAuditData } from "../actions/AttendeeAddedAuditActionService";
+import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData } from "../actions/AttendeeRemovedAuditActionService";
+import { CancelledAuditActionService, type CancelledAuditData } from "../actions/CancelledAuditActionService";
+import { CreatedAuditActionService, type CreatedAuditData } from "../actions/CreatedAuditActionService";
+import { HostNoShowUpdatedAuditActionService, type HostNoShowUpdatedAuditData } from "../actions/HostNoShowUpdatedAuditActionService";
+import { LocationChangedAuditActionService, type LocationChangedAuditData } from "../actions/LocationChangedAuditActionService";
+import { ReassignmentAuditActionService, type ReassignmentAuditData } from "../actions/ReassignmentAuditActionService";
+import { RejectedAuditActionService, type RejectedAuditData } from "../actions/RejectedAuditActionService";
+import { RescheduleRequestedAuditActionService, type RescheduleRequestedAuditData } from "../actions/RescheduleRequestedAuditActionService";
+import { RescheduledAuditActionService, type RescheduledAuditData } from "../actions/RescheduledAuditActionService";
+import { StatusChangeAuditActionService, type StatusChangeAuditData } from "../actions/StatusChangeAuditActionService";
 import type { IActorRepository } from "../repository/IActorRepository";
 import type { IBookingAuditRepository } from "../repository/IBookingAuditRepository";
-import type {
-  CreatedAuditData,
-  CancelledAuditData,
-  RejectedAuditData,
-  RescheduledAuditData,
-  RescheduleRequestedAuditData,
-  AttendeeAddedAuditData,
-  AttendeeRemovedAuditData,
-  ReassignmentAuditData,
-  LocationChangedAuditData,
-  HostNoShowUpdatedAuditData,
-  AttendeeNoShowUpdatedAuditData,
-  StatusChangeAuditData,
-} from "../types";
 
 type CreateBookingAuditInput = {
   bookingId: string;
@@ -53,6 +40,7 @@ const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
  * Each action service manages its own schema versioning
  */
 export class BookingAuditService {
+  private readonly auditActionHelper: AuditActionServiceHelper;
   private readonly createdActionService: CreatedAuditActionService;
   private readonly cancelledActionService: CancelledAuditActionService;
   private readonly rejectedActionService: RejectedAuditActionService;
@@ -71,18 +59,21 @@ export class BookingAuditService {
   constructor(private readonly deps: BookingAuditServiceDeps) {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.actorRepository = deps.actorRepository;
-    this.createdActionService = new CreatedAuditActionService();
-    this.cancelledActionService = new CancelledAuditActionService();
-    this.rejectedActionService = new RejectedAuditActionService();
-    this.rescheduledActionService = new RescheduledAuditActionService();
-    this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService();
-    this.attendeeAddedActionService = new AttendeeAddedAuditActionService();
-    this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService();
-    this.reassignmentActionService = new ReassignmentAuditActionService();
-    this.locationChangedActionService = new LocationChangedAuditActionService();
-    this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
-    this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
-    this.statusChangeActionService = new StatusChangeAuditActionService();
+
+    this.auditActionHelper = new AuditActionServiceHelper();
+
+    this.createdActionService = new CreatedAuditActionService(this.auditActionHelper);
+    this.cancelledActionService = new CancelledAuditActionService(this.auditActionHelper);
+    this.rejectedActionService = new RejectedAuditActionService(this.auditActionHelper);
+    this.rescheduledActionService = new RescheduledAuditActionService(this.auditActionHelper);
+    this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService(this.auditActionHelper);
+    this.attendeeAddedActionService = new AttendeeAddedAuditActionService(this.auditActionHelper);
+    this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService(this.auditActionHelper);
+    this.reassignmentActionService = new ReassignmentAuditActionService(this.auditActionHelper);
+    this.locationChangedActionService = new LocationChangedAuditActionService(this.auditActionHelper);
+    this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService(this.auditActionHelper);
+    this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService(this.auditActionHelper);
+    this.statusChangeActionService = new StatusChangeAuditActionService(this.auditActionHelper);
   }
 
   private async getOrCreateUserActor(userId: number): Promise<string> {
