@@ -7,15 +7,15 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { OrganizationBrandView } from "~/onboarding/organization/brand/organization-brand-view";
+import { OrganizationInviteEmailView } from "~/onboarding/organization/invite/email/organization-invite-email-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => `${APP_NAME} - ${t("organization_brand")}`,
+    (t) => `${APP_NAME} - ${t("invite_teammates")}`,
     () => "",
     true,
     undefined,
-    "/onboarding/organization/brand"
+    "/onboarding/organization/invite/email"
   );
 };
 
@@ -28,7 +28,7 @@ const ServerPage = async () => {
 
   const userEmail = session.user.email || "";
 
-  return <OrganizationBrandView userEmail={userEmail} />;
+  return <OrganizationInviteEmailView userEmail={userEmail} />;
 };
 
 export default ServerPage;
