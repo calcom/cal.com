@@ -10920,3 +10920,32 @@ html[dir="rtl"] .react-tel-input .flag-dropdown {
       auto;
   }
 }
+
+@media (min-width: 80rem) {
+  :where(.xl\:space-x-6 > :not(:last-child)):not(
+      :is(
+          :lang(ae),
+          :lang(ar),
+          :lang(arc),
+          :lang(bcc),
+          :lang(bqi),
+          :lang(ckb),
+          :lang(dv),
+          :lang(fa),
+          :lang(glk),
+          :lang(he),
+          :lang(ku),
+          :lang(mzn),
+          :lang(nqo),
+          :lang(pnb),
+          :lang(ps),
+          :lang(sd),
+          :lang(ug),
+          :lang(ur),
+          :lang(yi)
+        )
+    ) {
+    margin-left: calc(calc(var(--spacing) * 6) * var(--tw-space-x-reverse));
+    margin-right: calc(calc(var(--spacing) * 6) * calc(1 - var(--tw-space-x-reverse)));
+  }
+}
