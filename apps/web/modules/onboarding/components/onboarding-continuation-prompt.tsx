@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -10,6 +11,7 @@ import { useOnboardingStore } from "../store/onboarding-store";
 
 export const OnboardingContinuationPrompt = () => {
   const router = useRouter();
+  const { t } = useLocale();
   const { organizationDetails, resetOnboarding } = useOnboardingStore();
   const [isVisible, setIsVisible] = useState(false);
 
@@ -43,19 +45,18 @@ export const OnboardingContinuationPrompt = () => {
         </button>
 
         <div className="mb-3 pr-6">
-          <h3 className="text-emphasis mb-1 text-base font-semibold">Continue onboarding?</h3>
+          <h3 className="text-emphasis mb-1 text-base font-semibold">{t("onboarding_continue_prompt_title")}</h3>
           <p className="text-subtle text-sm">
-            Would you like to carry on with onboarding for{" "}
-            <span className="text-emphasis font-medium">{organizationDetails.name}</span> or start over?
+            {t("onboarding_continue_prompt_description", { organizationName: organizationDetails.name })}
           </p>
         </div>
 
         <div className="ml-auto flex gap-2">
           <Button onClick={handleStartOver} color="secondary">
-            Start over
+            {t("onboarding_start_over")}
           </Button>
           <Button onClick={handleContinue} color="primary">
-            Continue
+            {t("continue")}
           </Button>
         </div>
       </div>

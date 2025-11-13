@@ -109,7 +109,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={1}>
         {/* Left column - Main content */}
         <OnboardingCard
-          title="Select plan"
+          title={t("onboarding_select_plan")}
           subtitle={t("onboarding_welcome_question")}
           footer={
             <div className="flex w-full justify-end gap-2">

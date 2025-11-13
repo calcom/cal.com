@@ -3999,6 +3999,17 @@
   "onboarding_browser_view_ask_question": "Ask a question",
   "onboarding_browser_view_ask_question_description": "Ask a question",
   "onboarding_browser_view_default_bio": "Add your bio here...",
+  "onboarding_select_plan": "Select plan",
+  "onboarding_continue_prompt_title": "Continue onboarding?",
+  "onboarding_continue_prompt_description": "Would you like to carry on with onboarding for {{organizationName}} or start over?",
+  "onboarding_start_over": "Start over",
+  "add_your_details": "Add your details",
+  "personal_details_subtitle": "Let's set up your personal account",
+  "onboarding_teams_browser_view_subtitle": "Your teams will appear here",
+  "onboarding_teams_browser_view_placeholder_subtitle": "Add teams to see them here",
+  "onboarding_teams_browser_view_team_description": "Team description",
+  "onboarding_teams_browser_view_no_teams_title": "No teams yet",
+  "onboarding_teams_browser_view_no_teams_description": "Add teams to get started",
   "book_now": "Book now",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
