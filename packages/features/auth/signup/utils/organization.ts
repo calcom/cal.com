@@ -27,6 +27,19 @@ export async function joinAnyChildTeamOnOrgInvite({
     user.username ||
     getOrgUsernameFromEmail(user.email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
 
+  const pendingChildTeamMemberships = await prisma.membership.findMany({
+    where: {
+      userId,
+      team: {
+        parentId: org.id,
+      },
+      accepted: false,
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
   await prisma.$transaction([
     // Simply remove this update when we remove the `organizationId` field from the user table
     prisma.user.update({
@@ -81,4 +94,8 @@ export async function joinAnyChildTeamOnOrgInvite({
   ]);
 
   await updateNewTeamMemberEventTypes(userId, org.id);
+
+  for (const membership of pendingChildTeamMemberships) {
+    await updateNewTeamMemberEventTypes(userId, membership.teamId);
+  }
 }
