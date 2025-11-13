@@ -26,10 +26,10 @@ const httpClient = new HTTPClient();
 
 httpClient.addHook("beforeRequest", (request) => {
   const headers: Record<string, string> = {};
-  for (const [key, value] of Object.entries(request.headers)) {
+  request.headers.forEach((value, key) => {
     headers[key] = value;
-  }
-  console.log(`[UNKEY_DEBUG_MIDDLEWARE] Before request ${request.url}`, JSON.stringify(headers));
+  });
+  console.log(`[UNKEY_DEBUG_MIDDLEWARE] Before request ${request.url}`, JSON.stringify(headers, null, 2));
 
   return request;
 });
