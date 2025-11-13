@@ -167,6 +167,8 @@ function BookingDetailsSheetInner({
               </p>
             </div>
 
+            <RescheduleRequestMessage booking={booking} />
+
             <WhoSection booking={booking} />
 
             <WhereSection booking={booking} meta={bookingMetadata} />
@@ -219,6 +221,20 @@ function BookingDetailsSheetInner({
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  if (booking.status !== "CANCELLED" || !booking.rescheduled) {
+    return null;
+  }
+
+  return (
+    <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+      {t("reschedule_request_sent")}
+    </Badge>
   );
 }
 
