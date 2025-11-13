@@ -96,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error(`Webhook Error: ${err.message}`);
     res.status(200).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
+      stack: IS_PRODUCTION ? undefined : (err.cause?.stack ?? err.stack),
     });
     return;
   }
