@@ -70,10 +70,23 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const {
+    fields,
+    append: appendField,
+    remove,
+  } = useFieldArray({
     control: form.control,
     name: "invites",
   });
+
+  // Wrapper to ensure team is always provided when appending
+  const append = (value: { email: string; team?: string; role: InviteRole }) => {
+    appendField({
+      email: value.email,
+      team: value.team || "",
+      role: value.role,
+    });
+  };
 
   const handleContinue = async (data: FormValues) => {
     setInvites(data.invites);
