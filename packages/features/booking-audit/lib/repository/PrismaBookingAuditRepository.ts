@@ -10,7 +10,14 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
 
     async create(bookingAudit: BookingAuditCreateInput) {
         return this.deps.prismaClient.bookingAudit.create({
-            data: bookingAudit,
+            data: {
+                bookingUid: bookingAudit.bookingUid,
+                actorId: bookingAudit.actorId,
+                action: bookingAudit.action,
+                type: bookingAudit.type,
+                timestamp: bookingAudit.timestamp,
+                data: bookingAudit.data === null ? undefined : bookingAudit.data,
+            },
         });
     }
 }
