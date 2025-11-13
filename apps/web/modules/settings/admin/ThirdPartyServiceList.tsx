@@ -6,45 +6,17 @@ import { Badge } from "@calcom/ui/components/badge";
 import { ServiceProviderSelector } from "./components/ServiceProviderSelector";
 
 export const ThirdPartyServiceList = () => {
-  const [data] = trpc.viewer.thirdPartyService.getAllServices.useSuspenseQuery();
+  const [data] = trpc.viewer.admin.thirdPartyService.getAllServices.useSuspenseQuery();
   const utils = trpc.useUtils();
 
   const handleProviderUpdate = () => {
     // Invalidate queries to refresh the list
-    utils.viewer.thirdPartyService.getAllServices.invalidate();
-    utils.viewer.thirdPartyService.getServiceProvider.invalidate();
+    utils.viewer.admin.thirdPartyService.getAllServices.invalidate();
+    utils.viewer.admin.thirdPartyService.getServiceProvider.invalidate();
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-emphasis text-base font-semibold leading-5">Third-Party Service Providers</h2>
-        <p className="text-default mt-1 text-sm">
-          Configure default service providers for different features across your application.
-        </p>
-      </div>
-
-      {/* Configuration Status Card */}
-      <div className="bg-muted rounded-md p-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-emphasis text-sm font-medium">Configuration Status</p>
-            <p className="text-muted text-xs">Overview of your service provider settings</p>
-          </div>
-          <div className="flex gap-4">
-            <div className="text-center">
-              <p className="text-emphasis text-2xl font-bold">{data.configuredServices}</p>
-              <p className="text-muted text-xs">Configured</p>
-            </div>
-            <div className="text-center">
-              <p className="text-muted text-2xl font-bold">{data.unconfiguredServices}</p>
-              <p className="text-muted text-xs">Pending</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Services List */}
       <div className="border-subtle divide-subtle divide-y rounded-lg border">
         {data.services.map((service, index) => (
@@ -92,8 +64,8 @@ const getServiceDisplayName = (serviceName: string): string => {
 const getServiceDescription = (serviceName: string): string => {
   const descriptions: Record<string, string> = {
     MESSAGING: "Configure your default SMS and messaging service provider",
-    PAYMENTS: "Configure your default payment processing provider",
     EMAIL: "Configure your default email delivery service provider",
+    PAYMENTS: "Configure your default payment processing provider",
   };
   return descriptions[serviceName] || "Configure your service provider";
 };

@@ -38,7 +38,6 @@ import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
-import { thirdPartyServiceRouter } from "./thirdPartyService/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
@@ -87,5 +86,4 @@ export const viewerRouter = router({
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
   calidTeams: calIdTeamsRouter,
-  thirdPartyService: thirdPartyServiceRouter,
 });

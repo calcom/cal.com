@@ -1,12 +1,15 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZGetAllServicesInputSchema } from "./getAllServices.schema";
+import { ZGetServiceProviderInputSchema } from "./getServiceProvider.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+import { ZUpdateServiceProviderInputSchema } from "./updateServiceProvider.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
@@ -83,5 +86,22 @@ export const adminRouter = router({
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
+  }),
+  thirdPartyService: router({
+    getAllServices: authedAdminProcedure.input(ZGetAllServicesInputSchema).query(async (input) => {
+      const handler = (await import("./getAllServices.handler")).getAllServicesHandler;
+      return handler(input);
+    }),
+    getServiceProvider: authedAdminProcedure.input(ZGetServiceProviderInputSchema).query(async (input) => {
+      const handler = (await import("./getServiceProvider.handler")).getServiceProviderHandler;
+      return handler(input);
+    }),
+
+    updateServiceProvider: authedAdminProcedure
+      .input(ZUpdateServiceProviderInputSchema)
+      .mutation(async (input) => {
+        const handler = (await import("./updateServiceProvider.handler")).updateServiceProviderHandler;
+        return handler(input);
+      }),
   }),
 });

@@ -12,8 +12,8 @@ export const ZUpdateServiceProviderInputSchema = z
     // Validation: Ensure provider is valid for the service
     const validProvidersForService: Record<ServiceName, ServiceProvider[]> = {
       MESSAGING: [ServiceProvider.TWILIO, ServiceProvider.ICSMOBILE],
-      PAYMENTS: [], // Will be populated later
       EMAIL: [], // Will be populated later
+      PAYMENTS: [], // Will be populated later
     };
 
     const allowedProviders = validProvidersForService[data.serviceName];

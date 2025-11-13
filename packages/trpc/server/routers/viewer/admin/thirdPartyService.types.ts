@@ -41,24 +41,24 @@ export const SERVICE_PROVIDER_OPTIONS: Record<ServiceName, ServiceProviderOption
       isAvailable: true,
     },
   ],
-  PAYMENTS: [
-    // Will be populated when you add payment providers
-  ],
   EMAIL: [
     // Will be populated when you add email providers
+  ],
+  PAYMENTS: [
+    // Will be populated when you add payment providers
   ],
 };
 
 // Helper function to get human-readable service names
 export const SERVICE_DISPLAY_NAMES: Record<ServiceName, string> = {
   MESSAGING: "SMS & Messaging",
-  PAYMENTS: "Payment Processing",
   EMAIL: "Email Delivery",
+  PAYMENTS: "Payment Processing",
 };
 
 // Helper function to get service descriptions
 export const SERVICE_DESCRIPTIONS: Record<ServiceName, string> = {
   MESSAGING: "Configure your default SMS and messaging service provider",
-  PAYMENTS: "Configure your default payment processing provider",
   EMAIL: "Configure your default email delivery service provider",
+  PAYMENTS: "Configure your default payment processing provider",
 };

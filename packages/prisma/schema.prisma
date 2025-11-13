@@ -2747,8 +2747,8 @@ model CalIdWorkflowInsights {
 
 enum ServiceName {
   MESSAGING
-  PAYMENTS
   EMAIL
+  PAYMENTS
 }
 
 enum ServiceProvider {
@@ -2757,15 +2757,14 @@ enum ServiceProvider {
 }
 
 model ThirdPartyService {
-  id               Int       @id @default(autoincrement())
-  name             ServiceName    @unique // e.g. "messaging", "payments", "email"
-  defaultProvider  ServiceProvider
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  description      String?   // optional: to describe what this feature does
+  id              Int             @id @default(autoincrement())
+  name            ServiceName     @unique // e.g. "messaging", "payments", "email"
+  defaultProvider ServiceProvider
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  description     String? // optional: to describe what this feature does
 
   @@unique([name, defaultProvider])
-
 }
 
 enum RoundRobinResetInterval {
@@ -2777,4 +2776,3 @@ enum RoundRobinTimestampBasis {
   CREATED_AT
   START_TIME
 }
-

@@ -25,7 +25,7 @@ interface ServiceProviderSelectorProps {
 export const ServiceProviderSelector = ({ service, onUpdate }: ServiceProviderSelectorProps) => {
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(service.defaultProvider);
 
-  const mutation = trpc.viewer.thirdPartyService.updateServiceProvider.useMutation({
+  const mutation = trpc.viewer.admin.thirdPartyService.updateServiceProvider.useMutation({
     onSuccess: (data) => {
       showToast(data.message, "success");
       setSelectedProvider(data.service.defaultProvider);
@@ -97,8 +97,8 @@ const getProviderOptions = (serviceName: ServiceName): Array<{ label: string; va
         description: "Cost-effective regional SMS provider",
       },
     ],
-    PAYMENTS: [],
     EMAIL: [],
+    PAYMENTS: [],
   };
 
   return providerOptionsMap[serviceName] || [];
