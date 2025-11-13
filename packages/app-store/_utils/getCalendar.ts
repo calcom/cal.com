@@ -43,7 +43,7 @@ export const getCalendar = async (
     return null;
   }
   // if shouldServeCache is not supplied, determine on the fly.
-  if (typeof shouldServeCache === "undefined" || shouldServeCache) {
+  if (typeof shouldServeCache === "undefined") {
     const featuresRepository = new FeaturesRepository(prisma);
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
