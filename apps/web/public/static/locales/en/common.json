@@ -4001,7 +4001,7 @@
   "onboarding_browser_view_default_bio": "Add your bio here...",
   "onboarding_select_plan": "Select plan",
   "onboarding_continue_prompt_title": "Continue onboarding?",
-  "onboarding_continue_prompt_description": "Would you like to carry on with onboarding for {{organizationName}} or start over?",
+  "onboarding_continue_prompt_description": "Would you like to carry on with onboarding for {{entityName}} or start over?",
   "onboarding_start_over": "Start over",
   "add_your_details": "Add your details",
   "personal_details_subtitle": "Let's set up your personal account",

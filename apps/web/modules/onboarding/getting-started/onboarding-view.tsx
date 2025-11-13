@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useTransition } from "react";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +27,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
@@ -51,13 +52,15 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   }, [selectedPlan]);
 
   const handleContinue = () => {
-    if (selectedPlan === "organization") {
-      router.push("/onboarding/organization/details");
-    } else if (selectedPlan === "team") {
-      router.push("/onboarding/teams/details");
-    } else if (selectedPlan === "personal") {
-      router.push("/onboarding/personal/settings");
-    }
+    startTransition(() => {
+      if (selectedPlan === "organization") {
+        router.push("/onboarding/organization/details");
+      } else if (selectedPlan === "team") {
+        router.push("/onboarding/teams/details");
+      } else if (selectedPlan === "personal") {
+        router.push("/onboarding/personal/settings");
+      }
+    });
   };
 
   const planIconByType: Record<PlanType, IconName> = {
@@ -113,8 +116,12 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
           subtitle={t("onboarding_welcome_question")}
           footer={
             <div className="flex w-full justify-end gap-2">
-              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                {t("continue")}
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                disabled={isPending}>
+                {isPending ? t("loading") : t("continue")}
               </Button>
             </div>
           }>
