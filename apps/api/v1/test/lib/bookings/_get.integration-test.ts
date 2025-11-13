@@ -19,29 +19,55 @@ const DefaultPagination = {
 describe("GET /api/bookings", () => {
   let proUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
   let proUserBooking: Awaited<ReturnType<typeof prisma.booking.findFirstOrThrow>>;
+  let memberUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
+  let memberUserBooking: Awaited<ReturnType<typeof prisma.booking.create>>;
 
   beforeAll(async () => {
     proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
     proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
+
+    memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
+    
+    // Find an event type for memberUser or use a simple booking
+    const memberEventType = await prisma.eventType.findFirst({
+      where: {
+        OR: [
+          { userId: memberUser.id },
+          { team: { members: { some: { userId: memberUser.id } } } }
+        ]
+      }
+    });
+
+    memberUserBooking = await prisma.booking.create({
+      data: {
+        uid: `test-member-booking-${Date.now()}`,
+        title: "Member Test Booking",
+        startTime: new Date(Date.now() + 86400000), // Tomorrow
+        endTime: new Date(Date.now() + 90000000),   // Tomorrow + 1 hour
+        userId: memberUser.id,
+        eventTypeId: memberEventType?.id,
+        status: "ACCEPTED",
+      },
+    });
   });
 
   it("Does not return bookings of other users when user has no permission", async () => {
-    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
-
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
-        userId: proUser.id,
+        userId: proUser.id, // Try to access proUser's bookings
       },
       pagination: DefaultPagination,
     });
 
-    req.userId = memberUser.id;
+    req.userId = memberUser.id; // But request is from memberUser
 
     const responseData = await handler(req);
     const groupedUsers = new Set(responseData.bookings.map((b) => b.userId));
 
+    // Should only return memberUser's own bookings, not proUser's
     expect(responseData.bookings.find((b) => b.userId === memberUser.id)).toBeDefined();
+    expect(responseData.bookings.find((b) => b.id === memberUserBooking.id)).toBeDefined();
     expect(groupedUsers.size).toBe(1);
     const firstEntry = groupedUsers.entries().next().value;
     expect(firstEntry?.[0]).toBe(memberUser.id);
