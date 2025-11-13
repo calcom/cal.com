@@ -16,11 +16,8 @@ const loadModule = bindModuleToClassOnToken({
   classs: BookingEmailAndSmsTasker,
   depsMap: {
     logger: loggerServiceModule,
-    primaryTasker:
-      process.env.ENABLE_ASYNC_TASKER === "true"
-        ? BookingEmailAndSmsTriggerTasker
-        : BookingEmailAndSmsSyncTasker,
-    fallbackTasker: BookingEmailAndSmsSyncTasker,
+    asyncTasker: BookingEmailAndSmsTriggerTasker,
+    syncTasker: BookingEmailAndSmsSyncTasker,
   },
 });
 

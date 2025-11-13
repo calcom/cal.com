@@ -1,16 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { configure } from "@trigger.dev/sdk";
+
+import { ENABLE_ASYNC_TASKER } from "../constants";
 import type { ILogger } from "./types";
 
 export abstract class Tasker<T> {
-  // T is now just a placeholder for the class that extends this
-  // The dependencies are now typed with the specific interfaces
-  protected readonly primaryTasker: T;
-  protected readonly fallbackTasker: T;
+  protected readonly asyncTasker: T;
+  protected readonly syncTasker: T;
   protected readonly logger: ILogger;
 
-  constructor(dependencies: { primaryTasker: T; fallbackTasker: T; logger: ILogger }) {
-    this.primaryTasker = dependencies.primaryTasker;
-    this.fallbackTasker = dependencies.fallbackTasker;
+  constructor(dependencies: { asyncTasker: T; syncTasker: T; logger: ILogger }) {
+    console.log(
+      "ENABLE_ASYNC_TASKER",
+      ENABLE_ASYNC_TASKER,
+      process.env.ENABLE_ASYNC_TASKER,
+      process.env.NEXT_PUBLIC_IS_E2E
+    );
+    if (ENABLE_ASYNC_TASKER) {
+      configure({
+        accessToken: process.env.TRIGGER_SECRET_KEY,
+        baseURL: process.env.TRIGGER_API_URL,
+      });
+    }
+    this.asyncTasker = ENABLE_ASYNC_TASKER ? dependencies.asyncTasker : dependencies.syncTasker;
+    this.syncTasker = dependencies.syncTasker;
     this.logger = dependencies.logger;
   }
 
@@ -22,26 +35,24 @@ export abstract class Tasker<T> {
     return this.safeDispatch(taskName, ...args);
   }
 
-  // The dispatch method is now strongly typed to the keys of T
   protected async safeDispatch<K extends keyof T>(
     taskName: K,
-    // We infer the arguments directly from the method on T
     ...args: T[K] extends (...args: any[]) => any ? Parameters<T[K]> : never
   ): Promise<T[K] extends (...args: any[]) => any ? Awaited<ReturnType<T[K]>> : never> {
     try {
-      const method = this.primaryTasker[taskName] as (...args: any[]) => any;
-      return await method.apply(this.primaryTasker, args);
+      const method = this.asyncTasker[taskName] as (...args: any[]) => any;
+      return await method.apply(this.asyncTasker, args);
     } catch (err) {
-      this.logger.error(`Primary tasker failed for '${String(taskName)}'.`, err as Error);
+      this.logger.error(`AsyncTasker failed for '${String(taskName)}'.`, err as Error);
 
-      if (this.primaryTasker === this.fallbackTasker) {
+      if (this.asyncTasker === this.syncTasker) {
         throw err;
       }
 
       this.logger.warn(`Trying again with SyncTasker for '${String(taskName)}'.`);
 
-      const fallbackMethod = this.fallbackTasker[taskName] as (...args: any[]) => any;
-      return fallbackMethod.apply(this.fallbackTasker, args);
+      const fallbackMethod = this.syncTasker[taskName] as (...args: any[]) => any;
+      return fallbackMethod.apply(this.syncTasker, args);
     }
   }
 }

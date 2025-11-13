@@ -14,8 +14,8 @@ export class BookingEmailAndSmsTasker extends BaseBookingEmailAndSmsTasker {
   ) {
     super({
       logger,
-      primaryTasker: process.env.ENABLE_ASYNC_TASKER === "true" ? asyncTasker : syncTasker,
-      fallbackTasker: syncTasker,
+      asyncTasker: asyncTasker,
+      syncTasker: syncTasker,
     });
   }
 }

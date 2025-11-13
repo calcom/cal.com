@@ -1,4 +1,4 @@
-import { type schemaTask } from "@trigger.dev/sdk/v3";
+import { type schemaTask } from "@trigger.dev/sdk";
 
 type BookingNotificationTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry">;
 

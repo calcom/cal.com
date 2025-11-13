@@ -210,7 +210,9 @@ export class CalendarEventBuilder {
         });
       });
 
-    builder.withAppsStatus(appsStatus);
+    if (appsStatus.length) {
+      builder.withAppsStatus(appsStatus);
+    }
 
     // Team & calendars
     if (eventType.team) {

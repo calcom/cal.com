@@ -8,8 +8,8 @@ import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerT
 import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingEmailAndSmsTaskerDependencies {
-  primaryTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
-  fallbackTasker: BookingEmailAndSmsSyncTasker;
+  asyncTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
+  syncTasker: BookingEmailAndSmsSyncTasker;
   logger: ILogger;
 }
 
