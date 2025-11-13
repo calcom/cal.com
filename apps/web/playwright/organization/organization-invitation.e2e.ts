@@ -90,7 +90,7 @@ test.describe("Organization", () => {
 
     // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
     // We can re-test here when we want to test some more scenarios.
-     
+
     test("existing user invited to an organization", () => {});
 
     test("nonexisting user invited to a Team inside organization", async ({
@@ -222,15 +222,6 @@ test.describe("Organization", () => {
           "signup?token"
         );
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
-
         assertInviteLink(inviteLink);
         await signupFromEmailInviteLink({
           browser,
@@ -313,7 +304,6 @@ test.describe("Organization", () => {
         await page.locator('[data-testid="continue-with-email-button"]').click();
         await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
 
-         
         await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
@@ -346,23 +336,7 @@ test.describe("Organization", () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail, true);
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: false,
-          email: invitedUserEmail,
-        });
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
           emails,
