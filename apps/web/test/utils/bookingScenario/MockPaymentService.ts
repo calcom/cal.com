@@ -2,7 +2,7 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import "vitest-fetch-mock";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import logger from "@calcom/lib/logger";
 import type { Payment, Prisma, PaymentOption, Booking } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";

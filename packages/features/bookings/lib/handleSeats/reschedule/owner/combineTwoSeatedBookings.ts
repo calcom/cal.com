@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
-import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";

@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 
-import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";

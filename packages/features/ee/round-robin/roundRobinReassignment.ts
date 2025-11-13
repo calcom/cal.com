@@ -1,7 +1,5 @@
 import { cloneDeep } from "lodash";
 
-
-
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -14,7 +12,7 @@ import {
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
   withHideBranding,
-} from "@calcom/emails";
+} from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
