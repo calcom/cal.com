@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
+import { defaultLocations, getDefaultLocationIconUrl, isDefaultLocation, DefaultLocationType } from "../utils/defaultLocations";
 import { SvgImage } from "../components/SvgImage";
 
 const tabs = [
@@ -145,34 +146,101 @@ export default function EventTypeDetail() {
       .join(" ");
   };
 
+  const displayNameToLocationValue = (displayName: string): { type: string; integration?: string } | null => {
+    // First check if it's a default location
+    const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
+    if (defaultLocation) {
+      return { type: defaultLocation.type };
+    }
+    
+    // Otherwise, find matching conferencing option
+    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    if (option) {
+      return { type: "integration", integration: option.appId };
+    }
+    
+    return null;
+  };
+
   const displayNameToAppId = (displayName: string): string | null => {
-    // Convert display name like "Google Meet" back to "google-meet"
-    // Find matching conferencing option
+    // Legacy function for backward compatibility - only for conferencing apps
     const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
     return option ? option.appId : null;
   };
 
-  const getLocationOptions = (): Array<{ label: string; iconUrl: string | null }> => {
-    const options = conferencingOptions.map((option) => {
+  type LocationOption = { label: string; iconUrl: string | null; value: string };
+  type LocationGroup = { category: string; options: LocationOption[] };
+
+  const getLocationOptions = (): LocationGroup[] => {
+    // Group conferencing apps under "conferencing" category
+    const conferencingAppOptions: LocationOption[] = conferencingOptions.map((option) => {
       const iconUrl = getAppIconUrl(option.type, option.appId);
-      console.log('Location option:', {
-        appId: option.appId,
-        type: option.type,
-        iconUrl: iconUrl,
-        label: formatAppIdToDisplayName(option.appId)
-      });
       return {
         label: formatAppIdToDisplayName(option.appId),
         iconUrl: iconUrl,
+        value: `integrations:${option.appId}`,
       };
     });
-    return options;
+
+    // Group default locations by their category
+    const defaultLocationOptions: LocationOption[] = defaultLocations.map((location) => ({
+      label: location.label,
+      iconUrl: location.iconUrl,
+      value: location.type,
+    }));
+
+    // Group options by category
+    const grouped: Record<string, LocationOption[]> = {};
+
+    // Add conferencing apps
+    if (conferencingAppOptions.length > 0) {
+      grouped["conferencing"] = conferencingAppOptions;
+    }
+
+    // Add default locations by category
+    defaultLocations.forEach((location) => {
+      const category = location.category;
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      const option = defaultLocationOptions.find((opt) => opt.value === location.type);
+      if (option) {
+        grouped[category].push(option);
+      }
+    });
+
+    // Convert to array format with category labels
+    const categoryLabels: Record<string, string> = {
+      "conferencing": "Conferencing",
+      "in person": "In Person",
+      "phone": "Phone",
+      "other": "Other",
+    };
+
+    const result: LocationGroup[] = [];
+    for (const category in grouped) {
+      if (grouped[category].length > 0) {
+        result.push({
+          category: categoryLabels[category] || category,
+          options: grouped[category],
+        });
+      }
+    }
+
+    console.log('Total location groups:', result.length, result.map(g => `${g.category}: ${g.options.length}`));
+    return result;
   };
 
   const getSelectedLocationIconUrl = (): string | null => {
     if (!selectedLocation) return null;
     
-    // Try to find in conferencing options first
+    // First, check if it's a default location
+    const defaultLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
+    if (defaultLocation) {
+      return defaultLocation.iconUrl;
+    }
+    
+    // Try to find in conferencing options
     const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation);
     if (option) {
       return getAppIconUrl(option.type, option.appId);
@@ -317,10 +385,22 @@ export default function EventTypeDetail() {
         // Extract location from event type
         if (eventType.locations && eventType.locations.length > 0) {
           const firstLocation = eventType.locations[0];
+          
+          // Handle conferencing apps (with integration field)
           if (firstLocation.integration) {
             // Format the integration name (e.g., "google-meet" -> "Google Meet")
             const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
             setSelectedLocation(formattedLocation);
+          } 
+          // Handle default locations (with type field)
+          else if (firstLocation.type) {
+            const defaultLocation = defaultLocations.find((loc) => loc.type === firstLocation.type);
+            if (defaultLocation) {
+              setSelectedLocation(defaultLocation.label);
+            } else {
+              // Fallback: try to format the type as display name
+              setSelectedLocation(firstLocation.type);
+            }
           }
         }
       }
@@ -506,28 +586,39 @@ export default function EventTypeDetail() {
       const updates: {
         locations?: Array<{
           type: string;
-          integration: string;
-          public: boolean;
+          integration?: string;
+          public?: boolean;
+          address?: string;
+          link?: string;
         }>;
       } = {};
 
       if (selectedLocation) {
-        const integrationId = displayNameToAppId(selectedLocation);
-        if (!integrationId) {
+        const locationValue = displayNameToLocationValue(selectedLocation);
+        if (!locationValue) {
           Alert.alert("Error", "Invalid location selected");
           setSaving(false);
           return;
         }
 
-        // The API accepts: cal-video, google-meet, zoom
-        // Use the appId directly from conferencing options
-        updates.locations = [
-          {
-            type: "integration",
-            integration: integrationId,
-            public: true,
-          },
-        ];
+        // Handle both default locations and conferencing apps
+        if (locationValue.integration) {
+          // Conferencing app
+          updates.locations = [
+            {
+              type: "integration",
+              integration: locationValue.integration,
+              public: true,
+            },
+          ];
+        } else {
+          // Default location (phone, inPerson, link, etc.)
+          updates.locations = [
+            {
+              type: locationValue.type,
+            },
+          ];
+        }
       }
 
       // Only update if there are changes
@@ -858,44 +949,66 @@ export default function EventTypeDetail() {
             animationType="fade"
             onRequestClose={() => setShowLocationDropdown(false)}>
             <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowLocationDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+              <View className="bg-white rounded-2xl p-5 w-[90%] max-w-[400px]" style={{ maxHeight: '70%' }}>
                 <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Location</Text>
                 {conferencingLoading ? (
                   <Text className="text-base text-[#666] text-center py-4">Loading locations...</Text>
-                ) : getLocationOptions().length === 0 ? (
-                  <Text className="text-base text-[#8E8E93] text-center py-4">No locations available</Text>
-                ) : (
-                  getLocationOptions().map((option) => (
-                    <TouchableOpacity
-                      key={option.label}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
-                        selectedLocation === option.label ? "bg-[#F0F0F0]" : ""
-                      }`}
-                      onPress={() => {
-                        setSelectedLocation(option.label);
-                        setShowLocationDropdown(false);
-                      }}>
-                      <View className="flex-row items-center flex-1">
-                        {option.iconUrl ? (
-                          <SvgImage
-                            uri={option.iconUrl}
-                            width={24}
-                            height={24}
-                            style={{ marginRight: 12 }}
-                          />
-                        ) : (
-                          <View style={{ width: 24, height: 24, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>?</Text>
+                ) : (() => {
+                  const groups = getLocationOptions();
+                  if (groups.length === 0) {
+                    return <Text className="text-base text-[#8E8E93] text-center py-4">No locations available</Text>;
+                  }
+                  return (
+                    <ScrollView 
+                      showsVerticalScrollIndicator={true}
+                      style={{ maxHeight: 400 }}
+                      nestedScrollEnabled={true}
+                      contentContainerStyle={{ paddingBottom: 10 }}
+                    >
+                      {groups.map((group) => (
+                        <View key={group.category}>
+                          {/* Section Header */}
+                          <View className="px-4 py-2 bg-[#F8F8F8]">
+                            <Text className="text-xs font-semibold text-[#666] uppercase tracking-wide">
+                              {group.category}
+                            </Text>
                           </View>
-                        )}
-                        <Text className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}>
-                          {option.label}
-                        </Text>
-                      </View>
-                      {selectedLocation === option.label && <Ionicons name="checkmark" size={20} color="#000" />}
-                    </TouchableOpacity>
-                  ))
-                )}
+                          {/* Section Options */}
+                          {group.options.map((option) => (
+                            <TouchableOpacity
+                              key={option.value}
+                              className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                                selectedLocation === option.label ? "bg-[#F0F0F0]" : ""
+                              }`}
+                              onPress={() => {
+                                setSelectedLocation(option.label);
+                                setShowLocationDropdown(false);
+                              }}>
+                              <View className="flex-row items-center flex-1">
+                                {option.iconUrl ? (
+                                  <SvgImage
+                                    uri={option.iconUrl}
+                                    width={24}
+                                    height={24}
+                                    style={{ marginRight: 12 }}
+                                  />
+                                ) : (
+                                  <View style={{ width: 24, height: 24, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>?</Text>
+                                  </View>
+                                )}
+                                <Text className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}>
+                                  {option.label}
+                                </Text>
+                              </View>
+                              {selectedLocation === option.label && <Ionicons name="checkmark" size={20} color="#000" />}
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      ))}
+                    </ScrollView>
+                  );
+                })()}
               </View>
             </TouchableOpacity>
           </Modal>

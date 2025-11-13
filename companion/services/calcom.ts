@@ -620,8 +620,10 @@ export class CalComAPIService {
     updates: {
       locations?: Array<{
         type: string;
-        integration: string;
-        public: boolean;
+        integration?: string;
+        public?: boolean;
+        address?: string;
+        link?: string;
       }>;
     }
   ): Promise<EventType> {
