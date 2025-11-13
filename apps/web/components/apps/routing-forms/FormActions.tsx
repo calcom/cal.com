@@ -1,3 +1,4 @@
+"use client";
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -272,16 +273,16 @@ function Dialogs({
 
 const actionsCtx = createContext({
   appUrl: "",
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   setNewFormDialogState: null as SetNewFormDialogState | null,
   newFormDialogState: null as NewFormDialogState,
   _delete: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+     
     onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isPending: false,
   },
   toggle: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+     
     onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
     isPending: false,
   },

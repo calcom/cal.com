@@ -1,3 +1,4 @@
+"use client";
 import { useForm } from "react-hook-form";
 
 import Schedule from "@calcom/features/schedules/components/Schedule";

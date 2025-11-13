@@ -1,3 +1,4 @@
+"use client";
 import type { IncomingMessage } from "http";
 import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";

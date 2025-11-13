@@ -1,3 +1,4 @@
+"use client";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

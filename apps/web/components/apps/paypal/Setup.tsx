@@ -1,3 +1,4 @@
+"use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -101,7 +102,7 @@ export default function PayPalSetup() {
               <a
                 className="text-orange-600 underline"
                 target="_blank"
-                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret">
+                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret" rel="noreferrer">
                 Link to Paypal developer API REST Setup Guide:
                 https://developer.paypal.com/api/rest/#link-getclientidandclientsecret
               </a>
@@ -120,7 +121,7 @@ export default function PayPalSetup() {
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
-                    className="text-orange-600 underline">
+                    className="text-orange-600 underline" rel="noreferrer">
                     {t("here")}
                   </a>
                   .

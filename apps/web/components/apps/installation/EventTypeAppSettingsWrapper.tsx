@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, type FC } from "react";
 
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";

@@ -1,3 +1,4 @@
+"use client";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs } from "@calcom/trpc/react";

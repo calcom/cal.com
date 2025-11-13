@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";

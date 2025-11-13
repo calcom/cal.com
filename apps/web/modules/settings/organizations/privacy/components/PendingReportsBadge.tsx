@@ -1,3 +1,4 @@
+"use client";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 

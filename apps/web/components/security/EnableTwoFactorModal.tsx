@@ -1,3 +1,4 @@
+"use client";
 import type { BaseSyntheticEvent } from "react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
