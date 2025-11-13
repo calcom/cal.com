@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { WebAuthService } from '../services/webAuth';
+import { CalComAPIService } from '../services/calcom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -40,25 +41,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       // For web, check localStorage for stored API key/token
       if (Platform.OS === 'web') {
-        console.log('🌐 Checking for stored web tokens...');
         
         try {
           const storedToken = localStorage.getItem('cal_access_token');
           if (storedToken) {
-            console.log('🌐 Found stored web token');
             setAccessToken(storedToken);
             setIsAuthenticated(true);
             setIsWebSession(false); // Using API key, not web session
+            
+            // Initialize user profile for existing token
+            try {
+              await CalComAPIService.getUserProfile();
+            } catch (profileError) {
+              console.error('Failed to fetch user profile on startup:', profileError);
+            }
+            
             setLoading(false);
             return;
           }
         } catch (localStorageError) {
-          console.log('🌐 localStorage not available or error:', localStorageError);
+          // localStorage not available or error
         }
 
         // Disable automatic web session detection for now
         // as Cal.com API v2 may not support cookie authentication
-        console.log('🌐 No stored tokens found for web');
         setLoading(false);
         return;
       }
@@ -74,6 +80,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setRefreshToken(storedRefreshToken);
         setIsAuthenticated(true);
         setIsWebSession(false);
+        
+        // Initialize user profile for existing tokens
+        try {
+          await CalComAPIService.getUserProfile();
+        } catch (profileError) {
+          console.error('Failed to fetch user profile on startup:', profileError);
+        }
       }
     } catch (error) {
       console.error('Failed to check auth state:', error);
@@ -106,6 +119,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setRefreshToken(newRefreshToken);
       setIsAuthenticated(true);
       setIsWebSession(false);
+      
+      // Initialize user profile after successful login
+      try {
+        await CalComAPIService.getUserProfile();
+      } catch (profileError) {
+        console.error('Failed to fetch user profile:', profileError);
+        // Don't fail login if profile fetch fails
+      }
     } catch (error) {
       console.error('Failed to save auth tokens:', error);
       throw error;
@@ -123,6 +144,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (tokens.accessToken) {
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken || null);
+      }
+      
+      // Initialize user profile after successful web session login
+      try {
+        await CalComAPIService.getUserProfile();
+      } catch (profileError) {
+        console.error('Failed to fetch user profile from web session:', profileError);
+        // Don't fail login if profile fetch fails
       }
     } catch (error) {
       console.error('Failed to login from web session:', error);
@@ -153,6 +182,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserInfo(null);
       setIsAuthenticated(false);
       setIsWebSession(false);
+      
+      // Clear cached user profile
+      CalComAPIService.clearUserProfile();
     } catch (error) {
       console.error('Failed to clear auth tokens:', error);
     }
