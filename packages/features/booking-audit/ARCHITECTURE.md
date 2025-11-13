@@ -5,18 +5,18 @@ Note: This architecture is not in production yet, so we can make any changes we 
 
 ## Overview
 
-The Booking Audit System tracks all actions and changes related to bookings in Cal.com. The architecture is built around two core tables (`Actor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
+The Booking Audit System tracks all actions and changes related to bookings in Cal.com. The architecture is built around two core tables (`AuditActor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
 
 ## Database Tables
 
-### 1. Actor Table
+### 1. AuditActor Table
 
-The `Actor` table stores information about entities that perform actions on bookings. It maintains historical records even after users are deleted.
+The `AuditActor` table stores information about entities that perform actions on bookings. It maintains historical records even after users are deleted.
 
 ```prisma
-model Actor {
-  id        String    @id @default(uuid())
-  type      ActorType
+model AuditActor {
+  id        String          @id @default(uuid())
+  type      AuditActorType
   
   // References for different actor types
   userId     Int?      // For USER type (nullable to allow user deletion)
@@ -48,10 +48,10 @@ model Actor {
 **Key Design Decisions:**
 - **UUID Primary Key**: Uses UUIDs for distributed system compatibility
 - **Soft Reference to User**: `userId` is nullable to preserve audit history after user deletion
-- **Unique Constraints**: Prevents duplicate actors for the same user/email/phone
+- **Unique Constraints**: Prevents duplicate audit actors for the same user/email/phone
 - **Multiple Identity Fields**: Supports different actor types (users, guests, attendees, system)
 - **Extensible System Actors**: Architecture supports multiple system actors (e.g., Cron, Webhooks, API integrations, Background Workers) for granular tracking of automated operations
-- **Pseudonymization on Deletion**: Actor records are pseudonymized (PII nullified) rather than deleted to maintain HIPAA-compliant immutable audit trails. Supports compliance cleanup jobs via `pseudonymizedAt` and `scheduledDeletionDate` indices
+- **Pseudonymization on Deletion**: AuditActor records are pseudonymized (PII nullified) rather than deleted to maintain HIPAA-compliant immutable audit trails. Supports compliance cleanup jobs via `pseudonymizedAt` and `scheduledDeletionDate` indices
 
 ---
 
@@ -61,13 +61,13 @@ The `BookingAudit` table stores audit records for all booking-related actions.
 
 ```prisma
 model BookingAudit {
-  id        String @id @default(uuid())
-  bookingId String
+  id         String @id @default(uuid())
+  bookingUid String
 
   // Actor who performed the action (USER, GUEST, or SYSTEM)
-  // Stored in Actor table to maintain audit trail even after user deletion
+  // Stored in AuditActor table to maintain audit trail even after user deletion
   actorId String
-  actor   Actor  @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  actor   AuditActor  @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   type   BookingAuditType
   action BookingAuditAction
@@ -83,7 +83,7 @@ model BookingAudit {
   data Json?
 
   @@index([actorId])
-  @@index([bookingId])
+  @@index([bookingUid])
 }
 ```
 
@@ -94,23 +94,23 @@ model BookingAudit {
 - **Explicit Timestamp**: The `timestamp` field has no default and must be explicitly provided, representing when the business event actually occurred
 - **Separate Database Timestamps**: `createdAt` and `updatedAt` track when the audit record itself was created/modified, distinct from the business event time
 - **JSON Data Field**: Flexible schema for storing action-specific contextual data
-- **Indexed Fields**: Efficient queries by `bookingId` and `actorId`
+- **Indexed Fields**: Efficient queries by `bookingUid` and `actorId`
 
 
 **Protecting the Audit Trail:**
-- **Actor Record Deletion Prevention**: The database will reject any attempt to delete an `Actor` record that has associated `BookingAudit` records, ensuring audit records never become orphaned
-- **User Deletion Unaffected**: When a `User` is deleted from the system, their corresponding `Actor` record persists (with `userId` set to null), maintaining the complete audit history
+- **AuditActor Record Deletion Prevention**: The database will reject any attempt to delete an `AuditActor` record that has associated `BookingAudit` records, ensuring audit records never become orphaned
+- **User Deletion Unaffected**: When a `User` is deleted from the system, their corresponding `AuditActor` record persists (with `userId` set to null), maintaining the complete audit history
 
 
 
 ## Enums
 
-### ActorType
+### AuditActorType
 
 Defines the type of entity performing an action:
 
 ```prisma
-enum ActorType {
+enum AuditActorType {
   USER     @map("user")     // Registered Cal.com user (stored here for audit retention even after user deletion)
   // Considering renaming it to ANONYMOUS to avoid confusion with Guest of a booking
   GUEST    @map("guest")    // Non-registered user
@@ -447,7 +447,7 @@ fieldName: {
 ## Table Relationships
 
 ```
-Actor (1) ──────< (many) BookingAudit
+AuditActor (1) ──────< (many) BookingAudit
    ↑
    │ (optional reference)
    ├──────────── User
@@ -457,25 +457,25 @@ Actor (1) ──────< (many) BookingAudit
 
 **Relationship Details:**
 
-1. **Actor → BookingAudit**: One-to-Many
-   - Each Actor can have multiple audit records
-   - Each BookingAudit references exactly one Actor
-   - `onDelete: Restrict` prevents Actor deletion if audits exist
+1. **AuditActor → BookingAudit**: One-to-Many
+   - Each AuditActor can have multiple audit records
+   - Each BookingAudit references exactly one AuditActor
+   - `onDelete: Restrict` prevents AuditActor deletion if audits exist
 
-2. **Actor → User**: Optional Many-to-One
+2. **AuditActor → User**: Optional Many-to-One
    - `userId` is nullable to preserve audits after user deletion
-   - Unique constraint ensures one Actor per User
+   - Unique constraint ensures one AuditActor per User
 
-3. **Actor → Attendee**: Optional Many-to-One
+3. **AuditActor → Attendee**: Optional Many-to-One
    - Links guest actors to their booking attendee records
    - `onDelete: Restrict` preserves audit trail
-   - Unique constraint ensures one Actor per Attendee
+   - Unique constraint ensures one AuditActor per Attendee
 
 ---
 
 ## Indexing Strategy
 
-### Actor Table Indexes
+### AuditActor Table Indexes
 
 ```prisma
 @@index([email])      // Fast lookups by guest email
@@ -620,8 +620,8 @@ Audit records are append-only. Once created, they are never modified or deleted.
 
 ### 2. Historical Preservation & Pseudonymization
 Actor information is preserved even after source records are deleted:
-- User deletion doesn't remove Actor records - they are pseudonymized instead
-- Actor table maintains pseudonymized snapshot of user/guest information without PII
+- User deletion doesn't remove AuditActor records - they are pseudonymized instead
+- AuditActor table maintains pseudonymized snapshot of user/guest information without PII
 - Audit trail remains complete, queryable, and compliant with HIPAA/GDPR requirements
 
 ### 3. Flexibility
@@ -685,15 +685,15 @@ await auditService.onBookingCreated(bookingId, userId, {
 ## 7. Compliance & Data Privacy
 
 **GDPR & HIPAA Compliance:**
-- **Actor records are NOT deleted on user deletion** - Instead, Actor records are pseudonymized (email/phone/name nullified) to preserve the immutable audit trail as required by HIPAA §164.312(b)
-- **Cal.com's HIPAA compliance** requires audit records to remain immutable and tamper-proof. The Actor table design ensures BookingAudit records are never modified, only the referenced Actor record is pseudonymized
-- **GDPR Article 17 compliance** is achieved through pseudonymization: When a user/guest requests deletion, set `userId=null`, `email=null`, `phone=null`, `name=null` on the Actor record, and store `pseudonymizedAt` timestamp + `scheduledDeletionDate` for compliance tracking
-- **Retention Policy**: Actor records should be fully anonymized after 6-7 years per legal requirements
+- **AuditActor records are NOT deleted on user deletion** - Instead, AuditActor records are pseudonymized (email/phone/name nullified) to preserve the immutable audit trail as required by HIPAA §164.312(b)
+- **Cal.com's HIPAA compliance** requires audit records to remain immutable and tamper-proof. The AuditActor table design ensures BookingAudit records are never modified, only the referenced AuditActor record is pseudonymized
+- **GDPR Article 17 compliance** is achieved through pseudonymization: When a user/guest requests deletion, set `userId=null`, `email=null`, `phone=null`, `name=null` on the AuditActor record, and store `pseudonymizedAt` timestamp + `scheduledDeletionDate` for compliance tracking
+- **Retention Policy**: AuditActor records should be fully anonymized after 6-7 years per legal requirements
 
 **Implementation Pattern:**
 ```typescript
 // On user deletion: Pseudonymize, don't delete
-await prisma.actor.update({
+await prisma.auditActor.update({
   where: { userId: deletedUserId },
   data: {
     userId: null,
@@ -742,7 +742,7 @@ The audit system is accessed through `BookingAuditService`, which provides:
 ### Actor Management
 
 - `getOrCreateUserActor()` - Ensures User actors exist before creating audits
-- Automatic Actor creation/lookup for registered users
+- Automatic AuditActor creation/lookup for registered users
 - System actor for automated actions
 
 ### Future: Trigger.dev Task Orchestration
