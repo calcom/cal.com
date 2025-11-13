@@ -58,11 +58,9 @@ test.describe("Bookings", () => {
       const firstUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
       const secondUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(1);
       await expect(
-         
         firstUpcomingBooking.locator(`text=${bookingWhereFirstUserIsAttendee!.title}`)
       ).toBeVisible();
       await expect(
-         
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
@@ -120,6 +118,7 @@ test.describe("Bookings", () => {
 
       // Wait for the dropdown to close before clicking again
       await expect(page.getByText("first@cal.com marked as no-show")).toBeVisible();
+      await expect(page.getByText("first@cal.com marked as no-show")).toBeHidden();
       await firstGuest.click();
       await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
@@ -221,6 +220,7 @@ test.describe("Bookings", () => {
       await page.locator('[data-testid="mark-no-show"]').click();
       // Wait for the dropdown to close before clicking again
       await expect(page.getByText("first@cal.com marked as no-show")).toBeVisible();
+      await expect(page.getByText("first@cal.com marked as no-show")).toBeHidden();
       await firstGuest.click();
       await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
       await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
@@ -387,22 +387,15 @@ test.describe("Bookings", () => {
 
     //verify with the booking titles
     const firstUpcomingBooking = bookingListItems.nth(0);
-    await expect(
-       
-      firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)
-    ).toBeVisible();
+    await expect(firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)).toBeVisible();
 
     const secondUpcomingBooking = bookingListItems.nth(1);
     await expect(
-       
       secondUpcomingBooking.locator(`text=${thirdUserAttendeeIndividualBooking!.title}`)
     ).toBeVisible();
 
     const thirdUpcomingBooking = bookingListItems.nth(2);
-    await expect(
-       
-      thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)
-    ).toBeVisible();
+    await expect(thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)).toBeVisible();
   });
 
   test("Does not show booking from another user from collective event type when a member is filtered", async ({
