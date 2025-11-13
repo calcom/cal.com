@@ -1417,11 +1417,13 @@ export class BookingRepository {
           select: {
             id: true,
             title: true,
+            parentId: true,
             bookingFields: true,
             recurringEvent: true,
             seatsPerTimeSlot: true,
             seatsShowAttendees: true,
             customReplyToEmail: true,
+            hideOrganizerEmail: true,
             schedulingType: true,
             metadata: true,
             teamId: true,
