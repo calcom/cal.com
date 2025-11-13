@@ -9,6 +9,10 @@ import {
   Alert,
   TouchableOpacity,
   RefreshControl,
+  Platform,
+  TextInput,
+  ActionSheetIOS,
+  Linking,
 } from "react-native";
 import type { NativeSyntheticEvent } from "react-native";
 
@@ -18,6 +22,8 @@ type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 export default function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +71,6 @@ export default function Bookings() {
 
   const fetchBookings = async () => {
     try {
-      console.log("🎯 BookingsScreen: Starting fetch for filter:", activeFilter);
       setError(null);
 
       // First, test the raw bookings API call (only on first load)
@@ -74,30 +79,12 @@ export default function Bookings() {
       }
 
       const filters = getFiltersForActiveTab();
-      console.log("🎯 BookingsScreen: Using filters:", filters);
 
       const data = await CalComAPIService.getBookings(filters);
 
-      console.log("🎯 BookingsScreen: Raw data received for", activeFilter, ":", data);
-      console.log("🎯 BookingsScreen: Data type:", typeof data);
-      console.log("🎯 BookingsScreen: Data is array:", Array.isArray(data));
-      console.log("🎯 BookingsScreen: Data length:", data?.length);
-
       // Log individual bookings to see what we're getting
       if (Array.isArray(data) && data.length > 0) {
-        console.log(
-          "🎯 BookingsScreen: First few bookings for",
-          activeFilter,
-          ":",
-          data.slice(0, 3).map((b) => ({
-            title: b.title,
-            status: b.status,
-            startTime: b.startTime,
-            endTime: b.endTime,
-          }))
-        );
       } else {
-        console.log("🎯 BookingsScreen: No data returned from API for", activeFilter);
       }
 
       if (Array.isArray(data)) {
@@ -105,18 +92,6 @@ export default function Bookings() {
         const now = new Date();
 
         // Log all bookings before filtering
-        console.log(
-          "🎯 BookingsScreen: All bookings before client filtering for",
-          activeFilter,
-          ":",
-          data.map((b) => ({
-            title: b.title,
-            status: b.status,
-            startTime: b.startTime,
-            endTime: b.endTime,
-            isPast: new Date(b.endTime) < now,
-          }))
-        );
 
         // Server already filters by status correctly, so we only need to sort
         // The server's logic:
@@ -151,24 +126,11 @@ export default function Bookings() {
             break;
         }
 
-        console.log(
-          "🎯 BookingsScreen: After client filtering for",
-          activeFilter,
-          ":",
-          filteredBookings.length,
-          "bookings"
-        );
-
         setBookings(filteredBookings);
-        console.log(
-          "🎯 BookingsScreen: State updated with",
-          filteredBookings.length,
-          activeFilter,
-          "bookings"
-        );
+        setFilteredBookings(filteredBookings);
       } else {
-        console.log("🎯 BookingsScreen: Data is not an array, setting empty array");
         setBookings([]);
+        setFilteredBookings([]);
       }
     } catch (err) {
       console.error("🎯 BookingsScreen: Error fetching bookings:", err);
@@ -176,37 +138,60 @@ export default function Bookings() {
     } finally {
       setLoading(false);
       setRefreshing(false);
-      console.log("🎯 BookingsScreen: Fetch completed, loading set to false");
     }
   };
 
   useEffect(() => {
-    console.log("🎯 BookingsScreen: Component mounted, starting fetch...");
     fetchBookings();
   }, []);
 
   useEffect(() => {
-    console.log("🎯 BookingsScreen: Filter changed to:", activeFilter);
+    setSearchQuery(""); // Clear search when filter changes
     if (!loading) {
       setLoading(true);
       fetchBookings();
     }
   }, [activeFilter]);
 
-  useEffect(() => {
-    console.log(
-      "🎯 BookingsScreen: State changed - loading:",
-      loading,
-      "error:",
-      error,
-      "bookings count:",
-      bookings.length
-    );
-  }, [loading, error, bookings]);
+  useEffect(() => {}, [loading, error, bookings]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookings();
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredBookings(bookings);
+    } else {
+      const filtered = bookings.filter(
+        (booking) =>
+          // Search in booking title
+          booking.title?.toLowerCase().includes(query.toLowerCase()) ||
+          // Search in booking description
+          booking.description?.toLowerCase().includes(query.toLowerCase()) ||
+          // Search in event type title
+          booking.eventType?.title?.toLowerCase().includes(query.toLowerCase()) ||
+          // Search in attendee names
+          (booking.attendees &&
+            booking.attendees.some((attendee) =>
+              attendee.name?.toLowerCase().includes(query.toLowerCase())
+            )) ||
+          // Search in attendee emails
+          (booking.attendees &&
+            booking.attendees.some((attendee) =>
+              attendee.email?.toLowerCase().includes(query.toLowerCase())
+            )) ||
+          // Search in location
+          booking.location?.toLowerCase().includes(query.toLowerCase()) ||
+          // Search in user name
+          booking.user?.name?.toLowerCase().includes(query.toLowerCase()) ||
+          // Search in user email
+          booking.user?.email?.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredBookings(filtered);
+    }
   };
 
   const handleFilterChange = (filter: BookingFilter) => {
@@ -258,30 +243,275 @@ export default function Bookings() {
     }
   };
 
-  const renderSegmentedControl = () => (
-    <View className="border-b border-gray-200 bg-white px-4 py-3">
-      <SegmentedControl
-        values={filterLabels}
-        selectedIndex={activeIndex}
-        onChange={handleSegmentChange}
-        style={{ height: 36 }}
-      />
-    </View>
-  );
+  const renderSegmentedControl = () => {
+    return (
+      <>
+        <View className="border-b border-gray-200 bg-white px-4 py-3">
+          <SegmentedControl
+            values={filterLabels}
+            selectedIndex={activeIndex}
+            onChange={handleSegmentChange}
+            style={{ height: 36 }}
+          />
+        </View>
+        <View className="border-b border-gray-300 bg-gray-100 px-4 py-2">
+          <TextInput
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-black"
+            placeholder="Search bookings"
+            placeholderTextColor="#8E8E93"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+        </View>
+      </>
+    );
+  };
 
   const handleBookingPress = (booking: Booking) => {
+    if (Platform.OS !== "ios") {
+      // Fallback for non-iOS platforms
+      const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
+      const startTime = booking.start || booking.startTime || "";
+      const endTime = booking.end || booking.endTime || "";
+
+      const actions = getBookingActions(booking);
+      const alertActions = actions.map((action) => ({
+        text: action.title,
+        style: action.destructive ? "destructive" : "default",
+        onPress: action.onPress,
+      }));
+      alertActions.unshift({ text: "Cancel", style: "cancel", onPress: () => {} });
+
+      Alert.alert(
+        booking.title,
+        `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
+          startTime
+        )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
+          booking.location ? `\nLocation: ${booking.location}` : ""
+        }`,
+        alertActions
+      );
+      return;
+    }
+
+    const actions = getBookingActions(booking);
+    const options = ["Cancel", ...actions.map((action) => action.title)];
+    const destructiveButtonIndex = actions.findIndex((action) => action.destructive);
+
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options,
+        destructiveButtonIndex: destructiveButtonIndex >= 0 ? destructiveButtonIndex + 1 : undefined,
+        cancelButtonIndex: 0,
+        title: booking.title,
+        message: getBookingDetailsMessage(booking),
+      },
+      (buttonIndex) => {
+        if (buttonIndex === 0) return; // Cancel
+
+        const actionIndex = buttonIndex - 1;
+        if (actions[actionIndex]) {
+          actions[actionIndex].onPress();
+        }
+      }
+    );
+  };
+
+  const getBookingDetailsMessage = (booking: Booking): string => {
     const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
     const startTime = booking.start || booking.startTime || "";
     const endTime = booking.end || booking.endTime || "";
-    Alert.alert(
-      booking.title,
-      `${booking.description || "No description"}\n\nTime: ${formatDateTime(startTime)} - ${formatTime(
-        endTime
-      )}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
-        booking.location ? `\nLocation: ${booking.location}` : ""
-      }`,
-      [{ text: "OK" }]
-    );
+
+    return `${booking.description ? `${booking.description}\n\n` : ""}Time: ${formatDateTime(
+      startTime
+    )} - ${formatTime(endTime)}\nAttendees: ${attendeesList}\nStatus: ${formatStatusText(booking.status)}${
+      booking.location ? `\nLocation: ${booking.location}` : ""
+    }`;
+  };
+
+  const getBookingActions = (booking: Booking) => {
+    const baseActions = [
+      {
+        title: "Open Location",
+        onPress: () => handleOpenLocation(booking),
+        destructive: false,
+      },
+    ];
+
+    const specificActions = (() => {
+      switch (activeFilter) {
+        case "upcoming":
+          return [
+            {
+              title: "Request Reschedule",
+              onPress: () => handleRescheduleBooking(booking),
+              destructive: false,
+            },
+            {
+              title: "Report booking",
+              onPress: () => handleReportBooking(booking),
+              destructive: false,
+            },
+            {
+              title: "Cancel event",
+              onPress: () => handleCancelEvent(booking),
+              destructive: true,
+            },
+          ];
+        case "unconfirmed":
+          return [
+            {
+              title: "Confirm booking",
+              onPress: () => handleConfirmBooking(booking),
+              destructive: false,
+            },
+            {
+              title: "Reject booking",
+              onPress: () => handleRejectBooking(booking),
+              destructive: true,
+            },
+          ];
+        case "past":
+          return [
+            {
+              title: "Report booking",
+              onPress: () => handleReportBooking(booking),
+              destructive: false,
+            },
+          ];
+        case "cancelled":
+          return [
+            {
+              title: "Report booking",
+              onPress: () => handleReportBooking(booking),
+              destructive: false,
+            },
+          ];
+        default:
+          return [];
+      }
+    })();
+
+    return [...baseActions, ...specificActions];
+  };
+
+  const handleOpenLocation = async (booking: Booking) => {
+    if (!booking.location) {
+      Alert.alert("No Location", "This booking doesn't have a location set.");
+      return;
+    }
+
+    try {
+      // Check if location is a URL (starts with http:// or https://)
+      if (booking.location.match(/^https?:\/\//)) {
+        const supported = await Linking.canOpenURL(booking.location);
+        if (supported) {
+          await Linking.openURL(booking.location);
+        } else {
+          Alert.alert("Error", "Cannot open this URL on your device.");
+        }
+      } else {
+        // If it's not a URL, try to open it as a location in maps
+        const mapsUrl =
+          Platform.OS === "ios"
+            ? `maps://maps.apple.com/?q=${encodeURIComponent(booking.location)}`
+            : `geo:0,0?q=${encodeURIComponent(booking.location)}`;
+
+        const supported = await Linking.canOpenURL(mapsUrl);
+        if (supported) {
+          await Linking.openURL(mapsUrl);
+        } else {
+          // Fallback to Google Maps web
+          const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            booking.location
+          )}`;
+          await Linking.openURL(googleMapsUrl);
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to open location. Please try again.");
+    }
+  };
+
+  const handleRescheduleBooking = (booking: Booking) => {
+    Alert.alert("Reschedule Booking", "Reschedule functionality coming soon");
+  };
+
+  const handleRequestReschedule = (booking: Booking) => {
+    Alert.alert("Request Reschedule", "Request reschedule functionality coming soon");
+  };
+
+  const handleReportBooking = (booking: Booking) => {
+    Alert.alert("Report Booking", "Report functionality coming soon");
+  };
+
+  const handleCancelEvent = (booking: Booking) => {
+    Alert.alert("Cancel Event", `Are you sure you want to cancel "${booking.title}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Cancel Event",
+        style: "destructive",
+        onPress: () => {
+          // Prompt for cancellation reason
+          Alert.prompt(
+            "Cancellation Reason",
+            "Please provide a reason for cancelling this booking:",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Cancel Event",
+                style: "destructive",
+                onPress: async (reason) => {
+                  try {
+                    const cancellationReason = reason?.trim() || "Event cancelled by host";
+                    await CalComAPIService.cancelBooking(booking.uid, cancellationReason);
+
+                    // Remove the cancelled booking from local state or refresh the list
+                    if (activeFilter === "upcoming") {
+                      // For upcoming bookings, remove from list since it's now cancelled
+                      const updatedBookings = bookings.filter((b) => b.uid !== booking.uid);
+                      setBookings(updatedBookings);
+                      setFilteredBookings(updatedBookings);
+                    } else {
+                      // For other filters, refresh to get updated data
+                      await fetchBookings();
+                    }
+
+                    Alert.alert("Success", "Event cancelled successfully");
+                  } catch (error) {
+                    console.error("Failed to cancel booking:", error);
+                    Alert.alert("Error", "Failed to cancel event. Please try again.");
+                  }
+                },
+              },
+            ],
+            "plain-text",
+            "",
+            "default"
+          );
+        },
+      },
+    ]);
+  };
+
+  const handleConfirmBooking = (booking: Booking) => {
+    Alert.alert("Confirm Booking", "Confirm functionality coming soon");
+  };
+
+  const handleRejectBooking = (booking: Booking) => {
+    Alert.alert("Reject Booking", `Are you sure you want to reject "${booking.title}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Reject",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert("Reject Booking", "Reject functionality coming soon");
+        },
+      },
+    ]);
   };
 
   const formatDateTime = (dateString: string) => {
@@ -455,11 +685,24 @@ export default function Bookings() {
     );
   }
 
+  if (filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        {renderSegmentedControl()}
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+          <Ionicons name="search-outline" size={64} color="#666" />
+          <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">No results found</Text>
+          <Text className="text-center text-base text-gray-500">Try searching with different keywords</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-gray-50">
       {renderSegmentedControl()}
       <FlatList
-        data={bookings}
+        data={filteredBookings}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderBooking}
         className="px-4 py-4"

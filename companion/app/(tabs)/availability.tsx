@@ -20,7 +20,6 @@ export default function Availability() {
 
   const fetchSchedule = async () => {
     try {
-      console.log("📅 AvailabilityScreen: Starting fetch...");
       setError(null);
 
       // Try to get default schedule first
@@ -28,20 +27,16 @@ export default function Availability() {
 
       if (defaultSchedule) {
         setSchedule(defaultSchedule);
-        console.log("📅 AvailabilityScreen: Default schedule loaded");
       } else {
         // If no default, get all schedules and pick the first one
         const schedules = await CalComAPIService.getSchedules();
         if (schedules.length > 0) {
           setSchedule(schedules[0]);
-          console.log("📅 AvailabilityScreen: First schedule loaded");
         } else {
           setSchedule(null);
-          console.log("📅 AvailabilityScreen: No schedules found");
         }
       }
     } catch (err) {
-      console.error("📅 AvailabilityScreen: Error fetching schedule:", err);
       setError("Failed to load availability. Please check your API key and try again.");
     } finally {
       setLoading(false);
@@ -138,6 +133,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+    paddingTop: 64,
   },
   centerContainer: {
     flex: 1,
@@ -185,6 +181,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    paddingBottom: 90,
   },
   sectionTitle: {
     fontSize: 16,

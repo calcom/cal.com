@@ -38,7 +38,6 @@ export class WebAuthService {
     try {
       // Check for common Cal.com session cookies
       const cookies = this.getCookies();
-      console.log('🍪 Available cookies:', Object.keys(cookies));
 
       // Look for Cal.com authentication cookies
       // Common patterns: next-auth.session-token, __Secure-next-auth.session-token, etc.
@@ -54,17 +53,13 @@ export class WebAuthService {
       const foundSessionCookie = sessionCookieNames.find(name => cookies[name]);
 
       if (foundSessionCookie) {
-        console.log('🍪 Found Cal.com session cookie:', foundSessionCookie);
-        
         // Try to validate the session with Cal.com API
         const sessionInfo = await this.validateWebSession();
         return sessionInfo;
       }
 
-      console.log('🍪 No Cal.com session cookies found');
       return { isLoggedIn: false };
     } catch (error) {
-      console.error('🍪 Error checking Cal.com session:', error);
       return { isLoggedIn: false };
     }
   }
@@ -76,8 +71,6 @@ export class WebAuthService {
     }
 
     try {
-      console.log('🍪 Attempting to validate web session...');
-      
       // First try to call the NextAuth session endpoint
       const sessionResponse = await fetch('https://app.cal.com/api/auth/session', {
         method: 'GET',
@@ -87,11 +80,8 @@ export class WebAuthService {
         },
       });
 
-      console.log('🍪 Session API response status:', sessionResponse.status);
-
       if (sessionResponse.ok) {
         const sessionData = await sessionResponse.json();
-        console.log('🍪 Cal.com session data:', sessionData);
 
         if (sessionData && sessionData.user) {
           // User is logged in via web session
@@ -111,11 +101,8 @@ export class WebAuthService {
         },
       });
 
-      console.log('🍪 Me API response status:', meResponse.status);
-
       if (meResponse.ok) {
         const userData = await meResponse.json();
-        console.log('🍪 Cal.com user data:', userData);
 
         if (userData && (userData.id || userData.user || userData.data)) {
           return {
@@ -134,11 +121,8 @@ export class WebAuthService {
         },
       });
 
-      console.log('🍪 Dashboard API response status:', dashboardResponse.status);
-
       if (dashboardResponse.ok) {
         const dashboardData = await dashboardResponse.json();
-        console.log('🍪 Dashboard data:', dashboardData);
 
         if (dashboardData && dashboardData.result && dashboardData.result.data) {
           return {
@@ -148,10 +132,8 @@ export class WebAuthService {
         }
       }
 
-      console.log('🍪 No valid web session found');
       return { isLoggedIn: false };
     } catch (error) {
-      console.error('🍪 Error validating web session:', error);
       return { isLoggedIn: false };
     }
   }
@@ -184,7 +166,6 @@ export class WebAuthService {
           const sessionToken = sessionStorage.getItem(key);
           
           if (localToken || sessionToken) {
-            console.log('🍪 Found potential token in storage:', key);
             return {
               accessToken: localToken || sessionToken || undefined,
             };
@@ -194,7 +175,6 @@ export class WebAuthService {
 
       return {};
     } catch (error) {
-      console.error('🍪 Error getting tokens from web session:', error);
       return {};
     }
   }
@@ -207,7 +187,6 @@ export class WebAuthService {
     const currentUrl = window.location.href;
     const loginUrl = `https://app.cal.com/auth/signin?callbackUrl=${encodeURIComponent(currentUrl)}`;
     
-    console.log('🍪 Redirecting to Cal.com web login:', loginUrl);
     window.location.href = loginUrl;
   }
 }
