@@ -379,18 +379,22 @@ export default function Signup({
                   })}
                 </p>
               )}
-              {IS_CALCOM && (
+              {(IS_CALCOM || (typeof window !== "undefined" && window.location.hostname === "localhost")) && (
                 <div className="mt-4">
                   <SelectField
                     label={t("data_region")}
                     value={{
                       label: t(
-                        typeof window !== "undefined" && window.location.hostname.includes("cal.eu")
+                        typeof window !== "undefined" && 
+                        (window.location.hostname.includes("cal.eu") || 
+                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
                           ? "european_union"
                           : "united_states"
                       ),
                       value:
-                        typeof window !== "undefined" && window.location.hostname.includes("cal.eu")
+                        typeof window !== "undefined" && 
+                        (window.location.hostname.includes("cal.eu") || 
+                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
                           ? "eu"
                           : "us",
                     }}
@@ -401,6 +405,15 @@ export default function Signup({
                     onChange={(option) => {
                       if (option && "value" in option) {
                         const currentUrl = new URL(window.location.href);
+                        
+                        // Handle localhost - add region as URL parameter
+                        if (currentUrl.hostname === "localhost") {
+                          currentUrl.searchParams.set("region", option.value);
+                          window.location.href = currentUrl.toString();
+                          return;
+                        }
+                        
+                        // Handle production domains
                         const targetDomain =
                           option.value === "eu"
                             ? currentUrl.href.replace("app.cal.com", "app.cal.eu")
