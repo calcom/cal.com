@@ -29,6 +29,29 @@ import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
+/**
+ * Normalizes a label string to be URL-safe for use as an identifier
+ * - Converts to lowercase
+ * - Replaces spaces and special characters with hyphens
+ * - Removes leading/trailing hyphens
+ * - Limits to first 5 words
+ * @example "What is your name?" -> "what-is-your-name"
+ * @example "What do you work on and how can we help?" -> "what-do-you-work-on"
+ */
+function normalizeIdentifier(label: string): string {
+  if (!label) return "";
+  
+  const normalized = label
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .trim();
+  
+  const words = normalized.split(/\s+/).filter(word => word.length > 0);
+  const limitedWords = words.slice(0, 5);
+  
+  return limitedWords.join("-");
+}
+
 function Field({
   fieldIndex,
   hookForm,
@@ -102,14 +125,19 @@ function Field({
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+                const newLabel = e.target.value;
+                hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, { shouldDirty: true });
+                const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
+                if (!currentIdentifier || currentIdentifier === normalizeIdentifier(label || "")) {
+                  hookForm.setValue(`${hookFieldNamespace}.identifier`, normalizeIdentifier(newLabel), { shouldDirty: true });
+                }
               }}
             />
           </div>
           <div className="mb-3 w-full">
             <TextField
               disabled={!!router}
-              label="Identifier"
+              label={t("identifier_url_parameter")}
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
