@@ -66,7 +66,7 @@ describe("EventTypeListItem", () => {
 
     expect(screen.getByText("30 Min Meeting")).toBeInTheDocument();
     expect(screen.getByText("Quick meeting")).toBeInTheDocument();
-    expect(screen.getByText(/30 min/)).toBeInTheDocument();
+    expect(screen.getByText(/30m/)).toBeInTheDocument();
   });
 
   it("should render as link when getEventTypeUrl is provided", () => {
@@ -91,7 +91,7 @@ describe("EventTypeListItem", () => {
 
     expect(screen.getByText("30 Min Meeting")).toBeInTheDocument();
     expect(screen.queryByText("Quick meeting")).not.toBeInTheDocument();
-    expect(screen.getByText(/30 min/)).toBeInTheDocument();
+    expect(screen.getByText(/30m/)).toBeInTheDocument();
   });
 
   it("should render dropdown menu trigger", () => {
@@ -117,14 +117,14 @@ describe("EventTypeListItem", () => {
     const shortEvent = { ...mockEventType, length: 15 };
     const { rerender } = renderComponent({ eventType: shortEvent });
 
-    expect(screen.getByText(/15 min/)).toBeInTheDocument();
+    expect(screen.getByText(/15m/)).toBeInTheDocument();
 
     const longEvent = { ...mockEventType, length: 120 };
     rerender(
       <EventTypeListItem eventType={longEvent} deleteFunction={mockDeleteFunction} isDeletable={true} />
     );
 
-    expect(screen.getByText(/120 min/)).toBeInTheDocument();
+    expect(screen.getByText(/2h/)).toBeInTheDocument();
   });
 
   it("should render event type with long title without breaking layout", () => {
