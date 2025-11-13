@@ -524,6 +524,7 @@ export async function getBookings({
               .select((eb) => [
                 "EventType.slug",
                 "EventType.id",
+                "EventType.userId",
                 "EventType.title",
                 "EventType.eventName",
                 "EventType.price",
