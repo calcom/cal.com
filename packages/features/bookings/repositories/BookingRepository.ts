@@ -1489,15 +1489,37 @@ export class BookingRepository {
    * @param data - The reassignment data containing cancellation and new booking info
    * @returns Object with the new booking and cancelled booking
    */
-  async reassignBooking(data: {
+  async reassignBooking<T extends Prisma.BookingSelect>(data: {
     originalBookingId: number;
     cancellationData: {
       where: Prisma.BookingWhereUniqueInput;
       data: Prisma.BookingUpdateInput;
-      select: Prisma.BookingSelect;
+      select: T;
     };
     newBookingData: Prisma.BookingCreateInput;
-  }) {
+  }): Promise<{
+    newBooking: {
+      id: number;
+      uid: string;
+      title: string;
+      description: string | null;
+      startTime: Date;
+      endTime: Date;
+      location: string | null;
+      metadata: Prisma.JsonValue;
+      responses: Prisma.JsonValue;
+      iCalUID: string | null;
+      iCalSequence: number;
+      smsReminderNumber: string | null;
+      attendees: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+      }[];
+    };
+    cancelledBooking: Prisma.BookingGetPayload<{ select: T }>;
+  }> {
     return this.prismaClient.$transaction(async (tx) => {
       const cancelled = await tx.booking.update({
         where: data.cancellationData.where,
@@ -1507,12 +1529,30 @@ export class BookingRepository {
 
       const created = await tx.booking.create({
         data: data.newBookingData,
-        include: {
-          user: true,
-          attendees: true,
-          payment: true,
-          references: true,
-          eventType: true,
+        select: {
+          id: true,
+          uid: true,
+          title: true,
+          description: true,
+          startTime: true,
+          endTime: true,
+          location: true,
+          metadata: true,
+          responses: true,
+          iCalUID: true,
+          iCalSequence: true,
+          smsReminderNumber: true,
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+              timeZone: true,
+              locale: true,
+            },
+            orderBy: {
+              id: "asc",
+            },
+          },
         },
       });
 

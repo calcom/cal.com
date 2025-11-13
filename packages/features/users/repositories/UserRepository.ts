@@ -16,6 +16,7 @@ import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -1198,26 +1199,25 @@ export class UserRepository {
     });
   }
 
-  /**
-   * Finds multiple users by their IDs with credentials
-   * @param userIds - Array of user IDs
-   * @param select - Optional select object for customizing returned fields
-   * @returns Array of users with credentials
-   */
-  async findManyByIdsWithCredentials<T extends Prisma.UserSelect>({
-    userIds,
-    select,
-  }: {
-    userIds: number[];
-    select: T;
-  }) {
-    return this.prismaClient.user.findMany({
+  async findManyByIdsWithCredentialsAndSelectedCalendars({ userIds }: { userIds: number[] }) {
+    const users = await this.prismaClient.user.findMany({
       where: {
         id: {
           in: userIds,
         },
       },
-      select,
+      select: {
+        ...prismaUserSelect, // Use the proper userSelect from @calcom/prisma/selects/user which includes schedules
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        selectedCalendars: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
     });
+    return users.map(withSelectedCalendars);
   }
 }

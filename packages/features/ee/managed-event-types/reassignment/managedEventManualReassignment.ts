@@ -1,4 +1,3 @@
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
@@ -26,6 +25,7 @@ import { cancelWorkflowRemindersForReassignment } from "./lib/cancelWorkflowRemi
 import ManagedEventAssignmentReasonRecorder, {
   ManagedEventReassignmentType,
 } from "./lib/ManagedEventAssignmentReasonRecorder";
+import type { CancelledBookingResult } from "./lib/builders/BookingCancellationDataBuilder";
 
 import { findTargetChildEventType, validateManagedEventReassignment } from "./utils";
 
@@ -92,11 +92,6 @@ export async function managedEventManualReassignment({
     throw new Error(`User ${newUserId} not found`);
   }
 
-  const newUserCredentials = await prisma.credential.findMany({
-    where: { userId: newUserId },
-    include: { user: { select: { email: true } } },
-  });
-
   const originalUser = await userRepository.findByIdWithCredentialsAndCalendar({
     userId: originalBooking.userId ?? 0,
   });
@@ -126,11 +121,13 @@ export async function managedEventManualReassignment({
   });
 
   // Execute the reassignment in a transaction (cancel + create) using repository
-  const { newBooking, cancelledBooking } = await bookingRepository.reassignBooking({
+  const reassignmentResult = await bookingRepository.reassignBooking({
     originalBookingId: originalBookingFull.id,
     cancellationData: originalBookingCancellationData,
     newBookingData,
   });
+  const newBooking = reassignmentResult.newBooking;
+  const cancelledBooking: CancelledBookingResult = reassignmentResult.cancelledBooking;
 
   reassignLogger.info("Booking duplication completed", {
     originalBookingId: cancelledBooking.id,
@@ -179,11 +176,18 @@ export async function managedEventManualReassignment({
     }
   }
 
-  const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { ...newUser, credentials: newUserCredentials },
-  });
+  const newUserCredentialsWithServiceAccountKey = await getAllCredentialsIncludeServiceAccountKey(
+    newUser,
+    targetEventTypeDetails
+  );
 
-  const newEventManager = new EventManager(newUserWithCredentials, apps);
+  const newUserForEventManager = {
+    ...newUser,
+    credentials: newUserCredentialsWithServiceAccountKey,
+    destinationCalendar: newUser.destinationCalendar,
+  };
+
+  const newEventManager = new EventManager(newUserForEventManager, apps);
 
   let bookingLocation = originalBookingFull.location || newBooking.location || null;
   let conferenceCredentialId: number | null = null;
@@ -237,7 +241,7 @@ export async function managedEventManualReassignment({
       })
       .withAttendees(attendees)
       .withLocation({
-        location: bookingLocation || undefined,
+        location: bookingLocation || null,
         conferenceCredentialId: conferenceCredentialId ?? undefined,
       })
       .withIdentifiers({
@@ -475,7 +479,7 @@ export async function managedEventManualReassignment({
         })
         .withAttendees(attendeesForEmail)
         .withLocation({
-          location: bookingLocation || undefined,
+          location: bookingLocation || null,
         })
         .withUid(newBooking.uid);
 

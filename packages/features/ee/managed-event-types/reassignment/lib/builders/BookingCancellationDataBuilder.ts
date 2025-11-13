@@ -7,6 +7,15 @@ interface BookingCancellationDataParams {
   newUser: Pick<User, "name" | "email">;
 }
 
+const cancellationSelect = {
+  id: true,
+  uid: true,
+  metadata: true,
+  status: true,
+} as const satisfies Prisma.BookingSelect;
+
+export type CancelledBookingResult = Prisma.BookingGetPayload<{ select: typeof cancellationSelect }>;
+
 /**
  * Builder for creating cancellation data for the original booking during reassignment
  * Follows Single Responsibility Principle - only builds cancellation data
@@ -20,7 +29,7 @@ export class BookingCancellationDataBuilder {
   static build({ originalBooking, newUser }: BookingCancellationDataParams): {
     where: Prisma.BookingWhereUniqueInput;
     data: Prisma.BookingUpdateInput;
-    select: Prisma.BookingSelect;
+    select: typeof cancellationSelect;
   } {
     return {
       where: { id: originalBooking.id },
@@ -32,12 +41,7 @@ export class BookingCancellationDataBuilder {
             ? originalBooking.metadata
             : undefined,
       },
-      select: {
-        id: true,
-        uid: true,
-        metadata: true,
-        status: true,
-      },
+      select: cancellationSelect,
     };
   }
 }

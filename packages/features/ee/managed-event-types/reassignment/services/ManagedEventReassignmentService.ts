@@ -1,18 +1,14 @@
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
+import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
-import type { LuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import logger from "@calcom/lib/logger";
-import type { Logger } from "@calcom/lib/logger";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { userSelect } from "@calcom/prisma/selects/user";
 
 import { managedEventManualReassignment } from "../managedEventManualReassignment";
 import { validateManagedEventReassignment } from "../utils";
@@ -46,7 +42,7 @@ interface ManagedEventReassignmentServiceDeps {
  * Follows SOLID principles and uses DI for all dependencies
  */
 export class ManagedEventReassignmentService {
-  private readonly log: Logger;
+  private readonly log: typeof logger;
   private readonly bookingRepository: BookingRepository;
   private readonly eventTypeRepository: EventTypeRepository;
   private readonly userRepository: UserRepository;
@@ -139,7 +135,7 @@ export class ManagedEventReassignmentService {
    */
   private async fetchManagedEventTypeChain(
     eventTypeId: number,
-    logger: Logger
+    log: typeof logger
   ): Promise<ManagedEventTypeChain> {
     const currentChildEventType = await this.eventTypeRepository.findByIdWithParent(eventTypeId);
 
@@ -157,7 +153,7 @@ export class ManagedEventReassignmentService {
       throw new Error("Parent event type must be a MANAGED type");
     }
 
-    logger.info("Found parent managed event type", {
+    log.info("Found parent managed event type", {
       parentId: parentEventType.id,
       currentChildId: currentChildEventType.id,
     });
@@ -176,7 +172,7 @@ export class ManagedEventReassignmentService {
     parentId: number,
     currentUserId: number | null,
     orgId: number | null,
-    logger: Logger
+    log: typeof logger
   ): Promise<IsFixedAwareUser[]> {
     // Get all child event types except current user's
     const allChildEventTypes = await this.eventTypeRepository.findManyChildEventTypes(
@@ -190,30 +186,41 @@ export class ManagedEventReassignmentService {
       throw new Error("No other users available for reassignment in this managed event");
     }
 
-    // Fetch users with credentials
-    const users = await this.userRepository.findManyByIdsWithCredentials({
-      userIds,
-      select: {
-        ...userSelect,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
+    // Fetch users with credentials and selected calendars
+    const usersWithSelectedCalendars =
+      await this.userRepository.findManyByIdsWithCredentialsAndSelectedCalendars({
+        userIds,
+      });
 
-    logger.info(`Found ${users.length} potential reassignment targets`);
+    log.info(`Found ${usersWithSelectedCalendars.length} potential reassignment targets`);
 
-    // Enrich users with selected calendars and delegation credentials
-    const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
+    // Enrich users with delegation credentials
     const enrichedUsers = await enrichUsersWithDelegationCredentials({
       orgId,
       users: usersWithSelectedCalendars,
     });
 
-    return enrichedUsers.map((user) => ({
+    // Filter out users without schedules configured to prevent availability check failures
+    const usersWithSchedules = enrichedUsers.filter((user) => {
+      const hasSchedules = user.schedules && user.schedules.length > 0;
+      if (!hasSchedules) {
+        log.warn(`User ${user.id} skipped: no schedules configured`);
+      }
+      return hasSchedules;
+    });
+
+    if (usersWithSchedules.length === 0) {
+      throw new Error(
+        "No eligible users found for reassignment. All team members must have availability schedules configured."
+      );
+    }
+
+    log.info(`${usersWithSchedules.length} users with schedules configured`);
+
+    return usersWithSchedules.map((user) => ({
       ...user,
-      isFixed: false,
-    })) as IsFixedAwareUser[];
+      isFixed: false as const,
+    })) as unknown as IsFixedAwareUser[];
   }
 
   /**
@@ -224,7 +231,7 @@ export class ManagedEventReassignmentService {
     users: IsFixedAwareUser[],
     parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
     timeSlot: { start: Date; end: Date; timeZone: string },
-    logger: Logger
+    log: typeof logger
   ): Promise<IsFixedAwareUser[]> {
     const availableUsers = await ensureAvailableUsers(
       { ...parentEventType, users },
@@ -240,7 +247,7 @@ export class ManagedEventReassignmentService {
       throw new Error("No users available at the booking time");
     }
 
-    logger.info(`${availableUsers.length} users available at booking time`);
+    log.info(`${availableUsers.length} users available at booking time`);
 
     return availableUsers;
   }
@@ -252,22 +259,32 @@ export class ManagedEventReassignmentService {
   private async selectReassignmentUser(
     availableUsers: IsFixedAwareUser[],
     parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
-    logger: Logger
+    log: typeof logger
   ): Promise<IsFixedAwareUser> {
-    const selectedUser = await this.luckyUserService.getLuckyUser({
-      availableUsers,
+    if (availableUsers.length === 0) {
+      throw new Error("No available users to select for reassignment");
+    }
+
+    // After the length check, we know the array is non-empty
+    const nonEmptyUsers: [IsFixedAwareUser, ...IsFixedAwareUser[]] =
+      availableUsers.length === 1
+        ? [availableUsers[0]]
+        : [availableUsers[0], ...availableUsers.slice(1)];
+
+    const luckyUser: IsFixedAwareUser = await this.luckyUserService.getLuckyUser({
+      availableUsers: nonEmptyUsers,
       eventType: parentEventType,
       allRRHosts: [],
       routingFormResponse: null,
     });
 
-    if (!selectedUser) {
+    if (!luckyUser) {
       throw new Error("Failed to select a user for reassignment");
     }
 
-    logger.info(`Selected user ${selectedUser.id} for reassignment`);
+    log.info(`Selected user ${luckyUser.id} for reassignment`);
 
-    return selectedUser;
+    return luckyUser;
   }
 }
 
