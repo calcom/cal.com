@@ -344,8 +344,12 @@ export const ensureBookingInputsHaveSystemFields = ({
       (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
     );
     // Add the SMS Reminder Number field after `location` field always
+    const isSmsRequired = smsNumberSources.some((s) => s.fieldRequired);
     bookingFields.splice(indexForLocation + 1, 0, {
       ...getSmsReminderNumberField(),
+      // Default visibility: ON when required, OFF when optional
+      hidden: !isSmsRequired,
+      required: isSmsRequired,
       sources: smsNumberSources,
     });
   }

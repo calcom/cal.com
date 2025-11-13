@@ -117,70 +117,63 @@ export const BookingFields = ({
     lastSyncedPhoneRef.current = phone;
   };
 
-  // If primary phone is a phone field, propagate its value to other hidden phone fields
-  const primaryPhoneValue =
-    primaryPhoneSource?.kind === "field" ? watch(`responses.${primaryPhoneSource.name}`) : undefined;
+  // First-fill wins: propagate the first non-empty phone value once to all other phone fields that are empty/untouched.
+  const firstPropagationDoneRef = useRef(false);
+  const allPhoneFieldNames = useMemo(() => allPhoneFields.map((f) => f.name), [allPhoneFields]);
+  const phoneWatchKeys = useMemo(() => allPhoneFieldNames.map((n) => `responses.${n}`), [allPhoneFieldNames]);
+  const phoneValues = watch(phoneWatchKeys as any) as (string | undefined)[];
   useEffect(() => {
-    if (!primaryPhoneSource || primaryPhoneSource.kind !== "field") return;
-    const phone = (primaryPhoneValue ?? "").trim();
-    if (!phone) return;
-    otherPhoneFieldNames.forEach((name) => {
-      if (name === primaryPhoneSource.name) return;
-      // Prefill hidden phone fields and any untouched targets
-      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
-      const targetIsHiddenByDefault = isPhoneHiddenByDefault(name);
-      if (!targetTouched && targetIsHiddenByDefault) {
-        setValue(`responses.${name}`, phone, {
-          shouldDirty: false,
-          shouldValidate: false,
-        });
+    if (firstPropagationDoneRef.current) return;
+    let sourceValue = "";
+    let sourceName: string | null = null;
+    // If location is Phone and has a value, consider it a source
+    if (locationResponse && (locationResponse as any)?.value === DefaultEventLocationTypeEnum.Phone) {
+      const locVal = String((locationResponse as any)?.optionValue ?? "").trim();
+      if (locVal) {
+        sourceValue = locVal;
+        sourceName = "location";
+      }
+    }
+    // Otherwise pick the first touched non-empty phone field
+    if (!sourceValue) {
+      for (let i = 0; i < allPhoneFieldNames.length; i++) {
+        const name = allPhoneFieldNames[i];
+        const val = String(phoneValues?.[i] ?? "").trim();
+        const touched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+        if (val && touched) {
+          sourceValue = val;
+          sourceName = name;
+          break;
+        }
+      }
+    }
+    if (!sourceValue) return;
+    // Propagate to other phone fields that are empty and untouched
+    allPhoneFieldNames.forEach((name, idx) => {
+      if (name === sourceName) return;
+      const current = String(phoneValues?.[idx] ?? "").trim();
+      const touched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+      if (!touched && !current) {
+        setValue(`responses.${name}`, sourceValue, { shouldDirty: false, shouldValidate: false });
       }
     });
-  }, [primaryPhoneSource, primaryPhoneValue, otherPhoneFieldNames, formState.touchedFields, setValue]);
-
-  // Bidirectional sync among visible phone fields (host unhid >= 2)
-  const visiblePhoneFieldNames = useMemo(() => {
-    return allPhoneFields.filter((f) => !isPhoneHiddenByDefault(f.name)).map((f) => f.name);
-  }, [allPhoneFields, hostUnhiddenPhoneNames, primaryPhoneSource]);
-
-  // Watch all visible phone values together
-  const visiblePhoneWatchKeys = useMemo(
-    () => visiblePhoneFieldNames.map((n) => `responses.${n}`),
-    [visiblePhoneFieldNames]
-  );
-  const visiblePhoneValues = watch(visiblePhoneWatchKeys as any) as (string | undefined)[];
-  const lastValuesRef = useRef<Record<string, string>>({});
-  useEffect(() => {
-    if (!visiblePhoneFieldNames.length || visiblePhoneFieldNames.length < 2) return;
-    // Build current map
-    const current: Record<string, string> = {};
-    visiblePhoneFieldNames.forEach((name, idx) => {
-      const v = (visiblePhoneValues?.[idx] ?? "").trim();
-      current[name] = v;
-    });
-    // Detect which field changed
-    const changed = visiblePhoneFieldNames.filter(
-      (name) => current[name] !== (lastValuesRef.current[name] ?? "")
-    );
-    if (changed.length === 1) {
-      const source = changed[0];
-      const value = current[source];
-      // Propagate to others if they are untouched
-      visiblePhoneFieldNames.forEach((target) => {
-        if (target === source) return;
-        const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[target];
-        if (!targetTouched && current[target] !== value) {
-          setValue(`responses.${target}`, value, {
-            shouldDirty: false,
-            shouldValidate: false,
-          });
-          current[target] = value;
-        }
-      });
+    // If location is Phone already, set its optionValue as well; do not change location type
+    if (locationResponse && (locationResponse as any)?.value === DefaultEventLocationTypeEnum.Phone) {
+      const currentLoc = String((locationResponse as any)?.optionValue ?? "").trim();
+      if (!currentLoc) {
+        setValue(
+          "responses.location",
+          { ...(locationResponse as any), optionValue: sourceValue },
+          { shouldDirty: false, shouldValidate: false }
+        );
+      }
     }
-    // Update last seen values
-    lastValuesRef.current = current;
-  }, [visiblePhoneFieldNames, visiblePhoneValues, formState.touchedFields, setValue]);
+    firstPropagationDoneRef.current = true;
+  }, [locationResponse, allPhoneFieldNames, phoneValues, formState.touchedFields, setValue]);
+
+  // Note: Removed primary-phone continuous syncing in favor of first-fill-only propagation.
+
+  // Note: Removed multi-visible bidirectional sync in favor of first-fill-only propagation.
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
@@ -260,24 +253,19 @@ export const BookingFields = ({
         }
 
         if (field.name === SystemField.Enum.smsReminderNumber) {
-          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
-          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
-          if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
-            // Just don't render the field now, as the value is already connected to attendee phone location
-            return null;
-          }
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          // Value syncing from location phone is handled by effects above, but visibility now fully respects host toggle.
           readOnly = false;
         }
 
-        // Enforce single visible phone field by default; hosts can unhide more
+        // Enforce single visible phone field by default; respect host explicit hide/unhide
         if (field.type === "phone") {
-          // If host explicitly unhid it, do not hide
-          if (field.hidden !== false) {
-            hidden = isPhoneHiddenByDefault(field.name);
-          } else {
+          if (field.hidden === true) {
+            hidden = true;
+          } else if (field.hidden === false) {
             hidden = false;
+          } else {
+            hidden = isPhoneHiddenByDefault(field.name);
           }
         }
 

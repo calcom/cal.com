@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { DEFAULT_WORKFLOW_PHONE_FIELD } from "@calcom/lib/bookings/SystemField";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -85,6 +86,7 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
+  hasAttendeePhoneLocation = false,
 }: {
   formProp: string;
   title: string;
@@ -93,6 +95,7 @@ export const FormBuilder = function FormBuilder({
   disabled: boolean;
   LockedIcon: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
+  hasAttendeePhoneLocation?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -152,59 +155,61 @@ export const FormBuilder = function FormBuilder({
         </div>
         <div className="flex items-start justify-between">
           <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
-          {showPhoneAndEmailToggle && (
-            <ToggleGroup
-              value={(() => {
-                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
-                const emailField = fields.find((field) => field.name === "email");
+          <div className="flex items-center gap-4">
+            {showPhoneAndEmailToggle && (
+              <ToggleGroup
+                value={(() => {
+                  const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                  const emailField = fields.find((field) => field.name === "email");
 
-                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
-                  return "phone";
-                }
+                  if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
+                    return "phone";
+                  }
 
-                return "email";
-              })()}
-              options={[
-                {
-                  value: "email",
-                  label: "Email",
-                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
-                },
-                {
-                  value: "phone",
-                  label: "Phone",
-                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
-                },
-              ]}
-              onValueChange={(value) => {
-                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
-                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
-                if (value === "email") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
-                } else if (value === "phone") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
-                }
-              }}
-            />
-          )}
+                  return "email";
+                })()}
+                options={[
+                  {
+                    value: "email",
+                    label: "Email",
+                    iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                  },
+                  {
+                    value: "phone",
+                    label: "Phone",
+                    iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                  },
+                ]}
+                onValueChange={(value) => {
+                  const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
+                  const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                  if (value === "email") {
+                    update(emailFieldIndex, {
+                      ...fields[emailFieldIndex],
+                      hidden: false,
+                      required: true,
+                    });
+                    update(phoneFieldIndex, {
+                      ...fields[phoneFieldIndex],
+                      hidden: true,
+                      required: false,
+                    });
+                  } else if (value === "phone") {
+                    update(emailFieldIndex, {
+                      ...fields[emailFieldIndex],
+                      hidden: true,
+                      required: false,
+                    });
+                    update(phoneFieldIndex, {
+                      ...fields[phoneFieldIndex],
+                      hidden: false,
+                      required: true,
+                    });
+                  }
+                }}
+              />
+            )}
+          </div>
         </div>
         <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {t("questions")}
@@ -318,17 +323,51 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && !disabled && (
                   <div className="flex items-center space-x-2">
-                    {!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled && (
-                      <Switch
-                        data-testid="toggle-field"
-                        disabled={isFieldEditableSystem}
-                        checked={!field.hidden}
-                        onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
-                        }}
-                        tooltip={t("show_on_booking_page")}
-                      />
-                    )}
+                    {(() => {
+                      const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+                      const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
+                      const isFieldEditableSystem = field.editable === "system";
+                      const isAIAgentPhone = field.name === "aiAgentCallPhoneNumber";
+                      const isSmsReminder = field.name === "smsReminderNumber";
+                      const isPriorityWorkflowField = field.name === DEFAULT_WORKFLOW_PHONE_FIELD;
+                      const mustStayVisible = !hasAttendeePhoneLocation && isPriorityWorkflowField;
+                      const canShowToggle =
+                        (!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled) ||
+                        ((isAIAgentPhone || isSmsReminder) && !disabled);
+                      return (
+                        canShowToggle && (
+                          <Switch
+                            data-testid="toggle-field"
+                            disabled={
+                              (isFieldEditableSystem && !(isAIAgentPhone || isSmsReminder)) ||
+                              (mustStayVisible && !field.hidden)
+                            }
+                            checked={!field.hidden}
+                            onCheckedChange={(checked) => {
+                              if (!checked && mustStayVisible) {
+                                showToast(
+                                  t("at_least_one_phone_required") ||
+                                    "At least one phone number must be present on the booking page",
+                                  "warning"
+                                );
+                                return;
+                              }
+                              if (isAIAgentPhone) {
+                                update(index, { ...field, hidden: !checked, required: checked });
+                              } else {
+                                update(index, { ...field, hidden: !checked });
+                              }
+                            }}
+                            tooltip={
+                              mustStayVisible
+                                ? t("at_least_one_phone_required") ||
+                                  "At least one phone number must be present on the booking page"
+                                : t("show_on_booking_page")
+                            }
+                          />
+                        )
+                      );
+                    })()}
                     {isUserField && (
                       <Button
                         data-testid="delete-field-action"
@@ -883,7 +922,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
