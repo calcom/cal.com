@@ -4,7 +4,8 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
 import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -20,15 +21,12 @@ const ZProjectMutationInputSchema = z.object({ projectId: z.string() });
 async function handler(req: NextApiRequest) {
   const userId = req.session?.user?.id;
   if (!userId) {
-    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Unauthorized");
   }
 
   const parsed = ZProjectMutationInputSchema.safeParse(req.body ?? {});
   if (!parsed.success) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Invalid request body",
-    });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid request body");
   }
   const { projectId } = parsed.data;
 
@@ -40,7 +38,7 @@ async function handler(req: NextApiRequest) {
   });
 
   if (!credential) {
-    throw new HttpError({ statusCode: 403, message: "No credential found for user" });
+    throw new ErrorWithCode(ErrorCode.Forbidden, "No credential found for user");
   }
 
   let credentialKey = credential.key as BasecampToken;
@@ -61,7 +59,7 @@ async function handler(req: NextApiRequest) {
   );
 
   if (!scheduleResponse.ok) {
-    throw new HttpError({ statusCode: 400, message: "Failed to fetch project details" });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Failed to fetch project details");
   }
 
   const scheduleJson = await scheduleResponse.json();

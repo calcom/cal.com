@@ -4,8 +4,9 @@ import type z from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
@@ -45,7 +46,7 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
+      throw new ErrorWithCode(ErrorCode.InvalidOperation, "Method Not Allowed");
     }
 
     const obj: WebhookReturn = req.body as WebhookReturn;
@@ -77,36 +78,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!payment) {
-      throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Payment not found");
     }
     const key = payment.booking?.user?.credentials?.[0].key;
     if (!key) {
-      throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Credentials not found");
     }
 
     const { isSandbox, prod, sandbox } = key as z.infer<typeof hitpayCredentialKeysSchema>;
     const keyObj = isSandbox ? sandbox : prod;
     if (!keyObj) {
-      throw new HttpCode({
-        statusCode: 204,
-        message: `${isSandbox ? "Sandbox" : "Production"} Credentials not found`,
-      });
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        `${isSandbox ? "Sandbox" : "Production"} Credentials not found`
+      );
     }
 
     const { saltKey } = keyObj;
     const signed = generateSignatureArray(saltKey, excluded as ExcludedWebhookReturn);
     if (signed !== obj.hmac) {
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
 
     if (excluded.status !== "completed") {
-      throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, `Payment is ${excluded.status}`);
     }
     return await handlePaymentSuccess(payment.id, payment.bookingId);
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    return res.status(200).send({
+    return res.status(err.statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,
     });

@@ -1,5 +1,6 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -39,9 +40,9 @@ const loadConfiguration = async () => {
   if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
   if (typeof appKeys.base_url === "string") baseUrl = appKeys.base_url;
-  if (!clientId) throw new HttpError({ statusCode: 400, message: "Tandem client_id missing." });
-  if (!clientSecret) throw new HttpError({ statusCode: 400, message: "Tandem client_secret missing." });
-  if (!baseUrl) throw new HttpError({ statusCode: 400, message: "Tandem base_url missing." });
+  if (!clientId) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Tandem client_id missing.");
+  if (!clientSecret) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Tandem client_secret missing.");
+  if (!baseUrl) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Tandem base_url missing.");
 
   return {
     clientId,

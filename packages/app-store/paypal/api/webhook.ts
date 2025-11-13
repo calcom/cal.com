@@ -6,8 +6,9 @@ import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePa
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
 export const config = {
@@ -31,7 +32,7 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.bookingId) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Payment not found");
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -42,10 +43,10 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+  if (!booking) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No booking found");
   // Probably booking it's already paid from /capture but we need to send confirmation email
   const foundCredentials = await findPaymentCredentials(booking.id);
-  if (!foundCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
+  if (!foundCredentials) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No credentials found");
   const { webhookId, ...credentials } = foundCredentials;
 
   const paypalClient = new Paypal(credentials);
@@ -68,7 +69,7 @@ export async function handlePaypalPaymentSuccess(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
+      throw new ErrorWithCode(ErrorCode.InvalidOperation, "Method Not Allowed");
     }
 
     const bodyRaw = await getRawBody(req);
@@ -78,12 +79,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
       console.error(parseHeaders.error);
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
     const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
       console.error(parse.error);
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
 
     const { data: parsedPayload } = parse;
@@ -92,9 +93,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(200).send({
+    res.status(err.statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,
     });

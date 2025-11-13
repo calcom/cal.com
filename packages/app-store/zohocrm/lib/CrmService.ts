@@ -2,7 +2,8 @@ import axios from "axios";
 import qs from "qs";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -190,9 +191,9 @@ export default class ZohoCrmCrmService implements CRM {
     const appKeys = await getAppKeysFromSlug("zohocrm");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
     if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;
-    if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Zoho CRM client_id missing." });
+    if (!this.client_id) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Zoho CRM client_id missing.");
     if (!this.client_secret)
-      throw new HttpError({ statusCode: 400, message: "Zoho CRM client_secret missing." });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Zoho CRM client_secret missing.");
     const credentialKey = credential.key as unknown as ZohoToken;
     const isTokenValid = (token: ZohoToken) => {
       const isValid = token && token.access_token && token.expiryDate && token.expiryDate > Date.now();

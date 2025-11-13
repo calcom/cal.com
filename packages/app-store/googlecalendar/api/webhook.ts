@@ -1,7 +1,8 @@
 import type { NextApiRequest } from "next";
 
 import { getCredentialForCalendarCache } from "@calcom/app-store/delegationCredential";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -18,10 +19,10 @@ async function postHandler(req: NextApiRequest) {
 
   log.debug("postHandler", safeStringify({ channelToken, channelId }));
   if (channelToken !== process.env.GOOGLE_WEBHOOK_TOKEN) {
-    throw new HttpError({ statusCode: 403, message: "Invalid API key" });
+    throw new ErrorWithCode(ErrorCode.Forbidden, "Invalid API key");
   }
   if (typeof channelId !== "string") {
-    throw new HttpError({ statusCode: 403, message: "Missing Channel ID" });
+    throw new ErrorWithCode(ErrorCode.Forbidden, "Missing Channel ID");
   }
 
   // There could be multiple selected calendars for the same googleChannelId for different eventTypes and same user

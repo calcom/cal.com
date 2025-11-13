@@ -2,7 +2,8 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
@@ -13,13 +14,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const loggedInUser = req.session?.user;
 
   if (!loggedInUser) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be logged in to do this");
   }
 
   // Ideally this should never happen, as email is there in session user but typings aren't accurate it seems
   // TODO: So, confirm and later fix the typings
   if (!loggedInUser.email) {
-    throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Session user must have an email");
   }
 
   const { client_id, client_secret } = await getGoogleAppKeys();

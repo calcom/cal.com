@@ -10,7 +10,8 @@ import type {
 import { getLocation } from "@calcom/lib/CalEventParser";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -127,9 +128,9 @@ export default class HubspotCalendarService implements CRM {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
     if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;
-    if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Hubspot client_id missing." });
+    if (!this.client_id) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Hubspot client_id missing.");
     if (!this.client_secret)
-      throw new HttpError({ statusCode: 400, message: "Hubspot client_secret missing." });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Hubspot client_secret missing.");
     const credentialKey = credential.key as unknown as HubspotToken;
     const isTokenValid = (token: HubspotToken) =>
       token &&

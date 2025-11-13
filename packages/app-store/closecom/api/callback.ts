@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -26,11 +27,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       res.redirect(redirectAfterSuccessOrError);
       return;
     }
-    throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "`code` must be a string");
   }
 
   if (!req.session?.user?.id) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be logged in to do this");
   }
 
   const { client_id, client_secret } = await getAppKeysFromSlug("closecom");

@@ -11,8 +11,9 @@ import {
   WEBAPP_URL,
   WEBAPP_URL_FOR_OAUTH,
 } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { Prisma } from "@calcom/prisma/client";
@@ -35,11 +36,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       );
       return;
     }
-    throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "`code` must be a string");
   }
 
   if (!req.session?.user?.id) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be logged in to do this");
   }
 
   const { client_id, client_secret } = await getGoogleAppKeys();
@@ -56,10 +57,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const hasMissingRequiredScopes = GOOGLE_CALENDAR_SCOPES.some((scope) => !grantedScopes.includes(scope));
     if (hasMissingRequiredScopes) {
       if (!state?.fromApp) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "You must grant all permissions to use this integration",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.RequestBodyInvalid,
+          "You must grant all permissions to use this integration"
+        );
       }
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
