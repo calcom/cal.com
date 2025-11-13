@@ -12,12 +12,6 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
-
-export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
-  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
-}
-
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
 import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";
@@ -48,6 +42,12 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+
+type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
+
+export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
+  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
+}
 
 type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
@@ -540,53 +540,6 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   await awaitingPaymentSMS.sendSMSToAttendees();
 };
 
-export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEventWithBranding) => {
-  const emailsToSend: Promise<unknown>[] = [];
-  emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent })));
-
-  if (calEvent.team?.members) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent, teamMember })));
-    }
-  }
-
-  await Promise.all(emailsToSend);
-};
-
-export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
-  await sendEmail(() => new ForgotPasswordEmail(passwordResetEvent));
-};
-
-export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
-  await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
-};
-
-export const sendCustomWorkflowEmail = async (emailData: WorkflowEmailData) => {
-  await sendEmail(() => new WorkflowEmail(emailData));
-};
-
-export const sendOrganizationCreationEmail = async (organizationCreationEvent: OrganizationCreation) => {
-  await sendEmail(() => new OrganizationCreationEmail(organizationCreationEvent));
-};
-
-export const sendOrganizationAdminNoSlotsNotification = async (
-  orgInviteEvent: OrganizationAdminNoSlotsEmailInput
-) => {
-  await sendEmail(() => new OrganizationAdminNoSlotsEmail(orgInviteEvent));
-};
-
-export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
-  await sendEmail(() => new AccountVerifyEmail(verificationInput));
-};
-
-export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
-  await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
-};
-
-export const sendChangeOfEmailVerificationLink = async (verificationInput: ChangeOfEmailVerifyLink) => {
-  await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
-};
-
 export const sendRequestRescheduleEmailAndSMS = async (
   calEvent: CalendarEvent,
   metadata: { rescheduleLink: string },
@@ -705,213 +658,4 @@ export const sendAddGuestsEmailsAndSMS = async (args: {
   }
 
   await Promise.all(emailsAndSMSToSend);
-};
-
-export const sendFeedbackEmail = async (feedback: Feedback) => {
-  await sendEmail(() => new FeedbackEmail(feedback));
-};
-
-export const sendBrokenIntegrationEmail = async (
-  evt: CalendarEventWithBranding,
-  type: "video" | "calendar"
-) => {
-  const calendarEvent = formatCalEvent(evt);
-  await sendEmail(() => new BrokenIntegrationEmail(calendarEvent, type));
-};
-
-export const sendDisabledAppEmail = async ({
-  email,
-  appName,
-  appType,
-  t,
-  title = undefined,
-  eventTypeId = undefined,
-}: {
-  email: string;
-  appName: string;
-  appType: string[];
-  t: TFunction;
-  title?: string;
-  eventTypeId?: number;
-}) => {
-  await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
-};
-
-export const sendSlugReplacementEmail = async ({
-  email,
-  name,
-  teamName,
-  t,
-  slug,
-}: {
-  email: string;
-  name: string;
-  teamName: string | null;
-  t: TFunction;
-  slug: string;
-}) => {
-  await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
-};
-
-export const sendNoShowFeeChargedEmail = async (
-  attendee: Person,
-  evt: CalendarEventWithBranding,
-  eventTypeMetadata?: EventTypeMetadata
-) => {
-  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
-  await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
-};
-
-export const sendDailyVideoRecordingEmails = async (
-  calEvent: CalendarEventWithBranding,
-  downloadLink: string
-) => {
-  const calendarEvent = formatCalEvent(calEvent);
-  const emailsToSend: Promise<unknown>[] = [];
-
-  emailsToSend.push(
-    sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink))
-  );
-
-  for (const attendee of calendarEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
-    );
-  }
-  await Promise.all(emailsToSend);
-};
-
-export const sendDailyVideoTranscriptEmails = async (
-  calEvent: CalendarEventWithBranding,
-  transcripts: string[]
-) => {
-  const emailsToSend: Promise<unknown>[] = [];
-
-  emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts)));
-
-  for (const attendee of calEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadTranscriptEmail(calEvent, attendee, transcripts))
-    );
-  }
-  await Promise.all(emailsToSend);
-};
-
-export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
-  await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
-};
-
-export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
-  await sendEmail(() => new MonthlyDigestEmail(eventData));
-};
-
-export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
-  await sendEmail(() => new AdminOrganizationNotification(input));
-};
-
-export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
-  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
-};
-
-export const sendCreditBalanceLowWarningEmails = async (input: {
-  team?: {
-    name: string | null;
-    id: number;
-    adminAndOwners: {
-      id: number;
-      name: string | null;
-      email: string;
-      t: TFunction;
-    }[];
-  };
-  user?: {
-    id: number;
-    name: string | null;
-    email: string;
-    t: TFunction;
-  };
-  balance: number;
-  creditFor?: CreditUsageType;
-}) => {
-  const { team, balance, user, creditFor } = input;
-  if ((!team || !team.adminAndOwners.length) && !user) return;
-
-  if (team) {
-    const emailsToSend: Promise<unknown>[] = [];
-
-    for (const admin of team.adminAndOwners) {
-      emailsToSend.push(
-        sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team, creditFor }))
-      );
-    }
-
-    await Promise.all(emailsToSend);
-  }
-
-  if (user) {
-    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance, creditFor }));
-  }
-};
-
-export const sendCreditBalanceLimitReachedEmails = async ({
-  team,
-  user,
-  creditFor,
-}: {
-  team?: {
-    name: string;
-    id: number;
-    adminAndOwners: {
-      id: number;
-      name: string | null;
-      email: string;
-      t: TFunction;
-    }[];
-  };
-  user?: {
-    id: number;
-    name: string | null;
-    email: string;
-    t: TFunction;
-  };
-  creditFor?: CreditUsageType;
-}) => {
-  if ((!team || !team.adminAndOwners.length) && !user) return;
-
-  if (team) {
-    const emailsToSend: Promise<unknown>[] = [];
-
-    for (const admin of team.adminAndOwners) {
-      emailsToSend.push(
-        sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team, creditFor }))
-      );
-    }
-    await Promise.all(emailsToSend);
-  }
-
-  if (user) {
-    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user, creditFor }));
-  }
-};
-
-export const sendDelegationCredentialDisabledEmail = async ({
-  recipientEmail,
-  recipientName,
-  calendarAppName,
-  conferencingAppName,
-}: {
-  recipientEmail: string;
-  recipientName?: string;
-  calendarAppName: string;
-  conferencingAppName: string;
-}) => {
-  await sendEmail(
-    () =>
-      new DelegationCredentialDisabledEmail({
-        recipientEmail,
-        recipientName,
-        calendarAppName,
-        conferencingAppName,
-      })
-  );
 };
