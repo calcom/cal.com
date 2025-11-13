@@ -84,6 +84,9 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     return email && email.trim().length > 0;
   });
 
+  // Watch form values to pass to browser view for real-time updates
+  const watchedInvites = form.watch("invites");
+
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
@@ -135,7 +138,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       </div>
 
       {/* Right column - Browser view */}
-      <OnboardingInviteBrowserView teamName={teamDetails.name} />
+      <OnboardingInviteBrowserView teamName={teamDetails.name} watchedInvites={watchedInvites} />
     </OnboardingLayout>
   );
 };
