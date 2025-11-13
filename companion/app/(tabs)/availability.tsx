@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+import EditAvailabilityModal from "../../components/EditAvailabilityModal";
 import { CalComAPIService, Schedule, ScheduleAvailability } from "../../services/calcom";
 
 export default function Availability() {
@@ -17,6 +18,7 @@ export default function Availability() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const fetchSchedule = async () => {
     try {
@@ -51,6 +53,26 @@ export default function Availability() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchSchedule();
+  };
+
+  const handleUpdateSchedule = async (updatedData: {
+    name?: string;
+    timeZone?: string;
+    availability?: ScheduleAvailability[];
+    isDefault?: boolean;
+  }) => {
+    if (!schedule) return;
+
+    try {
+      console.log("📅 AvailabilityScreen: Updating schedule...");
+      const updatedSchedule = await CalComAPIService.updateSchedule(schedule.id, updatedData);
+      setSchedule(updatedSchedule);
+      console.log("📅 AvailabilityScreen: Schedule updated successfully");
+    } catch (err) {
+      fetchSchedule();
+      console.error("📅 AvailabilityScreen: Error updating schedule:", err);
+      throw err;
+    }
   };
 
   const renderAvailabilitySlot = ({ item }: { item: ScheduleAvailability }) => (
@@ -109,6 +131,10 @@ export default function Availability() {
               <Text style={styles.defaultBadgeText}>Default</Text>
             </View>
           )}
+          <TouchableOpacity style={styles.editButton} onPress={() => setEditModalVisible(true)}>
+            <Ionicons name="pencil" size={20} color="#000" />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.timezoneContainer}>
           <Ionicons name="globe-outline" size={16} color="#666" />
@@ -122,9 +148,17 @@ export default function Availability() {
         renderItem={renderAvailabilitySlot}
         contentContainerStyle={styles.listContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>Working Hours</Text>}
         showsVerticalScrollIndicator={false}
       />
+
+      {schedule && (
+        <EditAvailabilityModal
+          visible={editModalVisible}
+          schedule={schedule}
+          onClose={() => setEditModalVisible(false)}
+          onSave={handleUpdateSchedule}
+        />
+      )}
     </View>
   );
 }
@@ -147,6 +181,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+    gap: 12,
   },
   headerInfo: {
     flexDirection: "row",
@@ -261,5 +296,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     textAlign: "center",
+  },
+  editButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+    alignSelf: "flex-start",
+    marginLeft: "auto",
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
   },
 });
