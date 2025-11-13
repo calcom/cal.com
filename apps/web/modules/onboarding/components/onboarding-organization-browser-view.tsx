@@ -8,25 +8,24 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
-type OnboardingBrowserViewProps = {
+type OnboardingOrganizationBrowserViewProps = {
   avatar?: string | null;
   name?: string;
   bio?: string;
-  username?: string | null;
-  teamSlug?: string;
+  slug?: string;
+  bannerUrl?: string | null;
 };
 
-export const OnboardingBrowserView = ({
+export const OnboardingOrganizationBrowserView = ({
   avatar,
   name,
   bio,
-  username,
-  teamSlug,
-}: OnboardingBrowserViewProps) => {
+  slug,
+  bannerUrl,
+}: OnboardingOrganizationBrowserViewProps) => {
   const { t } = useLocale();
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl =
-    teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  const displayUrl = `${webappUrl}/${slug || ""}`;
 
   const events: Array<{
     title: string;
@@ -58,13 +57,8 @@ export const OnboardingBrowserView = ({
       duration: 120,
       icon: "map-pin",
     },
-    {
-      title: t("onboarding_browser_view_ask_question"),
-      description: t("onboarding_browser_view_ask_question_description"),
-      duration: 15,
-      icon: "message-circle",
-    },
   ];
+
   return (
     <div className="bg-default border-subtle hidden h-full w-full flex-col rounded-l-2xl border xl:flex">
       {/* Browser header */}
@@ -84,35 +78,48 @@ export const OnboardingBrowserView = ({
       {/* Content */}
       <div className="bg-muted h-full pl-11 pt-11">
         <div className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-xl border">
-          {/* Profile Header */}
-          <div className="border-subtle flex flex-col gap-4 border-b p-4">
-            <div className="flex flex-col items-start gap-4">
-              <Avatar
-                size="lg"
-                imageSrc={avatar || undefined}
-                alt={name || ""}
-                className="border-2 border-white"
-              />
-              <div className="flex flex-col gap-2">
-                <h2 className="text-emphasis text-xl font-semibold leading-tight">
-                  {name || t("your_name")}
-                </h2>
-                <p
-                  className={classNames("text-sm leading-normal", {
-                    "text-default": bio,
-                    "text-subtle italic": !bio,
-                  })}>
-                  {bio || t("onboarding_browser_view_default_bio")}
-                </p>
+          {/* Organization Profile Header with Banner */}
+          <div className="border-subtle flex flex-col border-b">
+            <div className="relative">
+              {/* Banner Image */}
+              <div className="border-subtle relative h-40 w-full overflow-hidden rounded-t-xl border-b">
+                {bannerUrl ? (
+                  <img src={bannerUrl} alt={name || ""} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="bg-emphasis h-full w-full" />
+                )}
               </div>
+
+              {/* Organization Avatar - Overlaying the banner */}
+              <div className="absolute -bottom-8 left-4">
+                <Avatar
+                  size="lg"
+                  imageSrc={avatar || undefined}
+                  alt={name || ""}
+                  className="border-4 border-white"
+                />
+              </div>
+            </div>
+
+            {/* Organization Info */}
+            <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
+              <h2 className="text-emphasis text-xl font-semibold leading-tight">
+                {name || t("organization_name")}
+              </h2>
+              <p
+                className={classNames("text-sm leading-normal", {
+                  "text-default": bio,
+                  "text-subtle italic": !bio,
+                })}>
+                {bio || t("onboarding_browser_view_default_bio")}
+              </p>
             </div>
           </div>
 
           {/* Events List */}
-          <div className="flex flex-col overflow-y-auto">
+          <div className="flex flex-col overflow-y-hidden">
             {events.map((event, index) => (
-              <div key={event.title} className="opacity-30">
-                {index > 0 && <div className="border-subtle h-px border-t" />}
+              <div key={event.title} className="border opacity-30 first:border-t-0">
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <div className="flex items-center gap-1">
