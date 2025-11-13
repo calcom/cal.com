@@ -199,6 +199,8 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,

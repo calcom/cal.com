@@ -70,7 +70,7 @@ const SheetContent = React.forwardRef<
           ref={forwardedRef}
           className={classNames(
             // base
-            "fixed inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:right-2 sm:max-w-lg sm:p-6",
+            "fixed inset-x-0 inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:inset-x-auto sm:right-2 sm:max-w-lg sm:p-6",
             // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
             // border color
             "border-subtle",
@@ -91,16 +91,18 @@ SheetContent.displayName = "SheetContent";
 
 const SheetHeader = React.forwardRef<
   HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean }
->(({ children, className, showCloseButton = true, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean; rightContent?: React.ReactNode }
+>(({ children, className, showCloseButton = true, rightContent, ...props }, ref) => {
   return (
     <div ref={ref} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
       <div className={classNames("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
-      {showCloseButton && (
-        <SheetPrimitives.Close asChild>
-          <Button variant="icon" StartIcon="x" color="minimal" className="aspect-square p-1" />
-        </SheetPrimitives.Close>
-      )}
+      {rightContent !== undefined
+        ? rightContent
+        : showCloseButton && (
+            <SheetPrimitives.Close asChild>
+              <Button variant="icon" StartIcon="x" color="minimal" className="aspect-square p-1" />
+            </SheetPrimitives.Close>
+          )}
     </div>
   );
 });
