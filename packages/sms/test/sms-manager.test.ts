@@ -2,13 +2,13 @@ import type { TFunction } from "i18next";
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
-vi.mock("@calcom/lib/checkRateLimitAndThrowError");
+vi.mock("@calcom/lib/smsLockState");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
 vi.mock("@calcom/prisma", () => ({
   default: {
