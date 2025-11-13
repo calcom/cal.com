@@ -1,3 +1,4 @@
+import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { EventTypeListItem } from "@calcom/features/eventtypes/components/EventTypeListItem";
@@ -5,8 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
-import { AtomsWrapper } from "../../../src/components/atoms-wrapper";
-import { useToast } from "../../../src/components/ui/use-toast";
+import { useToast } from "../../src/components/ui/use-toast";
 import { useAtomGetAllEventTypes } from "../hooks/useAtomGetAllEventTypes";
 
 interface ListEventTypesPlatformWrapperProps {
@@ -23,6 +23,7 @@ export const ListEventTypesPlatformWrapper = ({
   const {
     data: eventTypes,
     isLoading: isLoadingEventTypes,
+    error,
     refetch: refetchEventTypes,
   } = useAtomGetAllEventTypes();
 
@@ -44,12 +45,23 @@ export const ListEventTypesPlatformWrapper = ({
     return <>{t("loading")}</>;
   }
 
+  if (error) {
+    return (
+      <EmptyScreen
+        Icon="alert-circle"
+        headline={t("error_loading_event_types")}
+        description={error.message}
+        className="w-full"
+      />
+    );
+  }
+
   if (!isLoadingEventTypes && (!eventTypes || eventTypes.length === 0)) {
     return (
       <EmptyScreen
         Icon="calendar"
-        headline={t("no_event_types_yet")}
-        description={t("create_your_first_event_type")}
+        headline={t("no_event_types")}
+        description={t("no_event_types_have_been_setup")}
         className="w-full"
       />
     );

@@ -1,10 +1,13 @@
+/**
+ * Event type item as returned by the atoms API
+ */
 export type AtomEventTypeListItem = {
   id: number;
   title: string;
   slug: string;
   description: string | null;
   length: number;
-  locations: unknown;
+  locations: unknown | null;
   logo?: string;
 };
 
