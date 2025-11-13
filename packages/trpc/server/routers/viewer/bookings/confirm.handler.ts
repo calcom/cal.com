@@ -249,6 +249,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         isPrismaObj(booking.user?.metadata) && booking.user?.metadata?.phoneNumber
           ? (booking.user?.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(booking.user?.metadata) &&
+        typeof booking.user?.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (booking.user?.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     attendees: attendeesList,
     location: booking.location ?? "",

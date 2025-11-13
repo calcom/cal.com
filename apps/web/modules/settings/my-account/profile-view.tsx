@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
 import { Form, FormField } from "@calid/features/ui/components/form";
+import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { PasswordField } from "@calid/features/ui/components/input/input";
 import {
@@ -81,6 +82,7 @@ export type FormValues = {
   secondaryEmails: Email[];
   metadata?: {
     phoneNumber?: string;
+    usePhoneForWhatsApp?: boolean;
   };
 };
 type Props = {
@@ -230,7 +232,6 @@ const ProfileView = ({ user }: Props) => {
       username: user.username,
     };
 
-    console.log("Sent gtm event: ", gtmEvent);
     window.dataLayer.push(gtmEvent);
   };
 
@@ -280,6 +281,7 @@ const ProfileView = ({ user }: Props) => {
 
     metadata: {
       phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
+      usePhoneForWhatsApp: (isPrismaObjOrUndefined(user.metadata)?.usePhoneForWhatsApp as boolean) ?? false,
     },
   };
 
@@ -558,6 +560,7 @@ const ProfileForm = ({
             { message: t("invalid_phone_number") }
           )
           .optional(),
+        usePhoneForWhatsApp: z.boolean().optional(),
       })
       .optional(),
   });
@@ -669,6 +672,10 @@ const ProfileForm = ({
     md.render(bioValue), [bioValue];
   });
   const getText = React.useCallback(() => bioValue, [bioValue]);
+
+  // Watch phone number to conditionally show WhatsApp checkbox
+  const phoneNumber = formMethods.watch("metadata.phoneNumber");
+  const hasPhoneNumber = phoneNumber && phoneNumber.trim() !== "";
 
   return (
     <Form form={formMethods} onSubmit={handleFormSubmit}>
@@ -789,6 +796,29 @@ const ProfileForm = ({
             fieldName="metadata.phoneNumber"
           />
         </div>
+
+        {hasPhoneNumber && (
+          <div className="mt-4">
+            <FormField
+              control={formMethods.control}
+              name="metadata.usePhoneForWhatsApp"
+              render={({ field: { value, onChange } }) => (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={value ?? false}
+                    onCheckedChange={(checked) => onChange(!!checked)}
+                    id="usePhoneForWhatsApp"
+                  />
+                  <label
+                    htmlFor="usePhoneForWhatsApp"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t("use_this_phone_number_for_whatsapp") || "Use this phone number for WhatsApp?"}
+                  </label>
+                </div>
+              )}
+            />
+          </div>
+        )}
 
         <div className="mt-6">
           <Label>{t("about")}</Label>

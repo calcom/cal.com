@@ -167,6 +167,10 @@ export async function getBooking(bookingId: number) {
         isPrismaObj(user.metadata) && user.metadata?.phoneNumber
           ? (user.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(user.metadata) && typeof user.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (user.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     team: !!booking.eventType?.team
