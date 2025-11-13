@@ -120,7 +120,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
 export default function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
-  const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { userTimeZone, userTimeFormat, userEmail, userId } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -250,6 +250,10 @@ export default function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
+  const hasTeam = booking.eventType?.calIdTeam?.id !== null;
+  const hasUserId = booking.eventType?.userId !== null;
+  const isUserOwner = booking.eventType?.userId === userId;
+
   const actionContext: BookingActionContext = {
     booking,
     isUpcoming,
@@ -265,7 +269,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     isTabUnconfirmed,
     isBookingFromRoutingForm,
     isDisabledCancelling,
-    isDisabledRescheduling,
+    isDisabledRescheduling: isDisabledRescheduling && ((hasUserId && !isUserOwner)),
     isCalVideoLocation:
       !booking.location ||
       booking.location === "integrations:daily" ||
