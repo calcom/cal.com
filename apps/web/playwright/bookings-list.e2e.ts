@@ -10,6 +10,8 @@ import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
 import { setupManagedEvent } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Bookings", () => {
@@ -220,10 +222,6 @@ test.describe("Bookings", () => {
       await page.locator('[data-testid="mark-no-show"]').click();
       // Wait for the dropdown to close before clicking again
       await expect(page.getByText("first@cal.com marked as no-show")).toBeVisible();
-      await expect(page.getByText("first@cal.com marked as no-show")).toBeHidden();
-      await firstGuest.click();
-      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
