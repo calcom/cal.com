@@ -79,15 +79,28 @@ async function handler(req: NextRequest) {
     clientId: client_id,
   };
 
+  const accessTokenExpiresIn = 1800; // 30 minutes
+
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
-    expiresIn: 1800, // 30 min
+    expiresIn: accessTokenExpiresIn,
   });
 
   const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
     expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
-  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
+  // @see https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
+  return NextResponse.json(
+    { access_token, token_type: "bearer", refresh_token, expires_in: accessTokenExpiresIn },
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        "Cache-Control": "no-store",
+        Pragma: "no-cache",
+      },
+    }
+  );
 }
 
 export const POST = defaultResponderForAppDir(handler);

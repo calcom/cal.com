@@ -405,9 +405,9 @@ export class BookingsController_2024_08_13 {
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
-    @GetUser() user: ApiAuthGuardUser
+    @GetUser() reassignedByUser: ApiAuthGuardUser
   ): Promise<ReassignBookingOutput_2024_08_13> {
-    const booking = await this.bookingsService.reassignBooking(bookingUid, user);
+    const booking = await this.bookingsService.reassignBooking(bookingUid, reassignedByUser);
 
     return {
       status: SUCCESS_STATUS,
@@ -430,13 +430,13 @@ export class BookingsController_2024_08_13 {
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
     @Param("userId") userId: number,
-    @GetUser("id") reassignedById: number,
+    @GetUser() reassignedByUser: ApiAuthGuardUser,
     @Body() body: ReassignToUserBookingInput_2024_08_13
   ): Promise<ReassignBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.reassignBookingToUser(
       bookingUid,
       userId,
-      reassignedById,
+      reassignedByUser,
       body
     );
 

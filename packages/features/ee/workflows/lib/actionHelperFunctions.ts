@@ -150,3 +150,42 @@ export function isFormTrigger(trigger: WorkflowTriggerEvents) {
 export function hasCalAIAction(steps: WorkflowStep[]) {
   return steps.some((step) => isCalAIAction(step.action));
 }
+
+export function getEventTypeIdForCalAiTest({
+  trigger,
+  outboundEventTypeId,
+  eventTypeIds,
+  activeOnEventTypeId,
+  t,
+}: {
+  trigger: WorkflowTriggerEvents;
+  outboundEventTypeId?: number | null;
+  eventTypeIds?: number[];
+  activeOnEventTypeId?: string;
+  t: TFunction;
+}): { eventTypeId: number | null; error: string | null } {
+  if (isFormTrigger(trigger)) {
+    if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+      if (!outboundEventTypeId) {
+        return { eventTypeId: null, error: t("choose_event_type_in_agent_setup") };
+      }
+      return { eventTypeId: outboundEventTypeId, error: null };
+    } else {
+      // FORM_SUBMITTED_NO_EVENT
+      if (!eventTypeIds || eventTypeIds.length === 0) {
+        return { eventTypeId: null, error: t("no_event_types_available_for_test_call") };
+      }
+      return { eventTypeId: eventTypeIds[0], error: null };
+    }
+  } else {
+    // For regular event type triggers, use the selected event type
+    if (!activeOnEventTypeId) {
+      return { eventTypeId: null, error: t("choose_at_least_one_event_type_test_call") };
+    }
+    const parsedEventTypeId = parseInt(activeOnEventTypeId, 10);
+    if (isNaN(parsedEventTypeId)) {
+      return { eventTypeId: null, error: t("choose_at_least_one_event_type_test_call") };
+    }
+    return { eventTypeId: parsedEventTypeId, error: null };
+  }
+}

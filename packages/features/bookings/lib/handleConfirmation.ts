@@ -1,6 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -110,8 +110,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 

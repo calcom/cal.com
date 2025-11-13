@@ -83,6 +83,35 @@ const shuffle = (
   booking.ratingFeedback = getRandomRatingFeedback(); // Random feedback from a predefined list
   booking.noShowHost = Math.random() < 0.5;
 
+  // Add random video call links to 40% of bookings
+  const random = Math.random();
+  if (random < 0.2) {
+    // 20% Google Meet
+    const randomMeetId = Math.random().toString(36).substring(2, 15);
+    booking.metadata = {
+      videoCallUrl: `https://meet.google.com/${randomMeetId}`,
+    };
+    booking.location = "integrations:google:meet";
+  } else if (random < 0.35) {
+    // 15% Zoom
+    const randomZoomId = Math.floor(Math.random() * 1000000000);
+    booking.metadata = {
+      videoCallUrl: `https://zoom.us/j/${randomZoomId}`,
+    };
+    booking.location = "integrations:zoom";
+  } else if (random < 0.4) {
+    // 5% Cal Video
+    booking.metadata = {
+      videoCallUrl: `https://cal.com/video/${uuidv4()}`,
+    };
+    booking.location = "integrations:daily";
+  }
+
+  // Add recurring event ID to 10% of bookings from recurring events
+  if (randomEvent.recurringEvent && Math.random() < 0.1) {
+    booking.recurringEventId = uuidv4();
+  }
+
   return booking;
 };
 
@@ -101,6 +130,173 @@ async function createAttendees(bookings: any[]) {
         }),
     });
   }
+}
+
+async function createPayments(bookings: any[]) {
+  // Filter for paid bookings
+  const paidBookings = bookings.filter((booking) => booking.paid);
+
+  if (paidBookings.length === 0) {
+    console.log("No paid bookings found, skipping payment creation");
+    return;
+  }
+
+  console.log(`Creating payments for ${paidBookings.length} paid bookings...`);
+
+  for (const booking of paidBookings) {
+    // Use event type's price and currency, with fallback to defaults
+    const amount = booking.eventType?.price || 5000; // Default to $50.00 if not set
+    const currency = booking.eventType?.currency || "usd";
+    const externalIdPrefix = "ch_"; // Stripe charge ID
+
+    await prisma.payment.create({
+      data: {
+        uid: uuidv4(),
+        appId: "stripe",
+        bookingId: booking.id,
+        amount,
+        fee: Math.floor(amount * 0.029) + 30, // Typical Stripe fee: 2.9% + $0.30
+        currency,
+        success: true,
+        refunded: false,
+        data: {},
+        externalId: `${externalIdPrefix}${uuidv4().substring(0, 24)}`,
+      },
+    });
+  }
+
+  console.log(`Successfully created payments for ${paidBookings.length} bookings`);
+}
+
+async function createPaidEventTypeAndBookings(organizationId: number) {
+  console.log("Creating paid event type and bookings...");
+
+  // Find the insights team
+  const insightsTeam = await prisma.team.findFirst({
+    where: {
+      slug: "insights-team",
+      parentId: organizationId,
+    },
+  });
+
+  if (!insightsTeam) {
+    console.log("Insights team not found, skipping paid event type creation");
+    return;
+  }
+
+  // Get team members
+  const insightsTeamMembers = await prisma.membership.findMany({
+    where: {
+      teamId: insightsTeam.id,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (insightsTeamMembers.length === 0) {
+    console.log("No team members found, skipping paid event type creation");
+    return;
+  }
+
+  // Check if paid event type already exists
+  let paidEventType = await prisma.eventType.findFirst({
+    where: {
+      slug: "paid-consultation",
+      teamId: insightsTeam.id,
+    },
+  });
+
+  // Create paid event type if it doesn't exist
+  if (!paidEventType) {
+    paidEventType = await prisma.eventType.create({
+      data: {
+        title: "Paid Consultation",
+        slug: "paid-consultation",
+        description: "1-hour paid consultation session",
+        length: 60,
+        teamId: insightsTeam.id,
+        schedulingType: "ROUND_ROBIN",
+        assignAllTeamMembers: true,
+        price: 5000, // $50.00
+        currency: "usd",
+        metadata: {
+          apps: {
+            stripe: {
+              price: 5000,
+              currency: "usd",
+              enabled: true,
+            },
+          },
+        },
+      },
+    });
+
+    // Create Host records for all team members
+    await prisma.host.createMany({
+      data: insightsTeamMembers.map((member) => ({
+        userId: member.user.id,
+        eventTypeId: paidEventType!.id,
+        isFixed: false,
+      })),
+      skipDuplicates: true,
+    });
+
+    console.log(`Created paid event type: ${paidEventType.title}`);
+  }
+
+  // Create 100 paid bookings
+  const baseBooking = {
+    uid: "demoUID",
+    title: "Paid Consultation",
+    description: "1-hour paid consultation session",
+    startTime: dayjs().toISOString(),
+    endTime: dayjs().toISOString(),
+    userId: insightsTeamMembers[0].user.id,
+  };
+
+  console.log(`Creating 100 paid bookings for event type: ${paidEventType.title}`);
+  await prisma.booking.createMany({
+    data: [
+      ...new Array(100).fill(0).map(() => {
+        const booking = shuffle(
+          { ...baseBooking },
+          dayjs().get("y"),
+          [paidEventType!],
+          insightsTeamMembers.map((m) => m.user.id)
+        );
+        // Override status for paid bookings - they should always be accepted
+        booking.status = "ACCEPTED";
+        booking.paid = true;
+        booking.rescheduled = false;
+        return booking;
+      }),
+    ],
+  });
+
+  // Get the paid bookings we just created
+  const paidBookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId: paidEventType.id,
+      paid: true,
+    },
+    include: {
+      eventType: {
+        select: {
+          price: true,
+          currency: true,
+        },
+      },
+    },
+  });
+
+  // Create attendees for paid bookings
+  await createAttendees(paidBookings);
+
+  // Create payments for paid bookings
+  await createPayments(paidBookings);
+
+  console.log(`Successfully created ${paidBookings.length} paid bookings with payments`);
 }
 
 async function seedBookingAssignments() {
@@ -218,6 +414,7 @@ async function main() {
       teamId: true,
       userId: true,
       assignAllTeamMembers: true,
+      recurringEvent: true,
     },
   });
 
@@ -251,6 +448,20 @@ async function main() {
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
         },
+        {
+          title: "Weekly Standup",
+          slug: "weekly-standup",
+          description: "Weekly team standup meeting",
+          length: 30,
+          teamId: insightsTeam.id,
+          schedulingType: "ROUND_ROBIN",
+          assignAllTeamMembers: true,
+          recurringEvent: {
+            freq: 2, // Weekly (RRULE freq: WEEKLY = 2)
+            count: 10,
+            interval: 1,
+          },
+        },
       ],
     });
 
@@ -267,6 +478,7 @@ async function main() {
         teamId: true,
         userId: true,
         assignAllTeamMembers: true,
+        recurringEvent: true,
       },
     });
 
@@ -343,7 +555,8 @@ async function main() {
     ],
   });
 
-  await createAttendees(await prisma.booking.findMany());
+  const allBookings = await prisma.booking.findMany();
+  await createAttendees(allBookings);
 
   // Find owner of the organization
   const owner = orgMembers.find((m) => m.role === "OWNER" || m.role === "ADMIN");
@@ -364,29 +577,31 @@ async function main() {
   }
 
   await seedBookingAssignments();
+
+  // Create paid event type and bookings separately
+  await createPaidEventTypeAndBookings(organization.id);
 }
 
 async function runMain() {
-  await main()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          email: {
-            in: ["insights@example", "insightsuser@example.com"],
-          },
+  await main().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          in: ["insights@example", "insightsuser@example.com"],
         },
-      });
-
-      await prisma.team.deleteMany({
-        where: {
-          slug: "insights",
-        },
-      });
-
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+
+    await prisma.team.deleteMany({
+      where: {
+        slug: "insights",
+      },
+    });
+
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 /**
@@ -525,19 +740,18 @@ async function createPerformanceData() {
 }
 
 async function runPerformanceData() {
-  await createPerformanceData()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          username: {
-            contains: "insights-user-",
-          },
+  await createPerformanceData().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        username: {
+          contains: "insights-user-",
         },
-      });
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 async function runEverything() {

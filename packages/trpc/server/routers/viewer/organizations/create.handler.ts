@@ -2,7 +2,7 @@ import { lookup } from "dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
-import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
+import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";

@@ -1,8 +1,8 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
+import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -93,7 +93,7 @@ export default async function handleChildrenEventTypes({
   children,
   prisma,
   profileId,
-  updatedValues,
+  updatedValues: _updatedValues,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -222,7 +222,7 @@ export default async function handleChildrenEventTypes({
       teamName: oldEventType.team?.name || null,
     });
 
-    const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig;
+    const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
     const unlockedFieldProps = !unlockedFields
       ? {}
       : Object.keys(unlockedFields).reduce((acc, key) => {
