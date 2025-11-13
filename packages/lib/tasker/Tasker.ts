@@ -10,12 +10,6 @@ export abstract class Tasker<T> {
   protected readonly logger: ILogger;
 
   constructor(dependencies: { asyncTasker: T; syncTasker: T; logger: ILogger }) {
-    console.log(
-      "ENABLE_ASYNC_TASKER",
-      ENABLE_ASYNC_TASKER,
-      process.env.ENABLE_ASYNC_TASKER,
-      process.env.NEXT_PUBLIC_IS_E2E
-    );
     if (ENABLE_ASYNC_TASKER) {
       configure({
         accessToken: process.env.TRIGGER_SECRET_KEY,
