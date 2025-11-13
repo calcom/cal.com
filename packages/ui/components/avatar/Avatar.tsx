@@ -2,6 +2,7 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
+import { memo, useState } from "react";
 
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
@@ -9,6 +10,8 @@ import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "../tooltip";
 
 type Maybe<T> = T | null | undefined;
+
+const loadedImageCache = new Map<string, boolean>();
 
 export type AvatarProps = {
   className?: string;
@@ -67,10 +70,23 @@ const avatarClasses = cva(
   }
 );
 
-export function Avatar(props: AvatarProps) {
+const AvatarComponent = (props: AvatarProps) => {
   const { imageSrc, size = "md", alt, title, href, indicator } = props;
   const avatarClass = avatarClasses({ size, shape: props.shape });
   const rootClass = classNames("aspect-square rounded-full", avatarClass);
+  
+  const cacheKey = imageSrc ?? "";
+  const [isLoaded, setIsLoaded] = useState(() => loadedImageCache.get(cacheKey) ?? false);
+
+  const handleLoadingStatusChange = (status: "idle" | "loading" | "loaded" | "error") => {
+    if (status === "loaded" && cacheKey) {
+      setIsLoaded(true);
+      loadedImageCache.set(cacheKey, true);
+    } else if (status === "error") {
+      setIsLoaded(false);
+    }
+  };
+
   let avatar = (
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
@@ -84,15 +100,18 @@ export function Avatar(props: AvatarProps) {
           src={imageSrc ?? undefined}
           alt={alt}
           className={classNames("aspect-square", avatarClass)}
+          onLoadingStatusChange={handleLoadingStatusChange}
         />
-        <AvatarPrimitive.Fallback
-          delayMs={600}
-          asChild={props.asChild}
-          className="flex h-full items-center justify-center">
-          <>
-            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
-          </>
-        </AvatarPrimitive.Fallback>
+        {!isLoaded && (
+          <AvatarPrimitive.Fallback
+            delayMs={600}
+            asChild={props.asChild}
+            className="flex h-full items-center justify-center">
+            <>
+              {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
+            </>
+          </AvatarPrimitive.Fallback>
+        )}
         {indicator}
       </>
     </AvatarPrimitive.Root>
@@ -113,4 +132,6 @@ export function Avatar(props: AvatarProps) {
   ) : (
     <>{avatar}</>
   );
-}
+};
+
+export const Avatar = memo(AvatarComponent);

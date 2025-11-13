@@ -9,6 +9,7 @@ export type AvatarGroupProps = {
     title?: string;
     alt?: string;
     href?: string | null;
+    key?: string;
   }[];
   className?: string;
   truncateAfter?: number;
@@ -30,19 +31,22 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
 
   return (
     <ul className={classNames("flex items-center", props.className)}>
-      {displayedAvatars.map((item, idx) => (
-        <li key={idx} className="-mr-1 inline-block">
-          <Avatar
-            data-testid="avatar"
-            className="border-subtle"
-            imageSrc={item.image}
-            title={item.title}
-            alt={item.alt || ""}
-            size={props.size}
-            href={item.href}
-          />
-        </li>
-      ))}
+      {displayedAvatars.map((item) => {
+        const stableKey = item.key ?? `${item.href ?? ""}|${item.image}|${item.title ?? ""}`;
+        return (
+          <li key={stableKey} className="-mr-1 inline-block">
+            <Avatar
+              data-testid="avatar"
+              className="border-subtle"
+              imageSrc={item.image}
+              title={item.title}
+              alt={item.alt || ""}
+              size={props.size}
+              href={item.href}
+            />
+          </li>
+        );
+      })}
       {numTruncatedAvatars > 0 && (
         <li
           className={classNames(
