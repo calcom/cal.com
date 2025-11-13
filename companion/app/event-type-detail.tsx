@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CalComAPIService, Schedule } from "../services/calcom";
+import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -53,7 +53,7 @@ export default function EventTypeDetail() {
   const [eventDuration, setEventDuration] = useState(duration || "30");
   const [username, setUsername] = useState("username");
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("Cal Video");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
@@ -66,6 +66,10 @@ export default function EventTypeDetail() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
+  const [conferencingLoading, setConferencingLoading] = useState(false);
+  const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
+  const [saving, setSaving] = useState(false);
   const [beforeEventBuffer, setBeforeEventBuffer] = useState("No buffer time");
   const [afterEventBuffer, setAfterEventBuffer] = useState("No buffer time");
   const [showBeforeBufferDropdown, setShowBeforeBufferDropdown] = useState(false);
@@ -81,9 +85,6 @@ export default function EventTypeDetail() {
   const [durationLimits, setDurationLimits] = useState([{ id: 1, value: "60", unit: "Per day" }]);
   const [showDurationUnitDropdown, setShowDurationUnitDropdown] = useState<number | null>(null);
   const [durationAnimationValue] = useState(new Animated.Value(0));
-
-  // TODO: get locations from API
-  const locationOptions = ["Cal Video", "Google Meet"];
   const bufferTimeOptions = [
     "No buffer time",
     "5 Minutes",
@@ -132,6 +133,25 @@ export default function EventTypeDetail() {
 
   const truncateTitle = (text: string, maxLength: number = 20) => {
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
+  const formatAppIdToDisplayName = (appId: string): string => {
+    // Convert appId like "google-meet" to "Google Meet"
+    return appId
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const displayNameToAppId = (displayName: string): string | null => {
+    // Convert display name like "Google Meet" back to "google-meet"
+    // Find matching conferencing option
+    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    return option ? option.appId : null;
+  };
+
+  const getLocationOptions = (): string[] => {
+    return conferencingOptions.map((option) => formatAppIdToDisplayName(option.appId));
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -231,11 +251,55 @@ export default function EventTypeDetail() {
     }
   };
 
+  const fetchConferencingOptions = async () => {
+    try {
+      setConferencingLoading(true);
+      const options = await CalComAPIService.getConferencingOptions();
+      setConferencingOptions(options);
+    } catch (error) {
+      console.error("Failed to fetch conferencing options:", error);
+    } finally {
+      setConferencingLoading(false);
+    }
+  };
+
+  const fetchEventTypeData = async () => {
+    if (!id) return;
+
+    try {
+      const eventType = await CalComAPIService.getEventTypeById(parseInt(id));
+      if (eventType) {
+        setEventTypeData(eventType);
+
+        // Extract location from event type
+        if (eventType.locations && eventType.locations.length > 0) {
+          const firstLocation = eventType.locations[0];
+          if (firstLocation.integration) {
+            // Format the integration name (e.g., "google-meet" -> "Google Meet")
+            const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
+            setSelectedLocation(formattedLocation);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch event type data:", error);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "availability") {
       fetchSchedules();
     }
+    if (activeTab === "basics") {
+      fetchConferencingOptions();
+    }
   }, [activeTab]);
+
+  useEffect(() => {
+    // Fetch event type data and conferencing options on initial load
+    fetchEventTypeData();
+    fetchConferencingOptions();
+  }, [id]);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -244,10 +308,8 @@ export default function EventTypeDetail() {
         setUsername(userUsername);
       } catch (error) {
         console.error("Failed to fetch username:", error);
-        // Keep the fallback "username"
       }
     };
-
     fetchUsername();
   }, []);
 
@@ -388,6 +450,61 @@ export default function EventTypeDetail() {
     ]);
   };
 
+  const handleSave = async () => {
+    if (!id) {
+      Alert.alert("Error", "Event type ID is missing");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Prepare location update if a location is selected
+      const updates: {
+        locations?: Array<{
+          type: string;
+          integration: string;
+          public: boolean;
+        }>;
+      } = {};
+
+      if (selectedLocation) {
+        const integrationId = displayNameToAppId(selectedLocation);
+        if (!integrationId) {
+          Alert.alert("Error", "Invalid location selected");
+          setSaving(false);
+          return;
+        }
+
+        // The API accepts: cal-video, google-meet, zoom
+        // Use the appId directly from conferencing options
+        updates.locations = [
+          {
+            type: "integration",
+            integration: integrationId,
+            public: true,
+          },
+        ];
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updates).length > 0) {
+        await CalComAPIService.updateEventType(parseInt(id), updates);
+        Alert.alert("Success", "Event type updated successfully");
+
+        // Refresh event type data
+        await fetchEventTypeData();
+      } else {
+        Alert.alert("Info", "No changes to save");
+      }
+    } catch (error) {
+      console.error("Failed to update event type:", error);
+      Alert.alert("Error", "Failed to update event type. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -403,8 +520,11 @@ export default function EventTypeDetail() {
               {truncateTitle(title)}
             </Text>
 
-            <TouchableOpacity style={styles.saveButton} onPress={() => router.back()}>
-              <Text style={styles.saveButtonText}>Save</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={saving}>
+              <Text style={styles.saveButtonText}>{saving ? "Saving..." : "Save"}</Text>
             </TouchableOpacity>
           </View>
         </GlassView>
@@ -546,8 +666,11 @@ export default function EventTypeDetail() {
                   <Text style={styles.fieldLabel}>Location</Text>
                   <TouchableOpacity
                     style={styles.dropdownButton}
-                    onPress={() => setShowLocationDropdown(true)}>
-                    <Text style={styles.dropdownText}>{selectedLocation}</Text>
+                    onPress={() => setShowLocationDropdown(true)}
+                    disabled={conferencingLoading}>
+                    <Text style={styles.dropdownText}>
+                      {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
+                    </Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
                 </View>
@@ -677,24 +800,30 @@ export default function EventTypeDetail() {
             <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowLocationDropdown(false)}>
               <View style={styles.dropdownModal}>
                 <Text style={styles.modalTitle}>Select Location</Text>
-                {locationOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option}
-                    style={[styles.dropdownOption, selectedLocation === option && styles.selectedOption]}
-                    onPress={() => {
-                      setSelectedLocation(option);
-                      setShowLocationDropdown(false);
-                    }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        selectedLocation === option && styles.selectedOptionText,
-                      ]}>
-                      {option}
-                    </Text>
-                    {selectedLocation === option && <Ionicons name="checkmark" size={20} color="#000" />}
-                  </TouchableOpacity>
-                ))}
+                {conferencingLoading ? (
+                  <Text style={styles.loadingText}>Loading locations...</Text>
+                ) : getLocationOptions().length === 0 ? (
+                  <Text style={styles.emptyText}>No locations available</Text>
+                ) : (
+                  getLocationOptions().map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      style={[styles.dropdownOption, selectedLocation === option && styles.selectedOption]}
+                      onPress={() => {
+                        setSelectedLocation(option);
+                        setShowLocationDropdown(false);
+                      }}>
+                      <Text
+                        style={[
+                          styles.dropdownOptionText,
+                          selectedLocation === option && styles.selectedOptionText,
+                        ]}>
+                        {option}
+                      </Text>
+                      {selectedLocation === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1232,6 +1361,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
   tabsContainer: {
     position: "absolute",
     top: 0,
@@ -1712,5 +1844,17 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#8E8E93",
+    textAlign: "center",
+    paddingVertical: 16,
   },
 });
