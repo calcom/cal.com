@@ -107,11 +107,10 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
               </Button>
             </div>
           }>
-          <div className="flex w-full flex-col gap-4 px-5">
+          <div className="flex w-full flex-col gap-4 px-1">
             <Form form={form} handleSubmit={handleContinue} className="w-full">
               <div className="flex w-full flex-col gap-4">
                 <EmailInviteForm
-                  form={form}
                   fields={fields}
                   append={append}
                   remove={remove}

@@ -1,22 +1,30 @@
 "use client";
 
-import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Form, Label, TextField, Select } from "@calcom/ui/components/form";
+import { Label, TextField, Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { InviteRole } from "../store/onboarding-store";
 
-type InviteFormData = {
+type BaseInviteFormData = {
   email: string;
-  team?: string;
   role: InviteRole;
 };
 
+type InviteFormDataWithOptionalTeam = BaseInviteFormData & {
+  team?: string;
+};
+
+type InviteFormDataWithRequiredTeam = BaseInviteFormData & {
+  team: string;
+};
+
+type InviteFormData = InviteFormDataWithOptionalTeam | InviteFormDataWithRequiredTeam;
+
 type EmailInviteFormProps = {
-  form: UseFormReturn<{ invites: InviteFormData[] }>;
   fields: Array<{ id: string }>;
   append: (value: InviteFormData) => void;
   remove: (index: number) => void;
@@ -26,8 +34,7 @@ type EmailInviteFormProps = {
   emailPlaceholder?: string;
 };
 
-export const EmailInviteForm = ({
-  form,
+export function EmailInviteForm({
   fields,
   append,
   remove,
@@ -35,8 +42,9 @@ export const EmailInviteForm = ({
   showTeamSelect = false,
   teams = [],
   emailPlaceholder,
-}: EmailInviteFormProps) => {
+}: EmailInviteFormProps) {
   const { t } = useLocale();
+  const { register, watch, setValue } = useFormContext();
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -56,14 +64,14 @@ export const EmailInviteForm = ({
 
         <div
           className={
-            showTeamSelect ? "flex flex-col gap-2" : "scroll-bar flex max-h-72 flex-col gap-2 overflow-y-auto"
+            showTeamSelect ? "flex flex-col gap-2" : "scroll-bar flex max-h-72 flex-col gap-1 overflow-y-auto"
           }>
           {fields.map((field, index) => (
-            <div key={field.id} className="flex items-start gap-0.5">
+            <div key={field.id} className="flex items-start gap-0.5 p-0.5">
               <div className={showTeamSelect ? "grid flex-1 items-start gap-2 md:grid-cols-2" : "flex-1"}>
                 <TextField
                   labelSrOnly
-                  {...form.register(`invites.${index}.email`)}
+                  {...register(`invites.${index}.email`)}
                   placeholder={emailPlaceholder || `rick@cal.com`}
                   type="email"
                   size="sm"
@@ -72,10 +80,10 @@ export const EmailInviteForm = ({
                   <Select
                     size="sm"
                     options={teams}
-                    value={teams.find((t) => t.value === form.watch(`invites.${index}.team`))}
+                    value={teams.find((t) => t.value === watch(`invites.${index}.team`))}
                     onChange={(option) => {
                       if (option) {
-                        form.setValue(`invites.${index}.team`, option.value);
+                        setValue(`invites.${index}.team`, option.value);
                       }
                     }}
                     placeholder={t("select_team")}
@@ -102,10 +110,14 @@ export const EmailInviteForm = ({
           size="sm"
           StartIcon="plus"
           className={showTeamSelect ? "mt-2 w-fit" : "w-fit"}
-          onClick={() => append({ email: "", team: showTeamSelect ? "" : undefined, role: defaultRole })}>
+          onClick={() =>
+            append(
+              showTeamSelect ? { email: "", team: "", role: defaultRole } : { email: "", role: defaultRole }
+            )
+          }>
           {t("add")}
         </Button>
       </div>
     </div>
   );
-};
+}

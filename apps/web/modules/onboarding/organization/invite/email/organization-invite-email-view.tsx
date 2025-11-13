@@ -138,7 +138,6 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
             <Form form={form} handleSubmit={handleContinue} className="h-full w-full">
               <div className="flex h-full w-full flex-col gap-4">
                 <EmailInviteForm
-                  form={form}
                   fields={fields}
                   append={append}
                   remove={remove}
