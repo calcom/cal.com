@@ -100,6 +100,8 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
   smsReminderNumber: z.string().optional().nullable(),
   rescheduleReason: z.string().optional(),
   customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+  attendeePhoneNumber: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
 });
 
 // This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.

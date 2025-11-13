@@ -382,7 +382,7 @@ export const getRunningLateSection = (
         })
         .join("\n");
     } else {
-      if (!calEvent.organizer.phoneNumber) return "";
+      if (!calEvent.organizer.phoneNumber || !calEvent.organizer.usePhoneForWhatsApp) return "";
       return `${t("running_late")}:
         <a href="${getRunningLateLink(calEvent.organizer.phoneNumber)}" > ${t("connect_with_host")} </a>`;
     }
@@ -391,7 +391,7 @@ export const getRunningLateSection = (
     const links = [];
 
     // Add the organizer link if available
-    if (calEvent.organizer.phoneNumber) {
+    if (calEvent.organizer.phoneNumber && calEvent.organizer.usePhoneForWhatsApp) {
       links.push(
         `<a href="${getRunningLateLink(calEvent.organizer.phoneNumber)}">${t("connect_with_host")}</a>`
       );

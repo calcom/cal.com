@@ -1238,6 +1238,11 @@ async function handler(
         isPrismaObj(organizerUser.metadata) && organizerUser.metadata?.phoneNumber
           ? (organizerUser.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(organizerUser.metadata) &&
+        typeof organizerUser.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (organizerUser.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({

@@ -94,6 +94,7 @@ export class CalendarEventBuilder {
       locale: string;
     };
     phoneNumber?: string;
+    usePhoneForWhatsApp?: boolean;
   }) {
     this.event = {
       ...this.event,
@@ -106,6 +107,7 @@ export class CalendarEventBuilder {
         language: organizer.language,
         timeFormat: organizer.timeFormat,
         phoneNumber: organizer.phoneNumber,
+        usePhoneForWhatsApp: organizer.usePhoneForWhatsApp,
       },
     };
     return this;
