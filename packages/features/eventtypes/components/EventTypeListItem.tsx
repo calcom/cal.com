@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AtomEventTypeListItem } from "@calcom/platform/atoms/event-types/types/atom-event-type-list.type";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -14,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
+
+import type { AtomEventTypeListItem } from "../../../platform/atoms/event-types/types";
 
 export function EventTypeListItem({
   eventType,
