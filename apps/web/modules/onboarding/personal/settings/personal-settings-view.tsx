@@ -110,7 +110,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
 
   return (
     <>
-      <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={2}>
         {/* Left column - Main content */}
         <OnboardingCard

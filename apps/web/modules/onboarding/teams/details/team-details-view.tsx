@@ -83,7 +83,6 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
   return (
     <>
-      <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={3}>
         {/* Left column - Main content */}
         <OnboardingCard
