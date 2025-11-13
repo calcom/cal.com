@@ -1,3 +1,4 @@
+import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
@@ -23,6 +24,7 @@ import {
   GetOptionalUser,
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
@@ -210,12 +212,15 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
-  @UseGuards(BookingUidGuard)
+  @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
-    description: `Fetches all the recordings for the booking \`:bookingUid\`
+    description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
 
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
   })
   async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
@@ -228,12 +233,15 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/transcripts")
-  @UseGuards(BookingUidGuard)
+  @Pbac(["booking.readRecordings"])
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the transcripts download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
 
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
   })
   async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
@@ -322,7 +330,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    
+
     \nCancelling normal bookings:
     If the booking is not seated and not recurring, simply pass :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and optionally cancellationReason in the request body \`{"cancellationReason": "Will travel"}\`.
 
@@ -330,7 +338,7 @@ export class BookingsController_2024_08_13 {
     It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
     \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
     \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
-    
+
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.
@@ -544,12 +552,18 @@ export class BookingsController_2024_08_13 {
     };
   }
 
-  @Get("/:bookingUid/sessions")
+  @Get("/:bookingUid/conferencing-sessions")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Get Video Meeting Sessions. Only supported for Cal Video" })
+  @ApiOperation({
+    summary: "Get Video Meeting Sessions. Only supported for Cal Video",
+    description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
+
+    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>`,
+  })
   async getVideoSessions(@Param("bookingUid") bookingUid: string): Promise<GetBookingVideoSessionsOutput> {
     const sessions = await this.calVideoService.getVideoSessions(bookingUid);
 

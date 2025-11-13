@@ -1,5 +1,6 @@
 import { BookingGuestsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-guests.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
+import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
@@ -98,6 +99,7 @@ import { Module } from "@nestjs/common";
     BookingReferencesRepository_2024_08_13,
     CalVideoService,
     CalVideoOutputService,
+    BookingPbacGuard,
   ],
   controllers: [BookingsController_2024_08_13, BookingGuestsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
