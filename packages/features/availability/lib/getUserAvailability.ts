@@ -308,7 +308,7 @@ export class UserAvailabilityService {
     );
 
     if (!dateFrom.isValid() || !dateTo.isValid()) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid time range given.");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid time range given.");
     }
 
     const where: Prisma.UserWhereInput = {};
