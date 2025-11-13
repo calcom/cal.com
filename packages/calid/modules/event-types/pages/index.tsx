@@ -58,6 +58,7 @@ export const EventTypes = () => {
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
 
   const userEventGroupsQuery = trpc.viewer.eventTypes.calid_getUserEventGroups.useQuery();
+
   const eventTypeGroups = useMemo(
     () => userEventGroupsQuery.data?.eventTypeGroups || [],
     [userEventGroupsQuery.data?.eventTypeGroups]
@@ -313,14 +314,18 @@ export const EventTypes = () => {
 
       <CreateTeamEventModal
         open={isCreateTeamModalOpen}
-        onClose={() => setIsCreateTeamModalOpen(false)}
-        teamId={selectedTeamForCreation}
+        onClose={() => {
+          setIsCreateTeamModalOpen(false);
+          setSelectedTeamForCreation("");
+        }}
+        teamId={selectedTeamForCreation || selectedTeam}
         teamName={
-          eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.name || ""
+          eventTypeGroups.find((g) => g.teamId?.toString() === (selectedTeamForCreation || selectedTeam))
+            ?.profile.name || ""
         }
         teamSlug={
-          eventTypeGroups.find((g) => g.teamId?.toString() === selectedTeamForCreation)?.profile.slug ??
-          undefined
+          eventTypeGroups.find((g) => g.teamId?.toString() === (selectedTeamForCreation || selectedTeam))
+            ?.profile.slug ?? undefined
         }
         isTeamAdminOrOwner={true}
       />

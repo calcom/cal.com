@@ -1,7 +1,6 @@
 import { TeamsList } from "@calid/features/modules/teams/pages/TeamsList";
 import type { SearchParams } from "app/_types";
 import type { Session } from "next-auth";
-import { unstable_cache } from "next/cache";
 
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
@@ -9,43 +8,39 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { TRPCError } from "@trpc/server";
 
-const getCachedCalIdTeams = unstable_cache(
-  async (userId: number): Promise<RouterOutputs["viewer"]["calidTeams"]["list"]> => {
-    const calIdMemberships = await prisma.calIdMembership.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        calIdTeam: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logoUrl: true,
-            metadata: true,
-            inviteTokens: true,
-          },
+const getCachedCalIdTeams = async (
+  userId: number
+): Promise<RouterOutputs["viewer"]["calidTeams"]["list"]> => {
+  const calIdMemberships = await prisma.calIdMembership.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      calIdTeam: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          metadata: true,
+          inviteTokens: true,
         },
       },
-      orderBy: {
-        role: "desc",
-      },
-    });
+    },
+    orderBy: {
+      role: "desc",
+    },
+  });
 
-    return calIdMemberships.map(({ calIdTeam: { inviteTokens, ...team }, ...membership }) => ({
-      role: membership.role,
-      acceptedInvitation: membership.acceptedInvitation,
-      ...team,
-      innviteToken:
-        inviteTokens.find((token) => token.identifier === `invite-link-for-calIdTeamId-${team.id}`) || null,
-    }));
-  },
-  ["calid-teams"],
-  {
-    revalidate: 3600,
-    tags: ["viewer.calidTeams.list"],
-  }
-);
+  return calIdMemberships.map(({ calIdTeam: { inviteTokens, ...team }, ...membership }) => ({
+    role: membership.role,
+    acceptedInvitation: membership.acceptedInvitation,
+    ...team,
+    inviteToken:
+      inviteTokens.find((token) => token.identifier === `invite-link-for-calIdTeamId-${team.id}`) ||
+      undefined,
+  }));
+};
 
 export const ServerTeamsListing = async ({
   searchParams,
