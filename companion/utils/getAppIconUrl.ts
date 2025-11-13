@@ -46,6 +46,7 @@ const APP_ID_TO_DIR_NAME: Record<string, string> = {
   msteams: "office365video",
   office365: "office365video",
   teams: "office365video",
+  "cal-video": "dailyvideo",
   "daily-video": "dailyvideo",
   daily: "dailyvideo",
   jitsi: "jitsivideo",

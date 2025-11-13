@@ -171,10 +171,28 @@ export default function EventTypeDetail() {
 
   const getSelectedLocationIconUrl = (): string | null => {
     if (!selectedLocation) return null;
+    
+    // Try to find in conferencing options first
     const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation);
     if (option) {
       return getAppIconUrl(option.type, option.appId);
     }
+    
+    // Fallback: Handle Cal Video directly (it might not be in conferencing options as it's a global app)
+    // Check if selectedLocation matches Cal Video display names
+    const calVideoNames = ["Cal Video", "Cal-Video", "cal-video"];
+    if (calVideoNames.includes(selectedLocation) || selectedLocation.toLowerCase().includes("cal video")) {
+      return getAppIconUrl("daily_video", "cal-video");
+    }
+    
+    // Fallback: Try to reverse the formatAppIdToDisplayName to get appId
+    // Convert "Cal Video" back to "cal-video" and try to get icon
+    const reverseAppId = selectedLocation.toLowerCase().replace(/\s+/g, "-");
+    const fallbackIconUrl = getAppIconUrl("", reverseAppId);
+    if (fallbackIconUrl) {
+      return fallbackIconUrl;
+    }
+    
     return null;
   };
 
