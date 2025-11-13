@@ -24,7 +24,7 @@ export const HighestNoShowHostTable = () => {
 
   return (
     <ChartCard title={t("most_no_show_host")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };

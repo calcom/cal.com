@@ -22,7 +22,7 @@ export const MostCompletedTeamMembersTable = () => {
 
   return (
     <ChartCard title={t("most_bookings_completed")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };

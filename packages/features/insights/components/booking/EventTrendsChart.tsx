@@ -89,7 +89,7 @@ export const EventTrendsChart = () => {
       onSeriesToggle={toggleSeries}
       isPending={isPending}
       isError={isError}>
-      {!isPending && isSuccess ? (
+      {isSuccess ? (
         <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={eventTrends ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>

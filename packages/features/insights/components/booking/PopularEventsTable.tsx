@@ -20,7 +20,7 @@ export const PopularEventsTable = () => {
 
   return (
     <ChartCard title={t("popular_events")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? (
+      {isSuccess && data ? (
         <>
           <div>
             {data

@@ -25,7 +25,7 @@ export const LowestRatedMembersTable = () => {
 
   return (
     <ChartCard title={t("lowest_rated")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };

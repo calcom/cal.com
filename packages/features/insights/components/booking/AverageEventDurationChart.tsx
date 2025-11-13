@@ -81,7 +81,7 @@ export const AverageEventDurationChart = () => {
 
   return (
     <ChartCard title={t("average_event_duration")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? (
+      {isSuccess && data ? (
         data.every((item) => item["Average"] === 0) ? (
           <div className="text-default flex h-60 text-center">
             <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>

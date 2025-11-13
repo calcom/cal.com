@@ -25,7 +25,7 @@ export const MostBookedTeamMembersTable = () => {
 
   return (
     <ChartCard title={t("most_bookings_scheduled")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };

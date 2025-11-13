@@ -38,7 +38,7 @@ export const RecentNoShowGuestsChart = () => {
       className="h-full"
       isPending={isPending}
       isError={isError}>
-      {!isPending && isSuccess && data ? (
+      {isSuccess && data ? (
         <div className="h-full">
           <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
             {data.map((item) => (

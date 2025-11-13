@@ -109,7 +109,7 @@ export const BookingsByHourChart = () => {
 
   return (
     <ChartCard title={t("bookings_by_hour")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <BookingsByHourChartContent data={data} /> : null}
+      {isSuccess && data ? <BookingsByHourChartContent data={data} /> : null}
     </ChartCard>
   );
 };

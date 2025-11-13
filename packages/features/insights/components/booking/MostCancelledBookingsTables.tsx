@@ -24,7 +24,7 @@ export const MostCancelledBookingsTables = () => {
 
   return (
     <ChartCard title={t("most_cancelled_bookings")} isPending={isPending} isError={isError}>
-      {!isPending && isSuccess && data ? <UserStatsTable data={data} /> : null}
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };
