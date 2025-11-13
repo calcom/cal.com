@@ -3,6 +3,7 @@ import { _generateMetadata } from "app/_utils";
 import InsightsRoutingPage from "~/insights/insights-routing-view";
 
 import { checkInsightsPagePermission } from "../checkInsightsPagePermission";
+import prisma from "@calcom/prisma";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,7 +15,20 @@ export const generateMetadata = async () =>
   );
 
 export default async function Page() {
-  await checkInsightsPagePermission();
+  const session = await checkInsightsPagePermission();
+  
+    const userRepository = {
+      async findByIdOrThrow(id: number) {
+        return prisma.user.findUniqueOrThrow({
+          where: { id },
+          select: { timeZone: true },
+        });
+      },
+    };
+  
+    const { timeZone } = await userRepository.findByIdOrThrow(
+      session?.user.id ?? -1
+    );
 
-  return <InsightsRoutingPage />;
+  return <InsightsRoutingPage timeZone={timeZone} />;
 }

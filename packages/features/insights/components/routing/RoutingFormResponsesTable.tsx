@@ -1,7 +1,8 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
- 
+import { TimezoneBadge } from "@calcom/features/insights/components/booking";
+
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -152,6 +153,7 @@ export function RoutingFormResponsesTable() {
           <>
             <DateRangeFilter column={createdAtColumn} />
             <RoutingFormResponsesDownload sorting={sorting} />
+            <TimezoneBadge />
           </>,
           ctaContainerRef.current
         )}

@@ -18,12 +18,18 @@ export const generateMetadata = async () =>
 const ServerPage = async () => {
   const session = await checkInsightsPagePermission();
 
-  const { timeZone } = await prisma.user.findUniqueOrThrow({
-    where: { id: session?.user.id ?? -1 },
-    select: {
-      timeZone: true,
+  const userRepository = {
+    async findByIdOrThrow(id: number) {
+      return prisma.user.findUniqueOrThrow({
+        where: { id },
+        select: { timeZone: true },
+      });
     },
-  });
+  };
+
+  const { timeZone } = await userRepository.findByIdOrThrow(
+    session?.user.id ?? -1
+  );
 
   return <InsightsPage timeZone={timeZone} />;
 };
