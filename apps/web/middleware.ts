@@ -102,6 +102,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     await checkRateLimitAndThrowError({
       rateLimitingType: "common",
       identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
+      opts: {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        }
+      }
     });
   } catch (error) {
     if (error instanceof HttpError) {
