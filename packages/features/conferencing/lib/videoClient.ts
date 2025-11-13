@@ -9,6 +9,7 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CAL_VIDEO, CAL_VIDEO_TYPE } from "@calcom/platform-constants";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
@@ -167,8 +168,8 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -190,8 +191,8 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -216,8 +217,8 @@ const getRecordingsOfCalVideoByRoomName = async (
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -242,8 +243,8 @@ const getDownloadLinkOfCalVideoByRecordingId = async (
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -266,8 +267,8 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -290,8 +291,8 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -314,8 +315,8 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -350,8 +351,8 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -375,8 +376,8 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
@@ -400,8 +401,8 @@ const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
