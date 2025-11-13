@@ -58,6 +58,9 @@ export default function EventTypeDetail() {
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [locationAddress, setLocationAddress] = useState("");
+  const [locationLink, setLocationLink] = useState("");
+  const [locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -146,17 +149,46 @@ export default function EventTypeDetail() {
       .join(" ");
   };
 
-  const displayNameToLocationValue = (displayName: string): { type: string; integration?: string } | null => {
+  const displayNameToLocationValue = (displayName: string): {
+    type: string;
+    integration?: string;
+    address?: string;
+    link?: string;
+    phone?: string;
+    public?: boolean;
+  } | null => {
     // First check if it's a default location
     const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
     if (defaultLocation) {
-      return { type: defaultLocation.type };
+      // Map internal location types to API location types
+      switch (defaultLocation.type) {
+        case "attendeeInPerson":
+          return { type: "attendeeAddress" };
+        case "inPerson":
+          // For organizer address, we need to preserve existing address if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "address", address: "", public: true };
+        case "link":
+          // For link meeting, we need to preserve existing link if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "link", link: "", public: true };
+        case "phone":
+          return { type: "attendeePhone" };
+        case "userPhone":
+          // For organizer phone, we need to preserve existing phone if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "phone", phone: "", public: true };
+        case "somewhereElse":
+          return { type: "attendeeDefined" };
+        default:
+          return { type: defaultLocation.type };
+      }
     }
     
     // Otherwise, find matching conferencing option
     const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
     if (option) {
-      return { type: "integration", integration: option.appId };
+      return { type: "integration", integration: option.appId, public: true };
     }
     
     return null;
@@ -394,9 +426,47 @@ export default function EventTypeDetail() {
           } 
           // Handle default locations (with type field)
           else if (firstLocation.type) {
-            const defaultLocation = defaultLocations.find((loc) => loc.type === firstLocation.type);
+            // Map API location types to internal location types
+            // Need to distinguish between organizer and attendee types based on presence of fields
+            let internalType = firstLocation.type;
+            
+            // Check if it's an organizer type (has address, link, or phone field)
+            if (firstLocation.type === "address" || (firstLocation.type === "phone" && firstLocation.phone)) {
+              // Organizer types
+              if (firstLocation.type === "address") {
+                internalType = "inPerson"; // Organizer address
+              } else if (firstLocation.type === "phone" && firstLocation.phone) {
+                internalType = "userPhone"; // Organizer phone
+              }
+            } else if (firstLocation.type === "link") {
+              internalType = "link"; // Link meeting
+            } else {
+              // Attendee types - map API types to internal types
+              const apiToInternalTypeMap: Record<string, string> = {
+                "attendeeAddress": "attendeeInPerson",
+                "attendeePhone": "phone",
+                "attendeeDefined": "somewhereElse",
+              };
+              
+              if (apiToInternalTypeMap[firstLocation.type]) {
+                internalType = apiToInternalTypeMap[firstLocation.type];
+              }
+            }
+            
+            const defaultLocation = defaultLocations.find((loc) => loc.type === internalType);
             if (defaultLocation) {
               setSelectedLocation(defaultLocation.label);
+              
+              // Populate location input values if they exist
+              if (firstLocation.address) {
+                setLocationAddress(firstLocation.address);
+              }
+              if (firstLocation.link) {
+                setLocationLink(firstLocation.link);
+              }
+              if (firstLocation.phone) {
+                setLocationPhone(firstLocation.phone);
+              }
             } else {
               // Fallback: try to format the type as display name
               setSelectedLocation(firstLocation.type);
@@ -601,24 +671,48 @@ export default function EventTypeDetail() {
           return;
         }
 
-        // Handle both default locations and conferencing apps
-        if (locationValue.integration) {
-          // Conferencing app
-          updates.locations = [
-            {
-              type: "integration",
-              integration: locationValue.integration,
-              public: true,
-            },
-          ];
-        } else {
-          // Default location (phone, inPerson, link, etc.)
-          updates.locations = [
-            {
-              type: locationValue.type,
-            },
-          ];
+        // Get existing location data to preserve values (address, link, phone)
+        const existingLocation = eventTypeData?.locations?.[0];
+        
+        // Build location payload based on type
+        const locationPayload: {
+          type: string;
+          integration?: string;
+          address?: string;
+          link?: string;
+          phone?: string;
+          public?: boolean;
+        } = {
+          type: locationValue.type,
+        };
+
+        // Add type-specific fields based on location type
+        if (locationValue.type === "integration") {
+          // Conferencing app integration
+          locationPayload.integration = locationValue.integration;
+          locationPayload.public = locationValue.public ?? true;
+        } else if (locationValue.type === "address") {
+          // Organizer address location - required fields: address (string) and public (boolean)
+          locationPayload.address = locationAddress || existingLocation?.address || "";
+          locationPayload.public = true; // Required, always true
+        } else if (locationValue.type === "link") {
+          // Link meeting location - required fields: link (string) and public (boolean)
+          locationPayload.link = locationLink || existingLocation?.link || "";
+          locationPayload.public = true; // Required, always true
+        } else if (locationValue.type === "phone") {
+          // Organizer phone location - required fields: phone (string) and public (boolean)
+          locationPayload.phone = locationPhone || existingLocation?.phone || "";
+          locationPayload.public = true; // Required, always true
+        } else if (
+          locationValue.type === "attendeeAddress" ||
+          locationValue.type === "attendeePhone" ||
+          locationValue.type === "attendeeDefined"
+        ) {
+          // Attendee location types - only type field is needed, no additional fields
+          // These are already set correctly with just { type: "..." }
         }
+
+        updates.locations = [locationPayload];
       }
 
       // Only update if there are changes
@@ -704,7 +798,7 @@ export default function EventTypeDetail() {
         </View>
 
         {/* Content */}
-        <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 150 }}>
+        <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
             <View className="gap-4">
               {/* Title and Description Card */}
@@ -836,6 +930,72 @@ export default function EventTypeDetail() {
                     </View>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
+                  
+                  {/* Location Input Fields - shown conditionally based on selected location type */}
+                  {(() => {
+                    const currentLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
+                    if (!currentLocation || !currentLocation.organizerInputType) {
+                      return null;
+                    }
+
+                    if (currentLocation.organizerInputType === "text") {
+                      // Text input for address or link
+                      const isAddress = currentLocation.type === "inPerson";
+                      const isLink = currentLocation.type === "link";
+                      
+                      return (
+                        <View className="mt-4">
+                          <Text className="text-sm font-medium text-[#333] mb-2">
+                            {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
+                          </Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                            placeholder={currentLocation.organizerInputPlaceholder || ""}
+                            value={isAddress ? locationAddress : locationLink}
+                            onChangeText={(text) => {
+                              if (isAddress) {
+                                setLocationAddress(text);
+                              } else {
+                                setLocationLink(text);
+                              }
+                            }}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType={isLink ? "url" : "default"}
+                          />
+                          {currentLocation.messageForOrganizer && (
+                            <Text className="text-xs text-[#666] mt-2">
+                              {currentLocation.messageForOrganizer}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    } else if (currentLocation.organizerInputType === "phone") {
+                      // Phone input
+                      return (
+                        <View className="mt-4">
+                          <Text className="text-sm font-medium text-[#333] mb-2">
+                            {currentLocation.organizerInputLabel || "Phone Number"}
+                          </Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                            placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
+                            value={locationPhone}
+                            onChangeText={setLocationPhone}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="phone-pad"
+                          />
+                          {currentLocation.messageForOrganizer && (
+                            <Text className="text-xs text-[#666] mt-2">
+                              {currentLocation.messageForOrganizer}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
                 </View>
               </View>
             </View>
@@ -949,7 +1109,7 @@ export default function EventTypeDetail() {
             animationType="fade"
             onRequestClose={() => setShowLocationDropdown(false)}>
             <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowLocationDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 w-[90%] max-w-[400px]" style={{ maxHeight: '70%' }}>
+              <View className="bg-white rounded-2xl p-5 w-[80%] max-w-[350px]" style={{ maxHeight: '70%' }}>
                 <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Location</Text>
                 {conferencingLoading ? (
                   <Text className="text-base text-[#666] text-center py-4">Loading locations...</Text>
@@ -981,8 +1141,19 @@ export default function EventTypeDetail() {
                                 selectedLocation === option.label ? "bg-[#F0F0F0]" : ""
                               }`}
                               onPress={() => {
+                                const newLocation = defaultLocations.find((loc) => loc.label === option.label);
                                 setSelectedLocation(option.label);
                                 setShowLocationDropdown(false);
+                                // Clear input values that are not needed for the new location
+                                if (!newLocation || newLocation.type !== "inPerson") {
+                                  setLocationAddress("");
+                                }
+                                if (!newLocation || newLocation.type !== "link") {
+                                  setLocationLink("");
+                                }
+                                if (!newLocation || newLocation.type !== "userPhone") {
+                                  setLocationPhone("");
+                                }
                               }}>
                               <View className="flex-row items-center flex-1">
                                 {option.iconUrl ? (

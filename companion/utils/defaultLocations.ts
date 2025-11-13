@@ -18,6 +18,10 @@ export type DefaultLocation = {
   label: string;
   iconUrl: string;
   category: "in person" | "conferencing" | "other" | "phone";
+  organizerInputType?: "text" | "phone" | null;
+  organizerInputPlaceholder?: string;
+  organizerInputLabel?: string;
+  messageForOrganizer?: string;
 };
 
 /**
@@ -42,24 +46,38 @@ export const defaultLocations: DefaultLocation[] = [
     label: "In Person (Organizer Address)",
     iconUrl: "https://app.cal.com/map-pin-dark.svg",
     category: "in person",
+    organizerInputType: "text",
+    organizerInputPlaceholder: "Enter address or place",
+    organizerInputLabel: "Address",
+    messageForOrganizer: "Provide an Address or Place",
   },
   {
     type: DefaultLocationType.Link,
     label: "Link Meeting",
     iconUrl: "https://app.cal.com/link.svg",
     category: "other",
+    organizerInputType: "text",
+    organizerInputPlaceholder: "https://meet.example.com/join/123456",
+    organizerInputLabel: "Meeting Link",
+    messageForOrganizer: "Provide a Meeting Link",
   },
   {
     type: DefaultLocationType.Phone,
     label: "Attendee Phone Number",
     iconUrl: "https://app.cal.com/phone.svg",
     category: "phone",
+    organizerInputType: null,
+    messageForOrganizer: "Cal will ask your invitee to enter a phone number before scheduling.",
   },
   {
     type: DefaultLocationType.UserPhone,
     label: "Organizer Phone Number",
     iconUrl: "https://app.cal.com/phone.svg",
     category: "phone",
+    organizerInputType: "phone",
+    organizerInputPlaceholder: "Enter phone number",
+    organizerInputLabel: "Phone Number",
+    messageForOrganizer: "Provide your phone number with country code",
   },
 ];
 

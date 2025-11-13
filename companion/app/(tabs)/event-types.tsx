@@ -392,6 +392,7 @@ export default function EventTypes() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderEventType}
         className="px-4 py-4"
+        contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       />
