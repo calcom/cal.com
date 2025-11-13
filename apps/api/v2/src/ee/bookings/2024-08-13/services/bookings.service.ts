@@ -883,6 +883,15 @@ export class BookingsService_2024_08_13 {
       if (seat && bookingUid !== seat.booking.uid) {
         throw new BadRequestException("Invalid seatUid: this seat does not belong to this booking.");
       }
+    } else {
+      const bookingWithSeats = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferencesCount(bookingUid);
+      if (bookingWithSeats) {
+        const isSeatedBooking = bookingWithSeats.seatsReferences && bookingWithSeats.seatsReferences.length > 0;
+        
+        if (isSeatedBooking && (!body.cancellationReason || body.cancellationReason.trim() === "")) {
+          throw new BadRequestException("Cancellation reason is required when you are the host");
+        }
+      }
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
