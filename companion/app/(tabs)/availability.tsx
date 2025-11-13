@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -54,13 +53,13 @@ export default function Availability() {
   };
 
   const renderAvailabilitySlot = ({ item }: { item: ScheduleAvailability }) => (
-    <View style={styles.slotCard}>
-      <View style={styles.slotHeader}>
-        <Text style={styles.slotDays}>{item.days.join(", ")}</Text>
+    <View className="bg-white rounded-xl p-4 mb-3 shadow">
+      <View className="mb-2">
+        <Text className="text-base font-semibold text-[#333]">{item.days.join(", ")}</Text>
       </View>
-      <View style={styles.slotTime}>
+      <View className="flex-row items-center">
         <Ionicons name="time-outline" size={16} color="#666" />
-        <Text style={styles.slotTimeText}>
+        <Text className="text-sm text-[#666] ml-1.5">
           {item.startTime} - {item.endTime}
         </Text>
       </View>
@@ -69,21 +68,21 @@ export default function Availability() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
         <ActivityIndicator size="large" color="#000000" />
-        <Text style={styles.loadingText}>Loading availability...</Text>
+        <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text style={styles.errorTitle}>Unable to load availability</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchSchedule}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+        <Text className="text-xl font-bold mt-4 mb-2 text-[#333] text-center">Unable to load availability</Text>
+        <Text className="text-base text-[#666] text-center mb-6">{error}</Text>
+        <TouchableOpacity className="bg-black px-6 py-3 rounded-lg" onPress={fetchSchedule}>
+          <Text className="text-white text-base font-semibold">Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -91,28 +90,28 @@ export default function Availability() {
 
   if (!schedule) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
         <Ionicons name="calendar-outline" size={64} color="#666" />
-        <Text style={styles.emptyTitle}>No schedule found</Text>
-        <Text style={styles.emptyText}>Create your availability schedule in Cal.com</Text>
+        <Text className="text-xl font-bold mt-4 mb-2 text-[#333]">No schedule found</Text>
+        <Text className="text-base text-[#666] text-center">Create your availability schedule in Cal.com</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerInfo}>
-          <Text style={styles.scheduleName}>{schedule.name}</Text>
+    <View className="flex-1 bg-[#f8f9fa] pt-16">
+      <View className="bg-white p-4 border-b border-[#e5e7eb]">
+        <View className="flex-row items-center mb-2">
+          <Text className="text-xl font-bold text-[#333] mr-2">{schedule.name}</Text>
           {schedule.isDefault && (
-            <View style={styles.defaultBadge}>
-              <Text style={styles.defaultBadgeText}>Default</Text>
+            <View className="bg-[#34C759] px-2 py-0.5 rounded">
+              <Text className="text-white text-xs font-semibold">Default</Text>
             </View>
           )}
         </View>
-        <View style={styles.timezoneContainer}>
+        <View className="flex-row items-center">
           <Ionicons name="globe-outline" size={16} color="#666" />
-          <Text style={styles.timezoneText}>{schedule.timeZone}</Text>
+          <Text className="text-sm text-[#666] ml-1">{schedule.timeZone}</Text>
         </View>
       </View>
 
@@ -120,146 +119,11 @@ export default function Availability() {
         data={schedule.availability}
         keyExtractor={(item, index) => `${item.days.join("-")}-${index}`}
         renderItem={renderAvailabilitySlot}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListHeaderComponent={<Text style={styles.sectionTitle}>Working Hours</Text>}
+        ListHeaderComponent={<Text className="text-base font-semibold text-[#333] mb-3">Working Hours</Text>}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    paddingTop: 64,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f8f9fa",
-  },
-  header: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  scheduleName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginRight: 8,
-  },
-  defaultBadge: {
-    backgroundColor: "#34C759",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  defaultBadgeText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  timezoneContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  timezoneText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 4,
-  },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 90,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
-  slotCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  slotHeader: {
-    marginBottom: 8,
-  },
-  slotDays: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  slotTime: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  slotTimeText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 6,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: "#000000",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-});
