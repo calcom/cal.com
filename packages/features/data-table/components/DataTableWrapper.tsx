@@ -1,7 +1,6 @@
 "use client";
 
 import type { Row, VisibilityState } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
@@ -23,6 +22,8 @@ type BaseDataTableWrapperProps<TData> = Omit<
   LoaderView?: React.ReactNode;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
   onRowMouseclick?: (row: Row<TData>) => void;
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
 };
 
 type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
@@ -59,10 +60,15 @@ export function DataTableWrapper<TData>({
   containerClassName,
   headerClassName,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   children,
   tableContainerRef: externalRef,
   paginationMode,
   onRowMouseclick,
+  hideSeparatorsOnSort,
+  hideSeparatorsOnFilter,
+  separatorClassName,
 }: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
@@ -78,7 +84,7 @@ export function DataTableWrapper<TData>({
 
   useEffect(() => {
     const mergedColumnVisibility = {
-      ...(table.initialState?.columnVisibility || {}),
+      ...table.initialState?.columnVisibility,
       ...columnVisibility,
     } satisfies VisibilityState;
 
@@ -131,9 +137,14 @@ export function DataTableWrapper<TData>({
           containerClassName={containerClassName}
           headerClassName={headerClassName}
           rowClassName={rowClassName}
+          rowTestId={rowTestId}
+          rowDataAttributes={rowDataAttributes}
           paginationMode={paginationMode}
           onRowMouseclick={onRowMouseclick}
           hasWrapperContext={true}
+          hideSeparatorsOnSort={hideSeparatorsOnSort}
+          hideSeparatorsOnFilter={hideSeparatorsOnFilter}
+          separatorClassName={separatorClassName}
           onScroll={
             paginationMode === "infinite"
               ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>

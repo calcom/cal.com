@@ -14,6 +14,8 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-view";
 
+import { ViewToggleButton } from "./ViewToggleButton";
+
 const querySchema = z.object({
   status: z.enum(validStatuses),
 });
@@ -53,7 +55,7 @@ const Page = async ({ params }: PageProps) => {
   }
 
   return (
-    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMainAppDir heading={t("bookings")} CTA={<ViewToggleButton />}>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}

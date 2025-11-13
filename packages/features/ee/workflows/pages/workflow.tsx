@@ -8,10 +8,10 @@ import { useForm, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -547,6 +547,7 @@ function WorkflowPage({
                             ? routingFormOptions
                             : allEventTypeOptions
                         }
+                        eventTypeOptions={allEventTypeOptions}
                         onSaveWorkflow={handleSaveWorkflow}
                         permissions={permissions}
                       />
