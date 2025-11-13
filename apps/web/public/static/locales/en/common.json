@@ -2931,6 +2931,8 @@
   "delete_org_eventtypes": "Delete individual event types",
   "lock_org_users_eventtypes": "Lock individual event type creation",
   "lock_org_users_eventtypes_description": "Prevent members from creating their own event types.",
+  "org_auto_join_title": "Automatically add new members to the organization if they sign up to Cal.com with the \"{{emailDomain}}\" email domain",
+  "org_auto_join_description": "New members are added after they verify their email.",
   "add_to_event_type": "Add to event type",
   "create_account_password": "Create account password",
   "create_account_with_saml": "Create Account with SAML",
