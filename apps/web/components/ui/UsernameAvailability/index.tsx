@@ -17,6 +17,7 @@ import type { TRPCClientErrorLike } from "@trpc/client";
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  disabled?: boolean;
 }
 
 interface ICustomUsernameProps extends UsernameAvailabilityFieldProps {
@@ -38,14 +39,19 @@ const UsernameTextfield = dynamic(() => import("./UsernameTextfield").then((m) =
 });
 
 export const UsernameAvailability = (props: ICustomUsernameProps) => {
-  const { isPremium, ...otherProps } = props;
+  const { isPremium, disabled, ...otherProps } = props;
   const UsernameAvailabilityComponent = isPremium ? PremiumTextfield : UsernameTextfield;
-  return <UsernameAvailabilityComponent {...otherProps} />;
+  // PremiumTextfield uses `readonly` prop, UsernameTextfield uses `disabled` prop
+  const componentProps = isPremium
+    ? { ...otherProps, readonly: disabled }
+    : { ...otherProps, disabled };
+  return <UsernameAvailabilityComponent {...componentProps} />;
 };
 
 export const UsernameAvailabilityField = ({
   onSuccessMutation,
   onErrorMutation,
+  disabled,
 }: UsernameAvailabilityFieldProps) => {
   const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
@@ -86,7 +92,7 @@ export const UsernameAvailabilityField = ({
           }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
-          disabled={!!user.organization?.id}
+          disabled={disabled ?? !!user.organization?.id}
           addOnLeading={`${usernamePrefix}/`}
           isPremium={isPremium}
         />

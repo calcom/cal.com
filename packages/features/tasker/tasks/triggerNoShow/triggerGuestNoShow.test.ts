@@ -159,6 +159,7 @@ describe("Trigger Guest No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,
@@ -265,6 +266,7 @@ describe("Trigger Guest No Show:", () => {
           user_name: "MOCK_USER_NAME",
           join_time: 0,
           duration: 15,
+          isLoggedIn: true,
         },
       ];
 
@@ -323,6 +325,7 @@ describe("Trigger Guest No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,
@@ -468,6 +471,7 @@ describe("Trigger Guest No Show:", () => {
           join_time: 0,
           duration: 15,
           email: "organizer@example.com",
+          isLoggedIn: true,
         },
       ];
 
@@ -526,6 +530,7 @@ describe("Trigger Guest No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,

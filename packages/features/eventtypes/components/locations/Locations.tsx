@@ -30,7 +30,6 @@ export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["loc
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
-
 type LocationsProps = {
   team: { id: number } | null;
   destinationCalendar: TDestinationCalendar;

@@ -22,16 +22,30 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14, BookerLayoutsInputEnum_2024_06_14, ConfirmationPolicyEnum, NoticeThresholdUnitEnum, FrequencyInput } from "@calcom/platform-enums";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+  FrequencyInput,
+} from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import { type ApiSuccessResponse, type CreateEventTypeInput_2024_06_14, type EventTypeOutput_2024_06_14, type GuestsDefaultFieldOutput_2024_06_14, type NameDefaultFieldInput_2024_06_14, type NotesDefaultFieldInput_2024_06_14, type SplitNameDefaultFieldOutput_2024_06_14, type UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import {
+  BaseConfirmationPolicy_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+  type ApiSuccessResponse,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
 import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
-
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -83,6 +97,8 @@ describe("Event types Endpoints", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
     let apiKeyOrgUser: string;
+    let systemAdminUser: User;
+    let systemAdminApiKeyString: string;
 
     const userEmail = `event-types-2024-06-14-user-${randomString()}@api.com`;
     const falseTestEmail = `event-types-2024-06-14-false-user-${randomString()}@api.com`;
@@ -195,6 +211,17 @@ describe("Event types Endpoints", () => {
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = `cal_test_${keyString}`;
+
+      systemAdminUser = await userRepositoryFixture.create({
+        email: `event-types-2024-06-14-system-admin-${randomString()}@api.com`,
+        username: `event-types-2024-06-14-system-admin-${randomString()}`,
+        role: "ADMIN",
+      });
+      const { keyString: adminKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        systemAdminUser.id,
+        null
+      );
+      systemAdminApiKeyString = `cal_test_${adminKeyString}`;
 
       orgUser = await userRepositoryFixture.create({
         email: `event-types-2024-06-14-org-user-${randomString()}@example.com`,
@@ -1354,6 +1381,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
+      expect(Array.isArray(fetchedEventType.users)).toEqual(true);
+      expect(fetchedEventType.users.length).toEqual(1);
+      expect(fetchedEventType.users[0].id).toEqual(fetchedEventType.ownerId);
       expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
@@ -1373,6 +1403,99 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+    });
+
+    it("system admin can access another user's event type by id", async () => {
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${orgUserEventType1.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${systemAdminApiKeyString}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(orgUserEventType1.id);
+          expect(responseBody.data.ownerId).toEqual(orgUser.id);
+        });
+    });
+
+    it("user can access a team event type as team member (using user's API key)", async () => {
+      const team = await teamRepositoryFixture.create({
+        name: `event-types-2024-06-14-team-${randomString()}`,
+        isOrganization: false,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "ADMIN",
+        user: { connect: { id: user.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      const teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        title: `event-types-2024-06-14-team-event-${randomString()}`,
+        slug: `event-types-2024-06-14-team-event-${randomString()}`,
+        length: 60,
+        locations: [],
+        schedulingType: "COLLECTIVE",
+        team: { connect: { id: team.id } },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${teamEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(teamEventType.id);
+          expect(responseBody.data.teamId).toEqual(team.id);
+          await teamRepositoryFixture.delete(team.id);
+        });
+    });
+
+    it("user can access a team event type as HOST even if membership role is MEMBER (using user's API key)", async () => {
+      const team = await teamRepositoryFixture.create({
+        name: `event-types-2024-06-14-host-team-${randomString()}`,
+        isOrganization: false,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: user.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      const teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        title: `event-types-2024-06-14-host-event-${randomString()}`,
+        slug: `event-types-2024-06-14-host-event-${randomString()}`,
+        length: 60,
+        locations: [],
+        schedulingType: "COLLECTIVE",
+        team: { connect: { id: team.id } },
+        hosts: {
+          create: [
+            {
+              user: { connect: { id: user.id } },
+            },
+          ],
+        },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${teamEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(teamEventType.id);
+          expect(responseBody.data.teamId).toEqual(team.id);
+          await teamRepositoryFixture.delete(team.id);
+        });
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -1780,7 +1903,7 @@ describe("Event types Endpoints", () => {
             .then(async (response) => {
               const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
               const updatedEventType = responseBody.data;
-              const policy = updatedEventType.confirmationPolicy as any;
+              const policy = updatedEventType.confirmationPolicy as BaseConfirmationPolicy_2024_06_14;
               expect(policy?.type).toEqual(ConfirmationPolicyEnum.ALWAYS);
               expect(policy?.blockUnconfirmedBookingsInBooker).toEqual(false);
               expect(policy?.noticeThreshold).toBeUndefined();
@@ -1808,7 +1931,7 @@ describe("Event types Endpoints", () => {
             .then(async (response) => {
               const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
               const updatedEventType = responseBody.data;
-              const policy = updatedEventType.confirmationPolicy as any;
+              const policy = updatedEventType.confirmationPolicy as BaseConfirmationPolicy_2024_06_14;
               expect(policy?.type).toEqual(ConfirmationPolicyEnum.TIME);
               expect(policy?.noticeThreshold).toEqual({
                 unit: NoticeThresholdUnitEnum.MINUTES,
