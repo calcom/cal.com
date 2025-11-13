@@ -1,13 +1,15 @@
-import type { Logger } from "tslog";
-
+import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
-  log: Logger<unknown>;
+  log: ISimpleLogger;
   hashedLinkService: HashedLinkService;
+  //TODO: To be made required in followup PR
+  bookingAuditService?: BookingAuditService;
 }
 
 export class BookingEventHandlerService {
