@@ -13,7 +13,7 @@ vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
   },
 }));
 
-vi.mock("@calcom/emails");
+vi.mock("@calcom/emails/email-manager");
 
 let testTeamId: number;
 const userIds: number[] = [];
@@ -26,7 +26,7 @@ const mockEventManager = async () => {
 };
 
 const mockEmails = async () => {
-  const emails = await import("@calcom/emails");
+  const emails = await import("@calcom/emails/email-manager");
   vi.spyOn(emails, "sendReassignedScheduledEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedUpdatedEmailsAndSMS").mockResolvedValue(undefined);
@@ -334,7 +334,7 @@ describe("managedEventReassignment - Integration Tests", () => {
 
   it("should call email functions when emailsEnabled is true", async () => {
     const managedEventReassignment = (await import("./managedEventReassignment")).default;
-    const emails = await import("@calcom/emails");
+    const emails = await import("@calcom/emails/email-manager");
 
     const user1 = await createTestUser({
       email: "user1-email@test.com",

@@ -13,7 +13,7 @@ vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
   },
 }));
 
-vi.mock("@calcom/emails");
+vi.mock("@calcom/emails/email-manager");
 
 let testTeamId: number;
 const userIds: number[] = [];
@@ -26,7 +26,7 @@ const mockEventManager = async () => {
 };
 
 const mockEmails = async () => {
-  const emails = await import("@calcom/emails");
+  const emails = await import("@calcom/emails/email-manager");
   vi.spyOn(emails, "sendReassignedScheduledEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedEmailsAndSMS").mockResolvedValue(undefined);
   vi.spyOn(emails, "sendReassignedUpdatedEmailsAndSMS").mockResolvedValue(undefined);
@@ -405,7 +405,7 @@ describe("managedEventManualReassignment - Integration Tests", () => {
 
   it("should call email functions when emailsEnabled is true", async () => {
     const managedEventManualReassignment = (await import("./managedEventManualReassignment")).default;
-    const emails = await import("@calcom/emails");
+    const emails = await import("@calcom/emails/email-manager");
 
     const originalUser = await createTestUser({
       email: "original5@test.com",
@@ -463,7 +463,6 @@ describe("managedEventManualReassignment - Integration Tests", () => {
       where: { userId: newUser.id, eventTypeId: childEventTypes[1].id },
     });
     
-    // Reassignment audit trail is handled by ManagedEventAssignmentReasonRecorder, not in metadata
     expect(newBooking).toBeTruthy();
     expect(newBooking?.userId).toBe(newUser.id);
   });
