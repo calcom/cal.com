@@ -29,4 +29,3 @@ export interface IBookingAuditRepository {
      */
     create(bookingAudit: BookingAuditCreateInput): Promise<BookingAudit>;
 }
-
