@@ -23,7 +23,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
         router.push(redirectUrl);
       },
       onError: () => {
-        showToast(ErrorCode.InternalServerError, "error");
+        showToast(ErrorCode.UnableToSubscribeToThePlatform, "error");
       },
       teamId,
     });
@@ -34,7 +34,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
         router.push(redirectUrl);
       },
       onError: () => {
-        showToast(ErrorCode.InternalServerError, "error");
+        showToast(ErrorCode.UnableToSubscribeToThePlatform, "error");
       },
       teamId,
     });
