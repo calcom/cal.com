@@ -2,7 +2,7 @@
 
 import type { TFunction } from "i18next";
 import { useQueryState } from "nuqs";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -176,7 +176,7 @@ export function RoutedToPerPeriod() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { isLoading, isError } = trpc.viewer.insights.routedToPerPeriod.useQuery(
+  const { data, isLoading, isError } = trpc.viewer.insights.routedToPerPeriod.useQuery(
     {
       ...routingParams,
       period: selectedPeriod,
@@ -190,6 +190,71 @@ export function RoutedToPerPeriod() {
       },
     }
   );
+
+  const flattenedUsers = useMemo(() => {
+    return data?.users.data || [];
+  }, [data?.users.data]);
+
+  const uniquePeriods = useMemo(() => {
+    if (!data?.periodStats.data) return [];
+
+    // Get all unique periods
+    const periods = new Set<string>();
+    data.periodStats.data.forEach((stat) => {
+      periods.add(stat.period_start.toISOString());
+    });
+
+    return Array.from(periods)
+      .map((dateStr) => new Date(dateStr))
+      .sort((a, b) => a.getTime() - b.getTime());
+  }, [data?.periodStats.data]);
+
+  const processedData = useMemo(() => {
+    if (!data?.periodStats.data) return [];
+
+    // Create a map for quick lookup of stats
+    const statsMap = new Map<string, number>();
+    data.periodStats.data.forEach((stat) => {
+      const key = `${stat.userId}-${stat.period_start.toISOString()}`;
+      statsMap.set(key, stat.total);
+    });
+
+    return flattenedUsers.map((user) => {
+      const stats = uniquePeriods.reduce((acc, period) => {
+        const key = `${user.id}-${period.toISOString()}`;
+        acc[period.toISOString()] = statsMap.get(key) ?? 0;
+        return acc;
+      }, {} as { [key: string]: number });
+
+      return {
+        id: user.id,
+        name: user.name || "",
+        avatarUrl: user.avatarUrl,
+        stats,
+        performance: user.performance,
+        totalBookings: user.totalBookings,
+      };
+    });
+  }, [data?.periodStats.data, flattenedUsers, uniquePeriods]);
+
+  const isCurrentPeriod = (date: Date, today: Date, selectedPeriod: string): boolean => {
+    if (selectedPeriod === "perDay") {
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
+    } else if (selectedPeriod === "perWeek") {
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      return date >= weekStart && date <= weekEnd;
+    } else if (selectedPeriod === "perMonth") {
+      return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    }
+    return false;
+  };
 
   return (
     <ChartCard title={t("routed_to_per_period")} isPending={isLoading} isError={isError}>
