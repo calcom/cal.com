@@ -15,7 +15,10 @@ interface SvgImageProps {
  */
 export const SvgImage: React.FC<SvgImageProps> = ({ uri, width, height, style }) => {
   const [useFallback, setUseFallback] = useState(false);
-  const isSvg = uri.toLowerCase().endsWith('.svg');
+  // Extract pathname (ignore query strings and hash) to detect SVG correctly
+  // Handles URLs like: icon.svg?variant=dark or icon.svg#hash
+  const pathname = uri.split('?')[0].split('#')[0];
+  const isSvg = pathname.toLowerCase().endsWith('.svg');
 
   if (!isSvg || useFallback) {
     // Use regular Image for non-SVG or if SVG failed
