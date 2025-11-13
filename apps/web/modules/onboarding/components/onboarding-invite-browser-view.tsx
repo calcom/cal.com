@@ -31,14 +31,19 @@ export const OnboardingInviteBrowserView = ({
   watchedInvites,
 }: OnboardingInviteBrowserViewProps) => {
   const { data: user } = trpc.viewer.me.get.useQuery();
-  const { teamBrand, teamInvites, invites, teamDetails } = useOnboardingStore();
+  const { teamBrand, teamInvites, invites, teamDetails, organizationBrand, organizationDetails } =
+    useOnboardingStore();
   const { t } = useLocale();
 
   // Use default values if not provided
   const rawInviterName = user?.name || user?.username || "Alex";
   const displayInviterName = rawInviterName.charAt(0).toUpperCase() + rawInviterName.slice(1);
-  const displayTeamName = teamName || "Deel";
-  const teamAvatar = teamBrand.logo || null;
+
+  // Use organization or team data based on context
+  const displayName = useOrganizationInvites
+    ? organizationDetails.name || teamName || "Deel"
+    : teamName || teamDetails.name || "Deel";
+  const avatar = useOrganizationInvites ? organizationBrand.logo || null : teamBrand.logo || null;
 
   // Get invites based on context - use watched invites if provided, otherwise fall back to store
   let actualInvites: Invite[] = [];
@@ -99,13 +104,13 @@ export const OnboardingInviteBrowserView = ({
           <div className="flex flex-col items-start gap-4">
             <Avatar
               size="lg"
-              imageSrc={teamAvatar || undefined}
-              alt={displayTeamName}
+              imageSrc={avatar || undefined}
+              alt={displayName}
               className="border-default h-12 w-12 border-2"
             />
             <div className="flex w-full flex-col items-start gap-1">
               <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
-                {displayInviterName} invited you to join {displayTeamName}
+                {displayInviterName} invited you to join {displayName}
               </h2>
               <p className="text-subtle text-left text-sm font-normal leading-tight">
                 We're emailing you all the details

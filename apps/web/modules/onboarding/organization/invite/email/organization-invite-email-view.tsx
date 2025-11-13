@@ -16,7 +16,7 @@ import { InviteOptions } from "../../../components/InviteOptions";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
-import { OnboardingOrganizationBrowserView } from "../../../components/onboarding-organization-browser-view";
+import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "../csv-upload-modal";
@@ -176,13 +176,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
         </OnboardingCard>
       </div>
 
-      <OnboardingOrganizationBrowserView
-        avatar={organizationBrand.logo}
-        name={organizationDetails.name}
-        bio={organizationDetails.bio}
-        slug={organizationDetails.link}
-        bannerUrl={organizationBrand.banner}
-      />
+      <OnboardingInviteBrowserView useOrganizationInvites={true} watchedInvites={form.watch("invites")} />
       <OrganizationCSVUploadModal isOpen={isCSVModalOpen} onClose={() => setIsCSVModalOpen(false)} />
     </OnboardingLayout>
   );
