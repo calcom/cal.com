@@ -240,7 +240,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   }, [query.data, status, user?.timeZone]);
 
   const flatData = useMemo<RowData[]>(() => {
-    return [...groupedBookings.currentMonth, ...Object.values(groupedBookings.monthBuckets).flat()];
+    return [...groupedBookings.today, ...groupedBookings.currentMonth, ...Object.values(groupedBookings.monthBuckets).flat()];
   }, [groupedBookings]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
