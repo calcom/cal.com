@@ -364,9 +364,10 @@ export default function Success(props: PageProps) {
     bookingInfo.status
   );
 
-  const effectiveLocation = locationVideoCallUrl ? locationVideoCallUrl : location;
+  const effectiveLocation = locationVideoCallUrl ?? location;
   const providerName = guessEventLocationType(effectiveLocation)?.label;
-  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+  const rescheduleEffectiveLocation = locationVideoCallUrl ?? rescheduleLocation ?? location;
+  const rescheduleProviderName = guessEventLocationType(rescheduleEffectiveLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;
 
