@@ -47,7 +47,7 @@ interface BuildListDisplayColumnsParams {
 }
 
 // Maximum number of attendees to display before showing "..." button
-const MAX_DISPLAYED_ATTENDEES = 2;
+const MAX_DISPLAYED_ATTENDEES = 3;
 
 type AttendeeProps = {
   name?: string;
