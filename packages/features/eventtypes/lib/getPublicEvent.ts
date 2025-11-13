@@ -28,6 +28,14 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
+/**
+ * Normalize incoming slug because URL slugs may contain repeated hyphens but DB slugs are stored normalized.
+ * Collapses multiple consecutive hyphens to single hyphens and trims leading/trailing hyphens.
+ */
+function normalizeSlug(s: string): string {
+  return s.replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+}
+
 const userSelect = {
   id: true,
   avatarUrl: true,
@@ -271,6 +279,9 @@ export const getPublicEvent = async (
   currentUserId?: number,
   fetchAllUsers = false
 ) => {
+  // Normalize incoming slug because URL slugs may contain repeated hyphens but DB slugs are stored normalized.
+  eventSlug = normalizeSlug(eventSlug);
+
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
