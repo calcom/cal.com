@@ -132,8 +132,9 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/cancelled");
 
-    const requestRescheduleSentElement = page.locator('[data-testid="request_reschedule_sent"]').nth(1);
-    await expect(requestRescheduleSentElement).toBeVisible();
+    await page.locator('[data-testid="booking-item"]').nth(0).click();
+
+    await expect(page.locator('[data-testid="request_reschedule_sent"]')).toBeVisible();
     await booking.delete();
   });
 
@@ -340,11 +341,13 @@ test.describe("Reschedule Tests", async () => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
-    const confirmBooking = async (bookingId: number) => {
+    const confirmBooking = async (_bookingId: number) => {
       const [authedContext, authedPage] = await user.apiLoginOnNewBrowser(browser);
       await authedPage.goto("/bookings/upcoming");
       await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
-        action: () => authedPage.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`).click(),
+        action: async () => {
+          await authedPage.locator('[data-testid="booking-item"] [data-testid="confirm"]').nth(0).click();
+        },
       });
       await authedContext.close();
     };
