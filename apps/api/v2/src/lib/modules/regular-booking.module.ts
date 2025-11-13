@@ -4,6 +4,8 @@ import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.rep
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
+import { Logger } from "@/lib/logger.bridge";
+import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
@@ -22,6 +24,8 @@ import { Module } from "@nestjs/common";
     PrismaHostRepository,
     PrismaOOORepository,
     PrismaUserRepository,
+    Logger,
+    BookingEventHandlerService,
     CacheService,
     CheckBookingAndDurationLimitsService,
     CheckBookingLimitsService,

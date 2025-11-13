@@ -417,6 +417,7 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  bookingEventHandler: BookingEventHandlerService;
 }
 
 /**
