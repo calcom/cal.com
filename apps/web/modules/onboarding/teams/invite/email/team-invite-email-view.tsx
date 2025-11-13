@@ -7,13 +7,13 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Form } from "@calcom/ui/components/form";
 
+import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
+import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useCreateTeam } from "../../../hooks/useCreateTeam";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
@@ -85,7 +85,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
       <div className="flex w-full flex-col gap-4">
         <OnboardingCard
@@ -107,74 +107,27 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
               </Button>
             </div>
           }>
-          <div className="flex w-full flex-col gap-4 px-5">
+          <div className="flex w-full flex-col gap-4 px-1">
             <Form form={form} handleSubmit={handleContinue} className="w-full">
               <div className="flex w-full flex-col gap-4">
-                {/* Email inputs */}
-                <div className="flex flex-col gap-2">
-                  <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
+                <EmailInviteForm
+                  fields={fields}
+                  append={append}
+                  remove={remove}
+                  defaultRole={inviteRole}
+                  emailPlaceholder="rick@cal.com"
+                />
 
-                  <div className="scroll-bar flex max-h-72 flex-col gap-2 overflow-y-auto">
-                    {fields.map((field, index) => (
-                      <div key={field.id} className="flex items-start gap-0.5">
-                        <div className="flex-1">
-                          <TextField
-                            labelSrOnly
-                            {...form.register(`invites.${index}.email`)}
-                            placeholder={`rick@cal.com`}
-                            type="email"
-                            size="sm"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          color="minimal"
-                          variant="icon"
-                          size="sm"
-                          className="h-7 w-7"
-                          disabled={fields.length === 1}
-                          onClick={() => remove(index)}>
-                          <Icon name="x" className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Add button */}
-                  <Button
-                    type="button"
-                    color="secondary"
-                    size="sm"
-                    StartIcon="plus"
-                    className="w-fit"
-                    onClick={() => append({ email: "", role: inviteRole })}>
-                    {t("add")}
-                  </Button>
-                </div>
-
-                {/* Role selector */}
-                <div className="flex items-center justify-between">
-                  <div className="hidden items-center gap-2 md:flex">
-                    <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
-                    <ToggleGroup
-                      value={inviteRole}
-                      onValueChange={(value) => {
-                        if (value) {
-                          setInviteRole(value as InviteRole);
-                          // Update all invites with the new role
-                          fields.forEach((_, index) => {
-                            form.setValue(`invites.${index}.role`, value as InviteRole);
-                          });
-                        }
-                      }}
-                      options={[
-                        { value: "MEMBER", label: t("members") },
-                        { value: "ADMIN", label: t("onboarding_admins") },
-                      ]}
-                    />
-                    <InfoBadge content={t("onboarding_modify_roles_later")} />
-                  </div>
-                </div>
+                <RoleSelector
+                  value={inviteRole}
+                  onValueChange={(value) => {
+                    setInviteRole(value);
+                    fields.forEach((_, index) => {
+                      form.setValue(`invites.${index}.role`, value);
+                    });
+                  }}
+                  showInfoBadge
+                />
               </div>
             </Form>
           </div>
