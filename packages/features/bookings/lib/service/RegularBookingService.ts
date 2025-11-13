@@ -219,6 +219,7 @@ export const buildDryRunBooking = ({
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
     fromReschedule: null,
+    originalBookingUid: null,
     recurringEventId: null,
     scheduledJobs: [],
     rescheduledBy: null,
@@ -698,8 +699,9 @@ async function handler(
 
       const firstPayment = shouldShowPaymentForm ? existingBooking.payment[0] : undefined;
 
+      const { originalBookingUid: _originalBookingUid1, ...existingBookingWithoutUid } = existingBooking;
       const bookingResponse = {
-        ...existingBooking,
+        ...existingBookingWithoutUid,
         user: {
           ...existingBooking.user,
           email: null,
@@ -1647,8 +1649,9 @@ async function handler(
     });
 
     if (newBooking) {
+      const { originalBookingUid: _originalBookingUid2, ...newBookingWithoutUid } = newBooking;
       const bookingResponse = {
-        ...newBooking,
+        ...newBookingWithoutUid,
         user: {
           ...newBooking.user,
           email: null,
@@ -2291,6 +2294,7 @@ async function handler(
   const bookingRescheduledPayload: BookingRescheduledPayload = {
     ...bookingCreatedPayload,
     oldBooking: originalRescheduledBooking ? {
+      uid: originalRescheduledBooking.uid,
       startTime: originalRescheduledBooking.startTime,
       endTime: originalRescheduledBooking.endTime,
     } : undefined,
@@ -2431,8 +2435,9 @@ async function handler(
 
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
+    const { originalBookingUid: _originalBookingUid3, ...bookingWithoutUid } = booking;
     const bookingResponse = {
-      ...booking,
+      ...bookingWithoutUid,
       user: {
         ...booking.user,
         email: null,
@@ -2544,8 +2549,6 @@ async function handler(
     });
   }
 
-  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
-
   try {
     if (!isDryRun) {
       await deps.prismaClient.booking.update({
@@ -2639,8 +2642,9 @@ async function handler(
 
   // TODO: Refactor better so this booking object is not passed
   // all around and instead the individual fields are sent as args.
+  const { originalBookingUid: _originalBookingUid4, ...bookingWithoutUid4 } = booking;
   const bookingResponse = {
-    ...booking,
+    ...bookingWithoutUid4,
     user: {
       ...booking.user,
       email: null,

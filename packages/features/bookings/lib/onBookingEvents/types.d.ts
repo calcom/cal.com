@@ -22,6 +22,7 @@ export interface BookingCreatedPayload {
 
 export interface BookingRescheduledPayload extends BookingCreatedPayload {
   oldBooking?: {
+    uid: string;
     startTime: Date;
     endTime: Date;
   };

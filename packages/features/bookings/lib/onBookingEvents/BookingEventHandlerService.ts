@@ -96,6 +96,7 @@ export class BookingEventHandlerService {
           old: payload.oldBooking?.endTime.toISOString() ?? null,
           new: payload.booking.endTime.toISOString(),
         },
+        previousBookingUid: payload.oldBooking?.uid,
       };
       const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingRescheduled(

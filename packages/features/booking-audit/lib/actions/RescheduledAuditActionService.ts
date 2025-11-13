@@ -17,6 +17,7 @@ import type { IAuditActionService } from "./IAuditActionService";
 const rescheduledFieldsSchemaV1 = z.object({
     startTime: StringChangeSchema,
     endTime: StringChangeSchema,
+    previousBookingUid: z.string().optional(),
 });
 
 export class RescheduledAuditActionService implements IAuditActionService<typeof rescheduledFieldsSchemaV1> {
@@ -51,7 +52,7 @@ export class RescheduledAuditActionService implements IAuditActionService<typeof
         return t('audit.rescheduled_to', { date: formattedDate });
     }
 
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof rescheduledFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof rescheduledFieldsSchemaV1> }, _t: TFunction): Record<string, string> {
         const { fields } = storedData;
         return {
             'Previous Start': fields.startTime.old ? dayjs(fields.startTime.old).format('MMM D, YYYY h:mm A') : '-',

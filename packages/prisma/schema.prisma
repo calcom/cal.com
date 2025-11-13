@@ -841,6 +841,7 @@ model Booking {
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?
   fromReschedule               String?
+  originalBookingUid           String?
   recurringEventId             String?
   smsReminderNumber            String?
   workflowReminders            WorkflowReminder[]
@@ -880,6 +881,8 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+  @@index([fromReschedule])
+  @@index([originalBookingUid])
 }
 
 model Tracking {
