@@ -91,6 +91,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "impersonation", href: "/settings/admin/impersonation", icon: "shield" },
         { name: "apps", href: "/settings/admin/apps/calendar", icon: "blocks" },
         { name: "users", href: "/settings/admin/users", icon: "users" },
+        { name: "Services", href: "/settings/admin/services", icon: "cloud" },
         { name: "organizations", href: "/settings/admin/organizations", icon: "building" },
         { name: "lockedSMS", href: "/settings/admin/lockedSMS", icon: "smartphone" },
         { name: "oAuth", href: "/settings/admin/oAuth", icon: "key" },

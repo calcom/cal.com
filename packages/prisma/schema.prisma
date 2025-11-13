@@ -2745,6 +2745,29 @@ model CalIdWorkflowInsights {
   createdAt   DateTime        @default(now())
 }
 
+enum ServiceName {
+  MESSAGING
+  PAYMENTS
+  EMAIL
+}
+
+enum ServiceProvider {
+  TWILIO
+  ICSMOBILE
+}
+
+model ThirdPartyService {
+  id               Int       @id @default(autoincrement())
+  name             ServiceName    @unique // e.g. "messaging", "payments", "email"
+  defaultProvider  ServiceProvider
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  description      String?   // optional: to describe what this feature does
+
+  @@unique([name, defaultProvider])
+
+}
+
 enum RoundRobinResetInterval {
   MONTH
   DAY
@@ -2754,3 +2777,4 @@ enum RoundRobinTimestampBasis {
   CREATED_AT
   START_TIME
 }
+
