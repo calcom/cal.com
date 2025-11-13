@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
@@ -260,36 +259,36 @@ export default function EventTypes() {
 
     return (
       <TouchableOpacity
-        style={styles.listItem}
+        className="bg-white border-b border-gray-300 py-3 px-4"
         onPress={() => handleEventTypePress(item)}
         onLongPress={() => handleEventTypeLongPress(item)}>
-        <View style={styles.listItemContent}>
-          <View style={styles.listItemMain}>
-            <Text style={styles.listItemTitle}>{item.title}</Text>
+        <View className="flex-row justify-between items-center">
+          <View className="flex-1 mr-3">
+            <Text className="text-[17px] font-normal text-black leading-[22px]">{item.title}</Text>
             {item.description && (
-              <Text style={styles.listItemSubtitle} numberOfLines={1}>
+              <Text className="text-[15px] text-gray-500 leading-5 mt-0.5" numberOfLines={1}>
                 {normalizeMarkdown(item.description)}
               </Text>
             )}
           </View>
 
-          <View style={styles.listItemRight}>
-            <Text style={styles.listItemDuration}>{formatDuration(duration)}</Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-[15px] text-gray-500 font-normal">{formatDuration(duration)}</Text>
             <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
           </View>
         </View>
 
         {(item.price || item.requiresConfirmation) && (
-          <View style={styles.listItemDetails}>
+          <View className="flex-row items-center mt-2 gap-2">
             {item.price != null && item.price > 0 && (
-              <Text style={styles.listItemPrice}>
+              <Text className="text-[15px] font-medium text-green-500">
                 {item.currency || "$"}
                 {item.price}
               </Text>
             )}
             {item.requiresConfirmation && (
-              <View style={styles.listItemBadge}>
-                <Text style={styles.listItemBadgeText}>Requires Confirmation</Text>
+              <View className="bg-orange-500 px-1.5 py-0.5 rounded">
+                <Text className="text-[11px] font-medium text-white">Requires Confirmation</Text>
               </View>
             )}
           </View>
@@ -300,21 +299,23 @@ export default function EventTypes() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
         <ActivityIndicator size="large" color="#000000" />
-        <Text style={styles.loadingText}>Loading event types...</Text>
+        <Text className="mt-4 text-base text-gray-500">Loading event types...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text style={styles.errorTitle}>Unable to load event types</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchEventTypes}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+        <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+          Unable to load event types
+        </Text>
+        <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
+        <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchEventTypes}>
+          <Text className="text-base font-semibold text-white">Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -322,10 +323,10 @@ export default function EventTypes() {
 
   if (eventTypes.length === 0) {
     return (
-      <View style={styles.container}>
-        <View style={styles.searchContainer}>
+      <View className="flex-1 bg-gray-100 pt-[54px]">
+        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
           <TextInput
-            style={styles.searchBar}
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
             placeholder="Search event types"
             placeholderTextColor="#8E8E93"
             value={searchQuery}
@@ -335,10 +336,10 @@ export default function EventTypes() {
             clearButtonMode="while-editing"
           />
         </View>
-        <View style={styles.centerContainer}>
+        <View className="flex-1 justify-center items-center p-5 bg-gray-50">
           <Ionicons name="calendar-outline" size={64} color="#666" />
-          <Text style={styles.emptyTitle}>No event types found</Text>
-          <Text style={styles.emptyText}>Create your first event type in Cal.com</Text>
+          <Text className="text-xl font-bold mt-4 mb-2 text-gray-800">No event types found</Text>
+          <Text className="text-base text-gray-500 text-center">Create your first event type in Cal.com</Text>
         </View>
       </View>
     );
@@ -346,10 +347,10 @@ export default function EventTypes() {
 
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
-      <View style={styles.container}>
-        <View style={styles.searchContainer}>
+      <View className="flex-1 bg-gray-100 pt-[54px]">
+        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
           <TextInput
-            style={styles.searchBar}
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
             placeholder="Search event types"
             placeholderTextColor="#8E8E93"
             value={searchQuery}
@@ -359,20 +360,20 @@ export default function EventTypes() {
             clearButtonMode="while-editing"
           />
         </View>
-        <View style={styles.centerContainer}>
+        <View className="flex-1 justify-center items-center p-5 bg-gray-50">
           <Ionicons name="search-outline" size={64} color="#666" />
-          <Text style={styles.emptyTitle}>No results found</Text>
-          <Text style={styles.emptyText}>Try searching with different keywords</Text>
+          <Text className="text-xl font-bold mt-4 mb-2 text-gray-800">No results found</Text>
+          <Text className="text-base text-gray-500 text-center">Try searching with different keywords</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
+    <View className="flex-1 bg-gray-100 pt-[54px]">
+      <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
         <TextInput
-          style={styles.searchBar}
+          className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
           placeholder="Search event types"
           placeholderTextColor="#8E8E93"
           value={searchQuery}
@@ -381,177 +382,19 @@ export default function EventTypes() {
           autoCorrect={false}
           clearButtonMode="while-editing"
         />
-        <TouchableOpacity style={styles.newButton} onPress={handleCreateNew}>
+        <TouchableOpacity className="flex-row items-center justify-center gap-1 bg-black px-2.5 py-2 rounded-lg min-w-[60px]" onPress={handleCreateNew}>
           <Ionicons name="add" size={18} color="#fff" />
-          <Text style={styles.newButtonText}>New</Text>
+          <Text className="text-white text-base font-semibold">New</Text>
         </TouchableOpacity>
       </View>
       <FlatList
         data={filteredEventTypes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderEventType}
-        contentContainerStyle={styles.listContainer}
+        className="px-4 py-4"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F2F2F7",
-    paddingTop: 54,
-  },
-  searchContainer: {
-    backgroundColor: "#F2F2F7",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#C6C6C8",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  searchBar: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 17,
-    color: "#000",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-  },
-  newButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    backgroundColor: "#000000",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 60,
-  },
-  newButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f8f9fa",
-  },
-  listContainer: {
-    paddingVertical: 0,
-    paddingBottom: 90,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: "#000000",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-  listItem: {
-    backgroundColor: "#fff",
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#C6C6C8",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  listItemContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  listItemMain: {
-    flex: 1,
-    marginRight: 12,
-  },
-  listItemTitle: {
-    fontSize: 17,
-    fontWeight: "400",
-    color: "#000",
-    lineHeight: 22,
-  },
-  listItemSubtitle: {
-    fontSize: 15,
-    color: "#8E8E93",
-    lineHeight: 20,
-    marginTop: 1,
-  },
-  listItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  listItemDuration: {
-    fontSize: 15,
-    color: "#8E8E93",
-    fontWeight: "400",
-  },
-  listItemDetails: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    gap: 8,
-  },
-  listItemPrice: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#34C759",
-  },
-  listItemBadge: {
-    backgroundColor: "#FF9500",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  listItemBadgeText: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#fff",
-  },
-});

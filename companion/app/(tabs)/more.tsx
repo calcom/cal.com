@@ -1,32 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 
 export default function More() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>More</Text>
-      <Text style={styles.subtitle}>Settings, profile, and additional options</Text>
+    <View className="flex-1 items-center justify-center bg-white p-5">
+      <Text className="mb-2 text-2xl font-bold text-gray-800">More</Text>
+      <Text className="text-center text-base text-gray-500">
+        Settings, profile, and additional options
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#666',
-  },
-});
