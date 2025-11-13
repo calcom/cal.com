@@ -16,6 +16,7 @@ import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+import { useRoutingFormSessionStorage } from "@lib/apps/routing-forms/hooks/useRoutingFormSessionStorage";
 
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
@@ -101,31 +102,24 @@ function SingleForm({
   const { t } = useLocale();
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const { isDesktop } = useBreakPoints();
 
+  const { clearSessionStorage } = useRoutingFormSessionStorage(form.id, hookForm, form);
+
   useEffect(() => {
-    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
-    // and then it is considered the source of truth.
+ 
+    const currentFormId = hookForm.getValues().id;
 
-    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
-
-    // 1 - When we change the edited form.
-
-    // 2 - When the form is saved elsewhere (such as in another browser tab)
-
-    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
-    // because each time a tab changes, a new component is created and another useEffect is executed.
-    // An update from the form always occurs after the first useEffect execution.
-    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
-      hookForm.reset(form);
+    if (currentFormId && currentFormId !== form.id) {
+      return;
     }
 
-    if (skipFirstUpdate) {
-      setSkipFirstUpdate(false);
-    } else {
+    const formStateUpdatedAt = form.updatedAt;
+    const currentStateUpdatedAt = hookForm.getValues().updatedAt;
+
+    if (formStateUpdatedAt && currentStateUpdatedAt && formStateUpdatedAt !== currentStateUpdatedAt) {
       hookForm.reset(form);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,6 +127,7 @@ function SingleForm({
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
+      clearSessionStorage();
     },
     onError(e) {
       if (e.message) {
