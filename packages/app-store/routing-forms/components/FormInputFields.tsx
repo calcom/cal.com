@@ -1,3 +1,5 @@
+"use client";
+
 import type { Dispatch, SetStateAction } from "react";
 
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";

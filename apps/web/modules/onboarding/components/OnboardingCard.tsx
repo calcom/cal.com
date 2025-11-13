@@ -22,7 +22,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </div>
 
       {/* Content */}
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
+      <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4">
         {isLoading ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <SkeletonText className="h-40 w-full" />
@@ -38,4 +38,3 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
     </div>
   );
 };
-

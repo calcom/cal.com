@@ -36,7 +36,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   };
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={2}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={2}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("connect_your_calendar")}

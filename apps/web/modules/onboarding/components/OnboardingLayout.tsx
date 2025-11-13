@@ -1,5 +1,6 @@
 "use client";
 
+import classNames from "classnames";
 import { signOut } from "next-auth/react";
 import { Children, type ReactNode } from "react";
 
@@ -9,11 +10,12 @@ import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
   userEmail: string;
-  currentStep: 1 | 2 | 3;
+  currentStep: number;
+  totalSteps: number;
   children: ReactNode;
 };
 
-export const OnboardingLayout = ({ userEmail, currentStep, children }: OnboardingLayoutProps) => {
+export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children }: OnboardingLayoutProps) => {
   const { t } = useLocale();
 
   const handleSignOut = () => {
@@ -42,17 +44,31 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
 
       {/* Footer with progress dots and sign out */}
       <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
-        <div className="flex items-center gap-2">
-          {[1, 2, 3].map((step) => (
-            <div key={step} className="relative flex h-2 w-2 shrink-0 items-center justify-center">
-              <div
-                className={`absolute inset-0 rounded-full ${
-                  step <= currentStep ? "bg-emphasis" : "bg-muted"
-                }`}
-              />
-              {step <= currentStep && <div className="bg-emphasis absolute h-1 w-1 rounded-full" />}
-            </div>
-          ))}
+        <div className="flex items-center gap-3">
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
+            const isCurrentStep = step === currentStep;
+            const isCompleted = step < currentStep;
+            return (
+              <div key={step} className="relative flex shrink-0 items-center justify-center">
+                <div
+                  className={classNames("absolute rounded-full transition-all", {
+                    "h-2 w-2": !isCurrentStep,
+                    "h-3 w-3": isCurrentStep,
+                    "bg-emphasis": isCompleted || isCurrentStep,
+                    "bg-muted": !isCompleted && !isCurrentStep,
+                  })}
+                />
+                {(isCompleted || isCurrentStep) && (
+                  <div
+                    className={classNames("bg-emphasis absolute rounded-full", {
+                      "h-1 w-1": !isCurrentStep,
+                      "h-1.5 w-1.5": isCurrentStep,
+                    })}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
         <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
           {t("sign_out")}
@@ -61,4 +77,3 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
     </div>
   );
 };
-

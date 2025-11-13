@@ -101,20 +101,6 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
-vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
-  return {
-    StripeBillingService: vi.fn().mockImplementation(() => ({
-      getPrice: async (priceId: string) => {
-        const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
-        return stripe.prices.retrieve(priceId);
-      },
-      checkoutSessionIsPaid: vi.fn(),
-      handleSubscriptionCancel: vi.fn(),
-      handleSubscriptionCreation: vi.fn(),
-      handleSubscriptionUpdate: vi.fn(),
-    })),
-  };
-});
 
 const creditService = new CreditService();
 
