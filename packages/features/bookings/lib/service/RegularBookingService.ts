@@ -61,7 +61,8 @@ import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -1823,7 +1824,7 @@ async function handler(
       };
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     loggerWithEventDetails.error(
       `Booking ${eventTypeId} failed`,
       "Error when saving booking to db",

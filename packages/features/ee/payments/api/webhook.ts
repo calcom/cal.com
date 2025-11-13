@@ -14,7 +14,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -180,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(err.statusCode ?? 500).send({
       message: err.message,
