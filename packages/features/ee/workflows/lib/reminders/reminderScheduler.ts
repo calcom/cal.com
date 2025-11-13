@@ -11,7 +11,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";

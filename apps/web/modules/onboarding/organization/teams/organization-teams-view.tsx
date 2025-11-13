@@ -10,8 +10,9 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -65,6 +66,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3}>
+      {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_teams_title")}
         subtitle={t("onboarding_org_teams_subtitle")}
@@ -132,6 +134,9 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
           </div>
         </Form>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingBrowserView />
     </OnboardingLayout>
   );
 };

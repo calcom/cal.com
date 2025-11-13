@@ -305,16 +305,9 @@ const _sendPayload = async (
     body,
   });
 
-  const text = await response.text();
-
   return {
     ok: response.ok,
     status: response.status,
-    ...(text
-      ? {
-          message: text,
-        }
-      : {}),
   };
 };
 

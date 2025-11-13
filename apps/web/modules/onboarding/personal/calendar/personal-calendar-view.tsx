@@ -4,11 +4,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
 import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
-import { OnboardingCard } from "../../components/OnboardingCard";
-import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalCalendarViewProps = {

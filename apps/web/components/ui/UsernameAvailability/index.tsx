@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
@@ -16,6 +17,7 @@ import type { TRPCClientErrorLike } from "@trpc/client";
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
+  disabled?: boolean;
 }
 
 interface ICustomUsernameProps extends UsernameAvailabilityFieldProps {
@@ -37,14 +39,19 @@ const UsernameTextfield = dynamic(() => import("./UsernameTextfield").then((m) =
 });
 
 export const UsernameAvailability = (props: ICustomUsernameProps) => {
-  const { isPremium, ...otherProps } = props;
+  const { isPremium, disabled, ...otherProps } = props;
   const UsernameAvailabilityComponent = isPremium ? PremiumTextfield : UsernameTextfield;
-  return <UsernameAvailabilityComponent {...otherProps} />;
+  // PremiumTextfield uses `readonly` prop, UsernameTextfield uses `disabled` prop
+  const componentProps = isPremium
+    ? { ...otherProps, readonly: disabled }
+    : { ...otherProps, disabled };
+  return <UsernameAvailabilityComponent {...componentProps} />;
 };
 
 export const UsernameAvailabilityField = ({
   onSuccessMutation,
   onErrorMutation,
+  disabled,
 }: UsernameAvailabilityFieldProps) => {
   const searchParams = useSearchParams();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
@@ -56,7 +63,7 @@ export const UsernameAvailabilityField = ({
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
-      username: currentUsername,
+      username: slugify(currentUsername || user.username || ""),
     },
   });
 
@@ -78,10 +85,14 @@ export const UsernameAvailabilityField = ({
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={value}
           usernameRef={ref}
-          setInputUsernameValue={onChange}
+          setInputUsernameValue={(val) => {
+            const displayValue = slugify(val, true);
+            formMethods.setValue("username", displayValue);
+            onChange?.(displayValue);
+          }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
-          disabled={!!user.organization?.id}
+          disabled={disabled ?? !!user.organization?.id}
           addOnLeading={`${usernamePrefix}/`}
           isPremium={isPremium}
         />
