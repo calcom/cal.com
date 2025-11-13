@@ -31,7 +31,7 @@ export default function CreateOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast(ErrorCode.InternalServerError, "error");
+      showToast(ErrorCode.CreatingOauthClientError, "error");
     },
   });
 

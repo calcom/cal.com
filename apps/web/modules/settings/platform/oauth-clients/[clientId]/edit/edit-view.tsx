@@ -33,7 +33,7 @@ export default function EditOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast(ErrorCode.InternalServerError, "error");
+      showToast(ErrorCode.UpdatingOauthClientError, "error");
     },
     clientId,
   });
