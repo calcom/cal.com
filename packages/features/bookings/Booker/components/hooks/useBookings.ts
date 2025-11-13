@@ -32,26 +32,26 @@ import type { UseBookingFormReturnType } from "./useBookingForm";
 export interface IUseBookings {
   event: {
     data?:
-    | (Pick<
-      BookerEvent,
-      | "id"
-      | "slug"
-      | "subsetOfHosts"
-      | "requiresConfirmation"
-      | "isDynamic"
-      | "metadata"
-      | "forwardParamsSuccessRedirect"
-      | "successRedirectUrl"
-      | "length"
-      | "recurringEvent"
-      | "schedulingType"
-    > & {
-      subsetOfUsers: Pick<
-        BookerEvent["subsetOfUsers"][number],
-        "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
-      >[];
-    })
-    | null;
+      | (Pick<
+          BookerEvent,
+          | "id"
+          | "slug"
+          | "subsetOfHosts"
+          | "requiresConfirmation"
+          | "isDynamic"
+          | "metadata"
+          | "forwardParamsSuccessRedirect"
+          | "successRedirectUrl"
+          | "length"
+          | "recurringEvent"
+          | "schedulingType"
+        > & {
+          subsetOfUsers: Pick<
+            BookerEvent["subsetOfUsers"][number],
+            "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
+          >[];
+        })
+      | null;
   };
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
@@ -66,7 +66,7 @@ const getBaseBookingEventPayload = (booking: {
   endTime: string;
   eventTypeId?: number | null;
   status?: BookingStatus;
-  paymentRequired?: boolean;
+  paymentRequired: boolean;
   isRecurring: boolean;
   videoCallUrl?: string;
 }) => {
@@ -76,7 +76,7 @@ const getBaseBookingEventPayload = (booking: {
     endTime: booking.endTime,
     eventTypeId: booking.eventTypeId,
     status: booking.status,
-    paymentRequired: booking.paymentRequired ?? false,
+    paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
     videoCallUrl: booking.videoCallUrl,
   };
@@ -88,7 +88,7 @@ const getBookingSuccessfulEventPayload = (booking: {
   endTime: string;
   eventTypeId?: number | null;
   status?: BookingStatus;
-  paymentRequired?: boolean;
+  paymentRequired: boolean;
   uid?: string;
   isRecurring: boolean;
   videoCallUrl?: string;
@@ -206,8 +206,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
       const parsedInstantBookingInfo =
         parsedInfo.eventTypeId === eventTypeId &&
-          isInstantMeeting &&
-          new Date(parsedInfo.expiryTime) > new Date()
+        isInstantMeeting &&
+        new Date(parsedInfo.expiryTime) > new Date()
           ? parsedInfo
           : null;
 
@@ -309,8 +309,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
+        ? duration
+        : event.data?.length;
 
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
@@ -544,8 +544,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
   const errors = {
     hasDataErrors: Boolean(
       createBookingMutation.isError ||
-      createRecurringBookingMutation.isError ||
-      createInstantBookingMutation.isError
+        createRecurringBookingMutation.isError ||
+        createInstantBookingMutation.isError
     ),
     dataErrors:
       createBookingMutation.error ||

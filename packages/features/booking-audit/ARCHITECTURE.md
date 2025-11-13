@@ -1,6 +1,8 @@
 # Booking Audit System - Database Architecture
 Based on https://github.com/calcom/cal.com/pull/22817
 
+Note: This architecture is not in production yet, so we can make any changes we want to it without worrying about backwards compatibility.
+
 ## Overview
 
 The Booking Audit System tracks all actions and changes related to bookings in Cal.com. The architecture is built around two core tables (`Actor` and `BookingAudit`) that work together to maintain a complete, immutable audit trail.
@@ -25,6 +27,10 @@ model Actor {
   phone     String?
   name      String?
   
+  // GDPR/HIPAA Compliance fields
+  pseudonymizedAt        DateTime?   // When actor data was pseudonymized for privacy
+  scheduledDeletionDate  DateTime?   // When actor record should be fully anonymized after retention period
+  
   createdAt DateTime  @default(now())
   bookingAudits BookingAudit[]
 
@@ -35,6 +41,7 @@ model Actor {
   @@index([email])
   @@index([userId])
   @@index([attendeeId])
+  @@index([pseudonymizedAt])  // For compliance cleanup jobs
 }
 ```
 
@@ -44,6 +51,7 @@ model Actor {
 - **Unique Constraints**: Prevents duplicate actors for the same user/email/phone
 - **Multiple Identity Fields**: Supports different actor types (users, guests, attendees, system)
 - **Extensible System Actors**: Architecture supports multiple system actors (e.g., Cron, Webhooks, API integrations, Background Workers) for granular tracking of automated operations
+- **Pseudonymization on Deletion**: Actor records are pseudonymized (PII nullified) rather than deleted to maintain HIPAA-compliant immutable audit trails. Supports compliance cleanup jobs via `pseudonymizedAt` and `scheduledDeletionDate` indices
 
 ---
 
@@ -61,10 +69,18 @@ model BookingAudit {
   actorId String
   actor   Actor  @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
-  type      BookingAuditType   // Database-level change: created/updated/deleted
-  action    BookingAuditAction // Business operation: what happened
-  timestamp DateTime           // When the action occurred (explicitly provided, no default)
-  data      Json?
+  type   BookingAuditType
+  action BookingAuditAction
+
+  // Timestamp of the actual booking change (business event time)
+  // Important: May differ from createdAt if audit is processed asynchronously
+  timestamp DateTime
+
+  // Database record timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  data Json?
 
   @@index([actorId])
   @@index([bookingId])
@@ -75,7 +91,8 @@ model BookingAudit {
 - **UUID Primary Key**: Enables time-sortable IDs (will migrate to uuid7 when Prisma 7 is available)
 - **Restrict on Delete**: `onDelete: Restrict` prevents actor deletion if audit records exist
 - **Required Action**: Every audit record must specify a business action, ensuring explicit tracking of what happened
-- **Explicit Timestamp**: The `timestamp` field has no default and must be explicitly provided, ensuring accurate capture of when the business event occurred
+- **Explicit Timestamp**: The `timestamp` field has no default and must be explicitly provided, representing when the business event actually occurred
+- **Separate Database Timestamps**: `createdAt` and `updatedAt` track when the audit record itself was created/modified, distinct from the business event time
 - **JSON Data Field**: Flexible schema for storing action-specific contextual data
 - **Indexed Fields**: Efficient queries by `bookingId` and `actorId`
 
@@ -95,6 +112,7 @@ Defines the type of entity performing an action:
 ```prisma
 enum ActorType {
   USER     @map("user")     // Registered Cal.com user (stored here for audit retention even after user deletion)
+  // Considering renaming it to ANONYMOUS to avoid confusion with Guest of a booking
   GUEST    @map("guest")    // Non-registered user
   ATTENDEE @map("attendee") // Guest who booked (has Attendee record)
   SYSTEM   @map("system")   // Automated actions
@@ -141,23 +159,17 @@ enum BookingAuditAction {
   CANCELLED     @map("cancelled")
   ACCEPTED      @map("accepted")
   REJECTED      @map("rejected")
-  PENDING       @map("pending")
-  AWAITING_HOST @map("awaiting_host")
   RESCHEDULED   @map("rescheduled")
 
   // Attendee management
   ATTENDEE_ADDED   @map("attendee_added")
   ATTENDEE_REMOVED @map("attendee_removed")
 
-  // Cancellation/Rejection/Assignment reasons
-  CANCELLATION_REASON_UPDATED @map("cancellation_reason_updated")
-  REJECTION_REASON_UPDATED    @map("rejection_reason_updated")
-  ASSIGNMENT_REASON_UPDATED   @map("assignment_reason_updated")
-  REASSIGNMENT_REASON_UPDATED @map("reassignment_reason_updated")
+  // Assignment/Reassignment
+  REASSIGNMENT @map("reassignment")
 
   // Meeting details
   LOCATION_CHANGED    @map("location_changed")
-  MEETING_URL_UPDATED @map("meeting_url_updated")
 
   // No-show tracking
   HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
@@ -174,23 +186,95 @@ enum BookingAuditAction {
    - `CREATED`
 
 2. **Status Changes**: Track booking lifecycle transitions
-   - `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`, `RESCHEDULED`
+   - `CANCELLED`, `ACCEPTED`, `REJECTED`, `RESCHEDULED`
 
 3. **Attendee Management**: Track changes to booking participants
    - `ATTENDEE_ADDED`, `ATTENDEE_REMOVED`
 
-4. **Reason Updates**: Track updates to explanatory text fields
-   - `CANCELLATION_REASON_UPDATED`, `REJECTION_REASON_UPDATED`
-   - `ASSIGNMENT_REASON_UPDATED`, `REASSIGNMENT_REASON_UPDATED`
+4. **Assignment/Reassignment**: Track booking host assignment changes
+   - `REASSIGNMENT`
 
 5. **Meeting Details**: Track changes to meeting logistics
-   - `LOCATION_CHANGED`, `MEETING_URL_UPDATED`
+   - `LOCATION_CHANGED`
 
 6. **No-Show Tracking**: Track attendance issues
    - `HOST_NO_SHOW_UPDATED`, `ATTENDEE_NO_SHOW_UPDATED`
 
 7. **Rescheduling**: Track reschedule requests
    - `RESCHEDULE_REQUESTED`
+
+---
+
+## Schema Structure - Change Tracking
+
+All audit actions follow a consistent structure for tracking changes. This structure ensures complete audit trail coverage by capturing both the old and new values for every tracked field.
+
+### Core Pattern
+
+Each action stores a flat object with all relevant fields. Each field tracks both old and new values:
+
+```typescript
+{
+  field1: { old: T | null, new: T },
+  field2: { old: T | null, new: T },
+  field3: { old: T | null, new: T }  // Optional fields as needed
+}
+```
+
+### Change Tracking
+
+**All fields use the same pattern** - `{ old: T | null, new: T }`:
+- `old`: The previous value (null if the field didn't exist before)
+- `new`: The new value after the change
+
+**Examples:**
+```typescript
+// Simple field changes
+status: { old: "ACCEPTED", new: "CANCELLED" }
+location: { old: "Zoom", new: "Google Meet" }
+
+// New fields (old is null)
+cancellationReason: { old: null, new: "Client requested" }
+```
+
+### Semantic Clarity at Application Layer
+
+**Action Services decide what to display prominently.** Each Action Service has methods like `getDisplayDetails()` that determine:
+- Which fields are most important to show by default
+- Which fields should be available but not emphasized
+- How to format the data for display
+
+This keeps the data structure simple while maintaining semantic clarity where it matters - in the UI.
+
+### Benefits
+
+1. **Complete Audit Trail**: Full before/after state captured for every change
+2. **Self-Contained Records**: Each record has complete context without querying previous records
+3. **Simple Structure**: Flat object, easy to work with and extend
+4. **Better UI**: Action Services decide what to emphasize based on user needs
+5. **State Reconstruction**: Can rebuild booking state at any point in the audit timeline
+6. **Easier Debugging**: See exact state transitions in each record
+7. **Type Safety**: Zod schemas validate the structure while keeping it flexible
+
+### Examples by Action
+
+#### Simple Action
+```typescript
+// LOCATION_CHANGED
+{
+  location: { old: "Zoom", new: "Google Meet" }
+}
+```
+
+#### Action with Multiple Fields
+```typescript
+// CANCELLED
+{
+  cancellationReason: { old: null, new: "Client requested" },
+  cancelledBy: { old: null, new: "user@example.com" },
+  status: { old: "ACCEPTED", new: "CANCELLED" }
+}
+```
 
 ---
 
@@ -213,52 +297,52 @@ Used when a booking is initially created. Records the complete state at creation
 
 **Design Decision:** The `status` field accepts any `BookingStatus` value, not just the expected creation statuses (ACCEPTED, PENDING, AWAITING_HOST). This follows the principle of capturing reality rather than enforcing business rules in the audit layer. If a booking is ever created with an unexpected status due to a bug, we want to record that fact for debugging purposes rather than silently skip the audit record.
 
+**Note:** The CREATED action is unique - it captures the initial booking state at creation, so it doesn't use the `{ old, new }` tracking pattern. It's a flat object with just the initial values: `{ startTime, endTime, status }`.
+
 ---
 
 ### Status Change Actions
 
 #### ACCEPTED
-Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Often includes other field changes like calendar references and meeting URLs.
+Used when a booking status changes to accepted.
 
 ```typescript
 {
-  changes?: Array<ChangeSchema>  // Tracks status change + any other field changes (e.g., references, metadata.videoCallUrl)
+  status  // { old: "PENDING", new: "ACCEPTED" }
 }
 ```
 
 #### CANCELLED
 ```typescript
 {
-  cancellationReason: string
+  cancellationReason,  // { old: null, new: "Client requested" }
+  cancelledBy,         // { old: null, new: "user@example.com" }
+  status               // { old: "ACCEPTED", new: "CANCELLED" }
 }
 ```
-
-**Design Decision:** Does not store meeting time. The booking's start/end times are immutable and available in the Booking table. The audit only stores what changed (the cancellation reason).
 
 #### REJECTED
 ```typescript
 {
-  rejectionReason: string
+  rejectionReason,  // { old: null, new: "Does not meet requirements" }
+  status            // { old: "PENDING", new: "REJECTED" }
 }
 ```
-
-**Design Decision:** Does not store meeting time. Only the rejection reason changes during this action.
 
 #### RESCHEDULED
 ```typescript
 {
-  startTime: string  // New start time (ISO 8601)
-  endTime: string    // New end time (ISO 8601)
+  startTime,  // { old: "2024-01-15T10:00:00Z", new: "2024-01-16T14:00:00Z" }
+  endTime     // { old: "2024-01-15T11:00:00Z", new: "2024-01-16T15:00:00Z" }
 }
 ```
-
-**Design Decision:** Stores both new start and end times since these are what changed. The old times are available in previous audit records or can be queried from the booking table.
 
 #### RESCHEDULE_REQUESTED
 ```typescript
 {
-  cancellationReason?: string  // Optional reason
-  changes: Array<ChangeSchema>
+  cancellationReason,  // { old: null, new: "Need to reschedule" }
+  cancelledBy,         // { old: null, new: "user@example.com" }
+  rescheduled?         // { old: false, new: true } - optional
 }
 ```
 
@@ -269,55 +353,33 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### ATTENDEE_ADDED
 ```typescript
 {
-  addedGuests: string[]  // Array of guest emails
-  changes: Array<ChangeSchema>
+  addedAttendees  // { old: null, new: ["email@example.com", ...] }
 }
 ```
+
+Tracks attendee(s) that were added in this action. Old value is null since we're tracking the delta, not full state.
 
 #### ATTENDEE_REMOVED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  removedAttendees  // { old: null, new: ["email@example.com", ...] }
 }
 ```
+
+Tracks attendee(s) that were removed in this action. Old value is null since we're tracking the delta, not full state.
 
 ---
 
 ### Assignment/Reassignment Actions
 
-#### ASSIGNMENT_REASON_UPDATED
+#### REASSIGNMENT
 ```typescript
 {
-  assignmentMethod: 'manual' | 'round_robin' | 'salesforce' | 'routing_form' | 'crm_ownership'
-  assignmentDetails: AssignmentDetailsSchema
-}
-```
-
-#### REASSIGNMENT_REASON_UPDATED
-```typescript
-{
-  reassignmentReason: string
-  assignmentMethod: 'manual' | 'round_robin' | 'salesforce' | 'routing_form' | 'crm_ownership'
-  assignmentDetails: AssignmentDetailsSchema
-  changes: Array<ChangeSchema>
-}
-```
-
----
-
-### Reason Update Actions
-
-#### CANCELLATION_REASON_UPDATED
-```typescript
-{
-  cancellationReason: string
-}
-```
-
-#### REJECTION_REASON_UPDATED
-```typescript
-{
-  rejectionReason: string
+  assignedToId,        // { old: 123, new: 456 }
+  assignedById,        // { old: 789, new: 789 }
+  reassignmentReason,  // { old: null, new: "Coverage needed" }
+  userPrimaryEmail?,   // { old: "old@cal.com", new: "new@cal.com" } - optional
+  title?               // { old: "Meeting with A", new: "Meeting with B" } - optional
 }
 ```
 
@@ -328,14 +390,7 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### LOCATION_CHANGED
 ```typescript
 {
-  changes: Array<ChangeSchema>
-}
-```
-
-#### MEETING_URL_UPDATED
-```typescript
-{
-  changes: Array<ChangeSchema>
+  location  // { old: "Zoom", new: "Google Meet" }
 }
 ```
 
@@ -346,14 +401,14 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### HOST_NO_SHOW_UPDATED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  noShowHost  // { old: false, new: true }
 }
 ```
 
 #### ATTENDEE_NO_SHOW_UPDATED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  noShowAttendee  // { old: false, new: true }
 }
 ```
 
@@ -368,60 +423,24 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 
 ### Supporting Schemas
 
-#### ChangeSchema
+#### Change Tracking Pattern
 
-Tracks field-level changes in audit records. Used to capture what other fields changed alongside the primary action.
+**All changes use the `{ old, new }` pattern:**
 
+Each field tracks both old and new values:
 ```typescript
-{
-  field: string          // Name of the field that changed
-  oldValue: unknown      // Value before change (optional for creation)
-  newValue: unknown      // Value after change (optional for deletion)
+fieldName: { 
+  old: T | null,  // Previous value (null if field didn't exist)
+  new: T          // New value
 }
 ```
 
-**Purpose:**
-The `changes` array captures additional field modifications that occur during an action. For example:
-- **ACCEPTED**: Tracks status change + calendar references + meeting URL updates
-- **LOCATION_CHANGED**: Tracks old and new location values
-- **ATTENDEE_ADDED**: Tracks which attendee fields were modified
-
-**Usage:**
-- Field creation: Only `field` and `newValue` present
-- Field update: All three fields present
-- Field deletion: Only `field` and `oldValue` present
-
----
-
-#### AssignmentDetailsSchema
-
-Tracks assignment/reassignment context for round-robin and manual assignment:
-
-```typescript
-{
-  // IDs for querying
-  teamId: number (optional)
-  teamName: string (optional)
-  
-  // User details (historical snapshot)
-  assignedUser: {
-    id: number
-    name: string
-    email: string
-  }
-  
-  previousUser: {          // Optional: first assignment has no previous user
-    id: number
-    name: string
-    email: string
-  } (optional)
-}
-```
-
-**Purpose:**
-- Maintains historical snapshot of user information for display
-- Stores team context for team-based assignments
-- Tracks reassignment history (previous → current user)
+**Benefits:**
+- Complete before/after state in every record
+- Self-contained audit entries (no need to query previous records)
+- Clear state transitions
+- Easier debugging and UI display
+- Simple flat structure that's easy to work with
 
 ---
 
@@ -518,42 +537,76 @@ Different actions have different data requirements:
 - `CANCELLED` needs `cancellationReason`
 - `RESCHEDULED` needs new `startTime` and `endTime`
 - `ATTENDEE_ADDED` needs `attendee` information
-- `REASSIGNMENT_REASON_UPDATED` needs assignment context
+- `REASSIGNMENT` needs assignment context
 
 When we update the schema for one action, we don't want to affect other actions.
 
 ### Implementation Approach
 
-Each action has a dedicated Action Helper Service that defines:
-1. **Schema Definition**: Zod schema specifying required/optional fields
-2. **Schema Version**: Tracked per-action type (e.g., `CANCELLED_v1`, `RESCHEDULED_v1`)
-3. **Validation**: Type-safe validation of audit data
-4. **Display Logic**: How to render the audit record in the UI
+Each action has a dedicated Action Service that manages its own versioning independently. The service defines:
 
-**Example Action Helper Services:**
-- `CreatedAuditActionHelperService` → Handles `CREATED` action
-- `CancelledAuditActionHelperService` → Handles `CANCELLED` action
-- `RescheduledAuditActionHelperService` → Handles `RESCHEDULED` action
-- `ReassignmentAuditActionHelperService` → Handles `REASSIGNMENT_REASON_UPDATED` action
+1. **Schema Definition**: Zod schemas for data validation
+2. **Schema Version**: Each action maintains its own VERSION constant
+3. **Nested Structure**: Version stored separately from audit data: `{ version, data: {} }`
+4. **Type Separation**: Distinct types for input (no version) and stored format (with version)
+5. **Validation**: Type-safe validation of audit data
+6. **Display Logic**: How to render the audit record in the UI
+
+**Example Action Services:**
+- `CreatedAuditActionService` → Handles `CREATED` action
+- `CancelledAuditActionService` → Handles `CANCELLED` action
+- `RescheduledAuditActionService` → Handles `RESCHEDULED` action
+- `ReassignmentAuditActionService` → Handles `REASSIGNMENT` action
+
+### Version Storage Structure
+
+Audit data is stored with a nested structure that separates version metadata from actual audit data:
+
+```typescript
+{
+  version: 1,
+  data: {
+    cancellationReason: { old: null, new: "Client requested" },
+    cancelledBy: { old: null, new: "user@cal.com" },
+    status: { old: "ACCEPTED", new: "CANCELLED" }
+  }
+}
+```
+
+**Benefits of Nested Structure:**
+- Clear separation between metadata (version) and actual audit data
+- Makes it easy to extract just the data fields for display
+- Version handling is transparent to end users
+- Schema evolution is self-documenting
+
+**Key Points:**
+- Callers pass unversioned data (just the fields)
+- `parse()` automatically wraps input with version before storing
+- `parseStored()` validates stored data including version
+- Display methods receive full stored record but only show data fields
+- Type system enforces correct usage (input vs stored types)
 
 ### Benefits of Per-Action Versioning
 
 - **Independent Evolution**: Update one action's schema without affecting others
 - **Explicit Changes**: Version increments are tied to specific business operations
-- **Easier Migration**: Only need to migrate records for the specific action that changed
+- **No Migration Required**: Old records handled via discriminated unions
 - **Clear History**: Can track schema changes per action type over time
-- **Type Safety**: Each action has a strongly-typed schema
+- **Type Safety**: Each action has strongly-typed schemas for input and storage
+- **Caller Simplicity**: Callers don't need to know about versioning
+- **Display Isolation**: Version handling is internal to Action Services
 
-### Version Tracking
 
-Versions are tracked in the Action Helper Service classes:
-```typescript
-// Example: When CANCELLED schema changes
-CancelledAuditActionHelperService.schema // v1
-// Later, when adding a new field:
-CancelledAuditActionHelperService.schema // v2
-// Other actions remain at their current version
-```
+When adding a new version (e.g., v2 with a new field):
+
+**Migration Steps:**
+1. Create `dataSchemaV2` with new fields
+2. Create `schemaV2` with `version: z.literal(2)`
+3. Update `schema` to discriminated union supporting both v1 and v2
+4. Update `VERSION` constant to 2
+5. Update `parse()` to use v2 schema
+6. Update display methods to handle both versions
+7. No changes needed to callers or database
 
 ---
 
@@ -565,11 +618,11 @@ Audit records are append-only. Once created, they are never modified or deleted.
 - Tamper-proof audit trail
 - Compliance with audit requirements
 
-### 2. Historical Preservation
+### 2. Historical Preservation & Pseudonymization
 Actor information is preserved even after source records are deleted:
-- User deletion doesn't remove Actor records
-- Actor table maintains snapshot of user/guest information
-- Audit trail remains complete and queryable
+- User deletion doesn't remove Actor records - they are pseudonymized instead
+- Actor table maintains pseudonymized snapshot of user/guest information without PII
+- Audit trail remains complete, queryable, and compliant with HIPAA/GDPR requirements
 
 ### 3. Flexibility
 The JSON `data` field provides schema flexibility:
@@ -629,56 +682,29 @@ await auditService.onBookingCreated(bookingId, userId, {
 
 ---
 
-## Common Query Patterns
+## 7. Compliance & Data Privacy
 
-### Get All Audits for a Booking
+**GDPR & HIPAA Compliance:**
+- **Actor records are NOT deleted on user deletion** - Instead, Actor records are pseudonymized (email/phone/name nullified) to preserve the immutable audit trail as required by HIPAA §164.312(b)
+- **Cal.com's HIPAA compliance** requires audit records to remain immutable and tamper-proof. The Actor table design ensures BookingAudit records are never modified, only the referenced Actor record is pseudonymized
+- **GDPR Article 17 compliance** is achieved through pseudonymization: When a user/guest requests deletion, set `userId=null`, `email=null`, `phone=null`, `name=null` on the Actor record, and store `pseudonymizedAt` timestamp + `scheduledDeletionDate` for compliance tracking
+- **Retention Policy**: Actor records should be fully anonymized after 6-7 years per legal requirements
 
+**Implementation Pattern:**
 ```typescript
-const audits = await prisma.bookingAudit.findMany({
-  where: { bookingId: "booking-uuid" },
-  include: { actor: true },
-  orderBy: { timestamp: 'asc' }
+// On user deletion: Pseudonymize, don't delete
+await prisma.actor.update({
+  where: { userId: deletedUserId },
+  data: {
+    userId: null,
+    email: null,
+    phone: null,
+    name: null,
+    pseudonymizedAt: new Date(),
+    scheduledDeletionDate: new Date(Date.now() + 7 * 365 * 24 * 60 * 60 * 1000)
+  }
 });
-```
-
-### Get All Actions by a User
-
-```typescript
-const actor = await prisma.actor.findUnique({
-  where: { userId: 123 }
-});
-
-const audits = await prisma.bookingAudit.findMany({
-  where: { actorId: actor.id },
-  orderBy: { timestamp: 'desc' }
-});
-```
-
-### Get All Cancellations
-
-```typescript
-const cancellations = await prisma.bookingAudit.findMany({
-  where: {
-    action: 'CANCELLED',
-    type: 'RECORD_UPDATED'
-  },
-  include: { actor: true }
-});
-```
-
-### Get Audit Trail with Field Changes
-
-```typescript
-const audits = await prisma.bookingAudit.findMany({
-  where: { bookingId: "booking-uuid" },
-  select: {
-    timestamp: true,
-    action: true,
-    actor: { select: { name: true, email: true, type: true } },
-    data: true  // Contains 'changes' array
-  },
-  orderBy: { timestamp: 'asc' }
-});
+// Result: All BookingAudit records reference pseudonymized actor - audit trail preserved, immutable
 ```
 
 ---
@@ -708,16 +734,48 @@ The audit system is accessed through `BookingAuditService`, which provides:
 - `onAttendeeAdded()` - Track attendee addition
 - `onAttendeeRemoved()` - Track attendee removal
 - `onLocationChanged()` - Track location changes
-- `onMeetingUrlUpdated()` - Track meeting URL updates
 - `onHostNoShowUpdated()` - Track host no-show
 - `onAttendeeNoShowUpdated()` - Track attendee no-show
-- And more...
+- `onReassignment()` - Track booking reassignment
+- `onRescheduleRequested()` - Track reschedule requests
 
 ### Actor Management
 
 - `getOrCreateUserActor()` - Ensures User actors exist before creating audits
 - Automatic Actor creation/lookup for registered users
 - System actor for automated actions
+
+### Future: Trigger.dev Task Orchestration
+
+**Current Flow (Synchronous):**
+```
+Booking Endpoint → BookingEventHandler.onBookingCreated() → await auditService, linkService, webhookService
+```
+
+**Future Flow (Async with Trigger.dev):**
+```
+Booking Endpoint 
+  ↓
+BookingEventHandler.onBookingCreated() [orchestrator]
+  ├─ tasks.trigger('bookingAudit', { bookingId, userId, data })
+  ├─ tasks.trigger('invalidateHashedLink', { bookingId, hashedLink })
+  ├─ tasks.trigger('sendNotifications', { bookingId, email, sms })
+  ├─ tasks.trigger('triggerWorkflows', { bookingId, event: 'NEW_EVENT' })
+  └─ Immediately returns to user (non-blocking)
+  
+Trigger.dev Queue
+  ├─ Task: Booking Audit (with retries, monitoring)
+  ├─ Task: Hashed Link Invalidation (independent)
+  ├─ Task: Email & SMS Notifications (independent)
+  └─ Task: Workflow Triggers (independent)
+```
+
+**Key Principles:**
+- **BookingEventHandler remains the single orchestrator** - Entry point for all side effects
+- **Each task is independent** - One task failure doesn't block others
+- **Persistent queue** - Trigger.dev handles retries, monitoring, and observability
+- **Easy to add features** - New side effect = new task definition, no BookingEventHandler complexity
+- **Immutable audit records** - Booking audit is just one of many tasks, preserving the immutability principle
 
 ---
 
@@ -726,12 +784,12 @@ The audit system is accessed through `BookingAuditService`, which provides:
 The Booking Audit System provides a robust, scalable architecture for tracking all booking-related actions. Key features include:
 
 - ✅ **Complete Audit Trail**: Every action tracked with full context
-- ✅ **Historical Preservation**: Data retained even after deletions
+- ✅ **Historical Preservation**: Data retained even after deletions through pseudonymization
 - ✅ **Flexible Schema**: JSON data supports evolution without migrations
 - ✅ **Strong Integrity**: Database constraints ensure data quality
 - ✅ **Performance**: Strategic indexes for common query patterns
-- ✅ **Compliance Ready**: Immutable, traceable audit records
+- ✅ **HIPAA & GDPR Compliant**: Immutable audit records, pseudonymized actors, compliance-ready
 - ✅ **Reality-Based Recording**: Captures actual state, aiding in debugging and analysis
 
-This architecture supports compliance requirements, debugging, analytics, and provides transparency for both users and administrators.
+This architecture supports compliance requirements (HIPAA §164.312(b), GDPR Article 17), debugging, analytics, and provides transparency for both users and administrators.
 

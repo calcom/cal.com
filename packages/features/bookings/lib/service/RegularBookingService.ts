@@ -124,7 +124,6 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -420,7 +419,6 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
-  bookingEventHandler: BookingEventHandlerService;
 }
 
 /**
@@ -522,7 +520,6 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     _isDryRun: isDryRun = false,
-    _shouldServeCache: shouldServeCache = false,
     ...reqBody
   } = bookingData;
 
@@ -562,7 +559,7 @@ async function handler(
     });
   }
 
-  if (eventType.requiresBookerEmailVerification) {
+  if (eventType.requiresBookerEmailVerification && !rawBookingData.rescheduleUid) {
     const verificationCode = reqBody.verificationCode;
     if (!verificationCode) {
       throw new HttpError({
@@ -667,10 +664,10 @@ async function handler(
     }
   }
 
-  // const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
-
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
+
+  const shouldServeCache = false;
 
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
@@ -2233,26 +2230,21 @@ async function handler(
       // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
       hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     },
-    booking: {
-      id: booking.id,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: booking.status,
-      userId: booking.userId,
-      user: {
-        id: organizerUser.id,
-      },
-    }
   };
 
   // Add more fields here when needed
   const bookingRescheduledPayload = bookingCreatedPayload;
 
+  const bookingEventHandler = new BookingEventHandlerService({
+    log: loggerWithEventDetails,
+    hashedLinkService: deps.hashedLinkService,
+  });
+
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
-    await deps.bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
-    await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
   }
 
   const webhookData: EventPayloadType = {
