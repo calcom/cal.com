@@ -153,6 +153,7 @@ test.describe("Insights > Charts Loading", () => {
 
       // Navigate to insights routing page
       await page.goto("/insights/routing");
+      await expect(page).toHaveURL(/\/insights\/routing/);
 
       // Wait for the page to be fully loaded
       await page.waitForLoadState("networkidle");
@@ -249,6 +250,7 @@ test.describe("Insights > Charts Loading", () => {
 
       // Navigate to insights bookings page
       await page.goto("/insights");
+      await expect(page).toHaveURL(/\/insights/);
 
       // Wait for the page to be fully loaded
       await page.waitForLoadState("networkidle");
@@ -274,10 +276,8 @@ test.describe("Insights > Charts Loading", () => {
       for (const chartId of expectedCharts) {
         const chart = page.locator(`[data-testid="chart-card"][data-chart-id="${chartId}"]`);
         // Chart should exist and be loaded
-        const count = await chart.count();
-        if (count > 0) {
-          await expect(chart.first()).toHaveAttribute("data-loading-state", "loaded");
-        }
+        await expect(chart).toHaveCount(1);
+        await expect(chart).toHaveAttribute("data-loading-state", "loaded");
       }
 
       // Verify no charts are in error state
