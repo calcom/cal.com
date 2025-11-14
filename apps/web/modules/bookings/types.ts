@@ -1,3 +1,4 @@
+import type { SeparatorRow } from "@calcom/features/data-table/lib/separator";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
@@ -18,8 +19,6 @@ export type RowData =
       isToday: boolean;
       recurringInfo?: RecurringInfo;
     }
-  | {
-      type: "today" | "next";
-    };
+  | SeparatorRow;
 
 export type BookingListingStatus = (typeof validStatuses)[number];

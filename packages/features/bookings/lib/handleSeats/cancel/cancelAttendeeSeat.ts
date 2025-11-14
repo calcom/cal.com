@@ -1,7 +1,7 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
-import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -116,7 +116,7 @@ async function cancelAttendeeSeat(
 
     try {
       await Promise.all(integrationsToUpdate);
-    } catch (error) {
+    } catch {
       // Shouldn't stop code execution if integrations fail
       // as integrations was already updated
     }
