@@ -11495,6 +11495,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@posthog/core@npm:1.5.2":
+  version: 1.5.2
+  resolution: "@posthog/core@npm:1.5.2"
+  dependencies:
+    cross-spawn: ^7.0.6
+  checksum: 22388aa69344c7352645ecbc80ea161bfcf5139150817faae01e43766289d373d15c4cb19a942cb2c76f82e020e616ff8ab859b3ba89746b8c5115ab9d3ea33d
+  languageName: node
+  linkType: hard
+
 "@prettier/sync@npm:^0.6.1":
   version: 0.6.1
   resolution: "@prettier/sync@npm:0.6.1"
@@ -40039,6 +40048,19 @@ __metadata:
   version: 1.1.4
   resolution: "postgres-range@npm:1.1.4"
   checksum: 460af8c882a50e2c3d08ede5d5ee9e5e5a99dcf471e3ed55b4c17cad62dc85177b51bb8105b626a9c73de9edcba934e86665923b0d86e1c8e1f55d3e0f3530c6
+  languageName: node
+  linkType: hard
+
+"posthog-js@npm:^1.167.0":
+  version: 1.292.0
+  resolution: "posthog-js@npm:1.292.0"
+  dependencies:
+    "@posthog/core": 1.5.2
+    core-js: ^3.38.1
+    fflate: ^0.4.8
+    preact: ^10.19.3
+    web-vitals: ^4.2.4
+  checksum: 7e92719e5354452b646b90752f49b963f687245b6b31f7d6dd4fa2962d4075259475e2eeeb2755e316322a1af5488551c7d1724c037e3235ee31d5540faddf9f
   languageName: node
   linkType: hard
 
