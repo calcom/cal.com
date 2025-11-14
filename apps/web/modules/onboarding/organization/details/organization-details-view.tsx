@@ -95,10 +95,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         }>
         {/* Form */}
         <div className="relative flex">
-          {/* Scrollable content container */}
-          <div className="relative h-full w-full gap-6 px-2 py-2">
-            {/* Top fade overlay */}
-
+          <div className="relative h-full w-full gap-6 py-2 pr-2">
             <div className="flex w-full flex-col gap-4 rounded-xl">
               {/* Organization Name */}
               <div className="flex w-full flex-col gap-1.5">
