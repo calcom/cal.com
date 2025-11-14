@@ -142,6 +142,7 @@ export default function BannerUploader({
 }: BannerUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
@@ -190,6 +191,7 @@ export default function BannerUploader({
           finalWidth
         );
         handleAvatarChange(croppedImage);
+        setIsDialogOpen(false);
       } catch (e) {
         console.error(e);
       }
@@ -241,7 +243,9 @@ export default function BannerUploader({
 
   return (
     <Dialog
+      open={isDialogOpen}
       onOpenChange={(opened) => {
+        setIsDialogOpen(opened);
         // unset file on close
         if (!opened) {
           setFile(null);
