@@ -41,7 +41,7 @@ const SheetOverlay = React.forwardRef<
       ref={forwardedRef}
       className={classNames(
         // base
-        "fixed inset-0 z-50 overflow-y-auto",
+        "fixed inset-0 z-40 overflow-y-auto",
         // background color
         "bg-black/30",
         // transition
@@ -62,27 +62,30 @@ SheetOverlay.displayName = "SheetOverlay";
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitives.Content>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content>
->(({ className, ...props }, forwardedRef) => {
+>(({ className, style, ...props }, forwardedRef) => {
   return (
     <SheetPortal>
-      <SheetOverlay>
-        <SheetPrimitives.Content
-          ref={forwardedRef}
-          className={classNames(
-            // base
-            "fixed inset-x-0 inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:inset-x-auto sm:right-2 sm:max-w-lg sm:p-6",
-            // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
-            // border color
-            "border-subtle",
-            // background color
-            "bg-default",
-            // transition
-            "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
-            className
-          )}
-          {...props}
-        />
-      </SheetOverlay>
+      <SheetOverlay />
+      <SheetPrimitives.Content
+        ref={forwardedRef}
+        className={classNames(
+          // base
+          "fixed inset-x-0 inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:inset-x-auto sm:right-2 sm:max-w-lg sm:p-6",
+          // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
+          // border color
+          "border-subtle",
+          // background color
+          "bg-default",
+          // transition
+          "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
+          className
+        )}
+        style={{
+          ...style,
+          zIndex: 45,
+        }}
+        {...props}
+      />
     </SheetPortal>
   );
 });

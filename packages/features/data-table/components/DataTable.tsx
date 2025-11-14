@@ -400,7 +400,28 @@ function DataTableBody<TData>({
             {...computedDataAttributes}
             data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
-            onClick={() => onRowMouseclick && onRowMouseclick(row)}
+            onClick={(e) => {
+              if (!onRowMouseclick) return;
+
+              // Prevent row click if clicking on interactive elements (buttons, dropdowns, links, etc.)
+              const target = e.target as HTMLElement;
+              const isInteractiveElement =
+                target.closest("button") ||
+                target.closest("a") ||
+                target.closest('[role="button"]') ||
+                target.closest('[role="menuitem"]') ||
+                target.closest('[data-radix-dropdown-menu-trigger]') ||
+                target.closest('[data-radix-dropdown-menu-content]') ||
+                target.closest('[data-radix-dialog-trigger]');
+
+              if (isInteractiveElement) return;
+
+              // Guard: prevent row click from re-triggering when a dialog is already open
+              const hasOpenDialog = document.querySelector('[data-radix-dialog-content][data-state="open"]');
+              if (hasOpenDialog) return;
+
+              onRowMouseclick(row);
+            }}
             style={{
               display: "flex",
               ...(virtualItem && {

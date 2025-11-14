@@ -114,9 +114,28 @@ function BookingDetailsSheetInner({
         .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
+  const handleOpenChange = (open: boolean) => {
+    // Prevent closing if a dialog is currently open
+    if (!open) {
+      const hasOpenDialog = document.querySelector('[data-radix-dialog-content][data-state="open"]');
+      if (hasOpenDialog) {
+        return;
+      }
+    }
+    onClose();
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="overflow-y-auto">
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent
+        className="overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          // Prevent sheet from closing when clicking on dialog overlays or content
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-radix-dialog-overlay]') || target.closest('[data-radix-dialog-content]')) {
+            e.preventDefault();
+          }
+        }}>
         <SheetHeader
           showCloseButton={false}
           rightContent={

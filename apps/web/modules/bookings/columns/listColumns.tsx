@@ -477,7 +477,12 @@ export function buildListDisplayColumns({ t, user, pendingActionHandlers }: Buil
         const showAllLabel = (isTabRecurring || isTabUnconfirmed) && isRecurring;
 
         return (
-          <div className="flex w-full items-center justify-end gap-2">
+          <div
+            className="flex w-full items-center justify-end gap-2"
+            onClick={(e) => {
+              // Prevent clicks in the actions column from bubbling to row click
+              e.stopPropagation();
+            }}>
             {shouldShowReject && (
               <Button
                 color="minimal"
