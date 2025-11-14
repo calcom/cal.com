@@ -187,6 +187,16 @@ const GuestNotificationsView = ({ currentOrg, permissions }: GuestNotificationsV
     }
   };
 
+  const getConfirmButtonText = () => {
+    if (!pendingChanges) return t("confirm");
+    
+    if (pendingChanges.type === 'disable_all') {
+      return pendingChanges.value ? "Disable all" : "Enable all";
+    } else {
+      return pendingChanges.value ? "Enable email" : "Disable email";
+    }
+  };
+
   const getConfirmationMessage = () => {
     if (!pendingChanges) return "";
     
@@ -243,7 +253,7 @@ const GuestNotificationsView = ({ currentOrg, permissions }: GuestNotificationsV
         message={t("guest_notifications_critical_warning")}
       />
 
-      <div className="mt-4 space-y-6">
+      <div className="mt-2 space-y-6">
         {/* Disable all guest emails toggle */}
         <SettingsToggle
         toggleSwitchAtTheEnd={true}
@@ -309,7 +319,7 @@ const GuestNotificationsView = ({ currentOrg, permissions }: GuestNotificationsV
         <ConfirmationDialogContent
           variety="warning"
           title={getConfirmationTitle()}
-          confirmBtnText={t("confirm")}
+          confirmBtnText={getConfirmButtonText()}
           onConfirm={handleConfirmChange}
           isPending={mutation?.isPending}>
           <div className="mt-2">{getConfirmationMessage()}</div>
