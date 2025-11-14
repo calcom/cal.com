@@ -2636,7 +2636,7 @@ async function handler(
           }
         }
       } catch (err) {
-        loggerWithEventDetails.error("bookingEmailAndSmsTasker error", err);
+        tracingLogger.error("bookingEmailAndSmsTasker error", err);
       }
     }
   }
