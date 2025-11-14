@@ -1,4 +1,3 @@
-import { prismaExtension } from "@trigger.dev/build/extensions/prisma";
 import { defineConfig } from "@trigger.dev/sdk";
 
 export default defineConfig({
@@ -22,16 +21,9 @@ export default defineConfig({
 
   // Build configuration (optional)
   build: {
-    extensions: [
-      prismaExtension({
-        schema: "../prisma/schema.prisma",
-        clientGenerator: "trigger",
-        version: "6.16.1",
-      }),
-    ],
     external: ["nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
   },
 
   // Max duration of a task in seconds
-  maxDuration: 3600,
+  maxDuration: 600,
 });
