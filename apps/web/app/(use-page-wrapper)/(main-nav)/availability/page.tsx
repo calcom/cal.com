@@ -64,8 +64,8 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const organizationRepository = getOrganizationRepository();
   const isOrgPrivate = organizationId
     ? await organizationRepository.checkIfPrivate({
-        orgId: organizationId,
-      })
+      orgId: organizationId,
+    })
     : false;
 
   const permissionService = new PermissionCheckService();
@@ -81,12 +81,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       heading={t("availability")}
       subtitle={t("configure_availability")}
       CTA={
-        <AvailabilityCTA
-          toggleGroupOptions={[
-            { value: "mine", label: t("my_availability") },
-            ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
-          ]}
-        />
+        <AvailabilityCTA canViewTeamAvailability={canViewTeamAvailability} />
       }>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />

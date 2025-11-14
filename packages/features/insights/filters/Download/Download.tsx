@@ -1,4 +1,5 @@
 import { useState } from "react";
+import posthog from "posthog-js";
 
 import dayjs from "@calcom/dayjs";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -45,13 +46,14 @@ const Download = () => {
         return result as PaginatedResponse;
       }
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   };
 
   const handleDownloadClick = async () => {
     try {
+      posthog.capture("insights_bookings_download_clicked", { teamId: insightsBookingParams.selectedTeamId });
       setIsDownloading(true);
       showProgressToast(0);
       let allData: RawData[] = [];
@@ -82,7 +84,7 @@ const Download = () => {
         )}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
-    } catch (error) {
+    } catch {
       showToast(t("unexpected_error_try_again"), "error");
     } finally {
       setIsDownloading(false);

@@ -24,7 +24,7 @@ function Provider({ children }: { children: React.ReactNode }) {
       capture_pageview: false,
       capture_pageleave: false,
       disable_session_recording: true,
-      advanced_disable_decide: true,
+      advanced_disable_flags: true,
       loaded: (posthog) => {
         if (process.env.NODE_ENV === "development") posthog.debug();
       },

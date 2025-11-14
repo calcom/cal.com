@@ -4,6 +4,7 @@ import { cva } from "class-variance-authority";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import React from "react";
+import posthog from "posthog-js";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -141,6 +142,8 @@ export interface BaseCardProps extends CVACardType {
   structure?: string;
   coverPhoto?: string;
   buttonClassName?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trackingMetadata?: Record<string, any>;
 }
 
 export function Card({
@@ -157,6 +160,7 @@ export function Card({
   learnMore,
   coverPhoto,
   buttonClassName,
+  trackingMetadata,
 }: BaseCardProps) {
   const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
   return (
@@ -200,7 +204,12 @@ export function Card({
       </div>
       {variant === "SidebarCard" && mediaLink && (
         <a
-          onClick={actionButton?.onClick}
+          onClick={(e) => {
+            if (trackingMetadata) {
+              posthog.capture("tip_video_clicked", trackingMetadata);
+            }
+            actionButton?.onClick?.(e);
+          }}
           target="_blank"
           rel="noreferrer noopener"
           href={mediaLink}
@@ -253,6 +262,11 @@ export function Card({
               href={learnMore.href}
               target="_blank"
               rel="noreferrer"
+              onClick={() => {
+                if (trackingMetadata) {
+                  posthog.capture("tip_learn_more_clicked", trackingMetadata);
+                }
+              }}
               className={classNames("text-default text-xs font-medium", buttonClassName)}>
               {learnMore.text}
             </LinkComponent>
@@ -265,7 +279,12 @@ export function Card({
               )}
               color="minimal"
               data-testid={actionButton?.["data-testid"]}
-              onClick={actionButton?.onClick}>
+              onClick={(e) => {
+                if (trackingMetadata) {
+                  posthog.capture("tip_dismiss_clicked", trackingMetadata);
+                }
+                actionButton?.onClick?.(e);
+              }}>
               {actionButton?.child}
             </button>
           )}

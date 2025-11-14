@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -171,6 +172,7 @@ export function SaveFilterSegmentButton() {
         <Button
           StartIcon="bookmark"
           color="secondary"
+          onClick={() => posthog.capture("insights_routing_save_filter_clicked")}
           disabled={!canSaveSegment}
           data-testid="save-filter-segment-button">
           {t("save")}

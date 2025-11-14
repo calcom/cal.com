@@ -239,6 +239,7 @@ function Tips() {
                   actionButton={
                     isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
                   }
+                  trackingMetadata={isTopTip ? tip : undefined}
                   containerProps={{
                     tabIndex: isTopTip ? undefined : -1,
                     "aria-hidden": isTopTip ? undefined : "true",
