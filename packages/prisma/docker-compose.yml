@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: ""
       POSTGRES_HOST_AUTH_METHOD: trust
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cal-saml"]
       interval: 10s
       timeout: 5s
       retries: 5
