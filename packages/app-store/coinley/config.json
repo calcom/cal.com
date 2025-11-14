@@ -1,0 +1,18 @@
+{
+  "name": "Coinley",
+  "slug": "coinley",
+  "type": "coinley_payment",
+  "logo": "icon.svg",
+  "url": "https://coinley.io",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Coinley Labs",
+  "email": "support@coinley.io",
+  "description": "Accept cryptocurrency payments directly to your wallet. Support for USDT, USDC, and more across multiple blockchains.",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": false,
+  "imageSrc": "icon.svg",
+  "dirName": "coinley",
+  "isOAuth": false
+}

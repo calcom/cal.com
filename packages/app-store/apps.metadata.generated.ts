@@ -16,6 +16,7 @@ import campfire_config_json from "./campfire/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
+import coinley_config_json from "./coinley/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
@@ -126,6 +127,7 @@ export const appStoreMetadata = {
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
+  coinley: coinley_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,

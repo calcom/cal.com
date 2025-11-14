@@ -1,0 +1,394 @@
+import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
+import type { IAbstractPaymentService } from "@calcom/app-store/_utils/payments/IAbstractPaymentService";
+import { v4 as uuidv4 } from "uuid";
+import prisma from "@calcom/prisma";
+import type { AppKeysSchema, SupportedNetwork, SupportedCurrency } from "../zod";
+import { appKeysSchema } from "../zod";
+import axios, { type AxiosInstance } from "axios";
+
+interface CoinleyPaymentIntent {
+  success: boolean;
+  requestId: string;
+  amount: number;
+  payment: {
+    id: string;
+    amount: number;
+    totalAmount: number;
+    currency: string;
+    network: string;
+    status: "pending" | "confirmed" | "failed";
+    expiresAt: string;
+    paymentMethod: string;
+    contractAddress?: string;
+    merchantWallet?: string;
+    coinleyWallet?: string;
+    merchantPercentage?: number;
+    coinleyPercentage?: number;
+    chainId?: number;
+    tokenAddress?: string;
+    tokenDecimals?: number;
+    [key: string]: any; // For additional fields
+  };
+}
+
+interface CoinleyPaymentDetails {
+  paymentId: string;
+  transactionHash?: string;
+  status: "pending" | "confirmed" | "failed" | "refunded";
+  network: string;
+  currency: string;
+  amount: number;
+  confirmations: number;
+  blockNumber?: number;
+  customerWallet?: string;
+  merchantWallet: string;
+  timestamp: string;
+}
+
+export class PaymentService implements IAbstractPaymentService {
+  private client: AxiosInstance;
+  private credentials: AppKeysSchema | null;
+
+  constructor(credentials: Credential) {
+    try {
+      // Validate and parse credentials
+      this.credentials = appKeysSchema.parse(credentials.key);
+
+      // Initialize Coinley API client
+      // Note: axios requires /api path explicitly (unlike SDK which adds it automatically)
+      const baseURL = this.credentials.api_url.endsWith('/api')
+        ? this.credentials.api_url
+        : `${this.credentials.api_url}/api`;
+
+      this.client = axios.create({
+        baseURL,
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": this.credentials.api_key,
+          "X-API-Secret": this.credentials.api_secret,
+        },
+        timeout: 30000,
+      });
+    } catch (error) {
+      console.error("[Coinley] Invalid credentials:", error);
+      this.credentials = null;
+      // Don't throw - just set credentials to null so isSetupAlready() returns false
+      // Throwing here breaks getConnectedApps() and causes the apps tab to hang
+      this.client = axios.create({
+        baseURL: "https://talented-mercy-production.up.railway.app/api",
+        timeout: 30000,
+      });
+    }
+  }
+
+  /**
+   * Create a new payment intent
+   */
+  async create(
+    payment: Pick<Payment, "amount" | "currency">,
+    bookingId: Booking["id"],
+    userId: number,
+    username: string | null,
+    bookerName: string | null,
+    paymentOption: PaymentOption,
+    metadata: Record<string, string>
+  ): Promise<Payment> {
+    if (!this.credentials) {
+      throw new Error("Coinley credentials not configured");
+    }
+
+    const paymentUid = uuidv4();
+
+    try {
+      console.log("[Coinley PaymentService] Creating payment for booking:", bookingId);
+
+      // Create payment intent with Coinley API
+      // Note: Merchant wallet addresses are retrieved by the backend using the API key/secret
+      const response = await this.client.post<CoinleyPaymentIntent>("/payments/create", {
+        amount: payment.amount / 100, // Convert cents to dollars
+        currency: payment.currency || "USDT",
+        network: metadata.preferredNetwork || "ethereum",
+        metadata: {
+          bookingId: bookingId.toString(),
+          userId: userId.toString(),
+          username: username || "",
+          bookerName: bookerName || "",
+          paymentUid,
+          source: "calcom",
+          ...metadata,
+        },
+        paymentOption: paymentOption === "HOLD" ? "authorize" : "capture",
+        // CallbackUrl not used - frontend handles confirmation via confirm-payment API
+        callbackUrl: "https://google.com",
+      });
+
+      const paymentIntent = response.data;
+
+      // Calculate fee (0.5% + $0.10)
+      const feePercentage = 0.005;
+      const feeFixed = 10; // cents
+      const fee = Math.round(payment.amount * feePercentage) + feeFixed;
+
+      // Store payment in database
+      const storedPayment = await prisma.payment.create({
+        data: {
+          uid: paymentUid,
+          appId: "coinley",
+          bookingId,
+          amount: payment.amount,
+          fee,
+          currency: payment.currency || "USDT",
+          success: false,
+          refunded: false,
+          data: paymentIntent as unknown as Prisma.InputJsonObject,
+          externalId: paymentIntent.payment.id,
+          paymentOption: paymentOption || "ON_BOOKING",
+        },
+      });
+
+      console.log("[Coinley] Payment created:", {
+        paymentId: paymentIntent.payment.id,
+        bookingId,
+        amount: payment.amount,
+      });
+
+      return storedPayment;
+    } catch (error: any) {
+      console.error("[Coinley] Error creating payment:", error.response?.data || error.message);
+      throw new Error(`Failed to create Coinley payment: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Collect card/wallet for later charging (HOLD payments)
+   */
+  async collectCard(
+    payment: Pick<Payment, "amount" | "currency">,
+    bookingId: Booking["id"],
+    userId: number,
+    username: string | null,
+    bookerName: string | null,
+    paymentOption: PaymentOption,
+    metadata: Record<string, string>
+  ): Promise<Payment> {
+    if (paymentOption !== "HOLD") {
+      throw new Error("collectCard requires HOLD payment option");
+    }
+
+    // For blockchain payments, collectCard and create are similar
+    // The difference is in the backend handling (authorize vs capture)
+    return this.create(payment, bookingId, userId, username, bookerName, paymentOption, metadata);
+  }
+
+  /**
+   * Charge a previously authorized payment
+   */
+  async chargeCard(payment: Payment, bookingId?: Booking["id"]): Promise<Payment> {
+    if (!this.credentials) {
+      throw new Error("Coinley credentials not configured");
+    }
+
+    try {
+      const paymentData = payment.data as CoinleyPaymentDetails;
+
+      // Capture the authorized payment
+      const response = await this.client.post<CoinleyPaymentDetails>(
+        `/payments/${paymentData.paymentId}/capture`
+      );
+
+      const capturedPayment = response.data;
+
+      // Update payment record
+      const updatedPayment = await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          success: capturedPayment.status === "confirmed",
+          data: capturedPayment as unknown as Prisma.InputJsonObject,
+        },
+      });
+
+      console.log("[Coinley] Payment captured:", {
+        paymentId: paymentData.paymentId,
+        status: capturedPayment.status,
+      });
+
+      return updatedPayment;
+    } catch (error: any) {
+      console.error("[Coinley] Error capturing payment:", error.response?.data || error.message);
+      throw new Error(`Failed to capture payment: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Refund a payment
+   */
+  async refund(paymentId: Payment["id"]): Promise<Payment> {
+    if (!this.credentials) {
+      throw new Error("Coinley credentials not configured");
+    }
+
+    try {
+      // Get payment from database
+      const payment = await this.getPayment(paymentId);
+
+      if (!payment.success) {
+        throw new Error("Cannot refund unsuccessful payment");
+      }
+
+      if (payment.refunded) {
+        throw new Error("Payment already refunded");
+      }
+
+      const paymentData = payment.data as CoinleyPaymentDetails;
+
+      // Create refund via Coinley API
+      await this.client.post(`/payments/${paymentData.paymentId}/refund`, {
+        amount: payment.amount / 100, // Convert cents to dollars
+        reason: "Booking cancelled by merchant",
+      });
+
+      // Update payment record
+      const refundedPayment = await prisma.payment.update({
+        where: { id: payment.id },
+        data: { refunded: true },
+      });
+
+      console.log("[Coinley] Payment refunded:", {
+        paymentId: paymentData.paymentId,
+      });
+
+      return refundedPayment;
+    } catch (error: any) {
+      console.error("[Coinley] Error refunding payment:", error.response?.data || error.message);
+      throw new Error(`Failed to refund payment: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Delete/cancel a payment
+   */
+  async deletePayment(paymentId: Payment["id"]): Promise<boolean> {
+    if (!this.credentials) {
+      return false;
+    }
+
+    try {
+      const payment = await this.getPayment(paymentId);
+      const paymentData = payment.data as CoinleyPaymentDetails;
+
+      // Cancel payment with Coinley API
+      await this.client.post(`/payments/${paymentData.paymentId}/cancel`);
+
+      // Delete from database
+      await prisma.payment.delete({
+        where: { id: payment.id },
+      });
+
+      console.log("[Coinley] Payment deleted:", {
+        paymentId: paymentData.paymentId,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("[Coinley] Error deleting payment:", error.response?.data || error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Update payment details
+   */
+  async update(paymentId: Payment["id"], data: Partial<Payment>): Promise<Payment> {
+    const updatedPayment = await prisma.payment.update({
+      where: { id: paymentId },
+      data,
+    });
+
+    return updatedPayment;
+  }
+
+  /**
+   * Get payment by ID
+   */
+  async getPayment(paymentId: Payment["id"]): Promise<Payment> {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new Error(`Payment ${paymentId} not found`);
+    }
+
+    return payment;
+  }
+
+  /**
+   * After payment actions (send confirmations, etc.)
+   */
+  async afterPayment(
+    event: any,
+    booking: {
+      user: any | null;
+      id: Booking["id"];
+      startTime: Booking["startTime"];
+      endTime: Booking["endTime"];
+    },
+    paymentData: Payment
+  ): Promise<void> {
+    console.log("[Coinley] After payment hook:", {
+      bookingId: booking.id,
+      paymentId: paymentData.id,
+      amount: paymentData.amount,
+    });
+
+    // Additional actions can be added here:
+    // - Send custom confirmation emails
+    // - Update external systems
+    // - Trigger webhooks
+    // - Analytics tracking
+  }
+
+  /**
+   * Check if credentials are configured
+   */
+  isSetupAlready(): boolean {
+    return !!this.credentials;
+  }
+
+  /**
+   * Get payment status from Coinley API
+   */
+  async getPaymentStatus(externalId: string): Promise<CoinleyPaymentDetails> {
+    if (!this.credentials) {
+      throw new Error("Coinley credentials not configured");
+    }
+
+    try {
+      const response = await this.client.get<CoinleyPaymentDetails>(`/payments/${externalId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error("[Coinley] Error getting payment status:", error.response?.data || error.message);
+      throw new Error(`Failed to get payment status: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Get payment paid status (for Cal.com integration)
+   */
+  async getPaymentPaidStatus(): Promise<string> {
+    // This method can be implemented if needed for specific Cal.com flows
+    // For now, return "paid" as status is tracked via webhooks
+    return "paid";
+  }
+
+  /**
+   * Get payment details (for Cal.com integration)
+   */
+  async getPaymentDetails(): Promise<Payment> {
+    // This method can be implemented if needed for specific Cal.com flows
+    // For now, throw an error as payment details are fetched via getPayment()
+    throw new Error("Use getPayment() or getPaymentStatus() instead");
+  }
+}
+
+export default PaymentService;

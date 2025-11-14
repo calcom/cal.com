@@ -6,6 +6,7 @@ import { appKeysSchema as alby_zod_ts } from "./alby/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
 import { appKeysSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
+import { appKeysSchema as coinley_zod_ts } from "./coinley/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as dub_zod_ts } from "./dub/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
@@ -57,6 +58,7 @@ export const appKeysSchemas = {
   basecamp3: basecamp3_zod_ts,
   btcpayserver: btcpayserver_zod_ts,
   closecom: closecom_zod_ts,
+  coinley: coinley_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   dub: dub_zod_ts,
   fathom: fathom_zod_ts,

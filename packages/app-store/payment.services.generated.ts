@@ -5,6 +5,7 @@
 export const PaymentServiceMap = {
   alby: import("./alby/lib/PaymentService"),
   btcpayserver: import("./btcpayserver/lib/PaymentService"),
+  coinley: import("./coinley/lib/PaymentService"),
   hitpay: import("./hitpay/lib/PaymentService"),
   "mock-payment-app": import("./mock-payment-app/lib/PaymentService"),
   paypal: import("./paypal/lib/PaymentService"),

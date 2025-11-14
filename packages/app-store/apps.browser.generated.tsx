@@ -5,6 +5,7 @@
 import dynamic from "next/dynamic";
 
 export const InstallAppButtonMap = {
+  coinley: dynamic(() => import("./coinley/components/InstallAppButton")),
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
@@ -24,6 +25,7 @@ export const EventTypeAddonMap = {
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
   btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppCardInterface")),
   closecom: dynamic(() => import("./closecom/components/EventTypeAppCardInterface")),
+  coinley: dynamic(() => import("./coinley/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
@@ -56,6 +58,7 @@ export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppSettingsInterface")),
   btcpayserver: dynamic(() => import("./btcpayserver/components/EventTypeAppSettingsInterface")),
+  coinley: dynamic(() => import("./coinley/components/EventTypeAppSettingsInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),

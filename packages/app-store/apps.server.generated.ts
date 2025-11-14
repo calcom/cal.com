@@ -17,6 +17,7 @@ export const apiHandlers = {
   chatbase: import("./chatbase/api"),
   clic: import("./clic/api"),
   closecom: import("./closecom/api"),
+  coinley: import("./coinley/api"),
   cron: import("./cron/api"),
   deel: import("./deel/api"),
   demodesk: import("./demodesk/api"),

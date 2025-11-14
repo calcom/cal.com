@@ -61,6 +61,14 @@ export const formatPrice = (price: number, currency: string | undefined, locale 
   switch (currency) {
     case "BTC":
       return `${price} sats`;
+    case "USDT":
+    case "USDC":
+    case "DAI":
+    case "ETH":
+    case "BNB":
+    case "MATIC":
+      // Cryptocurrencies - format with decimal places but no currency symbol
+      return `${convertFromSmallestToPresentableCurrencyUnit(price, currency).toFixed(2)} ${currency}`;
     default:
       currency = currency?.toUpperCase() || "USD";
       return `${Intl.NumberFormat(locale, {

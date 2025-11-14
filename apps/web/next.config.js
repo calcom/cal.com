@@ -209,6 +209,16 @@ const nextConfig = (phase) => {
       optimizePackageImports: ["@calcom/ui"],
       webpackMemoryOptimizations: true,
       webpackBuildWorker: true,
+      // Turbopack configuration to force coinley-test to use Cal.com's React
+      // This prevents "Cannot read properties of undefined (reading 'ReactCurrentOwner')" error
+      turbopack: {
+        resolveAlias: {
+          react: require.resolve("react"),
+          "react-dom": require.resolve("react-dom"),
+          "react/jsx-runtime": require.resolve("react/jsx-runtime"),
+          "react/jsx-dev-runtime": require.resolve("react/jsx-dev-runtime"),
+        },
+      },
     },
     productionBrowserSourceMaps: true,
     /* We already do type check on GH actions */
@@ -273,6 +283,16 @@ const nextConfig = (phase) => {
         fs: false,
         // ignore module resolve errors caused by the server component bundler
         "pg-native": false,
+      };
+
+      // Force coinley-test to use Cal.com's React instead of bundling its own
+      // This prevents "Cannot read properties of undefined (reading 'ReactCurrentOwner')" error
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        react: require.resolve("react"),
+        "react-dom": require.resolve("react-dom"),
+        "react/jsx-runtime": require.resolve("react/jsx-runtime"),
+        "react/jsx-dev-runtime": require.resolve("react/jsx-dev-runtime"),
       };
 
       /**
