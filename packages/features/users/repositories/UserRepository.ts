@@ -1220,4 +1220,15 @@ export class UserRepository {
     });
     return users.map(withSelectedCalendars);
   }
+
+  async findByReassignedById(userId: number) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        username: true,
+      },
+    });
+  }
 }

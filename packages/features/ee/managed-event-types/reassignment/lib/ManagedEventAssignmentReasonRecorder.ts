@@ -1,6 +1,8 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 
 export enum ManagedEventReassignmentType {
   MANUAL = "manual",
@@ -32,14 +34,9 @@ export default class ManagedEventAssignmentReasonRecorder {
     reassignReason?: string;
     reassignmentType: ManagedEventReassignmentType;
   }) {
-    const reassignedBy = await prisma.user.findUnique({
-      where: {
-        id: reassignById,
-      },
-      select: {
-        username: true,
-      },
-    });
+    const userRepository = new UserRepository(prisma);
+    const assignmentReasonRepository = new AssignmentReasonRepository(prisma);
+    const reassignedBy = await userRepository.findByReassignedById(reassignById);
 
     const reasonEnum = AssignmentReasonEnum.REASSIGNED;
 
@@ -50,12 +47,10 @@ export default class ManagedEventAssignmentReasonRecorder {
       reassignReason ? `. Reason: ${reassignReason}` : ""
     }`;
 
-    await prisma.assignmentReason.create({
-      data: {
-        bookingId: newBookingId,
-        reasonEnum,
-        reasonString,
-      },
+    await assignmentReasonRepository.createAssignmentReason({
+      bookingId: newBookingId,
+      reasonEnum,
+      reasonString,
     });
 
     return {
