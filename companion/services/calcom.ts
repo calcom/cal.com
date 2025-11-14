@@ -640,9 +640,14 @@ export class CalComAPIService {
       name?: string;
       timeZone?: string;
       availability?: Array<{
-        days: number[];
-        startTime: string;
-        endTime: string;
+        days: string[]; // Day names like "Monday", "Tuesday"
+        startTime: string; // Format: "09:00"
+        endTime: string; // Format: "10:00"
+      }>;
+      overrides?: Array<{
+        date: string; // Format: "2024-05-20"
+        startTime: string; // Format: "12:00"
+        endTime: string; // Format: "14:00"
       }>;
     }
   ): Promise<Schedule> {
@@ -652,6 +657,7 @@ export class CalComAPIService {
         {
           method: "PATCH",
           headers: {
+            "Content-Type": "application/json",
             "cal-api-version": "2024-06-11",
           },
           body: JSON.stringify(updates),

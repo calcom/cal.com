@@ -97,6 +97,20 @@ export default function AvailabilityDetail() {
     slotIndex: number;
     type: "start" | "end";
   } | null>(null);
+  const [overrides, setOverrides] = useState<Array<{
+    date: string; // Format: "2024-05-20"
+    startTime: string; // Format: "12:00" or "00:00" for unavailable
+    endTime: string; // Format: "14:00" or "00:00" for unavailable
+  }>>([]);
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [editingOverride, setEditingOverride] = useState<number | null>(null);
+  const [overrideDate, setOverrideDate] = useState("");
+  const [overrideStartTime, setOverrideStartTime] = useState("09:00");
+  const [overrideEndTime, setOverrideEndTime] = useState("17:00");
+  const [isUnavailable, setIsUnavailable] = useState(false);
+  const [showOverrideTimePicker, setShowOverrideTimePicker] = useState<{
+    type: "start" | "end";
+  } | null>(null);
 
   // Common timezones
   const timezones = [
@@ -186,6 +200,18 @@ export default function AvailabilityDetail() {
         }
         
         setAvailability(availabilityMap);
+        
+        // Load overrides if they exist
+        if (scheduleData.overrides && Array.isArray(scheduleData.overrides)) {
+          const formattedOverrides = scheduleData.overrides.map((override) => ({
+            date: override.date || "",
+            startTime: override.startTime || "00:00",
+            endTime: override.endTime || "00:00",
+          }));
+          setOverrides(formattedOverrides);
+        } else {
+          setOverrides([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching schedule:", error);
@@ -269,11 +295,11 @@ export default function AvailabilityDetail() {
     try {
       setSaving(true);
 
-      // Convert availability object back to array format
+      // Convert availability object back to array format with day names
       const availabilityArray: Array<{
-        days: number[];
-        startTime: string;
-        endTime: string;
+        days: string[]; // Day names like "Monday", "Tuesday"
+        startTime: string; // Format: "09:00"
+        endTime: string; // Format: "10:00"
       }> = [];
 
       Object.keys(availability).forEach((dayIndexStr) => {
@@ -281,19 +307,36 @@ export default function AvailabilityDetail() {
         const slots = availability[dayIndex];
         if (slots && slots.length > 0) {
           slots.forEach((slot) => {
+            // Convert day number to day name
+            const dayName = DAYS[dayIndex];
+            
+            // Format time from "09:00:00" to "09:00" (remove seconds)
+            const formatTimeForAPI = (time: string): string => {
+              return time.substring(0, 5); // Take only HH:MM
+            };
+
             availabilityArray.push({
-              days: [dayIndex],
-              startTime: slot.startTime,
-              endTime: slot.endTime,
+              days: [dayName],
+              startTime: formatTimeForAPI(slot.startTime),
+              endTime: formatTimeForAPI(slot.endTime),
             });
           });
         }
       });
 
+      // Format overrides for API (ensure times are in HH:MM format)
+      const formattedOverrides = overrides.map((override) => ({
+        date: override.date,
+        startTime: override.startTime.substring(0, 5), // Ensure HH:MM format
+        endTime: override.endTime.substring(0, 5), // Ensure HH:MM format
+      }));
+
       await CalComAPIService.updateSchedule(Number(id), {
         name: scheduleName,
         timeZone,
         availability: availabilityArray,
+        isDefault: isDefault,
+        overrides: formattedOverrides,
       });
 
       Alert.alert("Success", "Schedule updated successfully", [
@@ -340,6 +383,77 @@ export default function AvailabilityDetail() {
         },
       ]
     );
+  };
+
+  const handleAddOverride = () => {
+    setEditingOverride(null);
+    setOverrideDate("");
+    setOverrideStartTime("09:00");
+    setOverrideEndTime("17:00");
+    setIsUnavailable(false);
+    setShowOverrideModal(true);
+  };
+
+  const handleEditOverride = (index: number) => {
+    const override = overrides[index];
+    setEditingOverride(index);
+    setOverrideDate(override.date);
+    setOverrideStartTime(override.startTime);
+    setOverrideEndTime(override.endTime);
+    setIsUnavailable(override.startTime === "00:00" && override.endTime === "00:00");
+    setShowOverrideModal(true);
+  };
+
+  const handleDeleteOverride = (index: number) => {
+    Alert.alert(
+      "Delete Override",
+      "Are you sure you want to delete this date override?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setOverrides(overrides.filter((_, i) => i !== index));
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveOverride = () => {
+    if (!overrideDate) {
+      Alert.alert("Error", "Please select a date");
+      return;
+    }
+
+    const newOverride = {
+      date: overrideDate,
+      startTime: isUnavailable ? "00:00" : overrideStartTime,
+      endTime: isUnavailable ? "00:00" : overrideEndTime,
+    };
+
+    if (editingOverride !== null) {
+      // Update existing override
+      const updated = [...overrides];
+      updated[editingOverride] = newOverride;
+      setOverrides(updated);
+    } else {
+      // Add new override
+      setOverrides([...overrides, newOverride]);
+    }
+
+    setShowOverrideModal(false);
+  };
+
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T00:00:00");
+    return date.toLocaleDateString("en-US", { 
+      month: "short", 
+      day: "numeric", 
+      year: "numeric" 
+    });
   };
 
   if (loading) {
@@ -512,6 +626,60 @@ export default function AvailabilityDetail() {
               <Ionicons name="chevron-down" size={20} color="#666" />
             </TouchableOpacity>
           </View>
+
+          {/* Date Overrides */}
+          <View className="bg-white rounded-2xl p-6">
+            <Text className="text-xl font-bold text-[#333] mb-2">Date overrides</Text>
+            <Text className="text-base text-[#666] mb-4">
+              Add dates when your availability changes from your daily hours.
+            </Text>
+            
+            {overrides.length > 0 && (
+              <View className="mb-4">
+                {overrides.map((override, index) => (
+                  <View
+                    key={index}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg p-3 mb-2 flex-row items-center justify-between"
+                  >
+                    <View className="flex-1">
+                      <Text className="text-base font-medium text-[#333] mb-1">
+                        {formatDateForDisplay(override.date)}
+                      </Text>
+                      {override.startTime === "00:00" && override.endTime === "00:00" ? (
+                        <Text className="text-sm text-[#666]">Unavailable (All day)</Text>
+                      ) : (
+                        <Text className="text-sm text-[#666]">
+                          {formatTime12Hour(override.startTime + ":00")} - {formatTime12Hour(override.endTime + ":00")}
+                        </Text>
+                      )}
+                    </View>
+                    <View className="flex-row items-center gap-2">
+                      <TouchableOpacity
+                        onPress={() => handleEditOverride(index)}
+                        className="p-2"
+                      >
+                        <Ionicons name="pencil-outline" size={20} color="#007AFF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteOverride(index)}
+                        className="p-2"
+                      >
+                        <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={handleAddOverride}
+              className="flex-row items-center justify-center border border-[#E5E5EA] border-dashed rounded-lg py-3"
+            >
+              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+              <Text className="text-base font-medium text-[#007AFF] ml-2">Add an override</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         </ScrollView>
 
@@ -626,6 +794,124 @@ export default function AvailabilityDetail() {
                       className={`text-base ${isSelected ? "text-[#007AFF] font-semibold" : "text-[#333]"}`}
                     >
                       {time}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Override Modal */}
+      <Modal visible={showOverrideModal} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-6 max-h-[90%]">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-[#333]">
+                {editingOverride !== null ? "Edit Override" : "Add Override"}
+              </Text>
+              <TouchableOpacity onPress={() => setShowOverrideModal(false)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              <View className="gap-4">
+                {/* Date Picker */}
+                <View>
+                  <Text className="text-base font-semibold text-[#333] mb-2">Select the dates to override</Text>
+                  <TextInput
+                    value={overrideDate}
+                    onChangeText={setOverrideDate}
+                    placeholder="YYYY-MM-DD (e.g., 2024-05-20)"
+                    placeholderTextColor="#999"
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-[#333]"
+                  />
+                  <Text className="text-sm text-[#666] mt-1">Enter date in YYYY-MM-DD format</Text>
+                </View>
+
+                {/* Unavailable Toggle */}
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-base font-semibold text-[#333]">Mark unavailable (All day)</Text>
+                  <Switch
+                    value={isUnavailable}
+                    onValueChange={setIsUnavailable}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                {/* Time Picker (only if not unavailable) */}
+                {!isUnavailable && (
+                  <View>
+                    <Text className="text-base font-semibold text-[#333] mb-3">Which hours are you free?</Text>
+                    <View className="flex-row items-center gap-2">
+                      <TouchableOpacity
+                        onPress={() => setShowOverrideTimePicker({ type: "start" })}
+                        className="border border-[#E5E5EA] rounded-lg px-3 py-3 bg-white flex-1"
+                      >
+                        <Text className="text-base text-[#333] text-center">
+                          {formatTime12Hour(overrideStartTime + ":00")}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text className="text-base text-[#666]">-</Text>
+                      <TouchableOpacity
+                        onPress={() => setShowOverrideTimePicker({ type: "end" })}
+                        className="border border-[#E5E5EA] rounded-lg px-3 py-3 bg-white flex-1"
+                      >
+                        <Text className="text-base text-[#333] text-center">
+                          {formatTime12Hour(overrideEndTime + ":00")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  onPress={handleSaveOverride}
+                  className="bg-black rounded-lg py-3 mt-4"
+                >
+                  <Text className="text-white text-base font-semibold text-center">Save Override</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Override Time Picker Modal */}
+      <Modal visible={!!showOverrideTimePicker} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-6 max-h-[60%]">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-[#333]">
+                Select {showOverrideTimePicker?.type === "start" ? "Start" : "End"} Time
+              </Text>
+              <TouchableOpacity onPress={() => setShowOverrideTimePicker(null)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {TIME_OPTIONS.map((time) => {
+                const currentTime = showOverrideTimePicker?.type === "start" ? overrideStartTime : overrideEndTime;
+                const isSelected = currentTime === time;
+                return (
+                  <TouchableOpacity
+                    key={time}
+                    onPress={() => {
+                      if (showOverrideTimePicker?.type === "start") {
+                        setOverrideStartTime(time);
+                      } else {
+                        setOverrideEndTime(time);
+                      }
+                      setShowOverrideTimePicker(null);
+                    }}
+                    className={`py-3 border-b border-[#E5E5EA] ${isSelected ? "bg-[#F0F9FF]" : ""}`}
+                  >
+                    <Text className={`text-base ${isSelected ? "text-[#007AFF] font-semibold" : "text-[#333]"}`}>
+                      {formatTime12Hour(time + ":00")}
                     </Text>
                   </TouchableOpacity>
                 );
