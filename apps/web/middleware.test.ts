@@ -1,6 +1,6 @@
 // Import mocked functions
 import { get as edgeConfigGet } from "@vercel/edge-config";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -402,6 +402,56 @@ describe("Middleware Integration Tests", () => {
       const res = await callMiddleware(req);
       expect(res).toBeDefined();
       expectStatus(res, 200);
+    });
+  });
+
+  describe("Header sanitization", () => {
+    it("sanitizes non-ASCII request header values to prevent Vercel Runtime Malformed Response Header", async () => {
+      const spy = vi.spyOn(NextResponse, "next");
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/team/test`,
+        // Next.js will translate request overrides into x-middleware-request-* headers internally
+        headers: {
+          "cf-region": "São Paulo", // contains non-ASCII "ã"
+        },
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+
+      // Assert that middleware forwarded sanitized ASCII-only value
+      const initArg = (spy as unknown as Mock).mock.calls.at(-1)?.[0] as {
+        request?: { headers?: Headers };
+      };
+      expect(initArg?.request?.headers).toBeDefined();
+
+      const forwarded = initArg?.request?.headers as Headers;
+      expect(forwarded.get("cf-region")).toBe("Sao Paulo");
+
+      spy.mockRestore();
+    });
+
+    it("strips non-ASCII bytes in mojibake values (e.g., 'SÃ£o Paulo' -> 'So Paulo')", async () => {
+      const spy = vi.spyOn(NextResponse, "next");
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/team/test`,
+        headers: {
+          "cf-region": "SÃ£o Paulo", // mojibake for "São Paulo"; includes non-ASCII bytes
+        },
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+
+      const initArg = (spy as unknown as Mock).mock.calls.at(-1)?.[0] as {
+        request?: { headers?: Headers };
+      };
+      const forwarded = initArg?.request?.headers as Headers;
+      expect(forwarded.get("cf-region")).toBe("So Paulo");
+
+      spy.mockRestore();
     });
   });
 
