@@ -4,7 +4,6 @@ import { Branding } from "@calid/features/ui/Branding";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
@@ -259,11 +258,6 @@ export function UserPage(props: PageProps) {
             </div>
           )}
         </main>
-
-        {/* Floating Product Hunt Badge */}
-        <div className="fixed bottom-4 right-4 z-50">
-          <ProductHuntBadge />
-        </div>
       </div>
     </>
   );
