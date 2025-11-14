@@ -4,7 +4,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
-import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
+import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingAuthorizationService } from "@calcom/features/bookings/services/BookingAuthorizationService";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
@@ -203,7 +203,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
+  if (cancellationReason) {
+    director.setCancellationReason(cancellationReason);
+  }
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
     await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
