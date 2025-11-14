@@ -46,8 +46,11 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
-import { BookingActionsDropdown } from "./BookingActionsDropdown";
-import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
+import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
+import {
+  useBookingActionsStoreContext,
+  BookingActionsStoreProvider,
+} from "./actions/BookingActionsStoreProvider";
 import {
   getPendingActions,
   getCancelEventAction,
@@ -56,7 +59,7 @@ import {
   shouldShowIndividualReportButton,
   type BookingActionContext,
   getReportAction,
-} from "./bookingActions";
+} from "./actions/bookingActions";
 import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
