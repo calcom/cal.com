@@ -21,15 +21,15 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomBannerUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
-import { useMemo } from "react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
@@ -40,11 +40,11 @@ import {
   FULL_NAME_LENGTH_MAX_LIMIT,
   PHONE_NUMBER_VERIFICATION_ENABLED,
 } from "@calcom/lib/constants";
+import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -83,8 +83,10 @@ export type FormValues = {
   metadata?: {
     phoneNumber?: string;
     usePhoneForWhatsApp?: boolean;
+    headerUrl?: string | null;
   };
 };
+
 type Props = {
   user: RouterOutputs["viewer"]["me"]["calid_get"];
 };
@@ -282,6 +284,7 @@ const ProfileView = ({ user }: Props) => {
     metadata: {
       phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
       usePhoneForWhatsApp: (isPrismaObjOrUndefined(user.metadata)?.usePhoneForWhatsApp as boolean) ?? false,
+      headerUrl: (isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null,
     },
   };
 
@@ -561,6 +564,7 @@ const ProfileForm = ({
           )
           .optional(),
         usePhoneForWhatsApp: z.boolean().optional(),
+        headerUrl: z.union([z.string(), z.null()]).optional(),
       })
       .optional(),
   });
@@ -668,9 +672,7 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-  const renderedBio = useMemo(() => {
-    md.render(bioValue), [bioValue];
-  });
+
   const getText = React.useCallback(() => bioValue, [bioValue]);
 
   // Watch phone number to conditionally show WhatsApp checkbox
@@ -834,6 +836,60 @@ const ProfileForm = ({
             height="120px"
           />
         </div>
+
+        {/* Header Background Section - Migrated from Appearance */}
+        <div className="mt-6">
+          <Controller
+            control={formMethods.control}
+            name="metadata.headerUrl"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveHeaderButton = value !== null;
+              return (
+                <div className="flex flex-col">
+                  <Label className="mb-2 font-semibold">{t("booking_page_header_background")}</Label>
+                  <span className="text-subtle mb-4 text-sm">
+                    {t("booking_page_header_background_description")}
+                  </span>
+                  <div className="bg-muted mb-4 flex h-60 w-full items-center justify-start overflow-hidden rounded-lg">
+                    {!value ? (
+                      <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
+                    ) : (
+                      <img className="h-full w-full object-cover" src={value} alt="Header background" />
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <CustomBannerUploader
+                      target="metadata.headerUrl"
+                      id="header-upload"
+                      buttonMsg={t("upload_image")}
+                      fieldName="Header"
+                      mimeType="image/svg+xml"
+                      height={600}
+                      width={3200}
+                      handleAvatarChange={(newHeaderUrl) => {
+                        onChange(newHeaderUrl);
+                        formMethods.setValue("metadata.headerUrl", newHeaderUrl, { shouldDirty: true });
+                      }}
+                      imageSrc={getPlaceholderHeader(value, value) ?? undefined}
+                      triggerButtonColor={showRemoveHeaderButton ? "secondary" : "primary"}
+                    />
+                    {showRemoveHeaderButton && (
+                      <Button
+                        color="secondary"
+                        onClick={() => {
+                          onChange(null);
+                          formMethods.setValue("metadata.headerUrl", null, { shouldDirty: true });
+                        }}>
+                        {t("remove")}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            }}
+          />
+        </div>
+
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
