@@ -21,6 +21,7 @@ import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.rep
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WorkflowReminderRepositoryFixture } from "test/fixtures/repository/workflow-reminder.repository.fixture";
 import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
@@ -63,6 +64,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let workflowReminderRepositoryFixture: WorkflowReminderRepositoryFixture;
     let workflowRepositoryFixture: WorkflowRepositoryFixture;
+    let tokensRepositoryFixture: TokensRepositoryFixture;
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
@@ -103,6 +105,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       workflowReminderRepositoryFixture = new WorkflowReminderRepositoryFixture(moduleRef);
       workflowRepositoryFixture = new WorkflowRepositoryFixture(moduleRef);
@@ -3321,13 +3324,57 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
-      it("should deny unrelated user access to conferencing sessions", async () => {
+      it("should deny unauthenticated access to conferencing sessions", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-unauth-${randomString()}`,
+          title: "Test Unauthenticated Access",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(401);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unauthorized user access to conferencing sessions", async () => {
         const unrelatedUser = await userRepositoryFixture.create({
           email: `unrelated-auth-test-${randomString()}@api.com`,
           platformOAuthClients: {
             connect: { id: oAuthClient.id },
           },
         });
+
+        const { accessToken } = await tokensRepositoryFixture.createTokens(
+          unrelatedUser.id,
+          oAuthClient.id
+        );
 
         const booking = await bookingsRepositoryFixture.create({
           uid: `test-auth-unrelated-${randomString()}`,
@@ -3360,7 +3407,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
         const response = await request(app.getHttpServer())
           .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
-          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set("Authorization", `Bearer ${accessToken}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
         expect(response.status).toBe(403);
@@ -3414,13 +3461,57 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
-      it("should deny unrelated user access to recordings", async () => {
+      it("should deny unauthenticated access to recordings", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-recordings-unauth-${randomString()}`,
+          title: "Test Unauthenticated Access to Recordings",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/recordings`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(401);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unauthorized user access to recordings", async () => {
         const unrelatedUser = await userRepositoryFixture.create({
           email: `unrelated-recordings-${randomString()}@api.com`,
           platformOAuthClients: {
             connect: { id: oAuthClient.id },
           },
         });
+
+        const { accessToken } = await tokensRepositoryFixture.createTokens(
+          unrelatedUser.id,
+          oAuthClient.id
+        );
 
         const booking = await bookingsRepositoryFixture.create({
           uid: `test-recordings-unrelated-${randomString()}`,
@@ -3453,7 +3544,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
         const response = await request(app.getHttpServer())
           .get(`/v2/bookings/${booking.uid}/recordings`)
-          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set("Authorization", `Bearer ${accessToken}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
         expect(response.status).toBe(403);
@@ -3507,13 +3598,57 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
-      it("should deny unrelated user access to transcripts", async () => {
+      it("should deny unauthenticated access to transcripts", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-transcripts-unauth-${randomString()}`,
+          title: "Test Unauthenticated Access to Transcripts",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/transcripts`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(response.status).toBe(401);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+      });
+
+      it("should deny unauthorized user access to transcripts", async () => {
         const unrelatedUser = await userRepositoryFixture.create({
           email: `unrelated-transcripts-${randomString()}@api.com`,
           platformOAuthClients: {
             connect: { id: oAuthClient.id },
           },
         });
+
+        const { accessToken } = await tokensRepositoryFixture.createTokens(
+          unrelatedUser.id,
+          oAuthClient.id
+        );
 
         const booking = await bookingsRepositoryFixture.create({
           uid: `test-transcripts-unrelated-${randomString()}`,
@@ -3546,7 +3681,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
         const response = await request(app.getHttpServer())
           .get(`/v2/bookings/${booking.uid}/transcripts`)
-          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set("Authorization", `Bearer ${accessToken}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
         expect(response.status).toBe(403);
