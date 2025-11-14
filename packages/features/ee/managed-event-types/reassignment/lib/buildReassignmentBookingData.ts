@@ -36,18 +36,12 @@ interface BuildReassignmentBookingDataParams {
   reassignedById: number;
 }
 
-/**
- * Builds both new booking data and cancellation data for reassignment
- * This is a convenience wrapper that delegates to focused builders
- * for better testability and adherence to Single Responsibility Principle
- */
 export async function buildReassignmentBookingData({
   originalBooking,
   targetEventType,
   newUser,
   reassignedById,
 }: BuildReassignmentBookingDataParams) {
-  // Use focused builders following Single Responsibility Principle
   const newBookingData = await NewBookingDataBuilder.build({
     originalBooking,
     targetEventType,

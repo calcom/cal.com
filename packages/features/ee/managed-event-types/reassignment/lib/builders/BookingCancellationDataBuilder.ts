@@ -16,10 +16,6 @@ const cancellationSelect = {
 
 export type CancelledBookingResult = Prisma.BookingGetPayload<{ select: typeof cancellationSelect }>;
 
-/**
- * Builder for creating cancellation data for the original booking during reassignment
- * Follows Single Responsibility Principle - only builds cancellation data
- */
 export class BookingCancellationDataBuilder {
   /**
    * Builds the data structure for cancelling the original booking

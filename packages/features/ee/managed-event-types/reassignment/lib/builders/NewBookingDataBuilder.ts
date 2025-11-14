@@ -44,10 +44,6 @@ interface NewBookingDataParams {
   reassignedById: number;
 }
 
-/**
- * Builder for creating new booking data during reassignment
- * Follows Single Responsibility Principle - only builds new booking data
- */
 export class NewBookingDataBuilder {
   /**
    * Builds the data structure for creating a new booking

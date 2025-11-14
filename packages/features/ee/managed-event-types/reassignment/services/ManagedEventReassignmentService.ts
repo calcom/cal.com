@@ -37,10 +37,6 @@ interface ManagedEventReassignmentServiceDeps {
   luckyUserService: LuckyUserService;
 }
 
-/**
- * Service for handling automatic managed event reassignments
- * Follows SOLID principles and uses DI for all dependencies
- */
 export class ManagedEventReassignmentService {
   private readonly log: typeof logger;
   private readonly bookingRepository: BookingRepository;
@@ -55,10 +51,7 @@ export class ManagedEventReassignmentService {
     this.luckyUserService = deps.luckyUserService;
     this.log = logger.getSubLogger({ prefix: ["ManagedEventReassignmentService"] });
   }
-
-  /**
-   * Main orchestration method for automatic managed event reassignment
-   */
+  
   async executeAutoReassignment({
     bookingId,
     orgId,
@@ -70,17 +63,14 @@ export class ManagedEventReassignmentService {
 
     reassignLogger.info(`User ${reassignedById} initiating auto-reassignment`);
 
-    // Step 1: Validate and fetch booking
     await validateManagedEventReassignment({ bookingId });
     const booking = await this.fetchAndValidateBookingForReassignment(bookingId);
 
-    // Step 2: Fetch event type chain
     const { currentChild, parent } = await this.fetchManagedEventTypeChain(
       booking.eventTypeId!,
       reassignLogger
     );
 
-    // Step 3: Find eligible users
     const eligibleUsers = await this.findEligibleReassignmentUsers(
       currentChild.parentId!,
       currentChild.userId,
@@ -88,7 +78,6 @@ export class ManagedEventReassignmentService {
       reassignLogger
     );
 
-    // Step 4: Filter to available users
     const availableUsers = await this.filterUsersAvailableAtTime(
       eligibleUsers,
       parent,
@@ -100,10 +89,8 @@ export class ManagedEventReassignmentService {
       reassignLogger
     );
 
-    // Step 5: Select user using Lucky User algorithm
     const selectedUser = await this.selectReassignmentUser(availableUsers, parent, reassignLogger);
 
-    // Step 6: Execute the manual reassignment
     return await managedEventManualReassignment({
       bookingId,
       newUserId: selectedUser.id,
@@ -115,10 +102,6 @@ export class ManagedEventReassignmentService {
     });
   }
 
-  /**
-   * Step 1: Fetches and validates booking for reassignment
-   * @private
-   */
   private async fetchAndValidateBookingForReassignment(bookingId: number) {
     const booking = await this.bookingRepository.findByIdForReassignment(bookingId);
 
@@ -129,10 +112,6 @@ export class ManagedEventReassignmentService {
     return booking;
   }
 
-  /**
-   * Step 2: Fetches the managed event type chain (child → parent)
-   * @private
-   */
   private async fetchManagedEventTypeChain(
     eventTypeId: number,
     log: typeof logger
@@ -164,17 +143,12 @@ export class ManagedEventReassignmentService {
     };
   }
 
-  /**
-   * Step 3: Finds eligible users for reassignment (excluding current user)
-   * @private
-   */
   private async findEligibleReassignmentUsers(
     parentId: number,
     currentUserId: number | null,
     orgId: number | null,
     log: typeof logger
   ): Promise<IsFixedAwareUser[]> {
-    // Get all child event types except current user's
     const allChildEventTypes = await this.eventTypeRepository.findManyChildEventTypes(
       parentId,
       currentUserId
@@ -186,7 +160,6 @@ export class ManagedEventReassignmentService {
       throw new Error("No other users available for reassignment in this managed event");
     }
 
-    // Fetch users with credentials and selected calendars
     const usersWithSelectedCalendars =
       await this.userRepository.findManyByIdsWithCredentialsAndSelectedCalendars({
         userIds,
@@ -194,13 +167,11 @@ export class ManagedEventReassignmentService {
 
     log.info(`Found ${usersWithSelectedCalendars.length} potential reassignment targets`);
 
-    // Enrich users with delegation credentials
     const enrichedUsers = await enrichUsersWithDelegationCredentials({
       orgId,
       users: usersWithSelectedCalendars,
     });
 
-    // Filter out users without schedules configured to prevent availability check failures
     const usersWithSchedules = enrichedUsers.filter((user) => {
       const hasSchedules = user.schedules && user.schedules.length > 0;
       if (!hasSchedules) {
@@ -223,10 +194,6 @@ export class ManagedEventReassignmentService {
     })) as unknown as IsFixedAwareUser[];
   }
 
-  /**
-   * Step 4: Filters users to only those available at the booking time
-   * @private
-   */
   private async filterUsersAvailableAtTime(
     users: IsFixedAwareUser[],
     parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
@@ -252,10 +219,6 @@ export class ManagedEventReassignmentService {
     return availableUsers;
   }
 
-  /**
-   * Step 5: Selects the best user for reassignment using Lucky User algorithm
-   * @private
-   */
   private async selectReassignmentUser(
     availableUsers: IsFixedAwareUser[],
     parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
@@ -265,7 +228,6 @@ export class ManagedEventReassignmentService {
       throw new Error("No available users to select for reassignment");
     }
 
-    // After the length check, we know the array is non-empty
     const nonEmptyUsers: [IsFixedAwareUser, ...IsFixedAwareUser[]] =
       availableUsers.length === 1
         ? [availableUsers[0]]

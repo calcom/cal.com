@@ -25,7 +25,6 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
 ) => {
   let allCredentials = Array.isArray(user.credentials) ? user.credentials : [];
  
-  // If it's a team event type query for team credentials
   if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
@@ -38,7 +37,6 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     }
   }
   
-  // If it's a managed event type, query for the parent team's credentials
   if (eventType?.parentId) {
     const teamCredentialsQuery = await prisma.team.findFirst({
       where: {
@@ -63,7 +61,6 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     user: user,
   });
   
-  // If the user is a part of an organization, query for the organization's credentials
   if (profile?.organizationId) {
     const org = await prisma.team.findUnique({
       where: {
