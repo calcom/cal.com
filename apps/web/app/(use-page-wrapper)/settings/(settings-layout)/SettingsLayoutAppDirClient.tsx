@@ -173,6 +173,7 @@ const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
   "privacy",
   "privacy_and_security",
+  "guest_notifications",
   "OAuth Clients",
   "SSO",
   "directory_sync",
@@ -237,6 +238,14 @@ const useTabs = ({
             });
           }
 
+          // Add guest notifications after roles
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "guest_notifications",
+              href: "/settings/organizations/guest-notifications",
+            });
+          }
+
           if (permissions?.canViewOrganizationBilling) {
             newArray.push({
               name: "billing",
@@ -256,6 +265,14 @@ const useTabs = ({
               name: "roles",
               href: "/settings/organizations/roles",
               isBadged: true, // Show "New" badge
+            });
+          }
+
+          // Add guest notifications after roles
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "guest_notifications",
+              href: "/settings/organizations/guest-notifications",
             });
           }
         }
