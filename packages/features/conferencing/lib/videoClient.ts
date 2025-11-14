@@ -6,10 +6,10 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
 import { sendBrokenIntegrationEmail } from "@calcom/emails/integration-email-service";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { CAL_VIDEO, CAL_VIDEO_TYPE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CAL_VIDEO, CAL_VIDEO_TYPE } from "@calcom/platform-constants";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
