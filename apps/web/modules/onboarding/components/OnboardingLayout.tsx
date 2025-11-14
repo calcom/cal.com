@@ -54,7 +54,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
-            className="border-subtle bg-default grid w-full max-w-[1130px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-12 py-10 xl:h-[690px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0"
+            className="border-subtle bg-default grid w-full max-w-[532px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-12 py-10 xl:h-[690px] xl:max-w-[1130px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0"
             variants={containerVariants}
             initial="initial"
             animate="animate"
