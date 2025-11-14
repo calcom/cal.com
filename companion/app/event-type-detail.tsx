@@ -72,6 +72,8 @@ export default function EventTypeDetail() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleDetailsLoading, setScheduleDetailsLoading] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState("");
+  const [showTimezoneDropdown, setShowTimezoneDropdown] = useState(false);
   const [conferencingOptions, setConferencingOptions] = useState<ConferencingOption[]>([]);
   const [conferencingLoading, setConferencingLoading] = useState(false);
   const [eventTypeData, setEventTypeData] = useState<EventType | null>(null);
@@ -91,6 +93,19 @@ export default function EventTypeDetail() {
   const [durationLimits, setDurationLimits] = useState([{ id: 1, value: "60", unit: "Per day" }]);
   const [showDurationUnitDropdown, setShowDurationUnitDropdown] = useState<number | null>(null);
   const [durationAnimationValue] = useState(new Animated.Value(0));
+  const [slotInterval, setSlotInterval] = useState("Default");
+  const [showSlotIntervalDropdown, setShowSlotIntervalDropdown] = useState(false);
+  const [onlyShowFirstAvailableSlot, setOnlyShowFirstAvailableSlot] = useState(false);
+  const [maxActiveBookingsPerBooker, setMaxActiveBookingsPerBooker] = useState(false);
+  const [maxActiveBookingsValue, setMaxActiveBookingsValue] = useState("1");
+  const [limitFutureBookings, setLimitFutureBookings] = useState(false);
+  const [futureBookingType, setFutureBookingType] = useState<"rolling" | "range">("rolling");
+  const [rollingDays, setRollingDays] = useState("30");
+  const [rollingCalendarDays, setRollingCalendarDays] = useState(false);
+  const [rangeStartDate, setRangeStartDate] = useState("");
+  const [rangeEndDate, setRangeEndDate] = useState("");
+  const [offsetStartTimes, setOffsetStartTimes] = useState(false);
+  const [offsetStartValue, setOffsetStartValue] = useState("0");
   const bufferTimeOptions = [
     "No buffer time",
     "5 Minutes",
@@ -106,6 +121,20 @@ export default function EventTypeDetail() {
   const timeUnitOptions = ["Minutes", "Hours", "Days"];
   const frequencyUnitOptions = ["Per day", "Per Month", "Per year"];
   const durationUnitOptions = ["Per day", "Per week", "Per month"];
+  const slotIntervalOptions = [
+    "Default",
+    "5 Minutes",
+    "10 Minutes",
+    "15 Minutes",
+    "20 Minutes",
+    "30 Minutes",
+    "45 Minutes",
+    "60 Minutes",
+    "75 Minutes",
+    "90 Minutes",
+    "105 Minutes",
+    "120 Minutes",
+  ];
   const availableDurations = [
     "5 mins",
     "10 mins",
@@ -385,6 +414,9 @@ export default function EventTypeDetail() {
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
       console.log("Raw schedule details response:", scheduleDetails);
       setSelectedScheduleDetails(scheduleDetails);
+      if (scheduleDetails.timeZone) {
+        setSelectedTimezone(scheduleDetails.timeZone);
+      }
     } catch (error) {
       console.error("Failed to fetch schedule details:", error);
       setSelectedScheduleDetails(null);
@@ -777,7 +809,7 @@ export default function EventTypeDetail() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+            contentContainerStyle={{ paddingHorizontal: 12, gap: 2 }}>
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
@@ -800,11 +832,11 @@ export default function EventTypeDetail() {
         {/* Content */}
         <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
-            <View className="gap-4">
+            <View className="gap-3">
               {/* Title and Description Card */}
-              <View className="bg-white rounded-2xl p-6">
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">Title</Text>
+              <View className="bg-white rounded-2xl p-5">
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Title</Text>
                   <TextInput
                     className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
                     value={eventTitle}
@@ -814,8 +846,8 @@ export default function EventTypeDetail() {
                   />
                 </View>
 
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">Description</Text>
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Description</Text>
                   <TextInput
                     className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
                     style={{ height: 100, textAlignVertical: "top" }}
@@ -828,8 +860,8 @@ export default function EventTypeDetail() {
                   />
                 </View>
 
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">URL</Text>
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">URL</Text>
                   <View className="flex-row items-center bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg overflow-hidden">
                     <Text className="bg-[#E5E5EA] text-[#666] text-base px-3 py-3 rounded-tl-lg rounded-bl-lg">cal.com/{username}/</Text>
                     <TextInput
@@ -844,10 +876,10 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Duration Card */}
-              <View className="bg-white rounded-2xl p-6">
+              <View className="bg-white rounded-2xl p-5">
                 {!allowMultipleDurations && (
-                  <View className="mb-5">
-                    <Text className="text-base font-semibold text-[#333] mb-2">Duration</Text>
+                  <View className="mb-3">
+                    <Text className="text-base font-semibold text-[#333] mb-1.5">Duration</Text>
                     <View className="flex-row items-center gap-3">
                       <TextInput
                         className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
@@ -864,8 +896,8 @@ export default function EventTypeDetail() {
 
                 {allowMultipleDurations && (
                   <>
-                    <View className="mb-5">
-                      <Text className="text-base font-semibold text-[#333] mb-2">Available durations</Text>
+                    <View className="mb-3">
+                      <Text className="text-base font-semibold text-[#333] mb-1.5">Available durations</Text>
                       <TouchableOpacity
                         className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                         onPress={() => setShowDurationDropdown(true)}>
@@ -881,8 +913,8 @@ export default function EventTypeDetail() {
                     </View>
 
                     {selectedDurations.length > 0 && (
-                      <View className="mb-5">
-                        <Text className="text-base font-semibold text-[#333] mb-2">Default duration</Text>
+                      <View className="mb-3">
+                        <Text className="text-base font-semibold text-[#333] mb-1.5">Default duration</Text>
                         <TouchableOpacity
                           className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                           onPress={() => setShowDefaultDurationDropdown(true)}>
@@ -908,9 +940,9 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Location Card */}
-              <View className="bg-white rounded-2xl p-6">
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">Location</Text>
+              <View className="bg-white rounded-2xl p-5">
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Location</Text>
                   <TouchableOpacity
                     className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowLocationDropdown(true)}
@@ -944,8 +976,8 @@ export default function EventTypeDetail() {
                       const isLink = currentLocation.type === "link";
                       
                       return (
-                        <View className="mt-4">
-                          <Text className="text-sm font-medium text-[#333] mb-2">
+                        <View className="mt-3">
+                          <Text className="text-sm font-medium text-[#333] mb-1.5">
                             {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
                           </Text>
                           <TextInput
@@ -973,8 +1005,8 @@ export default function EventTypeDetail() {
                     } else if (currentLocation.organizerInputType === "phone") {
                       // Phone input
                       return (
-                        <View className="mt-4">
-                          <Text className="text-sm font-medium text-[#333] mb-2">
+                        <View className="mt-3">
+                          <Text className="text-sm font-medium text-[#333] mb-1.5">
                             {currentLocation.organizerInputLabel || "Phone Number"}
                           </Text>
                           <TextInput
@@ -1102,6 +1134,50 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Timezone Dropdown Modal */}
+          <Modal
+            visible={showTimezoneDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowTimezoneDropdown(false)}>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowTimezoneDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]" style={{ maxHeight: '70%' }}>
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Timezone</Text>
+                <ScrollView style={{ maxHeight: 400 }}>
+                  {[
+                    "America/New_York",
+                    "America/Chicago",
+                    "America/Denver",
+                    "America/Los_Angeles",
+                    "Europe/London",
+                    "Europe/Paris",
+                    "Europe/Berlin",
+                    "Asia/Tokyo",
+                    "Asia/Shanghai",
+                    "Asia/Kolkata",
+                    "Australia/Sydney",
+                    "UTC",
+                  ].map((tz) => (
+                    <TouchableOpacity
+                      key={tz}
+                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                        selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
+                      }`}
+                      onPress={() => {
+                        setSelectedTimezone(tz);
+                        setShowTimezoneDropdown(false);
+                      }}>
+                      <Text className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}>
+                        {tz}
+                      </Text>
+                      {(selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)) && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {/* Location Dropdown Modal */}
           <Modal
             visible={showLocationDropdown}
@@ -1110,7 +1186,6 @@ export default function EventTypeDetail() {
             onRequestClose={() => setShowLocationDropdown(false)}>
             <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowLocationDropdown(false)}>
               <View className="bg-white rounded-2xl p-5 w-[80%] max-w-[350px]" style={{ maxHeight: '70%' }}>
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Location</Text>
                 {conferencingLoading ? (
                   <Text className="text-base text-[#666] text-center py-4">Loading locations...</Text>
                 ) : (() => {
@@ -1128,8 +1203,8 @@ export default function EventTypeDetail() {
                       {groups.map((group) => (
                         <View key={group.category}>
                           {/* Section Header */}
-                          <View className="px-4 py-2 bg-[#F8F8F8]">
-                            <Text className="text-xs font-semibold text-[#666] uppercase tracking-wide">
+                          <View className="px-4 py-2">
+                            <Text className="text-xs font-normal text-[#666] uppercase tracking-wide">
                               {group.category}
                             </Text>
                           </View>
@@ -1137,9 +1212,11 @@ export default function EventTypeDetail() {
                           {group.options.map((option) => (
                             <TouchableOpacity
                               key={option.value}
-                              className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
-                                selectedLocation === option.label ? "bg-[#F0F0F0]" : ""
+                              activeOpacity={0.7}
+                              className={`flex-row justify-between items-center py-2.5 px-4 rounded-lg ${
+                                selectedLocation === option.label ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
                               }`}
+                              style={{ marginBottom: 2 }}
                               onPress={() => {
                                 const newLocation = defaultLocations.find((loc) => loc.label === option.label);
                                 setSelectedLocation(option.label);
@@ -1159,13 +1236,13 @@ export default function EventTypeDetail() {
                                 {option.iconUrl ? (
                                   <SvgImage
                                     uri={option.iconUrl}
-                                    width={24}
-                                    height={24}
+                                    width={18}
+                                    height={18}
                                     style={{ marginRight: 12 }}
                                   />
                                 ) : (
-                                  <View style={{ width: 24, height: 24, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>?</Text>
+                                  <View style={{ width: 18, height: 18, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ color: 'white', fontSize: 8, fontWeight: 'bold' }}>?</Text>
                                   </View>
                                 )}
                                 <Text className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}>
@@ -1343,10 +1420,39 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
           </Modal>
 
+          {/* Slot Interval Dropdown Modal */}
+          <Modal
+            visible={showSlotIntervalDropdown}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowSlotIntervalDropdown(false)}>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowSlotIntervalDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Slot interval</Text>
+                {slotIntervalOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      slotInterval === option ? "bg-[#F0F0F0]" : ""
+                    }`}
+                    onPress={() => {
+                      setSlotInterval(option);
+                      setShowSlotIntervalDropdown(false);
+                    }}>
+                    <Text className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}>
+                      {option}
+                    </Text>
+                    {slotInterval === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
           {activeTab === "availability" && (
-            <View className="bg-white rounded-2xl p-6">
-              <View className="mb-5">
-                <Text className="text-base font-semibold text-[#333] mb-2">Availability</Text>
+            <View className="bg-white rounded-2xl p-5">
+              <View className="mb-3">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Availability</Text>
                 <TouchableOpacity
                   className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                   onPress={() => setShowScheduleDropdown(true)}
@@ -1363,44 +1469,54 @@ export default function EventTypeDetail() {
               </View>
 
               {selectedSchedule && (
-                <View className="mt-5 pt-5 border-t border-[#F0F0F0]">
-                  <Text className="text-base font-semibold text-[#333] mb-3">Schedule</Text>
-                  {scheduleDetailsLoading ? (
-                    <View className="py-4 items-center">
-                      <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
-                    </View>
-                  ) : selectedScheduleDetails ? (
-                    getDaySchedule().map((dayInfo, index) => (
-                      <View key={index} className="flex-row justify-between items-center py-2 border-b border-[#F0F0F0]">
-                        <Text
-                          className={`text-[15px] font-medium text-[#333] flex-1 ${
-                            !dayInfo.available ? "line-through text-[#8E8E93]" : ""
-                          }`}>
-                          {dayInfo.day}
-                        </Text>
-                        <Text className="text-[15px] text-[#666] text-right">
-                          {dayInfo.available && dayInfo.startTime && dayInfo.endTime
-                            ? `${formatTime(dayInfo.startTime)} - ${formatTime(dayInfo.endTime)}`
-                            : "Unavailable"}
-                        </Text>
+                <>
+                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
+                    {scheduleDetailsLoading ? (
+                      <View className="py-4 items-center">
+                        <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
                       </View>
-                    ))
-                  ) : (
-                    <View className="py-4 items-center">
-                      <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
+                    ) : selectedScheduleDetails ? (
+                      getDaySchedule().map((dayInfo, index) => (
+                        <View key={index} className="flex-row justify-between items-center py-4">
+                          <Text
+                            className={`text-[15px] font-medium text-[#333] flex-1 ml-2 ${
+                              !dayInfo.available ? "line-through text-[#8E8E93]" : ""
+                            }`}>
+                            {dayInfo.day}
+                          </Text>
+                          <Text className="text-[15px] text-[#666] text-right mr-4">
+                            {dayInfo.available && dayInfo.startTime && dayInfo.endTime
+                              ? `${formatTime(dayInfo.startTime)} - ${formatTime(dayInfo.endTime)}`
+                              : "Unavailable"}
+                          </Text>
+                        </View>
+                      ))
+                    ) : (
+                      <View className="py-4 items-center">
+                        <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
+                    <Text className="text-base font-semibold text-[#333] mb-1.5">Timezone</Text>
+                    <View className="bg-[#F8F9FA] rounded-lg px-3 py-3 items-center">
+                      <Text className="text-base text-[#666] text-center">
+                        {selectedTimezone || selectedScheduleDetails?.timeZone || "No timezone"}
+                      </Text>
                     </View>
-                  )}
-                </View>
+                  </View>
+                </>
               )}
             </View>
           )}
 
           {activeTab === "limits" && (
-            <View className="gap-4">
-              {/* Buffer Time Card */}
-              <View className="bg-white rounded-2xl p-6 shadow-md">
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">Before event</Text>
+            <View className="gap-3">
+              {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
+              <View className="bg-white rounded-2xl p-5 shadow-md">
+                <View className="mb-3">
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Before event</Text>
                   <TouchableOpacity
                     className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowBeforeBufferDropdown(true)}>
@@ -1409,8 +1525,8 @@ export default function EventTypeDetail() {
                   </TouchableOpacity>
                 </View>
 
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">After event</Text>
+                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">After event</Text>
                   <TouchableOpacity
                     className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowAfterBufferDropdown(true)}>
@@ -1418,12 +1534,9 @@ export default function EventTypeDetail() {
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
                 </View>
-              </View>
 
-              {/* Minimum Notice Card */}
-              <View className="bg-white rounded-2xl p-6 shadow-md">
-                <View className="mb-5">
-                  <Text className="text-base font-semibold text-[#333] mb-2">Minimum Notice</Text>
+                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Minimum Notice</Text>
                   <View className="flex-row items-center gap-3">
                     <TextInput
                       className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
@@ -1447,10 +1560,20 @@ export default function EventTypeDetail() {
                     </TouchableOpacity>
                   </View>
                 </View>
+
+                <View style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
+                  <Text className="text-base font-semibold text-[#333] mb-1.5">Time-slot intervals</Text>
+                  <TouchableOpacity
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
+                    onPress={() => setShowSlotIntervalDropdown(true)}>
+                    <Text className="text-base text-black">{slotInterval === "Default" ? "Use event length (default)" : slotInterval}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Booking Frequency Limit Card */}
-              <View className="bg-white rounded-2xl p-6 shadow-md">
+              <View className="bg-white rounded-2xl p-5 shadow-md">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit booking frequency</Text>
@@ -1522,7 +1645,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Total Booking Duration Limit Card */}
-              <View className="bg-white rounded-2xl p-6 shadow-md">
+              <View className="bg-white rounded-2xl p-5 shadow-md">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit total booking duration</Text>
@@ -1595,39 +1718,205 @@ export default function EventTypeDetail() {
                   )}
                 </Animated.View>
               </View>
+
+              {/* Only Show First Available Slot Card */}
+              <View className="bg-white rounded-2xl p-5 shadow-md">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-base text-[#333] font-medium mb-1">Only show the first slot of each day as available</Text>
+                    <Text className="text-sm text-[#666] leading-5">
+                      This will limit your availability for this event type to one slot per day, scheduled at the earliest available time.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={onlyShowFirstAvailableSlot}
+                    onValueChange={setOnlyShowFirstAvailableSlot}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Max Active Bookings Per Booker Card */}
+              <View className="bg-white rounded-2xl p-5 shadow-md">
+                <View className="flex-row justify-between items-start mb-3">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-base text-[#333] font-medium mb-1">Limit number of upcoming bookings per booker</Text>
+                    <Text className="text-sm text-[#666] leading-5">
+                      Limit the number of active bookings a booker can make for this event type.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={maxActiveBookingsPerBooker}
+                    onValueChange={setMaxActiveBookingsPerBooker}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+                {maxActiveBookingsPerBooker && (
+                  <View className="mt-3">
+                    <TextInput
+                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                      value={maxActiveBookingsValue}
+                      onChangeText={(text) => {
+                        const numericValue = text.replace(/[^0-9]/g, "");
+                        const num = parseInt(numericValue) || 0;
+                        if (num >= 0) {
+                          setMaxActiveBookingsValue(numericValue || "1");
+                        }
+                      }}
+                      placeholder="1"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="numeric"
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Limit Future Bookings Card */}
+              <View className="bg-white rounded-2xl p-5 shadow-md">
+                <View className="flex-row justify-between items-start mb-3">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-base text-[#333] font-medium mb-1">Limit future bookings</Text>
+                    <Text className="text-sm text-[#666] leading-5">
+                      Limit how far in the future this event can be booked.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={limitFutureBookings}
+                    onValueChange={setLimitFutureBookings}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+                {limitFutureBookings && (
+                  <View className="mt-3 gap-3">
+                    <View className="flex-row items-center gap-3">
+                      <TouchableOpacity
+                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
+                          futureBookingType === "rolling"
+                            ? "bg-[#F0F0F0] border-[#333]"
+                            : "bg-[#F8F9FA] border-[#E5E5EA]"
+                        }`}
+                        onPress={() => setFutureBookingType("rolling")}>
+                        <Text
+                          className={`text-base ${
+                            futureBookingType === "rolling" ? "text-[#333] font-semibold" : "text-[#666]"
+                          }`}>
+                          Rolling
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
+                          futureBookingType === "range"
+                            ? "bg-[#F0F0F0] border-[#333]"
+                            : "bg-[#F8F9FA] border-[#E5E5EA]"
+                        }`}
+                        onPress={() => setFutureBookingType("range")}>
+                        <Text
+                          className={`text-base ${
+                            futureBookingType === "range" ? "text-[#333] font-semibold" : "text-[#666]"
+                          }`}>
+                          Date Range
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    {futureBookingType === "rolling" && (
+                      <View className="gap-3">
+                        <View className="flex-row items-center gap-3">
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black flex-1"
+                            value={rollingDays}
+                            onChangeText={(text) => {
+                              const numericValue = text.replace(/[^0-9]/g, "");
+                              const num = parseInt(numericValue) || 0;
+                              if (num >= 0) {
+                                setRollingDays(numericValue || "30");
+                              }
+                            }}
+                            placeholder="30"
+                            placeholderTextColor="#8E8E93"
+                            keyboardType="numeric"
+                          />
+                          <TouchableOpacity
+                            className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
+                              rollingCalendarDays
+                                ? "bg-[#F0F0F0] border-[#333]"
+                                : "bg-[#F8F9FA] border-[#E5E5EA]"
+                            }`}
+                            onPress={() => setRollingCalendarDays(!rollingCalendarDays)}>
+                            <Text
+                              className={`text-base ${
+                                rollingCalendarDays ? "text-[#333] font-semibold" : "text-[#666]"
+                              }`}>
+                              {rollingCalendarDays ? "Calendar days" : "Business days"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Text className="text-sm text-[#666]">days into the future</Text>
+                      </View>
+                    )}
+                    {futureBookingType === "range" && (
+                      <View className="gap-3">
+                        <View>
+                          <Text className="text-sm text-[#666] mb-1.5">Start date</Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                            value={rangeStartDate}
+                            onChangeText={setRangeStartDate}
+                            placeholder="YYYY-MM-DD"
+                            placeholderTextColor="#8E8E93"
+                          />
+                        </View>
+                        <View>
+                          <Text className="text-sm text-[#666] mb-1.5">End date</Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                            value={rangeEndDate}
+                            onChangeText={setRangeEndDate}
+                            placeholder="YYYY-MM-DD"
+                            placeholderTextColor="#8E8E93"
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+
             </View>
           )}
 
           {activeTab === "advanced" && (
-            <View className="bg-white rounded-2xl p-6 shadow-md">
+            <View className="bg-white rounded-2xl p-5 shadow-md">
               <Text className="text-lg font-semibold text-[#333] mb-4">Advanced Settings</Text>
               <Text className="text-base text-[#666] leading-6 mb-6">Configure advanced options for this event type.</Text>
             </View>
           )}
 
           {activeTab === "recurring" && (
-            <View className="bg-white rounded-2xl p-6 shadow-md">
+            <View className="bg-white rounded-2xl p-5 shadow-md">
               <Text className="text-lg font-semibold text-[#333] mb-4">Recurring Events</Text>
               <Text className="text-base text-[#666] leading-6 mb-6">Set up recurring event patterns.</Text>
             </View>
           )}
 
           {activeTab === "apps" && (
-            <View className="bg-white rounded-2xl p-6 shadow-md">
+            <View className="bg-white rounded-2xl p-5 shadow-md">
               <Text className="text-lg font-semibold text-[#333] mb-4">Connected Apps</Text>
               <Text className="text-base text-[#666] leading-6 mb-6">Manage app integrations for this event type.</Text>
             </View>
           )}
 
           {activeTab === "workflows" && (
-            <View className="bg-white rounded-2xl p-6 shadow-md">
+            <View className="bg-white rounded-2xl p-5 shadow-md">
               <Text className="text-lg font-semibold text-[#333] mb-4">Workflows</Text>
               <Text className="text-base text-[#666] leading-6 mb-6">Configure automated workflows and actions.</Text>
             </View>
           )}
 
           {activeTab === "webhooks" && (
-            <View className="bg-white rounded-2xl p-6 shadow-md">
+            <View className="bg-white rounded-2xl p-5 shadow-md">
               <Text className="text-lg font-semibold text-[#333] mb-4">Webhooks</Text>
               <Text className="text-base text-[#666] leading-6 mb-6">Set up webhook endpoints for event notifications.</Text>
             </View>

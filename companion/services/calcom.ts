@@ -78,6 +78,7 @@ export interface Booking {
   rescheduled?: boolean;
   fromReschedule?: string;
   recurringEventId?: string;
+  recurringBookingUid?: string;
   smsReminderNumber?: string;
   location?: string;
   cancellationReason?: string;
@@ -169,8 +170,17 @@ export interface UserProfile {
   email: string;
   bio?: string;
   avatarUrl?: string;
-  timeZone: string;
-  weekStart: string;
+  timeZone?: string;
+  weekStart?: string;
+  timeFormat?: number;
+  defaultScheduleId?: number;
+  locale?: string;
+  organizationId?: number;
+  organization?: {
+    id: number;
+    isPlatform: boolean;
+  };
+  metadata?: Record<string, any>;
   brandColor?: string;
   darkBrandColor?: string;
   theme?: string;
@@ -195,9 +205,57 @@ export class CalComAPIService {
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
     try {
-      const response = await this.makeRequest<{ status: string; data: UserProfile }>("/me");
+      const response = await this.makeRequest<{ status: string; data: UserProfile }>(
+        "/me",
+        {
+          headers: {
+            "cal-api-version": "2024-06-11",
+          },
+        },
+        "2024-06-11"
+      );
       return response.data;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update current user profile
+  static async updateUserProfile(updates: {
+    email?: string;
+    name?: string;
+    timeFormat?: number;
+    defaultScheduleId?: number;
+    weekStart?: string;
+    timeZone?: string;
+    locale?: string;
+    avatarUrl?: string;
+    bio?: string;
+    metadata?: Record<string, any>;
+  }): Promise<UserProfile> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: UserProfile }>(
+        "/me",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-11",
+          },
+          body: JSON.stringify(updates),
+        },
+        "2024-06-11"
+      );
+
+      if (response && response.data) {
+        // Update cached profile
+        this.userProfile = response.data;
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update user profile API");
+    } catch (error) {
+      console.error("updateUserProfile error:", error);
       throw error;
     }
   }
@@ -370,6 +428,32 @@ export class CalComAPIService {
 
       return eventTypesArray;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getBookingByUid(bookingUid: string): Promise<Booking> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Booking }>(
+        `/bookings/${bookingUid}`,
+        {
+          headers: {
+            "cal-api-version": "2024-08-13",
+          },
+        },
+        "2024-08-13"
+      );
+      console.log("getBookingByUid raw response:", JSON.stringify(response, null, 2));
+      if (response && response.data) {
+        console.log("getBookingByUid booking data:", JSON.stringify(response.data, null, 2));
+        console.log("getBookingByUid user field:", response.data.user);
+        console.log("getBookingByUid hosts field:", response.data.hosts);
+        console.log("getBookingByUid attendees field:", response.data.attendees);
+        return response.data;
+      }
+      throw new Error("Invalid response from get booking API");
+    } catch (error) {
+      console.error("getBookingByUid error:", error);
       throw error;
     }
   }

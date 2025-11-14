@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { CalComAPIService, Schedule, ScheduleAvailability } from "../../services/calcom";
+import { Header } from "../../components/Header";
 
 export default function Availability() {
   const router = useRouter();
@@ -171,103 +172,108 @@ export default function Availability() {
     });
   };
 
-  const renderSchedule = ({ item: schedule }: { item: Schedule }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={() => handleSchedulePress(schedule)}
-      onLongPress={() => handleScheduleLongPress(schedule)}
-      className="mb-6"
-    >
-      <View className="bg-white rounded-xl p-4 shadow" style={{ position: "relative" }}>
-        <View className="flex-row items-center mb-3">
-          <Text className="text-xl font-bold text-[#333] mr-2 flex-1">{schedule.name}</Text>
-          {schedule.isDefault && (
-            <View className="bg-[#34C759] px-2 py-0.5 rounded">
-              <Text className="text-white text-xs font-semibold">Default</Text>
+  const renderSchedule = ({ item: schedule, index }: { item: Schedule; index: number }) => {
+    return (
+      <TouchableOpacity
+        className="bg-white active:bg-[#F8F9FA] border-b border-[#E5E5EA]"
+        onPress={() => handleSchedulePress(schedule)}
+        onLongPress={() => handleScheduleLongPress(schedule)}
+        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 mr-4">
+            <View className="flex-row items-center mb-1 flex-wrap">
+              <Text className="text-base font-semibold text-[#333]">{schedule.name}</Text>
+              {schedule.isDefault && (
+                <View className="bg-[#666] px-2 py-0.5 rounded ml-2">
+                  <Text className="text-white text-xs font-semibold">Default</Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
-        
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="globe-outline" size={16} color="#666" />
-          <Text className="text-sm text-[#666] ml-1">{schedule.timeZone}</Text>
-        </View>
-        
-        {schedule.availability && schedule.availability.length > 0 ? (
-          <View>
-            {schedule.availability.map((slot, index) => (
-              <View key={`${schedule.id}-${slot.days.join("-")}-${index}`} className={index > 0 ? "mt-3 pt-3 border-t border-[#E5E5EA]" : ""}>
-                <View className="mb-2">
-                  <Text className="text-base font-semibold text-[#333]">{slot.days.join(", ")}</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Ionicons name="time-outline" size={16} color="#666" />
-                  <Text className="text-sm text-[#666] ml-1.5">
-                    {slot.startTime} - {slot.endTime}
-                  </Text>
-                </View>
+            
+            {schedule.availability && schedule.availability.length > 0 ? (
+              <View>
+                {schedule.availability.map((slot, slotIndex) => (
+                  <View key={`${schedule.id}-${slot.days.join("-")}-${slotIndex}`} className={slotIndex > 0 ? "mt-2" : ""}>
+                    <Text className="text-sm text-[#666]">
+                      {slot.days.join(", ")} {slot.startTime} - {slot.endTime}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))}
+            ) : (
+              <Text className="text-sm text-[#666]">No availability set</Text>
+            )}
+            
+            <View className="flex-row items-center mt-2">
+              <Ionicons name="globe-outline" size={14} color="#666" />
+              <Text className="text-sm text-[#666] ml-1.5">{schedule.timeZone}</Text>
+            </View>
           </View>
-        ) : (
-          <Text className="text-sm text-[#666]">No availability set</Text>
-        )}
-        
-        <View style={{ position: "absolute", bottom: 16, right: 16 }}>
-          <Ionicons name="chevron-forward" size={20} color="#666" />
+          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
+            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
-        <ActivityIndicator size="large" color="#000000" />
-        <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
+      <View className="flex-1 bg-[#f8f9fa]">
+        <Header />
+        <View className="flex-1 justify-center items-center p-5">
+          <ActivityIndicator size="large" color="#000000" />
+          <Text className="mt-4 text-base text-[#666]">Loading availability...</Text>
+        </View>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
-        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text className="text-xl font-bold mt-4 mb-2 text-[#333] text-center">Unable to load availability</Text>
-        <Text className="text-base text-[#666] text-center mb-6">{error}</Text>
-        <TouchableOpacity className="bg-black px-6 py-3 rounded-lg" onPress={fetchSchedules}>
-          <Text className="text-white text-base font-semibold">Retry</Text>
-        </TouchableOpacity>
+      <View className="flex-1 bg-[#f8f9fa]">
+        <Header />
+        <View className="flex-1 justify-center items-center p-5">
+          <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+          <Text className="text-xl font-bold mt-4 mb-2 text-[#333] text-center">Unable to load availability</Text>
+          <Text className="text-base text-[#666] text-center mb-6">{error}</Text>
+          <TouchableOpacity className="bg-black px-6 py-3 rounded-lg" onPress={fetchSchedules}>
+            <Text className="text-white text-base font-semibold">Retry</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   if (schedules.length === 0 && !loading) {
     return (
-      <View className="flex-1 justify-center items-center p-5 bg-[#f8f9fa]">
-        <Ionicons name="calendar-outline" size={64} color="#666" />
-        <Text className="text-xl font-bold mt-4 mb-2 text-[#333]">No schedules found</Text>
-        <Text className="text-base text-[#666] text-center">Create your availability schedule in Cal.com</Text>
+      <View className="flex-1 bg-[#f8f9fa]">
+        <Header />
+        <View className="flex-1 justify-center items-center p-5">
+          <Ionicons name="calendar-outline" size={64} color="#666" />
+          <Text className="text-xl font-bold mt-4 mb-2 text-[#333]">No schedules found</Text>
+          <Text className="text-base text-[#666] text-center">Create your availability schedule in Cal.com</Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#f8f9fa] pt-16">
-      <FlatList
-        data={schedules}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderSchedule}
-        contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListHeaderComponent={
-          <View className="mb-4">
-            <Text className="text-2xl font-bold text-[#333] mb-2">Availability</Text>
-            <Text className="text-base text-[#666]">Configure times when you are available for bookings.</Text>
-          </View>
-        }
-        showsVerticalScrollIndicator={false}
-      />
+    <View className="flex-1 bg-[#f8f9fa]">
+      <Header />
+      <View className="px-4 pt-4 flex-1">
+        <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
+          <FlatList
+            data={schedules}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderSchedule}
+            contentContainerStyle={{ paddingBottom: 90 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      </View>
     </View>
   );
 }
