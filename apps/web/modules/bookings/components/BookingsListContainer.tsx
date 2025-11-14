@@ -74,17 +74,18 @@ export function BookingsListContainer({
       utils.viewer.bookings.invalidate();
     },
   });
+  const confirmMutationMutate = confirmMutation.mutate;
 
   const handleAccept = useCallback(
     (bookingId: number, recurringEventId?: string | null) => {
-      confirmMutation.mutate({
+      confirmMutationMutate({
         bookingId,
         confirmed: true,
         reason: "",
         ...(recurringEventId && { recurringEventId }),
       });
     },
-    [confirmMutation]
+    [confirmMutationMutate]
   );
 
   const handleReject = useCallback((bookingId: number, recurringEventId?: string | null) => {
@@ -122,6 +123,12 @@ export function BookingsListContainer({
   const table = useReactTable<RowData>({
     data,
     columns,
+    getRowId: (row) => {
+      if (row.type === "data") {
+        return `booking-${row.booking.id}`;
+      }
+      return `separator-${row.label}`;
+    },
     initialState: {
       columnVisibility: getFilterColumnVisibility(),
       columnPinning: {
