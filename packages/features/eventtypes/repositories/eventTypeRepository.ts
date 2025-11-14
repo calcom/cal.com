@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import { prisma, availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1581,4 +1581,90 @@ export class EventTypeRepository {
       },
     });
   }
+
+    /**
+   * List child event types for a given parent.
+   * Supports search, user exclusion, cursor pagination.
+   */
+    async listChildEventTypes({
+      parentEventTypeId,
+      excludeUserId,
+      searchTerm,
+      limit,
+      cursor,
+    }: {
+      parentEventTypeId: number;
+      excludeUserId?: number | null;
+      searchTerm?: string | null;
+      limit: number;
+      cursor?: number | null;
+    }) {
+      let ownerIds: number[] | null = null;
+    
+      if (searchTerm) {
+        const owners = await this.prismaClient.user.findMany({
+          where: {
+            OR: [
+              { name: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+          select: { id: true },
+        });
+    
+        ownerIds = owners.map((o) => o.id);
+    
+        // If no owners match, the result must be empty—early return.
+        if (ownerIds.length === 0) {
+          return {
+            totalCount: 0,
+            items: [],
+            hasMore: false,
+            nextCursor: null,
+          };
+        }
+      }
+
+      const eventTypeWhere: Prisma.EventTypeWhereInput = {
+        parentId: parentEventTypeId,
+        ...(excludeUserId && { userId: { not: excludeUserId } }),
+        ...(ownerIds && { userId: { in: ownerIds } }),
+      };
+
+      const [totalCount, rows] = await Promise.all([
+        this.prismaClient.eventType.count({ where: eventTypeWhere }),
+    
+        this.prismaClient.eventType.findMany({
+          where: eventTypeWhere,
+          select: {
+            id: true,
+            userId: true,
+            owner: {
+              select: {
+                ...userSelectWithSelectedCalendars,
+                credentials: {
+                  select: credentialForCalendarServiceSelect,
+                },
+              },
+            },
+          },
+          take: limit + 1, // fetch one extra to detect pagination
+          ...(cursor && { skip: 1, cursor: { id: cursor } }),
+          orderBy: { id: "asc" }, // deterministic pagination
+        }),
+      ]);
+
+      // Apply pagination logic
+      const hasMore = rows.length > limit;
+      const items = hasMore ? rows.slice(0, limit) : rows;
+      const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+      return {
+        totalCount,
+        items,
+        hasMore,
+        nextCursor,
+      };
+    }    
+
 }

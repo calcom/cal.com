@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { prisma } from "@calcom/prisma";
 
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
@@ -8,8 +8,10 @@ import { BookingRepository } from "./BookingRepository";
 // Test Helpers
 // ------------
 
-// Track booking IDs to clean up only what we create
+// Track resources to clean up
 const createdBookingIds: number[] = [];
+let testUserId: number;
+let testEventTypeId: number | null = null;
 
 async function clearTestBookings() {
   if (createdBookingIds.length > 0) {
@@ -27,9 +29,9 @@ async function createAttendeeNoShowTestBookings() {
   // Booking 1: 00:00-01:00
   const booking1 = await prisma.booking.create({
     data: {
-      userId: 1,
+      userId: testUserId,
       uid: "uid-1",
-      eventTypeId: 1,
+      eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
       attendees: {
         create: {
@@ -49,9 +51,9 @@ async function createAttendeeNoShowTestBookings() {
   // Booking 2: 01:00-02:00 (different time to avoid idempotencyKey collision)
   const booking2 = await prisma.booking.create({
     data: {
-      userId: 1,
+      userId: testUserId,
       uid: "uid-2",
-      eventTypeId: 1,
+      eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
       attendees: {
         create: {
@@ -73,9 +75,9 @@ async function createHostNoShowTestBookings() {
   // Booking 1: 02:00-03:00 (different time to avoid idempotencyKey collision)
   const booking1 = await prisma.booking.create({
     data: {
-      userId: 1,
+      userId: testUserId,
       uid: "uid-3",
-      eventTypeId: 1,
+      eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
       noShowHost: false,
       attendees: {
@@ -96,9 +98,9 @@ async function createHostNoShowTestBookings() {
   // Booking 2: 03:00-04:00 (different time to avoid idempotencyKey collision)
   const booking2 = await prisma.booking.create({
     data: {
-      userId: 1,
+      userId: testUserId,
       uid: "uid-4",
-      eventTypeId: 1,
+      eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
       noShowHost: true,
       attendees: {
@@ -122,6 +124,48 @@ async function createHostNoShowTestBookings() {
 // -----------------
 
 describe("BookingRepository (Integration Tests)", () => {
+  beforeAll(async () => {
+    // Use existing seed user
+    const testUser = await prisma.user.findFirstOrThrow({
+      where: { email: "member0-acme@example.com" },
+    });
+    testUserId = testUser.id;
+
+    // Find or create a test event type for this user
+    let eventType = await prisma.eventType.findFirst({
+      where: { userId: testUserId },
+    });
+
+    if (!eventType) {
+      eventType = await prisma.eventType.create({
+        data: {
+          title: "Test Event Type",
+          slug: `test-event-type-${Date.now()}`,
+          length: 30,
+          userId: testUserId,
+        },
+      });
+      testEventTypeId = eventType.id; // Track for cleanup
+    } else {
+      testEventTypeId = eventType.id; // Use existing, don't clean up
+    }
+  });
+
+  afterAll(async () => {
+    // Only delete event type if we created it
+    if (testEventTypeId) {
+      const eventType = await prisma.eventType.findUnique({
+        where: { id: testEventTypeId },
+        select: { slug: true },
+      });
+      if (eventType?.slug.startsWith("test-event-type-")) {
+        await prisma.eventType.delete({
+          where: { id: testEventTypeId },
+        });
+      }
+    }
+  });
+
   beforeEach(async () => {
     vi.setSystemTime(new Date("2025-05-01T00:00:00.000Z"));
   });
@@ -138,8 +182,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: false,
@@ -155,8 +199,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: true,
@@ -172,8 +216,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: false,
@@ -189,8 +233,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: true,
@@ -207,8 +251,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: false,
@@ -225,8 +269,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
         const bookingRepo = new BookingRepository(prisma);
         const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-          users: [{ id: 1, email: "organizer1@example.com" }],
-          eventTypeId: 1,
+          users: [{ id: testUserId, email: "organizer1@example.com" }],
+          eventTypeId: testEventTypeId,
           startDate: new Date("2025-05-01T00:00:00.000Z"),
           endDate: new Date("2025-05-01T23:59:59.999Z"),
           includeNoShowInRRCalculation: true,
@@ -241,9 +285,9 @@ describe("BookingRepository (Integration Tests)", () => {
     it("should filter by startTime when rrTimestampBasis=START_TIME", async () => {
       const mayBooking = await prisma.booking.create({
         data: {
-          userId: 1,
+          userId: testUserId,
           uid: "booking_may",
-          eventTypeId: 1,
+          eventTypeId: testEventTypeId,
           status: BookingStatus.ACCEPTED,
           attendees: {
             create: {
@@ -263,9 +307,9 @@ describe("BookingRepository (Integration Tests)", () => {
 
       const juneBooking = await prisma.booking.create({
         data: {
-          userId: 1,
+          userId: testUserId,
           uid: "booking_june",
-          eventTypeId: 1,
+          eventTypeId: testEventTypeId,
           status: BookingStatus.ACCEPTED,
           attendees: {
             create: {
@@ -285,8 +329,8 @@ describe("BookingRepository (Integration Tests)", () => {
 
       const bookingRepo = new BookingRepository(prisma);
       const bookings = await bookingRepo.getAllBookingsForRoundRobin({
-        users: [{ id: 1, email: "org@example.com" }],
-        eventTypeId: 1,
+        users: [{ id: testUserId, email: "org@example.com" }],
+        eventTypeId: testEventTypeId,
         startDate: new Date("2025-06-01T00:00:00.000Z"),
         endDate: new Date("2025-06-30T23:59:59.999Z"),
         includeNoShowInRRCalculation: true,

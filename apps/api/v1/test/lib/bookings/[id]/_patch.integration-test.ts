@@ -14,6 +14,7 @@ describe("PATCH /api/bookings", () => {
   let member1Booking: Awaited<ReturnType<typeof prisma.booking.create>>;
   let member0Booking: Awaited<ReturnType<typeof prisma.booking.create>>;
   const createdBookingIds: number[] = [];
+  let testAdminUserId: number | null = null;
 
   beforeAll(async () => {
     const member1 = await prisma.user.findFirstOrThrow({
@@ -56,6 +57,13 @@ describe("PATCH /api/bookings", () => {
         where: { id: { in: createdBookingIds } },
       });
     }
+
+    // Clean up test admin user if created
+    if (testAdminUserId) {
+      await prisma.user.delete({
+        where: { id: testAdminUserId },
+      });
+    }
   });
   it("Returns 403 when user has no permission to the booking", async () => {
     // Member2 tries to access Member0's booking - should fail
@@ -92,6 +100,7 @@ describe("PATCH /api/bookings", () => {
         role: "ADMIN",
       },
     });
+    testAdminUserId = adminUser.id; // Track for cleanup
 
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "PATCH",

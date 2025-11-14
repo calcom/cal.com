@@ -9,11 +9,11 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { userSelect } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetManagedEventUsersToReassignInputSchema } from "./getManagedEventUsersToReassign.schema";
+
 
 type GetManagedEventUsersToReassignOptions = {
   ctx: {
@@ -40,47 +40,22 @@ async function getManagedEventUsersFromDB({
   limit?: number;
   excludeUserId?: number;
 }) {
-  const queryWhere = {
-    parentId: parentEventTypeId,
-    ...(excludeUserId && { userId: { not: excludeUserId } }),
-    ...(searchTerm && {
-      owner: {
-        OR: [
-          { name: { contains: searchTerm, mode: "insensitive" as const } },
-          { email: { contains: searchTerm, mode: "insensitive" as const } },
-        ],
-      },
-    }),
-  };
 
-  const [totalCount, childEventTypes] = await Promise.all([
-    prisma.eventType.count({ where: queryWhere }),
-    prisma.eventType.findMany({
-      where: queryWhere,
-      select: {
-        id: true,
-        userId: true,
-        owner: {
-          select: {
-            ...userSelect,
-            credentials: {
-              select: credentialForCalendarServiceSelect,
-            },
-          },
-        },
-      },
-      take: limit + 1,
-      ...(cursor && { skip: 1, cursor: { id: cursor } }),
-      orderBy: { owner: { name: "asc" } },
-    }),
-  ]);
-
-  const hasNextPage = childEventTypes.length > limit;
-  const childEventTypes_subset = hasNextPage ? childEventTypes.slice(0, -1) : childEventTypes;
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const { totalCount, items } = await eventTypeRepository.listChildEventTypes({
+    parentEventTypeId,
+    excludeUserId,
+    searchTerm,
+    limit,
+    cursor,
+  });
   
-  const users = childEventTypes_subset
-    .filter((et) => et.owner !== null)
-    .map((et) => withSelectedCalendars(et.owner!));
+  const hasNextPage = items.length > limit;
+  const childEventTypes_subset = hasNextPage ? items.slice(0, -1) : items;
+
+  const users = items
+  .filter((et) => et.owner)
+  .map((et) => withSelectedCalendars(et.owner));
 
   return {
     users: await enrichUsersWithDelegationCredentials({
