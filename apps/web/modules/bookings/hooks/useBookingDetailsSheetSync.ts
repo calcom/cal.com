@@ -21,12 +21,10 @@ export function useBookingDetailsSheetSync(bookings: BookingOutput[]) {
     setStoreBookings(bookings);
   }, [bookings, setStoreBookings]);
 
-  // Subscribe to store changes and sync to URL
   useEffect(() => {
-    // Subscribe to store changes
+    // Subscribe to store changes and sync URL → Store
     const unsubscribe = useBookingDetailsSheetStore.subscribe((state) => {
       const storeId = state.selectedBookingId;
-      // Only update URL if it's different from current URL value
       if (storeId !== selectedBookingIdFromUrl) {
         setSelectedBookingIdToUrl(storeId);
       }
@@ -35,7 +33,7 @@ export function useBookingDetailsSheetSync(bookings: BookingOutput[]) {
     return unsubscribe;
   }, [selectedBookingIdFromUrl, setSelectedBookingIdToUrl]);
 
-  // Sync URL to store (one-way: URL → Store)
+  // Sync URL → Store
   useEffect(() => {
     const currentStoreId = useBookingDetailsSheetStore.getState().selectedBookingId;
     if (currentStoreId !== selectedBookingIdFromUrl) {

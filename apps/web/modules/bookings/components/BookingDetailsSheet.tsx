@@ -49,9 +49,45 @@ export function BookingDetailsSheet({
   userEmail,
 }: BookingDetailsSheetProps) {
   const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+
+  // Return null if no booking is selected (sheet is closed)
+  if (!booking) return null;
+
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner
+        userTimeZone={userTimeZone}
+        userTimeFormat={userTimeFormat}
+        userId={userId}
+        userEmail={userEmail}
+      />
+    </BookingActionsStoreProvider>
+  );
+}
+
+interface BookingDetailsSheetInnerProps {
+  userTimeZone?: string;
+  userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
+}
+
+function BookingDetailsSheetInner({
+  userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
+}: BookingDetailsSheetInnerProps) {
+  const { t } = useLocale();
+
+  // Get booking and navigation state directly from the store
+  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
   const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
   const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
   const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+
+  // Early return if no booking (shouldn't happen due to parent check, but for type safety)
+  if (!booking) return null;
 
   const handleClose = () => {
     setSelectedBookingId(null);
@@ -70,59 +106,6 @@ export function BookingDetailsSheet({
       setSelectedBookingId(prevId);
     }
   };
-
-  // Return null if no booking is selected (sheet is closed)
-  if (!booking) return null;
-
-  const isOpen = true; // If we have a booking, sheet should be open
-
-  return (
-    <BookingActionsStoreProvider>
-      <BookingDetailsSheetInner
-        booking={booking}
-        isOpen={isOpen}
-        onClose={handleClose}
-        userTimeZone={userTimeZone}
-        userTimeFormat={userTimeFormat}
-        userId={userId}
-        userEmail={userEmail}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        hasNext={hasNext}
-        hasPrevious={hasPrevious}
-      />
-    </BookingActionsStoreProvider>
-  );
-}
-
-interface BookingDetailsSheetInnerProps {
-  booking: BookingOutput;
-  isOpen: boolean;
-  onClose: () => void;
-  userTimeZone?: string;
-  userTimeFormat?: number;
-  userId?: number;
-  userEmail?: string;
-  onPrevious: () => void;
-  hasPrevious: boolean;
-  onNext: () => void;
-  hasNext: boolean;
-}
-
-function BookingDetailsSheetInner({
-  booking,
-  isOpen,
-  onClose,
-  userTimeZone,
-  userTimeFormat,
-  userId,
-  userEmail,
-  onPrevious,
-  hasPrevious,
-  onNext,
-  hasNext,
-}: BookingDetailsSheetInnerProps) {
-  const { t } = useLocale();
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
@@ -162,7 +145,7 @@ function BookingDetailsSheetInner({
     : [];
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader
           showCloseButton={false}
@@ -175,7 +158,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasPrevious}
                 onClick={(e) => {
                   e.preventDefault();
-                  onPrevious();
+                  handlePrevious();
                 }}
               />
               <Button
@@ -185,7 +168,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasNext}
                 onClick={(e) => {
                   e.preventDefault();
-                  onNext();
+                  handleNext();
                 }}
               />
             </div>
@@ -237,7 +220,7 @@ function BookingDetailsSheetInner({
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
           <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
-            <Button color="secondary" StartIcon="x" onClick={onClose}>
+            <Button color="secondary" StartIcon="x" onClick={handleClose}>
               {t("close")}
             </Button>
 
