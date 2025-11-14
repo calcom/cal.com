@@ -13,7 +13,6 @@ export type AvatarGroupProps = {
   className?: string;
   truncateAfter?: number;
   hideTruncatedAvatarsCount?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
 };
 
 export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
@@ -47,10 +46,8 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
         <li
           className={classNames(
             "bg-inverted relative -mr-1 inline-flex justify-center  overflow-hidden rounded-full",
-            props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16",
-            props.onClick && "cursor-pointer hover:opacity-80"
-          )}
-          onClick={props.onClick}>
+            props.size === "sm" ? "min-w-6 h-6" : "min-w-16 h-16"
+          )}>
           <span
             className={classNames(
               " text-inverted m-auto flex h-full w-full items-center justify-center text-center",

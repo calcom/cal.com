@@ -36,7 +36,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent enableOverflow data-testid="reschedule-dialog">
+      <DialogContent enableOverflow>
         <div className="flex flex-row space-x-3">
           <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
             <Icon name="clock" className="m-auto h-6 w-6" />

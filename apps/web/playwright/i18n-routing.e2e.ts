@@ -57,7 +57,9 @@ test.describe("Locale-specific pages must not 404", () => {
         await user.apiLogin();
         const response = await page.goto(`/${locale}/bookings/upcoming`);
         expect(response?.status()).not.toBe(404);
-        await expect(page.getByRole("heading", { name: "Bookings" })).toBeVisible();
+        await expect(
+          page.locator("text=See upcoming and past events booked through your event type links.")
+        ).toBeVisible();
       });
 
       test(`/${locale}/teams page shouldn't 404`, async ({ page, users }) => {
