@@ -1,3 +1,4 @@
+"use client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";

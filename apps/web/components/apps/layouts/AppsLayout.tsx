@@ -1,3 +1,4 @@
+"use client";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";

@@ -1,3 +1,4 @@
+"use client";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Link from "next/link";

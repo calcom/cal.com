@@ -1,3 +1,4 @@
+"use client";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 

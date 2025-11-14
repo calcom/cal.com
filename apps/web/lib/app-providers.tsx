@@ -1,3 +1,4 @@
+"use client";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";

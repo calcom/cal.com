@@ -1,3 +1,4 @@
+"use client";
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 

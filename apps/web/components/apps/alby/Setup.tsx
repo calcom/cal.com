@@ -1,3 +1,4 @@
+"use client";
 import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

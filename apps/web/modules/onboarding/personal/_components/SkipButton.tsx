@@ -1,3 +1,4 @@
+"use client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type SkipButtonProps = {

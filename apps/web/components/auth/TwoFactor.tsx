@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 import { useFormContext } from "react-hook-form";

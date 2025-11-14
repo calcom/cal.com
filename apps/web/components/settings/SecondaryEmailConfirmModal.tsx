@@ -1,3 +1,4 @@
+"use client";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

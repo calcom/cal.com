@@ -1,3 +1,4 @@
+"use client";
 import { useRouter } from "next/navigation";
 
 import type { PlatformOAuthClientDto } from "@calcom/platform-types";
@@ -79,7 +80,7 @@ const NewOAuthClientButton = ({ redirectLink, label }: { redirectLink: string; l
       }}
       color="secondary"
       StartIcon="plus">
-      {!!label ? label : "Add"}
+      {label ? label : "Add"}
     </Button>
   );
 };

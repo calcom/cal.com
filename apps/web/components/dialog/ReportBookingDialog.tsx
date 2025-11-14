@@ -1,3 +1,4 @@
+"use client";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useForm } from "react-hook-form";
 
