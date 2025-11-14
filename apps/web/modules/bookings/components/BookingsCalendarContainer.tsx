@@ -2,7 +2,7 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,7 +11,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
-import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
+import { useBookingCursor } from "../hooks/useBookingCursor";
+import { useSelectedBookingId } from "../hooks/useSelectedBookingId";
 import type { RowData, BookingListingStatus } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsCalendar } from "./BookingsCalendar";
@@ -42,9 +43,17 @@ export function BookingsCalendarContainer({
   const { t } = useLocale();
   const user = useMeQuery().data;
 
+  const [selectedBookingId, setSelectedBookingId] = useSelectedBookingId();
   const [currentWeekStart, setCurrentWeekStart] = useQueryState(
     "weekStart",
     weekStartParser.withDefault(dayjs().startOf("week"))
+  );
+
+  const onOpenDetails = useCallback(
+    (bookingId: number) => {
+      setSelectedBookingId(bookingId);
+    },
+    [setSelectedBookingId]
   );
 
   const columns = useMemo(() => {
@@ -81,23 +90,42 @@ export function BookingsCalendarContainer({
       });
   }, [data, currentWeekStart]);
 
+  const selectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    return bookings.find((booking) => booking.id === selectedBookingId) ?? null;
+  }, [selectedBookingId, bookings]);
+
+  const bookingNavigation = useBookingCursor({
+    bookings,
+    selectedBookingId,
+    setSelectedBookingId,
+  });
+
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings}>
+    <>
       <BookingsCalendar
         status={status}
         table={table}
         isPending={isPending}
+        onOpenDetails={onOpenDetails}
         currentWeekStart={currentWeekStart}
         setCurrentWeekStart={setCurrentWeekStart}
         bookings={bookings}
       />
 
       <BookingDetailsSheet
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBookingId(null)}
         userTimeZone={user?.timeZone}
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         userId={user?.id}
         userEmail={user?.email}
+        onPrevious={bookingNavigation.onPrevious}
+        hasPrevious={bookingNavigation.hasPrevious}
+        onNext={bookingNavigation.onNext}
+        hasNext={bookingNavigation.hasNext}
       />
-    </BookingDetailsSheetStoreProvider>
+    </>
   );
 }

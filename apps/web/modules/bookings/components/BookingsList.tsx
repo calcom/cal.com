@@ -10,7 +10,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus } from "../types";
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
@@ -26,19 +25,25 @@ type BookingsListViewProps = {
   table: ReactTable<RowData>;
   isPending: boolean;
   totalRowCount?: number;
+  onOpenDetails: (bookingId: number) => void;
 };
 
-export function BookingsList({ status, table, isPending, totalRowCount }: BookingsListViewProps) {
+export function BookingsList({
+  status,
+  table,
+  isPending,
+  totalRowCount,
+  onOpenDetails,
+}: BookingsListViewProps) {
   const { t } = useLocale();
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
 
   const handleRowClick = useCallback(
     (row: Row<RowData>) => {
       if (!isSeparatorRow(row.original)) {
-        setSelectedBookingId(row.original.booking.id);
+        onOpenDetails(row.original.booking.id);
       }
     },
-    [setSelectedBookingId]
+    [onOpenDetails]
   );
 
   return (
