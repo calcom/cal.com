@@ -1213,6 +1213,16 @@ export class BookingRepository {
             timeZone: true,
             locale: true,
             phoneNumber: true,
+            bookingSeat: {
+              select: {
+                id: true,
+                referenceUid: true,
+                bookingId: true,
+                attendeeId: true,
+                data: true,
+                metadata: true,
+              },
+            },
           },
         },
         user: {

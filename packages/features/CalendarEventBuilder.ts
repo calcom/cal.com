@@ -6,7 +6,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
-import type { Attendee, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
+import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
@@ -39,7 +39,12 @@ async function _buildPersonFromUser(
 }
 
 async function _buildPersonFromAttendee(
-  attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email" | "phoneNumber">
+  attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email" | "phoneNumber"> & {
+    bookingSeat: Pick<
+      BookingSeat,
+      "id" | "referenceUid" | "bookingId" | "metadata" | "data" | "attendeeId"
+    > | null;
+  }
 ) {
   const translate = await getTranslation(attendee.locale ?? "en", "common");
 
@@ -49,6 +54,7 @@ async function _buildPersonFromAttendee(
     timeZone: attendee.timeZone,
     language: { translate, locale: attendee.locale ?? "en" },
     phoneNumber: attendee.phoneNumber,
+    bookingSeat: attendee.bookingSeat,
   } satisfies Person;
 }
 
