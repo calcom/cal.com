@@ -38,7 +38,9 @@ export type DataTablePropsFromWrapper<TData> = {
   className?: string;
   containerClassName?: string;
   headerClassName?: string;
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
   paginationMode?: "infinite" | "standard";
   hasWrapperContext?: boolean;
   hideSeparatorsOnSort?: boolean;
@@ -68,6 +70,8 @@ export function DataTable<TData>({
   containerClassName,
   headerClassName,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   paginationMode = "infinite",
   hasWrapperContext = false,
   hideSeparatorsOnSort = true,
@@ -203,6 +207,8 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              rowTestId={rowTestId}
+              rowDataAttributes={rowDataAttributes}
               hideSeparatorsOnSort={hideSeparatorsOnSort}
               hideSeparatorsOnFilter={hideSeparatorsOnFilter}
               separatorClassName={separatorClassName}
@@ -219,6 +225,8 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              rowTestId={rowTestId}
+              rowDataAttributes={rowDataAttributes}
               hideSeparatorsOnSort={hideSeparatorsOnSort}
               hideSeparatorsOnFilter={hideSeparatorsOnFilter}
               separatorClassName={separatorClassName}
@@ -244,6 +252,8 @@ const MemoizedTableBody = memo(
     prev.onRowMouseclick === next.onRowMouseclick &&
     prev.paginationMode === next.paginationMode &&
     prev.rowClassName === next.rowClassName &&
+    prev.rowTestId === next.rowTestId &&
+    prev.rowDataAttributes === next.rowDataAttributes &&
     prev.hideSeparatorsOnSort === next.hideSeparatorsOnSort &&
     prev.hideSeparatorsOnFilter === next.hideSeparatorsOnFilter &&
     prev.separatorClassName === next.separatorClassName &&
@@ -259,7 +269,9 @@ type DataTableBodyProps<TData> = {
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   paginationMode?: "infinite" | "standard";
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
   hideSeparatorsOnSort?: boolean;
   hideSeparatorsOnFilter?: boolean;
   separatorClassName?: string;
@@ -294,6 +306,8 @@ function DataTableBody<TData>({
   onRowMouseclick,
   paginationMode,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   hideSeparatorsOnSort = true,
   hideSeparatorsOnFilter = false,
   separatorClassName,
@@ -374,13 +388,26 @@ function DataTableBody<TData>({
           );
         }
 
+        const computedRowTestId = typeof rowTestId === "function" ? rowTestId(row) : rowTestId;
+        const computedRowClassName = typeof rowClassName === "function" ? rowClassName(row) : rowClassName;
+        const computedDataAttributes = rowDataAttributes?.(row);
+
         return (
           <TableRow
             ref={virtualItem ? (node) => filteredRowVirtualizer.measureElement(node) : undefined}
             key={row.id}
+            data-testid={computedRowTestId}
+            {...computedDataAttributes}
             data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
-            onClick={() => onRowMouseclick && onRowMouseclick(row)}
+            onClick={(e) => {
+              if (!onRowMouseclick) return;
+              const target = e.target as Node | null;
+              const current = e.currentTarget as HTMLElement | null;
+              // Only invoke the handler when the event target is inside the row element.
+              if (!target || !current || !current.contains(target)) return;
+              onRowMouseclick(row);
+            }}
             style={{
               display: "flex",
               ...(virtualItem && {
@@ -389,7 +416,7 @@ function DataTableBody<TData>({
                 width: "100%",
               }),
             }}
-            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", computedRowClassName)}>
             {row.getVisibleCells().map((cell) => {
               const column = cell.column;
               return (
@@ -428,7 +455,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
   if (!canSort && !canHide) {
     if (typeof header.column.columnDef.header === "string") {
       return (
-        <div className="truncate px-2 py-1" title={header.column.columnDef.header}>
+        <div className="truncate" title={header.column.columnDef.header}>
           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
         </div>
       );
