@@ -1,6 +1,5 @@
 "use client";
 
-import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
@@ -72,11 +71,6 @@ function Type({
           crmRecordId={crmRecordId}
         />
       </main>
-
-      {/* Floating Product Hunt Badge */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <ProductHuntBadge />
-      </div>
     </BookingPageErrorBoundary>
   );
 }

@@ -4,7 +4,6 @@ import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Branding } from "@calid/features/ui/Branding";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -285,11 +284,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           <Branding size="xs" />
         </div>
       </main>
-
-      {/* Floating Product Hunt Badge */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <ProductHuntBadge />
-      </div>
     </div>
   );
 }
