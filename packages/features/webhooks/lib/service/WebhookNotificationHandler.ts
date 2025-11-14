@@ -125,6 +125,18 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
         };
       }
 
+      case WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR: {
+        return {
+          triggerEvent: dto.triggerEvent,
+          createdAt: dto.createdAt,
+          payload: {
+            error: dto.error,
+            credential: dto.credential,
+            user: dto.user,
+          },
+        };
+      }
+
       default: {
         // TypeScript exhaustiveness check - this should never happen if all cases are covered
         const _exhaustiveCheck: never = dto;
