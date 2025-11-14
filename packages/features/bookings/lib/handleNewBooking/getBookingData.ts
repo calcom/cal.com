@@ -53,7 +53,10 @@ const _getBookingData = async <T extends z.ZodType>({
       calEventResponses: undefined,
       customInputs: undefined,
       attendeePhoneNumber:
-        reqBodyWithLegacyProps.attendeePhoneNumber ?? reqBodyWithLegacyProps.phone ?? undefined,
+        reqBodyWithLegacyProps.attendeePhoneNumber ||
+        reqBodyWithLegacyProps.smsReminderNumber ||
+        reqBodyWithLegacyProps.phone ||
+        undefined,
     };
   }
   if (!parsedBody.responses) {
@@ -71,7 +74,8 @@ const _getBookingData = async <T extends z.ZodType>({
     ...parsedBody,
     name: responses.name,
     email: responses.email,
-    attendeePhoneNumber: responses.attendeePhoneNumber || responses.phone || null,
+    attendeePhoneNumber:
+      responses.attendeePhoneNumber || responses.smsReminderNumber || responses.phone || null,
     guests: responses.guests ? responses.guests : [],
     location: responses.location?.optionValue || responses.location?.value || "",
     smsReminderNumber: responses.smsReminderNumber,
