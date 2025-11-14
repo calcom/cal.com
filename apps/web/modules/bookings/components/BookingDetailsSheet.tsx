@@ -29,7 +29,10 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
-import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
+import {
+  useBookingDetailsSheetStore,
+  useBookingDetailsSheetStoreApi,
+} from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
@@ -92,15 +95,17 @@ function BookingDetailsSheetInner({
     setSelectedBookingId(null);
   };
 
+  const storeApi = useBookingDetailsSheetStoreApi();
+
   const handleNext = () => {
-    const nextId = useBookingDetailsSheetStore.getState().getNextBookingId();
+    const nextId = storeApi.getState().getNextBookingId();
     if (nextId !== null) {
       setSelectedBookingId(nextId);
     }
   };
 
   const handlePrevious = () => {
-    const prevId = useBookingDetailsSheetStore.getState().getPreviousBookingId();
+    const prevId = storeApi.getState().getPreviousBookingId();
     if (prevId !== null) {
       setSelectedBookingId(prevId);
     }

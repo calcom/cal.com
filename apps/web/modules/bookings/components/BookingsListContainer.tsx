@@ -16,7 +16,7 @@ import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues"
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { buildListDisplayColumns } from "../columns/listColumns";
-import { useBookingDetailsSheetSync } from "../hooks/useBookingDetailsSheetSync";
+import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
@@ -48,9 +48,6 @@ export function BookingsListContainer({
       .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
       .map((row) => row.booking);
   }, [data]);
-
-  // Sync store with URL and bookings
-  useBookingDetailsSheetSync(bookings);
 
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -145,7 +142,7 @@ export function BookingsListContainer({
   }, []);
 
   return (
-    <>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <Dialog open={rejectionDialogIsOpen} onOpenChange={handleRejectionDialogChange}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -182,6 +179,6 @@ export function BookingsListContainer({
         userId={user?.id}
         userEmail={user?.email}
       />
-    </>
+    </BookingDetailsSheetStoreProvider>
   );
 }

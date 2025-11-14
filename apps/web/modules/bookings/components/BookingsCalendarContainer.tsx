@@ -11,7 +11,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
-import { useBookingDetailsSheetSync } from "../hooks/useBookingDetailsSheetSync";
+import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsCalendar } from "./BookingsCalendar";
@@ -81,11 +81,8 @@ export function BookingsCalendarContainer({
       });
   }, [data, currentWeekStart]);
 
-  // Sync store with URL and bookings
-  useBookingDetailsSheetSync(bookings);
-
   return (
-    <>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingsCalendar
         status={status}
         table={table}
@@ -101,6 +98,6 @@ export function BookingsCalendarContainer({
         userId={user?.id}
         userEmail={user?.email}
       />
-    </>
+    </BookingDetailsSheetStoreProvider>
   );
 }
