@@ -7,8 +7,12 @@ import { md, unescapeMarkdown } from "./markdownIt";
  * Converts markdown to safe HTML with inline styles for email compatibility
  * Uses the centralized markdown-it instance from @calcom/lib/markdownIt
  *
+ * ⚠️ SECURITY: This function sanitizes the output using sanitize-html to prevent XSS attacks.
+ * The underlying markdown-it instance has `html: true` enabled, which would be dangerous
+ * without this sanitization step.
+ *
  * @param markdown - The markdown string to convert
- * @returns Safe HTML string with inline styles
+ * @returns Safe HTML string with inline styles (sanitized to prevent XSS)
  */
 export function markdownToSafeHTML(markdown: string | null | undefined): string {
   if (typeof window !== "undefined") {
@@ -49,11 +53,9 @@ export function markdownToSafeHTML(markdown: string | null | undefined): string 
       "pre",
       "code",
       "hr",
-      "input",
     ],
     allowedAttributes: {
       a: ["href", "target", "rel", "style"],
-      input: ["type", "checked", "disabled", "style"],
       // Allow style attribute on specific tags that need inline styles
       p: ["style"],
       h1: ["style"],
@@ -63,7 +65,7 @@ export function markdownToSafeHTML(markdown: string | null | undefined): string 
       h5: ["style"],
       h6: ["style"],
       ul: ["style"],
-      ol: ["style"],
+      ol: ["style", "start"],
       li: ["style", "value"],
       blockquote: ["style"],
       pre: ["style"],

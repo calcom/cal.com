@@ -1,5 +1,28 @@
 import MarkdownIt from "markdown-it";
 
+/**
+ * ⚠️ CRITICAL SECURITY WARNING ⚠️
+ *
+ * This markdown-it instance has `html: true` enabled, which means it will pass
+ * raw HTML tags directly through to the output. This creates a MASSIVE XSS
+ * (Cross-Site Scripting) vulnerability if the output is not sanitized.
+ *
+ * **NEVER use `md.render()` directly without sanitization!**
+ *
+ * Example of the vulnerability:
+ *   Input:  "Hello <script>alert('XSS')</script>"
+ *   Output: "<p>Hello</p> <script>alert('XSS')</script>"  ← Script executes!
+ *
+ * **ALWAYS use one of these safe wrapper functions instead:**
+ *   - `markdownToSafeHTML()` - Server-side (uses sanitize-html)
+ *   - `markdownToSafeHTMLClient()` - Client-side (uses DOMPurify)
+ *
+ * This file is a low-level configuration component. It should only be used
+ * internally by the safe wrapper functions above.
+ *
+ * @see markdownToSafeHTML - Safe server-side markdown rendering
+ * @see markdownToSafeHTMLClient - Safe client-side markdown rendering
+ */
 export const md = new MarkdownIt({ html: true, breaks: true, linkify: true });
 
 /**
@@ -88,7 +111,16 @@ md.renderer.rules.bullet_list_open = (tokens, idx, options, env, self) => {
  * Override ordered list renderer to add inline styles
  */
 md.renderer.rules.ordered_list_open = (tokens, idx, options, env, self) => {
-  addStyle(tokens[idx], "orderedList");
+  const token = tokens[idx];
+  addStyle(token, "orderedList");
+
+  const nextToken = tokens[idx + 1];
+  if (nextToken?.tag === "li") {
+    const startValue = parseInt(nextToken.info || "", 10);
+    if (!Number.isNaN(startValue) && startValue !== 1) {
+      token.attrSet("start", String(startValue));
+    }
+  }
   return originalOrderedListOpen
     ? originalOrderedListOpen(tokens, idx, options, env, self)
     : self.renderToken(tokens, idx, options);
@@ -98,7 +130,12 @@ md.renderer.rules.ordered_list_open = (tokens, idx, options, env, self) => {
  * Override list item renderer to add inline styles
  */
 md.renderer.rules.list_item_open = (tokens, idx, options, env, self) => {
-  addStyle(tokens[idx], "listItem");
+  const token = tokens[idx];
+  addStyle(token, "listItem");
+
+  if (token.info) {
+    token.attrSet("value", token.info);
+  }
   return originalListItemOpen
     ? originalListItemOpen(tokens, idx, options, env, self)
     : self.renderToken(tokens, idx, options);
