@@ -141,10 +141,19 @@ const shouldEnforceCsp = (url: URL) => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestorIp = getIP(req);
   try {
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "common",
-      identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
-    });
+    await checkRateLimitAndThrowError([
+      {
+        rateLimitingType: "common",
+        identifier: piiHasher.hash(req.nextUrl.pathname),
+      },
+      {
+        rateLimitingType: "common",
+        identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
+        opts: {
+          limit: 5000,
+        },
+      },
+    ]);
   } catch (error) {
     if (error instanceof HttpError) {
       return new NextResponse(error.message, { status: error.statusCode });

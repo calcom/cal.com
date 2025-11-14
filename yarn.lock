@@ -19437,6 +19437,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@unkey/api@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@unkey/api@npm:2.1.1"
+  dependencies:
+    zod: ^3.25.0 || ^4.0.0
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ">=1.5.0 <1.10.0"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 06c99c2efa161b6cfe8ef261ecfb47c6be44e18214c96a2178bd81b72475c316f05e8b4d31e0d04b3425e47356e272c106d6ce3dd737b1f9fb1a8d6bcd7779d3
+  languageName: node
+  linkType: hard
+
 "@unkey/ratelimit@npm:^2.1.3":
   version: 2.1.3
   resolution: "@unkey/ratelimit@npm:2.1.3"
@@ -22387,6 +22403,7 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
+    "@unkey/api": ^2.1.1
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.9
     c8: ^7.13.0
@@ -49871,6 +49888,13 @@ __metadata:
   version: 3.24.2
   resolution: "zod@npm:3.24.2"
   checksum: c02455c09678c5055c636d64f9fcda2424fea0aa46ac7d9681e7f41990bc55f488bcd84b9d7cfef0f6e906f51f55b245239d92a9f726248aa74c5b84edf00c2d
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.25.0 || ^4.0.0":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 91174acc7d2ca5572ad522643474ddd60640cf6877b5d76e5d583eb25e3c4072c6f5eb92ab94f231ec5ce61c6acdfc3e0166de45fb1005b1ea54986b026b765f
   languageName: node
   linkType: hard
 
