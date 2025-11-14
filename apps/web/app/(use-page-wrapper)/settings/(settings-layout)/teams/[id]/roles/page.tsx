@@ -17,6 +17,7 @@ import { prisma } from "@calcom/prisma";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRoleCta";
+import { PbacWelcomeModalWrapper } from "../../../organizations/roles/_components/PbacWelcomeModalWrapper";
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
 import { roleSearchParamsCache } from "../../../organizations/roles/_components/searchParams";
 
@@ -150,26 +151,29 @@ const Page = async ({
   // Use Team scope for team roles (this will automatically filter appropriate resources)
 
   return (
-    <SettingsHeader
-      title={t("roles_and_permissions")}
-      description={t("roles_and_permissions_description")}
-      borderInShellHeader={false}
-      CTA={canCreate ? <CreateRoleCTA /> : null}>
-      <RolesList
-        teamId={team.id}
-        roles={roles}
-        permissions={{
-          canCreate: canCreate,
-          canRead: canRead,
-          canUpdate: canUpdate,
-          canDelete: canDelete,
-        }}
-        initialSelectedRole={selectedRole}
-        initialSheetOpen={isSheetOpen}
-        scope={Scope.Team}
-        isPrivate={isPrivate}
-      />
-    </SettingsHeader>
+    <>
+      <SettingsHeader
+        title={t("roles_and_permissions")}
+        description={t("roles_and_permissions_description")}
+        borderInShellHeader={false}
+        CTA={canCreate ? <CreateRoleCTA /> : null}>
+        <RolesList
+          teamId={team.id}
+          roles={roles}
+          permissions={{
+            canCreate: canCreate,
+            canRead: canRead,
+            canUpdate: canUpdate,
+            canDelete: canDelete,
+          }}
+          initialSelectedRole={selectedRole}
+          initialSheetOpen={isSheetOpen}
+          scope={Scope.Team}
+          isPrivate={isPrivate}
+        />
+      </SettingsHeader>
+      <PbacWelcomeModalWrapper />
+    </>
   );
 };
 

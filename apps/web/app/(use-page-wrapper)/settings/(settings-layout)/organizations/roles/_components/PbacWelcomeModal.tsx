@@ -1,46 +1,38 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { localStorage } from "@calcom/lib/webstorage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { FingerprintAnimation } from "./FingerprintAnimation";
 
-interface PbacOptInModalProps {
+const STORAGE_KEY = "pbac_welcome_modal_dismissed";
+
+interface PbacWelcomeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  revalidateRolesPath: () => Promise<void>;
 }
 
-export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: PbacOptInModalProps) {
-  const router = useRouter();
+export function PbacWelcomeModal({ open, onOpenChange }: PbacWelcomeModalProps) {
   const { t } = useLocale();
   const [isButtonHovered, setIsButtonHovered] = useState(false);
 
-  const enablePbacMutation = trpc.viewer.pbac.enablePbac.useMutation({
-    onSuccess: async () => {
-      showToast(t("pbac_enabled_success"), "success");
-      await revalidateRolesPath();
-      onOpenChange(false);
-      router.refresh();
-    },
-    onError: (error) => {
-      showToast(error.message || t("pbac_enabled_error"), "error");
-    },
-  });
+  const handleContinue = () => {
+    localStorage.setItem(STORAGE_KEY, "true");
+    onOpenChange(false);
+  };
 
-  const handleOptIn = () => {
-    enablePbacMutation.mutate();
+  const handleClose = () => {
+    localStorage.setItem(STORAGE_KEY, "true");
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         enableOverflow
         type={undefined}
@@ -56,7 +48,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             </div>
           </div>
 
-          <div className="bg-subtle subtle w-full space-y-px overflow-hidden rounded-xl border">
+          <div className="bg-subtle w-full space-y-px overflow-hidden rounded-xl border border-gray-200">
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
                 <Icon name="shield-check" className="text-subtle h-5 w-5" />
@@ -104,22 +96,14 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             </div>
           </div>
 
-          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row">
+          <div className="flex w-full justify-end">
             <Button
-              color="secondary"
-              onClick={() => onOpenChange(false)}
-              disabled={enablePbacMutation.isPending}
-              className="w-full justify-center sm:w-1/4">
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={handleOptIn}
-              loading={enablePbacMutation.isPending}
-              className="w-full justify-center sm:w-3/4"
+              onClick={handleContinue}
+              className="w-full justify-center sm:w-auto"
               EndIcon="arrow-right"
               onMouseEnter={() => setIsButtonHovered(true)}
               onMouseLeave={() => setIsButtonHovered(false)}>
-              {t("pbac_opt_in_enable_button")}
+              {t("continue")}
             </Button>
           </div>
         </div>
@@ -127,3 +111,25 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
     </Dialog>
   );
 }
+
+export function usePbacWelcomeModal() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if modal has been dismissed before
+    const hasBeenDismissed = localStorage.getItem(STORAGE_KEY) === "true";
+    if (!hasBeenDismissed) {
+      setIsOpen(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  return {
+    isOpen,
+    onOpenChange: handleClose,
+  };
+}
+

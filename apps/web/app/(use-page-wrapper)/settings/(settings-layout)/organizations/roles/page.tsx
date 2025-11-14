@@ -15,6 +15,7 @@ import { prisma } from "@calcom/prisma";
 import { validateUserHasOrg } from "../actions/validateUserHasOrg";
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { PbacOptInView } from "./_components/PbacOptInView";
+import { PbacWelcomeModalWrapper } from "./_components/PbacWelcomeModalWrapper";
 import { RolesList } from "./_components/RolesList";
 import { roleSearchParamsCache } from "./_components/searchParams";
 
@@ -123,25 +124,28 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
   const selectedRole = roles.find((role) => role.id === selectedRoleId);
 
   return (
-    <SettingsHeader
-      title={t("roles_and_permissions")}
-      description={t("roles_and_permissions_description")}
-      borderInShellHeader={false}
-      CTA={canCreate ? <CreateRoleCTA /> : null}>
-      <RolesList
-        teamId={session.user.org.id}
-        roles={roles}
-        permissions={{
-          canCreate: canCreate,
-          canRead: canRead,
-          canUpdate: canUpdate,
-          canDelete: canDelete,
-        }}
-        initialSelectedRole={selectedRole}
-        initialSheetOpen={isSheetOpen}
-        isPrivate={isPrivate}
-      />
-    </SettingsHeader>
+    <>
+      <SettingsHeader
+        title={t("roles_and_permissions")}
+        description={t("roles_and_permissions_description")}
+        borderInShellHeader={false}
+        CTA={canCreate ? <CreateRoleCTA /> : null}>
+        <RolesList
+          teamId={session.user.org.id}
+          roles={roles}
+          permissions={{
+            canCreate: canCreate,
+            canRead: canRead,
+            canUpdate: canUpdate,
+            canDelete: canDelete,
+          }}
+          initialSelectedRole={selectedRole}
+          initialSheetOpen={isSheetOpen}
+          isPrivate={isPrivate}
+        />
+      </SettingsHeader>
+      <PbacWelcomeModalWrapper />
+    </>
   );
 };
 
