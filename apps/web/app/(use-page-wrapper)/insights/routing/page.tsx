@@ -17,18 +17,12 @@ export const generateMetadata = async () =>
 export default async function Page() {
   const session = await checkInsightsPagePermission();
   
-    const userRepository = {
-      async findByIdOrThrow(id: number) {
-        return prisma.user.findUniqueOrThrow({
-          where: { id },
-          select: { timeZone: true },
-        });
-      },
-    };
-  
-    const { timeZone } = await userRepository.findByIdOrThrow(
-      session?.user.id ?? -1
-    );
+  const { timeZone } = await prisma.user.findUniqueOrThrow({
+    where: { id: session?.user.id ?? -1 },
+    select: { 
+      timeZone: true 
+    },
+  });
 
   return <InsightsRoutingPage timeZone={timeZone} />;
 }
