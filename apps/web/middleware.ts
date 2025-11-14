@@ -97,7 +97,7 @@ const stripNonAscii = (s: string) => {
 };
 const sanitizeRequestHeaders = (headers: Iterable<[string, string]>): Headers => {
   const out = new Headers();
-  for (const [name, raw] of headers) {
+  for (const [name, raw] of Array.from(headers)) {
     if (!isAscii(name)) continue;
     let value = raw;
     if (!isAscii(value)) {
