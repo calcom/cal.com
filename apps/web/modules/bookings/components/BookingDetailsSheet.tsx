@@ -115,14 +115,14 @@ function BookingDetailsSheetInner({
     : [];
 
   const handleOpenChange = (open: boolean) => {
-    // Prevent closing if a dialog is currently open
+    // Only close when open is false, not on open transitions
     if (!open) {
       const hasOpenDialog = document.querySelector('[data-radix-dialog-content][data-state="open"]');
       if (hasOpenDialog) {
         return;
       }
+      onClose();
     }
-    onClose();
   };
 
   return (
