@@ -237,7 +237,6 @@ const FormEdit = ({
 
   const addField = () => {
     const newFieldId = uuidv4();
-    const fieldCount = hookFormFields.length;
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -245,7 +244,7 @@ const FormEdit = ({
       // This is same type from react-awesome-query-builder
       type: "text",
       label: "",
-      identifier: `field_${fieldCount + 1}`,
+      identifier: "",
     });
   };
 
