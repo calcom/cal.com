@@ -249,6 +249,7 @@ function BookingDetailsSheetInner({
                   isToday: false,
                 }}
                 usePortal={false}
+                context="details"
               />
             </div>
           </div>

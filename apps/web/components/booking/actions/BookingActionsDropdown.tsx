@@ -55,6 +55,12 @@ interface BookingActionsDropdownProps {
    * @default true
    */
   usePortal?: boolean;
+  /**
+   * Context where the dropdown is being used.
+   * - "list": Used in booking list view (hides Confirm and Reject actions)
+   * - "details": Used in booking details view (shows all actions)
+   */
+  context: "list" | "details";
 }
 
 export function BookingActionsDropdown({
@@ -62,6 +68,7 @@ export function BookingActionsDropdown({
   size = "base",
   className,
   usePortal = true,
+  context,
 }: BookingActionsDropdownProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -600,7 +607,7 @@ export function BookingActionsDropdown({
               </DropdownItem>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {pendingActions.length > 0 && (
+            {context === "details" && pendingActions.length > 0 && (
               <>
                 <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
                 {pendingActions.map((action) => (
