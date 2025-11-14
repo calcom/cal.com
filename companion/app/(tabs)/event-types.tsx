@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   FlatList,
+  ScrollView,
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
+import { Header } from "../../components/Header";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -26,6 +28,14 @@ export default function EventTypes() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchEventTypes = async () => {
     try {
@@ -33,19 +43,25 @@ export default function EventTypes() {
 
       const data = await CalComAPIService.getEventTypes();
 
-      if (Array.isArray(data)) {
-        setEventTypes(data);
-        setFilteredEventTypes(data);
-      } else {
-        setEventTypes([]);
-        setFilteredEventTypes([]);
+      if (isMountedRef.current) {
+        if (Array.isArray(data)) {
+          setEventTypes(data);
+          setFilteredEventTypes(data);
+        } else {
+          setEventTypes([]);
+          setFilteredEventTypes([]);
+        }
       }
     } catch (err) {
       console.error("🎯 EventTypesScreen: Error fetching event types:", err);
-      setError("Failed to load event types. Please check your API key and try again.");
+      if (isMountedRef.current) {
+        setError("Failed to load event types. Please check your API key and try again.");
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 
@@ -224,15 +240,20 @@ export default function EventTypes() {
           try {
             await CalComAPIService.deleteEventType(eventType.id);
 
-            // Remove the deleted event type from local state
-            const updatedEventTypes = eventTypes.filter((et) => et.id !== eventType.id);
-            setEventTypes(updatedEventTypes);
-            setFilteredEventTypes(updatedEventTypes);
+            // Only update state if component is still mounted
+            if (isMountedRef.current) {
+              // Remove the deleted event type from local state
+              const updatedEventTypes = eventTypes.filter((et) => et.id !== eventType.id);
+              setEventTypes(updatedEventTypes);
+              setFilteredEventTypes(updatedEventTypes);
 
-            Alert.alert("Success", "Event type deleted successfully");
+              Alert.alert("Success", "Event type deleted successfully");
+            }
           } catch (error) {
             console.error("Failed to delete event type:", error);
-            Alert.alert("Error", "Failed to delete event type. Please try again.");
+            if (isMountedRef.current) {
+              Alert.alert("Error", "Failed to delete event type. Please try again.");
+            }
           }
         },
       },
@@ -254,45 +275,50 @@ export default function EventTypes() {
     });
   };
 
-  const renderEventType = ({ item }: { item: EventType }) => {
+  const renderEventType = ({ item, index }: { item: EventType; index: number }) => {
     const duration = getDuration(item);
+    const isLast = index === filteredEventTypes.length - 1;
 
     return (
       <TouchableOpacity
-        className="bg-white border-b border-gray-300 py-3 px-4"
+        className={`bg-white active:bg-[#F8F9FA] ${!isLast ? "border-b border-[#E5E5EA]" : ""}`}
         onPress={() => handleEventTypePress(item)}
-        onLongPress={() => handleEventTypeLongPress(item)}>
-        <View className="flex-row justify-between items-center">
-          <View className="flex-1 mr-3">
-            <Text className="text-[17px] font-normal text-black leading-[22px]">{item.title}</Text>
+        onLongPress={() => handleEventTypeLongPress(item)}
+        style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 mr-4">
+            <View className="flex-row items-center mb-1">
+              <Text className="text-base font-semibold text-[#333] flex-1">{item.title}</Text>
+            </View>
             {item.description && (
-              <Text className="text-[15px] text-gray-500 leading-5 mt-0.5" numberOfLines={1}>
+              <Text className="text-sm text-[#666] leading-5 mt-0.5 mb-2" numberOfLines={2}>
                 {normalizeMarkdown(item.description)}
               </Text>
             )}
+            <View className="bg-[#E5E5EA] border border-[#E5E5EA] rounded-lg px-2 py-1 mt-2 flex-row items-center self-start">
+              <Ionicons name="time-outline" size={14} color="#000" />
+              <Text className="text-xs text-black font-semibold ml-1.5">{formatDuration(duration)}</Text>
+            </View>
+            {(item.price != null && item.price > 0) || item.requiresConfirmation ? (
+              <View className="flex-row items-center mt-2 gap-3">
+                {item.price != null && item.price > 0 && (
+                  <Text className="text-sm font-medium text-[#34C759]">
+                    {item.currency || "$"}
+                    {item.price}
+                  </Text>
+                )}
+                {item.requiresConfirmation && (
+                  <View className="bg-[#FF9500] px-2 py-0.5 rounded">
+                    <Text className="text-xs font-medium text-white">Requires Confirmation</Text>
+                  </View>
+                )}
+              </View>
+            ) : null}
           </View>
-
-          <View className="flex-row items-center gap-2">
-            <Text className="text-[15px] text-gray-500 font-normal">{formatDuration(duration)}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
+          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
+            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
           </View>
         </View>
-
-        {(item.price || item.requiresConfirmation) && (
-          <View className="flex-row items-center mt-2 gap-2">
-            {item.price != null && item.price > 0 && (
-              <Text className="text-[15px] font-medium text-green-500">
-                {item.currency || "$"}
-                {item.price}
-              </Text>
-            )}
-            {item.requiresConfirmation && (
-              <View className="bg-orange-500 px-1.5 py-0.5 rounded">
-                <Text className="text-[11px] font-medium text-white">Requires Confirmation</Text>
-              </View>
-            )}
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -347,7 +373,8 @@ export default function EventTypes() {
 
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
-      <View className="flex-1 bg-gray-100 pt-[54px]">
+      <View className="flex-1 bg-gray-100">
+        <Header />
         <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
           <TextInput
             className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
@@ -370,7 +397,8 @@ export default function EventTypes() {
   }
 
   return (
-    <View className="flex-1 bg-gray-100 pt-[54px]">
+    <View className="flex-1 bg-gray-100">
+      <Header />
       <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
         <TextInput
           className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
@@ -387,15 +415,20 @@ export default function EventTypes() {
           <Text className="text-white text-base font-semibold">New</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={filteredEventTypes}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderEventType}
-        className="px-4 py-4"
+      <ScrollView
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
-      />
+        showsVerticalScrollIndicator={false}>
+        <View className="px-4 pt-4">
+          <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden">
+            {filteredEventTypes.map((item, index) => (
+              <View key={item.id.toString()}>
+                {renderEventType({ item, index })}
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }

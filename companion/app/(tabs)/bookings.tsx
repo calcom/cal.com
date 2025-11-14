@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -13,14 +14,18 @@ import {
   TextInput,
   ActionSheetIOS,
   Linking,
+  Modal,
+  ScrollView,
 } from "react-native";
 import type { NativeSyntheticEvent } from "react-native";
 
-import { CalComAPIService, Booking } from "../../services/calcom";
+import { CalComAPIService, Booking, EventType } from "../../services/calcom";
+import { Header } from "../../components/Header";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 export default function Bookings() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +33,11 @@ export default function Bookings() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
+const [showFilterModal, setShowFilterModal] = useState(false);
+const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
+const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
+const [eventTypesLoading, setEventTypesLoading] = useState(false);
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -127,7 +137,7 @@ export default function Bookings() {
         }
 
         setBookings(filteredBookings);
-        setFilteredBookings(filteredBookings);
+        applyFilters(filteredBookings, searchQuery, selectedEventTypeId);
       } else {
         setBookings([]);
         setFilteredBookings([]);
@@ -147,6 +157,8 @@ export default function Bookings() {
 
   useEffect(() => {
     setSearchQuery(""); // Clear search when filter changes
+    setSelectedEventTypeId(null); // Clear event type filter when status filter changes
+  setSelectedEventTypeLabel(null);
     if (!loading) {
       setLoading(true);
       fetchBookings();
@@ -160,38 +172,86 @@ export default function Bookings() {
     fetchBookings();
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() === "") {
-      setFilteredBookings(bookings);
-    } else {
-      const filtered = bookings.filter(
+  const applyFilters = (bookingsToFilter: Booking[], searchText: string, eventTypeId: number | null) => {
+    let filtered = bookingsToFilter;
+
+    // Apply event type filter
+    if (eventTypeId !== null) {
+      filtered = filtered.filter((booking) => booking.eventTypeId === eventTypeId);
+    }
+
+    // Apply search filter
+    if (searchText.trim() !== "") {
+      filtered = filtered.filter(
         (booking) =>
           // Search in booking title
-          booking.title?.toLowerCase().includes(query.toLowerCase()) ||
+          booking.title?.toLowerCase().includes(searchText.toLowerCase()) ||
           // Search in booking description
-          booking.description?.toLowerCase().includes(query.toLowerCase()) ||
+          booking.description?.toLowerCase().includes(searchText.toLowerCase()) ||
           // Search in event type title
-          booking.eventType?.title?.toLowerCase().includes(query.toLowerCase()) ||
+          booking.eventType?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
           // Search in attendee names
           (booking.attendees &&
             booking.attendees.some((attendee) =>
-              attendee.name?.toLowerCase().includes(query.toLowerCase())
+              attendee.name?.toLowerCase().includes(searchText.toLowerCase())
             )) ||
           // Search in attendee emails
           (booking.attendees &&
             booking.attendees.some((attendee) =>
-              attendee.email?.toLowerCase().includes(query.toLowerCase())
+              attendee.email?.toLowerCase().includes(searchText.toLowerCase())
             )) ||
           // Search in location
-          booking.location?.toLowerCase().includes(query.toLowerCase()) ||
+          booking.location?.toLowerCase().includes(searchText.toLowerCase()) ||
           // Search in user name
-          booking.user?.name?.toLowerCase().includes(query.toLowerCase()) ||
+          booking.user?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
           // Search in user email
-          booking.user?.email?.toLowerCase().includes(query.toLowerCase())
+          booking.user?.email?.toLowerCase().includes(searchText.toLowerCase())
       );
-      setFilteredBookings(filtered);
     }
+
+    setFilteredBookings(filtered);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    applyFilters(bookings, query, selectedEventTypeId);
+  };
+
+  const fetchEventTypes = async () => {
+    try {
+      setEventTypesLoading(true);
+      const types = await CalComAPIService.getEventTypes();
+      setEventTypes(types);
+    } catch (err) {
+      console.error("Error fetching event types:", err);
+      setError("Failed to load event types");
+    } finally {
+      setEventTypesLoading(false);
+    }
+  };
+
+  const handleFilterButtonPress = () => {
+    setShowFilterModal(true);
+    if (eventTypes.length === 0) {
+      fetchEventTypes();
+    }
+  };
+
+  const clearEventTypeFilter = () => {
+    setSelectedEventTypeId(null);
+    setSelectedEventTypeLabel(null);
+    applyFilters(bookings, searchQuery, null);
+  };
+
+  const handleEventTypeSelect = (eventTypeId: number | null, label?: string | null) => {
+    if (eventTypeId === null) {
+      clearEventTypeFilter();
+    } else {
+      setSelectedEventTypeId(eventTypeId);
+      setSelectedEventTypeLabel(label || null);
+      applyFilters(bookings, searchQuery, eventTypeId);
+    }
+    setShowFilterModal(false);
   };
 
   const handleFilterChange = (filter: BookingFilter) => {
@@ -246,31 +306,60 @@ export default function Bookings() {
   const renderSegmentedControl = () => {
     return (
       <>
-        <View className="bg-white px-4 py-3 pt-16 border-b border-gray-200">
+        <View className="bg-white px-4 py-3 border-b border-gray-200">
           <SegmentedControl
             values={filterLabels}
             selectedIndex={activeIndex}
             onChange={handleSegmentChange}
-            className="h-9"
+            style={{ height: 40 }}
           />
         </View>
         <View className="bg-gray-100 px-4 py-2 border-b border-gray-300">
-          <TextInput
-            className="bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
-            placeholder="Search bookings"
-            placeholderTextColor="#8E8E93"
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity
+              className="flex-row items-center bg-white rounded-lg border border-gray-200" 
+              style={{ width: "20%", paddingHorizontal: 8, paddingVertical: 6 }}
+              onPress={handleFilterButtonPress}
+            >
+              <Ionicons name="options-outline" size={14} color="#333" />
+              <Text className="text-sm text-[#333]" style={{ marginLeft: 4 }}>Filter</Text>
+            </TouchableOpacity>
+            <View style={{ width: "75%" }}>
+              <TextInput
+                className="bg-white rounded-lg px-3 py-2 text-sm text-black border border-gray-200"
+                placeholder="Search bookings"
+                placeholderTextColor="#8E8E93"
+                value={searchQuery}
+                onChangeText={handleSearch}
+                autoCapitalize="none"
+                autoCorrect={false}
+                clearButtonMode="while-editing"
+              />
+            </View>
+          </View>
+          {selectedEventTypeId !== null && (
+            <View className="mt-2 bg-white rounded-lg border border-gray-200 px-3 py-2 flex-row items-center justify-between">
+              <Text className="text-sm text-[#333] flex-1">
+                Filtered by {selectedEventTypeLabel || "event type"}
+              </Text>
+              <TouchableOpacity onPress={clearEventTypeFilter}>
+                <Text className="text-sm text-[#007AFF] font-semibold">Clear filter</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </>
     );
   };
 
   const handleBookingPress = (booking: Booking) => {
+    router.push({
+      pathname: "/booking-detail",
+      params: { uid: booking.uid },
+    });
+  };
+
+  const handleBookingPressOld = (booking: Booking) => {
     if (Platform.OS !== "ios") {
       // Fallback for non-iOS platforms
       const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
@@ -546,7 +635,7 @@ export default function Bookings() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string, isUpcoming: boolean) => {
     if (!dateString) {
       return "";
     }
@@ -556,12 +645,27 @@ export default function Bookings() {
         console.warn("Invalid date string:", dateString);
         return "";
       }
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
+      const bookingYear = date.getFullYear();
+      const currentYear = new Date().getFullYear();
+      const isDifferentYear = bookingYear !== currentYear;
+
+      if (isUpcoming) {
+        // Format: "ddd, D MMM" or "ddd, D MMM YYYY" if different year
+        const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+        const day = date.getDate();
+        const month = date.toLocaleDateString("en-US", { month: "short" });
+        if (isDifferentYear) {
+          return `${weekday}, ${day} ${month} ${bookingYear}`;
+        }
+        return `${weekday}, ${day} ${month}`;
+      } else {
+        // Format: "D MMMM YYYY" for past bookings
+        return date.toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      }
     } catch (error) {
       console.error("Error formatting date:", error, dateString);
       return "";
@@ -590,58 +694,169 @@ export default function Bookings() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
-  const renderBooking = ({ item }: { item: Booking }) => (
-    <TouchableOpacity
-      className="mb-3 rounded-xl bg-white p-4 shadow-md"
-      onPress={() => handleBookingPress(item)}
-    >
-      <View className="mb-3 flex-row items-center justify-between">
-        <Text className="mr-2 flex-1 text-lg font-semibold text-gray-800">{item.title}</Text>
-        <View
-          className="rounded-md px-2 py-1"
-          style={{ backgroundColor: getStatusColor(item.status) }}
-        >
-          <Text className="text-xs font-semibold text-white">{formatStatusText(item.status)}</Text>
-        </View>
-      </View>
+  const formatMonthYear = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+      const now = new Date();
+      const isCurrentMonth = 
+        date.getFullYear() === now.getFullYear() && 
+        date.getMonth() === now.getMonth();
+      
+      if (isCurrentMonth) {
+        return "This month";
+      }
+      
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+    } catch (error) {
+      return "";
+    }
+  };
 
-      <View className="mb-3">
-        <View className="flex-row items-center">
-          <Text className="mr-3 text-base font-medium text-gray-800">
-            {formatDate(item.start || item.startTime || "")}
-          </Text>
-          <Text className="text-sm text-gray-500">
-            {formatTime(item.start || item.startTime || "")} - {formatTime(item.end || item.endTime || "")}
-          </Text>
-        </View>
-      </View>
+  const getMonthYearKey = (dateString: string): string => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+      return `${date.getFullYear()}-${date.getMonth()}`;
+    } catch (error) {
+      return "";
+    }
+  };
 
-      {item.attendees && item.attendees.length > 0 && (
-        <View className="mb-2 flex-row items-center">
-          <Ionicons name="people-outline" size={16} color="#666" />
-          <Text className="ml-2 flex-1 text-sm text-gray-500">
-            {item.attendees.map((att) => att.name).join(", ")}
-          </Text>
-        </View>
-      )}
+  type ListItem = 
+    | { type: "monthHeader"; monthYear: string; key: string }
+    | { type: "booking"; booking: Booking; key: string };
 
-      {item.location && (
-        <View className="mb-2 flex-row items-center">
-          <Ionicons name="location-outline" size={16} color="#666" />
-          <Text className="ml-2 flex-1 text-sm text-gray-500">{item.location}</Text>
-        </View>
-      )}
+  const groupBookingsByMonth = (bookings: Booking[]): ListItem[] => {
+    const grouped: ListItem[] = [];
+    let currentMonthYear: string | null = null;
 
-      <View className="mt-2 flex-row items-center justify-between border-t border-gray-100 pt-2">
-        <Text className="text-sm font-medium text-gray-700">{item.eventType?.title || "Event"}</Text>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </View>
-    </TouchableOpacity>
-  );
+    bookings.forEach((booking) => {
+      const startTime = booking.start || booking.startTime || "";
+      if (!startTime) return;
+
+      const monthYearKey = getMonthYearKey(startTime);
+      const monthYear = formatMonthYear(startTime);
+
+      if (monthYearKey !== currentMonthYear) {
+        currentMonthYear = monthYearKey;
+        grouped.push({
+          type: "monthHeader",
+          monthYear,
+          key: `month-${monthYearKey}`,
+        });
+      }
+
+      grouped.push({
+        type: "booking",
+        booking,
+        key: booking.id.toString(),
+      });
+    });
+
+    return grouped;
+  };
+
+  const renderBooking = ({ item }: { item: Booking }) => {
+    const startTime = item.start || item.startTime || "";
+    const endTime = item.end || item.endTime || "";
+    const isUpcoming = new Date(endTime) >= new Date();
+    const isPending = item.status?.toUpperCase() === "PENDING";
+    const isCancelled = item.status?.toUpperCase() === "CANCELLED";
+    const isRejected = item.status?.toUpperCase() === "REJECTED";
+
+    return (
+      <TouchableOpacity
+        className="bg-white active:bg-[#F8F9FA] border-b border-[#E5E5EA]"
+        onPress={() => handleBookingPress(item)}
+        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
+      >
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 mr-4">
+            {/* Time and Date Row */}
+            <View className="flex-row items-center mb-2">
+              <Text className="text-sm font-medium text-[#333]">
+                {formatDate(startTime, isUpcoming)}
+              </Text>
+              <Text className="text-sm text-[#666] ml-2">
+                {formatTime(startTime)} - {formatTime(endTime)}
+              </Text>
+            </View>
+
+            {/* Badges Row */}
+            <View className="flex-row items-center flex-wrap mb-3">
+              {isPending && (
+                <View className="bg-[#FF9500] px-2 py-0.5 rounded mr-2 mb-1">
+                  <Text className="text-xs font-medium text-white">Unconfirmed</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Title */}
+            <View className="mb-2">
+              <Text
+                className={`text-lg font-medium text-[#333] leading-5 ${isCancelled || isRejected ? "line-through" : ""}`}
+                numberOfLines={2}
+              >
+                {item.title}
+              </Text>
+            </View>
+
+            {/* Description */}
+            {item.description && (
+              <View className="mb-2">
+                <Text className="text-sm text-[#666] leading-5" numberOfLines={1}>
+                  &quot;{item.description}&quot;
+                </Text>
+              </View>
+            )}
+
+            {/* Attendees */}
+            {item.attendees && item.attendees.length > 0 && (
+              <View className="mb-2">
+                <Text className="text-sm text-[#333]">
+                  {item.attendees.length === 1
+                    ? item.attendees[0].name
+                    : item.attendees
+                        .slice(0, 2)
+                        .map((att) => att.name)
+                        .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
+                </Text>
+              </View>
+            )}
+          </View>
+          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
+            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderListItem = ({ item }: { item: ListItem }) => {
+    if (item.type === "monthHeader") {
+      return (
+        <View className="bg-[#E5E5EA] px-4 py-3 border-b border-[#E5E5EA]">
+          <Text className="text-base font-bold text-[#333]">{item.monthYear}</Text>
+        </View>
+      );
+    }
+    return renderBooking({ item: item.booking });
+  };
 
   if (loading) {
     return (
       <View className="flex-1 bg-gray-50">
+        <Header />
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <ActivityIndicator size="large" color="#000000" />
@@ -654,6 +869,7 @@ export default function Bookings() {
   if (error) {
     return (
       <View className="flex-1 bg-gray-50">
+        <Header />
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
@@ -673,6 +889,7 @@ export default function Bookings() {
     const emptyState = getEmptyStateContent();
     return (
       <View className="flex-1 bg-gray-50">
+        <Header />
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name={emptyState.icon as keyof typeof Ionicons.glyphMap} size={64} color="#666" />
@@ -688,6 +905,7 @@ export default function Bookings() {
   if (filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading) {
     return (
       <View className="flex-1 bg-gray-50">
+        <Header />
         {renderSegmentedControl()}
         <View className="flex-1 justify-center items-center p-5 bg-gray-50">
           <Ionicons name="search-outline" size={64} color="#666" />
@@ -699,17 +917,69 @@ export default function Bookings() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-[#f8f9fa]">
+      <Header />
       {renderSegmentedControl()}
-      <FlatList
-        data={filteredBookings}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderBooking}
-        className="px-4 py-4"
-        contentContainerStyle={{ paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
-  );
-}
+      <View className="px-4 pt-4 flex-1">
+        <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
+          <FlatList
+            data={groupBookingsByMonth(filteredBookings)}
+            keyExtractor={(item) => item.key}
+            renderItem={renderListItem}
+            contentContainerStyle={{ paddingBottom: 90 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            showsVerticalScrollIndicator={false}
+          />
+          </View>
+        </View>
+
+        {/* Filter Modal */}
+        <Modal
+          visible={showFilterModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFilterModal(false)}>
+          <TouchableOpacity
+            className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center"
+            activeOpacity={1}
+            onPress={() => setShowFilterModal(false)}>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-5 w-[85%] max-w-[350px]">
+              <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Filter by Event Type</Text>
+              
+              {eventTypesLoading ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#333" />
+                  <Text className="text-sm text-[#666] mt-2">Loading event types...</Text>
+                </View>
+              ) : (
+                <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 400 }}>
+                  {eventTypes.map((eventType) => (
+                    <TouchableOpacity
+                      key={eventType.id}
+                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                        selectedEventTypeId === eventType.id ? "bg-[#F0F0F0]" : ""
+                      }`}
+                      onPress={() => handleEventTypeSelect(eventType.id, eventType.title)}>
+                      <Text className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}>
+                        {eventType.title}
+                      </Text>
+                      {selectedEventTypeId === eventType.id && <Ionicons name="checkmark" size={20} color="#000" />}
+                    </TouchableOpacity>
+                  ))}
+                  
+                  {eventTypes.length === 0 && (
+                    <View className="py-4 items-center">
+                      <Text className="text-sm text-[#666]">No event types found</Text>
+                    </View>
+                  )}
+                </ScrollView>
+              )}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      </View>
+    );
+  }
