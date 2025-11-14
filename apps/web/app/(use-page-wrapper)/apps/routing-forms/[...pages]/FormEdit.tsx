@@ -244,13 +244,12 @@ const FormEdit = ({
 
   const addField = () => {
     appendHookFormField({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       id: uuidv4(),
-      // This is same type from react-awesome-query-builder
       type: "text",
       label: "",
     });
+    // Mark form as dirty after structural change
+    hookForm.setValue("fields", hookForm.getValues("fields"), { shouldDirty: true });
   };
 
   // hookForm.reset(form);
@@ -274,12 +273,16 @@ const FormEdit = ({
                 check: () => hookFormFields.length > 1,
                 fn: () => {
                   removeHookFormField(key);
+                  // Mark form as dirty after structural change
+                  hookForm.setValue("fields", hookForm.getValues("fields"), { shouldDirty: true });
                 },
               }}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
                   swapHookFormField(key, key - 1);
+                  // Mark form as dirty after structural change
+                  hookForm.setValue("fields", hookForm.getValues("fields"), { shouldDirty: true });
                 },
               }}
               moveDown={{
@@ -289,6 +292,8 @@ const FormEdit = ({
                     return;
                   }
                   swapHookFormField(key, key + 1);
+                  // Mark form as dirty after structural change
+                  hookForm.setValue("fields", hookForm.getValues("fields"), { shouldDirty: true });
                 },
               }}
               key={field.id}

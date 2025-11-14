@@ -39,11 +39,25 @@ const useRoutingFormNavigation = (
 
     const baseUrl = `${appUrl}/${value}/${form.id}`;
 
-    if (value === "route-builder" && formContext.formState.isDirty) {
+    // Check for structural field changes as a fallback
+    const hasStructuralFieldChanges = () => {
+      const saved = form.fields ?? [];
+      const current = formContext.getValues("fields") ?? [];
+      if (saved.length !== current.length) return true;
+      for (let i = 0; i < saved.length; i++) {
+        if (saved[i]?.id !== current[i]?.id) return true;
+      }
+      return false;
+    };
+
+    const hasUnsaved = formContext.formState.isDirty || hasStructuralFieldChanges();
+
+    if (value === "route-builder" && hasUnsaved) {
       setShowInfoLostDialog(true);
-    } else {
-      router.push(baseUrl);
+      return;
     }
+
+    router.push(baseUrl);
   };
 
   return {
