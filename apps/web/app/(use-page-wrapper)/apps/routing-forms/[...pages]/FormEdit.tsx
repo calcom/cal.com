@@ -67,11 +67,6 @@ function Field({
     name: `${hookFieldNamespace}.label`,
   });
 
-  const identifier = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.identifier`,
-  });
-
   const fieldType = useWatch({
     control: hookForm.control,
     name: `${hookFieldNamespace}.type`,
@@ -110,13 +105,11 @@ function Field({
             <TextField
               disabled={!!router}
               label="Identifier"
-              name={`${hookFieldNamespace}.identifier`}
+              placeholder={label || routerField?.label || t("identifies_name_field")}
               required
-              placeholder={t("identifies_name_field")}
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
-              onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
-              }}
+              {...hookForm.register(`${hookFieldNamespace}.identifier`, {
+                required: t("identifier_is_required"),
+              })}
             />
           </div>
           <div className="mb-3 w-full">
@@ -243,13 +236,16 @@ const FormEdit = ({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const addField = () => {
+    const newFieldId = uuidv4();
+    const fieldCount = hookFormFields.length;
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
-      id: uuidv4(),
+      id: newFieldId,
       // This is same type from react-awesome-query-builder
       type: "text",
       label: "",
+      identifier: `field_${fieldCount + 1}`,
     });
   };
 
