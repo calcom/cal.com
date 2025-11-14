@@ -487,7 +487,7 @@ export class CalComAPIService {
   // Get all schedules
   static async getSchedules(): Promise<Schedule[]> {
     try {
-      const response = await this.makeRequest<any>(
+      const response = await this.makeRequest<{ status: string; data: Schedule[] }>(
         "/schedules",
         {
           headers: {
@@ -499,36 +499,18 @@ export class CalComAPIService {
 
       let schedulesArray: Schedule[] = [];
 
-      if (Array.isArray(response)) {
+      // Handle response structure: { status: "success", data: [...] }
+      if (response && response.status === "success" && response.data && Array.isArray(response.data)) {
+        schedulesArray = response.data;
+      } else if (Array.isArray(response)) {
+        // Fallback: response might be array directly
         schedulesArray = response;
       } else if (response && response.data && Array.isArray(response.data)) {
+        // Fallback: response.data might be array
         schedulesArray = response.data;
       }
 
       return schedulesArray;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Get default schedule
-  static async getDefaultSchedule(): Promise<Schedule | null> {
-    try {
-      const response = await this.makeRequest<any>(
-        "/schedules/default",
-        {
-          headers: {
-            "cal-api-version": "2024-06-11", // Override version for schedules
-          },
-        },
-        "2024-06-11"
-      );
-
-      if (response && response.data) {
-        return response.data;
-      }
-
-      return null;
     } catch (error) {
       throw error;
     }
@@ -646,6 +628,94 @@ export class CalComAPIService {
       throw new Error("Invalid response from update event type API");
     } catch (error) {
       console.error("updateEventType error:", error);
+      throw error;
+    }
+  }
+
+  // Update a schedule
+  static async updateSchedule(
+    scheduleId: number,
+    updates: {
+      isDefault?: boolean;
+      name?: string;
+      timeZone?: string;
+      availability?: Array<{
+        days: string[]; // Day names like "Monday", "Tuesday"
+        startTime: string; // Format: "09:00"
+        endTime: string; // Format: "10:00"
+      }>;
+      overrides?: Array<{
+        date: string; // Format: "2024-05-20"
+        startTime: string; // Format: "12:00"
+        endTime: string; // Format: "14:00"
+      }>;
+    }
+  ): Promise<Schedule> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+        `/schedules/${scheduleId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-11",
+          },
+          body: JSON.stringify(updates),
+        },
+        "2024-06-11"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update schedule API");
+    } catch (error) {
+      console.error("updateSchedule error:", error);
+      throw error;
+    }
+  }
+
+  // Duplicate a schedule
+  static async duplicateSchedule(scheduleId: number): Promise<Schedule> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+        `/atoms/schedules/${scheduleId}/duplicate`,
+        {
+          method: "POST",
+          headers: {
+            "cal-api-version": "2024-06-11",
+          },
+        },
+        "2024-06-11"
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from duplicate schedule API");
+    } catch (error) {
+      console.error("duplicateSchedule error:", error);
+      throw error;
+    }
+  }
+
+  // Delete a schedule
+  static async deleteSchedule(scheduleId: number): Promise<void> {
+    try {
+      await this.makeRequest<{ status: string }>(
+        `/schedules/${scheduleId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "cal-api-version": "2024-06-11",
+          },
+        },
+        "2024-06-11"
+      );
+    } catch (error) {
+      console.error("deleteSchedule error:", error);
       throw error;
     }
   }
