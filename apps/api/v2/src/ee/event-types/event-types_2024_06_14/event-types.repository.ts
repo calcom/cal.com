@@ -74,10 +74,7 @@ export class EventTypesRepository_2024_06_14 {
       },
       orderBy: [
         {
-          position: "desc",
-        },
-        {
-          id: "asc",
+          id: "desc",
         },
       ],
       include: { users: true, schedule: true, destinationCalendar: true },
@@ -92,10 +89,7 @@ export class EventTypesRepository_2024_06_14 {
       },
       orderBy: [
         {
-          position: "desc",
-        },
-        {
-          id: "asc",
+          id: "desc",
         },
       ],
       include: { users: true, schedule: true, destinationCalendar: true },

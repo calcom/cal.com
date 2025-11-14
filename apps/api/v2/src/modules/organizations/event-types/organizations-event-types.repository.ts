@@ -11,6 +11,11 @@ export class OrganizationsEventTypesRepository {
           parentId: orgId,
         },
       },
+      orderBy: [
+        {
+          id: "desc",
+        },
+      ],
       skip,
       take,
       include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
