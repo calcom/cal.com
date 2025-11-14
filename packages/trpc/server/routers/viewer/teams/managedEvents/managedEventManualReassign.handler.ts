@@ -1,4 +1,4 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { managedEventManualReassignment } from "@calcom/features/ee/managed-event-types/reassignment";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -21,8 +21,11 @@ export const managedEventManualReassignHandler = async ({
   const { bookingId, teamMemberId, reassignReason } = input;
 
   // Check if user has access to change booking
-  const bookingRepo = new BookingRepository(prisma);
-  const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({ userId: ctx.user.id, bookingId });
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: ctx.user.id,
+    bookingId,
+  });
 
   if (!isAllowed) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });

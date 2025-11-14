@@ -1,4 +1,4 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -18,8 +18,11 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
   const { bookingId } = input;
 
   // Check if user has access to change booking
-  const bookingRepo = new BookingRepository(prisma);
-  const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({ userId: ctx.user.id, bookingId });
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: ctx.user.id,
+    bookingId,
+  });
 
   if (!isAllowed) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });

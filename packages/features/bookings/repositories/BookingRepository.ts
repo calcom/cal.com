@@ -1,4 +1,3 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -168,6 +167,11 @@ export class BookingRepository {
         eventType: {
           select: {
             teamId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
             hosts: {
               select: {
                 userId: true,
@@ -190,48 +194,52 @@ export class BookingRepository {
     });
   }
 
-  /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
-  async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
-    const booking = await this.prismaClient.booking.findUnique({
+  async findByIdIncludeEventType({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
       },
       select: {
         userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
         eventType: {
           select: {
             teamId: true,
-            parentId: true,
             parent: {
               select: {
                 teamId: true,
+              },
+            },
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
               },
             },
           },
         },
       },
     });
-
-    if (!booking) return false;
-
-    if (userId === booking.userId) return true;
-
-    // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType) return false;
-
-    // For managed events (child event types), check the parent's teamId
-    const teamId = booking.eventType.teamId || booking.eventType.parent?.teamId;
-
-    if (!teamId) return false;
-
-    // TODO add checks for team and org
-    const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
-      userId,
-      teamId,
-    });
-
-    return isAdminOrUser;
   }
 
   async findFirstBookingByReschedule({ originalBookingUid }: { originalBookingUid: string }) {
