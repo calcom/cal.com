@@ -16,8 +16,7 @@ import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues"
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { buildListDisplayColumns } from "../columns/listColumns";
-import { useBookingCursor } from "../hooks/useBookingCursor";
-import { useSelectedBookingId } from "../hooks/useSelectedBookingId";
+import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
@@ -43,25 +42,12 @@ export function BookingsListContainer({
   const user = useMeQuery().data;
   const utils = trpc.useUtils();
 
-  const [selectedBookingId, setSelectedBookingId] = useSelectedBookingId();
-
   // Filter out separator rows and extract bookings
   const bookings = useMemo(() => {
     return data
       .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
       .map((row) => row.booking);
   }, [data]);
-
-  const selectedBooking = useMemo(() => {
-    if (!selectedBookingId) return null;
-    return bookings.find((booking) => booking.id === selectedBookingId) ?? null;
-  }, [selectedBookingId, bookings]);
-
-  const bookingNavigation = useBookingCursor({
-    bookings,
-    selectedBookingId,
-    setSelectedBookingId,
-  });
 
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -117,13 +103,6 @@ export function BookingsListContainer({
     });
   }, [pendingRejection, rejectionReason, confirmMutation]);
 
-  const onOpenDetails = useCallback(
-    (bookingId: number) => {
-      setSelectedBookingId(bookingId);
-    },
-    [setSelectedBookingId]
-  );
-
   const columns = useMemo(() => {
     const filterCols = buildFilterColumns({ t, permissions, status });
     const listCols = buildListDisplayColumns({
@@ -163,7 +142,7 @@ export function BookingsListContainer({
   }, []);
 
   return (
-    <>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <Dialog open={rejectionDialogIsOpen} onOpenChange={handleRejectionDialogChange}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -192,27 +171,14 @@ export function BookingsListContainer({
         </DialogContent>
       </Dialog>
 
-      <BookingsList
-        status={status}
-        table={table}
-        isPending={isPending}
-        totalRowCount={totalRowCount}
-        onOpenDetails={onOpenDetails}
-      />
+      <BookingsList status={status} table={table} isPending={isPending} totalRowCount={totalRowCount} />
 
       <BookingDetailsSheet
-        booking={selectedBooking}
-        isOpen={!!selectedBooking}
-        onClose={() => setSelectedBookingId(null)}
         userTimeZone={user?.timeZone}
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         userId={user?.id}
         userEmail={user?.email}
-        onPrevious={bookingNavigation.onPrevious}
-        hasPrevious={bookingNavigation.hasPrevious}
-        onNext={bookingNavigation.onNext}
-        hasNext={bookingNavigation.hasNext}
       />
-    </>
+    </BookingDetailsSheetStoreProvider>
   );
 }
