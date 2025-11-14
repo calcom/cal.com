@@ -37,7 +37,7 @@ export class OAuthClientsOutputService {
 
   transformOAuthClientPermission(permission: (typeof PERMISSIONS)[number]): keyof typeof PERMISSION_MAP {
     return Object.entries(PERMISSION_MAP).find(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       ([_, value]) => value === permission
     )?.[0] as keyof typeof PERMISSION_MAP;
   }

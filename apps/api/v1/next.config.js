@@ -94,7 +94,7 @@ const nextConfig = {
   },
 };
 
-if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
       autoInstrumentServerFunctions: true,
