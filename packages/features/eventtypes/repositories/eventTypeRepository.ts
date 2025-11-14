@@ -1586,86 +1586,68 @@ export class EventTypeRepository {
    * List child event types for a given parent.
    * Supports search, user exclusion, cursor pagination.
    */
-    async listChildEventTypes({
-      parentEventTypeId,
-      excludeUserId,
-      searchTerm,
-      limit,
-      cursor,
-    }: {
-      parentEventTypeId: number;
-      excludeUserId?: number | null;
-      searchTerm?: string | null;
-      limit: number;
-      cursor?: number | null;
-    }) {
-      let ownerIds: number[] | null = null;
-    
-      if (searchTerm) {
-        const owners = await this.prismaClient.user.findMany({
-          where: {
-            OR: [
-              { name: { contains: searchTerm, mode: "insensitive" } },
-              { email: { contains: searchTerm, mode: "insensitive" } },
-            ],
-          },
-          select: { id: true },
-        });
-    
-        ownerIds = owners.map((o) => o.id);
-    
-        // If no owners match, the result must be empty—early return.
-        if (ownerIds.length === 0) {
-          return {
-            totalCount: 0,
-            items: [],
-            hasMore: false,
-            nextCursor: null,
-          };
-        }
-      }
+  async listChildEventTypes({
+    parentEventTypeId,
+    excludeUserId,
+    searchTerm,
+    limit,
+    cursor,
+  }: {
+    parentEventTypeId: number;
+    excludeUserId?: number | null;
+    searchTerm?: string | null;
+    limit: number;
+    cursor?: number | null;
+  }) {
+    // Build where clause explicitly to avoid type issues with conditional spreads
+    const eventTypeWhere = {
+      parentId: parentEventTypeId,
+      ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
+      ...(searchTerm ? {
+        owner: {
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" as const } },
+            { email: { contains: searchTerm, mode: "insensitive" as const } },
+          ],
+        },
+      } : {}),
+    };
 
-      const eventTypeWhere: Prisma.EventTypeWhereInput = {
-        parentId: parentEventTypeId,
-        ...(excludeUserId && { userId: { not: excludeUserId } }),
-        ...(ownerIds && { userId: { in: ownerIds } }),
-      };
-
-      const [totalCount, rows] = await Promise.all([
-        this.prismaClient.eventType.count({ where: eventTypeWhere }),
-    
-        this.prismaClient.eventType.findMany({
-          where: eventTypeWhere,
+    // Extract query to preserve type inference
+    const rowsQuery = this.prismaClient.eventType.findMany({
+      where: eventTypeWhere,
+      select: {
+        id: true,
+        userId: true,
+        owner: {
           select: {
-            id: true,
-            userId: true,
-            owner: {
-              select: {
-                ...userSelectWithSelectedCalendars,
-                credentials: {
-                  select: credentialForCalendarServiceSelect,
-                },
+            ...userSelectWithSelectedCalendars,
+            credentials: {
+              select: credentialForCalendarServiceSelect,
               },
             },
           },
-          take: limit + 1, // fetch one extra to detect pagination
-          ...(cursor && { skip: 1, cursor: { id: cursor } }),
-          orderBy: { id: "asc" }, // deterministic pagination
-        }),
-      ]);
+        },
+        take: limit + 1,                 // over-fetch for nextCursor
+        ...(cursor && { skip: 1, cursor: { id: cursor } }),
+        orderBy: { id: "asc" },           // deterministic pagination
+      });
 
-      // Apply pagination logic
-      const hasMore = rows.length > limit;
-      const items = hasMore ? rows.slice(0, limit) : rows;
-      const nextCursor = hasMore ? items[items.length - 1].id : null;
+    const [totalCount, rows] = await Promise.all([
+      this.prismaClient.eventType.count({ where: eventTypeWhere }),
+      rowsQuery,
+    ]);
 
-      return {
-        totalCount,
-        items,
-        hasMore,
-        nextCursor,
-      };
-    }    
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
+
+    return {
+      totalCount,
+      items,
+      hasMore,
+      nextCursor: hasMore ? items[items.length - 1].id : null,
+    };
+  }
 
     async findByIdWithParentAndUserId(eventTypeId: number) {
       return this.prismaClient.eventType.findUnique({

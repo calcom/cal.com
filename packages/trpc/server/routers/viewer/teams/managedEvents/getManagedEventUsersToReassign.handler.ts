@@ -54,8 +54,8 @@ async function getManagedEventUsersFromDB({
   const childEventTypes_subset = hasNextPage ? items.slice(0, -1) : items;
 
   const users = items
-  .filter((et) => et.owner)
-  .map((et) => withSelectedCalendars(et.owner));
+    .filter((et): et is typeof et & { owner: NonNullable<typeof et.owner> } => et.owner !== null)
+    .map((et) => withSelectedCalendars(et.owner));
 
   return {
     users: await enrichUsersWithDelegationCredentials({
