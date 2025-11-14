@@ -68,16 +68,16 @@ export default function Availability() {
 
   const handleScheduleLongPress = (schedule: Schedule) => {
     if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms
+      // Fallback for non-iOS platforms (Android Alert supports max 3 buttons)
       const options = [];
       if (!schedule.isDefault) {
         options.push({ text: "⭐ Set as default", onPress: () => handleSetAsDefault(schedule) });
       }
       options.push(
         { text: "📋 Duplicate", onPress: () => handleDuplicate(schedule) },
-        { text: "Cancel", style: "cancel" },
         { text: "🗑️ Delete", style: "destructive", onPress: () => handleDelete(schedule) }
       );
+      // Android Alert automatically adds cancel, so we don't need to include it explicitly
       Alert.alert(schedule.name, "", options);
       return;
     }
