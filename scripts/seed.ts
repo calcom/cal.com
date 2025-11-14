@@ -148,6 +148,40 @@ const associateUserAndOrg = async ({ teamId, userId, role, username }: Associate
   });
 };
 
+/**
+ * Ensure all members of a team are added as hosts to all ROUND_ROBIN team event types.
+ */
+const addTeamMembersAsHostsForRoundRobinEvents = async (teamId: number) => {
+  const [roundRobinEventTypes, teamMemberships] = await Promise.all([
+    prisma.eventType.findMany({
+      where: {
+        teamId,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      },
+      select: { id: true },
+    }),
+    prisma.membership.findMany({
+      where: { teamId },
+      select: { userId: true },
+    }),
+  ]);
+
+  if (!roundRobinEventTypes.length || !teamMemberships.length) return;
+
+  const data = roundRobinEventTypes.flatMap((et) =>
+    teamMemberships.map((m) => ({
+      eventTypeId: et.id,
+      userId: m.userId,
+      priority: 2,
+    }))
+  );
+
+  await prisma.host.createMany({
+    data,
+    skipDuplicates: true,
+  });
+};
+
 async function createPlatformAndSetupUser({
   teamInput,
   user,
@@ -197,6 +231,7 @@ async function createPlatformAndSetupUser({
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
+    await addTeamMembersAsHostsForRoundRobinEvents(team.id);
   }
 }
 
@@ -259,6 +294,9 @@ async function createTeamAndAddUsers(
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
+
+  // Ensure all team members are hosts of all ROUND_ROBIN team event types
+  await addTeamMembersAsHostsForRoundRobinEvents(team.id);
 
   return team;
 }
@@ -611,6 +649,10 @@ async function createOrganizationAndAddMembersAndTeams({
       });
     }
   }
+  // After all memberships are created, ensure all team members are hosts of ROUND_ROBIN team events
+  await Promise.all(
+    organizationTeams.map((t) => addTeamMembersAsHostsForRoundRobinEvents(t.id))
+  );
 }
 
 async function main() {
