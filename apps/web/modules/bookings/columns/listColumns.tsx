@@ -4,6 +4,7 @@ import { useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
@@ -55,6 +56,12 @@ type AttendeeProps = {
   phoneNumber: string | null;
   id: number;
   noShow: boolean;
+  user?: {
+    id: number;
+    name: string | null;
+    avatarUrl: string | null;
+    username: string | null;
+  } | null;
 };
 
 // Component for individual attendee avatar with dropdown
@@ -88,7 +95,11 @@ const IndividualAttendee = ({
         <button className="focus:outline-none" data-testid="guest">
           <Avatar
             size="sm"
-            imageSrc={getPlaceholderAvatar(null, attendee.name)}
+            imageSrc={
+              attendee.user?.avatarUrl
+                ? getUserAvatarUrl(attendee.user)
+                : getPlaceholderAvatar(null, attendee.name || attendee.email)
+            }
             alt={attendee.name || attendee.email}
             title={attendee.name || attendee.email}
             className="border-subtle cursor-pointer hover:opacity-80"
@@ -408,6 +419,7 @@ export function buildListDisplayColumns({ t, user, pendingActionHandlers }: Buil
           id: attendee.id,
           noShow: attendee.noShow || false,
           phoneNumber: attendee.phoneNumber,
+          user: attendee.user,
         }));
 
         return (
