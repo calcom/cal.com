@@ -706,6 +706,7 @@ export default function Bookings() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderBooking}
         className="px-4 py-4"
+        contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       />

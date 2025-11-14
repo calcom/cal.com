@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -15,10 +14,14 @@ import {
   Alert,
   Clipboard,
   Animated,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
+import { getAppIconUrl } from "../utils/getAppIconUrl";
+import { defaultLocations, getDefaultLocationIconUrl, isDefaultLocation, DefaultLocationType } from "../utils/defaultLocations";
+import { SvgImage } from "../components/SvgImage";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -55,6 +58,9 @@ export default function EventTypeDetail() {
   const [allowMultipleDurations, setAllowMultipleDurations] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [locationAddress, setLocationAddress] = useState("");
+  const [locationLink, setLocationLink] = useState("");
+  const [locationPhone, setLocationPhone] = useState("");
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [defaultDuration, setDefaultDuration] = useState("");
   const [showDurationDropdown, setShowDurationDropdown] = useState(false);
@@ -143,15 +149,151 @@ export default function EventTypeDetail() {
       .join(" ");
   };
 
+  const displayNameToLocationValue = (displayName: string): {
+    type: string;
+    integration?: string;
+    address?: string;
+    link?: string;
+    phone?: string;
+    public?: boolean;
+  } | null => {
+    // First check if it's a default location
+    const defaultLocation = defaultLocations.find((loc) => loc.label === displayName);
+    if (defaultLocation) {
+      // Map internal location types to API location types
+      switch (defaultLocation.type) {
+        case "attendeeInPerson":
+          return { type: "attendeeAddress" };
+        case "inPerson":
+          // For organizer address, we need to preserve existing address if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "address", address: "", public: true };
+        case "link":
+          // For link meeting, we need to preserve existing link if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "link", link: "", public: true };
+        case "phone":
+          return { type: "attendeePhone" };
+        case "userPhone":
+          // For organizer phone, we need to preserve existing phone if available
+          // or use empty string (will be filled by organizer later)
+          return { type: "phone", phone: "", public: true };
+        case "somewhereElse":
+          return { type: "attendeeDefined" };
+        default:
+          return { type: defaultLocation.type };
+      }
+    }
+    
+    // Otherwise, find matching conferencing option
+    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    if (option) {
+      return { type: "integration", integration: option.appId, public: true };
+    }
+    
+    return null;
+  };
+
   const displayNameToAppId = (displayName: string): string | null => {
-    // Convert display name like "Google Meet" back to "google-meet"
-    // Find matching conferencing option
+    // Legacy function for backward compatibility - only for conferencing apps
     const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
     return option ? option.appId : null;
   };
 
-  const getLocationOptions = (): string[] => {
-    return conferencingOptions.map((option) => formatAppIdToDisplayName(option.appId));
+  type LocationOption = { label: string; iconUrl: string | null; value: string };
+  type LocationGroup = { category: string; options: LocationOption[] };
+
+  const getLocationOptions = (): LocationGroup[] => {
+    // Group conferencing apps under "conferencing" category
+    const conferencingAppOptions: LocationOption[] = conferencingOptions.map((option) => {
+      const iconUrl = getAppIconUrl(option.type, option.appId);
+      return {
+        label: formatAppIdToDisplayName(option.appId),
+        iconUrl: iconUrl,
+        value: `integrations:${option.appId}`,
+      };
+    });
+
+    // Group default locations by their category
+    const defaultLocationOptions: LocationOption[] = defaultLocations.map((location) => ({
+      label: location.label,
+      iconUrl: location.iconUrl,
+      value: location.type,
+    }));
+
+    // Group options by category
+    const grouped: Record<string, LocationOption[]> = {};
+
+    // Add conferencing apps
+    if (conferencingAppOptions.length > 0) {
+      grouped["conferencing"] = conferencingAppOptions;
+    }
+
+    // Add default locations by category
+    defaultLocations.forEach((location) => {
+      const category = location.category;
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      const option = defaultLocationOptions.find((opt) => opt.value === location.type);
+      if (option) {
+        grouped[category].push(option);
+      }
+    });
+
+    // Convert to array format with category labels
+    const categoryLabels: Record<string, string> = {
+      "conferencing": "Conferencing",
+      "in person": "In Person",
+      "phone": "Phone",
+      "other": "Other",
+    };
+
+    const result: LocationGroup[] = [];
+    for (const category in grouped) {
+      if (grouped[category].length > 0) {
+        result.push({
+          category: categoryLabels[category] || category,
+          options: grouped[category],
+        });
+      }
+    }
+
+    console.log('Total location groups:', result.length, result.map(g => `${g.category}: ${g.options.length}`));
+    return result;
+  };
+
+  const getSelectedLocationIconUrl = (): string | null => {
+    if (!selectedLocation) return null;
+    
+    // First, check if it's a default location
+    const defaultLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
+    if (defaultLocation) {
+      return defaultLocation.iconUrl;
+    }
+    
+    // Try to find in conferencing options
+    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation);
+    if (option) {
+      return getAppIconUrl(option.type, option.appId);
+    }
+    
+    // Fallback: Handle Cal Video directly (it might not be in conferencing options as it's a global app)
+    // Check if selectedLocation matches Cal Video display names
+    const calVideoNames = ["Cal Video", "Cal-Video", "cal-video"];
+    if (calVideoNames.includes(selectedLocation) || selectedLocation.toLowerCase().includes("cal video")) {
+      return getAppIconUrl("daily_video", "cal-video");
+    }
+    
+    // Fallback: Try to reverse the formatAppIdToDisplayName to get appId
+    // Convert "Cal Video" back to "cal-video" and try to get icon
+    const reverseAppId = selectedLocation.toLowerCase().replace(/\s+/g, "-");
+    const fallbackIconUrl = getAppIconUrl("", reverseAppId);
+    if (fallbackIconUrl) {
+      return fallbackIconUrl;
+    }
+    
+    return null;
   };
 
   const toggleDurationSelection = (duration: string) => {
@@ -255,6 +397,7 @@ export default function EventTypeDetail() {
     try {
       setConferencingLoading(true);
       const options = await CalComAPIService.getConferencingOptions();
+      console.log("Fetched conferencing options:", JSON.stringify(options, null, 2));
       setConferencingOptions(options);
     } catch (error) {
       console.error("Failed to fetch conferencing options:", error);
@@ -274,10 +417,60 @@ export default function EventTypeDetail() {
         // Extract location from event type
         if (eventType.locations && eventType.locations.length > 0) {
           const firstLocation = eventType.locations[0];
+          
+          // Handle conferencing apps (with integration field)
           if (firstLocation.integration) {
             // Format the integration name (e.g., "google-meet" -> "Google Meet")
             const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
             setSelectedLocation(formattedLocation);
+          } 
+          // Handle default locations (with type field)
+          else if (firstLocation.type) {
+            // Map API location types to internal location types
+            // Need to distinguish between organizer and attendee types based on presence of fields
+            let internalType = firstLocation.type;
+            
+            // Check if it's an organizer type (has address, link, or phone field)
+            if (firstLocation.type === "address" || (firstLocation.type === "phone" && firstLocation.phone)) {
+              // Organizer types
+              if (firstLocation.type === "address") {
+                internalType = "inPerson"; // Organizer address
+              } else if (firstLocation.type === "phone" && firstLocation.phone) {
+                internalType = "userPhone"; // Organizer phone
+              }
+            } else if (firstLocation.type === "link") {
+              internalType = "link"; // Link meeting
+            } else {
+              // Attendee types - map API types to internal types
+              const apiToInternalTypeMap: Record<string, string> = {
+                "attendeeAddress": "attendeeInPerson",
+                "attendeePhone": "phone",
+                "attendeeDefined": "somewhereElse",
+              };
+              
+              if (apiToInternalTypeMap[firstLocation.type]) {
+                internalType = apiToInternalTypeMap[firstLocation.type];
+              }
+            }
+            
+            const defaultLocation = defaultLocations.find((loc) => loc.type === internalType);
+            if (defaultLocation) {
+              setSelectedLocation(defaultLocation.label);
+              
+              // Populate location input values if they exist
+              if (firstLocation.address) {
+                setLocationAddress(firstLocation.address);
+              }
+              if (firstLocation.link) {
+                setLocationLink(firstLocation.link);
+              }
+              if (firstLocation.phone) {
+                setLocationPhone(firstLocation.phone);
+              }
+            } else {
+              // Fallback: try to format the type as display name
+              setSelectedLocation(firstLocation.type);
+            }
           }
         }
       }
@@ -463,28 +656,63 @@ export default function EventTypeDetail() {
       const updates: {
         locations?: Array<{
           type: string;
-          integration: string;
-          public: boolean;
+          integration?: string;
+          public?: boolean;
+          address?: string;
+          link?: string;
         }>;
       } = {};
 
       if (selectedLocation) {
-        const integrationId = displayNameToAppId(selectedLocation);
-        if (!integrationId) {
+        const locationValue = displayNameToLocationValue(selectedLocation);
+        if (!locationValue) {
           Alert.alert("Error", "Invalid location selected");
           setSaving(false);
           return;
         }
 
-        // The API accepts: cal-video, google-meet, zoom
-        // Use the appId directly from conferencing options
-        updates.locations = [
-          {
-            type: "integration",
-            integration: integrationId,
-            public: true,
-          },
-        ];
+        // Get existing location data to preserve values (address, link, phone)
+        const existingLocation = eventTypeData?.locations?.[0];
+        
+        // Build location payload based on type
+        const locationPayload: {
+          type: string;
+          integration?: string;
+          address?: string;
+          link?: string;
+          phone?: string;
+          public?: boolean;
+        } = {
+          type: locationValue.type,
+        };
+
+        // Add type-specific fields based on location type
+        if (locationValue.type === "integration") {
+          // Conferencing app integration
+          locationPayload.integration = locationValue.integration;
+          locationPayload.public = locationValue.public ?? true;
+        } else if (locationValue.type === "address") {
+          // Organizer address location - required fields: address (string) and public (boolean)
+          locationPayload.address = locationAddress || existingLocation?.address || "";
+          locationPayload.public = true; // Required, always true
+        } else if (locationValue.type === "link") {
+          // Link meeting location - required fields: link (string) and public (boolean)
+          locationPayload.link = locationLink || existingLocation?.link || "";
+          locationPayload.public = true; // Required, always true
+        } else if (locationValue.type === "phone") {
+          // Organizer phone location - required fields: phone (string) and public (boolean)
+          locationPayload.phone = locationPhone || existingLocation?.phone || "";
+          locationPayload.public = true; // Required, always true
+        } else if (
+          locationValue.type === "attendeeAddress" ||
+          locationValue.type === "attendeePhone" ||
+          locationValue.type === "attendeeDefined"
+        ) {
+          // Attendee location types - only type field is needed, no additional fields
+          // These are already set correctly with just { type: "..." }
+        }
+
+        updates.locations = [locationPayload];
       }
 
       // Only update if there are changes
@@ -508,41 +736,59 @@ export default function EventTypeDetail() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.container}>
+      <View className="flex-1 bg-[#f8f9fa]">
         {/* Glass Header */}
-        <GlassView style={[styles.header, { paddingTop: insets.top + 8 }]} glassEffectStyle="clear">
-          <View style={styles.headerContent}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <GlassView
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              paddingHorizontal: 20,
+              paddingBottom: 12,
+              paddingTop: insets.top + 8,
+            },
+          ]}
+          glassEffectStyle="clear">
+          <View className="flex-row items-center justify-between min-h-[44px]">
+            <TouchableOpacity className="w-10 h-10 justify-center items-start" onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color="#000" />
             </TouchableOpacity>
 
-            <Text style={styles.headerTitle} numberOfLines={1}>
+            <Text className="flex-1 text-lg font-semibold text-black text-center mx-2.5" numberOfLines={1}>
               {truncateTitle(title)}
             </Text>
 
             <TouchableOpacity
-              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}>
-              <Text style={styles.saveButtonText}>{saving ? "Saving..." : "Save"}</Text>
+              <Text className="text-white text-base font-semibold">{saving ? "Saving..." : "Save"}</Text>
             </TouchableOpacity>
           </View>
         </GlassView>
 
         {/* Tabs */}
-        <View style={[styles.tabsContainer, { paddingTop: insets.top + 70 }]}>
+        <View
+          className="absolute top-0 left-0 right-0 z-[999] bg-white border-b border-[#C6C6C8] pb-2"
+          style={{ paddingTop: insets.top + 70 }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabsScrollContent}>
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
-                style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+                className={`px-4 py-2 rounded-[20px] min-w-[80px] items-center ${
+                  activeTab === tab.id ? "bg-[#EEEFF2]" : ""
+                }`}
                 onPress={() => setActiveTab(tab.id)}>
-                <View style={styles.tabContent}>
+                <View className="flex-row items-center gap-1.5">
                   <Ionicons name={tab.icon as any} size={16} color={activeTab === tab.id ? "#000" : "#666"} />
-                  <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>
+                  <Text
+                    className={`text-sm font-medium ${activeTab === tab.id ? "text-black font-semibold" : "text-[#666]"}`}>
                     {tab.label}
                   </Text>
                 </View>
@@ -552,15 +798,15 @@ export default function EventTypeDetail() {
         </View>
 
         {/* Content */}
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
-            <View style={styles.basicsTabs}>
+            <View className="gap-4">
               {/* Title and Description Card */}
-              <View style={styles.card}>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Title</Text>
+              <View className="bg-white rounded-2xl p-6">
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">Title</Text>
                   <TextInput
-                    style={styles.textInput}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
                     value={eventTitle}
                     onChangeText={setEventTitle}
                     placeholder="Enter event title"
@@ -568,10 +814,11 @@ export default function EventTypeDetail() {
                   />
                 </View>
 
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Description</Text>
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">Description</Text>
                   <TextInput
-                    style={[styles.textInput, styles.textArea]}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                    style={{ height: 100, textAlignVertical: "top" }}
                     value={eventDescription}
                     onChangeText={setEventDescription}
                     placeholder="Enter event description"
@@ -581,12 +828,12 @@ export default function EventTypeDetail() {
                   />
                 </View>
 
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>URL</Text>
-                  <View style={styles.urlInputContainer}>
-                    <Text style={styles.urlPrefix}>cal.com/{username}/</Text>
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">URL</Text>
+                  <View className="flex-row items-center bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg overflow-hidden">
+                    <Text className="bg-[#E5E5EA] text-[#666] text-base px-3 py-3 rounded-tl-lg rounded-bl-lg">cal.com/{username}/</Text>
                     <TextInput
-                      style={styles.urlInput}
+                      className="flex-1 px-3 py-3 text-base text-black"
                       value={eventSlug}
                       onChangeText={setEventSlug}
                       placeholder="event-slug"
@@ -597,32 +844,32 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Duration Card */}
-              <View style={styles.card}>
+              <View className="bg-white rounded-2xl p-6">
                 {!allowMultipleDurations && (
-                  <View style={styles.fieldGroup}>
-                    <Text style={styles.fieldLabel}>Duration</Text>
-                    <View style={styles.durationInputContainer}>
+                  <View className="mb-5">
+                    <Text className="text-base font-semibold text-[#333] mb-2">Duration</Text>
+                    <View className="flex-row items-center gap-3">
                       <TextInput
-                        style={styles.numberInput}
+                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
                         value={eventDuration}
                         onChangeText={setEventDuration}
                         placeholder="30"
                         placeholderTextColor="#8E8E93"
                         keyboardType="numeric"
                       />
-                      <Text style={styles.durationSuffix}>Minutes</Text>
+                      <Text className="text-base text-[#666]">Minutes</Text>
                     </View>
                   </View>
                 )}
 
                 {allowMultipleDurations && (
                   <>
-                    <View style={styles.fieldGroup}>
-                      <Text style={styles.fieldLabel}>Available durations</Text>
+                    <View className="mb-5">
+                      <Text className="text-base font-semibold text-[#333] mb-2">Available durations</Text>
                       <TouchableOpacity
-                        style={styles.dropdownButton}
+                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                         onPress={() => setShowDurationDropdown(true)}>
-                        <Text style={styles.dropdownText}>
+                        <Text className="text-base text-black">
                           {selectedDurations.length > 0
                             ? `${selectedDurations.length} duration${
                                 selectedDurations.length > 1 ? "s" : ""
@@ -634,12 +881,12 @@ export default function EventTypeDetail() {
                     </View>
 
                     {selectedDurations.length > 0 && (
-                      <View style={styles.fieldGroup}>
-                        <Text style={styles.fieldLabel}>Default duration</Text>
+                      <View className="mb-5">
+                        <Text className="text-base font-semibold text-[#333] mb-2">Default duration</Text>
                         <TouchableOpacity
-                          style={styles.dropdownButton}
+                          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                           onPress={() => setShowDefaultDurationDropdown(true)}>
-                          <Text style={styles.dropdownText}>
+                          <Text className="text-base text-black">
                             {defaultDuration || "Select default duration"}
                           </Text>
                           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
@@ -649,8 +896,8 @@ export default function EventTypeDetail() {
                   </>
                 )}
 
-                <View style={styles.switchContainer}>
-                  <Text style={styles.switchLabel}>Allow multiple durations</Text>
+                <View className="flex-row justify-between items-start">
+                  <Text className="text-base text-[#333] font-medium mb-1">Allow multiple durations</Text>
                   <Switch
                     value={allowMultipleDurations}
                     onValueChange={setAllowMultipleDurations}
@@ -661,18 +908,94 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Location Card */}
-              <View style={styles.card}>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Location</Text>
+              <View className="bg-white rounded-2xl p-6">
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">Location</Text>
                   <TouchableOpacity
-                    style={styles.dropdownButton}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowLocationDropdown(true)}
                     disabled={conferencingLoading}>
-                    <Text style={styles.dropdownText}>
-                      {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
-                    </Text>
+                    <View className="flex-row items-center flex-1">
+                      {!conferencingLoading && selectedLocation && getSelectedLocationIconUrl() && (
+                        <SvgImage
+                          uri={getSelectedLocationIconUrl()!}
+                          width={20}
+                          height={20}
+                          style={{ marginRight: 8 }}
+                        />
+                      )}
+                      <Text className="text-base text-black">
+                        {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
+                      </Text>
+                    </View>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
+                  
+                  {/* Location Input Fields - shown conditionally based on selected location type */}
+                  {(() => {
+                    const currentLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
+                    if (!currentLocation || !currentLocation.organizerInputType) {
+                      return null;
+                    }
+
+                    if (currentLocation.organizerInputType === "text") {
+                      // Text input for address or link
+                      const isAddress = currentLocation.type === "inPerson";
+                      const isLink = currentLocation.type === "link";
+                      
+                      return (
+                        <View className="mt-4">
+                          <Text className="text-sm font-medium text-[#333] mb-2">
+                            {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
+                          </Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                            placeholder={currentLocation.organizerInputPlaceholder || ""}
+                            value={isAddress ? locationAddress : locationLink}
+                            onChangeText={(text) => {
+                              if (isAddress) {
+                                setLocationAddress(text);
+                              } else {
+                                setLocationLink(text);
+                              }
+                            }}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType={isLink ? "url" : "default"}
+                          />
+                          {currentLocation.messageForOrganizer && (
+                            <Text className="text-xs text-[#666] mt-2">
+                              {currentLocation.messageForOrganizer}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    } else if (currentLocation.organizerInputType === "phone") {
+                      // Phone input
+                      return (
+                        <View className="mt-4">
+                          <Text className="text-sm font-medium text-[#333] mb-2">
+                            {currentLocation.organizerInputLabel || "Phone Number"}
+                          </Text>
+                          <TextInput
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                            placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
+                            value={locationPhone}
+                            onChangeText={setLocationPhone}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="phone-pad"
+                          />
+                          {currentLocation.messageForOrganizer && (
+                            <Text className="text-xs text-[#666] mt-2">
+                              {currentLocation.messageForOrganizer}
+                            </Text>
+                          )}
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
                 </View>
               </View>
             </View>
@@ -684,23 +1007,18 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowDurationDropdown(false)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowDurationDropdown(false)}>
-              <View style={styles.multiSelectModal}>
-                <Text style={styles.modalTitle}>Select Available Durations</Text>
-                <ScrollView style={styles.modalScrollView}>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDurationDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[300px] max-w-[90%] max-h-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Available Durations</Text>
+                <ScrollView style={{ maxHeight: 400, marginBottom: 16 }}>
                   {availableDurations.map((duration) => (
                     <TouchableOpacity
                       key={duration}
-                      style={[
-                        styles.dropdownOption,
-                        selectedDurations.includes(duration) && styles.selectedOption,
-                      ]}
+                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                        selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
+                      }`}
                       onPress={() => toggleDurationSelection(duration)}>
-                      <Text
-                        style={[
-                          styles.dropdownOptionText,
-                          selectedDurations.includes(duration) && styles.selectedOptionText,
-                        ]}>
+                      <Text className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}>
                         {duration}
                       </Text>
                       {selectedDurations.includes(duration) && (
@@ -709,10 +1027,8 @@ export default function EventTypeDetail() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => setShowDurationDropdown(false)}>
-                  <Text style={styles.modalCloseButtonText}>Done</Text>
+                <TouchableOpacity className="bg-black py-3 px-6 rounded-lg items-center" onPress={() => setShowDurationDropdown(false)}>
+                  <Text className="text-white text-base font-semibold">Done</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -724,24 +1040,20 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowDefaultDurationDropdown(false)}>
-            <TouchableOpacity
-              style={styles.modalOverlay}
-              onPress={() => setShowDefaultDurationDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Select Default Duration</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDefaultDurationDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Default Duration</Text>
                 {selectedDurations.map((duration) => (
                   <TouchableOpacity
                     key={duration}
-                    style={[styles.dropdownOption, defaultDuration === duration && styles.selectedOption]}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      defaultDuration === duration ? "bg-[#F0F0F0]" : ""
+                    }`}
                     onPress={() => {
                       setDefaultDuration(duration);
                       setShowDefaultDurationDropdown(false);
                     }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        defaultDuration === duration && styles.selectedOptionText,
-                      ]}>
+                    <Text className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}>
                       {duration}
                     </Text>
                     {defaultDuration === duration && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -757,30 +1069,29 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowScheduleDropdown(false)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowScheduleDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Select Schedule</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowScheduleDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Schedule</Text>
                 {schedules.map((schedule) => (
                   <TouchableOpacity
                     key={schedule.id}
-                    style={[
-                      styles.dropdownOption,
-                      selectedSchedule?.id === schedule.id && styles.selectedOption,
-                    ]}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      selectedSchedule?.id === schedule.id ? "bg-[#F0F0F0]" : ""
+                    }`}
                     onPress={() => {
                       setSelectedSchedule(schedule);
                       setShowScheduleDropdown(false);
                       fetchScheduleDetails(schedule.id);
                     }}>
-                    <View style={styles.scheduleOptionContent}>
-                      <Text
-                        style={[
-                          styles.dropdownOptionText,
-                          selectedSchedule?.id === schedule.id && styles.selectedOptionText,
-                        ]}>
+                    <View className="flex-1 flex-row items-center justify-between">
+                      <Text className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}>
                         {schedule.name}
                       </Text>
-                      {schedule.isDefault && <Text style={styles.defaultBadgeText}>Default</Text>}
+                      {schedule.isDefault && (
+                        <Text className="text-xs text-[#34C759] font-medium bg-[#E8F5E8] px-1.5 py-0.5 rounded">
+                          Default
+                        </Text>
+                      )}
                     </View>
                     {selectedSchedule?.id === schedule.id && (
                       <Ionicons name="checkmark" size={20} color="#000" />
@@ -797,33 +1108,78 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowLocationDropdown(false)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowLocationDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Select Location</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowLocationDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 w-[80%] max-w-[350px]" style={{ maxHeight: '70%' }}>
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Location</Text>
                 {conferencingLoading ? (
-                  <Text style={styles.loadingText}>Loading locations...</Text>
-                ) : getLocationOptions().length === 0 ? (
-                  <Text style={styles.emptyText}>No locations available</Text>
-                ) : (
-                  getLocationOptions().map((option) => (
-                    <TouchableOpacity
-                      key={option}
-                      style={[styles.dropdownOption, selectedLocation === option && styles.selectedOption]}
-                      onPress={() => {
-                        setSelectedLocation(option);
-                        setShowLocationDropdown(false);
-                      }}>
-                      <Text
-                        style={[
-                          styles.dropdownOptionText,
-                          selectedLocation === option && styles.selectedOptionText,
-                        ]}>
-                        {option}
-                      </Text>
-                      {selectedLocation === option && <Ionicons name="checkmark" size={20} color="#000" />}
-                    </TouchableOpacity>
-                  ))
-                )}
+                  <Text className="text-base text-[#666] text-center py-4">Loading locations...</Text>
+                ) : (() => {
+                  const groups = getLocationOptions();
+                  if (groups.length === 0) {
+                    return <Text className="text-base text-[#8E8E93] text-center py-4">No locations available</Text>;
+                  }
+                  return (
+                    <ScrollView 
+                      showsVerticalScrollIndicator={true}
+                      style={{ maxHeight: 400 }}
+                      nestedScrollEnabled={true}
+                      contentContainerStyle={{ paddingBottom: 10 }}
+                    >
+                      {groups.map((group) => (
+                        <View key={group.category}>
+                          {/* Section Header */}
+                          <View className="px-4 py-2 bg-[#F8F8F8]">
+                            <Text className="text-xs font-semibold text-[#666] uppercase tracking-wide">
+                              {group.category}
+                            </Text>
+                          </View>
+                          {/* Section Options */}
+                          {group.options.map((option) => (
+                            <TouchableOpacity
+                              key={option.value}
+                              className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                                selectedLocation === option.label ? "bg-[#F0F0F0]" : ""
+                              }`}
+                              onPress={() => {
+                                const newLocation = defaultLocations.find((loc) => loc.label === option.label);
+                                setSelectedLocation(option.label);
+                                setShowLocationDropdown(false);
+                                // Clear input values that are not needed for the new location
+                                if (!newLocation || newLocation.type !== "inPerson") {
+                                  setLocationAddress("");
+                                }
+                                if (!newLocation || newLocation.type !== "link") {
+                                  setLocationLink("");
+                                }
+                                if (!newLocation || newLocation.type !== "userPhone") {
+                                  setLocationPhone("");
+                                }
+                              }}>
+                              <View className="flex-row items-center flex-1">
+                                {option.iconUrl ? (
+                                  <SvgImage
+                                    uri={option.iconUrl}
+                                    width={24}
+                                    height={24}
+                                    style={{ marginRight: 12 }}
+                                  />
+                                ) : (
+                                  <View style={{ width: 24, height: 24, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
+                                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>?</Text>
+                                  </View>
+                                )}
+                                <Text className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}>
+                                  {option.label}
+                                </Text>
+                              </View>
+                              {selectedLocation === option.label && <Ionicons name="checkmark" size={20} color="#000" />}
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      ))}
+                    </ScrollView>
+                  );
+                })()}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -834,22 +1190,20 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowBeforeBufferDropdown(false)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowBeforeBufferDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Before event buffer</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowBeforeBufferDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Before event buffer</Text>
                 {bufferTimeOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    style={[styles.dropdownOption, beforeEventBuffer === option && styles.selectedOption]}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      beforeEventBuffer === option ? "bg-[#F0F0F0]" : ""
+                    }`}
                     onPress={() => {
                       setBeforeEventBuffer(option);
                       setShowBeforeBufferDropdown(false);
                     }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        beforeEventBuffer === option && styles.selectedOptionText,
-                      ]}>
+                    <Text className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}>
                       {option}
                     </Text>
                     {beforeEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -865,22 +1219,20 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowAfterBufferDropdown(false)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowAfterBufferDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>After event buffer</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowAfterBufferDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">After event buffer</Text>
                 {bufferTimeOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    style={[styles.dropdownOption, afterEventBuffer === option && styles.selectedOption]}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      afterEventBuffer === option ? "bg-[#F0F0F0]" : ""
+                    }`}
                     onPress={() => {
                       setAfterEventBuffer(option);
                       setShowAfterBufferDropdown(false);
                     }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        afterEventBuffer === option && styles.selectedOptionText,
-                      ]}>
+                    <Text className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}>
                       {option}
                     </Text>
                     {afterEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -896,24 +1248,20 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}>
-            <TouchableOpacity
-              style={styles.modalOverlay}
-              onPress={() => setShowMinimumNoticeUnitDropdown(false)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Time unit</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowMinimumNoticeUnitDropdown(false)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Time unit</Text>
                 {timeUnitOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    style={[styles.dropdownOption, minimumNoticeUnit === option && styles.selectedOption]}
+                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      minimumNoticeUnit === option ? "bg-[#F0F0F0]" : ""
+                    }`}
                     onPress={() => {
                       setMinimumNoticeUnit(option);
                       setShowMinimumNoticeUnitDropdown(false);
                     }}>
-                    <Text
-                      style={[
-                        styles.dropdownOptionText,
-                        minimumNoticeUnit === option && styles.selectedOptionText,
-                      ]}>
+                    <Text className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}>
                       {option}
                     </Text>
                     {minimumNoticeUnit === option && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -929,9 +1277,9 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowFrequencyUnitDropdown(null)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowFrequencyUnitDropdown(null)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Frequency unit</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowFrequencyUnitDropdown(null)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Frequency unit</Text>
                 {frequencyUnitOptions.map((option) => {
                   const selectedLimit = frequencyLimits.find(
                     (limit) => limit.id === showFrequencyUnitDropdown
@@ -940,14 +1288,16 @@ export default function EventTypeDetail() {
                   return (
                     <TouchableOpacity
                       key={option}
-                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                        isSelected ? "bg-[#F0F0F0]" : ""
+                      }`}
                       onPress={() => {
                         if (showFrequencyUnitDropdown) {
                           updateFrequencyLimit(showFrequencyUnitDropdown, "unit", option);
                         }
                         setShowFrequencyUnitDropdown(null);
                       }}>
-                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
+                      <Text className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}>
                         {option}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -964,23 +1314,25 @@ export default function EventTypeDetail() {
             transparent
             animationType="fade"
             onRequestClose={() => setShowDurationUnitDropdown(null)}>
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowDurationUnitDropdown(null)}>
-              <View style={styles.dropdownModal}>
-                <Text style={styles.modalTitle}>Duration unit</Text>
+            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDurationUnitDropdown(null)}>
+              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
+                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Duration unit</Text>
                 {durationUnitOptions.map((option) => {
                   const selectedLimit = durationLimits.find((limit) => limit.id === showDurationUnitDropdown);
                   const isSelected = selectedLimit?.unit === option;
                   return (
                     <TouchableOpacity
                       key={option}
-                      style={[styles.dropdownOption, isSelected && styles.selectedOption]}
+                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                        isSelected ? "bg-[#F0F0F0]" : ""
+                      }`}
                       onPress={() => {
                         if (showDurationUnitDropdown) {
                           updateDurationLimit(showDurationUnitDropdown, "unit", option);
                         }
                         setShowDurationUnitDropdown(null);
                       }}>
-                      <Text style={[styles.dropdownOptionText, isSelected && styles.selectedOptionText]}>
+                      <Text className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}>
                         {option}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -992,14 +1344,14 @@ export default function EventTypeDetail() {
           </Modal>
 
           {activeTab === "availability" && (
-            <View style={styles.card}>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Availability</Text>
+            <View className="bg-white rounded-2xl p-6">
+              <View className="mb-5">
+                <Text className="text-base font-semibold text-[#333] mb-2">Availability</Text>
                 <TouchableOpacity
-                  style={styles.dropdownButton}
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                   onPress={() => setShowScheduleDropdown(true)}
                   disabled={schedulesLoading}>
-                  <Text style={styles.dropdownText}>
+                  <Text className="text-base text-black">
                     {schedulesLoading
                       ? "Loading schedules..."
                       : selectedSchedule
@@ -1011,19 +1363,22 @@ export default function EventTypeDetail() {
               </View>
 
               {selectedSchedule && (
-                <View style={styles.scheduleTable}>
-                  <Text style={styles.scheduleTableTitle}>Schedule</Text>
+                <View className="mt-5 pt-5 border-t border-[#F0F0F0]">
+                  <Text className="text-base font-semibold text-[#333] mb-3">Schedule</Text>
                   {scheduleDetailsLoading ? (
-                    <View style={styles.scheduleLoadingContainer}>
-                      <Text style={styles.scheduleLoadingText}>Loading schedule details...</Text>
+                    <View className="py-4 items-center">
+                      <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
                     </View>
                   ) : selectedScheduleDetails ? (
                     getDaySchedule().map((dayInfo, index) => (
-                      <View key={index} style={styles.scheduleRow}>
-                        <Text style={[styles.dayText, !dayInfo.available && styles.unavailableDayText]}>
+                      <View key={index} className="flex-row justify-between items-center py-2 border-b border-[#F0F0F0]">
+                        <Text
+                          className={`text-[15px] font-medium text-[#333] flex-1 ${
+                            !dayInfo.available ? "line-through text-[#8E8E93]" : ""
+                          }`}>
                           {dayInfo.day}
                         </Text>
-                        <Text style={styles.timeText}>
+                        <Text className="text-[15px] text-[#666] text-right">
                           {dayInfo.available && dayInfo.startTime && dayInfo.endTime
                             ? `${formatTime(dayInfo.startTime)} - ${formatTime(dayInfo.endTime)}`
                             : "Unavailable"}
@@ -1031,8 +1386,8 @@ export default function EventTypeDetail() {
                       </View>
                     ))
                   ) : (
-                    <View style={styles.scheduleLoadingContainer}>
-                      <Text style={styles.scheduleLoadingText}>Failed to load schedule details</Text>
+                    <View className="py-4 items-center">
+                      <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
                     </View>
                   )}
                 </View>
@@ -1041,37 +1396,37 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "limits" && (
-            <View style={styles.basicsTabs}>
+            <View className="gap-4">
               {/* Buffer Time Card */}
-              <View style={styles.card}>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Before event</Text>
+              <View className="bg-white rounded-2xl p-6 shadow-md">
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">Before event</Text>
                   <TouchableOpacity
-                    style={styles.dropdownButton}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowBeforeBufferDropdown(true)}>
-                    <Text style={styles.dropdownText}>{beforeEventBuffer}</Text>
+                    <Text className="text-base text-black">{beforeEventBuffer}</Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>After event</Text>
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">After event</Text>
                   <TouchableOpacity
-                    style={styles.dropdownButton}
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
                     onPress={() => setShowAfterBufferDropdown(true)}>
-                    <Text style={styles.dropdownText}>{afterEventBuffer}</Text>
+                    <Text className="text-base text-black">{afterEventBuffer}</Text>
                     <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Minimum Notice Card */}
-              <View style={styles.card}>
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Minimum Notice</Text>
-                  <View style={styles.durationInputContainer}>
+              <View className="bg-white rounded-2xl p-6 shadow-md">
+                <View className="mb-5">
+                  <Text className="text-base font-semibold text-[#333] mb-2">Minimum Notice</Text>
+                  <View className="flex-row items-center gap-3">
                     <TextInput
-                      style={styles.numberInput}
+                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
                       value={minimumNoticeValue}
                       onChangeText={(text) => {
                         const numericValue = text.replace(/[^0-9]/g, "");
@@ -1085,9 +1440,9 @@ export default function EventTypeDetail() {
                       keyboardType="numeric"
                     />
                     <TouchableOpacity
-                      style={styles.timeUnitDropdown}
+                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
                       onPress={() => setShowMinimumNoticeUnitDropdown(true)}>
-                      <Text style={styles.dropdownText}>{minimumNoticeUnit}</Text>
+                      <Text className="text-base text-black">{minimumNoticeUnit}</Text>
                       <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                     </TouchableOpacity>
                   </View>
@@ -1095,11 +1450,11 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Booking Frequency Limit Card */}
-              <View style={styles.card}>
-                <View style={styles.switchContainer}>
-                  <View style={styles.switchLabelContainer}>
-                    <Text style={styles.switchLabel}>Limit booking frequency</Text>
-                    <Text style={styles.switchDescription}>
+              <View className="bg-white rounded-2xl p-6 shadow-md">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-base text-[#333] font-medium mb-1">Limit booking frequency</Text>
+                    <Text className="text-sm text-[#666] leading-5">
                       Limit how many times this event can be booked.
                     </Text>
                   </View>
@@ -1113,7 +1468,7 @@ export default function EventTypeDetail() {
 
                 <Animated.View
                   style={[
-                    styles.frequencyLimitsSection,
+                    { overflow: "hidden" },
                     {
                       opacity: frequencyAnimationValue,
                       maxHeight: frequencyAnimationValue.interpolate({
@@ -1125,9 +1480,9 @@ export default function EventTypeDetail() {
                   {limitBookingFrequency && (
                     <>
                       {frequencyLimits.map((limit, index) => (
-                        <View key={limit.id} style={styles.frequencyLimitRow}>
+                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
                           <TextInput
-                            style={styles.numberInput}
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
                             value={limit.value}
                             onChangeText={(text) => {
                               const numericValue = text.replace(/[^0-9]/g, "");
@@ -1141,23 +1496,25 @@ export default function EventTypeDetail() {
                             keyboardType="numeric"
                           />
                           <TouchableOpacity
-                            style={styles.timeUnitDropdown}
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
                             onPress={() => setShowFrequencyUnitDropdown(limit.id)}>
-                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Text className="text-base text-black">{limit.unit}</Text>
                             <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                           </TouchableOpacity>
                           {frequencyLimits.length > 1 && (
                             <TouchableOpacity
-                              style={styles.deleteButton}
+                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
                               onPress={() => removeFrequencyLimit(limit.id)}>
                               <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                             </TouchableOpacity>
                           )}
                         </View>
                       ))}
-                      <TouchableOpacity style={styles.addLimitButton} onPress={addFrequencyLimit}>
+                      <TouchableOpacity
+                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
+                        onPress={addFrequencyLimit}>
                         <Ionicons name="add" size={20} color="#000" />
-                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                        <Text className="text-base text-black font-medium">Add Limit</Text>
                       </TouchableOpacity>
                     </>
                   )}
@@ -1165,11 +1522,11 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Total Booking Duration Limit Card */}
-              <View style={styles.card}>
-                <View style={styles.switchContainer}>
-                  <View style={styles.switchLabelContainer}>
-                    <Text style={styles.switchLabel}>Limit total booking duration</Text>
-                    <Text style={styles.switchDescription}>
+              <View className="bg-white rounded-2xl p-6 shadow-md">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-base text-[#333] font-medium mb-1">Limit total booking duration</Text>
+                    <Text className="text-sm text-[#666] leading-5">
                       Limit total amount of time that this event can be booked.
                     </Text>
                   </View>
@@ -1183,7 +1540,7 @@ export default function EventTypeDetail() {
 
                 <Animated.View
                   style={[
-                    styles.frequencyLimitsSection,
+                    { overflow: "hidden" },
                     {
                       opacity: durationAnimationValue,
                       maxHeight: durationAnimationValue.interpolate({
@@ -1195,10 +1552,10 @@ export default function EventTypeDetail() {
                   {limitTotalDuration && (
                     <>
                       {durationLimits.map((limit, index) => (
-                        <View key={limit.id} style={styles.frequencyLimitRow}>
-                          <View style={styles.durationInputContainer}>
+                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
+                          <View className="flex-row items-center gap-3">
                             <TextInput
-                              style={styles.numberInput}
+                              className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
                               value={limit.value}
                               onChangeText={(text) => {
                                 const numericValue = text.replace(/[^0-9]/g, "");
@@ -1211,26 +1568,28 @@ export default function EventTypeDetail() {
                               placeholderTextColor="#8E8E93"
                               keyboardType="numeric"
                             />
-                            <Text style={styles.durationSuffix}>Minutes</Text>
+                            <Text className="text-base text-[#666]">Minutes</Text>
                           </View>
                           <TouchableOpacity
-                            style={styles.timeUnitDropdown}
+                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
                             onPress={() => setShowDurationUnitDropdown(limit.id)}>
-                            <Text style={styles.dropdownText}>{limit.unit}</Text>
+                            <Text className="text-base text-black">{limit.unit}</Text>
                             <Ionicons name="chevron-down" size={20} color="#8E8E93" />
                           </TouchableOpacity>
                           {durationLimits.length > 1 && (
                             <TouchableOpacity
-                              style={styles.deleteButton}
+                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
                               onPress={() => removeDurationLimit(limit.id)}>
                               <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                             </TouchableOpacity>
                           )}
                         </View>
                       ))}
-                      <TouchableOpacity style={styles.addLimitButton} onPress={addDurationLimit}>
+                      <TouchableOpacity
+                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
+                        onPress={addDurationLimit}>
                         <Ionicons name="add" size={20} color="#000" />
-                        <Text style={styles.addLimitButtonText}>Add Limit</Text>
+                        <Text className="text-base text-black font-medium">Add Limit</Text>
                       </TouchableOpacity>
                     </>
                   )}
@@ -1240,46 +1599,59 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "advanced" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Advanced Settings</Text>
-              <Text style={styles.description}>Configure advanced options for this event type.</Text>
+            <View className="bg-white rounded-2xl p-6 shadow-md">
+              <Text className="text-lg font-semibold text-[#333] mb-4">Advanced Settings</Text>
+              <Text className="text-base text-[#666] leading-6 mb-6">Configure advanced options for this event type.</Text>
             </View>
           )}
 
           {activeTab === "recurring" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Recurring Events</Text>
-              <Text style={styles.description}>Set up recurring event patterns.</Text>
+            <View className="bg-white rounded-2xl p-6 shadow-md">
+              <Text className="text-lg font-semibold text-[#333] mb-4">Recurring Events</Text>
+              <Text className="text-base text-[#666] leading-6 mb-6">Set up recurring event patterns.</Text>
             </View>
           )}
 
           {activeTab === "apps" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Connected Apps</Text>
-              <Text style={styles.description}>Manage app integrations for this event type.</Text>
+            <View className="bg-white rounded-2xl p-6 shadow-md">
+              <Text className="text-lg font-semibold text-[#333] mb-4">Connected Apps</Text>
+              <Text className="text-base text-[#666] leading-6 mb-6">Manage app integrations for this event type.</Text>
             </View>
           )}
 
           {activeTab === "workflows" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Workflows</Text>
-              <Text style={styles.description}>Configure automated workflows and actions.</Text>
+            <View className="bg-white rounded-2xl p-6 shadow-md">
+              <Text className="text-lg font-semibold text-[#333] mb-4">Workflows</Text>
+              <Text className="text-base text-[#666] leading-6 mb-6">Configure automated workflows and actions.</Text>
             </View>
           )}
 
           {activeTab === "webhooks" && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Webhooks</Text>
-              <Text style={styles.description}>Set up webhook endpoints for event notifications.</Text>
+            <View className="bg-white rounded-2xl p-6 shadow-md">
+              <Text className="text-lg font-semibold text-[#333] mb-4">Webhooks</Text>
+              <Text className="text-base text-[#666] leading-6 mb-6">Set up webhook endpoints for event notifications.</Text>
             </View>
           )}
         </ScrollView>
 
         {/* Bottom Action Bar */}
-        <GlassView style={[styles.bottomActionBar, { paddingBottom: insets.bottom + 12 }]}>
-          <View style={styles.actionBarContent}>
-            <View style={styles.hiddenSection}>
-              <Text style={styles.hiddenLabel}>Hidden</Text>
+        <GlassView
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingTop: 16,
+            paddingHorizontal: 20,
+            backgroundColor: "#f8f9fa",
+            borderTopWidth: 0.5,
+            borderTopColor: "#E5E5EA",
+            paddingBottom: insets.bottom + 12,
+          }}
+          glassEffectStyle="clear">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-base font-medium text-[#333]">Hidden</Text>
               <Switch
                 value={isHidden}
                 onValueChange={setIsHidden}
@@ -1288,21 +1660,21 @@ export default function EventTypeDetail() {
               />
             </View>
 
-            <View style={styles.actionButtons}>
-              <GlassView style={styles.glassButton} glassEffectStyle="clear">
-                <TouchableOpacity style={styles.actionButton} onPress={handlePreview}>
+            <View className="flex-row items-center gap-3">
+              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
+                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handlePreview}>
                   <Ionicons name="open-outline" size={20} color="#000" />
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView style={styles.glassButton} glassEffectStyle="clear">
-                <TouchableOpacity style={styles.actionButton} onPress={handleCopyLink}>
+              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
+                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handleCopyLink}>
                   <Ionicons name="link-outline" size={20} color="#000" />
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView style={styles.glassButton} glassEffectStyle="clear">
-                <TouchableOpacity style={styles.actionButton} onPress={handleDelete}>
+              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
+                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handleDelete}>
                   <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
               </GlassView>
@@ -1313,548 +1685,3 @@ export default function EventTypeDetail() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 44,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "flex-start",
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    textAlign: "center",
-    marginHorizontal: 10,
-  },
-  saveButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#000000",
-    borderRadius: 10,
-    minWidth: 60,
-    alignItems: "center",
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  tabsContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 999,
-    backgroundColor: "#fff",
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#C6C6C8",
-    paddingHorizontal: 0,
-    paddingBottom: 8,
-  },
-  tabsScrollContent: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "transparent",
-    borderRadius: 20,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  tabContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  activeTab: {
-    backgroundColor: "#EEEFF2",
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
-  },
-  activeTabText: {
-    color: "#000",
-    fontWeight: "600",
-  },
-  basicsTabs: {
-    gap: 16,
-  },
-  fieldGroup: {
-    marginBottom: 20,
-  },
-  fieldLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#000",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  urlInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  urlPrefix: {
-    backgroundColor: "#E5E5EA",
-    color: "#666",
-    fontSize: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-  },
-  urlInput: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#000",
-  },
-  durationInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  numberInput: {
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#000",
-    width: 80,
-    textAlign: "center",
-  },
-  durationSuffix: {
-    fontSize: 16,
-    color: "#666",
-  },
-  timeUnitDropdown: {
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    minWidth: 100,
-  },
-  switchContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  switchLabelContainer: {
-    flex: 1,
-    marginRight: 16,
-  },
-  switchLabel: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  switchDescription: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-  },
-  frequencyLimitsSection: {
-    overflow: "hidden",
-  },
-  frequencyLimitRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-    gap: 12,
-  },
-  deleteButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFF1F0",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#FFCCC7",
-  },
-  addLimitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#000",
-    borderRadius: 8,
-    gap: 8,
-  },
-  addLimitButtonText: {
-    fontSize: 16,
-    color: "#000",
-    fontWeight: "500",
-  },
-  dropdownButton: {
-    backgroundColor: "#F8F9FA",
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: "#000",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dropdownModal: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    minWidth: 250,
-    maxWidth: "80%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  dropdownOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  selectedOption: {
-    backgroundColor: "#F0F0F0",
-  },
-  dropdownOptionText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  selectedOptionText: {
-    fontWeight: "600",
-  },
-  multiSelectModal: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    minWidth: 300,
-    maxWidth: "90%",
-    maxHeight: "80%",
-  },
-  modalScrollView: {
-    maxHeight: 400,
-    marginBottom: 16,
-  },
-  modalCloseButton: {
-    backgroundColor: "#000000",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  modalCloseButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  scheduleOptionContent: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  defaultBadgeText: {
-    fontSize: 12,
-    color: "#34C759",
-    fontWeight: "500",
-    backgroundColor: "#E8F5E8",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  scheduleTable: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  scheduleTableTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
-  scheduleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#F0F0F0",
-  },
-  dayText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
-    flex: 1,
-  },
-  unavailableDayText: {
-    textDecorationLine: "line-through",
-    color: "#8E8E93",
-  },
-  timeText: {
-    fontSize: 15,
-    color: "#666",
-    textAlign: "right",
-  },
-  scheduleLoadingContainer: {
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  scheduleLoadingText: {
-    fontSize: 14,
-    color: "#8E8E93",
-    fontStyle: "italic",
-  },
-  content: {
-    flex: 1,
-    paddingTop: 180,
-    paddingBottom: 250, // Add bottom padding for action bar
-  },
-  bottomActionBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "#f8f9fa",
-    borderTopWidth: 0.5,
-    borderTopColor: "#E5E5EA",
-  },
-  actionBarContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  hiddenSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  hiddenLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  actionButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  glassButton: {
-    borderRadius: 999,
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  actionButton: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 150,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  cardTitle: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#333",
-    marginRight: 12,
-  },
-  durationBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    gap: 4,
-  },
-  durationText: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-  },
-  description: {
-    fontSize: 16,
-    color: "#666",
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  priceSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#f0f0f0",
-    marginBottom: 24,
-  },
-  priceLabel: {
-    fontSize: 16,
-    color: "#666",
-  },
-  priceValue: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#34C759",
-  },
-  detailsSection: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  actionSection: {
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: "#000000",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#000000",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: "#000000",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    paddingVertical: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#8E8E93",
-    textAlign: "center",
-    paddingVertical: 16,
-  },
-});

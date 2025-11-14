@@ -14,6 +14,7 @@ export interface EventType {
     type: string;
     address?: string;
     link?: string;
+    phone?: string;
     integration?: string;
     credentialId?: number;
   }>;
@@ -620,8 +621,11 @@ export class CalComAPIService {
     updates: {
       locations?: Array<{
         type: string;
-        integration: string;
-        public: boolean;
+        integration?: string;
+        public?: boolean;
+        address?: string;
+        link?: string;
+        phone?: string;
       }>;
     }
   ): Promise<EventType> {
