@@ -15,9 +15,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
 import { TextAreaField } from "@calcom/ui/components/form";
 import type { ActionType } from "@calcom/ui/components/table";
@@ -31,6 +31,8 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { buildBookingLink } from "../../../modules/bookings/lib/buildBookingLink";
+import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
   getCancelEventAction,
@@ -38,15 +40,29 @@ import {
   getAfterEventActions,
   getReportAction,
   shouldShowEditActions,
+  shouldShowPendingActions,
+  getPendingActions,
   type BookingActionContext,
 } from "./bookingActions";
-import type { BookingItemProps } from "./types";
 
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;
+  size?: "xs" | "sm" | "base" | "lg";
+  className?: string;
+  /**
+   * Whether to use a portal for the dropdown menu.
+   * Set to false when rendering inside a Sheet/Dialog to keep the dropdown within the modal's stacking context.
+   * @default true
+   */
+  usePortal?: boolean;
 }
 
-export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps) {
+export function BookingActionsDropdown({
+  booking,
+  size = "base",
+  className,
+  usePortal = true,
+}: BookingActionsDropdownProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -162,6 +178,13 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
 
   const isBookingFromRoutingForm = !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 
+  // Build booking confirmation link
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
+
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
@@ -209,6 +232,10 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
     }
   };
 
+  // Calculate showPendingPayment based on payment logic
+  const hasPayment = booking.payment.length > 0;
+  const showPendingPayment = hasPayment;
+
   const actionContext: BookingActionContext = {
     booking,
     isUpcoming,
@@ -226,7 +253,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
     isDisabledCancelling,
     isDisabledRescheduling,
     isCalVideoLocation,
-    showPendingPayment: false, // This will be calculated below
+    showPendingPayment,
     isAttendee,
     cardCharged,
     attendeeList,
@@ -236,9 +263,25 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
+  // Get pending actions (accept/reject)
+  const shouldShowPending = shouldShowPendingActions(actionContext);
+  const basePendingActions = shouldShowPending ? getPendingActions(actionContext) : [];
+  const pendingActions: ActionType[] = basePendingActions.map((action) => ({
+    ...action,
+    disabled: mutation.isPending,
+    onClick:
+      action.id === "confirm"
+        ? () => bookingConfirm(true)
+        : action.id === "reject"
+        ? () => setRejectionDialogIsOpen(true)
+        : undefined,
+  })) as ActionType[];
+
+  const shouldShowEdit = shouldShowEditActions(actionContext);
   const baseEditEventActions = getEditEventActions(actionContext);
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
+    disabled: !shouldShowEdit || action.disabled, // Disable all edit actions if shouldn't show edit actions
     onClick:
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
@@ -494,27 +537,95 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
     </>
   );
 
-  // Don't render dropdown if edit actions shouldn't be shown
-  if (!shouldShowEditActions(actionContext)) {
+  // Check if there are any available actions across all action groups
+  const hasAnyAvailableActions = () => {
+    // Check if any pending action is available
+    const hasAvailablePendingAction = pendingActions.some((action) => !action.disabled);
+
+    // Check if any edit action is available
+    const hasAvailableEditAction = editEventActions.some((action) => !action.disabled);
+
+    // Check if any after event action is available
+    const hasAvailableAfterAction = afterEventActions.some((action) => !action.disabled);
+
+    // Check report and cancel actions
+    const isReportAvailable = !reportActionWithHandler.disabled;
+    const isCancelAvailable = !cancelEventAction.disabled;
+
+    return (
+      hasAvailablePendingAction ||
+      hasAvailableEditAction ||
+      hasAvailableAfterAction ||
+      isReportAvailable ||
+      isCancelAvailable
+    );
+  };
+
+  // Don't render dropdown if no actions are available
+  if (!hasAnyAvailableActions()) {
     return dialogs;
   }
+
+  // Conditional portal wrapper to avoid portal when inside Sheet/Dialog
+  const ConditionalPortal = usePortal
+    ? DropdownMenuPortal
+    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
   return (
     <>
       {dialogs}
-      <Dropdown>
-        <DropdownMenuTrigger asChild>
+      <Dropdown modal={false}>
+        <DropdownMenuTrigger asChild data-testid="booking-actions-dropdown">
           <Button
             type="button"
             color="secondary"
-            variant="icon"
+            size={size}
             StartIcon="ellipsis"
-            data-testid="booking-actions-dropdown"
+            className={className}
+            // Prevent click from bubbling to parent row/container click handlers
+            onClick={(e) => e.stopPropagation()}
           />
         </DropdownMenuTrigger>
-        <DropdownMenuPortal>
+        <ConditionalPortal>
           <DropdownMenuContent>
-            <DropdownMenuLabel className="p-2">{t("edit_event")}</DropdownMenuLabel>
+            <DropdownMenuItem className="rounded-lg">
+              <DropdownItem
+                type="button"
+                StartIcon="external-link"
+                href={bookingLink}
+                target="_blank"
+                data-testid="view-booking"
+                onClick={(e) => e.stopPropagation()}>
+                {t("view")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {pendingActions.length > 0 && (
+              <>
+                <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
+                {pendingActions.map((action) => (
+                  <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                    <DropdownItem
+                      type="button"
+                      color={action.color}
+                      StartIcon={action.icon}
+                      href={action.href}
+                      disabled={action.disabled}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        action.onClick?.(e);
+                      }}
+                      data-bookingid={action.bookingId}
+                      data-testid={action.id}
+                      className={action.disabled ? "text-muted" : undefined}>
+                      {action.label}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
             {editEventActions.map((action) => (
               <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
@@ -523,7 +634,10 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                   StartIcon={action.icon}
                   href={action.href}
                   disabled={action.disabled}
-                  onClick={action.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    action.onClick?.(e);
+                  }}
                   data-bookingid={action.bookingId}
                   data-testid={action.id}
                   className={action.disabled ? "text-muted" : undefined}>
@@ -531,8 +645,8 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator className="!my-1 bg-subtle" />
-            <DropdownMenuLabel className="p-2">{t("after_event")}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
               <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
@@ -540,7 +654,10 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                   color={action.color}
                   StartIcon={action.icon}
                   href={action.href}
-                  onClick={action.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    action.onClick?.(e);
+                  }}
                   disabled={action.disabled}
                   data-bookingid={action.bookingId}
                   data-testid={action.id}
@@ -550,7 +667,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
               </DropdownMenuItem>
             ))}
             <>
-              <DropdownMenuSeparator className="!my-1 bg-subtle" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="rounded-lg"
                 key={reportActionWithHandler.id}
@@ -559,7 +676,10 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                   type="button"
                   color={reportActionWithHandler.color}
                   StartIcon={reportActionWithHandler.icon}
-                  onClick={reportActionWithHandler.onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    reportActionWithHandler.onClick?.();
+                  }}
                   disabled={reportActionWithHandler.disabled}
                   data-testid={reportActionWithHandler.id}
                   className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
@@ -567,7 +687,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                 </DropdownItem>
               </DropdownMenuItem>
             </>
-            <DropdownMenuSeparator className="!my-1 bg-subtle" />
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="rounded-lg"
               key={cancelEventAction.id}
@@ -577,7 +697,10 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
                 color={cancelEventAction.color}
                 StartIcon={cancelEventAction.icon}
                 href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
-                onClick={cancelEventAction.onClick}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelEventAction.onClick?.(e);
+                }}
                 disabled={cancelEventAction.disabled}
                 data-bookingid={cancelEventAction.bookingId}
                 data-testid={cancelEventAction.id}
@@ -586,7 +709,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
               </DropdownItem>
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenuPortal>
+        </ConditionalPortal>
       </Dropdown>
     </>
   );
