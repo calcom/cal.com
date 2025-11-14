@@ -184,6 +184,8 @@ function BookingDetailsSheetInner({
               bookingFields={booking.eventType?.bookingFields}
             />
 
+            <AssignmentReasonsSection booking={booking} userTimeZone={userTimeZone} />
+
             <DescriptionSection booking={booking} />
           </div>
         </SheetBody>
@@ -440,6 +442,60 @@ function CustomQuestionsSection({
         );
       })}
     </>
+  );
+}
+
+function AssignmentReasonsSection({
+  booking,
+  userTimeZone,
+}: {
+  booking: BookingOutput;
+  userTimeZone?: string;
+}) {
+  const { t } = useLocale();
+
+  if (!booking.assignmentReason || booking.assignmentReason.length === 0) {
+    return null;
+  }
+
+  const getReasonLabel = (reasonEnum: string) => {
+    switch (reasonEnum) {
+      case "ROUTING_FORM_ROUTING":
+        return t("assignment_reason_routing_form_routing");
+      case "ROUTING_FORM_ROUTING_FALLBACK":
+        return t("assignment_reason_routing_form_routing_fallback");
+      case "REASSIGNED":
+        return t("assignment_reason_reassigned");
+      case "RR_REASSIGNED":
+        return t("assignment_reason_rr_reassigned");
+      case "REROUTED":
+        return t("assignment_reason_rerouted");
+      case "SALESFORCE_ASSIGNMENT":
+        return t("assignment_reason_salesforce_assignment");
+      default:
+        return reasonEnum;
+    }
+  };
+
+  return (
+    <Section title={t("assignment_reasons")}>
+      <div className="space-y-3">
+        {booking.assignmentReason.map((reason, idx) => {
+          const timestamp = dayjs(reason.createdAt).tz(userTimeZone);
+          return (
+            <div key={idx} className="border-subtle rounded-md border p-3">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-emphasis text-sm font-medium">{getReasonLabel(reason.reasonEnum)}</span>
+                <span className="text-subtle text-xs">
+                  {timestamp.format("MMM D, YYYY h:mm A")}
+                </span>
+              </div>
+              <p className="text-default text-sm">{reason.reasonString}</p>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
   );
 }
 
