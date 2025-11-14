@@ -1,0 +1,640 @@
+import { Ionicons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
+import { useRouter, useLocalSearchParams, Stack } from "expo-router";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  Switch,
+  Modal,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { CalComAPIService, Schedule, ScheduleAvailability } from "../services/calcom";
+
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Convert 24-hour time to 12-hour format with AM/PM
+const formatTime12Hour = (time24: string): string => {
+  const [hours, minutes] = time24.split(":");
+  const hour = parseInt(hours, 10);
+  const min = minutes || "00";
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  // Pad single-digit hours with leading zero for consistent width
+  const hour12Padded = hour12.toString().padStart(2, "0");
+  return `${hour12Padded}:${min} ${period}`;
+};
+
+// Format availability for display
+const formatAvailabilityDisplay = (availability: Record<number, ScheduleAvailability[]>): string[] => {
+  // Group slots by time range
+  const timeRangeMap: Record<string, number[]> = {};
+  
+  Object.keys(availability).forEach((dayIndexStr) => {
+    const dayIndex = Number(dayIndexStr);
+    const slots = availability[dayIndex];
+    if (slots && slots.length > 0) {
+      slots.forEach((slot) => {
+        const timeKey = `${slot.startTime}-${slot.endTime}`;
+        if (!timeRangeMap[timeKey]) {
+          timeRangeMap[timeKey] = [];
+        }
+        timeRangeMap[timeKey].push(dayIndex);
+      });
+    }
+  });
+  
+  // Format each time range group
+  const formatted: string[] = [];
+  Object.keys(timeRangeMap).forEach((timeKey) => {
+    const days = timeRangeMap[timeKey].sort((a, b) => a - b);
+    const [startTime, endTime] = timeKey.split("-");
+    const dayNames = days.map((day) => DAY_ABBREVIATIONS[day]).join(", ");
+    const timeRange = `${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`;
+    formatted.push(`${dayNames}, ${timeRange}`);
+  });
+  
+  return formatted;
+};
+
+// Generate time options (15-minute intervals)
+const generateTimeOptions = () => {
+  const options: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const h = hour.toString().padStart(2, "0");
+      const m = minute.toString().padStart(2, "0");
+      options.push(`${h}:${m}`);
+    }
+  }
+  return options;
+};
+
+const TIME_OPTIONS = generateTimeOptions();
+
+export default function AvailabilityDetail() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [scheduleName, setScheduleName] = useState("");
+  const [timeZone, setTimeZone] = useState("");
+  const [isDefault, setIsDefault] = useState(false);
+  const [availability, setAvailability] = useState<Record<number, ScheduleAvailability[]>>({});
+  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState<{
+    dayIndex: number;
+    slotIndex: number;
+    type: "start" | "end";
+  } | null>(null);
+
+  // Common timezones
+  const timezones = [
+    "America/New_York",
+    "America/Chicago",
+    "America/Denver",
+    "America/Los_Angeles",
+    "Europe/London",
+    "Europe/Paris",
+    "Europe/Berlin",
+    "Asia/Tokyo",
+    "Asia/Shanghai",
+    "Asia/Kolkata",
+    "Australia/Sydney",
+    "UTC",
+  ];
+
+  useEffect(() => {
+    if (id) {
+      fetchSchedule();
+    }
+  }, [id]);
+
+  const fetchSchedule = async () => {
+    try {
+      setLoading(true);
+      const scheduleData = await CalComAPIService.getScheduleById(Number(id));
+      
+      if (scheduleData) {
+        setSchedule(scheduleData);
+        setScheduleName(scheduleData.name || "");
+        setTimeZone(scheduleData.timeZone || "UTC");
+        setIsDefault(scheduleData.isDefault || false);
+
+        // Convert availability array to day-indexed object
+        const availabilityMap: Record<number, ScheduleAvailability[]> = {};
+        
+        // Map day names to numbers
+        const dayNameToNumber: Record<string, number> = {
+          Sunday: 0,
+          Monday: 1,
+          Tuesday: 2,
+          Wednesday: 3,
+          Thursday: 4,
+          Friday: 5,
+          Saturday: 6,
+        };
+        
+        if (scheduleData.availability && Array.isArray(scheduleData.availability)) {
+          scheduleData.availability.forEach((slot) => {
+            // Handle both string day names and number day formats
+            let days: number[] = [];
+            if (Array.isArray(slot.days)) {
+              days = slot.days
+                .map((day) => {
+                  // If it's a day name string (e.g., "Sunday", "Monday")
+                  if (typeof day === "string" && dayNameToNumber[day] !== undefined) {
+                    return dayNameToNumber[day];
+                  }
+                  // If it's a number string (e.g., "0", "1")
+                  if (typeof day === "string") {
+                    const parsed = parseInt(day, 10);
+                    if (!isNaN(parsed) && parsed >= 0 && parsed <= 6) {
+                      return parsed;
+                    }
+                  }
+                  // If it's already a number
+                  if (typeof day === "number" && day >= 0 && day <= 6) {
+                    return day;
+                  }
+                  return null;
+                })
+                .filter((day): day is number => day !== null);
+            }
+            
+            days.forEach((day) => {
+              if (!availabilityMap[day]) {
+                availabilityMap[day] = [];
+              }
+              availabilityMap[day].push({
+                days: [day.toString()],
+                startTime: slot.startTime || "09:00:00",
+                endTime: slot.endTime || "17:00:00",
+              });
+            });
+          });
+        }
+        
+        setAvailability(availabilityMap);
+      }
+    } catch (error) {
+      console.error("Error fetching schedule:", error);
+      Alert.alert("Error", "Failed to load schedule. Please try again.");
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleDay = (dayIndex: number) => {
+    setAvailability((prev) => {
+      const newAvailability = { ...prev };
+      if (newAvailability[dayIndex] && newAvailability[dayIndex].length > 0) {
+        // Disable day - remove availability
+        delete newAvailability[dayIndex];
+      } else {
+        // Enable day - add default time slot (9 AM - 5 PM)
+        newAvailability[dayIndex] = [
+          {
+            days: [dayIndex.toString()],
+            startTime: "09:00:00",
+            endTime: "17:00:00",
+          },
+        ];
+      }
+      return newAvailability;
+    });
+  };
+
+  const addTimeSlot = (dayIndex: number) => {
+    setAvailability((prev) => {
+      const newAvailability = { ...prev };
+      if (!newAvailability[dayIndex]) {
+        newAvailability[dayIndex] = [];
+      }
+      newAvailability[dayIndex].push({
+        days: [dayIndex.toString()],
+        startTime: "09:00:00",
+        endTime: "17:00:00",
+      });
+      return newAvailability;
+    });
+  };
+
+  const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
+    setAvailability((prev) => {
+      const newAvailability = { ...prev };
+      if (newAvailability[dayIndex]) {
+        newAvailability[dayIndex] = newAvailability[dayIndex].filter((_, i) => i !== slotIndex);
+        if (newAvailability[dayIndex].length === 0) {
+          delete newAvailability[dayIndex];
+        }
+      }
+      return newAvailability;
+    });
+  };
+
+  const updateTimeSlot = (
+    dayIndex: number,
+    slotIndex: number,
+    type: "start" | "end",
+    time: string
+  ) => {
+    setAvailability((prev) => {
+      const newAvailability = { ...prev };
+      if (newAvailability[dayIndex] && newAvailability[dayIndex][slotIndex]) {
+        const slot = { ...newAvailability[dayIndex][slotIndex] };
+        if (type === "start") {
+          slot.startTime = `${time}:00`;
+        } else {
+          slot.endTime = `${time}:00`;
+        }
+        newAvailability[dayIndex][slotIndex] = slot;
+      }
+      return newAvailability;
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      // Convert availability object back to array format
+      const availabilityArray: Array<{
+        days: number[];
+        startTime: string;
+        endTime: string;
+      }> = [];
+
+      Object.keys(availability).forEach((dayIndexStr) => {
+        const dayIndex = Number(dayIndexStr);
+        const slots = availability[dayIndex];
+        if (slots && slots.length > 0) {
+          slots.forEach((slot) => {
+            availabilityArray.push({
+              days: [dayIndex],
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+            });
+          });
+        }
+      });
+
+      await CalComAPIService.updateSchedule(Number(id), {
+        name: scheduleName,
+        timeZone,
+        availability: availabilityArray,
+      });
+
+      Alert.alert("Success", "Schedule updated successfully", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      Alert.alert("Error", "Failed to update schedule. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSetAsDefault = async () => {
+    try {
+      await CalComAPIService.updateSchedule(Number(id), {
+        isDefault: true,
+      });
+      setIsDefault(true);
+      Alert.alert("Success", "Schedule set as default successfully");
+    } catch (error) {
+      Alert.alert("Error", "Failed to set schedule as default. Please try again.");
+    }
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete Schedule",
+      `Are you sure you want to delete "${scheduleName}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await CalComAPIService.deleteSchedule(Number(id));
+              Alert.alert("Success", "Schedule deleted successfully", [
+                { text: "OK", onPress: () => router.back() },
+              ]);
+            } catch (error) {
+              Alert.alert("Error", "Failed to delete schedule. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-[#f8f9fa]">
+        <ActivityIndicator size="large" color="#000000" />
+        <Text className="mt-4 text-base text-[#666]">Loading schedule...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTitle: () => (
+            <Text style={{ fontSize: 20, fontWeight: "700" }}>Edit Availability</Text>
+          ),
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} className="ml-4">
+              <Ionicons name="chevron-back" size={24} color="#000" />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center mr-4 ${saving ? "opacity-60" : ""}`}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              <Text className="text-white text-base font-semibold">{saving ? "Saving..." : "Save"}</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1 bg-[#f8f9fa]"
+          contentContainerStyle={{ padding: 16, paddingBottom: 200 }}
+        >
+        <View className="gap-4">
+          {/* Schedule Name and Working Hours Display */}
+          <View className="bg-white rounded-2xl p-6">
+            <Text className="text-xl font-bold text-[#333] mb-3">{scheduleName}</Text>
+            {Object.keys(availability).length > 0 ? (
+              <View>
+                {formatAvailabilityDisplay(availability).map((line, index) => (
+                  <Text key={index} className="text-base text-[#666] mb-1">
+                    {line}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text className="text-base text-[#999]">No availability set</Text>
+            )}
+          </View>
+
+          {/* Availability Schedule */}
+          <View className="bg-white rounded-2xl p-6">
+            <Text className="text-xl font-bold text-[#333] mb-4">Availability</Text>
+            {DAYS.map((day, dayIndex) => {
+              const daySlots = availability[dayIndex] || [];
+              const isEnabled = daySlots.length > 0;
+              const firstSlot = daySlots[0];
+
+              return (
+                <View
+                  key={dayIndex}
+                  className={`mb-3 pb-3 border-b border-[#E5E5EA] ${dayIndex === DAYS.length - 1 ? "mb-0 pb-0 border-b-0" : ""}`}
+                >
+                  <View className="flex-row items-center">
+                    <View className="flex-row items-center flex-1">
+                      <Switch
+                        value={isEnabled}
+                        onValueChange={() => toggleDay(dayIndex)}
+                        trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                        thumbColor="#fff"
+                        style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                      />
+                      <Text className="text-base font-medium text-[#333] ml-1" style={{ width: 40 }}>
+                        {DAY_ABBREVIATIONS[dayIndex]}
+                      </Text>
+                      {isEnabled && firstSlot && (
+                        <View className="flex-row items-center gap-2">
+                          <TouchableOpacity
+                            onPress={() => setShowTimePicker({ dayIndex, slotIndex: 0, type: "start" })}
+                            className="border border-[#E5E5EA] rounded-lg px-2 py-1 bg-white"
+                            style={{ width: 85 }}
+                          >
+                            <Text className="text-base text-[#333] text-center">
+                              {formatTime12Hour(firstSlot.startTime)}
+                            </Text>
+                          </TouchableOpacity>
+                          <Text className="text-base text-[#666]">-</Text>
+                          <TouchableOpacity
+                            onPress={() => setShowTimePicker({ dayIndex, slotIndex: 0, type: "end" })}
+                            className="border border-[#E5E5EA] rounded-lg px-2 py-1 bg-white"
+                            style={{ width: 85 }}
+                          >
+                            <Text className="text-base text-[#333] text-center">
+                              {formatTime12Hour(firstSlot.endTime)}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                    {isEnabled && (
+                      <TouchableOpacity
+                        onPress={() => addTimeSlot(dayIndex)}
+                        className="p-1"
+                      >
+                        <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {isEnabled && daySlots.length > 1 && (
+                    <View className="mt-2" style={{ marginLeft: 108 }}>
+                      {daySlots.slice(1).map((slot, slotIndex) => (
+                        <View
+                          key={slotIndex + 1}
+                          className="flex-row items-center mb-2 gap-2"
+                        >
+                          <TouchableOpacity
+                            onPress={() =>
+                              setShowTimePicker({ dayIndex, slotIndex: slotIndex + 1, type: "start" })
+                            }
+                            className="border border-[#E5E5EA] rounded-lg px-2 py-1 bg-white"
+                            style={{ width: 85 }}
+                          >
+                            <Text className="text-base text-[#333] text-center">
+                              {formatTime12Hour(slot.startTime)}
+                            </Text>
+                          </TouchableOpacity>
+                          <Text className="text-base text-[#666]">-</Text>
+                          <TouchableOpacity
+                            onPress={() =>
+                              setShowTimePicker({ dayIndex, slotIndex: slotIndex + 1, type: "end" })
+                            }
+                            className="border border-[#E5E5EA] rounded-lg px-2 py-1 bg-white"
+                            style={{ width: 85 }}
+                          >
+                            <Text className="text-base text-[#333] text-center">
+                              {formatTime12Hour(slot.endTime)}
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => removeTimeSlot(dayIndex, slotIndex + 1)}
+                            className="p-1"
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Timezone */}
+          <View className="bg-white rounded-2xl p-6">
+            <Text className="text-xl font-bold text-[#333] mb-3">Timezone</Text>
+            <TouchableOpacity
+              onPress={() => setShowTimezoneModal(true)}
+              className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row items-center justify-between"
+            >
+              <Text className="text-base text-[#333]">{timeZone}</Text>
+              <Ionicons name="chevron-down" size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        </ScrollView>
+
+        {/* Bottom Action Bar */}
+        <GlassView
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingTop: 16,
+            paddingHorizontal: 20,
+            backgroundColor: "#f8f9fa",
+            borderTopWidth: 0.5,
+            borderTopColor: "#E5E5EA",
+            paddingBottom: insets.bottom + 12,
+          }}
+          glassEffectStyle="clear">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-base font-medium text-[#333]">Set as Default</Text>
+              <Switch
+                value={isDefault}
+                onValueChange={handleSetAsDefault}
+                disabled={isDefault}
+                trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View className="flex-row items-center gap-3">
+              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
+                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+              </GlassView>
+            </View>
+          </View>
+        </GlassView>
+      </View>
+
+      {/* Timezone Modal */}
+      <Modal visible={showTimezoneModal} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-4 max-h-[80%]">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-[#333]">Select Timezone</Text>
+              <TouchableOpacity onPress={() => setShowTimezoneModal(false)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {timezones.map((tz) => (
+                <TouchableOpacity
+                  key={tz}
+                  onPress={() => {
+                    setTimeZone(tz);
+                    setShowTimezoneModal(false);
+                  }}
+                  className="py-3 border-b border-[#E5E5EA]"
+                >
+                  <Text className="text-base text-[#333]">{tz}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Time Picker Modal */}
+      <Modal visible={!!showTimePicker} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl p-4 max-h-[80%]">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-[#333]">
+                Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
+              </Text>
+              <TouchableOpacity onPress={() => setShowTimePicker(null)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {TIME_OPTIONS.map((time) => {
+                const currentTime =
+                  showTimePicker?.type === "start"
+                    ? availability[showTimePicker.dayIndex]?.[showTimePicker.slotIndex]?.startTime.substring(
+                        0,
+                        5
+                      )
+                    : availability[showTimePicker?.dayIndex || 0]?.[
+                        showTimePicker?.slotIndex || 0
+                      ]?.endTime.substring(0, 5);
+                const isSelected = currentTime === time;
+
+                return (
+                  <TouchableOpacity
+                    key={time}
+                    onPress={() => {
+                      if (showTimePicker) {
+                        updateTimeSlot(
+                          showTimePicker.dayIndex,
+                          showTimePicker.slotIndex,
+                          showTimePicker.type,
+                          time
+                        );
+                        setShowTimePicker(null);
+                      }
+                    }}
+                    className={`py-3 border-b border-[#E5E5EA] ${isSelected ? "bg-[#E3F2FD]" : ""}`}
+                  >
+                    <Text
+                      className={`text-base ${isSelected ? "text-[#007AFF] font-semibold" : "text-[#333]"}`}
+                    >
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
