@@ -56,6 +56,7 @@ export function BookingDetailsSheet({
   return (
     <BookingActionsStoreProvider>
       <BookingDetailsSheetInner
+        booking={booking}
         userTimeZone={userTimeZone}
         userTimeFormat={userTimeFormat}
         userId={userId}
@@ -66,6 +67,7 @@ export function BookingDetailsSheet({
 }
 
 interface BookingDetailsSheetInnerProps {
+  booking: BookingOutput;
   userTimeZone?: string;
   userTimeFormat?: number;
   userId?: number;
@@ -73,6 +75,7 @@ interface BookingDetailsSheetInnerProps {
 }
 
 function BookingDetailsSheetInner({
+  booking,
   userTimeZone,
   userTimeFormat,
   userId,
@@ -80,14 +83,10 @@ function BookingDetailsSheetInner({
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
 
-  // Get booking and navigation state directly from the store
-  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+  // Get navigation state directly from the store
   const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
   const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
   const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
-
-  // Early return if no booking (shouldn't happen due to parent check, but for type safety)
-  if (!booking) return null;
 
   const handleClose = () => {
     setSelectedBookingId(null);
