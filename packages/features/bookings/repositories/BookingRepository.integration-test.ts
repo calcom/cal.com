@@ -8,14 +8,24 @@ import { BookingRepository } from "./BookingRepository";
 // Test Helpers
 // ------------
 
-async function clearDB() {
-  await prisma.attendee.deleteMany();
-  await prisma.booking.deleteMany();
+// Track booking IDs to clean up only what we create
+const createdBookingIds: number[] = [];
+
+async function clearTestBookings() {
+  if (createdBookingIds.length > 0) {
+    await prisma.attendee.deleteMany({
+      where: { bookingId: { in: createdBookingIds } },
+    });
+    await prisma.booking.deleteMany({
+      where: { id: { in: createdBookingIds } },
+    });
+    createdBookingIds.length = 0;
+  }
 }
 
 async function createAttendeeNoShowTestBookings() {
   // Booking 1: 00:00-01:00
-  await prisma.booking.create({
+  const booking1 = await prisma.booking.create({
     data: {
       userId: 1,
       uid: "uid-1",
@@ -34,9 +44,10 @@ async function createAttendeeNoShowTestBookings() {
       title: "Test Event",
     },
   });
+  createdBookingIds.push(booking1.id);
 
   // Booking 2: 01:00-02:00 (different time to avoid idempotencyKey collision)
-  await prisma.booking.create({
+  const booking2 = await prisma.booking.create({
     data: {
       userId: 1,
       uid: "uid-2",
@@ -55,11 +66,12 @@ async function createAttendeeNoShowTestBookings() {
       title: "Test Event",
     },
   });
+  createdBookingIds.push(booking2.id);
 }
 
 async function createHostNoShowTestBookings() {
   // Booking 1: 02:00-03:00 (different time to avoid idempotencyKey collision)
-  await prisma.booking.create({
+  const booking1 = await prisma.booking.create({
     data: {
       userId: 1,
       uid: "uid-3",
@@ -79,9 +91,10 @@ async function createHostNoShowTestBookings() {
       title: "Test Event",
     },
   });
+  createdBookingIds.push(booking1.id);
 
   // Booking 2: 03:00-04:00 (different time to avoid idempotencyKey collision)
-  await prisma.booking.create({
+  const booking2 = await prisma.booking.create({
     data: {
       userId: 1,
       uid: "uid-4",
@@ -101,6 +114,7 @@ async function createHostNoShowTestBookings() {
       title: "Test Event",
     },
   });
+  createdBookingIds.push(booking2.id);
 }
 
 // -----------------
@@ -110,11 +124,11 @@ async function createHostNoShowTestBookings() {
 describe("BookingRepository (Integration Tests)", () => {
   beforeEach(async () => {
     vi.setSystemTime(new Date("2025-05-01T00:00:00.000Z"));
-    await clearDB();
   });
 
   afterEach(async () => {
-    await clearDB();
+    await clearTestBookings();
+    vi.useRealTimers();
   });
 
   describe("getAllBookingsForRoundRobin", () => {
@@ -225,7 +239,7 @@ describe("BookingRepository (Integration Tests)", () => {
     });
 
     it("should filter by startTime when rrTimestampBasis=START_TIME", async () => {
-      await prisma.booking.create({
+      const mayBooking = await prisma.booking.create({
         data: {
           userId: 1,
           uid: "booking_may",
@@ -245,8 +259,9 @@ describe("BookingRepository (Integration Tests)", () => {
           title: "Test May",
         },
       });
+      createdBookingIds.push(mayBooking.id);
 
-      await prisma.booking.create({
+      const juneBooking = await prisma.booking.create({
         data: {
           userId: 1,
           uid: "booking_june",
@@ -266,6 +281,7 @@ describe("BookingRepository (Integration Tests)", () => {
           title: "Test June",
         },
       });
+      createdBookingIds.push(juneBooking.id);
 
       const bookingRepo = new BookingRepository(prisma);
       const bookings = await bookingRepo.getAllBookingsForRoundRobin({
