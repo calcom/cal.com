@@ -1,8 +1,15 @@
 import { type schemaTask } from "@trigger.dev/sdk";
+import { queue } from "@trigger.dev/sdk";
 
-type BookingNotificationTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry">;
+type BookingNotificationTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry" | "queue">;
 
-export const taskMachineAndRetryConfig: BookingNotificationTask = {
+export const bookingNotificationsQueue = queue({
+  name: "booking-notifications",
+  concurrencyLimit: 20,
+});
+
+export const bookingNotificationsTaskConfig: BookingNotificationTask = {
+  queue: bookingNotificationsQueue,
   machine: "small-2x",
   retry: {
     maxAttempts: 3,

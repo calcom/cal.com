@@ -6,13 +6,13 @@ import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
 import { prisma } from "@calcom/prisma";
 
 import { BookingEmailAndSmsTaskService } from "../../BookingEmailAndSmsTaskService";
-import { taskMachineAndRetryConfig } from "./config";
+import { bookingNotificationsTaskConfig } from "./config";
 import { bookingNotificationTaskSchema, BookingNotificationPayload } from "./schema";
 
 export const request = schemaTask({
   id: "booking.send.request.notifications",
   schema: bookingNotificationTaskSchema,
-  ...taskMachineAndRetryConfig,
+  ...bookingNotificationsTaskConfig,
   run: async (payload: BookingNotificationPayload) => {
     const triggerDevLogger = new TriggerDevLogger();
     const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: triggerDevLogger });
