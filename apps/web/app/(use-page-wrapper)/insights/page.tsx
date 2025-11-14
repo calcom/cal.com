@@ -20,8 +20,8 @@ const ServerPage = async () => {
 
   const { timeZone } = await prisma.user.findUniqueOrThrow({
     where: { id: session?.user.id ?? -1 },
-    select: { 
-      timeZone: true 
+    select: {
+      timeZone: true,
     },
   });
 
