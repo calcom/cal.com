@@ -72,6 +72,14 @@ export class EventTypesRepository_2024_06_14 {
       where: {
         userId,
       },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
       include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
@@ -82,6 +90,14 @@ export class EventTypesRepository_2024_06_14 {
         userId,
         hidden: false,
       },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
       include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
