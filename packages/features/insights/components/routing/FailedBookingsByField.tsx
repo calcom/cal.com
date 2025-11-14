@@ -142,7 +142,7 @@ export function FailedBookingsByField() {
 
   return (
     <ChartCard title={t("failed_bookings_by_field")} isPending={isLoading} isError={isError}>
-      <FormCard key={formName} formName={formName} fields={fields} />
+      {data && <FormCard key={formName} formName={formName} fields={fields} />}
     </ChartCard>
   );
 }
