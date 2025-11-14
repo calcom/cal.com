@@ -8,11 +8,14 @@ import {
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -102,14 +105,14 @@ export const roundRobinManualReassignment = async ({
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
   const currentRRHost = booking.attendees.find((attendee) =>
@@ -199,6 +202,11 @@ export const roundRobinManualReassignment = async ({
       t: newUserT,
     });
 
+    const oldUserId = booking.userId;
+    const _oldUser = booking.user;
+    const oldEmail = booking.user?.email;
+    const _oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -211,11 +219,29 @@ export const roundRobinManualReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: newUser.id,
-          reassignedById,
+          reassignedById: reassignedById,
         }),
       },
       select: bookingSelect,
     });
+
+    try {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const auditData: ReassignmentAuditData = {
+        assignedToId: { old: oldUserId ?? null, new: newUserId },
+        assignedById: { old: null, new: reassignedById },
+        reassignmentReason: { old: null, new: reassignReason || "Manual round robin reassignment" },
+        userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
+        title: { old: _oldTitle, new: newBookingTitle },
+      };
+      await bookingEventHandlerService.onReassignment(
+        String(bookingId),
+        createUserActor(reassignedById),
+        auditData
+      );
+    } catch (error) {
+      logger.error("Failed to create booking audit log for manual round robin reassignment", error);
+    }
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,
@@ -331,8 +357,8 @@ export const roundRobinManualReassignment = async ({
 
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: { userId: originalOrganizer.id },
-      })
+      where: { userId: originalOrganizer.id },
+    })
     : null;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
@@ -574,22 +600,22 @@ export async function handleWorkflowsUpdate({
         },
         ...(eventType?.teamId
           ? [
-              {
-                activeOnTeams: {
-                  some: {
-                    teamId: eventType.teamId,
-                  },
+            {
+              activeOnTeams: {
+                some: {
+                  teamId: eventType.teamId,
                 },
               },
-            ]
+            },
+          ]
           : []),
         ...(eventType?.team?.parentId
           ? [
-              {
-                isActiveOnAll: true,
-                teamId: eventType.team.parentId,
-              },
-            ]
+            {
+              isActiveOnAll: true,
+              teamId: eventType.team.parentId,
+            },
+          ]
           : []),
       ],
     },

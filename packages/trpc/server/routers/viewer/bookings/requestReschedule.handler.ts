@@ -5,7 +5,10 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/de
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -80,6 +83,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       workflowReminders: true,
       responses: true,
       iCalUID: true,
+      cancellationReason: true,
+      rescheduled: true,
+      cancelledBy: true,
     },
     where: {
       uid: bookingId,
@@ -154,6 +160,31 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: RescheduleRequestedAuditData = {
+      cancellationReason: {
+        old: bookingToReschedule.cancellationReason,
+        new: cancellationReason ?? null,
+      },
+      cancelledBy: {
+        old: bookingToReschedule.cancelledBy,
+        new: user.email,
+      },
+      rescheduled: {
+        old: bookingToReschedule.rescheduled ?? false,
+        new: true,
+      },
+    };
+    await bookingEventHandlerService.onRescheduleRequested(
+      String(bookingToReschedule.id),
+      createUserActor(user.id),
+      auditData
+    );
+  } catch (error) {
+    log.error("Failed to create booking audit log for reschedule request", error);
+  }
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
@@ -210,10 +241,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
+        name: bookingToReschedule.eventType.team.name,
+        id: bookingToReschedule.eventType.team.id,
+        members: [],
+      }
       : undefined,
   });
 

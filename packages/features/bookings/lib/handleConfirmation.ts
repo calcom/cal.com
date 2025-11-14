@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -30,6 +32,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { createUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -43,6 +46,7 @@ export async function handleConfirmation(args: {
     startTime: Date;
     id: number;
     uid: string;
+    status: BookingStatus;
     eventType: {
       currency: string;
       description: string | null;
@@ -312,6 +316,23 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    try {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const auditData: StatusChangeAuditData = {
+        status: {
+          old: booking.status,
+          new: BookingStatus.ACCEPTED,
+        },
+      };
+      await bookingEventHandlerService.onBookingAccepted(
+        String(updatedBooking.id),
+        createUserActor(booking.userId || 0),
+        auditData
+      );
+    } catch (error) {
+      log.error("Failed to create booking audit log for confirmation", error);
+    }
   }
 
   const teamId = await getTeamIdFromEventType({
