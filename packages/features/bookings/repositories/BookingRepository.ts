@@ -1492,11 +1492,6 @@ export class BookingRepository {
     });
   }
 
-  /**
-   * Reassigns a booking by cancelling the original and creating a new one atomically
-   * @param data - The reassignment data containing cancellation and new booking info
-   * @returns Object with the new booking and cancelled booking
-   */
   async reassignBooking<T extends Prisma.BookingSelect>(data: {
     originalBookingId: number;
     cancellationData: {
@@ -1568,11 +1563,6 @@ export class BookingRepository {
     });
   }
 
-  /**
-   * Finds a booking by ID with minimal data for target event type search
-   * @param bookingId - The booking ID
-   * @returns Booking with eventTypeId, userId, startTime, and endTime or null
-   */
   async findByIdForTargetEventTypeSearch(bookingId: number) {
     return this.prismaClient.booking.findUnique({
       where: { id: bookingId },
@@ -1581,6 +1571,17 @@ export class BookingRepository {
         userId: true,
         startTime: true,
         endTime: true,
+      },
+    });
+  }
+
+  async findByIdForWithUserIdAndEventTypeId(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
       },
     });
   }

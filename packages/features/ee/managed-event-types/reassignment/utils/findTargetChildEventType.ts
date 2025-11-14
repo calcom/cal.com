@@ -1,4 +1,6 @@
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -39,14 +41,9 @@ export async function findTargetChildEventType({
   newUserId,
 }: FindTargetChildEventTypeParams): Promise<FindTargetChildEventTypeResult> {
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    select: {
-      id: true,
-      eventTypeId: true,
-      userId: true,
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const booking = await bookingRepository.findByIdForWithUserIdAndEventTypeId(bookingId);
 
   if (!booking) {
     throw new Error("Booking not found");
@@ -56,15 +53,7 @@ export async function findTargetChildEventType({
     throw new Error("Booking does not have an event type");
   }
 
-  const currentChildEventType = await prisma.eventType.findUnique({
-    where: { id: booking.eventTypeId },
-    select: {
-      id: true,
-      parentId: true,
-      userId: true,
-      schedulingType: true,
-    },
-  });
+  const currentChildEventType = await eventTypeRepository.findByIdWithParentAndUserId(booking.eventTypeId);
 
   if (!currentChildEventType) {
     throw new Error("Event type not found");
@@ -84,19 +73,7 @@ export async function findTargetChildEventType({
     throw new Error("Parent event type must be a MANAGED type");
   }
 
-  const targetChildEventType = await prisma.eventType.findUnique({
-    where: {
-      userId_parentId: {
-        userId: newUserId,
-        parentId: currentChildEventType.parentId,
-      },
-    },
-    select: {
-      id: true,
-      parentId: true,
-      userId: true,
-    },
-  });
+  const targetChildEventType = await eventTypeRepository.findByIdTargetChildEventType(newUserId, currentChildEventType.parentId);
 
   if (!targetChildEventType) {
     throw new Error(

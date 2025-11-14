@@ -1667,4 +1667,31 @@ export class EventTypeRepository {
       };
     }    
 
+    async findByIdWithParentAndUserId(eventTypeId: number) {
+      return this.prismaClient.eventType.findUnique({
+        where: { id: eventTypeId },
+        select: {
+          id: true,
+          parentId: true,
+          userId: true,
+          schedulingType: true,
+        },
+      });
+    }
+
+    async findByIdTargetChildEventType(userId: number, parentId: number) {
+      return this.prismaClient.eventType.findUnique({
+      where: {
+        userId_parentId: {
+          userId,
+          parentId,
+        },
+      },
+      select: {
+        id: true,
+        parentId: true,
+        userId: true,
+      },
+    });
+  }
 }
