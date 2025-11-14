@@ -25,7 +25,7 @@ export const OnboardingTeamsBrowserView = ({
   const hasValidTeams = teams.some((team) => team.name && team.name.trim().length > 0);
 
   return (
-    <div className="bg-default border-subtle hidden h-full w-full flex-col rounded-l-2xl border xl:flex">
+    <div className="bg-default border-subtle hidden h-full w-full flex-col rounded-l-2xl border-y border-s xl:flex overflow-hidden">
       {/* Browser header */}
       <div className="border-subtle flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b bg-white p-3">
         {/* Navigation buttons */}

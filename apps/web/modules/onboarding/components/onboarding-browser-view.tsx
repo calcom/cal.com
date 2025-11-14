@@ -1,6 +1,8 @@
 "use client";
 
 import classNames from "classnames";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,9 +26,26 @@ export const OnboardingBrowserView = ({
   teamSlug,
 }: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
+  const pathname = usePathname();
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
   const displayUrl =
     teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+
+  // Animation variants for entry and exit
+  const containerVariants = {
+    initial: {
+      opacity: 0,
+      y: -20,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    exit: {
+      opacity: 0,
+      y: 20,
+    },
+  };
 
   const events: Array<{
     title: string;
@@ -66,7 +85,7 @@ export const OnboardingBrowserView = ({
     },
   ];
   return (
-    <div className="bg-default border-subtle hidden h-full w-full flex-col rounded-l-2xl border xl:flex">
+    <div className="bg-default border-subtle hidden h-full w-full flex-col rounded-l-2xl border-y border-s xl:flex overflow-hidden">
       {/* Browser header */}
       <div className="border-subtle flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b bg-white p-3">
         {/* Navigation buttons */}
@@ -83,7 +102,18 @@ export const OnboardingBrowserView = ({
       </div>
       {/* Content */}
       <div className="bg-muted h-full pl-11 pt-11">
-        <div className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-xl border">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-l-xl border-y border-s"
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{
+              duration: 0.5,
+              ease: "backOut",
+            }}>
           {/* Profile Header */}
           <div className="border-subtle flex flex-col gap-4 border-b p-4">
             <div className="flex flex-col items-start gap-4">
@@ -133,7 +163,8 @@ export const OnboardingBrowserView = ({
               </div>
             ))}
           </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

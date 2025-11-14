@@ -44,7 +44,7 @@ export function PlanIcon({
         }}
         transition={{
           duration: 0.5,
-          ease: "easeInOut",
+          ease: "backOut",
         }}
         className="bg-default absolute flex h-[80px] w-[80px] items-center justify-center overflow-clip rounded-full"
         style={{
@@ -104,7 +104,7 @@ export function PlanIcon({
         }}
         transition={{
           duration: 0.5,
-          ease: "easeInOut",
+          ease: "backOut",
           delay: index * 0.05, // Stagger animation for small icons
         }}
         className="bg-default absolute flex h-[40.5px] w-[40.5px] items-center justify-center overflow-clip rounded-full shadow-[0px_2.075px_4.15px_0px_rgba(34,42,53,0.05),0px_0px_0px_0.519px_rgba(34,42,53,0.08),0px_0.519px_2.594px_-2.075px_rgba(19,19,22,0.7)]"
