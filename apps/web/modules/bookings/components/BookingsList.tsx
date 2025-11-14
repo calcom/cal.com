@@ -1,13 +1,16 @@
 "use client";
 
-import type { Table as ReactTable } from "@tanstack/react-table";
+import type { Row, Table as ReactTable } from "@tanstack/react-table";
+import { useCallback } from "react";
 
 import { DataTableWrapper, DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
+import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus } from "../types";
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
@@ -27,6 +30,16 @@ type BookingsListViewProps = {
 
 export function BookingsList({ status, table, isPending, totalRowCount }: BookingsListViewProps) {
   const { t } = useLocale();
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+
+  const handleRowClick = useCallback(
+    (row: Row<RowData>) => {
+      if (!isSeparatorRow(row.original)) {
+        setSelectedBookingId(row.original.booking.id);
+      }
+    },
+    [setSelectedBookingId]
+  );
 
   return (
     <DataTableWrapper
@@ -34,11 +47,22 @@ export function BookingsList({ status, table, isPending, totalRowCount }: Bookin
       table={table}
       testId={`${status}-bookings`}
       bodyTestId="bookings"
-      headerClassName="hidden"
+      rowTestId={(row) => {
+        if (isSeparatorRow(row.original)) return undefined;
+        return "booking-item";
+      }}
+      rowDataAttributes={(row) => {
+        if (isSeparatorRow(row.original)) return undefined;
+        return {
+          "data-today": String(row.original.isToday),
+        };
+      }}
       isPending={isPending}
       totalRowCount={totalRowCount}
-      variant="compact"
+      variant="default"
       paginationMode="standard"
+      onRowMouseclick={handleRowClick}
+      hideSeparatorsOnSort={true}
       ToolbarLeft={
         <>
           <DataTableFilters.FilterBar table={table} />
