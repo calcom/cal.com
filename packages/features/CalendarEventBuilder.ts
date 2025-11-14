@@ -38,7 +38,9 @@ async function _buildPersonFromUser(
   } satisfies Person;
 }
 
-async function _buildPersonFromAttendee(attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email">) {
+async function _buildPersonFromAttendee(
+  attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email" | "phoneNumber">
+) {
   const translate = await getTranslation(attendee.locale ?? "en", "common");
 
   return {
@@ -46,6 +48,7 @@ async function _buildPersonFromAttendee(attendee: Pick<Attendee, "locale" | "nam
     email: attendee.email,
     timeZone: attendee.timeZone,
     language: { translate, locale: attendee.locale ?? "en" },
+    phoneNumber: attendee.phoneNumber,
   } satisfies Person;
 }
 
