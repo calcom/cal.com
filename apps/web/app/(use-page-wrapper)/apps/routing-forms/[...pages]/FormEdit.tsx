@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -28,29 +29,6 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
-
-/**
- * Normalizes a label string to be URL-safe for use as an identifier
- * - Converts to lowercase
- * - Replaces spaces and special characters with hyphens
- * - Removes leading/trailing hyphens
- * - Limits to first 5 words
- * @example "What is your name?" -> "what-is-your-name"
- * @example "What do you work on and how can we help?" -> "what-do-you-work-on"
- */
-function normalizeIdentifier(label: string): string {
-  if (!label) return "";
-  
-  const normalized = label
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .trim();
-  
-  const words = normalized.split(/\s+/).filter(word => word.length > 0);
-  const limitedWords = words.slice(0, 5);
-  
-  return limitedWords.join("-");
-}
 
 function Field({
   fieldIndex,
@@ -126,10 +104,16 @@ function Field({
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
                 const newLabel = e.target.value;
+                // Use label from useWatch which is guaranteed to be the previous value
+                // since useWatch updates reactively (after re-render), not synchronously
+                const previousLabel = label || "";
                 hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, { shouldDirty: true });
                 const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
-                if (!currentIdentifier || currentIdentifier === normalizeIdentifier(label || "")) {
-                  hookForm.setValue(`${hookFieldNamespace}.identifier`, normalizeIdentifier(newLabel), { shouldDirty: true });
+                // Only auto-update identifier if it was auto-generated from the previous label
+                // This preserves manual identifier changes
+                const isIdentifierGeneratedFromPreviousLabel = currentIdentifier === getFieldIdentifier(previousLabel);
+                if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
+                  hookForm.setValue(`${hookFieldNamespace}.identifier`, getFieldIdentifier(newLabel), { shouldDirty: true });
                 }
               }}
             />
