@@ -27,6 +27,26 @@ vi.mock("@calcom/ui/components/toast", () => ({
   showToast: vi.fn(),
 }));
 
+// Mock dialog components
+vi.mock("@calcom/ui/components/dialog", () => ({
+  Dialog: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  ConfirmationDialogContent: ({
+    children,
+    onConfirm,
+  }: {
+    children: React.ReactNode;
+    onConfirm: () => void;
+  }) => (
+    <div data-testid="confirmation-dialog">
+      {children}
+      <button onClick={onConfirm} data-testid="confirm-delete">
+        Confirm
+      </button>
+    </div>
+  ),
+}));
+
 describe("EventTypeListItem", () => {
   const mockEventType: AtomEventTypeListItem = {
     id: 1,

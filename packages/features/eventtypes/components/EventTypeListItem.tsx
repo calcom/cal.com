@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -24,12 +26,12 @@ const EventTypeContent = ({ eventType }: { eventType: AtomEventTypeListItem }) =
       <div className="space-x-2 rtl:space-x-reverse">
         <span className="text-emphasis truncate font-medium">{eventType.title}</span>
       </div>
-      <p className="text-subtle mt-1">
+      <div className="text-subtle mt-1">
         {eventType.description && <span className="block">{eventType.description}</span>}
         <Badge variant="gray" className="text-xs">
           {formatEventTypeDuration(eventType.length)}
         </Badge>
-      </p>
+      </div>
     </div>
   );
 };
@@ -48,48 +50,62 @@ const EventTypeActions = ({
   deleteFunction,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   return (
-    <Dropdown>
-      <DropdownMenuTrigger asChild>
-        <Button
-          data-testid={`event-type-options-${eventType.id}`}
-          type="button"
-          variant="icon"
-          color="secondary"
-          StartIcon="ellipsis"
-        />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {getEventTypeUrl && (
+    <>
+      <Dropdown>
+        <DropdownMenuTrigger asChild>
+          <Button
+            data-testid={`event-type-options-${eventType.id}`}
+            type="button"
+            variant="icon"
+            color="secondary"
+            StartIcon="ellipsis"
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {getEventTypeUrl && (
+            <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownItem type="button" StartIcon="pencil" href={getEventTypeUrl(eventType.id)}>
+                {t("edit")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuItem className="min-w-40 focus:ring-muted">
-            <DropdownItem type="button" StartIcon="pencil" href={getEventTypeUrl(eventType.id)}>
-              {t("edit")}
+            <DropdownItem
+              type="button"
+              color="destructive"
+              StartIcon="trash"
+              data-testid={`delete-event-type-${eventType.id}`}
+              className="rounded-t-none"
+              onClick={() => {
+                if (!isDeletable) {
+                  showToast(t("cannot_delete_event_type"), "error");
+                  return;
+                }
+                setIsDeleteDialogOpen(true);
+              }}>
+              {t("delete")}
             </DropdownItem>
           </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="min-w-40 focus:ring-muted">
-          <DropdownItem
-            type="button"
-            color="destructive"
-            StartIcon="trash"
-            data-testid={`delete-event-type-${eventType.id}`}
-            className="rounded-t-none"
-            onClick={() => {
-              if (!isDeletable) {
-                showToast(t("cannot_delete_event_type"), "error");
-                return;
-              }
-              if (window.confirm(t("delete_event_type_confirmation"))) {
-                deleteFunction({ eventTypeId: eventType.id });
-              }
-            }}>
-            {t("delete")}
-          </DropdownItem>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </Dropdown>
+        </DropdownMenuContent>
+      </Dropdown>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_event_type")}
+          confirmBtnText={t("delete")}
+          onConfirm={() => {
+            deleteFunction({ eventTypeId: eventType.id });
+            setIsDeleteDialogOpen(false);
+          }}>
+          {t("delete_event_type_confirmation")}
+        </ConfirmationDialogContent>
+      </Dialog>
+    </>
   );
 };
 
