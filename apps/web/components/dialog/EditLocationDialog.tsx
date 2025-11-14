@@ -256,11 +256,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               setIsLocationUpdating(false);
             }
           }}>
-          <div className="flex flex-row space-x-3">
+          <div className="flex flex-row md:space-x-3">
             <div className="bg-subtle mx-auto hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10 md:flex">
               <Icon name="map-pin" className="text-emphasis h-6 w-6" />
             </div>
-            <div className="w-full pt-1">
+            <div className="w-full md:pt-1">
               <DialogHeader title={t("edit_location")} />
 
               <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
