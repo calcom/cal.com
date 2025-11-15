@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -18,6 +18,17 @@ export const OnboardingCalendarBrowserView = () => {
   }, []);
 
   const { events } = useOnboardingCalendarEvents({ startDate, endDate });
+
+  // Calculate startHour and endHour based on current time
+  const { startHour, endHour } = useMemo(() => {
+    const currentHour = dayjs().tz(CURRENT_TIMEZONE).hour();
+    const calculatedStartHour = Math.max(0, currentHour - 2);
+    const calculatedEndHour = Math.min(23, currentHour + 6);
+    return {
+      startHour: calculatedStartHour,
+      endHour: calculatedEndHour,
+    };
+  }, []);
 
   // Animation variants for entry and exit
   const containerVariants = {
@@ -42,6 +53,8 @@ export const OnboardingCalendarBrowserView = () => {
       startDate,
       endDate,
       events: events || [],
+      startHour,
+      endHour,
       gridCellsPerHour: 4,
       hoverEventDuration: 0,
       showBackgroundPattern: false,
@@ -57,7 +70,7 @@ export const OnboardingCalendarBrowserView = () => {
       onDateChange: () => {},
       showTimezone: true,
     }),
-    [startDate, endDate, events]
+    [startDate, endDate, events, startHour, endHour]
   );
 
   return (
