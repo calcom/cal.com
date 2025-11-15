@@ -1,12 +1,12 @@
 import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -20,7 +20,13 @@ const orgSelect = {
 };
 
 export class OrganizationRepository {
-  static async createWithExistingUserAsOwner({
+  protected readonly prismaClient: PrismaClient;
+
+  constructor(deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
+  async createWithExistingUserAsOwner({
     orgData,
     owner,
   }: {
@@ -36,6 +42,8 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       logoUrl: string | null;
       bio: string | null;
+      brandColor: string | null;
+      bannerUrl: string | null;
       requestedSlug?: string | null;
     };
     owner: {
@@ -55,7 +63,7 @@ export class OrganizationRepository {
       organizationId: organization.id,
     });
 
-    await prisma.membership.create({
+    await this.prismaClient.membership.create({
       data: {
         createdAt: new Date(),
         userId: owner.id,
@@ -67,7 +75,7 @@ export class OrganizationRepository {
     return { organization, ownerProfile };
   }
 
-  static async createWithNonExistentOwner({
+  async createWithNonExistentOwner({
     orgData,
     owner,
     creationSource,
@@ -84,6 +92,8 @@ export class OrganizationRepository {
       isPlatform: boolean;
       logoUrl: string | null;
       bio: string | null;
+      brandColor: string | null;
+      bannerUrl: string | null;
     };
     owner: {
       email: string;
@@ -93,7 +103,7 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const userRepo = new UserRepository(prisma);
+    const userRepo = new UserRepository(this.prismaClient);
     const ownerInDb = await userRepo.create({
       email: owner.email,
       username: ownerUsernameInOrg,
@@ -102,7 +112,7 @@ export class OrganizationRepository {
       creationSource,
     });
 
-    await prisma.membership.create({
+    await this.prismaClient.membership.create({
       data: {
         createdAt: new Date(),
         userId: ownerInDb.id,
@@ -121,7 +131,7 @@ export class OrganizationRepository {
     };
   }
 
-  static async create(orgData: {
+  async create(orgData: {
     name: string;
     slug: string | null;
     isOrganizationConfigured: boolean;
@@ -133,16 +143,19 @@ export class OrganizationRepository {
     isPlatform: boolean;
     logoUrl: string | null;
     bio: string | null;
+    brandColor: string | null;
+    bannerUrl: string | null;
     requestedSlug?: string | null;
   }) {
-    return await prisma.team.create({
+    return await this.prismaClient.team.create({
       data: {
         name: orgData.name,
         isOrganization: true,
         slug: orgData.slug,
-        // This is huge and causes issues, we need to have the logic to convert logo to logoUrl and then use that url ehre.
-        // logoUrl: orgData.logoUrl,
+        logoUrl: orgData.logoUrl,
         bio: orgData.bio,
+        brandColor: orgData.brandColor,
+        bannerUrl: orgData.bannerUrl,
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,
@@ -169,8 +182,8 @@ export class OrganizationRepository {
     });
   }
 
-  static async findById({ id }: { id: number }) {
-    return prisma.team.findUnique({
+  async findById({ id }: { id: number }) {
+    return this.prismaClient.team.findUnique({
       where: {
         id,
         isOrganization: true,
@@ -178,9 +191,9 @@ export class OrganizationRepository {
     });
   }
 
-  static async findBySlug({ slug }: { slug: string }) {
+  async findBySlug({ slug }: { slug: string }) {
     // Slug is unique but could be null as well, so we can't use findUnique
-    return prisma.team.findFirst({
+    return this.prismaClient.team.findFirst({
       where: {
         slug,
         isOrganization: true,
@@ -188,8 +201,8 @@ export class OrganizationRepository {
     });
   }
 
-  static async findBySlugIncludeOnboarding({ slug }: { slug: string }) {
-    return prisma.team.findFirst({
+  async findBySlugIncludeOnboarding({ slug }: { slug: string }) {
+    return this.prismaClient.team.findFirst({
       where: { slug, isOrganization: true },
       include: {
         organizationOnboarding: {
@@ -206,8 +219,8 @@ export class OrganizationRepository {
     });
   }
 
-  static async findByIdIncludeOrganizationSettings({ id }: { id: number }) {
-    return prisma.team.findUnique({
+  async findByIdIncludeOrganizationSettings({ id }: { id: number }) {
+    return this.prismaClient.team.findUnique({
       where: {
         id,
         isOrganization: true,
@@ -219,9 +232,9 @@ export class OrganizationRepository {
     });
   }
 
-  static async findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email }: { email: string }) {
+  async findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email }: { email: string }) {
     const emailDomain = email.split("@").at(-1);
-    const orgs = await prisma.team.findMany({
+    const orgs = await this.prismaClient.team.findMany({
       where: {
         isOrganization: true,
         isPlatform: false,
@@ -229,16 +242,18 @@ export class OrganizationRepository {
           orgAutoAcceptEmail: emailDomain,
           isOrganizationVerified: true,
           isAdminReviewed: true,
+          orgAutoJoinOnSignup: true,
         },
       },
     });
     if (orgs.length > 1) {
       logger.error(
         "Multiple organizations found with the same auto accept email domain",
-        safeStringify({ orgs, emailDomain })
+        safeStringify({ orgIds: orgs.map((org) => org.id), emailDomain })
       );
-      // Detect and fail just in case this situation arises. We should really identify the problem in this case and fix the data.
-      throw new Error("Multiple organizations found with the same auto accept email domain");
+
+      // If we cannot reliably confirm a unique org then return nothing
+      return null;
     }
     const org = orgs[0];
     if (!org) {
@@ -247,8 +262,8 @@ export class OrganizationRepository {
     return getParsedTeam(org);
   }
 
-  static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
-    const membership = await prisma.membership.findUnique({
+  async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
+    const membership = await this.prismaClient.membership.findUnique({
       where: {
         userId_teamId: {
           userId,
@@ -260,7 +275,7 @@ export class OrganizationRepository {
       },
     });
 
-    const organizationSettings = await prisma.organizationSettings.findUnique({
+    const organizationSettings = await this.prismaClient.organizationSettings.findUnique({
       where: {
         organizationId: orgId,
       },
@@ -272,6 +287,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
         disablePhoneOnlySMSNotifications: true,
+        orgAutoJoinOnSignup: true,
       },
     });
 
@@ -290,6 +306,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
         disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
+        orgAutoJoinOnSignup: organizationSettings?.orgAutoJoinOnSignup,
       },
       user: {
         role: membership?.role,
@@ -300,8 +317,8 @@ export class OrganizationRepository {
     };
   }
 
-  static async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
-    const teamsInOrgIamNotPartOf = await prisma.team.findMany({
+  async findTeamsInOrgIamNotPartOf({ userId, parentId }: { userId: number; parentId: number | null }) {
+    const teamsInOrgIamNotPartOf = await this.prismaClient.team.findMany({
       where: {
         parentId,
         members: {
@@ -322,8 +339,8 @@ export class OrganizationRepository {
     return teamsInOrgIamNotPartOf;
   }
 
-  static async adminFindById({ id }: { id: number }) {
-    const org = await prisma.team.findUnique({
+  async adminFindById({ id }: { id: number }) {
+    const org = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
@@ -367,8 +384,8 @@ export class OrganizationRepository {
     return { ...org, metadata: parsedMetadata };
   }
 
-  static async findByMemberEmail({ email }: { email: string }) {
-    const organization = await prisma.team.findFirst({
+  async findByMemberEmail({ email }: { email: string }) {
+    const organization = await this.prismaClient.team.findFirst({
       where: {
         isOrganization: true,
         members: {
@@ -381,10 +398,10 @@ export class OrganizationRepository {
     return organization ?? null;
   }
 
-  static async findByMemberEmailId({ email }: { email: string }) {
+  async findByMemberEmailId({ email }: { email: string }) {
     const log = logger.getSubLogger({ prefix: ["findByMemberEmailId"] });
     log.debug("called with", { email });
-    const organization = await prisma.team.findFirst({
+    const organization = await this.prismaClient.team.findFirst({
       where: {
         isOrganization: true,
         members: {
@@ -400,8 +417,8 @@ export class OrganizationRepository {
     return organization;
   }
 
-  static async findCalVideoLogoByOrgId({ id }: { id: number }) {
-    const org = await prisma.team.findUnique({
+  async findCalVideoLogoByOrgId({ id }: { id: number }) {
+    const org = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
@@ -413,8 +430,8 @@ export class OrganizationRepository {
     return org?.calVideoLogo;
   }
 
-  static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
-    return await prisma.team.findFirst({
+  async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
+    return await this.prismaClient.team.findFirst({
       where: {
         organizationSettings: {
           isOrganizationVerified: true,
@@ -432,14 +449,14 @@ export class OrganizationRepository {
     });
   }
 
-  static async setSlug({ id, slug }: { id: number; slug: string }) {
-    return await prisma.team.update({
+  async setSlug({ id, slug }: { id: number; slug: string }) {
+    return await this.prismaClient.team.update({
       where: { id, isOrganization: true },
       data: { slug },
     });
   }
 
-  static async updateStripeSubscriptionDetails({
+  async updateStripeSubscriptionDetails({
     id,
     stripeSubscriptionId,
     stripeSubscriptionItemId,
@@ -450,7 +467,7 @@ export class OrganizationRepository {
     stripeSubscriptionItemId: string;
     existingMetadata: z.infer<typeof teamMetadataStrictSchema>;
   }) {
-    return await prisma.team.update({
+    return await this.prismaClient.team.update({
       where: { id, isOrganization: true },
       data: {
         metadata: {
@@ -462,8 +479,8 @@ export class OrganizationRepository {
     });
   }
 
-  static async checkIfPrivate({ orgId }: { orgId: number }) {
-    const team = await prisma.team.findUnique({
+  async checkIfPrivate({ orgId }: { orgId: number }) {
+    const team = await this.prismaClient.team.findUnique({
       where: {
         id: orgId,
         isOrganization: true,
@@ -474,5 +491,21 @@ export class OrganizationRepository {
     });
 
     return team?.isPrivate ?? false;
+  }
+
+  async getOrganizationAutoAcceptSettings(organizationId: number) {
+    const org = await this.prismaClient.team.findUnique({
+      where: { id: organizationId, isOrganization: true },
+      select: {
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+            isOrganizationVerified: true,
+          },
+        },
+      },
+    });
+
+    return org?.organizationSettings ?? null;
   }
 }

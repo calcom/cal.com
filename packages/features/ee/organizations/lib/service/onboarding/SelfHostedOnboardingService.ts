@@ -1,6 +1,6 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -78,10 +78,10 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       invitedMembers: invitedMembersData,
       teams: teamsData,
       isPlatform: input.isPlatform,
-      logo: input.logo ?? null,
+      logo: organizationOnboarding.logo,
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
-      bannerUrl: input.bannerUrl ?? null,
+      bannerUrl: organizationOnboarding.bannerUrl,
       stripeCustomerId: null,
       isDomainConfigured: false,
     });
@@ -113,6 +113,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
   async createOrganization(
     organizationOnboarding: OrganizationOnboardingData
   ): Promise<{ organization: Team; owner: User }> {
+    const organizationRepository = getOrganizationRepository();
     log.info(
       "createOrganization (self-hosted)",
       safeStringify({
@@ -205,7 +206,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
 
     if (!organization.slug) {
       try {
-        const { slug } = await OrganizationRepository.setSlug({
+        const { slug } = await organizationRepository.setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });

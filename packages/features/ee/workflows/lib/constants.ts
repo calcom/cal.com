@@ -108,4 +108,7 @@ export const FORM_TRIGGER_WORKFLOW_EVENTS: WorkflowTriggerEvents[] = [
 export const ALLOWED_FORM_WORKFLOW_ACTIONS = [
   WorkflowActions.EMAIL_ATTENDEE,
   WorkflowActions.EMAIL_ADDRESS,
+  WorkflowActions.SMS_ATTENDEE,
+  WorkflowActions.SMS_NUMBER,
+  WorkflowActions.CAL_AI_PHONE_CALL,
 ] as const;
