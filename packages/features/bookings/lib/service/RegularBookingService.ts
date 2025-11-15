@@ -2268,22 +2268,21 @@ async function handler(
     isDryRun,
   });
 
-  // Add more fields here when needed
-  const bookingRescheduledPayload: BookingRescheduledPayload = {
-    ...bookingCreatedPayload,
-    oldBooking: originalRescheduledBooking ? {
-      startTime: originalRescheduledBooking.startTime,
-      endTime: originalRescheduledBooking.endTime,
-    } : undefined,
-  };
-
-
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   // TODO: Pass proper actor based on who initiated the booking/reschedule
   const { makeSystemActor } = await import("../types/actor");
   const systemActor = makeSystemActor();
 
   if (originalRescheduledBooking) {
+    // Add more fields here when needed
+    const bookingRescheduledPayload: BookingRescheduledPayload = {
+      ...bookingCreatedPayload,
+      oldBooking: {
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      },
+    };
     await deps.bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, systemActor);
   } else {
     await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload, systemActor);

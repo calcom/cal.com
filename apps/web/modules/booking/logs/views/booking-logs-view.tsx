@@ -259,6 +259,15 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
                                                     <span className="ml-2 text-gray-600">{log.actor.displayEmail}</span>
                                                 </div>
                                             )}
+                                            {log.linkedBookingUid && (
+                                                <div className="col-span-2">
+                                                    <span className="font-medium text-gray-700">Linked Booking:</span>
+                                                    <span className="ml-2 text-gray-600">
+                                                        {log.linkedBookingUid}
+                                                        {log.action === "RESCHEDULED" && " (new booking)"}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Data JSON */}

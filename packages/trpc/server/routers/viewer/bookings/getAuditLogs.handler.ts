@@ -81,10 +81,13 @@ export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) =
         });
     }
 
-    // Fetch audit logs for this booking
+    // Fetch audit logs for this booking (including logs where this booking is linked)
     const auditLogs = await prisma.bookingAudit.findMany({
         where: {
-            bookingUid: bookingUid,
+            OR: [
+                { bookingUid: bookingUid },
+                { linkedBookingUid: bookingUid }
+            ]
         },
         include: {
             actor: {
@@ -129,6 +132,7 @@ export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) =
             return {
                 id: log.id,
                 bookingUid: log.bookingUid,
+                linkedBookingUid: log.linkedBookingUid,
                 type: log.type,
                 action: log.action,
                 timestamp: log.timestamp.toISOString(),

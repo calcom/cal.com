@@ -68,6 +68,15 @@ model BookingAudit {
   // - This allows users to view complete audit history for deleted bookings
   bookingUid String
 
+  // For actions that involve two bookings (e.g., RESCHEDULED, future DUPLICATED),
+  // this stores the UID of the related booking created from/for the operation.
+  // Together with the 'action' field, provides clear semantic meaning:
+  // - action: "RESCHEDULED" + linkedBookingUid = "rescheduled to this booking"
+  // - action: "DUPLICATED" + linkedBookingUid = "duplicated to this booking" (future)
+  // Allows the audit entry to be visible when querying either booking (original or linked).
+  // NULL for actions that don't involve booking-to-booking relationships.
+  linkedBookingUid String?
+
   // Actor who performed the action (USER, GUEST, or SYSTEM)
   // Stored in AuditActor table to maintain audit trail even after user deletion
   actorId String
@@ -89,6 +98,8 @@ model BookingAudit {
 
   @@index([actorId])
   @@index([bookingUid])
+  @@index([linkedBookingUid])
+  @@index([timestamp])
 }
 ```
 
@@ -100,7 +111,8 @@ model BookingAudit {
 - **Explicit Timestamp**: The `timestamp` field has no default and must be explicitly provided, representing when the business event actually occurred
 - **Separate Database Timestamps**: `createdAt` and `updatedAt` track when the audit record itself was created/modified, distinct from the business event time
 - **JSON Data Field**: Flexible schema for storing action-specific contextual data
-- **Indexed Fields**: Efficient queries by `bookingUid` and `actorId`
+- **Indexed Fields**: Efficient queries by `bookingUid`, `linkedBookingUid`, and `actorId`
+- **Bidirectional Booking Links**: `linkedBookingUid` enables bidirectional visibility for booking-to-booking relationships (see "Booking-to-Booking Relationships" section below)
 
 
 **Protecting the Audit Trail:**
@@ -345,6 +357,8 @@ Used when a booking status changes to accepted.
 }
 ```
 
+**Note:** For RESCHEDULED actions, the `linkedBookingUid` field contains the UID of the new booking created from the reschedule. This enables bidirectional visibility - the reschedule audit entry appears when querying audit logs for either the original booking or the new booking.
+
 #### RESCHEDULE_REQUESTED
 ```typescript
 {
@@ -485,6 +499,37 @@ AuditActor (1) ──────< (many) BookingAudit
 
 ---
 
+## Booking-to-Booking Relationships
+
+For actions that create relationships between bookings (e.g., reschedule, future duplicate), the `linkedBookingUid` field creates bidirectional visibility:
+
+- **bookingUid**: The source booking (e.g., original booking being rescheduled)
+- **linkedBookingUid**: The related booking (e.g., new booking created from reschedule)
+- **action**: Provides semantic context (e.g., RESCHEDULED, DUPLICATED)
+
+**Query Pattern:**
+To get complete audit history for a booking including related bookings:
+```typescript
+WHERE bookingUid = ? OR linkedBookingUid = ?
+```
+
+**Example - Reschedule:**
+- Booking A (uid: "abc123") is rescheduled to Booking B (uid: "xyz789")
+- Single audit record created with:
+  - `bookingUid`: "abc123" (original)
+  - `linkedBookingUid`: "xyz789" (new)
+  - `action`: "RESCHEDULED"
+- This record appears when querying audit logs for either booking A or B
+- Provides complete journey tracking across the booking lifecycle
+
+**Future Extensibility:**
+The same pattern can be used for other booking-to-booking operations:
+- **DUPLICATED**: Original booking → duplicated booking
+- **SPLIT**: Parent booking → child bookings
+- **MERGE**: Multiple bookings → merged result
+
+---
+
 ## Indexing Strategy
 
 ### AuditActor Table Indexes
@@ -505,13 +550,17 @@ AuditActor (1) ──────< (many) BookingAudit
 ### BookingAudit Table Indexes
 
 ```prisma
-@@index([bookingId])  // Primary query pattern
-@@index([actorId])    // Secondary query pattern
+@@index([bookingUid])      // Primary query pattern
+@@index([linkedBookingUid]) // Bidirectional booking relationship queries
+@@index([actorId])         // Secondary query pattern
+@@index([timestamp])       // Time-based sorting and filtering
 ```
 
 **Query Patterns:**
-- **bookingId**: "Show me all audits for this booking" (most common)
+- **bookingUid**: "Show me all audits for this booking" (most common)
+- **linkedBookingUid**: Enables bidirectional queries for booking-to-booking relationships (e.g., reschedule visibility)
 - **actorId**: "Show me all actions by this actor"
+- **timestamp**: Time-based sorting and filtering of audit records
 
 ---
 

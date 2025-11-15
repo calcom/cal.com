@@ -26,6 +26,7 @@ interface BookingAuditServiceDeps {
 
 type CreateBookingAuditInput = {
   bookingUid: string;
+  linkedBookingUid?: string | null;
   actorId: string;
   type: BookingAuditType;
   action: BookingAuditAction;
@@ -124,6 +125,7 @@ export class BookingAuditService {
 
     return this.bookingAuditRepository.create({
       bookingUid: input.bookingUid,
+      linkedBookingUid: input.linkedBookingUid,
       actorId: input.actorId,
       type: input.type,
       action: input.action,
@@ -204,6 +206,7 @@ export class BookingAuditService {
 
   async onBookingRescheduled(
     bookingUid: string,
+    linkedBookingUid: string,
     actor: Actor,
     data: RescheduledAuditData
   ): Promise<BookingAudit> {
@@ -211,6 +214,7 @@ export class BookingAuditService {
     const actorId = await this.resolveActorId(actor);
     return this.createAuditRecord({
       bookingUid,
+      linkedBookingUid,
       actorId,
       type: "RECORD_UPDATED",
       action: "RESCHEDULED",
