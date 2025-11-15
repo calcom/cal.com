@@ -19,6 +19,13 @@ export function useCreateTeam() {
     try {
       const { teamDetails, teamBrand } = store;
 
+      // Validate team details - if empty, redirect back to team details step
+      if (!teamDetails.name || !teamDetails.name.trim() || !teamDetails.slug || !teamDetails.slug.trim()) {
+        router.push("/onboarding/teams/details");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Create the team
       const result = await createTeamMutation.mutateAsync({
         name: teamDetails.name,

@@ -79,6 +79,12 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     router.push("/onboarding/teams/details");
   };
 
+  const handleSkip = async () => {
+    setTeamInvites([]);
+    // Create the team without invites (will handle checkout redirect if needed)
+    await createTeam(store);
+  };
+
   const hasValidInvites = fields.some((_, index) => {
     const email = form.watch(`invites.${index}.email`);
     return email && email.trim().length > 0;
@@ -95,19 +101,28 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
           title={t("invite_via_email")}
           subtitle={t("team_invite_subtitle")}
           footer={
-            <div className="flex w-full items-center justify-end gap-4">
+            <div className="flex w-full items-center justify-between gap-4">
               <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
                 {t("back")}
               </Button>
-              <Button
-                type="submit"
-                color="primary"
-                className="rounded-[10px]"
-                disabled={!hasValidInvites || isSubmitting}
-                loading={isSubmitting}
-                onClick={form.handleSubmit(handleContinue)}>
-                {t("continue")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={handleSkip}
+                  disabled={isSubmitting}>
+                  {t("onboarding_skip_for_now")}
+                </Button>
+                <Button
+                  type="submit"
+                  color="primary"
+                  className="rounded-[10px]"
+                  disabled={!hasValidInvites || isSubmitting}
+                  loading={isSubmitting}
+                  onClick={form.handleSubmit(handleContinue)}>
+                  {t("continue")}
+                </Button>
+              </div>
             </div>
           }>
           <div className="flex w-full flex-col gap-4 px-1">

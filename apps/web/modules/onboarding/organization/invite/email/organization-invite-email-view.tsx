@@ -97,6 +97,11 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     router.push("/onboarding/organization/teams");
   };
 
+  const handleSkip = async () => {
+    setInvites([]);
+    await submitOnboarding(store, userEmail, []);
+  };
+
   const handleGoogleWorkspaceConnect = () => {
     console.log("Connect Google Workspace");
   };
@@ -132,19 +137,28 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
           title={t("onboarding_org_invite_title")}
           subtitle={t("onboarding_org_invite_subtitle_email")}
           footer={
-            <div className="flex w-full items-center justify-end gap-4">
+            <div className="flex w-full items-center justify-between gap-4">
               <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
                 {t("back")}
               </Button>
-              <Button
-                type="submit"
-                color="primary"
-                className="rounded-[10px]"
-                disabled={!hasValidInvites || isSubmitting}
-                loading={isSubmitting}
-                onClick={form.handleSubmit(handleContinue)}>
-                {t("continue")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={handleSkip}
+                  disabled={isSubmitting}>
+                  {t("onboarding_skip_for_now")}
+                </Button>
+                <Button
+                  type="submit"
+                  color="primary"
+                  className="rounded-[10px]"
+                  disabled={!hasValidInvites || isSubmitting}
+                  loading={isSubmitting}
+                  onClick={form.handleSubmit(handleContinue)}>
+                  {t("continue")}
+                </Button>
+              </div>
             </div>
           }>
           <div className="flex h-full w-full flex-col gap-4">
