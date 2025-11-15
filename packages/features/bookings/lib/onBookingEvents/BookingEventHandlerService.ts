@@ -16,7 +16,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Actor } from "../types/actor";
-import { getActorUserId } from "../types/actor";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
@@ -73,10 +72,9 @@ export class BookingEventHandlerService {
         endTime: payload.booking.endTime.toISOString(),
         status: payload.booking.status,
       };
-      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingCreated(
-        String(payload.booking.id),
-        userId,
+        payload.booking.uid,
+        actor,
         auditData
       );
     } catch (error) {
@@ -84,12 +82,8 @@ export class BookingEventHandlerService {
     }
   }
 
-  // TODO: actor to be made required in followup PR
   async onBookingRescheduled(payload: BookingRescheduledPayload, actor?: Actor) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (payload.config.isDryRun) {
-      return;
-    }
     await this.onBookingCreatedOrRescheduled(payload);
 
     if (!actor) {
@@ -111,10 +105,9 @@ export class BookingEventHandlerService {
           new: payload.booking.uid,
         },
       };
-      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingRescheduled(
-        String(payload.booking.id),
-        userId,
+        payload.booking.uid,
+        actor,
         auditData
       );
     } catch (error) {
@@ -151,56 +144,56 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAccepted(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
+  async onBookingAccepted(bookingUid: string, actor: Actor, data?: StatusChangeAuditData) {
     try {
-      await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onBookingAccepted(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating booking accepted audit", safeStringify(error));
     }
   }
 
-  async onBookingCancelled(bookingId: string, actor: Actor, data: CancelledAuditData) {
+  async onBookingCancelled(bookingUid: string, actor: Actor, data: CancelledAuditData) {
     try {
-      await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onBookingCancelled(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating booking cancelled audit", safeStringify(error));
     }
   }
 
-  async onRescheduleRequested(bookingId: string, actor: Actor, data: RescheduleRequestedAuditData) {
+  async onRescheduleRequested(bookingUid: string, actor: Actor, data: RescheduleRequestedAuditData) {
     try {
-      await this.bookingAuditService.onRescheduleRequested(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onRescheduleRequested(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating reschedule requested audit", safeStringify(error));
     }
   }
 
-  async onAttendeeAdded(bookingId: string, actor: Actor, data: AttendeeAddedAuditData) {
+  async onAttendeeAdded(bookingUid: string, actor: Actor, data: AttendeeAddedAuditData) {
     try {
-      await this.bookingAuditService.onAttendeeAdded(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onAttendeeAdded(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating attendee added audit", safeStringify(error));
     }
   }
 
-  async onHostNoShowUpdated(bookingId: string, actor: Actor, data: HostNoShowUpdatedAuditData) {
+  async onHostNoShowUpdated(bookingUid: string, actor: Actor, data: HostNoShowUpdatedAuditData) {
     try {
-      await this.bookingAuditService.onHostNoShowUpdated(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onHostNoShowUpdated(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating host no-show audit", safeStringify(error));
     }
   }
 
-  async onBookingRejected(bookingId: string, actor: Actor, data: RejectedAuditData) {
+  async onBookingRejected(bookingUid: string, actor: Actor, data: RejectedAuditData) {
     try {
-      await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onBookingRejected(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating booking rejected audit", safeStringify(error));
     }
   }
 
   private async onBookingStatusChange(
-    bookingId: string,
+    bookingUid: string,
     actor: Actor,
     status: BookingStatus,
     data?: StatusChangeAuditData | CancelledAuditData | RejectedAuditData
@@ -211,20 +204,20 @@ export class BookingEventHandlerService {
         case "ACCEPTED": {
           // Type guard: ensure data is StatusChangeAuditData or undefined
           const statusData = isStatusChangeAuditData(data) ? data : undefined;
-          await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), statusData);
+          await this.bookingAuditService.onBookingAccepted(bookingUid, actor, statusData);
           break;
         }
         case "REJECTED": {
           // Caller must provide RejectedAuditData for REJECTED status
           if (isRejectedAuditData(data)) {
-            await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
+            await this.bookingAuditService.onBookingRejected(bookingUid, actor, data);
           }
           break;
         }
         case "CANCELLED": {
           // Caller must provide CancelledAuditData for CANCELLED status
           if (isCancelledAuditData(data)) {
-            await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
+            await this.bookingAuditService.onBookingCancelled(bookingUid, actor, data);
           }
           break;
         }
@@ -237,33 +230,33 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAttendeeRemoved(bookingId: string, actor: Actor, data: AttendeeRemovedAuditData) {
+  async onAttendeeRemoved(bookingUid: string, actor: Actor, data: AttendeeRemovedAuditData) {
     try {
-      await this.bookingAuditService.onAttendeeRemoved(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onAttendeeRemoved(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating attendee removed audit", safeStringify(error));
     }
   }
 
-  async onReassignment(bookingId: string, actor: Actor, data: ReassignmentAuditData) {
+  async onReassignment(bookingUid: string, actor: Actor, data: ReassignmentAuditData) {
     try {
-      await this.bookingAuditService.onReassignment(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onReassignment(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating reassignment audit", safeStringify(error));
     }
   }
 
-  async onLocationChanged(bookingId: string, actor: Actor, data: LocationChangedAuditData) {
+  async onLocationChanged(bookingUid: string, actor: Actor, data: LocationChangedAuditData) {
     try {
-      await this.bookingAuditService.onLocationChanged(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onLocationChanged(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating location changed audit", safeStringify(error));
     }
   }
 
-  async onAttendeeNoShowUpdated(bookingId: string, actor: Actor, data: AttendeeNoShowUpdatedAuditData) {
+  async onAttendeeNoShowUpdated(bookingUid: string, actor: Actor, data: AttendeeNoShowUpdatedAuditData) {
     try {
-      await this.bookingAuditService.onAttendeeNoShowUpdated(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onAttendeeNoShowUpdated(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating attendee no-show audit", safeStringify(error));
     }
