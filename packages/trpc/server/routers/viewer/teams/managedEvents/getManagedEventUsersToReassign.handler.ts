@@ -42,16 +42,13 @@ async function getManagedEventUsersFromDB({
 }) {
 
   const eventTypeRepository = new EventTypeRepository(prisma);
-  const { totalCount, items } = await eventTypeRepository.listChildEventTypes({
+  const { totalCount, items, hasMore, nextCursor } = await eventTypeRepository.listChildEventTypes({
     parentEventTypeId,
     excludeUserId,
     searchTerm,
     limit,
     cursor,
   });
-  
-  const hasNextPage = items.length > limit;
-  const childEventTypes_subset = hasNextPage ? items.slice(0, -1) : items;
 
   const users = items
     .filter((et): et is typeof et & { owner: NonNullable<typeof et.owner> } => et.owner !== null)
@@ -63,8 +60,8 @@ async function getManagedEventUsersFromDB({
       users,
     }),
     totalCount,
-    hasNextPage,
-    nextCursor: hasNextPage ? childEventTypes_subset[childEventTypes_subset.length - 1].id : null,
+    hasNextPage: hasMore,
+    nextCursor,
   };
 }
 
