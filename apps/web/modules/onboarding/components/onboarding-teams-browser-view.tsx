@@ -47,7 +47,7 @@ export const OnboardingTeamsBrowserView = ({
   return (
     <div className="bg-default border-subtle hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border-y border-s xl:flex">
       {/* Browser header */}
-      <div className="border-subtle flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b bg-white p-3">
+      <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
         {/* Navigation buttons */}
         <div className="flex shrink-0 items-center gap-4 opacity-50">
           <Icon name="arrow-left" className="text-subtle h-4 w-4" />
