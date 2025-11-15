@@ -11,7 +11,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -29,12 +29,20 @@ import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type FormSubmissionData = {
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  routedEventTypeId: number | null;
   user: {
     email: string;
     timeFormat: number | null;
     locale: string;
   };
 };
+
+export type WorkflowContextData =
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: FormSubmissionData;
+    };
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
@@ -84,12 +92,7 @@ const processWorkflowStep = async (
 
   if (!evt && !formData) return;
 
-  const contextData:
-    | { evt: BookingInfo; formData?: never }
-    | {
-        evt?: never;
-        formData: FormSubmissionData;
-      } = evt ? { evt } : { formData: formData as FormSubmissionData };
+  const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -114,10 +117,6 @@ const processWorkflowStep = async (
   };
 
   if (isSMSAction(step.action)) {
-    if (!evt) {
-      // SMS action not not yet supported for form triggers
-      return;
-    }
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
 
     await scheduleSMSReminder({
@@ -127,7 +126,7 @@ const processWorkflowStep = async (
       message: step.reminderBody || "",
       sender: step.sender,
       isVerificationPending: step.numberVerificationPending,
-      evt,
+      ...contextData,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -216,12 +215,7 @@ const processWorkflowStep = async (
       evt,
     });
   } else if (isCalAIAction(step.action)) {
-    if (!evt) {
-      // cal.ai not yet supported for form triggers
-      return;
-    }
     await scheduleAIPhoneCall({
-      evt,
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -231,7 +225,10 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
+      submittedPhoneNumber: smsReminderNumber,
       verifiedAt: step.verifiedAt,
+      routedEventTypeId: formData ? formData.routedEventTypeId : null,
+      ...contextData,
     });
   }
 };
