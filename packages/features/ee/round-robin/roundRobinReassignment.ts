@@ -20,7 +20,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -273,9 +273,10 @@ export const roundRobinReassignment = async ({
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
+      // TODO: Pass proper actor with user UUID once available
       await bookingEventHandlerService.onReassignment(
-        String(bookingId),
-        createUserActor(reassignedById),
+        booking.uid,
+        makeSystemActor(),
         {
           assignedToId: { old: oldUserId, new: reassignedRRHost.id },
           assignedById: { old: null, new: reassignedById },

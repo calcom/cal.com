@@ -32,12 +32,12 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { createUserActor } from "./types/actor";
+import { makeUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null };
+  user: EventManagerUser & { username: string | null; uuid: string };
   evt: CalendarEvent;
   recurringEventId?: string;
   prisma: PrismaClient;
@@ -325,9 +325,10 @@ export async function handleConfirmation(args: {
           new: BookingStatus.ACCEPTED,
         },
       };
+      const actor = makeUserActor(user.uuid);
       await bookingEventHandlerService.onBookingAccepted(
-        String(updatedBooking.id),
-        createUserActor(booking.userId || 0),
+        updatedBooking.uid,
+        actor,
         auditData
       );
     } catch (error) {

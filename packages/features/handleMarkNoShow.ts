@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
@@ -338,9 +338,10 @@ const handleMarkNoShow = async ({
             const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
             const anyNewNoShow = payload.attendees.some((a) => a.noShow);
 
+            // TODO: Pass proper actor with user UUID once available
             await bookingEventHandlerService.onAttendeeNoShowUpdated(
-              String(booking.id),
-              createUserActor(userId),
+              bookingUid,
+              makeSystemActor(),
               {
                 noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
               }
@@ -372,9 +373,10 @@ const handleMarkNoShow = async ({
       if (userId && bookingToUpdate) {
         try {
           const bookingEventHandlerService = getBookingEventHandlerService();
+          // TODO: Pass proper actor with user UUID once available
           await bookingEventHandlerService.onHostNoShowUpdated(
-            String(bookingToUpdate.id),
-            createUserActor(userId),
+            bookingUid,
+            makeSystemActor(),
             {
               noShowHost: {
                 old: bookingToUpdate.noShowHost,

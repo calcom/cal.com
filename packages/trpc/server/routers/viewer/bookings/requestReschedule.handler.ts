@@ -8,7 +8,7 @@ import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -177,8 +177,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       },
     };
     await bookingEventHandlerService.onRescheduleRequested(
-      String(bookingToReschedule.id),
-      createUserActor(user.id),
+      bookingToReschedule.uid,
+      makeUserActor(user.uuid),
       auditData
     );
   } catch (error) {

@@ -51,7 +51,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { createUserActor } from "./types/actor";
+import { makeSystemActor } from "./types/actor";
 import type { Actor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -98,6 +98,7 @@ async function handler(input: CancelBookingInput) {
     platformClientId,
     platformRescheduleUrl,
     arePlatformEmailsEnabled,
+    actor,
   } = input;
 
   /**
@@ -483,9 +484,10 @@ async function handler(input: CancelBookingInput) {
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
+      const actorToUse = actor ?? makeSystemActor();
       await bookingEventHandlerService.onBookingCancelled(
-        String(updatedBooking.id),
-        createUserActor(userId || 0),
+        updatedBooking.uid,
+        actorToUse,
         {
           cancellationReason: {
             old: bookingToDelete.cancellationReason,

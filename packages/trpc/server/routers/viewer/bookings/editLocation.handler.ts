@@ -5,7 +5,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -298,21 +298,17 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   }
 
   // Create audit log for location change
-  try {
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    await bookingEventHandlerService.onLocationChanged(
-      String(booking.id),
-      createUserActor(loggedInUser.id),
-      {
-        location: {
-          old: oldLocation,
-          new: newLocationInEvtFormat,
-        },
-      }
-    );
-  } catch (error) {
-    logger.error("Failed to create booking audit log for location change", error);
-  }
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onLocationChanged(
+    booking.uid,
+    makeUserActor(ctx.user.uuid),
+    {
+      location: {
+        old: oldLocation,
+        new: newLocationInEvtFormat,
+      },
+    }
+  );
 
   return { message: "Location updated" };
 }

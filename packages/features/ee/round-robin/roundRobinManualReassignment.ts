@@ -15,7 +15,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -234,9 +234,10 @@ export const roundRobinManualReassignment = async ({
         userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
         title: { old: _oldTitle, new: newBookingTitle },
       };
+      // TODO: Pass proper actor with user UUID once available
       await bookingEventHandlerService.onReassignment(
-        String(bookingId),
-        createUserActor(reassignedById),
+        booking.uid,
+        makeSystemActor(),
         auditData
       );
     } catch (error) {

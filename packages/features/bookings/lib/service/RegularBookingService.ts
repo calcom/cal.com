@@ -2279,10 +2279,14 @@ async function handler(
 
 
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  // TODO: Pass proper actor based on who initiated the booking/reschedule
+  const { makeSystemActor } = await import("../types/actor");
+  const systemActor = makeSystemActor();
+
   if (originalRescheduledBooking) {
-    await deps.bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+    await deps.bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload, systemActor);
   } else {
-    await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+    await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload, systemActor);
   }
 
   const webhookData: EventPayloadType = {
