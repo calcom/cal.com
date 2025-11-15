@@ -29,8 +29,8 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
-import { JoinMeetingButton } from "./JoinMeetingButton";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
@@ -80,6 +80,14 @@ function BookingDetailsSheetInner({
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
 
+  // Build booking confirmation link
+  const isRecurring = booking.recurringEventId !== null;
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
+
   const getStatusBadge = () => {
     switch (booking.status) {
       case "ACCEPTED":
@@ -99,6 +107,14 @@ function BookingDetailsSheetInner({
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+
+  // Get conference link info for Join button
+  const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
+    location: booking.location,
+    videoCallUrl: bookingMetadata?.videoCallUrl,
+    t,
+    bookingStatus: booking.status,
+  });
 
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
@@ -167,8 +183,6 @@ function BookingDetailsSheetInner({
               </p>
             </div>
 
-            <RescheduleRequestMessage booking={booking} />
-
             <WhoSection booking={booking} />
 
             <WhereSection booking={booking} meta={bookingMetadata} />
@@ -189,52 +203,53 @@ function BookingDetailsSheetInner({
         </SheetBody>
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
-          <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
-            <Button color="secondary" StartIcon="x" onClick={onClose}>
-              {t("close")}
+          <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
+            {isLocationURL && locationToDisplay && (
+              <>
+                <Button
+                  color="secondary"
+                  size="sm"
+                  href={locationToDisplay}
+                  target="_blank"
+                  className="flex items-center gap-2">
+                  {provider?.iconUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={provider.iconUrl}
+                      className="h-4 w-4 flex-shrink-0 rounded-sm"
+                      alt={`${provider.label} logo`}
+                    />
+                  )}
+                  {provider?.label
+                    ? t("join_event_location", { eventLocationType: provider.label })
+                    : t("join_meeting")}
+                </Button>
+                <div className="border-subtle h-3 w-px border-r" />
+              </>
+            )}
+            <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
+              {t("view")}
             </Button>
-
-            <div className="flex gap-2">
-              <JoinMeetingButton
-                location={booking.location}
-                metadata={booking.metadata}
-                bookingStatus={booking.status}
-              />
-
-              <BookingActionsDropdown
-                booking={{
-                  ...booking,
-                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
-                  recurringInfo: undefined,
-                  loggedInUser: {
-                    userId,
-                    userTimeZone,
-                    userTimeFormat: userTimeFormat ?? null,
-                    userEmail,
-                  },
-                  isToday: false,
-                }}
-                usePortal={false}
-              />
-            </div>
+            <BookingActionsDropdown
+              context="booking-details-sheet"
+              size="sm"
+              booking={{
+                ...booking,
+                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                recurringInfo: undefined,
+                loggedInUser: {
+                  userId,
+                  userTimeZone,
+                  userTimeFormat: userTimeFormat ?? null,
+                  userEmail,
+                },
+                isToday: false,
+              }}
+            />
           </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
-  const { t } = useLocale();
-
-  if (booking.status !== "CANCELLED" || !booking.rescheduled) {
-    return null;
-  }
-
-  return (
-    <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
-      {t("reschedule_request_sent")}
-    </Badge>
   );
 }
 
