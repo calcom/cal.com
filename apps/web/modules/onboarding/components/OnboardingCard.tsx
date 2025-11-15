@@ -70,7 +70,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </AnimatePresence>
 
       {/* Footer */}
-      <div className="flex w-full items-center justify-start px-5 py-4">{footer}</div>
+      <div className="flex w-full items-center justify-start py-2 md:px-5 md:py-4">{footer}</div>
     </div>
   );
 };
