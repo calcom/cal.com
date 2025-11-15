@@ -5,7 +5,7 @@ import type {
   InsightsRoutingBaseService,
 } from "@calcom/features/insights/services/InsightsRoutingBaseService";
 import type { InsightsRoutingService } from "@calcom/features/insights/services/InsightsRoutingDIService";
-import { prismaModule } from "@calcom/prisma/prisma.module";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 
 import { createContainer } from "../di";
 import { insightsRoutingModule } from "../modules/InsightsRouting";
