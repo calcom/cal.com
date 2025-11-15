@@ -76,7 +76,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   };
 
   const handleBack = () => {
-    router.push("/onboarding/teams/invite");
+    router.push("/onboarding/teams/details");
   };
 
   const hasValidInvites = fields.some((_, index) => {
@@ -90,7 +90,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
-      <div className="flex w-full flex-col gap-4">
+      <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
           title={t("invite_via_email")}
           subtitle={t("team_invite_subtitle")}

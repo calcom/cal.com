@@ -1,5 +1,8 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -30,10 +33,27 @@ export const OnboardingInviteBrowserView = ({
   useOrganizationInvites = false,
   watchedInvites,
 }: OnboardingInviteBrowserViewProps) => {
+  const pathname = usePathname();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const { teamBrand, teamInvites, invites, teamDetails, organizationBrand, organizationDetails } =
     useOnboardingStore();
   const { t } = useLocale();
+
+  // Animation variants for entry and exit
+  const containerVariants = {
+    initial: {
+      opacity: 0,
+      y: -20,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    exit: {
+      opacity: 0,
+      y: 20,
+    },
+  };
 
   // Use default values if not provided
   const rawInviterName = user?.name || user?.username || "Alex";
@@ -100,44 +120,60 @@ export const OnboardingInviteBrowserView = ({
     <div className="bg-default border-subtle bg-muted hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border xl:flex">
       {/* Content */}
       <div className="h-full px-6 pt-6">
-        <div className="bg-default border-subtle flex flex-col gap-4 rounded-2xl border p-8">
-          <div className="flex flex-col items-start gap-4">
-            <Avatar
-              size="lg"
-              imageSrc={avatar || undefined}
-              alt={displayName}
-              className="border-default h-12 w-12 border-2"
-            />
-            <div className="flex w-full flex-col items-start gap-1">
-              <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
-                {displayInviterName} invited you to join {displayName}
-              </h2>
-              <p className="text-subtle text-left text-sm font-normal leading-tight">
-                We're emailing you all the details
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Email Body */}
-        <div className="bg-default border-subtle mt-3 grid grid-cols-3 gap-4 rounded-t-2xl border p-6 opacity-60">
-          {displayItems.map((item, index) => (
-            <div
-              key={`${item.email}-${index}`}
-              className="bg-default border-subtle flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border p-4">
-              <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex flex-col items-center">
-                  <p className="text-default text-sm font-semibold leading-tight">{item.name}</p>
-                  <p className="text-subtle text-xs font-medium leading-tight">{item.email}</p>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            className="flex h-full flex-col"
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{
+              duration: 0.5,
+              ease: "backOut",
+            }}>
+            <div className="bg-default border-subtle flex flex-col gap-4 rounded-2xl border p-8">
+              <div className="flex flex-col items-start gap-4">
+                <Avatar
+                  size="lg"
+                  imageSrc={avatar || undefined}
+                  alt={displayName}
+                  className="border-default h-12 w-12 border-2"
+                />
+                <div className="flex w-full flex-col items-start gap-1">
+                  <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
+                    {displayInviterName} invited you to join {displayName}
+                  </h2>
+                  <p className="text-subtle text-left text-sm font-normal leading-tight">
+                    We're emailing you all the details
+                  </p>
                 </div>
-                {item.team && (
-                  <div className="bg-emphasis text-emphasis rounded-md px-2 py-0.5 text-xs">{item.team}</div>
-                )}
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Email Body */}
+            <div className="bg-default border-subtle mt-3 grid grid-cols-3 gap-4 rounded-t-2xl border p-6 opacity-60">
+              {displayItems.map((item, index) => (
+                <div
+                  key={`${item.email}-${index}`}
+                  className="bg-default border-subtle flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border p-4">
+                  <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center">
+                      <p className="text-default text-sm font-semibold leading-tight">{item.name}</p>
+                      <p className="text-subtle text-xs font-medium leading-tight">{item.email}</p>
+                    </div>
+                    {item.team && (
+                      <div className="bg-emphasis text-emphasis rounded-md px-2 py-0.5 text-xs">
+                        {item.team}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

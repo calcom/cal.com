@@ -34,12 +34,10 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
         <Logo className="h-5 w-auto shrink-0" />
         <div className="border-subtle bg-default grid w-full max-w-[532px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-12 py-10 xl:h-[690px] xl:max-w-[1130px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0">
           {/* Column 1 - Always visible, 40% on xl+ */}
-          <div className="flex min-h-0 flex-col">{column1}</div>
+          <div className="flex h-full min-h-0 flex-col">{column1}</div>
           {/* Column 2 - Hidden on mobile, visible on xl+, 60% on xl+ */}
           {column2 && (
-            <div className="hidden h-full max-h-full min-h-0 flex-col overflow-hidden xl:flex">
-              {column2}
-            </div>
+            <div className="hidden h-full max-h-full min-h-0 flex-col overflow-hidden xl:flex">{column2}</div>
           )}
         </div>
       </div>

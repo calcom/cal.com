@@ -94,7 +94,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   };
 
   const handleBack = () => {
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/teams");
   };
 
   const handleGoogleWorkspaceConnect = () => {

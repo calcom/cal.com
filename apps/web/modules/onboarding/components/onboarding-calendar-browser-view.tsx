@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -10,11 +12,28 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { useOnboardingCalendarEvents } from "../hooks/useOnboardingCalendarEvents";
 
 export const OnboardingCalendarBrowserView = () => {
+  const pathname = usePathname();
   const { startDate, endDate } = useMemo(() => {
     return weekdayDates(0, new Date(), 6);
   }, []);
 
   const { events } = useOnboardingCalendarEvents({ startDate, endDate });
+
+  // Animation variants for entry and exit
+  const containerVariants = {
+    initial: {
+      opacity: 0,
+      y: -20,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    exit: {
+      opacity: 0,
+      y: 20,
+    },
+  };
 
   // Memoize calendar props to prevent unnecessary re-initializations
   const calendarProps = useMemo(
@@ -42,18 +61,30 @@ export const OnboardingCalendarBrowserView = () => {
   );
 
   return (
-    <div className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-xl border">
-      <div className="flex items-center gap-2 px-4 py-3">
-        <span className="text-default text-sm font-semibold">
-          {dayjs(startDate).format("MMM D")}
-          <span className="mx-1">–</span>
-          {dayjs(endDate).format("MMM D, YYYY")}
-        </span>
-      </div>
-      {/* Calendar View */}
-      <div className="flex h-full flex-col overflow-hidden">
-        <Calendar {...calendarProps} />
-      </div>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={pathname}
+        className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-xl border"
+        variants={containerVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{
+          duration: 0.5,
+          ease: "backOut",
+        }}>
+        <div className="flex items-center gap-2 px-4 py-3">
+          <span className="text-default text-sm font-semibold">
+            {dayjs(startDate).format("MMM D")}
+            <span className="mx-1">–</span>
+            {dayjs(endDate).format("MMM D, YYYY")}
+          </span>
+        </div>
+        {/* Calendar View */}
+        <div className="flex h-full flex-col overflow-hidden">
+          <Calendar {...calendarProps} />
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
