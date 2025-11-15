@@ -48,7 +48,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
             ease: "backOut",
           }}>
           {/* Card Header */}
-          <div className="flex w-full gap-1.5 py-4">
+          <div className="flex w-full gap-1.5 py-2  md:py-4">
             <div className="flex w-full flex-col gap-1">
               <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
               <p className="text-subtle text-sm font-medium leading-tight">{subtitle}</p>
@@ -70,7 +70,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </AnimatePresence>
 
       {/* Footer */}
-      <div className="flex w-full items-center justify-start py-2 md:px-5 md:py-4">{footer}</div>
+      <div className="flex w-full items-center justify-start py-2">{footer}</div>
     </div>
   );
 };

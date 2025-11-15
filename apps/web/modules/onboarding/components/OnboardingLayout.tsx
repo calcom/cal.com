@@ -32,7 +32,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
       {/* Logo and container - centered */}
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-8">
         <Logo className="h-5 w-auto shrink-0" />
-        <div className="border-subtle bg-default grid h-[600px] w-full max-w-[532px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-4 py-2 md:px-12 md:py-10 xl:h-[690px] xl:max-w-[1130px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0">
+        <div className="border-subtle bg-default grid h-fit max-h-[690px] w-full max-w-[532px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-4 py-2 md:px-12 md:py-10 xl:max-w-[1130px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0">
           {/* Column 1 - Always visible, 40% on xl+ */}
           <div className="flex h-full min-h-0 flex-col">{column1}</div>
           {/* Column 2 - Hidden on mobile, visible on xl+, 60% on xl+ */}
