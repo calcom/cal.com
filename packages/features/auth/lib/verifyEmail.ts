@@ -5,15 +5,16 @@ import {
   sendEmailVerificationCode,
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
-} from "@calcom/emails/email-manager";
+} from "@calcom/emails/auth-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -43,7 +44,7 @@ export const sendEmailVerification = async ({
     return { ok: true, skipped: true };
   }
 
-  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -90,7 +91,7 @@ export const sendEmailVerificationByCode = async ({
   username,
   isVerifyingEmail,
 }: VerifyEmailType) => {
-  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -136,7 +137,13 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
     return { ok: true, skipped: true };
   }
 
-  if (await checkIfEmailIsBlockedInWatchlistController(user.emailFrom)) {
+  if (
+    await checkIfEmailIsBlockedInWatchlistController({
+      email: user.emailFrom,
+      organizationId: null,
+      span: sentrySpan,
+    })
+  ) {
     log.warn("Email is blocked - not sending verification email", user.emailFrom);
     return { ok: false, skipped: false };
   }
