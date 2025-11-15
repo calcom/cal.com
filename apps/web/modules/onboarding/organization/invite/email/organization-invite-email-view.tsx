@@ -53,11 +53,19 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
+  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
+  const teams =
+    filteredTeams.length > 0
+      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
+      : [];
+  const hasTeams = teams.length > 0;
+
+  // Conditional form schema - team is optional when there are no teams
   const formSchema = z.object({
     invites: z.array(
       z.object({
         email: z.string().email(t("invalid_email_address")),
-        team: z.string().min(1, t("onboarding_team_required")),
+        team: hasTeams ? z.string().min(1, t("onboarding_team_required")) : z.string().optional(),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -121,14 +129,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const hasValidInvites = fields.some((_, index) => {
     const email = form.watch(`invites.${index}.email`);
     const team = form.watch(`invites.${index}.team`);
+    // If there are no teams, only validate email. Otherwise, validate both email and team.
+    if (!hasTeams) {
+      return email && email.trim().length > 0;
+    }
     return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
-
-  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
-  const teams =
-    filteredTeams.length > 0
-      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
-      : [];
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={4} totalSteps={4}>
@@ -169,7 +175,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
                   append={append}
                   remove={remove}
                   defaultRole={inviteRole}
-                  showTeamSelect
+                  showTeamSelect={hasTeams}
                   teams={teams}
                   emailPlaceholder={`dave@${usersEmailDomain}`}
                 />
