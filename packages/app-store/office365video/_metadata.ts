@@ -21,7 +21,6 @@ export const metadata = {
   publisher: "Cal.com",
   slug: "msteams",
   dirName: "office365video",
-  dependencies: ["office365-calendar"],
   url: "https://www.microsoft.com/en-ca/microsoft-teams/group-chat-software",
   email: "help@cal.com",
   isOAuth: true,
