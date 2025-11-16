@@ -460,7 +460,7 @@ export class TeamService {
     });
 
     if (user.username && user.movedToProfileId === profileToDelete?.id) {
-      log.debug("Cleaning up tempOrgRedirect for user", user.username);
+      log.debug("Cleaning up tempOrgRedirect for user");
       await prisma.tempOrgRedirect.deleteMany({
         where: {
           from: user.username,
