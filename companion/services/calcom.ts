@@ -10,6 +10,12 @@ import type {
   GetScheduleResponse,
   UserProfile,
   ConferencingOption,
+  Webhook,
+  CreateWebhookInput,
+  UpdateWebhookInput,
+  PrivateLink,
+  CreatePrivateLinkInput,
+  UpdatePrivateLinkInput,
 } from "./types";
 
 const API_BASE_URL = "https://api.cal.com/v2";
@@ -26,6 +32,12 @@ export type {
   Schedule,
   UserProfile,
   ConferencingOption,
+  Webhook,
+  CreateWebhookInput,
+  UpdateWebhookInput,
+  PrivateLink,
+  CreatePrivateLinkInput,
+  UpdatePrivateLinkInput,
 };
 
 export const getBookingParticipation = (
@@ -778,6 +790,263 @@ export class CalComAPIService {
       );
     } catch (error) {
       console.error("deleteSchedule error:", error);
+      throw error;
+    }
+  }
+
+  // ============================================
+  // WEBHOOKS
+  // ============================================
+
+  // Get all global webhooks
+  static async getWebhooks(): Promise<Webhook[]> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook[] }>("/webhooks");
+
+      if (response && response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("getWebhooks error:", error);
+      throw error;
+    }
+  }
+
+  // Create a global webhook
+  static async createWebhook(input: CreateWebhookInput): Promise<Webhook> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+        "/webhooks",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(input),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from create webhook API");
+    } catch (error) {
+      console.error("createWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // Update a global webhook
+  static async updateWebhook(webhookId: string, updates: UpdateWebhookInput): Promise<Webhook> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+        `/webhooks/${webhookId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updates),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update webhook API");
+    } catch (error) {
+      console.error("updateWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // Delete a global webhook
+  static async deleteWebhook(webhookId: string): Promise<void> {
+    try {
+      await this.makeRequest(`/webhooks/${webhookId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("deleteWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // Get webhooks for a specific event type
+  static async getEventTypeWebhooks(eventTypeId: number): Promise<Webhook[]> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook[] }>(
+        `/event-types/${eventTypeId}/webhooks`
+      );
+
+      if (response && response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("getEventTypeWebhooks error:", error);
+      throw error;
+    }
+  }
+
+  // Create a webhook for a specific event type
+  static async createEventTypeWebhook(eventTypeId: number, input: CreateWebhookInput): Promise<Webhook> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+        `/event-types/${eventTypeId}/webhooks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(input),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from create event type webhook API");
+    } catch (error) {
+      console.error("createEventTypeWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // Update an event type webhook
+  static async updateEventTypeWebhook(
+    eventTypeId: number,
+    webhookId: string,
+    updates: UpdateWebhookInput
+  ): Promise<Webhook> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: Webhook }>(
+        `/event-types/${eventTypeId}/webhooks/${webhookId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updates),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update event type webhook API");
+    } catch (error) {
+      console.error("updateEventTypeWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // Delete an event type webhook
+  static async deleteEventTypeWebhook(eventTypeId: number, webhookId: string): Promise<void> {
+    try {
+      await this.makeRequest(`/event-types/${eventTypeId}/webhooks/${webhookId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("deleteEventTypeWebhook error:", error);
+      throw error;
+    }
+  }
+
+  // ============================================
+  // PRIVATE LINKS
+  // ============================================
+
+  // Get all private links for an event type
+  static async getEventTypePrivateLinks(eventTypeId: number): Promise<PrivateLink[]> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: PrivateLink[] }>(
+        `/event-types/${eventTypeId}/private-links`
+      );
+
+      if (response && response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("getEventTypePrivateLinks error:", error);
+      throw error;
+    }
+  }
+
+  // Create a private link for an event type
+  static async createEventTypePrivateLink(
+    eventTypeId: number,
+    input: CreatePrivateLinkInput = {}
+  ): Promise<PrivateLink> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
+        `/event-types/${eventTypeId}/private-links`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(input),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from create private link API");
+    } catch (error) {
+      console.error("createEventTypePrivateLink error:", error);
+      throw error;
+    }
+  }
+
+  // Update a private link
+  static async updateEventTypePrivateLink(
+    eventTypeId: number,
+    linkId: number,
+    updates: UpdatePrivateLinkInput
+  ): Promise<PrivateLink> {
+    try {
+      const response = await this.makeRequest<{ status: string; data: PrivateLink }>(
+        `/event-types/${eventTypeId}/private-links/${linkId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updates),
+        }
+      );
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Invalid response from update private link API");
+    } catch (error) {
+      console.error("updateEventTypePrivateLink error:", error);
+      throw error;
+    }
+  }
+
+  // Delete a private link
+  static async deleteEventTypePrivateLink(eventTypeId: number, linkId: number): Promise<void> {
+    try {
+      await this.makeRequest(`/event-types/${eventTypeId}/private-links/${linkId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("deleteEventTypePrivateLink error:", error);
       throw error;
     }
   }

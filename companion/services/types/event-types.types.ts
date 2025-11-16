@@ -149,6 +149,9 @@ export interface EventType {
   description?: string;
   length: number; // Deprecated: use lengthInMinutes instead
   lengthInMinutes?: number; // API returns this field
+  lengthInMinutesOptions?: number[];
+  
+  // Locations
   locations?: Array<{
     type: string;
     address?: string;
@@ -156,20 +159,62 @@ export interface EventType {
     phone?: string;
     integration?: string;
     credentialId?: number;
+    public?: boolean;
   }>;
+  
+  // Pricing
   price?: number;
   currency?: string;
+  
+  // Basic settings
   disableGuests?: boolean;
   lockTimeZoneToggleOnBookingPage?: boolean;
   requiresConfirmation?: boolean;
   requiresBookerEmailVerification?: boolean;
+  hideCalendarNotes?: boolean;
+  successRedirectUrl?: string;
+  forwardParamsSuccessRedirect?: boolean;
+  
+  // Schedule and buffers
   scheduleId?: number;
+  slotInterval?: number;
+  minimumBookingNotice?: number;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
+  
+  // Limits
+  bookingLimitsCount?: BookingLimitsCount | { disabled: true };
+  bookingLimitsDuration?: BookingLimitsDuration | { disabled: true };
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit | { disabled: true };
+  onlyShowFirstAvailableSlot?: boolean;
+  bookingWindow?: BookingWindow;
+  offsetStart?: number;
+  
+  // Advanced
+  bookerLayouts?: BookerLayouts;
+  confirmationPolicy?: ConfirmationPolicy | { disabled: true };
+  
+  // Recurring
+  recurrence?: Recurrence | { disabled: true };
+  
+  // Seats
+  seats?: Seats | { disabled: true };
+  
+  // Customization
+  bookingFields?: BookingField[];
+  hidden?: boolean;
+  eventTypeColor?: EventTypeColor;
+  
+  // Ownership
   userId?: number;
   teamId?: number;
   hosts?: Array<{
     userId: number;
     isFixed: boolean;
   }>;
+  
+  // Metadata
+  metadata?: Record<string, any>;
 }
 
 export interface CreateEventTypeInput {

@@ -113,6 +113,36 @@ export default function EventTypeDetail() {
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [offsetStartTimes, setOffsetStartTimes] = useState(false);
   const [offsetStartValue, setOffsetStartValue] = useState("0");
+
+  // Advanced tab state
+  const [calendarEventName, setCalendarEventName] = useState("");
+  const [addToCalendarEmail, setAddToCalendarEmail] = useState("");
+  const [selectedLayouts, setSelectedLayouts] = useState<string[]>(["MONTH_VIEW"]);
+  const [defaultLayout, setDefaultLayout] = useState("MONTH_VIEW");
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
+  const [disableCancelling, setDisableCancelling] = useState(false);
+  const [disableRescheduling, setDisableRescheduling] = useState(false);
+  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(false);
+  const [autoTranslate, setAutoTranslate] = useState(false);
+  const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
+  const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
+  const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
+  const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
+  const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
+  const [lockTimezone, setLockTimezone] = useState(false);
+  const [allowReschedulingPastEvents, setAllowReschedulingPastEvents] = useState(false);
+  const [allowBookingThroughRescheduleLink, setAllowBookingThroughRescheduleLink] = useState(false);
+  const [customReplyToEmail, setCustomReplyToEmail] = useState("");
+  const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
+  const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+
+  // Recurring tab state
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringInterval, setRecurringInterval] = useState("1");
+  const [recurringFrequency, setRecurringFrequency] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly");
+  const [recurringOccurrences, setRecurringOccurrences] = useState("12");
+
   const bufferTimeOptions = [
     "No buffer time",
     "5 Minutes",
@@ -453,6 +483,206 @@ export default function EventTypeDetail() {
       if (eventType) {
         setEventTypeData(eventType);
 
+        // Load basic fields
+        if (eventType.title) setEventTitle(eventType.title);
+        if (eventType.slug) setEventSlug(eventType.slug);
+        if (eventType.description) setEventDescription(eventType.description);
+        if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
+        if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+
+        // Load buffer times
+        if (eventType.beforeEventBuffer) {
+          setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
+        }
+        if (eventType.afterEventBuffer) {
+          setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
+        }
+
+        // Load minimum booking notice
+        if (eventType.minimumBookingNotice) {
+          const minutes = eventType.minimumBookingNotice;
+          if (minutes >= 1440) {
+            // Days
+            setMinimumNoticeValue((minutes / 1440).toString());
+            setMinimumNoticeUnit("Days");
+          } else if (minutes >= 60) {
+            // Hours
+            setMinimumNoticeValue((minutes / 60).toString());
+            setMinimumNoticeUnit("Hours");
+          } else {
+            // Minutes
+            setMinimumNoticeValue(minutes.toString());
+            setMinimumNoticeUnit("Minutes");
+          }
+        }
+
+        // Load slot interval
+        if (eventType.slotInterval) {
+          setSlotInterval(`${eventType.slotInterval} Minutes`);
+        }
+
+        // Load booking frequency limits
+        if (eventType.bookingLimitsCount && !('disabled' in eventType.bookingLimitsCount)) {
+          setLimitBookingFrequency(true);
+          const limits = [];
+          let idCounter = 1;
+          if (eventType.bookingLimitsCount.day) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.day.toString(), unit: "Per day" });
+          }
+          if (eventType.bookingLimitsCount.week) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.week.toString(), unit: "Per week" });
+          }
+          if (eventType.bookingLimitsCount.month) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.month.toString(), unit: "Per month" });
+          }
+          if (eventType.bookingLimitsCount.year) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.year.toString(), unit: "Per year" });
+          }
+          if (limits.length > 0) {
+            setFrequencyLimits(limits);
+          }
+        }
+
+        // Load duration limits
+        if (eventType.bookingLimitsDuration && !('disabled' in eventType.bookingLimitsDuration)) {
+          setLimitTotalDuration(true);
+          const limits = [];
+          let idCounter = 1;
+          if (eventType.bookingLimitsDuration.day) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.day.toString(), unit: "Per day" });
+          }
+          if (eventType.bookingLimitsDuration.week) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.week.toString(), unit: "Per week" });
+          }
+          if (eventType.bookingLimitsDuration.month) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.month.toString(), unit: "Per month" });
+          }
+          if (eventType.bookingLimitsDuration.year) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.year.toString(), unit: "Per year" });
+          }
+          if (limits.length > 0) {
+            setDurationLimits(limits);
+          }
+        }
+
+        // Load only show first slot
+        if (eventType.onlyShowFirstAvailableSlot !== undefined) {
+          setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
+        }
+
+        // Load max active bookings
+        if (eventType.bookerActiveBookingsLimit && !('disabled' in eventType.bookerActiveBookingsLimit)) {
+          setMaxActiveBookingsPerBooker(true);
+          setMaxActiveBookingsValue(eventType.bookerActiveBookingsLimit.count.toString());
+        }
+
+        // Load booking window (future bookings limit)
+        if (eventType.bookingWindow && !('disabled' in eventType.bookingWindow)) {
+          setLimitFutureBookings(true);
+          if (eventType.bookingWindow.type === 'range') {
+            setFutureBookingType('range');
+            if (Array.isArray(eventType.bookingWindow.value) && eventType.bookingWindow.value.length === 2) {
+              setRangeStartDate(eventType.bookingWindow.value[0]);
+              setRangeEndDate(eventType.bookingWindow.value[1]);
+            }
+          } else {
+            setFutureBookingType('rolling');
+            if (typeof eventType.bookingWindow.value === 'number') {
+              setRollingDays(eventType.bookingWindow.value.toString());
+            }
+            setRollingCalendarDays(eventType.bookingWindow.type === 'calendarDays');
+          }
+        }
+
+        // Load Advanced tab fields
+        if (eventType.metadata) {
+          if (eventType.metadata.calendarEventName) {
+            setCalendarEventName(eventType.metadata.calendarEventName);
+          }
+          if (eventType.metadata.addToCalendarEmail) {
+            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          }
+          if (eventType.metadata.customReplyToEmail) {
+            setCustomReplyToEmail(eventType.metadata.customReplyToEmail);
+          }
+          if (eventType.metadata.disableCancelling) {
+            setDisableCancelling(true);
+          }
+          if (eventType.metadata.disableRescheduling) {
+            setDisableRescheduling(true);
+          }
+          if (eventType.metadata.sendCalVideoTranscription) {
+            setSendCalVideoTranscription(true);
+          }
+          if (eventType.metadata.autoTranslate) {
+            setAutoTranslate(true);
+          }
+          if (eventType.metadata.hideCalendarEventDetails) {
+            setHideCalendarEventDetails(true);
+          }
+          if (eventType.metadata.hideOrganizerEmail) {
+            setHideOrganizerEmail(true);
+          }
+          if (eventType.metadata.allowReschedulingPastEvents) {
+            setAllowReschedulingPastEvents(true);
+          }
+          if (eventType.metadata.allowBookingThroughRescheduleLink) {
+            setAllowBookingThroughRescheduleLink(true);
+          }
+        }
+
+        // Load booker layouts
+        if (eventType.bookerLayouts) {
+          if (eventType.bookerLayouts.enabledLayouts && Array.isArray(eventType.bookerLayouts.enabledLayouts)) {
+            setSelectedLayouts(eventType.bookerLayouts.enabledLayouts);
+          }
+          if (eventType.bookerLayouts.defaultLayout) {
+            setDefaultLayout(eventType.bookerLayouts.defaultLayout);
+          }
+        }
+
+        // Load confirmation settings
+        if (eventType.requiresConfirmation !== undefined) {
+          setRequiresConfirmation(eventType.requiresConfirmation);
+        }
+
+        // Load other boolean fields
+        if (eventType.requiresBookerEmailVerification !== undefined) {
+          setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
+        }
+        if (eventType.hideCalendarNotes !== undefined) {
+          setHideCalendarNotes(eventType.hideCalendarNotes);
+        }
+        if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
+          setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
+        }
+
+        // Load redirect URL
+        if (eventType.successRedirectUrl) {
+          setSuccessRedirectUrl(eventType.successRedirectUrl);
+          if (eventType.forwardParamsSuccessRedirect !== undefined) {
+            setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
+          }
+        }
+
+        // Load event type colors
+        if (eventType.eventTypeColor) {
+          if (eventType.eventTypeColor.lightEventTypeColor) {
+            setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
+          }
+          if (eventType.eventTypeColor.darkEventTypeColor) {
+            setEventTypeColorDark(eventType.eventTypeColor.darkEventTypeColor);
+          }
+        }
+
+        // Load recurring event settings
+        if (eventType.recurrence && !('disabled' in eventType.recurrence)) {
+          setRecurringEnabled(true);
+          setRecurringInterval(eventType.recurrence.interval.toString());
+          setRecurringFrequency(eventType.recurrence.frequency);
+          setRecurringOccurrences(eventType.recurrence.occurrences.toString());
+        }
+
         // Extract location from event type
         if (eventType.locations && eventType.locations.length > 0) {
           const firstLocation = eventType.locations[0];
@@ -705,10 +935,10 @@ export default function EventTypeDetail() {
 
       // Build location payload if a location is selected
       let locationsPayload: Array<{
-        type: string;
-        integration?: string;
-        address?: string;
-        link?: string;
+          type: string;
+          integration?: string;
+          address?: string;
+          link?: string;
         phone?: string;
         public?: boolean;
       }> | undefined;
@@ -846,6 +1076,94 @@ export default function EventTypeDetail() {
         if (count > 0) {
           payload.bookerActiveBookingsLimit = { count };
         }
+      }
+
+      // Add booking window (future bookings limit)
+      if (limitFutureBookings) {
+        if (futureBookingType === 'range') {
+          payload.bookingWindow = {
+            type: 'range',
+            value: [rangeStartDate, rangeEndDate],
+          };
+        } else {
+          payload.bookingWindow = {
+            type: rollingCalendarDays ? 'calendarDays' : 'businessDays',
+            value: parseInt(rollingDays),
+            rolling: true,
+          };
+        }
+      } else {
+        payload.bookingWindow = { disabled: true };
+      }
+
+      // Add Advanced tab fields
+      if (calendarEventName) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.calendarEventName = calendarEventName;
+      }
+
+      if (addToCalendarEmail) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.addToCalendarEmail = addToCalendarEmail;
+      }
+
+      // Booker layouts
+      if (selectedLayouts.length > 0) {
+        payload.bookerLayouts = {
+          enabledLayouts: selectedLayouts,
+          defaultLayout: defaultLayout,
+        };
+      }
+
+      // Confirmation policy
+      if (requiresConfirmation) {
+        payload.requiresConfirmation = true;
+      }
+
+      // Boolean flags
+      if (disableCancelling) payload.metadata = { ...payload.metadata, disableCancelling: true };
+      if (disableRescheduling) payload.metadata = { ...payload.metadata, disableRescheduling: true };
+      if (sendCalVideoTranscription) payload.metadata = { ...payload.metadata, sendCalVideoTranscription: true };
+      if (autoTranslate) payload.metadata = { ...payload.metadata, autoTranslate: true };
+      if (requiresBookerEmailVerification) payload.requiresBookerEmailVerification = true;
+      if (hideCalendarNotes) payload.hideCalendarNotes = true;
+      if (hideCalendarEventDetails) payload.metadata = { ...payload.metadata, hideCalendarEventDetails: true };
+      if (hideOrganizerEmail) payload.metadata = { ...payload.metadata, hideOrganizerEmail: true };
+      if (lockTimezone) payload.lockTimeZoneToggleOnBookingPage = true;
+      if (allowReschedulingPastEvents) payload.metadata = { ...payload.metadata, allowReschedulingPastEvents: true };
+      if (allowBookingThroughRescheduleLink) payload.metadata = { ...payload.metadata, allowBookingThroughRescheduleLink: true };
+
+      // Redirect URL
+      if (successRedirectUrl) {
+        payload.successRedirectUrl = successRedirectUrl;
+        if (forwardParamsSuccessRedirect) {
+          payload.forwardParamsSuccessRedirect = true;
+        }
+      }
+
+      // Custom reply-to email
+      if (customReplyToEmail) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.customReplyToEmail = customReplyToEmail;
+      }
+
+      // Event type colors
+      if (eventTypeColorLight || eventTypeColorDark) {
+        payload.eventTypeColor = {
+          lightEventTypeColor: eventTypeColorLight,
+          darkEventTypeColor: eventTypeColorDark,
+        };
+      }
+
+      // Recurring event
+      if (recurringEnabled) {
+        payload.recurrence = {
+          interval: parseInt(recurringInterval) || 1,
+          occurrences: parseInt(recurringOccurrences) || 12,
+          frequency: recurringFrequency,
+        };
+      } else {
+        payload.recurrence = { disabled: true };
       }
 
       // Detect create vs update mode
@@ -1627,7 +1945,7 @@ export default function EventTypeDetail() {
           {activeTab === "limits" && (
             <View className="gap-3">
               {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="mb-3">
                   <Text className="text-base font-semibold text-[#333] mb-1.5">Before event</Text>
                   <TouchableOpacity
@@ -1686,7 +2004,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Booking Frequency Limit Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit booking frequency</Text>
@@ -1758,7 +2076,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Total Booking Duration Limit Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit total booking duration</Text>
@@ -1833,7 +2151,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Only Show First Available Slot Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Only show the first slot of each day as available</Text>
@@ -1851,7 +2169,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Max Active Bookings Per Booker Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit number of upcoming bookings per booker</Text>
@@ -1887,7 +2205,7 @@ export default function EventTypeDetail() {
               </View>
 
               {/* Limit Future Bookings Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="flex-1 mr-4">
                     <Text className="text-base text-[#333] font-medium mb-1">Limit future bookings</Text>
@@ -2001,16 +2319,540 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "advanced" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Advanced Settings</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Configure advanced options for this event type.</Text>
+            <View className="gap-3">
+              {/* Calendar Event Name Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Calendar event name</Text>
+                <TextInput
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-2"
+                  value={calendarEventName}
+                  onChangeText={setCalendarEventName}
+                  placeholder="30min between Pro Example and {Scheduler}"
+                  placeholderTextColor="#8E8E93"
+                />
+                <Text className="text-xs text-[#666]">
+                  Use variables like {"{"}Scheduler{"}"} for booker name, {"{"}Organizer{"}"} for your name
+                </Text>
+            </View>
+
+              {/* Add to Calendar Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Add to calendar</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  We'll display this email address as the organizer, and send confirmation emails here.
+                </Text>
+                <TextInput
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                  value={addToCalendarEmail}
+                  onChangeText={setAddToCalendarEmail}
+                  placeholder="pro@example.com"
+                  placeholderTextColor="#8E8E93"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Layout Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Layout</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  You can select multiple and your bookers can switch views.
+                </Text>
+                
+                {/* Layout Options */}
+                <View className="gap-2 mb-4">
+                  {[
+                    { id: "MONTH_VIEW", label: "Month", icon: "calendar-outline" },
+                    { id: "WEEK_VIEW", label: "Weekly", icon: "calendar-outline" },
+                    { id: "COLUMN_VIEW", label: "Column", icon: "list-outline" },
+                  ].map((layout) => (
+                    <TouchableOpacity
+                      key={layout.id}
+                      className={`flex-row items-center justify-between p-3 rounded-lg border ${
+                        selectedLayouts.includes(layout.id)
+                          ? "border-black bg-[#F0F0F0]"
+                          : "border-[#E5E5EA]"
+                      }`}
+                      onPress={() => {
+                        if (selectedLayouts.includes(layout.id)) {
+                          // Don't allow deselecting if it's the only one
+                          if (selectedLayouts.length > 1) {
+                            setSelectedLayouts(selectedLayouts.filter((l) => l !== layout.id));
+                            // If removing the default, set a new default
+                            if (defaultLayout === layout.id) {
+                              const remaining = selectedLayouts.filter((l) => l !== layout.id);
+                              setDefaultLayout(remaining[0]);
+                            }
+                          }
+                        } else {
+                          setSelectedLayouts([...selectedLayouts, layout.id]);
+                        }
+                      }}>
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name={layout.icon as any} size={20} color="#333" />
+                        <Text className="text-base text-[#333]">{layout.label}</Text>
+                      </View>
+                      {selectedLayouts.includes(layout.id) && (
+                        <Ionicons name="checkmark-circle" size={20} color="#000" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Default View */}
+                {selectedLayouts.length > 1 && (
+                  <View>
+                    <Text className="text-sm font-medium text-[#333] mb-2">Default view</Text>
+                    <View className="gap-2">
+                      {selectedLayouts.map((layoutId) => {
+                        const layout = [
+                          { id: "MONTH_VIEW", label: "Month" },
+                          { id: "WEEK_VIEW", label: "Weekly" },
+                          { id: "COLUMN_VIEW", label: "Column" },
+                        ].find((l) => l.id === layoutId);
+                        if (!layout) return null;
+                        return (
+                          <TouchableOpacity
+                            key={layout.id}
+                            className={`flex-row items-center justify-between p-3 rounded-lg border ${
+                              defaultLayout === layout.id
+                                ? "border-black bg-[#F0F0F0]"
+                                : "border-[#E5E5EA]"
+                            }`}
+                            onPress={() => setDefaultLayout(layout.id)}>
+                            <Text className="text-base text-[#333]">{layout.label}</Text>
+                            {defaultLayout === layout.id && (
+                              <Ionicons name="checkmark-circle" size={20} color="#000" />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Booking Questions Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Booking questions</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  Customize the questions asked on the booking page.
+                </Text>
+                <TouchableOpacity
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 flex-row items-center justify-center"
+                  onPress={() => Alert.alert("Coming Soon", "Booking questions customization will be available soon.")}>
+                  <Ionicons name="add-circle-outline" size={20} color="#666" />
+                  <Text className="text-base text-[#666] ml-2">Manage booking questions</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Requires confirmation */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Requires confirmation</Text>
+                    <Text className="text-sm text-[#666]">
+                      The booking needs to be manually confirmed before it is pushed to your calendar
+                    </Text>
+                  </View>
+                  <Switch
+                    value={requiresConfirmation}
+                    onValueChange={setRequiresConfirmation}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Disable Cancelling */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Disable Cancelling</Text>
+                    <Text className="text-sm text-[#666]">
+                      Guests can no longer cancel the event with calendar invite or email
+                    </Text>
+                  </View>
+                  <Switch
+                    value={disableCancelling}
+                    onValueChange={setDisableCancelling}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Disable Rescheduling */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Disable Rescheduling</Text>
+                    <Text className="text-sm text-[#666]">
+                      Guests can no longer reschedule the event with calendar invite or email
+                    </Text>
+                  </View>
+                  <Switch
+                    value={disableRescheduling}
+                    onValueChange={setDisableRescheduling}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Send Cal Video Transcription Emails */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Send Cal Video Transcription Emails</Text>
+                    <Text className="text-sm text-[#666]">
+                      Send emails with the transcription of the Cal Video after the meeting ends
+                    </Text>
+                  </View>
+                  <Switch
+                    value={sendCalVideoTranscription}
+                    onValueChange={setSendCalVideoTranscription}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Auto translate */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Auto translate title and description</Text>
+                    <Text className="text-sm text-[#666]">
+                      Automatically translate titles and descriptions to the visitor's browser language using AI
+                    </Text>
+                  </View>
+                  <Switch
+                    value={autoTranslate}
+                    onValueChange={setAutoTranslate}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Requires booker email verification */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Requires booker email verification</Text>
+                    <Text className="text-sm text-[#666]">
+                      To ensure booker's email verification before scheduling events
+                    </Text>
+                  </View>
+                  <Switch
+                    value={requiresBookerEmailVerification}
+                    onValueChange={setRequiresBookerEmailVerification}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Hide notes in calendar */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Hide notes in calendar</Text>
+                    <Text className="text-sm text-[#666]">
+                      For privacy reasons, additional inputs and notes will be hidden in the calendar entry
+                    </Text>
+                  </View>
+                  <Switch
+                    value={hideCalendarNotes}
+                    onValueChange={setHideCalendarNotes}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Hide calendar event details */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Hide calendar event details on shared calendars</Text>
+                    <Text className="text-sm text-[#666]">
+                      When a calendar is shared, events are visible but details are hidden from those without write access
+                    </Text>
+                  </View>
+                  <Switch
+                    value={hideCalendarEventDetails}
+                    onValueChange={setHideCalendarEventDetails}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Hide organizer's email */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Hide organizer's email</Text>
+                    <Text className="text-sm text-[#666]">
+                      Hide organizer's email address from the booking screen, email notifications, and calendar events
+                    </Text>
+                  </View>
+                  <Switch
+                    value={hideOrganizerEmail}
+                    onValueChange={setHideOrganizerEmail}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Lock timezone */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Lock timezone on booking page</Text>
+                    <Text className="text-sm text-[#666]">
+                      To lock the timezone on booking page, useful for in-person events
+                    </Text>
+                  </View>
+                  <Switch
+                    value={lockTimezone}
+                    onValueChange={setLockTimezone}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Allow rescheduling past events */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Allow rescheduling past events</Text>
+                    <Text className="text-sm text-[#666]">
+                      Enabling this option allows for past events to be rescheduled
+                    </Text>
+                  </View>
+                  <Switch
+                    value={allowReschedulingPastEvents}
+                    onValueChange={setAllowReschedulingPastEvents}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Allow booking through reschedule link */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Allow booking through reschedule link</Text>
+                    <Text className="text-sm text-[#666]">
+                      When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking
+                    </Text>
+                  </View>
+                  <Switch
+                    value={allowBookingThroughRescheduleLink}
+                    onValueChange={setAllowBookingThroughRescheduleLink}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Redirect on booking Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Redirect on booking</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  Redirect to a custom URL after a successful booking
+                </Text>
+                <TextInput
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-3"
+                  value={successRedirectUrl}
+                  onChangeText={setSuccessRedirectUrl}
+                  placeholder="https://example.com/thank-you"
+                  placeholderTextColor="#8E8E93"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                />
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-sm text-[#333]">Forward query parameters</Text>
+                  <Switch
+                    value={forwardParamsSuccessRedirect}
+                    onValueChange={setForwardParamsSuccessRedirect}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Custom Reply-To Email Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Custom 'Reply-To' email</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  Use a different email address as the replyTo for confirmation emails instead of the organizer's email
+                </Text>
+                <TextInput
+                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                  value={customReplyToEmail}
+                  onChangeText={setCustomReplyToEmail}
+                  placeholder="reply@example.com"
+                  placeholderTextColor="#8E8E93"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Event Type Color Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <Text className="text-base font-semibold text-[#333] mb-1.5">Event type color</Text>
+                <Text className="text-sm text-[#666] mb-3">
+                  This is only used for event type & booking differentiation within the app. It is not displayed to bookers.
+                </Text>
+                <View className="gap-3">
+                  <View>
+                    <Text className="text-sm font-medium text-[#333] mb-2">Light theme color</Text>
+                    <View className="flex-row items-center gap-3">
+                      <View
+                        className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
+                        style={{ backgroundColor: eventTypeColorLight }}
+                      />
+                      <TextInput
+                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                        value={eventTypeColorLight}
+                        onChangeText={setEventTypeColorLight}
+                        placeholder="#292929"
+                        placeholderTextColor="#8E8E93"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+                  <View>
+                    <Text className="text-sm font-medium text-[#333] mb-2">Dark theme color</Text>
+                    <View className="flex-row items-center gap-3">
+                      <View
+                        className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
+                        style={{ backgroundColor: eventTypeColorDark }}
+                      />
+                      <TextInput
+                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                        value={eventTypeColorDark}
+                        onChangeText={setEventTypeColorDark}
+                        placeholder="#FAFAFA"
+                        placeholderTextColor="#8E8E93"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
           )}
 
           {activeTab === "recurring" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Recurring Events</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Set up recurring event patterns.</Text>
+            <View className="gap-3">
+              {/* Recurring Event Toggle Card */}
+              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-3">
+                    <Text className="text-base text-[#333] font-medium mb-1">Recurring event</Text>
+                    <Text className="text-sm text-[#666]">
+                      Set up this event type to repeat at regular intervals
+                    </Text>
+                  </View>
+                  <Switch
+                    value={recurringEnabled}
+                    onValueChange={setRecurringEnabled}
+                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+              </View>
+
+              {/* Recurring Configuration Card - shown when enabled */}
+              {recurringEnabled && (
+                <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
+                  <Text className="text-base font-semibold text-[#333] mb-4">Recurrence pattern</Text>
+                  
+                  {/* Repeats Every */}
+                  <View className="mb-4">
+                    <Text className="text-sm font-medium text-[#333] mb-2">Repeats every</Text>
+                    <View className="flex-row items-center gap-3">
+                      <TextInput
+                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
+                        value={recurringInterval}
+                        onChangeText={(text) => {
+                          const numericValue = text.replace(/[^0-9]/g, "");
+                          const num = parseInt(numericValue) || 1;
+                          if (num >= 1 && num <= 20) {
+                            setRecurringInterval(numericValue || "1");
+                          }
+                        }}
+                        placeholder="1"
+                        placeholderTextColor="#8E8E93"
+                        keyboardType="numeric"
+                      />
+                      <TouchableOpacity
+                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
+                        onPress={() => {
+                          Alert.alert(
+                            "Select Frequency",
+                            "Choose how often this event repeats",
+                            [
+                              {
+                                text: "Daily",
+                                onPress: () => setRecurringFrequency("daily"),
+                              },
+                              {
+                                text: "Weekly",
+                                onPress: () => setRecurringFrequency("weekly"),
+                              },
+                              {
+                                text: "Monthly",
+                                onPress: () => setRecurringFrequency("monthly"),
+                              },
+                              {
+                                text: "Yearly",
+                                onPress: () => setRecurringFrequency("yearly"),
+                              },
+                              { text: "Cancel", style: "cancel" },
+                            ]
+                          );
+                        }}>
+                        <Text className="text-base text-black capitalize">{recurringFrequency}</Text>
+                        <Ionicons name="chevron-down" size={20} color="#8E8E93" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Maximum Occurrences */}
+                  <View>
+                    <Text className="text-sm font-medium text-[#333] mb-2">Maximum number of events</Text>
+                    <View className="flex-row items-center gap-2">
+                      <TextInput
+                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-24 text-center"
+                        value={recurringOccurrences}
+                        onChangeText={(text) => {
+                          const numericValue = text.replace(/[^0-9]/g, "");
+                          const num = parseInt(numericValue) || 1;
+                          if (num >= 1) {
+                            setRecurringOccurrences(numericValue || "1");
+                          }
+                        }}
+                        placeholder="12"
+                        placeholderTextColor="#8E8E93"
+                        keyboardType="numeric"
+                      />
+                      <Text className="text-sm text-[#666]">occurrences</Text>
+                    </View>
+                    <Text className="text-xs text-[#666] mt-2">
+                      The booking will create {recurringOccurrences} events that repeat {recurringFrequency}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
           )}
 
