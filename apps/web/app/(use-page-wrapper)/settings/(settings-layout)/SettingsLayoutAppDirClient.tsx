@@ -80,7 +80,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       name: "platform",
       href: "/settings/platform",
       icon: "code",
-      children: [],
+      children: [{ name: "platform", href: "/settings/platform" }],
     },
     {
       name: "organization",
