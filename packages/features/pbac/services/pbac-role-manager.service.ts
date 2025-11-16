@@ -87,7 +87,7 @@ export class PBACRoleManager implements IRoleManager {
     });
 
     // If this is the last owner and it's not a self-change, prevent the role change
-    if (ownerCount <= 1 && currentMembership.userId !== userId) {
+    if (ownerCount <= 1) {
       throw new RoleManagementError(
         "Cannot change the role of the last owner in the organization",
         RoleManagementErrorCode.UNAUTHORIZED
