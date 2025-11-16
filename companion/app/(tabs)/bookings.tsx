@@ -820,16 +820,35 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
               </View>
             )}
 
-            {/* Attendees */}
-            {item.attendees && item.attendees.length > 0 && (
+            {/* Host and Attendees */}
+            {((item.hosts && item.hosts.length > 0) || item.user || (item.attendees && item.attendees.length > 0)) && (
               <View className="mb-2">
                 <Text className="text-sm text-[#333]">
-                  {item.attendees.length === 1
-                    ? item.attendees[0].name
-                    : item.attendees
-                        .slice(0, 2)
-                        .map((att) => att.name)
-                        .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
+                  {/* Host */}
+                  {(item.hosts && item.hosts.length > 0) || item.user ? (
+                    <>
+                      {item.hosts && item.hosts.length > 0
+                        ? item.hosts[0].name || item.hosts[0].email
+                        : item.user?.name || item.user?.email}
+                    </>
+                  ) : null}
+                  
+                  {/* Separator */}
+                  {((item.hosts && item.hosts.length > 0) || item.user) && item.attendees && item.attendees.length > 0 && (
+                    <Text> and </Text>
+                  )}
+                  
+                  {/* Attendees */}
+                  {item.attendees && item.attendees.length > 0 && (
+                    <>
+                      {item.attendees.length === 1
+                        ? item.attendees[0].name || item.attendees[0].email
+                        : item.attendees
+                            .slice(0, 2)
+                            .map((att) => att.name || att.email)
+                            .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
+                    </>
+                  )}
                 </Text>
               </View>
             )}

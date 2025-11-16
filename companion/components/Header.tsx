@@ -33,15 +33,14 @@ export function Header() {
   };
 
   const handleProfile = () => {
-    setShowProfileModal(true);
+    router.push("/profile");
   };
 
   const handleMenuOption = (option: string) => {
     setShowProfileModal(false);
     switch (option) {
       case "profile":
-        // TODO: Navigate to profile page
-        console.log("My Profile pressed");
+        router.push("/profile");
         break;
       case "settings":
         // TODO: Navigate to settings page

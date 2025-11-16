@@ -909,7 +909,7 @@ export default function EventTypeDetail() {
               onPress={handleSave}
               disabled={saving}>
               <Text className="text-white text-base font-semibold">
-                {saving ? (id === "new" ? "Creating..." : "Saving...") : (id === "new" ? "Create" : "Save")}
+                {id === "new" ? "Create" : "Save"}
               </Text>
             </TouchableOpacity>
           </View>

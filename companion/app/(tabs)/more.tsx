@@ -16,6 +16,11 @@ export default function More() {
 
   const menuItems: MoreMenuItem[] = [
     {
+      name: "Profile",
+      icon: "person-outline",
+      href: "/profile",
+    },
+    {
       name: "Apps",
       icon: "grid-outline",
       onPress: () => {
@@ -60,7 +65,7 @@ export default function More() {
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
-              onPress={item.onPress}
+              onPress={item.href ? () => router.push(item.href!) : item.onPress}
               className={`bg-white active:bg-[#F8F9FA] flex-row items-center justify-between px-5 py-5 ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}

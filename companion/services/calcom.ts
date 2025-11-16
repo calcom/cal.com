@@ -317,10 +317,8 @@ export class CalComAPIService {
       let username: string | undefined;
       try {
         const currentUser = await this.getCurrentUser();
-        // Extract username from response (could be in data.username or directly in username)
-        if (currentUser?.data?.username) {
-          username = currentUser.data.username;
-        } else if (currentUser?.username) {
+        // Extract username from response
+        if (currentUser?.username) {
           username = currentUser.username;
         }
       } catch (error) {}
@@ -357,8 +355,8 @@ export class CalComAPIService {
             const keys = Object.keys(response.data);
             if (keys.length > 0) {
               eventTypesArray = Object.values(response.data).filter(
-                (item) => item && typeof item === "object" && item.id
-              );
+                (item): item is EventType => item && typeof item === "object" && "id" in item
+              ) as EventType[];
             }
           }
         } else {
@@ -459,8 +457,8 @@ export class CalComAPIService {
             const keys = Object.keys(response.data);
             if (keys.length > 0) {
               bookingsArray = Object.values(response.data).filter(
-                (item) => item && typeof item === "object" && (item.id || item.uid)
-              );
+                (item): item is Booking => item && typeof item === "object" && ("id" in item || "uid" in item)
+              ) as Booking[];
             }
           }
         } else {
@@ -481,17 +479,12 @@ export class CalComAPIService {
       }
 
       // Extract user info from response
-      let userId;
-      let userEmail;
+      let userId: number | undefined;
+      let userEmail: string | undefined;
 
       if (currentUser) {
-        if (currentUser.data) {
-          userId = currentUser.data.id;
-          userEmail = currentUser.data.email;
-        } else if (currentUser.id) {
-          userId = currentUser.id;
-          userEmail = currentUser.email;
-        }
+        userId = currentUser.id;
+        userEmail = currentUser.email;
       }
 
       // Filter bookings to only show ones where the current user is participating

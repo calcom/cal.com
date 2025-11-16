@@ -616,7 +616,7 @@ export default function EventTypes() {
             <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
               <View className="flex-row justify-end space-x-2 gap-2">
                 <TouchableOpacity
-                  className="px-4 py-2 rounded-md"
+                  className="px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
                   onPress={() => {
                     setShowCreateModal(false);
                     setNewEventTitle("");
@@ -629,11 +629,11 @@ export default function EventTypes() {
                   <Text className="text-base font-medium text-[#374151]">Close</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`px-4 py-2 bg-[#111827] rounded-md ${creating ? "opacity-60" : ""}`}
+                  className={`px-4 py-2 bg-[#111827] rounded-xl ${creating ? "opacity-60" : ""}`}
                   onPress={handleCreateEventType}
                   disabled={creating}>
                   <Text className="text-base font-medium text-white">
-                    {creating ? "Creating..." : "Continue"}
+                    Continue
                   </Text>
                 </TouchableOpacity>
               </View>

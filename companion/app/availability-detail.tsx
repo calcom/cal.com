@@ -484,7 +484,7 @@ export default function AvailabilityDetail() {
               onPress={handleSave}
               disabled={saving}
             >
-              <Text className="text-white text-base font-semibold">{saving ? "Saving..." : "Save"}</Text>
+              <Text className="text-white text-base font-semibold">Save</Text>
             </TouchableOpacity>
           ),
         }}
