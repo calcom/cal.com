@@ -29,6 +29,11 @@ import {
   parseSlotInterval,
 } from "../utils/parsers/event-type-parsers";
 import { slugify } from "../utils/slugify";
+import { BasicsTab } from "./event-type-detail/tabs/BasicsTab";
+import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
+import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
+import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
+import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -1263,205 +1268,33 @@ export default function EventTypeDetail() {
         {/* Content */}
         <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
-            <View className="gap-3">
-              {/* Title and Description Card */}
-              <View className="bg-white rounded-2xl p-5">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Title</Text>
-                  <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                    value={eventTitle}
-                    onChangeText={setEventTitle}
-                    placeholder="Enter event title"
-                    placeholderTextColor="#8E8E93"
-                  />
-                </View>
-
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Description</Text>
-                  <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                    style={{ height: 100, textAlignVertical: "top" }}
-                    value={eventDescription}
-                    onChangeText={setEventDescription}
-                    placeholder="Enter event description"
-                    placeholderTextColor="#8E8E93"
-                    multiline
-                    numberOfLines={4}
-                  />
-                </View>
-
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">URL</Text>
-                  <View className="flex-row items-center bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg overflow-hidden">
-                    <Text className="bg-[#E5E5EA] text-[#666] text-base px-3 py-3 rounded-tl-lg rounded-bl-lg">cal.com/{username}/</Text>
-                    <TextInput
-                      className="flex-1 px-3 py-3 text-base text-black"
-                      value={eventSlug}
-                      onChangeText={(text) => setEventSlug(slugify(text, true))}
-                      placeholder="event-slug"
-                      placeholderTextColor="#8E8E93"
-                    />
-                  </View>
-                </View>
-              </View>
-
-              {/* Duration Card */}
-              <View className="bg-white rounded-2xl p-5">
-                {!allowMultipleDurations && (
-                  <View className="mb-3">
-                    <Text className="text-base font-semibold text-[#333] mb-1.5">Duration</Text>
-                    <View className="flex-row items-center gap-3">
-                      <TextInput
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                        value={eventDuration}
-                        onChangeText={setEventDuration}
-                        placeholder="30"
-                        placeholderTextColor="#8E8E93"
-                        keyboardType="numeric"
-                      />
-                      <Text className="text-base text-[#666]">Minutes</Text>
-                    </View>
-                  </View>
-                )}
-
-                {allowMultipleDurations && (
-                  <>
-                    <View className="mb-3">
-                      <Text className="text-base font-semibold text-[#333] mb-1.5">Available durations</Text>
-                      <TouchableOpacity
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                        onPress={() => setShowDurationDropdown(true)}>
-                        <Text className="text-base text-black">
-                          {selectedDurations.length > 0
-                            ? `${selectedDurations.length} duration${
-                                selectedDurations.length > 1 ? "s" : ""
-                              } selected`
-                            : "Select durations"}
-                        </Text>
-                        <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                      </TouchableOpacity>
-                    </View>
-
-                    {selectedDurations.length > 0 && (
-                      <View className="mb-3">
-                        <Text className="text-base font-semibold text-[#333] mb-1.5">Default duration</Text>
-                        <TouchableOpacity
-                          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                          onPress={() => setShowDefaultDurationDropdown(true)}>
-                          <Text className="text-base text-black">
-                            {defaultDuration || "Select default duration"}
-                          </Text>
-                          <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </>
-                )}
-
-                <View className="flex-row justify-between items-start">
-                  <Text className="text-base text-[#333] font-medium mb-1">Allow multiple durations</Text>
-                  <Switch
-                    value={allowMultipleDurations}
-                    onValueChange={setAllowMultipleDurations}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Location Card */}
-              <View className="bg-white rounded-2xl p-5">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Location</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowLocationDropdown(true)}
-                    disabled={conferencingLoading}>
-                    <View className="flex-row items-center flex-1">
-                      {!conferencingLoading && selectedLocation && getSelectedLocationIconUrl() && (
-                        <SvgImage
-                          uri={getSelectedLocationIconUrl()!}
-                          width={20}
-                          height={20}
-                          style={{ marginRight: 8 }}
-                        />
-                      )}
-                      <Text className="text-base text-black">
-                        {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                  
-                  {/* Location Input Fields - shown conditionally based on selected location type */}
-                  {(() => {
-                    const currentLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
-                    if (!currentLocation || !currentLocation.organizerInputType) {
-                      return null;
-                    }
-
-                    if (currentLocation.organizerInputType === "text") {
-                      // Text input for address or link
-                      const isAddress = currentLocation.type === "inPerson";
-                      const isLink = currentLocation.type === "link";
-                      
-                      return (
-                        <View className="mt-3">
-                          <Text className="text-sm font-medium text-[#333] mb-1.5">
-                            {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
-                          </Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
-                            placeholder={currentLocation.organizerInputPlaceholder || ""}
-                            value={isAddress ? locationAddress : locationLink}
-                            onChangeText={(text) => {
-                              if (isAddress) {
-                                setLocationAddress(text);
-                              } else {
-                                setLocationLink(text);
-                              }
-                            }}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType={isLink ? "url" : "default"}
-                          />
-                          {currentLocation.messageForOrganizer && (
-                            <Text className="text-xs text-[#666] mt-2">
-                              {currentLocation.messageForOrganizer}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    } else if (currentLocation.organizerInputType === "phone") {
-                      // Phone input
-                      return (
-                        <View className="mt-3">
-                          <Text className="text-sm font-medium text-[#333] mb-1.5">
-                            {currentLocation.organizerInputLabel || "Phone Number"}
-                          </Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
-                            placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
-                            value={locationPhone}
-                            onChangeText={setLocationPhone}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType="phone-pad"
-                          />
-                          {currentLocation.messageForOrganizer && (
-                            <Text className="text-xs text-[#666] mt-2">
-                              {currentLocation.messageForOrganizer}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    }
-                    return null;
-                  })()}
-                </View>
-              </View>
-            </View>
+            <BasicsTab
+              eventTitle={eventTitle}
+              setEventTitle={setEventTitle}
+              eventDescription={eventDescription}
+              setEventDescription={setEventDescription}
+              username={username}
+              eventSlug={eventSlug}
+              setEventSlug={setEventSlug}
+              allowMultipleDurations={allowMultipleDurations}
+              setAllowMultipleDurations={setAllowMultipleDurations}
+              eventDuration={eventDuration}
+              setEventDuration={setEventDuration}
+              selectedDurations={selectedDurations}
+              setShowDurationDropdown={setShowDurationDropdown}
+              defaultDuration={defaultDuration}
+              setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
+              selectedLocation={selectedLocation}
+              setShowLocationDropdown={setShowLocationDropdown}
+              conferencingLoading={conferencingLoading}
+              getSelectedLocationIconUrl={getSelectedLocationIconUrl}
+              locationAddress={locationAddress}
+              setLocationAddress={setLocationAddress}
+              locationLink={locationLink}
+              setLocationLink={setLocationLink}
+              locationPhone={locationPhone}
+              setLocationPhone={setLocationPhone}
+            />
           )}
 
           {/* Duration Multi-Select Modal */}
@@ -1881,979 +1714,126 @@ export default function EventTypeDetail() {
           </Modal>
 
           {activeTab === "availability" && (
-            <View className="bg-white rounded-2xl p-5">
-              <View className="mb-3">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Availability</Text>
-                <TouchableOpacity
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                  onPress={() => setShowScheduleDropdown(true)}
-                  disabled={schedulesLoading}>
-                  <Text className="text-base text-black">
-                    {schedulesLoading
-                      ? "Loading schedules..."
-                      : selectedSchedule
-                      ? selectedSchedule.name
-                      : "Select schedule"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                </TouchableOpacity>
-              </View>
-
-              {selectedSchedule && (
-                <>
-                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
-                    {scheduleDetailsLoading ? (
-                      <View className="py-4 items-center">
-                        <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
-                      </View>
-                    ) : selectedScheduleDetails ? (
-                      getDaySchedule().map((dayInfo, index) => (
-                        <View key={index} className="flex-row justify-between items-center py-4">
-                          <Text
-                            className={`text-[15px] font-medium text-[#333] flex-1 ml-2 ${
-                              !dayInfo.available ? "line-through text-[#8E8E93]" : ""
-                            }`}>
-                            {dayInfo.day}
-                          </Text>
-                          <Text className="text-[15px] text-[#666] text-right mr-4">
-                            {dayInfo.available && dayInfo.startTime && dayInfo.endTime
-                              ? `${formatTime(dayInfo.startTime)} - ${formatTime(dayInfo.endTime)}`
-                              : "Unavailable"}
-                          </Text>
-                        </View>
-                      ))
-                    ) : (
-                      <View className="py-4 items-center">
-                        <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
-                    <Text className="text-base font-semibold text-[#333] mb-1.5">Timezone</Text>
-                    <View className="bg-[#F8F9FA] rounded-lg px-3 py-3 items-center">
-                      <Text className="text-base text-[#666] text-center">
-                        {selectedTimezone || selectedScheduleDetails?.timeZone || "No timezone"}
-                      </Text>
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
+            <AvailabilityTab
+              selectedSchedule={selectedSchedule}
+              setShowScheduleDropdown={setShowScheduleDropdown}
+              schedulesLoading={schedulesLoading}
+              scheduleDetailsLoading={scheduleDetailsLoading}
+              selectedScheduleDetails={selectedScheduleDetails}
+              getDaySchedule={getDaySchedule}
+              formatTime={formatTime}
+              selectedTimezone={selectedTimezone}
+            />
           )}
 
           {activeTab === "limits" && (
-            <View className="gap-3">
-              {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Before event</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowBeforeBufferDropdown(true)}>
-                    <Text className="text-base text-black">{beforeEventBuffer}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-
-                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">After event</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowAfterBufferDropdown(true)}>
-                    <Text className="text-base text-black">{afterEventBuffer}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-
-                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Minimum Notice</Text>
-                  <View className="flex-row items-center gap-3">
-                    <TextInput
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                      value={minimumNoticeValue}
-                      onChangeText={(text) => {
-                        const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
-                        if (num >= 0) {
-                          setMinimumNoticeValue(numericValue || "0");
-                        }
-                      }}
-                      placeholder="1"
-                      placeholderTextColor="#8E8E93"
-                      keyboardType="numeric"
-                    />
-                    <TouchableOpacity
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                      onPress={() => setShowMinimumNoticeUnitDropdown(true)}>
-                      <Text className="text-base text-black">{minimumNoticeUnit}</Text>
-                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Time-slot intervals</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowSlotIntervalDropdown(true)}>
-                    <Text className="text-base text-black">{slotInterval === "Default" ? "Use event length (default)" : slotInterval}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Booking Frequency Limit Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit booking frequency</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit how many times this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitBookingFrequency}
-                    onValueChange={toggleBookingFrequency}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-
-                <Animated.View
-                  style={[
-                    { overflow: "hidden" },
-                    {
-                      opacity: frequencyAnimationValue,
-                      maxHeight: frequencyAnimationValue.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 500],
-                      }),
-                    },
-                  ]}>
-                  {limitBookingFrequency && (
-                    <>
-                      {frequencyLimits.map((limit, index) => (
-                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                            value={limit.value}
-                            onChangeText={(text) => {
-                              const numericValue = text.replace(/[^0-9]/g, "");
-                              const num = parseInt(numericValue) || 0;
-                              if (num >= 0) {
-                                updateFrequencyLimit(limit.id, "value", numericValue || "0");
-                              }
-                            }}
-                            placeholder="1"
-                            placeholderTextColor="#8E8E93"
-                            keyboardType="numeric"
-                          />
-                          <TouchableOpacity
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                            onPress={() => setShowFrequencyUnitDropdown(limit.id)}>
-                            <Text className="text-base text-black">{limit.unit}</Text>
-                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                          </TouchableOpacity>
-                          {frequencyLimits.length > 1 && (
-                            <TouchableOpacity
-                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
-                              onPress={() => removeFrequencyLimit(limit.id)}>
-                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      ))}
-                      <TouchableOpacity
-                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
-                        onPress={addFrequencyLimit}>
-                        <Ionicons name="add" size={20} color="#000" />
-                        <Text className="text-base text-black font-medium">Add Limit</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Total Booking Duration Limit Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit total booking duration</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit total amount of time that this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitTotalDuration}
-                    onValueChange={toggleTotalDuration}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-
-                <Animated.View
-                  style={[
-                    { overflow: "hidden" },
-                    {
-                      opacity: durationAnimationValue,
-                      maxHeight: durationAnimationValue.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 500],
-                      }),
-                    },
-                  ]}>
-                  {limitTotalDuration && (
-                    <>
-                      {durationLimits.map((limit, index) => (
-                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
-                          <View className="flex-row items-center gap-3">
-                            <TextInput
-                              className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                              value={limit.value}
-                              onChangeText={(text) => {
-                                const numericValue = text.replace(/[^0-9]/g, "");
-                                const num = parseInt(numericValue) || 0;
-                                if (num >= 0) {
-                                  updateDurationLimit(limit.id, "value", numericValue || "0");
-                                }
-                              }}
-                              placeholder="60"
-                              placeholderTextColor="#8E8E93"
-                              keyboardType="numeric"
-                            />
-                            <Text className="text-base text-[#666]">Minutes</Text>
-                          </View>
-                          <TouchableOpacity
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                            onPress={() => setShowDurationUnitDropdown(limit.id)}>
-                            <Text className="text-base text-black">{limit.unit}</Text>
-                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                          </TouchableOpacity>
-                          {durationLimits.length > 1 && (
-                            <TouchableOpacity
-                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
-                              onPress={() => removeDurationLimit(limit.id)}>
-                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      ))}
-                      <TouchableOpacity
-                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
-                        onPress={addDurationLimit}>
-                        <Ionicons name="add" size={20} color="#000" />
-                        <Text className="text-base text-black font-medium">Add Limit</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Only Show First Available Slot Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Only show the first slot of each day as available</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      This will limit your availability for this event type to one slot per day, scheduled at the earliest available time.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={onlyShowFirstAvailableSlot}
-                    onValueChange={setOnlyShowFirstAvailableSlot}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Max Active Bookings Per Booker Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit number of upcoming bookings per booker</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit the number of active bookings a booker can make for this event type.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={maxActiveBookingsPerBooker}
-                    onValueChange={setMaxActiveBookingsPerBooker}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-                {maxActiveBookingsPerBooker && (
-                  <View className="mt-3">
-                    <TextInput
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                      value={maxActiveBookingsValue}
-                      onChangeText={(text) => {
-                        const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
-                        if (num >= 0) {
-                          setMaxActiveBookingsValue(numericValue || "1");
-                        }
-                      }}
-                      placeholder="1"
-                      placeholderTextColor="#8E8E93"
-                      keyboardType="numeric"
-                    />
-                  </View>
-                )}
-              </View>
-
-              {/* Limit Future Bookings Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit future bookings</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit how far in the future this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitFutureBookings}
-                    onValueChange={setLimitFutureBookings}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-                {limitFutureBookings && (
-                  <View className="mt-3 gap-3">
-                    <View className="flex-row items-center gap-3">
-                      <TouchableOpacity
-                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                          futureBookingType === "rolling"
-                            ? "bg-[#F0F0F0] border-[#333]"
-                            : "bg-[#F8F9FA] border-[#E5E5EA]"
-                        }`}
-                        onPress={() => setFutureBookingType("rolling")}>
-                        <Text
-                          className={`text-base ${
-                            futureBookingType === "rolling" ? "text-[#333] font-semibold" : "text-[#666]"
-                          }`}>
-                          Rolling
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                          futureBookingType === "range"
-                            ? "bg-[#F0F0F0] border-[#333]"
-                            : "bg-[#F8F9FA] border-[#E5E5EA]"
-                        }`}
-                        onPress={() => setFutureBookingType("range")}>
-                        <Text
-                          className={`text-base ${
-                            futureBookingType === "range" ? "text-[#333] font-semibold" : "text-[#666]"
-                          }`}>
-                          Date Range
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    {futureBookingType === "rolling" && (
-                      <View className="gap-3">
-                        <View className="flex-row items-center gap-3">
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black flex-1"
-                            value={rollingDays}
-                            onChangeText={(text) => {
-                              const numericValue = text.replace(/[^0-9]/g, "");
-                              const num = parseInt(numericValue) || 0;
-                              if (num >= 0) {
-                                setRollingDays(numericValue || "30");
-                              }
-                            }}
-                            placeholder="30"
-                            placeholderTextColor="#8E8E93"
-                            keyboardType="numeric"
-                          />
-                          <TouchableOpacity
-                            className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                              rollingCalendarDays
-                                ? "bg-[#F0F0F0] border-[#333]"
-                                : "bg-[#F8F9FA] border-[#E5E5EA]"
-                            }`}
-                            onPress={() => setRollingCalendarDays(!rollingCalendarDays)}>
-                            <Text
-                              className={`text-base ${
-                                rollingCalendarDays ? "text-[#333] font-semibold" : "text-[#666]"
-                              }`}>
-                              {rollingCalendarDays ? "Calendar days" : "Business days"}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text className="text-sm text-[#666]">days into the future</Text>
-                      </View>
-                    )}
-                    {futureBookingType === "range" && (
-                      <View className="gap-3">
-                        <View>
-                          <Text className="text-sm text-[#666] mb-1.5">Start date</Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                            value={rangeStartDate}
-                            onChangeText={setRangeStartDate}
-                            placeholder="YYYY-MM-DD"
-                            placeholderTextColor="#8E8E93"
-                          />
-                        </View>
-                        <View>
-                          <Text className="text-sm text-[#666] mb-1.5">End date</Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                            value={rangeEndDate}
-                            onChangeText={setRangeEndDate}
-                            placeholder="YYYY-MM-DD"
-                            placeholderTextColor="#8E8E93"
-                          />
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-
-            </View>
+            <LimitsTab
+              beforeEventBuffer={beforeEventBuffer}
+              setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
+              afterEventBuffer={afterEventBuffer}
+              setShowAfterBufferDropdown={setShowAfterBufferDropdown}
+              minimumNoticeValue={minimumNoticeValue}
+              setMinimumNoticeValue={setMinimumNoticeValue}
+              minimumNoticeUnit={minimumNoticeUnit}
+              setShowMinimumNoticeUnitDropdown={setShowMinimumNoticeUnitDropdown}
+              slotInterval={slotInterval}
+              setShowSlotIntervalDropdown={setShowSlotIntervalDropdown}
+              limitBookingFrequency={limitBookingFrequency}
+              toggleBookingFrequency={toggleBookingFrequency}
+              frequencyAnimationValue={frequencyAnimationValue}
+              frequencyLimits={frequencyLimits}
+              updateFrequencyLimit={updateFrequencyLimit}
+              setShowFrequencyUnitDropdown={setShowFrequencyUnitDropdown}
+              removeFrequencyLimit={removeFrequencyLimit}
+              addFrequencyLimit={addFrequencyLimit}
+              limitTotalDuration={limitTotalDuration}
+              toggleTotalDuration={toggleTotalDuration}
+              durationAnimationValue={durationAnimationValue}
+              durationLimits={durationLimits}
+              updateDurationLimit={updateDurationLimit}
+              setShowDurationUnitDropdown={setShowDurationUnitDropdown}
+              removeDurationLimit={removeDurationLimit}
+              addDurationLimit={addDurationLimit}
+              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
+              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
+              maxActiveBookingsPerBooker={maxActiveBookingsPerBooker}
+              setMaxActiveBookingsPerBooker={setMaxActiveBookingsPerBooker}
+              maxActiveBookingsValue={maxActiveBookingsValue}
+              setMaxActiveBookingsValue={setMaxActiveBookingsValue}
+              limitFutureBookings={limitFutureBookings}
+              setLimitFutureBookings={setLimitFutureBookings}
+              futureBookingType={futureBookingType}
+              setFutureBookingType={setFutureBookingType}
+              rollingDays={rollingDays}
+              setRollingDays={setRollingDays}
+              rollingCalendarDays={rollingCalendarDays}
+              setRollingCalendarDays={setRollingCalendarDays}
+              rangeStartDate={rangeStartDate}
+              setRangeStartDate={setRangeStartDate}
+              rangeEndDate={rangeEndDate}
+              setRangeEndDate={setRangeEndDate}
+            />
           )}
 
+
           {activeTab === "advanced" && (
-            <View className="gap-3">
-              {/* Calendar Event Name Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Calendar event name</Text>
-                <TextInput
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-2"
-                  value={calendarEventName}
-                  onChangeText={setCalendarEventName}
-                  placeholder="30min between Pro Example and {Scheduler}"
-                  placeholderTextColor="#8E8E93"
-                />
-                <Text className="text-xs text-[#666]">
-                  Use variables like {"{"}Scheduler{"}"} for booker name, {"{"}Organizer{"}"} for your name
-                </Text>
-            </View>
-
-              {/* Add to Calendar Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Add to calendar</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  We'll display this email address as the organizer, and send confirmation emails here.
-                </Text>
-                <TextInput
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                  value={addToCalendarEmail}
-                  onChangeText={setAddToCalendarEmail}
-                  placeholder="pro@example.com"
-                  placeholderTextColor="#8E8E93"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Layout Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Layout</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  You can select multiple and your bookers can switch views.
-                </Text>
-                
-                {/* Layout Options */}
-                <View className="gap-2 mb-4">
-                  {[
-                    { id: "MONTH_VIEW", label: "Month", icon: "calendar-outline" },
-                    { id: "WEEK_VIEW", label: "Weekly", icon: "calendar-outline" },
-                    { id: "COLUMN_VIEW", label: "Column", icon: "list-outline" },
-                  ].map((layout) => (
-                    <TouchableOpacity
-                      key={layout.id}
-                      className={`flex-row items-center justify-between p-3 rounded-lg border ${
-                        selectedLayouts.includes(layout.id)
-                          ? "border-black bg-[#F0F0F0]"
-                          : "border-[#E5E5EA]"
-                      }`}
-                      onPress={() => {
-                        if (selectedLayouts.includes(layout.id)) {
-                          // Don't allow deselecting if it's the only one
-                          if (selectedLayouts.length > 1) {
-                            setSelectedLayouts(selectedLayouts.filter((l) => l !== layout.id));
-                            // If removing the default, set a new default
-                            if (defaultLayout === layout.id) {
-                              const remaining = selectedLayouts.filter((l) => l !== layout.id);
-                              setDefaultLayout(remaining[0]);
-                            }
-                          }
-                        } else {
-                          setSelectedLayouts([...selectedLayouts, layout.id]);
-                        }
-                      }}>
-                      <View className="flex-row items-center gap-2">
-                        <Ionicons name={layout.icon as any} size={20} color="#333" />
-                        <Text className="text-base text-[#333]">{layout.label}</Text>
-                      </View>
-                      {selectedLayouts.includes(layout.id) && (
-                        <Ionicons name="checkmark-circle" size={20} color="#000" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Default View */}
-                {selectedLayouts.length > 1 && (
-                  <View>
-                    <Text className="text-sm font-medium text-[#333] mb-2">Default view</Text>
-                    <View className="gap-2">
-                      {selectedLayouts.map((layoutId) => {
-                        const layout = [
-                          { id: "MONTH_VIEW", label: "Month" },
-                          { id: "WEEK_VIEW", label: "Weekly" },
-                          { id: "COLUMN_VIEW", label: "Column" },
-                        ].find((l) => l.id === layoutId);
-                        if (!layout) return null;
-                        return (
-                          <TouchableOpacity
-                            key={layout.id}
-                            className={`flex-row items-center justify-between p-3 rounded-lg border ${
-                              defaultLayout === layout.id
-                                ? "border-black bg-[#F0F0F0]"
-                                : "border-[#E5E5EA]"
-                            }`}
-                            onPress={() => setDefaultLayout(layout.id)}>
-                            <Text className="text-base text-[#333]">{layout.label}</Text>
-                            {defaultLayout === layout.id && (
-                              <Ionicons name="checkmark-circle" size={20} color="#000" />
-                            )}
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-                )}
-              </View>
-
-              {/* Booking Questions Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Booking questions</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  Customize the questions asked on the booking page.
-                </Text>
-                <TouchableOpacity
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 flex-row items-center justify-center"
-                  onPress={() => Alert.alert("Coming Soon", "Booking questions customization will be available soon.")}>
-                  <Ionicons name="add-circle-outline" size={20} color="#666" />
-                  <Text className="text-base text-[#666] ml-2">Manage booking questions</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Requires confirmation */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Requires confirmation</Text>
-                    <Text className="text-sm text-[#666]">
-                      The booking needs to be manually confirmed before it is pushed to your calendar
-                    </Text>
-                  </View>
-                  <Switch
-                    value={requiresConfirmation}
-                    onValueChange={setRequiresConfirmation}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Disable Cancelling */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Disable Cancelling</Text>
-                    <Text className="text-sm text-[#666]">
-                      Guests can no longer cancel the event with calendar invite or email
-                    </Text>
-                  </View>
-                  <Switch
-                    value={disableCancelling}
-                    onValueChange={setDisableCancelling}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Disable Rescheduling */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Disable Rescheduling</Text>
-                    <Text className="text-sm text-[#666]">
-                      Guests can no longer reschedule the event with calendar invite or email
-                    </Text>
-                  </View>
-                  <Switch
-                    value={disableRescheduling}
-                    onValueChange={setDisableRescheduling}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Send Cal Video Transcription Emails */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Send Cal Video Transcription Emails</Text>
-                    <Text className="text-sm text-[#666]">
-                      Send emails with the transcription of the Cal Video after the meeting ends
-                    </Text>
-                  </View>
-                  <Switch
-                    value={sendCalVideoTranscription}
-                    onValueChange={setSendCalVideoTranscription}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Auto translate */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Auto translate title and description</Text>
-                    <Text className="text-sm text-[#666]">
-                      Automatically translate titles and descriptions to the visitor's browser language using AI
-                    </Text>
-                  </View>
-                  <Switch
-                    value={autoTranslate}
-                    onValueChange={setAutoTranslate}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Requires booker email verification */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Requires booker email verification</Text>
-                    <Text className="text-sm text-[#666]">
-                      To ensure booker's email verification before scheduling events
-                    </Text>
-                  </View>
-                  <Switch
-                    value={requiresBookerEmailVerification}
-                    onValueChange={setRequiresBookerEmailVerification}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Hide notes in calendar */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Hide notes in calendar</Text>
-                    <Text className="text-sm text-[#666]">
-                      For privacy reasons, additional inputs and notes will be hidden in the calendar entry
-                    </Text>
-                  </View>
-                  <Switch
-                    value={hideCalendarNotes}
-                    onValueChange={setHideCalendarNotes}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Hide calendar event details */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Hide calendar event details on shared calendars</Text>
-                    <Text className="text-sm text-[#666]">
-                      When a calendar is shared, events are visible but details are hidden from those without write access
-                    </Text>
-                  </View>
-                  <Switch
-                    value={hideCalendarEventDetails}
-                    onValueChange={setHideCalendarEventDetails}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Hide organizer's email */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Hide organizer's email</Text>
-                    <Text className="text-sm text-[#666]">
-                      Hide organizer's email address from the booking screen, email notifications, and calendar events
-                    </Text>
-                  </View>
-                  <Switch
-                    value={hideOrganizerEmail}
-                    onValueChange={setHideOrganizerEmail}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Lock timezone */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Lock timezone on booking page</Text>
-                    <Text className="text-sm text-[#666]">
-                      To lock the timezone on booking page, useful for in-person events
-                    </Text>
-                  </View>
-                  <Switch
-                    value={lockTimezone}
-                    onValueChange={setLockTimezone}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Allow rescheduling past events */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Allow rescheduling past events</Text>
-                    <Text className="text-sm text-[#666]">
-                      Enabling this option allows for past events to be rescheduled
-                    </Text>
-                  </View>
-                  <Switch
-                    value={allowReschedulingPastEvents}
-                    onValueChange={setAllowReschedulingPastEvents}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Allow booking through reschedule link */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Allow booking through reschedule link</Text>
-                    <Text className="text-sm text-[#666]">
-                      When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking
-                    </Text>
-                  </View>
-                  <Switch
-                    value={allowBookingThroughRescheduleLink}
-                    onValueChange={setAllowBookingThroughRescheduleLink}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Redirect on booking Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Redirect on booking</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  Redirect to a custom URL after a successful booking
-                </Text>
-                <TextInput
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-3"
-                  value={successRedirectUrl}
-                  onChangeText={setSuccessRedirectUrl}
-                  placeholder="https://example.com/thank-you"
-                  placeholderTextColor="#8E8E93"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                />
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-[#333]">Forward query parameters</Text>
-                  <Switch
-                    value={forwardParamsSuccessRedirect}
-                    onValueChange={setForwardParamsSuccessRedirect}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Custom Reply-To Email Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Custom 'Reply-To' email</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  Use a different email address as the replyTo for confirmation emails instead of the organizer's email
-                </Text>
-                <TextInput
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                  value={customReplyToEmail}
-                  onChangeText={setCustomReplyToEmail}
-                  placeholder="reply@example.com"
-                  placeholderTextColor="#8E8E93"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Event Type Color Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Event type color</Text>
-                <Text className="text-sm text-[#666] mb-3">
-                  This is only used for event type & booking differentiation within the app. It is not displayed to bookers.
-                </Text>
-                <View className="gap-3">
-                  <View>
-                    <Text className="text-sm font-medium text-[#333] mb-2">Light theme color</Text>
-                    <View className="flex-row items-center gap-3">
-                      <View
-                        className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
-                        style={{ backgroundColor: eventTypeColorLight }}
-                      />
-                      <TextInput
-                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                        value={eventTypeColorLight}
-                        onChangeText={setEventTypeColorLight}
-                        placeholder="#292929"
-                        placeholderTextColor="#8E8E93"
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-                  <View>
-                    <Text className="text-sm font-medium text-[#333] mb-2">Dark theme color</Text>
-                    <View className="flex-row items-center gap-3">
-                      <View
-                        className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
-                        style={{ backgroundColor: eventTypeColorDark }}
-                      />
-                      <TextInput
-                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                        value={eventTypeColorDark}
-                        onChangeText={setEventTypeColorDark}
-                        placeholder="#FAFAFA"
-                        placeholderTextColor="#8E8E93"
-                        autoCapitalize="none"
-                      />
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
+            <AdvancedTab
+              calendarEventName={calendarEventName}
+              setCalendarEventName={setCalendarEventName}
+              addToCalendarEmail={addToCalendarEmail}
+              setAddToCalendarEmail={setAddToCalendarEmail}
+              selectedLayouts={selectedLayouts}
+              setSelectedLayouts={setSelectedLayouts}
+              defaultLayout={defaultLayout}
+              setDefaultLayout={setDefaultLayout}
+              requiresConfirmation={requiresConfirmation}
+              setRequiresConfirmation={setRequiresConfirmation}
+              disableCancelling={disableCancelling}
+              setDisableCancelling={setDisableCancelling}
+              disableRescheduling={disableRescheduling}
+              setDisableRescheduling={setDisableRescheduling}
+              sendCalVideoTranscription={sendCalVideoTranscription}
+              setSendCalVideoTranscription={setSendCalVideoTranscription}
+              autoTranslate={autoTranslate}
+              setAutoTranslate={setAutoTranslate}
+              requiresBookerEmailVerification={requiresBookerEmailVerification}
+              setRequiresBookerEmailVerification={setRequiresBookerEmailVerification}
+              hideCalendarNotes={hideCalendarNotes}
+              setHideCalendarNotes={setHideCalendarNotes}
+              hideCalendarEventDetails={hideCalendarEventDetails}
+              setHideCalendarEventDetails={setHideCalendarEventDetails}
+              hideOrganizerEmail={hideOrganizerEmail}
+              setHideOrganizerEmail={setHideOrganizerEmail}
+              lockTimezone={lockTimezone}
+              setLockTimezone={setLockTimezone}
+              allowReschedulingPastEvents={allowReschedulingPastEvents}
+              setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
+              allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
+              setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              successRedirectUrl={successRedirectUrl}
+              setSuccessRedirectUrl={setSuccessRedirectUrl}
+              forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
+              setForwardParamsSuccessRedirect={setForwardParamsSuccessRedirect}
+              customReplyToEmail={customReplyToEmail}
+              setCustomReplyToEmail={setCustomReplyToEmail}
+              eventTypeColorLight={eventTypeColorLight}
+              setEventTypeColorLight={setEventTypeColorLight}
+              eventTypeColorDark={eventTypeColorDark}
+              setEventTypeColorDark={setEventTypeColorDark}
+            />
           )}
 
           {activeTab === "recurring" && (
-            <View className="gap-3">
-              {/* Recurring Event Toggle Card */}
-              <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-3">
-                    <Text className="text-base text-[#333] font-medium mb-1">Recurring event</Text>
-                    <Text className="text-sm text-[#666]">
-                      Set up this event type to repeat at regular intervals
-                    </Text>
-                  </View>
-                  <Switch
-                    value={recurringEnabled}
-                    onValueChange={setRecurringEnabled}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Recurring Configuration Card - shown when enabled */}
-              {recurringEnabled && (
-                <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-                  <Text className="text-base font-semibold text-[#333] mb-4">Recurrence pattern</Text>
-                  
-                  {/* Repeats Every */}
-                  <View className="mb-4">
-                    <Text className="text-sm font-medium text-[#333] mb-2">Repeats every</Text>
-                    <View className="flex-row items-center gap-3">
-                      <TextInput
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                        value={recurringInterval}
-                        onChangeText={(text) => {
-                          const numericValue = text.replace(/[^0-9]/g, "");
-                          const num = parseInt(numericValue) || 1;
-                          if (num >= 1 && num <= 20) {
-                            setRecurringInterval(numericValue || "1");
-                          }
-                        }}
-                        placeholder="1"
-                        placeholderTextColor="#8E8E93"
-                        keyboardType="numeric"
-                      />
-                      <TouchableOpacity
-                        className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                        onPress={() => {
-                          Alert.alert(
-                            "Select Frequency",
-                            "Choose how often this event repeats",
-                            [
-                              {
-                                text: "Daily",
-                                onPress: () => setRecurringFrequency("daily"),
-                              },
-                              {
-                                text: "Weekly",
-                                onPress: () => setRecurringFrequency("weekly"),
-                              },
-                              {
-                                text: "Monthly",
-                                onPress: () => setRecurringFrequency("monthly"),
-                              },
-                              {
-                                text: "Yearly",
-                                onPress: () => setRecurringFrequency("yearly"),
-                              },
-                              { text: "Cancel", style: "cancel" },
-                            ]
-                          );
-                        }}>
-                        <Text className="text-base text-black capitalize">{recurringFrequency}</Text>
-                        <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-
-                  {/* Maximum Occurrences */}
-                  <View>
-                    <Text className="text-sm font-medium text-[#333] mb-2">Maximum number of events</Text>
-                    <View className="flex-row items-center gap-2">
-                      <TextInput
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-24 text-center"
-                        value={recurringOccurrences}
-                        onChangeText={(text) => {
-                          const numericValue = text.replace(/[^0-9]/g, "");
-                          const num = parseInt(numericValue) || 1;
-                          if (num >= 1) {
-                            setRecurringOccurrences(numericValue || "1");
-                          }
-                        }}
-                        placeholder="12"
-                        placeholderTextColor="#8E8E93"
-                        keyboardType="numeric"
-                      />
-                      <Text className="text-sm text-[#666]">occurrences</Text>
-                    </View>
-                    <Text className="text-xs text-[#666] mt-2">
-                      The booking will create {recurringOccurrences} events that repeat {recurringFrequency}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
+            <RecurringTab
+              recurringEnabled={recurringEnabled}
+              setRecurringEnabled={setRecurringEnabled}
+              recurringInterval={recurringInterval}
+              setRecurringInterval={setRecurringInterval}
+              recurringFrequency={recurringFrequency}
+              setRecurringFrequency={setRecurringFrequency}
+              recurringOccurrences={recurringOccurrences}
+              setRecurringOccurrences={setRecurringOccurrences}
+            />
           )}
 
           {activeTab === "apps" && (
