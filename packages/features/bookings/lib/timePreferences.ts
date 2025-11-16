@@ -11,8 +11,8 @@ type TimePreferencesStore = {
   setTimezone: (timeZone: string) => void;
   _initializedTimezone: boolean;
   initializeTimezone: (timezoneFromUserSettings: string) => void;
-  checkHavePreferedTimezone: () => boolean;
-  removePreferedTimezone: () => void;
+  checkHavePreferredTimezone: () => boolean;
+  removePreferredTimezone: () => void;
 };
 
 const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
@@ -48,16 +48,16 @@ export const timePreferencesStore = create<TimePreferencesStore>((set, get) => (
   },
 
   /**
-   * checkHavePreferedTimezone is used to check if there is a preferred timezone stored in localStorage.
+   * checkHavePreferredTimezone is used to check if there is a preferred timezone stored in localStorage.
    */
-  checkHavePreferedTimezone: () => {
+  checkHavePreferredTimezone: () => {
     return !!localStorage.getItem(timezoneLocalStorageKey);
   },
 
   /**
-   * removePreferedTimezone is used to remove the preferred timezone from localStorage - currently used to remove the preferred timezone when user changes timezone in settings so that the timezone from user settings is used in the booker .
+   * removePreferredTimezone is used to remove the preferred timezone from localStorage - currently used to remove the preferred timezone when user changes timezone in settings so that the timezone from user settings is used in the booker .
    */
-  removePreferedTimezone: () => {
+  removePreferredTimezone: () => {
     localStorage.removeItem(timezoneLocalStorageKey);
   },
 }));

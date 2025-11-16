@@ -61,7 +61,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     i18n: { language },
   } = useLocale();
   const { update } = useSession();
-  const { checkHavePreferedTimezone, removePreferedTimezone } = useTimePreferences();
+  const { checkHavePreferredTimezone, removePreferredTimezone } = useTimePreferences();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
 
@@ -89,8 +89,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
 
       // when user updates timezone remove preferred timezone so default they see the timezone from user settings
       if (res.timeZone && res.timeZone !== initialTimezoneRef.current) {
-        if (checkHavePreferedTimezone()) {
-          removePreferedTimezone();
+        if (checkHavePreferredTimezone()) {
+          removePreferredTimezone();
         }
       }
 
