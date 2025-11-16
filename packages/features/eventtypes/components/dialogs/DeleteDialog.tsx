@@ -30,7 +30,7 @@ export function DeleteDialog({
           e.preventDefault();
           onDelete(eventTypeId);
         }}>
-        <p className="mt-5">
+        <div className="mt-5">
           {isManagedEvent ? (
             <ul className="ml-4 list-disc">
               <li>{t("delete_managed_event_type_description_1")}</li>
@@ -39,7 +39,7 @@ export function DeleteDialog({
           ) : (
             t("delete_event_type_description")
           )}
-        </p>
+        </div>
       </ConfirmationDialogContent>
     </Dialog>
   );
