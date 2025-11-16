@@ -56,7 +56,7 @@ export const getFirstConnectedCalendar = ({
  */
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;
-  const { integration, externalId, eventTypeId } = input;
+  const { integration, externalId, eventTypeId, reminderMinutes } = input;
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   const calendarCredentials = getCalendarCredentials(credentials);
   const { connectedCalendars } = await getConnectedCalendars(
@@ -114,6 +114,8 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       primaryEmail,
       credentialId,
       delegationCredentialId,
+
+      ...(reminderMinutes !== undefined && { reminderMinutes }),
     },
     create: {
       ...where,
@@ -122,6 +124,8 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       primaryEmail,
       credentialId,
       delegationCredentialId,
+
+      ...(reminderMinutes !== undefined && { reminderMinutes }),
     },
   });
 };

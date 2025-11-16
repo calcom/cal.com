@@ -1,4 +1,4 @@
-// This is your Prisma Schema file 
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -330,11 +330,16 @@ model DestinationCalendar {
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+  reminderMinutes     Int?
+
+  /// NEW FIELD BELOW
+  customReminder Int? @default(10)
 
   @@index([userId])
   @@index([eventTypeId])
   @@index([credentialId])
 }
+
 
 enum UserPermissionRole {
   USER
