@@ -51,11 +51,11 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
           });
           onRemove();
         }}>
-        <p className="mt-5">
+        <div className="mt-5">
           {t("remove_users_from_team_confirm", {
             userCount: selectedRows.length,
           })}
-        </p>
+        </div>
       </ConfirmationDialogContent>
     </Dialog>
   );
