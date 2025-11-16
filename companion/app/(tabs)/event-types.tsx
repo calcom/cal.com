@@ -15,10 +15,13 @@ import {
   Alert,
   Clipboard,
   Platform,
+  Modal,
+  KeyboardAvoidingView,
 } from "react-native";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
+import { slugify } from "../../utils/slugify";
 
 export default function EventTypes() {
   const router = useRouter();
@@ -29,12 +32,36 @@ export default function EventTypes() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
+  
+  // Modal state for creating new event type
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState("");
+  const [newEventSlug, setNewEventSlug] = useState("");
+  const [newEventDescription, setNewEventDescription] = useState("");
+  const [newEventDuration, setNewEventDuration] = useState("15");
+  const [username, setUsername] = useState<string>("dhairyashil");
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
+  }, []);
+
+  // Fetch username on mount
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const fetchedUsername = await CalComAPIService.getUsername();
+        setUsername(fetchedUsername);
+      } catch (error) {
+        console.error("Failed to fetch username:", error);
+        // Keep default username if fetch fails
+      }
+    };
+    fetchUsername();
   }, []);
 
   const fetchEventTypes = async () => {
@@ -261,18 +288,67 @@ export default function EventTypes() {
   };
 
   const handleCreateNew = () => {
-    // Navigate to create new event type
-    router.push({
-      pathname: "/event-type-detail",
-      params: {
-        id: "new",
-        title: "",
-        description: "",
-        duration: "30",
-        price: "",
-        currency: "",
-      },
-    });
+    setShowCreateModal(true);
+  };
+
+  const handleCreateEventType = async () => {
+    if (!newEventTitle.trim()) {
+      Alert.alert("Error", "Please enter a title for your event type");
+      return;
+    }
+
+    if (!newEventSlug.trim()) {
+      Alert.alert("Error", "Please enter a URL for your event type");
+      return;
+    }
+
+    const duration = parseInt(newEventDuration);
+    if (isNaN(duration) || duration <= 0) {
+      Alert.alert("Error", "Please enter a valid duration");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      // Get username for building the full URL
+      const username = await CalComAPIService.getUsername();
+
+      // Create the event type with the form data
+      const newEventType = await CalComAPIService.createEventType({
+        title: newEventTitle.trim(),
+        slug: newEventSlug.trim(),
+        lengthInMinutes: duration,
+        description: newEventDescription.trim() || undefined,
+      });
+
+      // Close modal and reset form
+      setShowCreateModal(false);
+      setNewEventTitle("");
+      setNewEventSlug("");
+      setNewEventDescription("");
+      setNewEventDuration("15");
+      setIsSlugManuallyEdited(false);
+
+      // Refresh the list
+      await fetchEventTypes();
+
+      // Navigate to edit the newly created event type
+      router.push({
+        pathname: "/event-type-detail",
+        params: {
+          id: newEventType.id.toString(),
+          title: newEventType.title,
+          description: newEventType.description || "",
+          duration: (newEventType.lengthInMinutes || newEventType.length || 15).toString(),
+          slug: newEventType.slug || "",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to create event type:", error);
+      Alert.alert("Error", "Failed to create event type. Please try again.");
+    } finally {
+      setCreating(false);
+    }
   };
 
   const renderEventType = ({ item, index }: { item: EventType; index: number }) => {
@@ -429,6 +505,142 @@ export default function EventTypes() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Create Event Type Modal */}
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCreateModal(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <View
+            className="bg-white rounded-2xl w-[90%] max-w-[500px]"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 0.25,
+              shadowRadius: 25,
+              elevation: 24,
+            }}>
+            {/* Header */}
+            <View className="px-8 pt-6 pb-4">
+              <Text className="text-2xl font-semibold text-[#111827] mb-2">Add a new event type</Text>
+              <Text className="text-sm text-[#6B7280]">
+                Set up event types to offer different types of meetings.
+              </Text>
+            </View>
+
+            {/* Content */}
+            <ScrollView className="px-8 pb-6" showsVerticalScrollIndicator={false}>
+              {/* Title */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-[#374151] mb-2">Title</Text>
+                <TextInput
+                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB]"
+                  placeholder="Quick Chat"
+                  placeholderTextColor="#9CA3AF"
+                  value={newEventTitle}
+                  onChangeText={(text) => {
+                    setNewEventTitle(text);
+                    // Auto-generate slug from title if user hasn't manually edited it
+                    if (!isSlugManuallyEdited) {
+                      setNewEventSlug(slugify(text, true));
+                    }
+                  }}
+                  autoFocus
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              </View>
+
+              {/* URL */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-[#374151] mb-2">URL</Text>
+                <View className="flex-row items-center bg-white rounded-md border border-[#D1D5DB]">
+                  <Text className="text-base text-[#6B7280] px-3">https://cal.com/{username}/</Text>
+                  <TextInput
+                    className="flex-1 py-2.5 pr-3 text-base text-[#111827]"
+                    placeholder="quick-chat"
+                    placeholderTextColor="#9CA3AF"
+                    value={newEventSlug}
+                    onChangeText={(text) => {
+                      setIsSlugManuallyEdited(true);
+                      setNewEventSlug(slugify(text, true));
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="next"
+                  />
+                </View>
+              </View>
+
+              {/* Description */}
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-[#374151] mb-2">Description</Text>
+                <TextInput
+                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB]"
+                  placeholder="A quick video meeting."
+                  placeholderTextColor="#9CA3AF"
+                  value={newEventDescription}
+                  onChangeText={setNewEventDescription}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  returnKeyType="next"
+                />
+              </View>
+
+              {/* Duration */}
+              <View className="mb-1">
+                <Text className="text-sm font-medium text-[#374151] mb-2">Duration</Text>
+                <View className="flex-row items-center">
+                  <TextInput
+                    className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB] w-20 text-center"
+                    placeholder="15"
+                    placeholderTextColor="#9CA3AF"
+                    value={newEventDuration}
+                    onChangeText={setNewEventDuration}
+                    keyboardType="number-pad"
+                    returnKeyType="done"
+                    onSubmitEditing={handleCreateEventType}
+                  />
+                  <Text className="text-base text-[#6B7280] ml-3">minutes</Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Footer */}
+            <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
+              <View className="flex-row justify-end space-x-2 gap-2">
+                <TouchableOpacity
+                  className="px-4 py-2 rounded-md"
+                  onPress={() => {
+                    setShowCreateModal(false);
+                    setNewEventTitle("");
+                    setNewEventSlug("");
+                    setNewEventDescription("");
+                    setNewEventDuration("15");
+                    setIsSlugManuallyEdited(false);
+                  }}
+                  disabled={creating}>
+                  <Text className="text-base font-medium text-[#374151]">Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-4 py-2 bg-[#111827] rounded-md ${creating ? "opacity-60" : ""}`}
+                  onPress={handleCreateEventType}
+                  disabled={creating}>
+                  <Text className="text-base font-medium text-white">
+                    {creating ? "Creating..." : "Continue"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }

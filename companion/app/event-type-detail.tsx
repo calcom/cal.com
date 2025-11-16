@@ -22,6 +22,13 @@ import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../se
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { defaultLocations, getDefaultLocationIconUrl, isDefaultLocation, DefaultLocationType } from "../utils/defaultLocations";
 import { SvgImage } from "../components/SvgImage";
+import {
+  parseBufferTime,
+  parseMinimumNotice,
+  parseFrequencyUnit,
+  parseSlotInterval,
+} from "../utils/parsers/event-type-parsers";
+import { slugify } from "../utils/slugify";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -681,19 +688,30 @@ export default function EventTypeDetail() {
       return;
     }
 
+    // Validate required fields
+    if (!eventTitle || !eventSlug) {
+      Alert.alert("Error", "Title and slug are required");
+      return;
+    }
+
+    const durationNum = parseInt(eventDuration);
+    if (isNaN(durationNum) || durationNum <= 0) {
+      Alert.alert("Error", "Duration must be a positive number");
+      return;
+    }
+
     try {
       setSaving(true);
 
-      // Prepare location update if a location is selected
-      const updates: {
-        locations?: Array<{
-          type: string;
-          integration?: string;
-          public?: boolean;
-          address?: string;
-          link?: string;
-        }>;
-      } = {};
+      // Build location payload if a location is selected
+      let locationsPayload: Array<{
+        type: string;
+        integration?: string;
+        address?: string;
+        link?: string;
+        phone?: string;
+        public?: boolean;
+      }> | undefined;
 
       if (selectedLocation) {
         const locationValue = displayNameToLocationValue(selectedLocation);
@@ -720,46 +738,139 @@ export default function EventTypeDetail() {
 
         // Add type-specific fields based on location type
         if (locationValue.type === "integration") {
-          // Conferencing app integration
           locationPayload.integration = locationValue.integration;
           locationPayload.public = locationValue.public ?? true;
         } else if (locationValue.type === "address") {
-          // Organizer address location - required fields: address (string) and public (boolean)
           locationPayload.address = locationAddress || existingLocation?.address || "";
-          locationPayload.public = true; // Required, always true
+          locationPayload.public = true;
         } else if (locationValue.type === "link") {
-          // Link meeting location - required fields: link (string) and public (boolean)
           locationPayload.link = locationLink || existingLocation?.link || "";
-          locationPayload.public = true; // Required, always true
+          locationPayload.public = true;
         } else if (locationValue.type === "phone") {
-          // Organizer phone location - required fields: phone (string) and public (boolean)
           locationPayload.phone = locationPhone || existingLocation?.phone || "";
-          locationPayload.public = true; // Required, always true
-        } else if (
-          locationValue.type === "attendeeAddress" ||
-          locationValue.type === "attendeePhone" ||
-          locationValue.type === "attendeeDefined"
-        ) {
-          // Attendee location types - only type field is needed, no additional fields
-          // These are already set correctly with just { type: "..." }
+          locationPayload.public = true;
         }
 
-        updates.locations = [locationPayload];
+        locationsPayload = [locationPayload];
       }
 
-      // Only update if there are changes
-      if (Object.keys(updates).length > 0) {
-        await CalComAPIService.updateEventType(parseInt(id), updates);
-        Alert.alert("Success", "Event type updated successfully");
+      // Build the payload with all fields
+      const payload: any = {
+        title: eventTitle,
+        slug: eventSlug,
+        lengthInMinutes: durationNum,
+      };
 
+      // Add optional fields if they have values
+      if (eventDescription) {
+        payload.description = eventDescription;
+      }
+
+      if (locationsPayload) {
+        payload.locations = locationsPayload;
+      }
+
+      if (selectedSchedule) {
+        payload.scheduleId = selectedSchedule.id;
+      }
+
+      if (isHidden !== undefined) {
+        payload.hidden = isHidden;
+      }
+
+      // Add buffer times if set
+      if (beforeEventBuffer && beforeEventBuffer !== "No buffer time") {
+        const bufferMinutes = parseBufferTime(beforeEventBuffer);
+        if (bufferMinutes > 0) {
+          payload.beforeEventBuffer = bufferMinutes;
+        }
+      }
+
+      if (afterEventBuffer && afterEventBuffer !== "No buffer time") {
+        const bufferMinutes = parseBufferTime(afterEventBuffer);
+        if (bufferMinutes > 0) {
+          payload.afterEventBuffer = bufferMinutes;
+        }
+      }
+
+      // Add minimum booking notice
+      if (minimumNoticeValue && minimumNoticeUnit) {
+        const noticeMinutes = parseMinimumNotice(minimumNoticeValue, minimumNoticeUnit);
+        if (noticeMinutes > 0) {
+          payload.minimumBookingNotice = noticeMinutes;
+        }
+      }
+
+      // Add booking limits if enabled
+      if (limitBookingFrequency && frequencyLimits.length > 0) {
+        const limitsCount: any = {};
+        frequencyLimits.forEach(limit => {
+          const unit = parseFrequencyUnit(limit.unit);
+          if (unit) {
+            limitsCount[unit] = parseInt(limit.value) || 1;
+          }
+        });
+        if (Object.keys(limitsCount).length > 0) {
+          payload.bookingLimitsCount = limitsCount;
+        }
+      }
+
+      if (limitTotalDuration && durationLimits.length > 0) {
+        const limitsDuration: any = {};
+        durationLimits.forEach(limit => {
+          const unit = parseFrequencyUnit(limit.unit);
+          if (unit) {
+            limitsDuration[unit] = parseInt(limit.value) || 60;
+          }
+        });
+        if (Object.keys(limitsDuration).length > 0) {
+          payload.bookingLimitsDuration = limitsDuration;
+        }
+      }
+
+      // Add slot interval if not default
+      if (slotInterval && slotInterval !== "Default") {
+        const intervalMinutes = parseSlotInterval(slotInterval);
+        if (intervalMinutes > 0) {
+          payload.slotInterval = intervalMinutes;
+        }
+      }
+
+      // Add other boolean flags
+      if (onlyShowFirstAvailableSlot) {
+        payload.onlyShowFirstAvailableSlot = true;
+      }
+
+      if (maxActiveBookingsPerBooker && maxActiveBookingsValue) {
+        const count = parseInt(maxActiveBookingsValue);
+        if (count > 0) {
+          payload.bookerActiveBookingsLimit = { count };
+        }
+      }
+
+      // Detect create vs update mode
+      const isCreateMode = id === "new";
+
+      if (isCreateMode) {
+        // Create new event type
+        const newEventType = await CalComAPIService.createEventType(payload);
+        Alert.alert("Success", "Event type created successfully", [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]);
+      } else {
+        // Update existing event type
+        await CalComAPIService.updateEventType(parseInt(id), payload);
+        Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data
         await fetchEventTypeData();
-      } else {
-        Alert.alert("Info", "No changes to save");
       }
     } catch (error) {
-      console.error("Failed to update event type:", error);
-      Alert.alert("Error", "Failed to update event type. Please try again.");
+      console.error("Failed to save event type:", error);
+      const action = id === "new" ? "create" : "update";
+      Alert.alert("Error", `Failed to ${action} event type. Please try again.`);
     } finally {
       setSaving(false);
     }
@@ -790,14 +901,16 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
 
             <Text className="flex-1 text-lg font-semibold text-black text-center mx-2.5" numberOfLines={1}>
-              {truncateTitle(title)}
+              {id === "new" ? "Create Event Type" : truncateTitle(title)}
             </Text>
 
             <TouchableOpacity
               className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}>
-              <Text className="text-white text-base font-semibold">{saving ? "Saving..." : "Save"}</Text>
+              <Text className="text-white text-base font-semibold">
+                {saving ? (id === "new" ? "Creating..." : "Saving...") : (id === "new" ? "Create" : "Save")}
+              </Text>
             </TouchableOpacity>
           </View>
         </GlassView>
@@ -867,7 +980,7 @@ export default function EventTypeDetail() {
                     <TextInput
                       className="flex-1 px-3 py-3 text-base text-black"
                       value={eventSlug}
-                      onChangeText={setEventSlug}
+                      onChangeText={(text) => setEventSlug(slugify(text, true))}
                       placeholder="event-slug"
                       placeholderTextColor="#8E8E93"
                     />

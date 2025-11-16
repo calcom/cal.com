@@ -1,107 +1,32 @@
+import type {
+  EventType,
+  CreateEventTypeInput,
+  GetEventTypesResponse,
+  Booking,
+  GetBookingsResponse,
+  BookingParticipationResult,
+  Schedule,
+  GetSchedulesResponse,
+  GetScheduleResponse,
+  UserProfile,
+  ConferencingOption,
+} from "./types";
+
 const API_BASE_URL = "https://api.cal.com/v2";
 
 // You'll need to set your API key here
 const API_KEY = process.env.EXPO_PUBLIC_CAL_API_KEY || "your-cal-api-key-here";
 
-export interface EventType {
-  id: number;
-  title: string;
-  slug: string;
-  description?: string;
-  length: number; // Deprecated: use lengthInMinutes instead
-  lengthInMinutes?: number; // API returns this field
-  locations?: Array<{
-    type: string;
-    address?: string;
-    link?: string;
-    phone?: string;
-    integration?: string;
-    credentialId?: number;
-  }>;
-  price?: number;
-  currency?: string;
-  disableGuests?: boolean;
-  lockTimeZoneToggleOnBookingPage?: boolean;
-  requiresConfirmation?: boolean;
-  requiresBookerEmailVerification?: boolean;
-  scheduleId?: number;
-  userId?: number;
-  teamId?: number;
-  hosts?: Array<{
-    userId: number;
-    isFixed: boolean;
-  }>;
-}
-
-export interface Booking {
-  id: number;
-  uid: string;
-  title: string;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  start?: string;
-  end?: string;
-  eventTypeId: number;
-  eventType?: {
-    id: number;
-    title: string;
-    slug: string;
-  };
-  hosts?: Array<{
-    id?: number | string;
-    name?: string;
-    email?: string;
-    username?: string;
-    timeZone?: string;
-  }>;
-  user?: {
-    id: number;
-    email: string;
-    name: string;
-    timeZone: string;
-  };
-  attendees?: Array<{
-    id?: number | string;
-    email: string;
-    name: string;
-    timeZone: string;
-    noShow?: boolean;
-  }>;
-  status: "ACCEPTED" | "PENDING" | "CANCELLED" | "REJECTED";
-  paid?: boolean;
-  payment?: Array<{
-    id: number;
-    success: boolean;
-    paymentOption: string;
-  }>;
-  rescheduled?: boolean;
-  fromReschedule?: string;
-  recurringEventId?: string;
-  recurringBookingUid?: string;
-  smsReminderNumber?: string;
-  location?: string;
-  cancellationReason?: string;
-  rejectionReason?: string;
-  responses?: Record<string, any>;
-}
-
-export interface GetEventTypesResponse {
-  status: "success";
-  data: EventType[];
-}
-
-export interface GetBookingsResponse {
-  status: "success";
-  data: Booking[];
-}
-
-export interface BookingParticipationResult {
-  isOrganizer: boolean;
-  isHost: boolean;
-  isAttendee: boolean;
-  isParticipating: boolean;
-}
+// Re-export types for backward compatibility
+export type {
+  EventType,
+  CreateEventTypeInput,
+  Booking,
+  BookingParticipationResult,
+  Schedule,
+  UserProfile,
+  ConferencingOption,
+};
 
 export const getBookingParticipation = (
   booking: Booking,
@@ -130,74 +55,6 @@ export const getBookingParticipation = (
 
   return { isOrganizer, isHost, isAttendee, isParticipating };
 };
-
-export interface ScheduleAvailability {
-  days: string[];
-  startTime: string;
-  endTime: string;
-}
-
-export interface ScheduleOverride {
-  date: string;
-  startTime: string;
-  endTime: string;
-}
-
-export interface Schedule {
-  id: number;
-  ownerId: number;
-  name: string;
-  timeZone: string;
-  availability: ScheduleAvailability[];
-  isDefault: boolean;
-  overrides: ScheduleOverride[];
-}
-
-export interface GetSchedulesResponse {
-  status: "success";
-  data: Schedule[];
-}
-
-export interface GetScheduleResponse {
-  status: "success";
-  data: Schedule | null;
-}
-
-export interface UserProfile {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  bio?: string;
-  avatarUrl?: string;
-  timeZone?: string;
-  weekStart?: string;
-  timeFormat?: number;
-  defaultScheduleId?: number;
-  locale?: string;
-  organizationId?: number;
-  organization?: {
-    id: number;
-    isPlatform: boolean;
-  };
-  metadata?: Record<string, any>;
-  brandColor?: string;
-  darkBrandColor?: string;
-  theme?: string;
-}
-
-export interface ConferencingOption {
-  id: number;
-  type: string;
-  userId: number;
-  teamId: number | null;
-  appId: string;
-  subscriptionId: number | null;
-  paymentStatus: string | null;
-  billingCycleStart: string | null;
-  invalid: boolean;
-  delegationCredentialId: number | null;
-}
 
 export class CalComAPIService {
   private static userProfile: UserProfile | null = null;
@@ -327,7 +184,27 @@ export class CalComAPIService {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+      
+      // Parse error for better user messages
+      let errorMessage = response.statusText;
+      
+      try {
+        const errorJson = JSON.parse(errorBody);
+        errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
+      } catch (parseError) {
+        // If JSON parsing fails, use the raw error body
+        errorMessage = errorBody || response.statusText;
+      }
+      
+      // Handle specific error cases
+      if (response.status === 401) {
+        if (errorMessage.includes("expired")) {
+          throw new Error("Your API key has expired. Please update it in the app settings.");
+        }
+        throw new Error("Authentication failed. Please check your API key.");
+      }
+      
+      throw new Error(`API Error: ${errorMessage}`);
     }
 
     return response.json();
@@ -351,6 +228,36 @@ export class CalComAPIService {
     }
   }
 
+  // Create an event type
+  static async createEventType(input: CreateEventTypeInput): Promise<EventType> {
+    try {
+      console.log("Creating event type with input:", JSON.stringify(input, null, 2));
+      
+      const response = await this.makeRequest<{ status: string; data: EventType }>(
+        "/event-types",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-14",
+          },
+          body: JSON.stringify(input),
+        },
+        "2024-06-14"
+      );
+
+      if (response && response.data) {
+        console.log("Event type created successfully:", response.data);
+        return response.data;
+      }
+
+      throw new Error("Invalid response from create event type API");
+    } catch (error) {
+      console.error("createEventType error:", error);
+      throw error;
+    }
+  }
+
   // Cancel a booking
   static async cancelBooking(bookingUid: string, reason?: string): Promise<void> {
     try {
@@ -364,6 +271,42 @@ export class CalComAPIService {
         body: JSON.stringify(body),
       });
     } catch (error) {
+      throw error;
+    }
+  }
+
+  // Reschedule a booking
+  static async rescheduleBooking(
+    bookingUid: string,
+    input: {
+      start: string; // ISO 8601 datetime string
+      reschedulingReason?: string;
+    }
+  ): Promise<Booking> {
+    try {
+      console.log(`Rescheduling booking ${bookingUid} to:`, input.start);
+
+      const response = await this.makeRequest<{ status: string; data: Booking }>(
+        `/bookings/${bookingUid}/reschedule`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-08-13",
+          },
+          body: JSON.stringify(input),
+        },
+        "2024-08-13"
+      );
+
+      if (response && response.data) {
+        console.log("Booking rescheduled successfully:", response.data);
+        return response.data;
+      }
+
+      throw new Error("Invalid response from reschedule booking API");
+    } catch (error) {
+      console.error("rescheduleBooking error:", error);
       throw error;
     }
   }
@@ -600,6 +543,50 @@ export class CalComAPIService {
     }
   }
 
+  // Create a new schedule
+  static async createSchedule(input: {
+    name: string;
+    timeZone: string;
+    isDefault?: boolean;
+    availability?: Array<{
+      days: string[]; // e.g., ["Monday", "Tuesday"]
+      startTime: string; // e.g., "09:00"
+      endTime: string; // e.g., "17:00"
+    }>;
+    overrides?: Array<{
+      date: string; // e.g., "2024-05-20"
+      startTime: string; // e.g., "12:00"
+      endTime: string; // e.g., "14:00"
+    }>;
+  }): Promise<Schedule> {
+    try {
+      console.log("Creating schedule with input:", JSON.stringify(input, null, 2));
+
+      const response = await this.makeRequest<{ status: string; data: Schedule }>(
+        "/schedules",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-11",
+          },
+          body: JSON.stringify(input),
+        },
+        "2024-06-11"
+      );
+
+      if (response && response.data) {
+        console.log("Schedule created successfully:", response.data);
+        return response.data;
+      }
+
+      throw new Error("Invalid response from create schedule API");
+    } catch (error) {
+      console.error("createSchedule error:", error);
+      throw error;
+    }
+  }
+
   // Get specific schedule by ID
   static async getScheduleById(scheduleId: number): Promise<Schedule | null> {
     try {
@@ -684,28 +671,26 @@ export class CalComAPIService {
   // Update an event type
   static async updateEventType(
     eventTypeId: number,
-    updates: {
-      locations?: Array<{
-        type: string;
-        integration?: string;
-        public?: boolean;
-        address?: string;
-        link?: string;
-        phone?: string;
-      }>;
-    }
+    updates: Partial<CreateEventTypeInput>
   ): Promise<EventType> {
     try {
+      console.log(`Updating event type ${eventTypeId} with:`, JSON.stringify(updates, null, 2));
+      
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         `/event-types/${eventTypeId}`,
         {
           method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "cal-api-version": "2024-06-14",
+          },
           body: JSON.stringify(updates),
         },
         "2024-06-14"
       );
 
       if (response && response.data) {
+        console.log("Event type updated successfully:", response.data);
         return response.data;
       }
 
