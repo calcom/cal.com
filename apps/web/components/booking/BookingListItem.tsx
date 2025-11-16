@@ -5,7 +5,6 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
-import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
@@ -338,10 +337,17 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-  const startTime = dayjs(booking.startTime)
-    .tz(userTimeZone)
-    .locale(language)
-    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+  const startTime = isUpcoming
+    ? new Intl.DateTimeFormat(language, {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      }).format(new Date(booking.startTime))
+    : new Intl.DateTimeFormat(language, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date(booking.startTime));
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
@@ -804,7 +810,11 @@ const RecurringBookingsTooltip = ({
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
-                    {dayjs(aDate).locale(language).format("D MMMM YYYY")}
+                    {new Intl.DateTimeFormat(language, {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(aDate)}
                   </p>
                 );
               })}>
