@@ -1,7 +1,7 @@
 import type z from "zod";
 
-import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { HttpError } from "@calcom/lib/http-error";
@@ -47,7 +47,7 @@ export const getCalEventResponses = ({
   if (!backwardCompatibleResponses) throw new Error("Couldn't get responses");
 
   // To set placeholder email for the booking
-  if (!!!backwardCompatibleResponses.email) {
+  if (!backwardCompatibleResponses.email) {
     if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string") {
       log.error(`backwardCompatibleResponses: ${JSON.stringify(backwardCompatibleResponses)}`, {
         responses,

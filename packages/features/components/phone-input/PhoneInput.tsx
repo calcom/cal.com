@@ -62,6 +62,7 @@ function BasePhoneInput({
         name,
         required: rest.required,
         placeholder: rest.placeholder,
+        autoComplete: "tel",
       }}
       onChange={(val: string) => {
         onChange(`+${val}`);

@@ -1,8 +1,9 @@
 import type { z } from "zod";
 
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
-  sendEmail: string;
   sendWebhook: string;
   sendSms: string;
   triggerHostNoShowWebhook: z.infer<
@@ -13,6 +14,9 @@ type TaskPayloads = {
   >;
   triggerFormSubmittedNoEventWebhook: z.infer<
     typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").ZTriggerFormSubmittedNoEventWebhookPayloadSchema
+  >;
+  triggerFormSubmittedNoEventWorkflow: z.infer<
+    typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow").ZTriggerFormSubmittedNoEventWorkflowPayloadSchema
   >;
   translateEventTypeData: z.infer<
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
@@ -26,10 +30,12 @@ type TaskPayloads = {
     agentId: string;
     fromNumber: string;
     toNumber: string;
-    bookingUid: string;
+    bookingUid: string | null;
     userId: number | null;
     teamId: number | null;
     providerAgentId: string;
+    responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
+    routedEventTypeId?: number | null;
   };
 };
 export type TaskTypes = keyof TaskPayloads;

@@ -1,7 +1,9 @@
 import { lookup } from "dns";
 import { type TFunction } from "i18next";
 
-import { sendAdminOrganizationNotification } from "@calcom/emails";
+import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   RESERVED_SUBDOMAINS,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
@@ -11,7 +13,6 @@ import {
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -20,7 +21,7 @@ const log = logger.getSubLogger({ prefix: ["orgCreationUtils"] });
 /**
  * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
  */
-function isNotACompanyEmail(email: string) {
+export function isNotACompanyEmail(email: string) {
   // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
   const emailProviders = [
     "gmail.com",
@@ -185,13 +186,14 @@ export async function assertCanCreateOrg({
   restrictBasedOnMinimumPublishedTeams: boolean;
   errorOnUserAlreadyPartOfOrg?: boolean;
 }) {
-  const verifiedUser = orgOwner.completedOnboarding && !!orgOwner.emailVerified;
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
+
+  const verifiedUser = emailVerificationEnabled ? !!orgOwner.emailVerified : true;
   if (!verifiedUser) {
-    log.warn(
-      "you_need_to_complete_user_onboarding_before_creating_an_organization",
-      safeStringify({ userId: orgOwner.id })
-    );
-    throw new OrgCreationError("you_need_to_complete_user_onboarding_before_creating_an_organization");
+    throw new OrgCreationError("you_need_to_verify_your_email_before_creating_an_organization");
   }
 
   if (isNotACompanyEmail(orgOwner.email) && !isPlatform) {
