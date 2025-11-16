@@ -45,7 +45,7 @@ export class LegacyRoleManager implements IRoleManager {
     }
 
     // Cannot change the role of the only owner (unless it's self-changing)
-    if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner && memberId !== userId) {
+    if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner && (memberId !== userId || newRole !== MembershipRole.OWNER)) {
       throw new RoleManagementError(
         "You can not change the role of the only owner of a team.",
         RoleManagementErrorCode.UNAUTHORIZED
