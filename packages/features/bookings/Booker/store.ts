@@ -3,13 +3,18 @@
 import { useEffect } from "react";
 import { createWithEqualityFn } from "zustand/traditional";
 
+
+
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+
+
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+
 
 /**
  * Arguments passed into store initializer, containing
@@ -125,8 +130,8 @@ export type BookerStore = {
   /**
    * Input occurrence count.
    */
-  occurenceCount: number | null;
-  setOccurenceCount(count: number | null): void;
+  recurringEventCountQueryParam: number | null;
+  setRecurringEventCountQueryParam(count: number | null): void;
   /**
    * The number of days worth of schedules to load.
    */
@@ -421,8 +426,17 @@ export const createBookerStore = () =>
     },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-    occurenceCount: null,
-    setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
+    recurringEventCountQueryParam: Number(getQueryParam("recurringEventCount")) || null,
+    setRecurringEventCountQueryParam: (recurringEventCountQueryParam: number | null) => {
+      // Guard: only update state if value is valid (not NaN or null)
+      if (recurringEventCountQueryParam !== null && !isNaN(recurringEventCountQueryParam)) {
+        set({ recurringEventCountQueryParam });
+        if (!get().isPlatform || get().allowUpdatingUrlParams) {
+          updateQueryParam("recurringEventCount", recurringEventCountQueryParam);
+        }
+      }
+      // If invalid, don't update state or URL - just ignore the call
+    },
     rescheduleUid: null,
     bookingData: null,
     bookingUid: null,
