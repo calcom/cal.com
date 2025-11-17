@@ -13,7 +13,7 @@ export interface CalendarEvent {
     allDay?: boolean;
     color?: string;
     className?: string;
-    bookingUid?: number;
+    bookingUid?: string;
     "data-test-id"?: string;
   };
 }
