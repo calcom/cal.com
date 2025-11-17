@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryState } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,13 +19,18 @@ export function ViewToggleButton() {
   );
   const [, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
   const isMobile = !useMediaQuery("(min-width: 640px)");
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    // Force list view on mobile
-    if (isMobile && view !== "list") {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Force list view on mobile, but only after media query has initialized on client
+    if (hasMounted && isMobile && view !== "list") {
       setView("list");
     }
-  }, [isMobile, view, setView]);
+  }, [hasMounted, isMobile, view, setView]);
 
   return (
     <div className="hidden sm:block">
