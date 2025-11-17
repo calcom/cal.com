@@ -9,7 +9,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { viewParser, type BookingView } from "~/bookings/lib/viewParser";
+import { viewParser, type BookingView } from "../lib/viewParser";
 
 export function ViewToggleButton() {
   const { t } = useLocale();

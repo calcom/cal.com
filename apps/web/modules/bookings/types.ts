@@ -1,6 +1,6 @@
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-import type { validStatuses } from "~/bookings/lib/validStatuses";
+import type { validStatuses } from "./lib/validStatuses";
 
 export type BookingsGetOutput = RouterOutputs["viewer"]["bookings"]["get"];
 

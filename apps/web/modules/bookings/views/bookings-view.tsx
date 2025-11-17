@@ -24,10 +24,10 @@ import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
-import type { validStatuses } from "~/bookings/lib/validStatuses";
-import { viewParser } from "~/bookings/lib/viewParser";
-
 import { BookingsListContainer } from "../components/BookingsListContainer";
+import { ViewToggleButton } from "../components/ViewToggleButton";
+import type { validStatuses } from "../lib/validStatuses";
+import { viewParser } from "../lib/viewParser";
 
 const BookingsCalendarContainer = dynamic(() =>
   import("../components/BookingsCalendarContainer").then((mod) => ({
@@ -178,13 +178,15 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between lg:hidden">
+      <div className="flex flex-row flex-wrap justify-between">
         <HorizontalTabs
           tabs={tabs.map((tab) => ({
             ...tab,
             name: t(tab.name),
           }))}
         />
+
+        <ViewToggleButton />
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
