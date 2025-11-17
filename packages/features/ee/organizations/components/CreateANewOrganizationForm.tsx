@@ -364,11 +364,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           </Button>
         </div>
       </Form>
-      {isBillingEnabled && !isAdmin && (
-        <div className="mt-4">
-          <Alert severity="warning" message={t("organization_trial_workspace_warning")} />
-        </div>
-      )}
     </>
   );
 };

@@ -21,7 +21,10 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <WizardLayout currentStep={1} maxSteps={5}>
+    <WizardLayout
+      currentStep={1}
+      maxSteps={5}
+      footer={<Alert severity="warning" message={t("organization_trial_workspace_warning")} />}>
       {children}
     </WizardLayout>
   );
