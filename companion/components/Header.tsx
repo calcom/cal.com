@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, ActivityIndicator, Modal, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
+import { CalComLogo } from "./CalComLogo";
 
 export function Header() {
   const router = useRouter();
@@ -81,10 +82,12 @@ export function Header() {
   return (
     <View
       className="bg-white border-b border-[#E5E5EA] flex-row items-center justify-between px-4"
-      style={{ paddingTop: insets.top + 8, paddingBottom: 12 }}
+      style={{ paddingTop: insets.top , paddingBottom: 6 }}
     >
-      {/* Left: Cal.com test */}
-      <Text className="text-4xl font-bold text-[#333]">Cal.com</Text>
+      {/* Left: Cal.com Logo */}
+      <View className="ms-1">
+        <CalComLogo width={101} height={22} color="#333" />
+      </View>
 
       {/* Right: Icons */}
       <View className="flex-row items-center gap-4">
