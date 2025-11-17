@@ -1,9 +1,4 @@
-import {
-  ApiProperty as DocsProperty,
-  ApiPropertyOptional as DocsPropertyOptional,
-  getSchemaPath,
-  ApiExtraModels,
-} from "@nestjs/swagger";
+import { ApiPropertyOptional as DocsPropertyOptional, getSchemaPath, ApiExtraModels } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
 import {
   IsString,
@@ -16,8 +11,13 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsUrl,
+  IsIn,
 } from "class-validator";
 
+import { SchedulingType } from "@calcom/platform-enums";
+
+import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
+import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
@@ -67,6 +67,7 @@ import {
 } from "./create-event-type.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
+import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   InputAddressLocation_2024_06_14,
@@ -83,6 +84,7 @@ import {
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 @ApiExtraModels(
   InputAddressLocation_2024_06_14,
@@ -118,8 +120,11 @@ import { Seats_2024_06_14 } from "./seats.input";
   LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
-  RescheduleReasonDefaultFieldInput_2024_06_14
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  BookerActiveBookingsLimit_2024_06_14,
+  EmailSettings_2024_06_14
 )
+@CantHaveRecurrenceAndBookerActiveBookingsLimit()
 class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsInt()
@@ -242,6 +247,29 @@ class BaseUpdateEventTypeInput {
   })
   @Type(() => Object)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("disabled" in value && value.disabled) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      } else {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  @RequiresAtLeastOnePropertyWhenNotDisabled()
+  @DocsPropertyOptional({
+    description: "Limit the number of active bookings a booker can make for this event type.",
+    oneOf: [
+      { $ref: getSchemaPath(BookerActiveBookingsLimit_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
+  @Type(() => Object)
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -451,20 +479,41 @@ export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
+  @Transform(({ value }) => {
+    if (value === "collective") {
+      return SchedulingType.COLLECTIVE;
+    }
+    if (value === "roundRobin") {
+      return SchedulingType.ROUND_ROBIN;
+    }
+    return value;
+  })
+  @IsIn([SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN])
+  @IsOptional()
+  @DocsPropertyOptional({
+    enum: ["collective", "roundRobin"],
+    example: "collective",
+    description: `The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide \`hosts\` or \`assignAllTeamMembers\` in the request body, otherwise the event type will have no hosts - this is required because
+      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one.`,
+  })
+  schedulingType?: "COLLECTIVE" | "ROUND_ROBIN";
+
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @DocsPropertyOptional({ type: [Host],
+  @DocsPropertyOptional({
+    type: [Host],
     description:
       "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
-   })
+  })
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 
@@ -487,4 +536,20 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   })
   @Type(() => Object)
   locations?: InputTeamLocation_2024_06_14[];
+
+  @IsOptional()
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Email settings for this event type. Only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  @Type(() => EmailSettings_2024_06_14)
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

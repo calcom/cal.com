@@ -41,17 +41,27 @@ export class RetellAIService {
     private phoneNumberRepository: PhoneNumberRepositoryInterface,
     private transactionManager: TransactionInterface
   ) {
-    this.aiConfigurationService = new AIConfigurationService(repository);
-    this.agentService = new AgentService(repository, agentRepository);
-    this.billingService = new BillingService(phoneNumberRepository, repository);
-    this.callService = new CallService(repository, agentRepository);
-    this.phoneNumberService = new PhoneNumberService(
-      repository,
+    this.aiConfigurationService = new AIConfigurationService({ retellRepository: repository });
+    this.agentService = new AgentService({
+      retellRepository: repository,
       agentRepository,
       phoneNumberRepository,
-      transactionManager
-    );
-    this.voiceService = new VoiceService(repository);
+    });
+    this.billingService = new BillingService({
+      phoneNumberRepository,
+      retellRepository: repository,
+    });
+    this.callService = new CallService({
+      retellRepository: repository,
+      agentRepository,
+    });
+    this.phoneNumberService = new PhoneNumberService({
+      retellRepository: repository,
+      agentRepository,
+      phoneNumberRepository,
+      transactionManager,
+    });
+    this.voiceService = new VoiceService({ retellRepository: repository });
 
     // Inject RetellAIService reference into CallService
     this.callService.setRetellAIService(this);
@@ -141,7 +151,7 @@ export class RetellAIService {
     return this.agentService.getAgentWithDetails(params);
   }
 
-  async createAgent(params: {
+  async createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -151,7 +161,7 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     userTimeZone: string;
   }) {
-    return this.agentService.createAgent({
+    return this.agentService.createOutboundAgent({
       ...params,
       setupAIConfiguration: () =>
         this.setupAIConfiguration({
@@ -165,6 +175,20 @@ export class RetellAIService {
     });
   }
 
+  async createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    userTimeZone: string;
+  }) {
+    return this.agentService.createInboundAgent({
+      ...params,
+      aiConfigurationService: this.aiConfigurationService,
+    });
+  }
+
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
@@ -175,6 +199,8 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,

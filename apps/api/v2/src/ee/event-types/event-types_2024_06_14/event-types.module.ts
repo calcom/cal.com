@@ -10,10 +10,15 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
+import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -26,6 +31,8 @@ import { Module } from "@nestjs/common";
     EventTypesService_2024_06_14,
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
+    EventTypeAccessService,
+    TeamsRepository,
     UsersRepository,
     UsersService,
     SchedulesRepository_2024_06_11,
@@ -35,6 +42,9 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,
+    OutputTeamEventTypesResponsePipe,
+    OutputOrganizationsEventTypesService,
+    TeamsEventTypesRepository,
   ],
   controllers: [EventTypesController_2024_06_14],
   exports: [
@@ -42,6 +52,7 @@ import { Module } from "@nestjs/common";
     EventTypesRepository_2024_06_14,
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
+    EventTypeAccessService,
   ],
 })
 export class EventTypesModule_2024_06_14 {}
