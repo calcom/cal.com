@@ -129,7 +129,6 @@ export const EventTypeCalendarViewComponent = (
 
   const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
-  console.log("this is the event type calendar view component");
   return (
     <AtomsWrapper>
       <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
