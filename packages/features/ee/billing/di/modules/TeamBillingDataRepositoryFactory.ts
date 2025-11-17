@@ -4,7 +4,7 @@ import { DI_TOKENS as GLOBAL_DI_TOKENS } from "@calcom/features/di/tokens";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { PrismaTeamBillingDataRepository } from "../../repository/teamBillingData/PrismaTeamBillingRepository";
-import { StubTeamBillingDataRepository } from "../../repository/teamBillingData/stubTeamBillingRepository";
+import { StubTeamBillingDataRepository } from "../../repository/teamBillingData/StubTeamBillingRepository";
 import { DI_TOKENS } from "../tokens";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
 

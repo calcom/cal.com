@@ -2,8 +2,8 @@ import type { IBillingRepository } from "../../repository/billing/IBillingReposi
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingService";
-import { StubTeamBillingService } from "./stubTeamBillingService";
-import { TeamBillingService } from "./teamBillingService";
+import { StubTeamBillingService } from "./StubTeamBillingService";
+import { TeamBillingService } from "./TeamBillingService";
 
 // Export the interface for type safety in DI modules
 export interface ITeamBillingServiceFactoryDeps {

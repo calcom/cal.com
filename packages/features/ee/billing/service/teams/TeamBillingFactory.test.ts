@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import { StubTeamBillingService } from "./stubTeamBillingService";
-import { TeamBillingService } from "./teamBillingService";
-import { TeamBillingServiceFactory } from "./teamBillingServiceFactory";
+import { StubTeamBillingService } from "./StubTeamBillingService";
+import { TeamBillingService } from "./TeamBillingService";
+import { TeamBillingServiceFactory } from "./TeamBillingServiceFactory";
 
 describe("TeamBilling", () => {
   const mockTeam = { id: 1, metadata: null, isOrganization: true, parentId: null, name: "" };
@@ -59,7 +59,7 @@ describe("TeamBilling", () => {
       });
 
       const result = factory.init(mockTeam);
-      
+
       expect(result).toBeInstanceOf(TeamBillingService);
     });
 
@@ -121,10 +121,7 @@ describe("TeamBilling", () => {
         isTeamBillingEnabled: true,
       });
 
-      vi.mocked(mockTeamBillingDataRepository.findMany).mockResolvedValue([
-        mockTeam,
-        { ...mockTeam, id: 2 },
-      ]);
+      vi.mocked(mockTeamBillingDataRepository.findMany).mockResolvedValue([mockTeam, { ...mockTeam, id: 2 }]);
 
       const result = await factory.findAndInitMany([1, 2]);
 

@@ -8,8 +8,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import { TeamBillingService } from "./teamBillingService";
 import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
+import { TeamBillingService } from "./TeamBillingService";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");

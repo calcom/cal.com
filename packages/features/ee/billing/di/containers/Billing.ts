@@ -2,7 +2,7 @@ import { createContainer } from "@calcom/features/di/di";
 
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { StripeBillingService } from "../../service/billingProvider/StripeBillingService";
-import type { TeamBillingServiceFactory } from "../../service/teams/teamBillingServiceFactory";
+import type { TeamBillingServiceFactory } from "../../service/teams/TeamBillingServiceFactory";
 import { billingProviderServiceModuleLoader } from "../modules/BillingProviderService";
 import { teamBillingServiceFactoryModuleLoader } from "../modules/TeamBillingServiceFactory";
 import { DI_TOKENS } from "../tokens";
