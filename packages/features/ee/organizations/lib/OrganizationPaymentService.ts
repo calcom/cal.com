@@ -222,7 +222,6 @@ export class OrganizationPaymentService {
       })
     );
 
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (!process.env.STRIPE_ORG_PRODUCT_ID || !process.env.STRIPE_ORG_MONTHLY_PRICE_ID) {
       throw new Error("STRIPE_ORG_PRODUCT_ID or STRIPE_ORG_MONTHLY_PRICE_ID is not set");
     }
@@ -243,7 +242,6 @@ export class OrganizationPaymentService {
 
     const customPrice = await this.billingService.createPrice({
       amount: config.pricePerSeat * 100 * occurrence,
-      // eslint-disable-next-line turbo/no-undeclared-env-vars
       productId: process.env.STRIPE_ORG_PRODUCT_ID,
       currency: "usd",
       interval,
