@@ -11,9 +11,12 @@ import {
   ActionSheetIOS,
   Alert,
   Platform,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 
-import { CalComAPIService, Schedule, ScheduleAvailability } from "../../services/calcom";
+import { CalComAPIService, Schedule } from "../../services/calcom";
 import { Header } from "../../components/Header";
 
 export default function Availability() {
@@ -22,6 +25,9 @@ export default function Availability() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newScheduleName, setNewScheduleName] = useState("");
+  const [creating, setCreating] = useState(false);
 
   const fetchSchedules = async () => {
     try {
@@ -259,6 +265,66 @@ export default function Availability() {
     );
   }
 
+  const handleCreateNew = () => {
+    setNewScheduleName("");
+    setShowCreateModal(true);
+  };
+
+  const handleCreateSchedule = async () => {
+    if (!newScheduleName.trim()) {
+      Alert.alert("Error", "Please enter a schedule name");
+      return;
+    }
+
+    try {
+      setCreating(true);
+
+      // Get user's timezone (default to America/New_York if not available)
+      let userTimezone = "America/New_York";
+      try {
+        const userProfile = await CalComAPIService.getUserProfile();
+        if (userProfile.timeZone) {
+          userTimezone = userProfile.timeZone;
+        }
+      } catch (error) {
+        console.log("Could not get user timezone, using default");
+      }
+
+      // Create schedule with Monday-Friday 9 AM - 5 PM default
+      const newSchedule = await CalComAPIService.createSchedule({
+        name: newScheduleName.trim(),
+        timeZone: userTimezone,
+        isDefault: false,
+        availability: [
+          {
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            startTime: "09:00",
+            endTime: "17:00",
+          },
+        ],
+      });
+
+      setShowCreateModal(false);
+      setNewScheduleName("");
+
+      // Navigate to edit the newly created schedule
+      router.push({
+        pathname: "/availability-detail",
+        params: {
+          id: newSchedule.id.toString(),
+        },
+      });
+
+      // Refresh the list
+      fetchSchedules();
+    } catch (error) {
+      console.error("Failed to create schedule:", error);
+      Alert.alert("Error", "Failed to create schedule. Please try again.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <View className="flex-1 bg-[#f8f9fa]">
       <Header />
@@ -274,6 +340,89 @@ export default function Availability() {
           />
         </View>
       </View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        className="absolute bottom-36 right-6 bg-black rounded-full w-14 h-14 items-center justify-center shadow-lg"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}
+        onPress={handleCreateNew}
+        activeOpacity={0.8}>
+        <Ionicons name="add" size={30} color="#fff" />
+      </TouchableOpacity>
+
+      {/* Create Schedule Modal */}
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCreateModal(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <View
+            className="bg-white rounded-2xl w-[90%] max-w-[500px]"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 0.25,
+              shadowRadius: 25,
+              elevation: 24,
+            }}>
+            {/* Header */}
+            <View className="px-8 pt-6 pb-4">
+              <Text className="text-2xl font-semibold text-[#111827]">Add a new schedule</Text>
+            </View>
+
+            {/* Content */}
+            <View className="px-8 pb-6">
+              <View className="mb-1">
+                <Text className="text-sm font-medium text-[#374151] mb-2">Name</Text>
+                <TextInput
+                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB]"
+                  placeholder="Working Hours"
+                  placeholderTextColor="#9CA3AF"
+                  value={newScheduleName}
+                  onChangeText={setNewScheduleName}
+                  autoFocus
+                  autoCapitalize="words"
+                  returnKeyType="done"
+                  onSubmitEditing={handleCreateSchedule}
+                />
+              </View>
+            </View>
+
+            {/* Footer */}
+            <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
+              <View className="flex-row justify-end space-x-2 gap-2">
+                <TouchableOpacity
+                  className="px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
+                  onPress={() => {
+                    setShowCreateModal(false);
+                    setNewScheduleName("");
+                  }}
+                  disabled={creating}>
+                  <Text className="text-base font-medium text-[#374151]">Close</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-4 py-2 bg-[#111827] rounded-xl ${creating ? "opacity-60" : ""}`}
+                  onPress={handleCreateSchedule}
+                  disabled={creating}>
+                  <Text className="text-base font-medium text-white">
+                    Continue
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }

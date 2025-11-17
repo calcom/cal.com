@@ -10,6 +10,9 @@ import {
   ActivityIndicator,
   Linking,
   Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
@@ -168,6 +171,10 @@ export default function BookingDetail() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showActionsModal, setShowActionsModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleReason, setRescheduleReason] = useState("");
+  const [rescheduling, setRescheduling] = useState(false);
+
 
   useEffect(() => {
     if (uid) {
@@ -207,6 +214,32 @@ export default function BookingDetail() {
     const provider = getLocationProvider(booking.location);
     if (provider?.url) {
       Linking.openURL(provider.url);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!booking) return;
+
+    setRescheduling(true);
+    try {
+      // For now, we'll use the current start time
+      // In a full implementation, you'd show a date/time picker
+      await CalComAPIService.rescheduleBooking(booking.uid, {
+        start: booking.startTime,
+        reschedulingReason: rescheduleReason.trim() || undefined,
+      });
+
+      Alert.alert("Success", "Reschedule request sent successfully");
+      setShowRescheduleModal(false);
+      setRescheduleReason("");
+      
+      // Refresh booking data
+      await fetchBooking();
+    } catch (error) {
+      console.error("Failed to reschedule booking:", error);
+      Alert.alert("Error", "Failed to send reschedule request. Please try again.");
+    } finally {
+      setRescheduling(false);
     }
   };
 
@@ -452,30 +485,16 @@ export default function BookingDetail() {
                 <Text className="text-xs text-[#999]">Edit event</Text>
               </View>
 
-              {/* Reschedule Booking */}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowActionsModal(false);
-                  // TODO: Open reschedule dialog
-                  console.log("Reschedule booking");
-                }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
-              >
-                <Ionicons name="time-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Reschedule Booking</Text>
-              </TouchableOpacity>
-
               {/* Request Reschedule */}
               <TouchableOpacity
                 onPress={() => {
                   setShowActionsModal(false);
-                  // TODO: Open reschedule request dialog
-                  console.log("Request reschedule");
+                  setShowRescheduleModal(true);
                 }}
                 className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
               >
                 <Ionicons name="send-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Request Reschedule</Text>
+                <Text className="text-sm text-[#333] ml-3">Send Reschedule Request</Text>
               </TouchableOpacity>
 
               {/* Edit Location */}
@@ -602,6 +621,87 @@ export default function BookingDetail() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Reschedule Modal */}
+      <Modal
+        visible={showRescheduleModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRescheduleModal(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <View
+            className="bg-white rounded-2xl w-[90%] max-w-[500px]"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 20 },
+              shadowOpacity: 0.25,
+              shadowRadius: 25,
+              elevation: 24,
+            }}>
+            {/* Header */}
+            <View className="px-8 pt-6 pb-4">
+              <View className="flex-row items-start space-x-3">
+                <View className="bg-[#F3F4F6] rounded-full w-10 h-10 items-center justify-center flex-shrink-0">
+                  <Ionicons name="time-outline" size={24} color="#111827" />
+                </View>
+                <View className="flex-1 pt-1">
+                  <Text className="text-2xl font-semibold text-[#111827] mb-2">
+                    Reschedule request
+                  </Text>
+                  <Text className="text-sm text-[#6B7280]">
+                    Send a reschedule request to the organizer of this booking.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Content */}
+            <View className="px-8 pb-6">
+              <Text className="text-sm font-bold text-[#111827] mb-2">
+                Reason for reschedule request
+                <Text className="text-[#6B7280] font-normal"> (Optional)</Text>
+              </Text>
+              <TextInput
+                className="bg-white rounded-md px-3 py-3 text-base text-[#111827] border border-[#D1D5DB] min-h-[100px]"
+                placeholder="Please let us know why you need to reschedule..."
+                placeholderTextColor="#9CA3AF"
+                value={rescheduleReason}
+                onChangeText={setRescheduleReason}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                editable={!rescheduling}
+              />
+            </View>
+
+            {/* Footer */}
+            <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
+              <View className="flex-row justify-end space-x-2 gap-2">
+                <TouchableOpacity
+                  className="px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
+                  onPress={() => {
+                    setShowRescheduleModal(false);
+                    setRescheduleReason("");
+                  }}
+                  disabled={rescheduling}>
+                  <Text className="text-base font-medium text-[#374151]">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`px-4 py-2 bg-[#111827] rounded-xl ${rescheduling ? "opacity-60" : ""}`}
+                  onPress={handleReschedule}
+                  disabled={rescheduling}>
+                  <Text className="text-base font-medium text-white">
+                    Reschedule request
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

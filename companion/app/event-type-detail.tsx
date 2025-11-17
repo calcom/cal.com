@@ -22,6 +22,18 @@ import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../se
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { defaultLocations, getDefaultLocationIconUrl, isDefaultLocation, DefaultLocationType } from "../utils/defaultLocations";
 import { SvgImage } from "../components/SvgImage";
+import {
+  parseBufferTime,
+  parseMinimumNotice,
+  parseFrequencyUnit,
+  parseSlotInterval,
+} from "../utils/parsers/event-type-parsers";
+import { slugify } from "../utils/slugify";
+import { BasicsTab } from "./event-type-detail/tabs/BasicsTab";
+import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
+import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
+import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
+import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
 
 const tabs = [
   { id: "basics", label: "Basics", icon: "link" },
@@ -106,6 +118,36 @@ export default function EventTypeDetail() {
   const [rangeEndDate, setRangeEndDate] = useState("");
   const [offsetStartTimes, setOffsetStartTimes] = useState(false);
   const [offsetStartValue, setOffsetStartValue] = useState("0");
+
+  // Advanced tab state
+  const [calendarEventName, setCalendarEventName] = useState("");
+  const [addToCalendarEmail, setAddToCalendarEmail] = useState("");
+  const [selectedLayouts, setSelectedLayouts] = useState<string[]>(["MONTH_VIEW"]);
+  const [defaultLayout, setDefaultLayout] = useState("MONTH_VIEW");
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
+  const [disableCancelling, setDisableCancelling] = useState(false);
+  const [disableRescheduling, setDisableRescheduling] = useState(false);
+  const [sendCalVideoTranscription, setSendCalVideoTranscription] = useState(false);
+  const [autoTranslate, setAutoTranslate] = useState(false);
+  const [requiresBookerEmailVerification, setRequiresBookerEmailVerification] = useState(false);
+  const [hideCalendarNotes, setHideCalendarNotes] = useState(false);
+  const [hideCalendarEventDetails, setHideCalendarEventDetails] = useState(false);
+  const [successRedirectUrl, setSuccessRedirectUrl] = useState("");
+  const [forwardParamsSuccessRedirect, setForwardParamsSuccessRedirect] = useState(false);
+  const [hideOrganizerEmail, setHideOrganizerEmail] = useState(false);
+  const [lockTimezone, setLockTimezone] = useState(false);
+  const [allowReschedulingPastEvents, setAllowReschedulingPastEvents] = useState(false);
+  const [allowBookingThroughRescheduleLink, setAllowBookingThroughRescheduleLink] = useState(false);
+  const [customReplyToEmail, setCustomReplyToEmail] = useState("");
+  const [eventTypeColorLight, setEventTypeColorLight] = useState("#292929");
+  const [eventTypeColorDark, setEventTypeColorDark] = useState("#FAFAFA");
+
+  // Recurring tab state
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringInterval, setRecurringInterval] = useState("1");
+  const [recurringFrequency, setRecurringFrequency] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly");
+  const [recurringOccurrences, setRecurringOccurrences] = useState("12");
+
   const bufferTimeOptions = [
     "No buffer time",
     "5 Minutes",
@@ -446,6 +488,206 @@ export default function EventTypeDetail() {
       if (eventType) {
         setEventTypeData(eventType);
 
+        // Load basic fields
+        if (eventType.title) setEventTitle(eventType.title);
+        if (eventType.slug) setEventSlug(eventType.slug);
+        if (eventType.description) setEventDescription(eventType.description);
+        if (eventType.lengthInMinutes) setEventDuration(eventType.lengthInMinutes.toString());
+        if (eventType.hidden !== undefined) setIsHidden(eventType.hidden);
+
+        // Load buffer times
+        if (eventType.beforeEventBuffer) {
+          setBeforeEventBuffer(`${eventType.beforeEventBuffer} Minutes`);
+        }
+        if (eventType.afterEventBuffer) {
+          setAfterEventBuffer(`${eventType.afterEventBuffer} Minutes`);
+        }
+
+        // Load minimum booking notice
+        if (eventType.minimumBookingNotice) {
+          const minutes = eventType.minimumBookingNotice;
+          if (minutes >= 1440) {
+            // Days
+            setMinimumNoticeValue((minutes / 1440).toString());
+            setMinimumNoticeUnit("Days");
+          } else if (minutes >= 60) {
+            // Hours
+            setMinimumNoticeValue((minutes / 60).toString());
+            setMinimumNoticeUnit("Hours");
+          } else {
+            // Minutes
+            setMinimumNoticeValue(minutes.toString());
+            setMinimumNoticeUnit("Minutes");
+          }
+        }
+
+        // Load slot interval
+        if (eventType.slotInterval) {
+          setSlotInterval(`${eventType.slotInterval} Minutes`);
+        }
+
+        // Load booking frequency limits
+        if (eventType.bookingLimitsCount && !('disabled' in eventType.bookingLimitsCount)) {
+          setLimitBookingFrequency(true);
+          const limits = [];
+          let idCounter = 1;
+          if (eventType.bookingLimitsCount.day) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.day.toString(), unit: "Per day" });
+          }
+          if (eventType.bookingLimitsCount.week) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.week.toString(), unit: "Per week" });
+          }
+          if (eventType.bookingLimitsCount.month) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.month.toString(), unit: "Per month" });
+          }
+          if (eventType.bookingLimitsCount.year) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.year.toString(), unit: "Per year" });
+          }
+          if (limits.length > 0) {
+            setFrequencyLimits(limits);
+          }
+        }
+
+        // Load duration limits
+        if (eventType.bookingLimitsDuration && !('disabled' in eventType.bookingLimitsDuration)) {
+          setLimitTotalDuration(true);
+          const limits = [];
+          let idCounter = 1;
+          if (eventType.bookingLimitsDuration.day) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.day.toString(), unit: "Per day" });
+          }
+          if (eventType.bookingLimitsDuration.week) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.week.toString(), unit: "Per week" });
+          }
+          if (eventType.bookingLimitsDuration.month) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.month.toString(), unit: "Per month" });
+          }
+          if (eventType.bookingLimitsDuration.year) {
+            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.year.toString(), unit: "Per year" });
+          }
+          if (limits.length > 0) {
+            setDurationLimits(limits);
+          }
+        }
+
+        // Load only show first slot
+        if (eventType.onlyShowFirstAvailableSlot !== undefined) {
+          setOnlyShowFirstAvailableSlot(eventType.onlyShowFirstAvailableSlot);
+        }
+
+        // Load max active bookings
+        if (eventType.bookerActiveBookingsLimit && !('disabled' in eventType.bookerActiveBookingsLimit)) {
+          setMaxActiveBookingsPerBooker(true);
+          setMaxActiveBookingsValue(eventType.bookerActiveBookingsLimit.count.toString());
+        }
+
+        // Load booking window (future bookings limit)
+        if (eventType.bookingWindow && !('disabled' in eventType.bookingWindow)) {
+          setLimitFutureBookings(true);
+          if (eventType.bookingWindow.type === 'range') {
+            setFutureBookingType('range');
+            if (Array.isArray(eventType.bookingWindow.value) && eventType.bookingWindow.value.length === 2) {
+              setRangeStartDate(eventType.bookingWindow.value[0]);
+              setRangeEndDate(eventType.bookingWindow.value[1]);
+            }
+          } else {
+            setFutureBookingType('rolling');
+            if (typeof eventType.bookingWindow.value === 'number') {
+              setRollingDays(eventType.bookingWindow.value.toString());
+            }
+            setRollingCalendarDays(eventType.bookingWindow.type === 'calendarDays');
+          }
+        }
+
+        // Load Advanced tab fields
+        if (eventType.metadata) {
+          if (eventType.metadata.calendarEventName) {
+            setCalendarEventName(eventType.metadata.calendarEventName);
+          }
+          if (eventType.metadata.addToCalendarEmail) {
+            setAddToCalendarEmail(eventType.metadata.addToCalendarEmail);
+          }
+          if (eventType.metadata.customReplyToEmail) {
+            setCustomReplyToEmail(eventType.metadata.customReplyToEmail);
+          }
+          if (eventType.metadata.disableCancelling) {
+            setDisableCancelling(true);
+          }
+          if (eventType.metadata.disableRescheduling) {
+            setDisableRescheduling(true);
+          }
+          if (eventType.metadata.sendCalVideoTranscription) {
+            setSendCalVideoTranscription(true);
+          }
+          if (eventType.metadata.autoTranslate) {
+            setAutoTranslate(true);
+          }
+          if (eventType.metadata.hideCalendarEventDetails) {
+            setHideCalendarEventDetails(true);
+          }
+          if (eventType.metadata.hideOrganizerEmail) {
+            setHideOrganizerEmail(true);
+          }
+          if (eventType.metadata.allowReschedulingPastEvents) {
+            setAllowReschedulingPastEvents(true);
+          }
+          if (eventType.metadata.allowBookingThroughRescheduleLink) {
+            setAllowBookingThroughRescheduleLink(true);
+          }
+        }
+
+        // Load booker layouts
+        if (eventType.bookerLayouts) {
+          if (eventType.bookerLayouts.enabledLayouts && Array.isArray(eventType.bookerLayouts.enabledLayouts)) {
+            setSelectedLayouts(eventType.bookerLayouts.enabledLayouts);
+          }
+          if (eventType.bookerLayouts.defaultLayout) {
+            setDefaultLayout(eventType.bookerLayouts.defaultLayout);
+          }
+        }
+
+        // Load confirmation settings
+        if (eventType.requiresConfirmation !== undefined) {
+          setRequiresConfirmation(eventType.requiresConfirmation);
+        }
+
+        // Load other boolean fields
+        if (eventType.requiresBookerEmailVerification !== undefined) {
+          setRequiresBookerEmailVerification(eventType.requiresBookerEmailVerification);
+        }
+        if (eventType.hideCalendarNotes !== undefined) {
+          setHideCalendarNotes(eventType.hideCalendarNotes);
+        }
+        if (eventType.lockTimeZoneToggleOnBookingPage !== undefined) {
+          setLockTimezone(eventType.lockTimeZoneToggleOnBookingPage);
+        }
+
+        // Load redirect URL
+        if (eventType.successRedirectUrl) {
+          setSuccessRedirectUrl(eventType.successRedirectUrl);
+          if (eventType.forwardParamsSuccessRedirect !== undefined) {
+            setForwardParamsSuccessRedirect(eventType.forwardParamsSuccessRedirect);
+          }
+        }
+
+        // Load event type colors
+        if (eventType.eventTypeColor) {
+          if (eventType.eventTypeColor.lightEventTypeColor) {
+            setEventTypeColorLight(eventType.eventTypeColor.lightEventTypeColor);
+          }
+          if (eventType.eventTypeColor.darkEventTypeColor) {
+            setEventTypeColorDark(eventType.eventTypeColor.darkEventTypeColor);
+          }
+        }
+
+        // Load recurring event settings
+        if (eventType.recurrence && !('disabled' in eventType.recurrence)) {
+          setRecurringEnabled(true);
+          setRecurringInterval(eventType.recurrence.interval.toString());
+          setRecurringFrequency(eventType.recurrence.frequency);
+          setRecurringOccurrences(eventType.recurrence.occurrences.toString());
+        }
+
         // Extract location from event type
         if (eventType.locations && eventType.locations.length > 0) {
           const firstLocation = eventType.locations[0];
@@ -681,19 +923,30 @@ export default function EventTypeDetail() {
       return;
     }
 
+    // Validate required fields
+    if (!eventTitle || !eventSlug) {
+      Alert.alert("Error", "Title and slug are required");
+      return;
+    }
+
+    const durationNum = parseInt(eventDuration);
+    if (isNaN(durationNum) || durationNum <= 0) {
+      Alert.alert("Error", "Duration must be a positive number");
+      return;
+    }
+
     try {
       setSaving(true);
 
-      // Prepare location update if a location is selected
-      const updates: {
-        locations?: Array<{
+      // Build location payload if a location is selected
+      let locationsPayload: Array<{
           type: string;
           integration?: string;
-          public?: boolean;
           address?: string;
           link?: string;
-        }>;
-      } = {};
+        phone?: string;
+        public?: boolean;
+      }> | undefined;
 
       if (selectedLocation) {
         const locationValue = displayNameToLocationValue(selectedLocation);
@@ -720,46 +973,228 @@ export default function EventTypeDetail() {
 
         // Add type-specific fields based on location type
         if (locationValue.type === "integration") {
-          // Conferencing app integration
           locationPayload.integration = locationValue.integration;
           locationPayload.public = locationValue.public ?? true;
         } else if (locationValue.type === "address") {
-          // Organizer address location - required fields: address (string) and public (boolean)
           locationPayload.address = locationAddress || existingLocation?.address || "";
-          locationPayload.public = true; // Required, always true
+          locationPayload.public = true;
         } else if (locationValue.type === "link") {
-          // Link meeting location - required fields: link (string) and public (boolean)
           locationPayload.link = locationLink || existingLocation?.link || "";
-          locationPayload.public = true; // Required, always true
+          locationPayload.public = true;
         } else if (locationValue.type === "phone") {
-          // Organizer phone location - required fields: phone (string) and public (boolean)
           locationPayload.phone = locationPhone || existingLocation?.phone || "";
-          locationPayload.public = true; // Required, always true
-        } else if (
-          locationValue.type === "attendeeAddress" ||
-          locationValue.type === "attendeePhone" ||
-          locationValue.type === "attendeeDefined"
-        ) {
-          // Attendee location types - only type field is needed, no additional fields
-          // These are already set correctly with just { type: "..." }
+          locationPayload.public = true;
         }
 
-        updates.locations = [locationPayload];
+        locationsPayload = [locationPayload];
       }
 
-      // Only update if there are changes
-      if (Object.keys(updates).length > 0) {
-        await CalComAPIService.updateEventType(parseInt(id), updates);
-        Alert.alert("Success", "Event type updated successfully");
+      // Build the payload with all fields
+      const payload: any = {
+        title: eventTitle,
+        slug: eventSlug,
+        lengthInMinutes: durationNum,
+      };
 
+      // Add optional fields if they have values
+      if (eventDescription) {
+        payload.description = eventDescription;
+      }
+
+      if (locationsPayload) {
+        payload.locations = locationsPayload;
+      }
+
+      if (selectedSchedule) {
+        payload.scheduleId = selectedSchedule.id;
+      }
+
+      if (isHidden !== undefined) {
+        payload.hidden = isHidden;
+      }
+
+      // Add buffer times if set
+      if (beforeEventBuffer && beforeEventBuffer !== "No buffer time") {
+        const bufferMinutes = parseBufferTime(beforeEventBuffer);
+        if (bufferMinutes > 0) {
+          payload.beforeEventBuffer = bufferMinutes;
+        }
+      }
+
+      if (afterEventBuffer && afterEventBuffer !== "No buffer time") {
+        const bufferMinutes = parseBufferTime(afterEventBuffer);
+        if (bufferMinutes > 0) {
+          payload.afterEventBuffer = bufferMinutes;
+        }
+      }
+
+      // Add minimum booking notice
+      if (minimumNoticeValue && minimumNoticeUnit) {
+        const noticeMinutes = parseMinimumNotice(minimumNoticeValue, minimumNoticeUnit);
+        if (noticeMinutes > 0) {
+          payload.minimumBookingNotice = noticeMinutes;
+        }
+      }
+
+      // Add booking limits if enabled
+      if (limitBookingFrequency && frequencyLimits.length > 0) {
+        const limitsCount: any = {};
+        frequencyLimits.forEach(limit => {
+          const unit = parseFrequencyUnit(limit.unit);
+          if (unit) {
+            limitsCount[unit] = parseInt(limit.value) || 1;
+          }
+        });
+        if (Object.keys(limitsCount).length > 0) {
+          payload.bookingLimitsCount = limitsCount;
+        }
+      }
+
+      if (limitTotalDuration && durationLimits.length > 0) {
+        const limitsDuration: any = {};
+        durationLimits.forEach(limit => {
+          const unit = parseFrequencyUnit(limit.unit);
+          if (unit) {
+            limitsDuration[unit] = parseInt(limit.value) || 60;
+          }
+        });
+        if (Object.keys(limitsDuration).length > 0) {
+          payload.bookingLimitsDuration = limitsDuration;
+        }
+      }
+
+      // Add slot interval if not default
+      if (slotInterval && slotInterval !== "Default") {
+        const intervalMinutes = parseSlotInterval(slotInterval);
+        if (intervalMinutes > 0) {
+          payload.slotInterval = intervalMinutes;
+        }
+      }
+
+      // Add other boolean flags
+      if (onlyShowFirstAvailableSlot) {
+        payload.onlyShowFirstAvailableSlot = true;
+      }
+
+      if (maxActiveBookingsPerBooker && maxActiveBookingsValue) {
+        const count = parseInt(maxActiveBookingsValue);
+        if (count > 0) {
+          payload.bookerActiveBookingsLimit = { count };
+        }
+      }
+
+      // Add booking window (future bookings limit)
+      if (limitFutureBookings) {
+        if (futureBookingType === 'range') {
+          payload.bookingWindow = {
+            type: 'range',
+            value: [rangeStartDate, rangeEndDate],
+          };
+        } else {
+          payload.bookingWindow = {
+            type: rollingCalendarDays ? 'calendarDays' : 'businessDays',
+            value: parseInt(rollingDays),
+            rolling: true,
+          };
+        }
+      } else {
+        payload.bookingWindow = { disabled: true };
+      }
+
+      // Add Advanced tab fields
+      if (calendarEventName) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.calendarEventName = calendarEventName;
+      }
+
+      if (addToCalendarEmail) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.addToCalendarEmail = addToCalendarEmail;
+      }
+
+      // Booker layouts
+      if (selectedLayouts.length > 0) {
+        payload.bookerLayouts = {
+          enabledLayouts: selectedLayouts,
+          defaultLayout: defaultLayout,
+        };
+      }
+
+      // Confirmation policy
+      payload.requiresConfirmation = requiresConfirmation;
+
+      // Boolean flags - always set the actual boolean value so toggling off works
+      payload.metadata = {
+        ...(payload.metadata || {}),
+        disableCancelling,
+        disableRescheduling,
+        sendCalVideoTranscription,
+        autoTranslate,
+        hideCalendarEventDetails,
+        hideOrganizerEmail,
+        allowReschedulingPastEvents,
+        allowBookingThroughRescheduleLink,
+      };
+      payload.requiresBookerEmailVerification = requiresBookerEmailVerification;
+      payload.hideCalendarNotes = hideCalendarNotes;
+      payload.lockTimeZoneToggleOnBookingPage = lockTimezone;
+
+      // Redirect URL
+      if (successRedirectUrl) {
+        payload.successRedirectUrl = successRedirectUrl;
+        if (forwardParamsSuccessRedirect) {
+          payload.forwardParamsSuccessRedirect = true;
+        }
+      }
+
+      // Custom reply-to email
+      if (customReplyToEmail) {
+        payload.metadata = payload.metadata || {};
+        payload.metadata.customReplyToEmail = customReplyToEmail;
+      }
+
+      // Event type colors
+      if (eventTypeColorLight || eventTypeColorDark) {
+        payload.eventTypeColor = {
+          lightEventTypeColor: eventTypeColorLight,
+          darkEventTypeColor: eventTypeColorDark,
+        };
+      }
+
+      // Recurring event
+      if (recurringEnabled) {
+        payload.recurrence = {
+          interval: parseInt(recurringInterval) || 1,
+          occurrences: parseInt(recurringOccurrences) || 12,
+          frequency: recurringFrequency,
+        };
+      } else {
+        payload.recurrence = { disabled: true };
+      }
+
+      // Detect create vs update mode
+      const isCreateMode = id === "new";
+
+      if (isCreateMode) {
+        // Create new event type
+        const newEventType = await CalComAPIService.createEventType(payload);
+        Alert.alert("Success", "Event type created successfully", [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]);
+      } else {
+        // Update existing event type
+        await CalComAPIService.updateEventType(parseInt(id), payload);
+        Alert.alert("Success", "Event type updated successfully");
         // Refresh event type data
         await fetchEventTypeData();
-      } else {
-        Alert.alert("Info", "No changes to save");
       }
     } catch (error) {
-      console.error("Failed to update event type:", error);
-      Alert.alert("Error", "Failed to update event type. Please try again.");
+      console.error("Failed to save event type:", error);
+      const action = id === "new" ? "create" : "update";
+      Alert.alert("Error", `Failed to ${action} event type. Please try again.`);
     } finally {
       setSaving(false);
     }
@@ -790,14 +1225,16 @@ export default function EventTypeDetail() {
             </TouchableOpacity>
 
             <Text className="flex-1 text-lg font-semibold text-black text-center mx-2.5" numberOfLines={1}>
-              {truncateTitle(title)}
+              {id === "new" ? "Create Event Type" : truncateTitle(title)}
             </Text>
 
             <TouchableOpacity
               className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}>
-              <Text className="text-white text-base font-semibold">{saving ? "Saving..." : "Save"}</Text>
+              <Text className="text-white text-base font-semibold">
+                {id === "new" ? "Create" : "Save"}
+              </Text>
             </TouchableOpacity>
           </View>
         </GlassView>
@@ -832,205 +1269,33 @@ export default function EventTypeDetail() {
         {/* Content */}
         <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
-            <View className="gap-3">
-              {/* Title and Description Card */}
-              <View className="bg-white rounded-2xl p-5">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Title</Text>
-                  <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                    value={eventTitle}
-                    onChangeText={setEventTitle}
-                    placeholder="Enter event title"
-                    placeholderTextColor="#8E8E93"
-                  />
-                </View>
-
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Description</Text>
-                  <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                    style={{ height: 100, textAlignVertical: "top" }}
-                    value={eventDescription}
-                    onChangeText={setEventDescription}
-                    placeholder="Enter event description"
-                    placeholderTextColor="#8E8E93"
-                    multiline
-                    numberOfLines={4}
-                  />
-                </View>
-
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">URL</Text>
-                  <View className="flex-row items-center bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg overflow-hidden">
-                    <Text className="bg-[#E5E5EA] text-[#666] text-base px-3 py-3 rounded-tl-lg rounded-bl-lg">cal.com/{username}/</Text>
-                    <TextInput
-                      className="flex-1 px-3 py-3 text-base text-black"
-                      value={eventSlug}
-                      onChangeText={setEventSlug}
-                      placeholder="event-slug"
-                      placeholderTextColor="#8E8E93"
-                    />
-                  </View>
-                </View>
-              </View>
-
-              {/* Duration Card */}
-              <View className="bg-white rounded-2xl p-5">
-                {!allowMultipleDurations && (
-                  <View className="mb-3">
-                    <Text className="text-base font-semibold text-[#333] mb-1.5">Duration</Text>
-                    <View className="flex-row items-center gap-3">
-                      <TextInput
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                        value={eventDuration}
-                        onChangeText={setEventDuration}
-                        placeholder="30"
-                        placeholderTextColor="#8E8E93"
-                        keyboardType="numeric"
-                      />
-                      <Text className="text-base text-[#666]">Minutes</Text>
-                    </View>
-                  </View>
-                )}
-
-                {allowMultipleDurations && (
-                  <>
-                    <View className="mb-3">
-                      <Text className="text-base font-semibold text-[#333] mb-1.5">Available durations</Text>
-                      <TouchableOpacity
-                        className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                        onPress={() => setShowDurationDropdown(true)}>
-                        <Text className="text-base text-black">
-                          {selectedDurations.length > 0
-                            ? `${selectedDurations.length} duration${
-                                selectedDurations.length > 1 ? "s" : ""
-                              } selected`
-                            : "Select durations"}
-                        </Text>
-                        <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                      </TouchableOpacity>
-                    </View>
-
-                    {selectedDurations.length > 0 && (
-                      <View className="mb-3">
-                        <Text className="text-base font-semibold text-[#333] mb-1.5">Default duration</Text>
-                        <TouchableOpacity
-                          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                          onPress={() => setShowDefaultDurationDropdown(true)}>
-                          <Text className="text-base text-black">
-                            {defaultDuration || "Select default duration"}
-                          </Text>
-                          <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </>
-                )}
-
-                <View className="flex-row justify-between items-start">
-                  <Text className="text-base text-[#333] font-medium mb-1">Allow multiple durations</Text>
-                  <Switch
-                    value={allowMultipleDurations}
-                    onValueChange={setAllowMultipleDurations}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Location Card */}
-              <View className="bg-white rounded-2xl p-5">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Location</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowLocationDropdown(true)}
-                    disabled={conferencingLoading}>
-                    <View className="flex-row items-center flex-1">
-                      {!conferencingLoading && selectedLocation && getSelectedLocationIconUrl() && (
-                        <SvgImage
-                          uri={getSelectedLocationIconUrl()!}
-                          width={20}
-                          height={20}
-                          style={{ marginRight: 8 }}
-                        />
-                      )}
-                      <Text className="text-base text-black">
-                        {conferencingLoading ? "Loading locations..." : selectedLocation || "Select location"}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                  
-                  {/* Location Input Fields - shown conditionally based on selected location type */}
-                  {(() => {
-                    const currentLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
-                    if (!currentLocation || !currentLocation.organizerInputType) {
-                      return null;
-                    }
-
-                    if (currentLocation.organizerInputType === "text") {
-                      // Text input for address or link
-                      const isAddress = currentLocation.type === "inPerson";
-                      const isLink = currentLocation.type === "link";
-                      
-                      return (
-                        <View className="mt-3">
-                          <Text className="text-sm font-medium text-[#333] mb-1.5">
-                            {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
-                          </Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
-                            placeholder={currentLocation.organizerInputPlaceholder || ""}
-                            value={isAddress ? locationAddress : locationLink}
-                            onChangeText={(text) => {
-                              if (isAddress) {
-                                setLocationAddress(text);
-                              } else {
-                                setLocationLink(text);
-                              }
-                            }}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType={isLink ? "url" : "default"}
-                          />
-                          {currentLocation.messageForOrganizer && (
-                            <Text className="text-xs text-[#666] mt-2">
-                              {currentLocation.messageForOrganizer}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    } else if (currentLocation.organizerInputType === "phone") {
-                      // Phone input
-                      return (
-                        <View className="mt-3">
-                          <Text className="text-sm font-medium text-[#333] mb-1.5">
-                            {currentLocation.organizerInputLabel || "Phone Number"}
-                          </Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
-                            placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
-                            value={locationPhone}
-                            onChangeText={setLocationPhone}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            keyboardType="phone-pad"
-                          />
-                          {currentLocation.messageForOrganizer && (
-                            <Text className="text-xs text-[#666] mt-2">
-                              {currentLocation.messageForOrganizer}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    }
-                    return null;
-                  })()}
-                </View>
-              </View>
-            </View>
+            <BasicsTab
+              eventTitle={eventTitle}
+              setEventTitle={setEventTitle}
+              eventDescription={eventDescription}
+              setEventDescription={setEventDescription}
+              username={username}
+              eventSlug={eventSlug}
+              setEventSlug={setEventSlug}
+              allowMultipleDurations={allowMultipleDurations}
+              setAllowMultipleDurations={setAllowMultipleDurations}
+              eventDuration={eventDuration}
+              setEventDuration={setEventDuration}
+              selectedDurations={selectedDurations}
+              setShowDurationDropdown={setShowDurationDropdown}
+              defaultDuration={defaultDuration}
+              setShowDefaultDurationDropdown={setShowDefaultDurationDropdown}
+              selectedLocation={selectedLocation}
+              setShowLocationDropdown={setShowLocationDropdown}
+              conferencingLoading={conferencingLoading}
+              getSelectedLocationIconUrl={getSelectedLocationIconUrl}
+              locationAddress={locationAddress}
+              setLocationAddress={setLocationAddress}
+              locationLink={locationLink}
+              setLocationLink={setLocationLink}
+              locationPhone={locationPhone}
+              setLocationPhone={setLocationPhone}
+            />
           )}
 
           {/* Duration Multi-Select Modal */}
@@ -1450,455 +1715,126 @@ export default function EventTypeDetail() {
           </Modal>
 
           {activeTab === "availability" && (
-            <View className="bg-white rounded-2xl p-5">
-              <View className="mb-3">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Availability</Text>
-                <TouchableOpacity
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                  onPress={() => setShowScheduleDropdown(true)}
-                  disabled={schedulesLoading}>
-                  <Text className="text-base text-black">
-                    {schedulesLoading
-                      ? "Loading schedules..."
-                      : selectedSchedule
-                      ? selectedSchedule.name
-                      : "Select schedule"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                </TouchableOpacity>
-              </View>
-
-              {selectedSchedule && (
-                <>
-                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
-                    {scheduleDetailsLoading ? (
-                      <View className="py-4 items-center">
-                        <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
-                      </View>
-                    ) : selectedScheduleDetails ? (
-                      getDaySchedule().map((dayInfo, index) => (
-                        <View key={index} className="flex-row justify-between items-center py-4">
-                          <Text
-                            className={`text-[15px] font-medium text-[#333] flex-1 ml-2 ${
-                              !dayInfo.available ? "line-through text-[#8E8E93]" : ""
-                            }`}>
-                            {dayInfo.day}
-                          </Text>
-                          <Text className="text-[15px] text-[#666] text-right mr-4">
-                            {dayInfo.available && dayInfo.startTime && dayInfo.endTime
-                              ? `${formatTime(dayInfo.startTime)} - ${formatTime(dayInfo.endTime)}`
-                              : "Unavailable"}
-                          </Text>
-                        </View>
-                      ))
-                    ) : (
-                      <View className="py-4 items-center">
-                        <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View className="pt-5 mt-5" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', marginLeft: -20, marginRight: -20, paddingLeft: 20, paddingRight: 20 }}>
-                    <Text className="text-base font-semibold text-[#333] mb-1.5">Timezone</Text>
-                    <View className="bg-[#F8F9FA] rounded-lg px-3 py-3 items-center">
-                      <Text className="text-base text-[#666] text-center">
-                        {selectedTimezone || selectedScheduleDetails?.timeZone || "No timezone"}
-                      </Text>
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
+            <AvailabilityTab
+              selectedSchedule={selectedSchedule}
+              setShowScheduleDropdown={setShowScheduleDropdown}
+              schedulesLoading={schedulesLoading}
+              scheduleDetailsLoading={scheduleDetailsLoading}
+              selectedScheduleDetails={selectedScheduleDetails}
+              getDaySchedule={getDaySchedule}
+              formatTime={formatTime}
+              selectedTimezone={selectedTimezone}
+            />
           )}
 
           {activeTab === "limits" && (
-            <View className="gap-3">
-              {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="mb-3">
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Before event</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowBeforeBufferDropdown(true)}>
-                    <Text className="text-base text-black">{beforeEventBuffer}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-
-                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">After event</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowAfterBufferDropdown(true)}>
-                    <Text className="text-base text-black">{afterEventBuffer}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-
-                <View className="mb-3" style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Minimum Notice</Text>
-                  <View className="flex-row items-center gap-3">
-                    <TextInput
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                      value={minimumNoticeValue}
-                      onChangeText={(text) => {
-                        const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
-                        if (num >= 0) {
-                          setMinimumNoticeValue(numericValue || "0");
-                        }
-                      }}
-                      placeholder="1"
-                      placeholderTextColor="#8E8E93"
-                      keyboardType="numeric"
-                    />
-                    <TouchableOpacity
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                      onPress={() => setShowMinimumNoticeUnitDropdown(true)}>
-                      <Text className="text-base text-black">{minimumNoticeUnit}</Text>
-                      <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={{ borderTopWidth: 1, borderTopColor: '#E5E5EA', paddingTop: 12, marginTop: 12 }}>
-                  <Text className="text-base font-semibold text-[#333] mb-1.5">Time-slot intervals</Text>
-                  <TouchableOpacity
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                    onPress={() => setShowSlotIntervalDropdown(true)}>
-                    <Text className="text-base text-black">{slotInterval === "Default" ? "Use event length (default)" : slotInterval}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Booking Frequency Limit Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit booking frequency</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit how many times this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitBookingFrequency}
-                    onValueChange={toggleBookingFrequency}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-
-                <Animated.View
-                  style={[
-                    { overflow: "hidden" },
-                    {
-                      opacity: frequencyAnimationValue,
-                      maxHeight: frequencyAnimationValue.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 500],
-                      }),
-                    },
-                  ]}>
-                  {limitBookingFrequency && (
-                    <>
-                      {frequencyLimits.map((limit, index) => (
-                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                            value={limit.value}
-                            onChangeText={(text) => {
-                              const numericValue = text.replace(/[^0-9]/g, "");
-                              const num = parseInt(numericValue) || 0;
-                              if (num >= 0) {
-                                updateFrequencyLimit(limit.id, "value", numericValue || "0");
-                              }
-                            }}
-                            placeholder="1"
-                            placeholderTextColor="#8E8E93"
-                            keyboardType="numeric"
-                          />
-                          <TouchableOpacity
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                            onPress={() => setShowFrequencyUnitDropdown(limit.id)}>
-                            <Text className="text-base text-black">{limit.unit}</Text>
-                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                          </TouchableOpacity>
-                          {frequencyLimits.length > 1 && (
-                            <TouchableOpacity
-                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
-                              onPress={() => removeFrequencyLimit(limit.id)}>
-                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      ))}
-                      <TouchableOpacity
-                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
-                        onPress={addFrequencyLimit}>
-                        <Ionicons name="add" size={20} color="#000" />
-                        <Text className="text-base text-black font-medium">Add Limit</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Total Booking Duration Limit Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit total booking duration</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit total amount of time that this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitTotalDuration}
-                    onValueChange={toggleTotalDuration}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-
-                <Animated.View
-                  style={[
-                    { overflow: "hidden" },
-                    {
-                      opacity: durationAnimationValue,
-                      maxHeight: durationAnimationValue.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 500],
-                      }),
-                    },
-                  ]}>
-                  {limitTotalDuration && (
-                    <>
-                      {durationLimits.map((limit, index) => (
-                        <View key={limit.id} className="flex-row items-center mt-4 gap-3">
-                          <View className="flex-row items-center gap-3">
-                            <TextInput
-                              className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
-                              value={limit.value}
-                              onChangeText={(text) => {
-                                const numericValue = text.replace(/[^0-9]/g, "");
-                                const num = parseInt(numericValue) || 0;
-                                if (num >= 0) {
-                                  updateDurationLimit(limit.id, "value", numericValue || "0");
-                                }
-                              }}
-                              placeholder="60"
-                              placeholderTextColor="#8E8E93"
-                              keyboardType="numeric"
-                            />
-                            <Text className="text-base text-[#666]">Minutes</Text>
-                          </View>
-                          <TouchableOpacity
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center min-w-[100px]"
-                            onPress={() => setShowDurationUnitDropdown(limit.id)}>
-                            <Text className="text-base text-black">{limit.unit}</Text>
-                            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                          </TouchableOpacity>
-                          {durationLimits.length > 1 && (
-                            <TouchableOpacity
-                              className="w-10 h-10 justify-center items-center bg-[#FFF1F0] rounded-lg border border-[#FFCCC7]"
-                              onPress={() => removeDurationLimit(limit.id)}>
-                              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      ))}
-                      <TouchableOpacity
-                        className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
-                        onPress={addDurationLimit}>
-                        <Ionicons name="add" size={20} color="#000" />
-                        <Text className="text-base text-black font-medium">Add Limit</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Only Show First Available Slot Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Only show the first slot of each day as available</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      This will limit your availability for this event type to one slot per day, scheduled at the earliest available time.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={onlyShowFirstAvailableSlot}
-                    onValueChange={setOnlyShowFirstAvailableSlot}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-              </View>
-
-              {/* Max Active Bookings Per Booker Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit number of upcoming bookings per booker</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit the number of active bookings a booker can make for this event type.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={maxActiveBookingsPerBooker}
-                    onValueChange={setMaxActiveBookingsPerBooker}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-                {maxActiveBookingsPerBooker && (
-                  <View className="mt-3">
-                    <TextInput
-                      className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                      value={maxActiveBookingsValue}
-                      onChangeText={(text) => {
-                        const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue) || 0;
-                        if (num >= 0) {
-                          setMaxActiveBookingsValue(numericValue || "1");
-                        }
-                      }}
-                      placeholder="1"
-                      placeholderTextColor="#8E8E93"
-                      keyboardType="numeric"
-                    />
-                  </View>
-                )}
-              </View>
-
-              {/* Limit Future Bookings Card */}
-              <View className="bg-white rounded-2xl p-5 shadow-md">
-                <View className="flex-row justify-between items-start mb-3">
-                  <View className="flex-1 mr-4">
-                    <Text className="text-base text-[#333] font-medium mb-1">Limit future bookings</Text>
-                    <Text className="text-sm text-[#666] leading-5">
-                      Limit how far in the future this event can be booked.
-                    </Text>
-                  </View>
-                  <Switch
-                    value={limitFutureBookings}
-                    onValueChange={setLimitFutureBookings}
-                    trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                    thumbColor="#FFFFFF"
-                  />
-                </View>
-                {limitFutureBookings && (
-                  <View className="mt-3 gap-3">
-                    <View className="flex-row items-center gap-3">
-                      <TouchableOpacity
-                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                          futureBookingType === "rolling"
-                            ? "bg-[#F0F0F0] border-[#333]"
-                            : "bg-[#F8F9FA] border-[#E5E5EA]"
-                        }`}
-                        onPress={() => setFutureBookingType("rolling")}>
-                        <Text
-                          className={`text-base ${
-                            futureBookingType === "rolling" ? "text-[#333] font-semibold" : "text-[#666]"
-                          }`}>
-                          Rolling
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                          futureBookingType === "range"
-                            ? "bg-[#F0F0F0] border-[#333]"
-                            : "bg-[#F8F9FA] border-[#E5E5EA]"
-                        }`}
-                        onPress={() => setFutureBookingType("range")}>
-                        <Text
-                          className={`text-base ${
-                            futureBookingType === "range" ? "text-[#333] font-semibold" : "text-[#666]"
-                          }`}>
-                          Date Range
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                    {futureBookingType === "rolling" && (
-                      <View className="gap-3">
-                        <View className="flex-row items-center gap-3">
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black flex-1"
-                            value={rollingDays}
-                            onChangeText={(text) => {
-                              const numericValue = text.replace(/[^0-9]/g, "");
-                              const num = parseInt(numericValue) || 0;
-                              if (num >= 0) {
-                                setRollingDays(numericValue || "30");
-                              }
-                            }}
-                            placeholder="30"
-                            placeholderTextColor="#8E8E93"
-                            keyboardType="numeric"
-                          />
-                          <TouchableOpacity
-                            className={`flex-1 border rounded-lg px-3 py-3 flex-row items-center justify-center ${
-                              rollingCalendarDays
-                                ? "bg-[#F0F0F0] border-[#333]"
-                                : "bg-[#F8F9FA] border-[#E5E5EA]"
-                            }`}
-                            onPress={() => setRollingCalendarDays(!rollingCalendarDays)}>
-                            <Text
-                              className={`text-base ${
-                                rollingCalendarDays ? "text-[#333] font-semibold" : "text-[#666]"
-                              }`}>
-                              {rollingCalendarDays ? "Calendar days" : "Business days"}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                        <Text className="text-sm text-[#666]">days into the future</Text>
-                      </View>
-                    )}
-                    {futureBookingType === "range" && (
-                      <View className="gap-3">
-                        <View>
-                          <Text className="text-sm text-[#666] mb-1.5">Start date</Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                            value={rangeStartDate}
-                            onChangeText={setRangeStartDate}
-                            placeholder="YYYY-MM-DD"
-                            placeholderTextColor="#8E8E93"
-                          />
-                        </View>
-                        <View>
-                          <Text className="text-sm text-[#666] mb-1.5">End date</Text>
-                          <TextInput
-                            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
-                            value={rangeEndDate}
-                            onChangeText={setRangeEndDate}
-                            placeholder="YYYY-MM-DD"
-                            placeholderTextColor="#8E8E93"
-                          />
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-
-            </View>
+            <LimitsTab
+              beforeEventBuffer={beforeEventBuffer}
+              setShowBeforeBufferDropdown={setShowBeforeBufferDropdown}
+              afterEventBuffer={afterEventBuffer}
+              setShowAfterBufferDropdown={setShowAfterBufferDropdown}
+              minimumNoticeValue={minimumNoticeValue}
+              setMinimumNoticeValue={setMinimumNoticeValue}
+              minimumNoticeUnit={minimumNoticeUnit}
+              setShowMinimumNoticeUnitDropdown={setShowMinimumNoticeUnitDropdown}
+              slotInterval={slotInterval}
+              setShowSlotIntervalDropdown={setShowSlotIntervalDropdown}
+              limitBookingFrequency={limitBookingFrequency}
+              toggleBookingFrequency={toggleBookingFrequency}
+              frequencyAnimationValue={frequencyAnimationValue}
+              frequencyLimits={frequencyLimits}
+              updateFrequencyLimit={updateFrequencyLimit}
+              setShowFrequencyUnitDropdown={setShowFrequencyUnitDropdown}
+              removeFrequencyLimit={removeFrequencyLimit}
+              addFrequencyLimit={addFrequencyLimit}
+              limitTotalDuration={limitTotalDuration}
+              toggleTotalDuration={toggleTotalDuration}
+              durationAnimationValue={durationAnimationValue}
+              durationLimits={durationLimits}
+              updateDurationLimit={updateDurationLimit}
+              setShowDurationUnitDropdown={setShowDurationUnitDropdown}
+              removeDurationLimit={removeDurationLimit}
+              addDurationLimit={addDurationLimit}
+              onlyShowFirstAvailableSlot={onlyShowFirstAvailableSlot}
+              setOnlyShowFirstAvailableSlot={setOnlyShowFirstAvailableSlot}
+              maxActiveBookingsPerBooker={maxActiveBookingsPerBooker}
+              setMaxActiveBookingsPerBooker={setMaxActiveBookingsPerBooker}
+              maxActiveBookingsValue={maxActiveBookingsValue}
+              setMaxActiveBookingsValue={setMaxActiveBookingsValue}
+              limitFutureBookings={limitFutureBookings}
+              setLimitFutureBookings={setLimitFutureBookings}
+              futureBookingType={futureBookingType}
+              setFutureBookingType={setFutureBookingType}
+              rollingDays={rollingDays}
+              setRollingDays={setRollingDays}
+              rollingCalendarDays={rollingCalendarDays}
+              setRollingCalendarDays={setRollingCalendarDays}
+              rangeStartDate={rangeStartDate}
+              setRangeStartDate={setRangeStartDate}
+              rangeEndDate={rangeEndDate}
+              setRangeEndDate={setRangeEndDate}
+            />
           )}
 
+
           {activeTab === "advanced" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Advanced Settings</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Configure advanced options for this event type.</Text>
-            </View>
+            <AdvancedTab
+              calendarEventName={calendarEventName}
+              setCalendarEventName={setCalendarEventName}
+              addToCalendarEmail={addToCalendarEmail}
+              setAddToCalendarEmail={setAddToCalendarEmail}
+              selectedLayouts={selectedLayouts}
+              setSelectedLayouts={setSelectedLayouts}
+              defaultLayout={defaultLayout}
+              setDefaultLayout={setDefaultLayout}
+              requiresConfirmation={requiresConfirmation}
+              setRequiresConfirmation={setRequiresConfirmation}
+              disableCancelling={disableCancelling}
+              setDisableCancelling={setDisableCancelling}
+              disableRescheduling={disableRescheduling}
+              setDisableRescheduling={setDisableRescheduling}
+              sendCalVideoTranscription={sendCalVideoTranscription}
+              setSendCalVideoTranscription={setSendCalVideoTranscription}
+              autoTranslate={autoTranslate}
+              setAutoTranslate={setAutoTranslate}
+              requiresBookerEmailVerification={requiresBookerEmailVerification}
+              setRequiresBookerEmailVerification={setRequiresBookerEmailVerification}
+              hideCalendarNotes={hideCalendarNotes}
+              setHideCalendarNotes={setHideCalendarNotes}
+              hideCalendarEventDetails={hideCalendarEventDetails}
+              setHideCalendarEventDetails={setHideCalendarEventDetails}
+              hideOrganizerEmail={hideOrganizerEmail}
+              setHideOrganizerEmail={setHideOrganizerEmail}
+              lockTimezone={lockTimezone}
+              setLockTimezone={setLockTimezone}
+              allowReschedulingPastEvents={allowReschedulingPastEvents}
+              setAllowReschedulingPastEvents={setAllowReschedulingPastEvents}
+              allowBookingThroughRescheduleLink={allowBookingThroughRescheduleLink}
+              setAllowBookingThroughRescheduleLink={setAllowBookingThroughRescheduleLink}
+              successRedirectUrl={successRedirectUrl}
+              setSuccessRedirectUrl={setSuccessRedirectUrl}
+              forwardParamsSuccessRedirect={forwardParamsSuccessRedirect}
+              setForwardParamsSuccessRedirect={setForwardParamsSuccessRedirect}
+              customReplyToEmail={customReplyToEmail}
+              setCustomReplyToEmail={setCustomReplyToEmail}
+              eventTypeColorLight={eventTypeColorLight}
+              setEventTypeColorLight={setEventTypeColorLight}
+              eventTypeColorDark={eventTypeColorDark}
+              setEventTypeColorDark={setEventTypeColorDark}
+            />
           )}
 
           {activeTab === "recurring" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Recurring Events</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Set up recurring event patterns.</Text>
-            </View>
+            <RecurringTab
+              recurringEnabled={recurringEnabled}
+              setRecurringEnabled={setRecurringEnabled}
+              recurringInterval={recurringInterval}
+              setRecurringInterval={setRecurringInterval}
+              recurringFrequency={recurringFrequency}
+              setRecurringFrequency={setRecurringFrequency}
+              recurringOccurrences={recurringOccurrences}
+              setRecurringOccurrences={setRecurringOccurrences}
+            />
           )}
 
           {activeTab === "apps" && (

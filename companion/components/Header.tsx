@@ -40,8 +40,7 @@ export function Header() {
     setShowProfileModal(false);
     switch (option) {
       case "profile":
-        // TODO: Navigate to profile page
-        console.log("My Profile pressed");
+        router.push("/profile");
         break;
       case "settings":
         // TODO: Navigate to settings page
