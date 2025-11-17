@@ -20,6 +20,7 @@ export const getAuditLogsHandler = async ({ ctx, input }: GetAuditLogsOptions) =
     const bookingAuditViewerService = getBookingAuditViewerService();
 
     // Get audit logs with full enrichment and formatting
+    // The viewer service handles linkedBookingUid support through the repository
     const result = await bookingAuditViewerService.getAuditLogsForBooking(
         bookingUid,
         user.id,

@@ -58,9 +58,6 @@ export class BookingEventHandlerService {
   // TODO: actor to be made required in followup PR
   async onBookingRescheduled(payload: BookingRescheduledPayload, actor?: Actor) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (payload.config.isDryRun) {
-      return;
-    }
     await this.onBookingCreatedOrRescheduled(payload);
 
     if (!actor) {

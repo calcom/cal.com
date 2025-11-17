@@ -20,7 +20,8 @@ export interface BookingCreatedPayload {
 }
 
 export interface BookingRescheduledPayload extends BookingCreatedPayload {
-  oldBooking?: {
+  oldBooking: {
+    uid: string;
     startTime: Date;
     endTime: Date;
   };

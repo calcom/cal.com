@@ -2718,6 +2718,15 @@ model BookingAudit {
   // - This allows users to view complete audit history for deleted bookings
   bookingUid String
 
+  // For actions that involve two bookings (e.g., RESCHEDULED, future DUPLICATED),
+  // this stores the UID of the related booking created from/for the operation.
+  // Together with the 'action' field, provides clear semantic meaning:
+  // - action: "RESCHEDULED" + linkedBookingUid = "rescheduled to this booking"
+  // - action: "DUPLICATED" + linkedBookingUid = "duplicated to this booking" (future)
+  // Allows the audit entry to be visible when querying either booking (original or linked).
+  // NULL for actions that don't involve booking-to-booking relationships.
+  linkedBookingUid String?
+
   // Actor who performed the action (USER, GUEST, or SYSTEM)
   // Stored in AuditActor table to maintain audit trail even after user deletion
   actorId String     @db.Uuid
@@ -2739,6 +2748,7 @@ model BookingAudit {
 
   @@index([actorId])
   @@index([bookingUid])
+  @@index([linkedBookingUid])
   @@index([timestamp])
 }
 

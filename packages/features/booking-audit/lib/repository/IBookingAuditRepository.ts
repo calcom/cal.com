@@ -13,6 +13,7 @@ export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DEL
 export type BookingAuditAction = "CREATED" | "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST" | "RESCHEDULED" | "ATTENDEE_ADDED" | "ATTENDEE_REMOVED" | "REASSIGNMENT" | "LOCATION_CHANGED" | "HOST_NO_SHOW_UPDATED" | "ATTENDEE_NO_SHOW_UPDATED" | "RESCHEDULE_REQUESTED"
 export type BookingAuditCreateInput = {
     bookingUid: string;
+    linkedBookingUid?: string | null;
     actorId: string;
     action: BookingAuditAction;
     data: JsonValue;
