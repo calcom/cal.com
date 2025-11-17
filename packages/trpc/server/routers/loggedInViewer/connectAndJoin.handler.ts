@@ -1,7 +1,7 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -206,7 +206,7 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   const organizationId = updatedBooking.eventType?.team?.parentId ?? user.organization.id ?? null;
 
-  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: updatedBooking.eventTypeId ?? 0,
     team: updatedBooking.eventType?.team ?? null,
     owner: updatedBooking.eventType?.team ? null : updatedBooking.eventType?.owner ?? null,
@@ -241,7 +241,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     eventTypeId: eventType?.id,
     videoCallData,
     customReplyToEmail: eventType?.customReplyToEmail,
-    team: !!updatedBooking.eventType?.team
+    team: updatedBooking.eventType?.team
       ? {
           name: updatedBooking.eventType.team.name,
           id: updatedBooking.eventType.team.id,

@@ -10,7 +10,7 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -375,7 +375,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       console.warn("Booking missing eventTypeId, defaulting hideBranding to false");
       hideBranding = false;
     } else {
-      hideBranding = await shouldHideBrandingForEventWithPrisma({
+      hideBranding = await shouldHideBrandingForEvent({
         eventTypeId: eventTypeIdForBranding,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,

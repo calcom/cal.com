@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
@@ -30,7 +30,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     additionalNotes,
   } = rescheduleSeatedBookingObject;
 
-  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizerUser ?? null,

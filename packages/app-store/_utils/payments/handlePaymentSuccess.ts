@@ -8,7 +8,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -97,7 +97,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: booking.eventType?.id ?? 0,
       team: booking.eventType?.team ?? null,
       owner: userWithCredentials ?? null,

@@ -3,7 +3,7 @@ import { uuid } from "short-uuid";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -135,7 +135,7 @@ const combineTwoSeatedBookings = async (
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
   if (noEmail !== true && isConfirmedByDefault) {
-    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: eventType.id,
       team: eventType.team ?? null,
       owner: organizerUser ?? null,

@@ -2,7 +2,6 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
-import { PrismaClient } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
 export type TeamWithBranding = {
@@ -258,50 +257,3 @@ export function shouldHideBrandingForUserEvent({
   });
 }
 
-/**
- * Convenience function that creates repositories with a PrismaClient instance
- * This maintains backward compatibility for existing code
- */
-export async function getHideBrandingWithPrisma({
-  userId,
-  teamId,
-  prisma,
-}: {
-  userId?: number;
-  teamId?: number;
-  prisma: PrismaClient;
-}): Promise<boolean> {
-  const teamRepository = new TeamRepository(prisma);
-  const userRepository = new UserRepository(prisma);
-
-  return getHideBranding({
-    userId,
-    teamId,
-    teamRepository,
-    userRepository,
-  });
-}
-
-/**
- * Convenience function that creates repositories with a PrismaClient instance
- * This maintains backward compatibility for existing code
- */
-export async function shouldHideBrandingForEventWithPrisma({
-  eventTypeId,
-  team,
-  owner,
-  organizationId,
-}: {
-  eventTypeId: number;
-  team: Team | null;
-  owner: UserWithoutProfile | null;
-  organizationId: number | null;
-}) {
-  // ProfileRepository is a static class, so we don't need to instantiate it
-  return shouldHideBrandingForEvent({
-    eventTypeId,
-    team,
-    owner,
-    organizationId,
-  });
-}

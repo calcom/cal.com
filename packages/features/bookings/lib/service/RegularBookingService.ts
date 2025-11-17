@@ -44,7 +44,7 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -1286,7 +1286,7 @@ async function handler(
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
 
-  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizerUser ?? null,

@@ -2,7 +2,7 @@ import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calc
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -75,7 +75,7 @@ export async function handleBookingRequested(args: {
     log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
-    hideBranding = await shouldHideBrandingForEventWithPrisma({
+    hideBranding = await shouldHideBrandingForEvent({
       eventTypeId,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,

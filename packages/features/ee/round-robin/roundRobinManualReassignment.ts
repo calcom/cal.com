@@ -22,7 +22,7 @@ import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/book
 import { scheduleEmailReminder, deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
@@ -315,7 +315,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizer,

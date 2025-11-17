@@ -5,7 +5,7 @@ import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -172,7 +172,7 @@ export const handleNoShowFee = async ({
 
     const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
 
-    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: booking.eventTypeId ?? 0,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,

@@ -12,7 +12,7 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -266,7 +266,7 @@ async function handler(input: CancelBookingInput) {
     log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
-    hideBranding = await shouldHideBrandingForEventWithPrisma({
+    hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: bookingToDelete.eventTypeId,
       team: bookingToDelete.eventType?.team ?? null,
       owner: bookingToDelete.user ?? null,

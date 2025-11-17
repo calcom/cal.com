@@ -7,7 +7,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/EventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -397,7 +397,7 @@ async function sendGuestNotifications(
           parent: eventType.team.parent ?? null,
         }
       : null;
-    hideBranding = await shouldHideBrandingForEventWithPrisma({
+    hideBranding = await shouldHideBrandingForEvent({
       eventTypeId,
       team,
       owner: eventType?.owner ?? null,

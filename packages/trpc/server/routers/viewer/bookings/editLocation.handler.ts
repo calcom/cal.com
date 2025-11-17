@@ -7,7 +7,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -293,7 +293,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
       hideBranding = false;
     } else {
-      hideBranding = await shouldHideBrandingForEventWithPrisma({
+      hideBranding = await shouldHideBrandingForEvent({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
