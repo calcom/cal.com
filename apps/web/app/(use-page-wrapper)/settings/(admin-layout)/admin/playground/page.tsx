@@ -38,7 +38,7 @@ const Page = async () => {
     >
       <Table>
         <Header>
-          <ColumnTitle widthClassNames="w-auto">Feature</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">{t("feature")}</ColumnTitle>
         </Header>
         {LINKS.map((link) => (
           <Row key={link.title}>
