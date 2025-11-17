@@ -8,8 +8,6 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 
 import AppProviders from "@lib/app-providers-app-dir";
 
-import { GoogleTagManagerComponent } from "@components/GTM";
-
 export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
@@ -56,7 +54,6 @@ function PageWrapper(props: PageWrapperProps) {
             <>{props.children}</>
           )}
         </>
-        <GoogleTagManagerComponent />
       </AppProviders>
     </>
   );

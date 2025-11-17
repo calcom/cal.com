@@ -33,6 +33,7 @@ import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
+import { ZPublishInputSchema } from "./publish.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
@@ -77,7 +78,7 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./checkIfOrgNeedsUpgrade.handler");
     return handler(opts);
   }),
-  publish: authedProcedure.mutation(async (opts) => {
+  publish: authedProcedure.input(ZPublishInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./publish.handler");
     return handler(opts);
   }),

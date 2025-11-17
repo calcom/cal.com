@@ -129,6 +129,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   isOrg?: boolean;
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
+  gclid?: string;
 }) => {
   const {
     teamId,
@@ -138,6 +139,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg,
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
+    gclid,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
@@ -195,6 +197,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
+      ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
     },
     subscription_data: {
       metadata: {

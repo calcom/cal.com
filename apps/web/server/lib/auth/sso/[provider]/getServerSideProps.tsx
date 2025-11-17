@@ -16,14 +16,16 @@ const Params = z.object({
   username: z.string().optional(),
   email: z.string().optional(),
   provider: z.string({ required_error: "File is not named sso/[provider]" }),
+  gclid: z.string().optional(),
 });
 
 export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
 
-  const { 
-    provider: providerParam, 
-    email: emailParam, 
+  const {
+    provider: providerParam,
+    email: emailParam,
     username: usernameParam,
+    gclid: gclidParam,
   } = Params.parse(query);
 
   const successDestination = await OnboardingPathService.getGettingStartedPathWithParams(
@@ -45,6 +47,7 @@ export const getServerSideProps = async ({ req, query }: GetServerSidePropsConte
           userEmail: session.user.email,
           username: usernameParam,
           successDestination,
+          gclid: gclidParam,
         });
         if (stripePremiumUrl) {
           return {
@@ -112,6 +115,7 @@ type GetStripePremiumUsernameUrl = {
   userEmail: string;
   username: string;
   successDestination: string;
+  gclid?: string;
 };
 
 const getStripePremiumUsernameUrl = async ({
@@ -119,6 +123,7 @@ const getStripePremiumUsernameUrl = async ({
   userEmail,
   username,
   successDestination,
+  gclid,
 }: GetStripePremiumUsernameUrl): Promise<string | null> => {
   // @TODO: probably want to check if stripe user email already exists? or not
   const customer = await stripe.customers.create({
@@ -143,6 +148,7 @@ const getStripePremiumUsernameUrl = async ({
     allow_promotion_codes: true,
     metadata: {
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
     },
   });
 

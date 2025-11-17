@@ -32,11 +32,13 @@ export class BillingService {
     teamId,
     agentId,
     workflowId,
+    gclid,
   }: {
     userId: number;
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    gclid?: string;
   }) {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
@@ -80,6 +82,7 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
+        ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
       },
       subscription_data: {
         metadata: {

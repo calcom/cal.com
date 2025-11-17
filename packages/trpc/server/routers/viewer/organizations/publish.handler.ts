@@ -9,14 +9,16 @@ import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
+import type { TPublishInputSchema } from "./publish.schema";
 
 type PublishOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: TPublishInputSchema;
 };
 
-export const publishHandler = async ({ ctx }: PublishOptions) => {
+export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   const orgId = ctx.user.organizationId;
   if (!orgId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have an organization to upgrade" });
@@ -61,6 +63,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
       billingPeriod: metadata.data?.billingPeriod ?? undefined,
+      gclid: input.gclid,
     });
 
     if (!checkoutSession.url)
@@ -79,10 +82,9 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
   try {
-    updatedTeam = await prisma.team.update({
+    await prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,
