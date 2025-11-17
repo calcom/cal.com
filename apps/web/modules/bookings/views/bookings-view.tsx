@@ -19,7 +19,6 @@ import {
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
@@ -183,32 +182,26 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" ? (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-          ) : (
-            <>
-              {status === "upcoming" && !isEmpty && (
-                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-              )}
-              {view === "list" && (
-                <BookingsListContainer
-                  status={status}
-                  permissions={permissions}
-                  data={query.data}
-                  isPending={isPending}
-                  totalRowCount={totalRowCount}
-                  enableDetailsSheet={bookingsV3Enabled}
-                />
-              )}
-              {bookingsV3Enabled && view === "calendar" && (
-                <BookingsCalendarContainer
-                  status={status}
-                  permissions={permissions}
-                  data={query.data}
-                  isPending={isPending}
-                />
-              )}
-            </>
+          {status === "upcoming" && !isEmpty && (
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+          )}
+          {view === "list" && (
+            <BookingsListContainer
+              status={status}
+              permissions={permissions}
+              data={query.data}
+              isPending={isPending}
+              totalRowCount={totalRowCount}
+              enableDetailsSheet={bookingsV3Enabled}
+            />
+          )}
+          {bookingsV3Enabled && view === "calendar" && (
+            <BookingsCalendarContainer
+              status={status}
+              permissions={permissions}
+              data={query.data}
+              isPending={isPending}
+            />
           )}
         </div>
       </main>
