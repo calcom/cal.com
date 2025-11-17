@@ -3,6 +3,7 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type { Team } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTeam, getOrg, TeamRepository } from "./TeamRepository";
 
@@ -175,6 +176,170 @@ describe("TeamRepository", () => {
         },
       });
       expect(result).toEqual(mockTeam);
+    });
+  });
+
+  describe("findTeamForMigration", () => {
+    it("should return team with parent and members for migration", async () => {
+      const mockTeam = {
+        id: 1,
+        slug: "test-team",
+        metadata: {},
+        parent: {
+          id: 10,
+          isPlatform: false,
+        },
+        members: [
+          {
+            role: "OWNER",
+            userId: 1,
+            user: {
+              email: "owner@example.com",
+            },
+          },
+        ],
+      };
+      prismaMock.team.findUnique.mockResolvedValue(mockTeam as unknown as Team);
+      const result = await teamRepository.findTeamForMigration({ teamId: 1 });
+      expect(prismaMock.team.findUnique).toHaveBeenCalledWith({
+        where: {
+          id: 1,
+        },
+        select: {
+          id: true,
+          slug: true,
+          metadata: true,
+          parent: {
+            select: {
+              id: true,
+              isPlatform: true,
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              userId: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      expect(result).toEqual(mockTeam);
+    });
+
+    it("should return null if team is not found", async () => {
+      prismaMock.team.findUnique.mockResolvedValue(null);
+      const result = await teamRepository.findTeamForMigration({ teamId: 999 });
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("updateTeamSlugAndParent", () => {
+    it("should update team slug and parentId", async () => {
+      const mockUpdatedTeam = {
+        id: 1,
+        slug: "new-slug",
+        parentId: 10,
+      };
+      prismaMock.team.update.mockResolvedValue(mockUpdatedTeam as unknown as Team);
+      const result = await teamRepository.updateTeamSlugAndParent({
+        teamId: 1,
+        slug: "new-slug",
+        parentId: 10,
+      });
+      expect(prismaMock.team.update).toHaveBeenCalledWith({
+        where: {
+          id: 1,
+        },
+        data: {
+          slug: "new-slug",
+          parentId: 10,
+        },
+      });
+      expect(result).toEqual(mockUpdatedTeam);
+    });
+
+    it("should handle null slug", async () => {
+      const mockUpdatedTeam = {
+        id: 1,
+        slug: null,
+        parentId: 10,
+      };
+      prismaMock.team.update.mockResolvedValue(mockUpdatedTeam as unknown as Team);
+      const result = await teamRepository.updateTeamSlugAndParent({
+        teamId: 1,
+        slug: null,
+        parentId: 10,
+      });
+      expect(prismaMock.team.update).toHaveBeenCalledWith({
+        where: {
+          id: 1,
+        },
+        data: {
+          slug: null,
+          parentId: 10,
+        },
+      });
+      expect(result).toEqual(mockUpdatedTeam);
+    });
+  });
+
+  describe("upsertTeamRedirect", () => {
+    it("should create redirect when it doesn't exist", async () => {
+      const mockRedirect = {
+        id: 1,
+        type: RedirectType.Team,
+        from: "old-slug",
+        fromOrgId: 0,
+        toUrl: "https://test-org.cal.com/new-slug",
+      };
+      prismaMock.tempOrgRedirect.upsert.mockResolvedValue(mockRedirect as any);
+      const result = await teamRepository.upsertTeamRedirect({
+        oldTeamSlug: "old-slug",
+        teamSlug: "new-slug",
+        orgSlug: "test-org",
+      });
+      expect(prismaMock.tempOrgRedirect.upsert).toHaveBeenCalledWith({
+        where: {
+          from_type_fromOrgId: {
+            type: RedirectType.Team,
+            from: "old-slug",
+            fromOrgId: 0,
+          },
+        },
+        create: {
+          type: RedirectType.Team,
+          from: "old-slug",
+          fromOrgId: 0,
+          toUrl: expect.stringContaining("test-org"),
+        },
+        update: {
+          toUrl: expect.stringContaining("test-org"),
+        },
+      });
+      expect(result).toEqual(mockRedirect);
+    });
+
+    it("should update redirect when it already exists", async () => {
+      const mockRedirect = {
+        id: 1,
+        type: RedirectType.Team,
+        from: "old-slug",
+        fromOrgId: 0,
+        toUrl: "https://test-org.cal.com/updated-slug",
+      };
+      prismaMock.tempOrgRedirect.upsert.mockResolvedValue(mockRedirect as any);
+      const result = await teamRepository.upsertTeamRedirect({
+        oldTeamSlug: "old-slug",
+        teamSlug: "updated-slug",
+        orgSlug: "test-org",
+      });
+      expect(prismaMock.tempOrgRedirect.upsert).toHaveBeenCalled();
+      expect(result.toUrl).toContain("updated-slug");
     });
   });
 });

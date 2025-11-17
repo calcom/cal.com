@@ -1,9 +1,8 @@
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
@@ -11,12 +10,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { TRPCError } from "@trpc/server";
-
-import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 const log = logger.getSubLogger({ prefix: ["TeamCreationService"] });
 
@@ -96,33 +94,7 @@ export class TeamCreationService {
   async moveTeamToOrganization(input: MoveTeamInput): Promise<void> {
     const { teamId, newSlug, org, creationSource } = input;
 
-    const team = await this.prismaClient.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        id: true,
-        slug: true,
-        metadata: true,
-        parent: {
-          select: {
-            id: true,
-            isPlatform: true,
-          },
-        },
-        members: {
-          select: {
-            role: true,
-            userId: true,
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const team = await this.teamRepository.findTeamForMigration({ teamId });
 
     if (!team) {
       log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
@@ -147,14 +119,10 @@ export class TeamCreationService {
     const orgMetadata = teamMetadataSchema.parse(org.metadata);
 
     try {
-      await this.prismaClient.team.update({
-        where: {
-          id: teamId,
-        },
-        data: {
-          slug: finalSlug,
-          parentId: org.id,
-        },
+      await this.teamRepository.updateTeamSlugAndParent({
+        teamId,
+        slug: finalSlug,
+        parentId: org.id,
       });
 
       await this.creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
@@ -334,25 +302,11 @@ export class TeamCreationService {
       logger.warn(`No slug for org. Not adding the redirect`);
       return;
     }
-    const orgUrlPrefix = getOrgFullOrigin(orgSlug);
 
-    await this.prismaClient.tempOrgRedirect.upsert({
-      where: {
-        from_type_fromOrgId: {
-          type: RedirectType.Team,
-          from: oldTeamSlug,
-          fromOrgId: 0,
-        },
-      },
-      create: {
-        type: RedirectType.Team,
-        from: oldTeamSlug,
-        fromOrgId: 0,
-        toUrl: `${orgUrlPrefix}/${teamSlug}`,
-      },
-      update: {
-        toUrl: `${orgUrlPrefix}/${teamSlug}`,
-      },
+    await this.teamRepository.upsertTeamRedirect({
+      oldTeamSlug,
+      teamSlug,
+      orgSlug,
     });
   }
 
@@ -378,4 +332,3 @@ export class TeamCreationService {
     }
   }
 }
-

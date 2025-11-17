@@ -1,12 +1,15 @@
 import type { z } from "zod";
 
-import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import {
+  getOrgFullOrigin,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -64,7 +67,12 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   }
 
   if (isOrg) {
+    // We must fetch only the organization here.
+    // Note that an organization and a team that doesn't belong to an organization, both have parentId null
+    // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
+    // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
     where.isOrganization = true;
+    // We must fetch only the team here.
   } else {
     if (forOrgWithSlug) {
       where.parent = whereClauseForOrgWithSlugOrRequestedSlug(forOrgWithSlug);
@@ -96,7 +104,9 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
         metadata: parsedMetadata,
       };
     })
+    // In cases where there are many teams with the same slug, we need to find out the one and only one that matches our criteria
     .filter((team) => {
+      // We need an org if isOrgView otherwise we need a team
       return isOrg ? team.isOrganization : !team.isOrganization;
     });
 
@@ -116,6 +126,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
 
   const team = teamsWithParsedMetadata[0];
   if (!team) return null;
+  // HACK: I am not sure how to make Prisma in peace with TypeScript with this repository pattern
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return team as any;
 }
@@ -158,53 +169,14 @@ const teamSelect = {
   isPlatform: true,
 } satisfies Prisma.TeamSelect;
 
-const teamWithMembersSelect = {
-  members: {
-    select: {
-      accepted: true,
-    },
-  },
-  id: true,
-  metadata: true,
-  parentId: true,
-  isOrganization: true,
-} satisfies Prisma.TeamSelect;
-
-const teamWithParentSelect = {
-  parent: {
-    select: {
-      id: true,
-      isOrganization: true,
-      organizationSettings: true,
-    },
-  },
-} satisfies Prisma.TeamSelect;
-
-const teamForUserSelect = {
-  id: true,
-  name: true,
-  slug: true,
-  logoUrl: true,
-  isOrganization: true,
-  metadata: true,
-  inviteTokens: true,
-  parent: true,
-  parentId: true,
-} satisfies Prisma.TeamSelect;
-
-const teamForCreditCheckSelect = {
-  id: true,
-  isOrganization: true,
-  parentId: true,
-  parent: { select: { id: true } },
-} satisfies Prisma.TeamSelect;
-
 export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findById({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
       select: teamSelect,
     });
     if (!team) {
@@ -215,7 +187,9 @@ export class TeamRepository {
 
   async findByIdIncludePlatformBilling({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
       select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
@@ -224,10 +198,54 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  async findTeamSlugById({ id }: { id: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: { id },
-      select: { slug: true },
+  async findAllByParentId({
+    parentId,
+    select = teamSelect,
+  }: {
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        parentId,
+      },
+      select,
+    });
+  }
+
+  async findByIdAndParentId({
+    id,
+    parentId,
+    select = teamSelect,
+  }: {
+    id: number;
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        id,
+        parentId,
+      },
+      select,
+    });
+  }
+
+  async findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug,
+    select = teamSelect,
+  }: {
+    slug: string;
+    parentSlug: string | null;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+      },
+      select,
     });
   }
 
@@ -240,6 +258,7 @@ export class TeamRepository {
         },
       });
 
+      // delete all memberships
       await tx.membership.deleteMany({
         where: {
           teamId: id,
@@ -247,7 +266,9 @@ export class TeamRepository {
       });
 
       const deletedTeam = await tx.team.delete({
-        where: { id },
+        where: {
+          id: id,
+        },
       });
 
       return deletedTeam;
@@ -256,47 +277,84 @@ export class TeamRepository {
     return deletedTeam;
   }
 
-  async findAllByParentId({
-    parentId,
-    select = DEFAULT_TEAM_SELECT,
-  }: {
-    parentId: number;
-    select?: Prisma.TeamSelect;
-  }) {
-    return await this.prismaClient.team.findMany({
-      where: { parentId },
-      select,
-    });
-  }
-
-  async findByIdAndParentId({
-    id,
-    parentId,
-    select = DEFAULT_TEAM_SELECT,
-  }: {
-    id: number;
-    parentId: number;
-    select?: Prisma.TeamSelect;
-  }) {
-    return await this.prismaClient.team.findFirst({
-      where: { id, parentId },
-      select,
-    });
-  }
-
-  async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
-    return await this.prismaClient.team.findMany({
-      where: {
-        parentId,
-        id: { not: excludeTeamId },
+  async findTeamWithMembers(teamId: number) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        members: {
+          select: {
+            accepted: true,
+          },
+        },
+        id: true,
+        metadata: true,
+        parentId: true,
+        isOrganization: true,
       },
-      select: { id: true },
+    });
+  }
+
+  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        // Show all the teams this user belongs to regardless of the team being part of the user's org or not
+        // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here
+        // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
+        // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
+        userId: userId,
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            isOrganization: true,
+            metadata: true,
+            inviteTokens: true,
+            parent: true,
+            parentId: true,
+          },
+        },
+      },
+      orderBy: { role: "desc" },
+    });
+
+    return memberships
+      .filter((mmship) => {
+        if (includeOrgs) return true;
+        return !mmship.team.isOrganization;
+      })
+      .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
+        role: membership.role,
+        accepted: membership.accepted,
+        ...team,
+        metadata: teamMetadataSchema.parse(team.metadata),
+        /** To prevent breaking we only return non-email attached token here, if we have one */
+        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
+      }));
+  }
+
+  async findTeamWithOrganizationSettings(teamId: number) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        parent: {
+          select: {
+            isOrganization: true,
+            organizationSettings: true,
+          },
+        },
+      },
     });
   }
 
   async findParentOrganizationByTeamId(teamId: number) {
     const team = await this.prismaClient.team.findUnique({
-      where: { id: teamId },
+      where: {
+        id: teamId,
+      },
       select: {
         parent: {
           select: {
@@ -309,10 +367,30 @@ export class TeamRepository {
     return team?.parent;
   }
 
-  async findTeamWithOrganizationSettings(teamId: number) {
+  async findOrganizationSettingsBySlug({ slug }: { slug: string }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        isOrganization: true,
+      },
+      select: {
+        organizationSettings: {
+          select: {
+            adminGetsNoSlotsNotification: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findTeamSlugById({ id }: { id: number }) {
     return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
-      select: teamWithParentSelect,
+      where: {
+        id,
+      },
+      select: {
+        slug: true,
+      },
     });
   }
 
@@ -330,21 +408,25 @@ export class TeamRepository {
     });
   }
 
-  async findFirstBySlugAndParentSlug({
-    slug,
-    parentSlug,
-    select = DEFAULT_TEAM_SELECT,
-  }: {
-    slug: string;
-    parentSlug: string | null;
-    select?: Prisma.TeamSelect;
-  }) {
+  async findOrganization({ teamId, userId }: { teamId?: number; userId: number }) {
     return await this.prismaClient.team.findFirst({
       where: {
-        slug,
-        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+        isOrganization: true,
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+        members: {
+          some: {
+            userId,
+            accepted: true,
+          },
+        },
       },
-      select,
+      select: {
+        id: true,
+      },
     });
   }
 
@@ -374,65 +456,11 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
-  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
-    const memberships = await this.prismaClient.membership.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        team: {
-          select: teamForUserSelect,
-        },
-      },
-      orderBy: { role: "desc" },
-    });
-
-    return memberships
-      .filter((membership) => {
-        if (includeOrgs) return true;
-        return !membership.team.isOrganization;
-      })
-      .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
-        role: membership.role,
-        accepted: membership.accepted,
-        ...team,
-        metadata: teamMetadataSchema.parse(team.metadata),
-        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
-      }));
-  }
-
-  async findTeamWithMembers(teamId: number) {
-    return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
-      select: teamWithMembersSelect,
-    });
-  }
-
-  async findOrganization({ teamId, userId }: { teamId?: number; userId: number }) {
-    return await this.prismaClient.team.findFirst({
-      where: {
-        isOrganization: true,
-        children: {
-          some: {
-            id: teamId,
-          },
-        },
-        members: {
-          some: {
-            userId,
-            accepted: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-  }
-
   async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
     return await this.prismaClient.team.findUnique({
-      where: { id: teamId },
+      where: {
+        id: teamId,
+      },
       select: {
         id: true,
         metadata: true,
@@ -448,19 +476,22 @@ export class TeamRepository {
     });
   }
 
-  async findOrganizationSettingsBySlug({ slug }: { slug: string }) {
-    return await this.prismaClient.team.findFirst({
+  async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
+    return await this.prismaClient.team.findMany({
       where: {
-        slug,
-        isOrganization: true,
-      },
-      select: {
-        organizationSettings: {
-          select: {
-            adminGetsNoSlotsNotification: true,
-          },
+        parentId,
+        id: {
+          not: excludeTeamId,
         },
       },
+      select: { id: true },
+    });
+  }
+
+  async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
+    return await this.prismaClient.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
     });
   }
 
@@ -513,10 +544,84 @@ export class TeamRepository {
     return users;
   }
 
-  async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
-    return await this.prismaClient.team.findMany({
-      where: { id: { in: teamIds } },
-      select: teamForCreditCheckSelect,
+  async findTeamForMigration({ teamId }: { teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        metadata: true,
+        parent: {
+          select: {
+            id: true,
+            isPlatform: true,
+          },
+        },
+        members: {
+          select: {
+            role: true,
+            userId: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async updateTeamSlugAndParent({
+    teamId,
+    slug,
+    parentId,
+  }: {
+    teamId: number;
+    slug: string | null;
+    parentId: number;
+  }) {
+    return await this.prismaClient.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        slug,
+        parentId,
+      },
+    });
+  }
+
+  async upsertTeamRedirect({
+    oldTeamSlug,
+    teamSlug,
+    orgSlug,
+  }: {
+    oldTeamSlug: string;
+    teamSlug: string;
+    orgSlug: string;
+  }) {
+    const orgUrlPrefix = getOrgFullOrigin(orgSlug);
+
+    return await this.prismaClient.tempOrgRedirect.upsert({
+      where: {
+        from_type_fromOrgId: {
+          type: RedirectType.Team,
+          from: oldTeamSlug,
+          fromOrgId: 0,
+        },
+      },
+      create: {
+        type: RedirectType.Team,
+        from: oldTeamSlug,
+        fromOrgId: 0,
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
+      update: {
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
     });
   }
 
