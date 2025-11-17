@@ -222,6 +222,7 @@ export class OrganizationPaymentService {
       })
     );
 
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (!process.env.STRIPE_ORG_PRODUCT_ID || !process.env.STRIPE_ORG_MONTHLY_PRICE_ID) {
       throw new Error("STRIPE_ORG_PRODUCT_ID or STRIPE_ORG_MONTHLY_PRICE_ID is not set");
     }
@@ -242,6 +243,7 @@ export class OrganizationPaymentService {
 
     const customPrice = await this.billingService.createPrice({
       amount: config.pricePerSeat * 100 * occurrence,
+      // eslint-disable-next-line turbo/no-undeclared-env-vars
       productId: process.env.STRIPE_ORG_PRODUCT_ID,
       currency: "usd",
       interval,
@@ -276,6 +278,20 @@ export class OrganizationPaymentService {
         organizationOnboardingId,
       })
     );
+
+    /* eslint-disable turbo/no-undeclared-env-vars */
+    const trialDays = process.env.ORGANIZATION_TRIAL_DAYS
+      ? parseInt(process.env.ORGANIZATION_TRIAL_DAYS, 10)
+      : undefined;
+    /* eslint-enable turbo/no-undeclared-env-vars */
+
+    const subscriptionData =
+      trialDays && !isNaN(trialDays) && trialDays > 0
+        ? {
+            trial_period_days: trialDays,
+          }
+        : undefined;
+
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
       successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
@@ -288,6 +304,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      subscriptionData,
     });
   }
 

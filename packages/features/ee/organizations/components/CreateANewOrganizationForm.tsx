@@ -25,11 +25,8 @@ import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { useOnboarding } from "../lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
-  let out = "";
-  try {
-    const match = email.match(/^(?:.*?:\/\/)?.*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
-    out = (match && match[1]) ?? "";
-  } catch (ignore) {}
+  const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);
+  const out = (match && match[1]) ?? "";
   return out.split(".")[0];
 }
 
@@ -367,6 +364,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           </Button>
         </div>
       </Form>
+      {isBillingEnabled && !isAdmin && (
+        <div className="mt-4">
+          <Alert severity="warning" message={t("organization_trial_workspace_warning")} />
+        </div>
+      )}
     </>
   );
 };
