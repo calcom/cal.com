@@ -44,6 +44,7 @@ export type StoreInitializeType = {
   crmRecordId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
+  defaultPhoneCountry?: string;
 };
 
 type SeatedEventData = {
@@ -183,6 +184,7 @@ export type BookerStore = {
   crmRecordId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
+  defaultPhoneCountry?: string | null;
 };
 
 /**
@@ -329,6 +331,7 @@ export const createBookerStore = () =>
       crmRecordId,
       isPlatform = false,
       allowUpdatingUrlParams = true,
+      defaultPhoneCountry,
     }: StoreInitializeType) => {
       const selectedDateInStore = get().selectedDate;
 
@@ -372,6 +375,7 @@ export const createBookerStore = () =>
         crmRecordId,
         isPlatform,
         allowUpdatingUrlParams,
+        defaultPhoneCountry,
       });
 
       if (durationConfig?.includes(Number(getQueryParam("duration")))) {
@@ -461,6 +465,7 @@ export const createBookerStore = () =>
     },
     isPlatform: false,
     allowUpdatingUrlParams: true,
+    defaultPhoneCountry: null,
   }));
 
 /**
@@ -489,6 +494,7 @@ export const useInitializeBookerStore = ({
   crmRecordId,
   isPlatform = false,
   allowUpdatingUrlParams = true,
+  defaultPhoneCountry,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -513,6 +519,7 @@ export const useInitializeBookerStore = ({
       crmRecordId,
       isPlatform,
       allowUpdatingUrlParams,
+      defaultPhoneCountry,
     });
   }, [
     initializeStore,
@@ -536,5 +543,6 @@ export const useInitializeBookerStore = ({
     crmRecordId,
     isPlatform,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   ]);
 };

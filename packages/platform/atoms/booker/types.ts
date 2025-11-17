@@ -88,6 +88,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   roundRobinHideOrgAndTeam?: boolean;
   silentlyHandleCalendarFailures?: boolean;
   hideEventMetadata?: boolean;
+  defaultPhoneCountry?: string;
 };
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
