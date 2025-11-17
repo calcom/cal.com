@@ -3098,7 +3098,7 @@ describe("handleNewBooking", () => {
           ref.type.includes("google_calendar")
         );
         expect(googleCalendarRef).toBeDefined();
-        expect(googleCalendarRef?.meetingUrl).toContain("meet.google.com");
+        expect(googleCalendarRef?.meetingUrl).toBe("https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT");
 
         // Ensure no Cal Video reference was created
         const calVideoRef = newBooking?.references.find((ref) => ref.type.includes("daily"));
