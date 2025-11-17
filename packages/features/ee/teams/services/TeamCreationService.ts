@@ -1,0 +1,381 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import slugify from "@calcom/lib/slugify";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+
+import { TRPCError } from "@trpc/server";
+
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
+
+const log = logger.getSubLogger({ prefix: ["TeamCreationService"] });
+
+export type CreateTeamsInput = {
+  orgId: number;
+  teamNames: string[];
+  moveTeams: Array<{
+    id: number;
+    newSlug: string | null;
+    shouldMove: boolean;
+  }>;
+  creationSource: CreationSource;
+  ownerId: number;
+};
+
+export type CreateTeamsResult = {
+  duplicatedSlugs: string[];
+};
+
+export type MoveTeamInput = {
+  teamId: number;
+  newSlug?: string | null;
+  org: {
+    id: number;
+    slug: string | null;
+    ownerId: number;
+    metadata: Prisma.JsonValue;
+  };
+  creationSource: CreationSource;
+};
+
+export class TeamCreationService {
+  constructor(
+    private teamRepository: TeamRepository,
+    private creditService: CreditService,
+    private permissionCheckService: PermissionCheckService,
+    private userRepository: UserRepository,
+    private prismaClient: PrismaClient
+  ) {}
+
+  async createTeamsForOrganization(input: CreateTeamsInput): Promise<CreateTeamsResult> {
+    const { orgId, teamNames, moveTeams, creationSource, ownerId } = input;
+
+    const filteredTeamNames = teamNames.filter((name) => name.trim().length > 0);
+    const organization = await this.validateOrganization(orgId);
+    const duplicatedSlugs = await this.validateTeamSlugs({
+      orgId,
+      teamNames: filteredTeamNames,
+    });
+
+    for (const team of moveTeams.filter((team) => team.shouldMove)) {
+      await this.moveTeamToOrganization({
+        teamId: team.id,
+        newSlug: team.newSlug,
+        org: {
+          ...organization,
+          ownerId,
+        },
+        creationSource,
+      });
+    }
+
+    if (duplicatedSlugs.length === filteredTeamNames.length) {
+      return { duplicatedSlugs };
+    }
+
+    await this.createNewTeams({
+      orgId,
+      teamNames: filteredTeamNames,
+      duplicatedSlugs,
+      ownerId,
+    });
+
+    return { duplicatedSlugs };
+  }
+
+  async moveTeamToOrganization(input: MoveTeamInput): Promise<void> {
+    const { teamId, newSlug, org, creationSource } = input;
+
+    const team = await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        metadata: true,
+        parent: {
+          select: {
+            id: true,
+            isPlatform: true,
+          },
+        },
+        members: {
+          select: {
+            role: true,
+            userId: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!team) {
+      log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
+        teamId,
+        orgId: org.id,
+        orgSlug: org.slug,
+      });
+      return;
+    }
+
+    if (team.parent?.isPlatform) {
+      log.info(
+        "Team belongs to a platform organization. Not moving to regular organization.",
+        safeStringify({ teamId, newSlug, org, oldSlug: team.slug, platformOrgId: team.parent.id })
+      );
+      return;
+    }
+
+    log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
+
+    const finalSlug = newSlug ?? team.slug;
+    const orgMetadata = teamMetadataSchema.parse(org.metadata);
+
+    try {
+      await this.prismaClient.team.update({
+        where: {
+          id: teamId,
+        },
+        data: {
+          slug: finalSlug,
+          parentId: org.id,
+        },
+      });
+
+      await this.creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
+    } catch (error) {
+      log.error(
+        "Error while moving team to organization",
+        safeStringify(error),
+        safeStringify({
+          teamId,
+          newSlug: finalSlug,
+          orgId: org.id,
+        })
+      );
+      throw error;
+    }
+
+    await this.inviteTeamMembersToOrganization({
+      teamMembers: team.members,
+      orgOwnerId: org.ownerId,
+      orgSlug: org.slug,
+      orgId: org.id,
+      creationSource,
+    });
+
+    await this.createTeamRedirect({
+      oldTeamSlug: team.slug,
+      teamSlug: finalSlug,
+      orgSlug: org.slug || (orgMetadata?.requestedSlug ?? null),
+    });
+
+    const subscriptionId = this.getSubscriptionId(team.metadata);
+    if (subscriptionId) {
+      await this.cancelTeamSubscription(subscriptionId);
+    }
+  }
+
+  private async validateOrganization(orgId: number) {
+    const organization = await this.prismaClient.team.findUnique({
+      where: { id: orgId },
+      select: { slug: true, id: true, metadata: true },
+    });
+
+    if (!organization) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_found" });
+    }
+
+    const parseTeams = teamMetadataSchema.safeParse(organization?.metadata);
+
+    if (!parseTeams.success) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_organization_metadata" });
+    }
+
+    const metadata = parseTeams.success ? parseTeams.data : undefined;
+
+    if (!metadata?.requestedSlug && !organization?.slug) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
+    }
+
+    return organization;
+  }
+
+  private async validateTeamSlugs({
+    orgId,
+    teamNames,
+  }: {
+    orgId: number;
+    teamNames: string[];
+  }): Promise<string[]> {
+    const [teamSlugs, userSlugs] = [
+      await this.prismaClient.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+      await this.userRepository.findManyByOrganization({ organizationId: orgId }),
+    ];
+
+    const existingSlugs = teamSlugs
+      .flatMap((ts) => ts.slug ?? [])
+      .concat(userSlugs.flatMap((us) => us.username ?? []));
+
+    const duplicatedSlugs = existingSlugs.filter((slug) =>
+      teamNames.map((item) => slugify(item)).includes(slug)
+    );
+
+    return duplicatedSlugs;
+  }
+
+  private async createNewTeams({
+    orgId,
+    teamNames,
+    duplicatedSlugs,
+    ownerId,
+  }: {
+    orgId: number;
+    teamNames: string[];
+    duplicatedSlugs: string[];
+    ownerId: number;
+  }): Promise<void> {
+    await this.prismaClient.$transaction(
+      teamNames.flatMap((name) => {
+        const slug = slugify(name);
+        if (!duplicatedSlugs.includes(slug)) {
+          return this.prismaClient.team.create({
+            data: {
+              name,
+              parentId: orgId,
+              slug,
+              members: {
+                create: { userId: ownerId, role: MembershipRole.OWNER, accepted: true },
+              },
+            },
+          });
+        } else {
+          return [];
+        }
+      })
+    );
+  }
+
+  private async inviteTeamMembersToOrganization({
+    teamMembers,
+    orgOwnerId,
+    orgSlug,
+    orgId,
+    creationSource,
+  }: {
+    teamMembers: Array<{
+      role: MembershipRole;
+      userId: number;
+      user: {
+        email: string;
+      };
+    }>;
+    orgOwnerId: number;
+    orgSlug: string | null;
+    orgId: number;
+    creationSource: CreationSource;
+  }): Promise<void> {
+    const invitableMembers = teamMembers
+      .filter((membership) => membership.userId !== orgOwnerId)
+      .map((membership) => ({
+        usernameOrEmail: membership.user.email,
+        role: membership.role,
+      }));
+
+    if (invitableMembers.length) {
+      await inviteMembersWithNoInviterPermissionCheck({
+        orgSlug,
+        invitations: invitableMembers,
+        creationSource,
+        language: "en",
+        inviterName: null,
+        teamId: orgId,
+        isDirectUserAction: false,
+      });
+    }
+  }
+
+  private async createTeamRedirect({
+    oldTeamSlug,
+    teamSlug,
+    orgSlug,
+  }: {
+    oldTeamSlug: string | null;
+    teamSlug: string | null;
+    orgSlug: string | null;
+  }): Promise<void> {
+    logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
+    if (!oldTeamSlug) {
+      logger.warn(`No oldSlug for team. Not adding the redirect`);
+      return;
+    }
+    if (!teamSlug) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No slug for team. Not adding the redirect",
+      });
+    }
+    if (!orgSlug) {
+      logger.warn(`No slug for org. Not adding the redirect`);
+      return;
+    }
+    const orgUrlPrefix = getOrgFullOrigin(orgSlug);
+
+    await this.prismaClient.tempOrgRedirect.upsert({
+      where: {
+        from_type_fromOrgId: {
+          type: RedirectType.Team,
+          from: oldTeamSlug,
+          fromOrgId: 0,
+        },
+      },
+      create: {
+        type: RedirectType.Team,
+        from: oldTeamSlug,
+        fromOrgId: 0,
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
+      update: {
+        toUrl: `${orgUrlPrefix}/${teamSlug}`,
+      },
+    });
+  }
+
+  private async cancelTeamSubscription(subscriptionId: string): Promise<void> {
+    try {
+      log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
+      await stripe.subscriptions.cancel(subscriptionId);
+    } catch (error) {
+      log.error("Error while cancelling stripe subscription", error);
+    }
+  }
+
+  private getSubscriptionId(metadata: Prisma.JsonValue): string | undefined {
+    const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
+    if (parsedMetadata.success) {
+      const subscriptionId = parsedMetadata.data?.subscriptionId;
+      if (!subscriptionId) {
+        log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
+      }
+      return subscriptionId;
+    } else {
+      log.warn(`There has been an error parsing metadata`, parsedMetadata.error);
+    }
+  }
+}
+
