@@ -1,0 +1,86 @@
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
+import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { Injectable } from "@nestjs/common";
+
+import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+
+export interface UpdateMeResult {
+  updatedUser: UserWithProfile;
+}
+
+@Injectable()
+export class MeService {
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly featuresRepository: PrismaFeaturesRepository
+  ) {}
+
+  async updateMe(params: {
+    user: UserWithProfile;
+    updateData: UpdateManagedUserInput;
+  }): Promise<UpdateMeResult> {
+    const { user, updateData } = params;
+    const update = { ...updateData };
+
+    const emailVerification = await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
+      "email-verification"
+    );
+
+    const hasEmailBeenChanged = update.email && user.email !== update.email;
+    const newEmail = update.email;
+    let sendEmailVerification = false;
+
+    let secondaryEmail:
+      | {
+          id: number;
+          emailVerified: Date | null;
+        }
+      | null
+      | undefined;
+
+    if (hasEmailBeenChanged && newEmail) {
+      if (!user.isPlatformManaged) {
+        secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
+
+        if (emailVerification) {
+          if (!secondaryEmail?.emailVerified) {
+            const userMetadata = typeof user.metadata === "object" ? user.metadata : {};
+            update.metadata = {
+              ...userMetadata,
+              ...update.metadata,
+              emailChangeWaitingForVerification: newEmail.toLowerCase(),
+            };
+
+            delete update.email;
+            sendEmailVerification = true;
+          }
+        }
+      }
+    }
+
+    const updatedUser = await this.usersRepository.update(user.id, update);
+
+    if (update.timeZone && user.defaultScheduleId) {
+      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
+        timeZone: update.timeZone,
+      });
+    }
+
+    if (sendEmailVerification && newEmail) {
+      await sendChangeOfEmailVerification({
+        user: {
+          username: updatedUser.username ?? "Nameless User",
+          emailFrom: user.email,
+          emailTo: newEmail,
+        },
+      });
+    }
+
+    return {
+      updatedUser,
+    };
+  }
+}

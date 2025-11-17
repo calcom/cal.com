@@ -168,15 +168,10 @@ describe("Me Endpoints", () => {
         .send(body)
         .expect(200)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<UserResponse> & {
-            hasEmailBeenChanged?: boolean;
-            sendEmailVerification?: boolean;
-          } = response.body;
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           expect(responseBody.data.email).toEqual(user.email);
-          expect(responseBody.hasEmailBeenChanged).toEqual(true);
-          expect(responseBody.sendEmailVerification).toEqual(true);
 
           const updatedUser = await userRepositoryFixture.get(user.id);
           expect(updatedUser?.email).toEqual(user.email);
@@ -196,15 +191,10 @@ describe("Me Endpoints", () => {
         .send(body)
         .expect(200)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<UserResponse> & {
-            hasEmailBeenChanged?: boolean;
-            sendEmailVerification?: boolean;
-          } = response.body;
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           expect(responseBody.data.email).toEqual(verifiedSecondaryEmail);
-          expect(responseBody.hasEmailBeenChanged).toEqual(true);
-          expect(responseBody.sendEmailVerification).toEqual(false);
 
           const updatedUser = await userRepositoryFixture.get(user.id);
           expect(updatedUser?.email).toEqual(verifiedSecondaryEmail);
@@ -212,7 +202,7 @@ describe("Me Endpoints", () => {
     });
 
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.delete(user.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });

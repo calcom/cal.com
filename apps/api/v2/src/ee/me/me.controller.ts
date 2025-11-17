@@ -1,20 +1,18 @@
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { MeService } from "@/ee/me/services/me.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { userSchemaResponse } from "@calcom/platform-types";
 
@@ -27,10 +25,8 @@ import { userSchemaResponse } from "@calcom/platform-types";
 @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class MeController {
   constructor(
-    private readonly usersRepository: UsersRepository,
-    private readonly schedulesService: SchedulesService_2024_04_15,
     private readonly usersService: UsersService,
-    private readonly featuresRepository: PrismaFeaturesRepository
+    private readonly meService: MeService
   ) {}
 
   @Get("/")
@@ -58,70 +54,22 @@ export class MeController {
 
   @Patch("/")
   @Permissions([PROFILE_WRITE])
-  @ApiOperation({ summary: "Update my profile" })
+  @ApiOperation({
+    summary: "Update my profile",
+    description:
+      "Updates the authenticated user's profile. When updating the email address: If email-verification is enabled and the new email is not already a verified secondary email, the change will be staged in user metadata and a verification email will be sent to the new address. The primary email remains unchanged until verification is completed. If the new email is already verified as a secondary email, the primary email is updated immediately. For platform-managed users (users managed by platform customers), email updates are applied immediately without requiring verification.",
+  })
   async updateMe(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: UpdateManagedUserInput
+    @Body() updateData: UpdateManagedUserInput
   ): Promise<UpdateMeOutput> {
-    const emailVerification = await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-      "email-verification"
-    );
+    const result = await this.meService.updateMe({ user, updateData });
 
-    const hasEmailBeenChanged = bodySchedule.email && user.email !== bodySchedule.email;
-    const newEmail = bodySchedule.email;
-    let sendEmailVerification = false;
-
-    let secondaryEmail:
-      | {
-          id: number;
-          emailVerified: Date | null;
-        }
-      | null
-      | undefined;
-
-    if (hasEmailBeenChanged && newEmail) {
-      secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
-
-      if (emailVerification) {
-        if (!secondaryEmail?.emailVerified) {
-          const userMetadata = typeof user.metadata === "object" ? user.metadata : {};
-          bodySchedule.metadata = {
-            ...userMetadata,
-            ...bodySchedule.metadata,
-            emailChangeWaitingForVerification: newEmail.toLowerCase(),
-          };
-
-          delete bodySchedule.email;
-          sendEmailVerification = true;
-        }
-      }
-    }
-
-    const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
-
-    if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
-        timeZone: bodySchedule.timeZone,
-      });
-    }
-
-    if (sendEmailVerification && newEmail) {
-      await sendChangeOfEmailVerification({
-        user: {
-          username: updatedUser.username ?? "Nameless User",
-          emailFrom: user.email,
-          emailTo: newEmail,
-        },
-      });
-    }
-
-    const me = userSchemaResponse.parse(updatedUser);
+    const me = userSchemaResponse.parse(result.updatedUser);
 
     return {
       status: SUCCESS_STATUS,
       data: me,
-      hasEmailBeenChanged: hasEmailBeenChanged || undefined,
-      sendEmailVerification: sendEmailVerification || undefined,
     };
   }
 }
