@@ -5,6 +5,8 @@ import { useEffect } from "react";
 
 import { localStorage } from "@calcom/lib/webstorage";
 
+import { useGeolocation } from "./geolocation";
+
 const GCLID_STORAGE_KEY = "gclid";
 const GCLID_EXPIRY_KEY = "gclid_expiry";
 const GCLID_EXPIRY_DAYS = 90; // Google Ads attribution window
@@ -27,13 +29,13 @@ function storeGclid(gclid: string): void {
 
 /**
  * Automatically capture gclid from URL parameters
- *
  */
 export function useGclidCapture(): void {
   const searchParams = useSearchParams();
+  const { isUS, loading } = useGeolocation();
 
   useEffect(() => {
-    if (!searchParams) {
+    if (!isUS || loading || !searchParams) {
       return;
     }
 
@@ -46,7 +48,7 @@ export function useGclidCapture(): void {
     } catch (error) {
       console.error("[Google Ads] Error capturing gclid:", error);
     }
-  }, [searchParams]);
+  }, [searchParams, isUS, loading]);
 }
 
 export function getGclid(): string | null {

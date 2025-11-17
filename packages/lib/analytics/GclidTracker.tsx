@@ -3,7 +3,7 @@
 import { useGclidCapture } from "./gclid";
 
 export function GclidTracker() {
-  useGclidCapture(); // Custom hook handles everything
+  useGclidCapture();
 
   return null;
 }
