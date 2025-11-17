@@ -29,6 +29,12 @@ runs:
     - run: USE_POOL=true yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}
+        DATABASE_DIRECT_URL: ${{ inputs.DATABASE_URL }}
+        E2E_TEST_CALCOM_QA_EMAIL: ${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}
+        E2E_TEST_CALCOM_QA_PASSWORD: ${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}
+        E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       uses: tj-actions/pg-dump@v2.3

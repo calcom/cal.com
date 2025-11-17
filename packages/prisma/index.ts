@@ -8,16 +8,23 @@ import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-pa
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const pool =
-  process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
-    ? new Pool({
-        connectionString: connectionString,
-        max: 5,
-        idleTimeoutMillis: 300000,
-      })
-    : undefined;
 
-const adapter = pool ? new PrismaPg(pool) : new PrismaPg({ connectionString });
+if (!connectionString && (process.env.CI === "true" || process.env.NODE_ENV === "test")) {
+  throw new Error(
+    "DATABASE_URL environment variable is required but not set. Please configure DATABASE_URL in your environment."
+  );
+}
+
+const poolMax = process.env.PRISMA_POOL_MAX ? parseInt(process.env.PRISMA_POOL_MAX, 10) : 5;
+const safePoolMax = Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 5;
+
+const pool = new Pool({
+  connectionString: connectionString,
+  max: safePoolMax,
+  idleTimeoutMillis: 300000,
+});
+
+const adapter = new PrismaPg(pool);
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
 };
