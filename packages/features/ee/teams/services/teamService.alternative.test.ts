@@ -42,6 +42,25 @@ const mockTeamBilling = {
 
 // Mock implementations that modify the in-memory database
 const mockTeamRepo = {
+  findTeamForDeletion: vi.fn().mockImplementation(async (id) => {
+    const team = database.teams.get(id);
+    if (team) {
+      return {
+        id: team.id,
+        slug: team.slug,
+        isOrganization: team.isOrganization,
+        members: [
+          {
+            user: {
+              id: 1,
+              username: "testuser",
+            },
+          },
+        ],
+      };
+    }
+    return null;
+  }),
   deleteById: vi.fn().mockImplementation(async ({ id }) => {
     const team = database.teams.get(id);
     if (team) {

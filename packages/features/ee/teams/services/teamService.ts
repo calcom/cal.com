@@ -128,21 +128,9 @@ export class TeamService {
       logger.error(`Failed to delete workflow reminders for team ${id}`, e);
     }
 
-    const team = await prisma.team.findUnique({
-      where: { id },
-      include: {
-        members: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // Step 3: Fetch team details for organization-specific cleanup
+    const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findTeamForDeletion(id);
 
     if (team?.isOrganization) {
       if (team.slug) {
@@ -154,16 +142,16 @@ export class TeamService {
       }
 
       // Delete all redirects for users
-      await TeamService.deleteAllRedirectsForUsers(team.members.map((member) => member.user));
+      const users = team.members?.map((member) => member.user) ?? [];
+      await TeamService.deleteAllRedirectsForUsers(users);
 
-      await TeamService.renameUsersToAvoidUsernameConflicts(team.members.map((member) => member.user));
+      await TeamService.renameUsersToAvoidUsernameConflicts(users);
     }
 
-    // Step 3: Delete the team from the database. This is the core "commit" point.
-    const teamRepo = new TeamRepository(prisma);
+    // Step 4: Delete the team from the database. This is the core "commit" point.
     const deletedTeam = await teamRepo.deleteById({ id });
 
-    // Step 4: Log the deletion for tracking purposes
+    // Step 5: Log the deletion for tracking purposes
     if (deletedTeam) {
       if (deletedTeam.isOrganization) {
         logger.info(`Organization deleted: ${deletedTeam.name} (ID: ${deletedTeam.id})`);

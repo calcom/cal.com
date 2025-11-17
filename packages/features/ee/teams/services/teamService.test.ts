@@ -50,11 +50,25 @@ describe("TeamService", () => {
         isOrganization: true,
         slug: "deleted-team",
       };
+      const mockTeamForDeletion = {
+        id: 1,
+        slug: "deleted-team",
+        isOrganization: true,
+        members: [
+          {
+            user: {
+              id: 1,
+              username: "testuser",
+            },
+          },
+        ],
+      };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const mockTeamRepo = {
+        findTeamForDeletion: vi.fn().mockResolvedValue(mockTeamForDeletion),
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
-      } as Pick<TeamRepository, "deleteById">;
+      } as Pick<TeamRepository, "findTeamForDeletion" | "deleteById">;
       vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo);
 
       const result = await TeamService.delete({ id: 1 });
@@ -62,6 +76,7 @@ describe("TeamService", () => {
       expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
+      expect(mockTeamRepo.findTeamForDeletion).toHaveBeenCalledWith(1);
       expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
       expect(deleteDomain).toHaveBeenCalledWith("deleted-team");
       expect(result).toEqual(mockDeletedTeam);
