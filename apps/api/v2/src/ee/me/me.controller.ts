@@ -57,7 +57,7 @@ export class MeController {
   @ApiOperation({
     summary: "Update my profile",
     description:
-      "Updates the authenticated user's profile. When updating the email address: If email-verification is enabled and the new email is not already a verified secondary email, the change will be staged in user metadata and a verification email will be sent to the new address. The primary email remains unchanged until verification is completed. If the new email is already verified as a secondary email, the primary email is updated immediately. For platform-managed users (users managed by platform customers), email updates are applied immediately without requiring verification.",
+      "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
   })
   async updateMe(
     @GetUser() user: UserWithProfile,
