@@ -342,11 +342,13 @@ function BookingListItem(booking: BookingItemProps) {
         weekday: "short",
         day: "numeric",
         month: "short",
+        timeZone: userTimeZone,
       }).format(new Date(booking.startTime))
     : new Intl.DateTimeFormat(language, {
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: userTimeZone,
       }).format(new Date(booking.startTime));
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
@@ -811,6 +813,7 @@ const RecurringBookingsTooltip = ({
                     {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
                     {new Intl.DateTimeFormat(language, {
+                      timeZone: userTimeZone,
                       day: "numeric",
                       month: "long",
                       year: "numeric",
