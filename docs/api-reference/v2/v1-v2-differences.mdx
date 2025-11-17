@@ -19,14 +19,12 @@ The v2 API includes numerous enhancements and new features that are not availabl
 
 ## Authentication changes
 
-### V1 authentication
 In v1, you authenticated using an API key passed as a query parameter:
 
 ```bash
 curl https://api.cal.com/v1/bookings?apiKey=cal_test_xxxxxx
 ```
 
-### V2 authentication
 In v2, you authenticate using an API key in the `Authorization` header:
 
 ```bash
@@ -34,10 +32,6 @@ curl https://api.cal.com/v2/bookings \
   -H "Authorization: Bearer cal_test_xxxxxx" \
   -H "cal-api-version: 2024-08-13"
 ```
-
-<Note>
-V2 API only supports API key authentication for regular webapp users. OAuth and managed user authentication are for the Platform product, not regular users.
-</Note>
 
 ## Endpoint-by-endpoint migration guide
 
