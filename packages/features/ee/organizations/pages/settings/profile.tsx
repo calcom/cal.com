@@ -196,7 +196,7 @@ const OrgProfileView = ({
           <>
             <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
               <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-              <p className="text-subtle text-sm">{t("organization_deletion_cannot_be_undone")}</p>
+              <p className="text-subtle text-sm">{t("delete_organization")}</p>
             </div>
             <Dialog>
               <SectionBottomActions align="end">
@@ -212,13 +212,20 @@ const OrgProfileView = ({
               </SectionBottomActions>
               <ConfirmationDialogContent
                 variety="danger"
-                title={t("delete_organization")}
-                confirmBtnText={t("confirm_delete_organization")}
+                title={t("admin_delete_organization_title", {
+                  organizationName: currentOrg?.name || "",
+                })}
+                confirmBtnText={t("delete")}
                 isPending={deleteOrganizationMutation.isPending}
                 onConfirm={() => {
                   deleteOrganization();
                 }}>
-                {t("delete_organization_confirmation_message")}
+                <ul className="ml-4 mt-5 list-disc space-y-2">
+                  <li>{t("admin_delete_organization_description_1")}</li>
+                  <li>{t("admin_delete_organization_description_2")}</li>
+                  <li>{t("admin_delete_organization_description_3")}</li>
+                  <li>{t("admin_delete_organization_description_4")}</li>
+                </ul>
               </ConfirmationDialogContent>
             </Dialog>
           </>
