@@ -1121,22 +1121,23 @@ export default function EventTypeDetail() {
       }
 
       // Confirmation policy
-      if (requiresConfirmation) {
-        payload.requiresConfirmation = true;
-      }
+      payload.requiresConfirmation = requiresConfirmation;
 
-      // Boolean flags
-      if (disableCancelling) payload.metadata = { ...payload.metadata, disableCancelling: true };
-      if (disableRescheduling) payload.metadata = { ...payload.metadata, disableRescheduling: true };
-      if (sendCalVideoTranscription) payload.metadata = { ...payload.metadata, sendCalVideoTranscription: true };
-      if (autoTranslate) payload.metadata = { ...payload.metadata, autoTranslate: true };
-      if (requiresBookerEmailVerification) payload.requiresBookerEmailVerification = true;
-      if (hideCalendarNotes) payload.hideCalendarNotes = true;
-      if (hideCalendarEventDetails) payload.metadata = { ...payload.metadata, hideCalendarEventDetails: true };
-      if (hideOrganizerEmail) payload.metadata = { ...payload.metadata, hideOrganizerEmail: true };
-      if (lockTimezone) payload.lockTimeZoneToggleOnBookingPage = true;
-      if (allowReschedulingPastEvents) payload.metadata = { ...payload.metadata, allowReschedulingPastEvents: true };
-      if (allowBookingThroughRescheduleLink) payload.metadata = { ...payload.metadata, allowBookingThroughRescheduleLink: true };
+      // Boolean flags - always set the actual boolean value so toggling off works
+      payload.metadata = {
+        ...payload.metadata,
+        disableCancelling,
+        disableRescheduling,
+        sendCalVideoTranscription,
+        autoTranslate,
+        hideCalendarEventDetails,
+        hideOrganizerEmail,
+        allowReschedulingPastEvents,
+        allowBookingThroughRescheduleLink,
+      };
+      payload.requiresBookerEmailVerification = requiresBookerEmailVerification;
+      payload.hideCalendarNotes = hideCalendarNotes;
+      payload.lockTimeZoneToggleOnBookingPage = lockTimezone;
 
       // Redirect URL
       if (successRedirectUrl) {

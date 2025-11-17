@@ -24,13 +24,13 @@ export interface UserProfile {
 export interface ConferencingOption {
   id: number;
   type: string;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
-  appId: string;
+  appId: string | null;
   subscriptionId: number | null;
   paymentStatus: string | null;
   billingCycleStart: string | null;
   invalid: boolean;
-  delegationCredentialId: number | null;
+  delegationCredentialId: string | null;
 }
 

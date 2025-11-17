@@ -57,9 +57,13 @@ export function RecurringTab({
                 value={recurringInterval}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue) || 1;
+                  // Don't allow empty or 0 values
+                  if (numericValue === "" || numericValue === "0") {
+                    return;
+                  }
+                  const num = parseInt(numericValue);
                   if (num >= 1 && num <= 20) {
-                    setRecurringInterval(numericValue || "1");
+                    setRecurringInterval(numericValue);
                   }
                 }}
                 placeholder="1"
@@ -104,9 +108,13 @@ export function RecurringTab({
                 value={recurringOccurrences}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue) || 1;
+                  // Don't allow empty or 0 values
+                  if (numericValue === "" || numericValue === "0") {
+                    return;
+                  }
+                  const num = parseInt(numericValue);
                   if (num >= 1) {
-                    setRecurringOccurrences(numericValue || "1");
+                    setRecurringOccurrences(numericValue);
                   }
                 }}
                 placeholder="12"

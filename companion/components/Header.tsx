@@ -33,7 +33,7 @@ export function Header() {
   };
 
   const handleProfile = () => {
-    router.push("/profile");
+    setShowProfileModal(true);
   };
 
   const handleMenuOption = (option: string) => {

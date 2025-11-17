@@ -40,7 +40,7 @@ export default function EventTypes() {
   const [newEventSlug, setNewEventSlug] = useState("");
   const [newEventDescription, setNewEventDescription] = useState("");
   const [newEventDuration, setNewEventDuration] = useState("15");
-  const [username, setUsername] = useState<string>("dhairyashil");
+  const [username, setUsername] = useState<string>("");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
@@ -310,9 +310,6 @@ export default function EventTypes() {
 
     setCreating(true);
     try {
-      // Get username for building the full URL
-      const username = await CalComAPIService.getUsername();
-
       // Create the event type with the form data
       const newEventType = await CalComAPIService.createEventType({
         title: newEventTitle.trim(),

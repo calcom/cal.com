@@ -15,10 +15,11 @@ export const parseMinimumNotice = (value: string, unit: string): number => {
 };
 
 export const parseFrequencyUnit = (unit: string): string | null => {
-  if (unit.includes("day")) return "day";
-  if (unit.includes("week")) return "week";
-  if (unit.includes("month")) return "month";
-  if (unit.includes("year")) return "year";
+  const normalized = unit.toLowerCase();
+  if (normalized.includes("day")) return "day";
+  if (normalized.includes("week")) return "week";
+  if (normalized.includes("month")) return "month";
+  if (normalized.includes("year")) return "year";
   return null;
 };
 
