@@ -155,6 +155,7 @@ export function BookingsCalendarView({
               setSelectedBookingUid(bookingUid);
             }
           }}
+          showTimezone
           hideHeader
         />
       </div>
