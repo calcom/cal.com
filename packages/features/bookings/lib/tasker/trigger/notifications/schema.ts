@@ -8,5 +8,3 @@ export const bookingNotificationTaskSchema = z.object({
   platformCancelUrl: z.string().optional(),
   platformBookingUrl: z.string().optional(),
 });
-
-export type BookingNotificationPayload = z.infer<typeof bookingNotificationTaskSchema>;

@@ -21,7 +21,7 @@ export default defineConfig({
 
   // Build configuration (optional)
   build: {
-    external: ["nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
+    external: ["@prisma/client", "nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
   },
 
   // Max duration of a task in seconds

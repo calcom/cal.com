@@ -2613,7 +2613,6 @@ async function handler(
     // for now we only enable for cal.com org and we keep our current email system
     // cal.com org members will see emails in double while we test
     if (ENABLE_ASYNC_TASKER && !noEmail) {
-      // TODO: Add Team Feature Flag to enable booking tasker or not
       try {
         if (orgId) {
           const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
@@ -2636,7 +2635,7 @@ async function handler(
           }
         }
       } catch (err) {
-        tracingLogger.error("bookingEmailAndSmsTasker error", err);
+        tracingLogger.error("bookingEmailAndSmsTasker error:", err);
       }
     }
   }

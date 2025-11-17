@@ -7,13 +7,13 @@ import { prisma } from "@calcom/prisma";
 
 import { BookingEmailAndSmsTaskService } from "../../BookingEmailAndSmsTaskService";
 import { bookingNotificationsTaskConfig } from "./config";
-import { bookingNotificationTaskSchema, BookingNotificationPayload } from "./schema";
+import { bookingNotificationTaskSchema } from "./schema";
 
 export const rrReschedule = schemaTask({
   id: "booking.send.rr.reschedule.notifications",
   ...bookingNotificationsTaskConfig,
   schema: bookingNotificationTaskSchema,
-  run: async (payload: BookingNotificationPayload) => {
+  run: async (payload) => {
     const triggerDevLogger = new TriggerDevLogger();
     const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: triggerDevLogger });
     const bookingRepo = new BookingRepository(prisma);
