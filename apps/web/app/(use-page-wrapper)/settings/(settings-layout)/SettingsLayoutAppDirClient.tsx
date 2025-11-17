@@ -861,10 +861,8 @@ export default function SettingsLayoutAppDirClient({
   }, [setSideContainerOpen]);
 
   useEffect(() => {
-    if (sideContainerOpen) {
-      setSideContainerOpen(!sideContainerOpen);
-    }
-  }, [pathname, sideContainerOpen, setSideContainerOpen]);
+    setSideContainerOpen((prev) => (prev ? false : prev));
+  }, [pathname, setSideContainerOpen]);
 
   return (
     <Shell
