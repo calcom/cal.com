@@ -22,8 +22,6 @@ type BaseDataTableWrapperProps<TData> = Omit<
   LoaderView?: React.ReactNode;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
   onRowMouseclick?: (row: Row<TData>) => void;
-  rowTestId?: string | ((row: Row<TData>) => string | undefined);
-  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
 };
 
 type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
@@ -60,8 +58,6 @@ export function DataTableWrapper<TData>({
   containerClassName,
   headerClassName,
   rowClassName,
-  rowTestId,
-  rowDataAttributes,
   children,
   tableContainerRef: externalRef,
   paginationMode,
@@ -137,8 +133,6 @@ export function DataTableWrapper<TData>({
           containerClassName={containerClassName}
           headerClassName={headerClassName}
           rowClassName={rowClassName}
-          rowTestId={rowTestId}
-          rowDataAttributes={rowDataAttributes}
           paginationMode={paginationMode}
           onRowMouseclick={onRowMouseclick}
           hasWrapperContext={true}
