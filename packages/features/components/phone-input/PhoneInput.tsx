@@ -7,7 +7,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, type CountryCode } from "@calcom/features/bookings/Booker/store";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
@@ -154,7 +154,7 @@ function BasePhoneInputWeb({
 
 const useDefaultCountry = () => {
   const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
-  const [defaultCountry, setDefaultCountry] = useState(defaultPhoneCountryFromStore || "us");
+  const [defaultCountry, setDefaultCountry] = useState<CountryCode>(defaultPhoneCountryFromStore || "us");
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -174,9 +174,14 @@ const useDefaultCountry = () => {
       }
 
       if (isSupportedCountry(data?.countryCode)) {
-        setDefaultCountry(data.countryCode.toLowerCase());
+        setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
       } else {
-        setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+        const navCountry = navigator.language.split("-")[1]?.toUpperCase();
+        if (navCountry && isSupportedCountry(navCountry)) {
+          setDefaultCountry(navCountry.toLowerCase() as CountryCode);
+        } else {
+          setDefaultCountry("us");
+        }
       }
     },
     [query.data, defaultPhoneCountryFromStore]
