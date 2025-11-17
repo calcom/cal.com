@@ -101,6 +101,7 @@ export async function getBooking(bookingId: number) {
       user: {
         select: {
           id: true,
+          uuid: true,
           username: true,
           timeZone: true,
           credentials: { select: credentialForCalendarServiceSelect },

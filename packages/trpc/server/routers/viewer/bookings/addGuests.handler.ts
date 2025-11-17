@@ -1,8 +1,10 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -21,7 +23,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -74,6 +76,19 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   if (emailsEnabled) {
     await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
+
+  // Create audit log for attendee addition
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onAttendeeAdded(
+    booking.uid,
+    makeUserActor(user.uuid),
+    {
+      addedAttendees: {
+        old: booking.attendees.map((a) => a.email),
+        new: [...booking.attendees.map((a) => a.email), ...uniqueGuestEmails],
+      },
+    }
+  );
 
   return { message: "Guests added" };
 };
@@ -286,8 +301,8 @@ async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
+        ? [booking?.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
