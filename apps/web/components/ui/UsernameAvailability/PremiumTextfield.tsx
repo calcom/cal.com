@@ -227,6 +227,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             )}
             value={inputUsernameValue}
             onChange={(event) => {
+              event.preventDefault();
               // Reset payment status
               const _searchParams = new URLSearchParams(searchParams ?? undefined);
               _searchParams.delete("paymentStatus");

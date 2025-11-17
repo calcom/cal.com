@@ -132,6 +132,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                 : ""
             )}
             onChange={(event) => {
+              event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
