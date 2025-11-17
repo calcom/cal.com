@@ -148,13 +148,7 @@ function createTeamCreationService() {
   const creditService = new CreditService();
   const permissionCheckService = new PermissionCheckService();
   const userRepository = new UserRepository(prisma);
-  return new TeamCreationService(
-    teamRepository,
-    creditService,
-    permissionCheckService,
-    userRepository,
-    prisma
-  );
+  return new TeamCreationService(teamRepository, creditService, permissionCheckService, userRepository);
 }
 
 describe("TeamCreationService - Comprehensive Tests", () => {

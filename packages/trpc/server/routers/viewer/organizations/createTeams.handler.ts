@@ -55,8 +55,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamRepository,
     creditService,
     permissionCheckService,
-    userRepository,
-    prisma
+    userRepository
   );
 
   return await teamCreationService.createTeamsForOrganization({

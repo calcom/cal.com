@@ -625,6 +625,83 @@ export class TeamRepository {
     });
   }
 
+  async findOrganizationForValidation(orgId: number) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: orgId },
+      select: { slug: true, id: true, metadata: true },
+    });
+  }
+
+  async findTeamBySlugAndParentId({ slug, parentId }: { slug: string; parentId: number | null }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parentId,
+      },
+    });
+  }
+
+  async findTeamsByParentId(parentId: number) {
+    return await this.prismaClient.team.findMany({
+      where: { parentId },
+      select: { slug: true },
+    });
+  }
+
+  async createTeamWithOwner({
+    slug,
+    name,
+    bio,
+    parentId,
+    ownerId,
+  }: {
+    slug: string;
+    name: string;
+    bio?: string | null;
+    parentId?: number | null;
+    ownerId: number;
+  }) {
+    return await this.prismaClient.team.create({
+      data: {
+        slug,
+        name,
+        bio: bio ?? null,
+        parentId: parentId ?? null,
+        members: {
+          create: {
+            userId: ownerId,
+            role: MembershipRole.OWNER,
+            accepted: true,
+          },
+        },
+      },
+    });
+  }
+
+  async createTeamsInTransaction(
+    teams: Array<{
+      slug: string;
+      name: string;
+      parentId: number;
+      ownerId: number;
+    }>
+  ) {
+    return await this.prismaClient.$transaction(
+      teams.map((team) =>
+        this.prismaClient.team.create({
+          data: {
+            name: team.name,
+            parentId: team.parentId,
+            slug: team.slug,
+            members: {
+              create: { userId: team.ownerId, role: MembershipRole.OWNER, accepted: true },
+            },
+          },
+        })
+      )
+    );
+  }
+
   private parsePermission(permission: string): { resource: string; action: string } {
     const lastDotIndex = permission.lastIndexOf(".");
     const resource = permission.substring(0, lastDotIndex);

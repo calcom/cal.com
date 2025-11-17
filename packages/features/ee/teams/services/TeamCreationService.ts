@@ -6,11 +6,8 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
-import type { PrismaClient } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -51,8 +48,7 @@ export class TeamCreationService {
     private teamRepository: TeamRepository,
     private creditService: CreditService,
     private permissionCheckService: PermissionCheckService,
-    private userRepository: UserRepository,
-    private prismaClient: PrismaClient
+    private userRepository: UserRepository
   ) {}
 
   async createTeamsForOrganization(input: CreateTeamsInput): Promise<CreateTeamsResult> {
@@ -160,10 +156,7 @@ export class TeamCreationService {
   }
 
   private async validateOrganization(orgId: number) {
-    const organization = await this.prismaClient.team.findUnique({
-      where: { id: orgId },
-      select: { slug: true, id: true, metadata: true },
-    });
+    const organization = await this.teamRepository.findOrganizationForValidation(orgId);
 
     if (!organization) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_found" });
@@ -184,6 +177,54 @@ export class TeamCreationService {
     return organization;
   }
 
+  async validateSingleTeamSlug({
+    slug,
+    parentId,
+    organizationId,
+  }: {
+    slug: string;
+    parentId: number | null;
+    organizationId?: number | null;
+  }): Promise<{ isTeamSlugTaken: boolean; isUserSlugTaken: boolean }> {
+    const teamSlugCollision = await this.teamRepository.findTeamBySlugAndParentId({
+      slug,
+      parentId,
+    });
+
+    let isUserSlugTaken = false;
+    if (organizationId) {
+      const users = await this.userRepository.findManyByOrganization({ organizationId });
+      isUserSlugTaken = users.some((user) => user.username === slug);
+    }
+
+    return {
+      isTeamSlugTaken: !!teamSlugCollision,
+      isUserSlugTaken,
+    };
+  }
+
+  async createSingleTeam({
+    slug,
+    name,
+    bio,
+    parentId,
+    ownerId,
+  }: {
+    slug: string;
+    name: string;
+    bio?: string | null;
+    parentId?: number | null;
+    ownerId: number;
+  }) {
+    return await this.teamRepository.createTeamWithOwner({
+      slug,
+      name,
+      bio,
+      parentId,
+      ownerId,
+    });
+  }
+
   private async validateTeamSlugs({
     orgId,
     teamNames,
@@ -192,7 +233,7 @@ export class TeamCreationService {
     teamNames: string[];
   }): Promise<string[]> {
     const [teamSlugs, userSlugs] = [
-      await this.prismaClient.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+      await this.teamRepository.findTeamsByParentId(orgId),
       await this.userRepository.findManyByOrganization({ organizationId: orgId }),
     ];
 
@@ -218,25 +259,26 @@ export class TeamCreationService {
     duplicatedSlugs: string[];
     ownerId: number;
   }): Promise<void> {
-    await this.prismaClient.$transaction(
-      teamNames.flatMap((name) => {
+    const teamsToCreate = teamNames
+      .map((name) => {
         const slug = slugify(name);
         if (!duplicatedSlugs.includes(slug)) {
-          return this.prismaClient.team.create({
-            data: {
-              name,
-              parentId: orgId,
-              slug,
-              members: {
-                create: { userId: ownerId, role: MembershipRole.OWNER, accepted: true },
-              },
-            },
-          });
-        } else {
-          return [];
+          return {
+            slug,
+            name,
+            parentId: orgId,
+            ownerId,
+          };
         }
+        return null;
       })
-    );
+      .filter(
+        (team): team is { slug: string; name: string; parentId: number; ownerId: number } => team !== null
+      );
+
+    if (teamsToCreate.length > 0) {
+      await this.teamRepository.createTeamsInTransaction(teamsToCreate);
+    }
   }
 
   private async inviteTeamMembersToOrganization({
@@ -323,12 +365,14 @@ export class TeamCreationService {
     const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
     if (parsedMetadata.success) {
       const subscriptionId = parsedMetadata.data?.subscriptionId;
-      if (!subscriptionId) {
+      if (!subscriptionId || subscriptionId === null) {
         log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
+        return undefined;
       }
       return subscriptionId;
     } else {
       log.warn(`There has been an error parsing metadata`, parsedMetadata.error);
+      return undefined;
     }
   }
 }
