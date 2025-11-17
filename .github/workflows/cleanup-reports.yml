@@ -1,15 +1,18 @@
+name: Cleanup E2E Reports
+
 on:
-  workflow_call:
   pull_request:
     types: [closed]
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
+
 jobs:
   cleanup-report:
+    name: Cleanup HTML report
     runs-on: ubuntu-latest
+    env:
+      BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
     steps:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
@@ -24,14 +27,13 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Cleanup HTML reports on PR close/merge
-        env:
-          BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
         run: |
           if [ -d "$BRANCH_REPORTS_DIR" ]; then
             rm -rf "$BRANCH_REPORTS_DIR"
             git add .
-            git commit -m "workflow: remove all reports for branch ${{ github.event.pull_request.head.ref }} (PR closed/merged)"
+            git commit -m "workflow: remove all reports for branch ${{ github.event.pull_request.head.ref }} (PR #${{ github.event.pull_request.number }} closed/merged)"
             git push
+            echo "✅ Cleaned up reports for branch ${{ github.event.pull_request.head.ref }}"
           else
-            echo "No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
+            echo "ℹ️ No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
           fi

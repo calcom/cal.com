@@ -1,0 +1,194 @@
+name: E2E Test Reports
+
+on:
+  workflow_run:
+    workflows: ["PR Update"]
+    types: [completed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  merge-reports:
+    name: Merge reports
+    # Only run if the workflow_run was triggered by a PR and had E2E tests
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/yarn-playwright-install
+      
+      - name: Download blob reports from GitHub Actions Artifacts
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          path: all-blob-reports
+          pattern: blob-report-*
+          if_no_artifact_found: ignore
+      
+      - name: Check if artifacts were downloaded
+        id: check-artifacts
+        run: |
+          if [ -z "$(ls -A all-blob-reports 2>/dev/null)" ]; then
+            echo "No E2E artifacts found. Skipping report generation."
+            echo "has-artifacts=false" >> $GITHUB_OUTPUT
+          else
+            echo "E2E artifacts found. Proceeding with report generation."
+            echo "has-artifacts=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Merge into HTML Report
+        if: steps.check-artifacts.outputs.has-artifacts == 'true'
+        run: yarn playwright merge-reports --reporter html ./all-blob-reports
+      
+      - name: Upload HTML report
+        if: steps.check-artifacts.outputs.has-artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.event.workflow_run.run_number }}-${{ github.event.workflow_run.run_attempt }}
+          path: playwright-report
+          retention-days: 14
+
+  publish-report:
+    name: Publish HTML report
+    needs: [merge-reports]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      HEAD_REF: ${{ github.event.workflow_run.head_branch }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+      RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      HTML_REPORT_URL_PATH: reports/${{ github.event.workflow_run.head_branch }}/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ github.event.workflow_run.head_branch }}
+    steps:
+      - name: Get PR number
+        id: get-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pullRequests = context.payload.workflow_run.pull_requests;
+            if (pullRequests && pullRequests.length > 0) {
+              const prNumber = pullRequests[0].number;
+              console.log(`PR number: ${prNumber}`);
+              core.setOutput('pr-number', prNumber);
+              core.setOutput('has-pr', 'true');
+            } else {
+              console.log('No PR found for this workflow run');
+              core.setOutput('has-pr', 'false');
+            }
+      
+      - name: Checkout GitHub Pages Branch
+        if: steps.get-pr.outputs.has-pr == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: calcom/test-results
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      
+      - name: Set Git User
+        if: steps.get-pr.outputs.has-pr == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      
+      - name: Check for workflow reports
+        if: steps.get-pr.outputs.has-pr == 'true'
+        run: |
+          if [ -z "$(ls -A $BRANCH_REPORTS_DIR 2>/dev/null)" ]; then
+            echo "BRANCH_REPORTS_EXIST=false" >> $GITHUB_ENV
+          else
+            echo "BRANCH_REPORTS_EXIST=true" >> $GITHUB_ENV
+          fi
+      
+      - name: Cleanup old HTML reports
+        if: steps.get-pr.outputs.has-pr == 'true' && env.BRANCH_REPORTS_EXIST == 'true'
+        timeout-minutes: 3
+        run: |
+          rm -rf $BRANCH_REPORTS_DIR
+          git add .
+          git commit -m "workflow: remove all reports for branch $HEAD_REF"
+      
+      - name: Download zipped HTML report
+        if: steps.get-pr.outputs.has-pr == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: html-report--attempt-${{ env.RUN_NUMBER }}-${{ env.RUN_ATTEMPT }}
+          path: ${{ env.HTML_REPORT_URL_PATH }}
+        continue-on-error: true
+      
+      - name: Check if report was downloaded
+        if: steps.get-pr.outputs.has-pr == 'true'
+        id: check-report
+        run: |
+          if [ -d "$HTML_REPORT_URL_PATH" ] && [ -n "$(ls -A $HTML_REPORT_URL_PATH)" ]; then
+            echo "has-report=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-report=false" >> $GITHUB_OUTPUT
+            echo "No HTML report found to publish"
+          fi
+      
+      - name: Push HTML Report
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.check-report.outputs.has-report == 'true'
+        timeout-minutes: 3
+        run: |
+          git add .
+          git commit -m "workflow: add HTML report for run-id $RUN_ID (attempt: $RUN_ATTEMPT)"
+
+          while true; do
+            git pull --rebase
+            if [ $? -ne 0 ]; then
+              echo "Failed to rebase. Please review manually."
+              exit 1
+            fi
+
+            git push
+            if [ $? -eq 0 ]; then
+              echo "Successfully pushed HTML report to repo."
+              exit 0
+            fi
+          done
+      
+      - name: Output Report URL as Workflow Annotation
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.check-report.outputs.has-report == 'true'
+        id: url
+        run: |
+          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results/$HTML_REPORT_URL_PATH
+          echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
+          echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Find Comment
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.check-report.outputs.has-report == 'true'
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ steps.get-pr.outputs.pr-number }}
+          comment-author: "github-actions[bot]"
+          body-includes: <!-- GENERATED-E2E-RESULTS -->
+      
+      - name: Create comment
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.check-report.outputs.has-report == 'true' && steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ steps.get-pr.outputs.pr-number }}
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ env.RUN_NUMBER }}.${{ env.RUN_ATTEMPT }} latest results](${{ steps.url.outputs.link }})
+      
+      - name: Update comment
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.check-report.outputs.has-report == 'true' && steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- GENERATED-E2E-RESULTS -->
+            ## E2E results are ready!
+            - [Workflow #${{ env.RUN_NUMBER }}.${{ env.RUN_ATTEMPT }} latest results](${{ steps.url.outputs.link }})
