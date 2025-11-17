@@ -43,11 +43,11 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
           });
           onRemove();
         }}>
-        <div className="mt-5">
+        <p className="mt-5">
           {t("remove_users_from_org_confirm", {
             userCount: selectedRows.length,
           })}
-        </div>
+        </p>
       </ConfirmationDialogContent>
     </Dialog>
   );
