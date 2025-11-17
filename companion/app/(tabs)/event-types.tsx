@@ -389,7 +389,14 @@ export default function EventTypes() {
             ) : null}
           </View>
           <TouchableOpacity
-            className="items-center justify-center border border-[#E5E5EA] rounded-lg"
+            className="items-center justify-center border border-[#E5E5EA] border-r-0 rounded-l-lg"
+            style={{ width: 32, height: 32 }}
+            onPress={() => handleCopyLink(item)}
+          >
+            <Ionicons name="link" size={20} color="#3C3F44" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="items-center justify-center border border-[#E5E5EA] rounded-r-lg"
             style={{ width: 32, height: 32 }}
             onPress={() => handleEventTypeLongPress(item)}
           >
