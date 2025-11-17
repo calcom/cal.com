@@ -5,6 +5,7 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { makeUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
@@ -23,6 +24,8 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
+
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
@@ -261,6 +264,8 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
+  const oldLocation = booking.location;
+
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
@@ -307,6 +312,19 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   } catch (error) {
     console.log("Error sending LocationChangeEmails", safeStringify(error));
   }
+
+  // Create audit log for location change
+  const bookingEventHandlerService = getBookingEventHandlerService();
+  await bookingEventHandlerService.onLocationChanged(
+    booking.uid,
+    makeUserActor(ctx.user.uuid),
+    {
+      location: {
+        old: oldLocation,
+        new: newLocationInEvtFormat,
+      },
+    }
+  );
 
   return { message: "Location updated" };
 }

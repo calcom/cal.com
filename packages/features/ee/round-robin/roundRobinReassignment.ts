@@ -12,6 +12,7 @@ import {
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails/email-manager";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -19,6 +20,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { makeSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -101,14 +103,14 @@ export const roundRobinReassignment = async ({
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   if (eventType.hosts.length === 0) {
     throw new Error(ErrorCode.EventTypeNoHosts);
@@ -246,6 +248,10 @@ export const roundRobinReassignment = async ({
 
     newBookingTitle = getEventName(eventNameObject);
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.user?.email || "";
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: {
         id: bookingId,
@@ -259,11 +265,29 @@ export const roundRobinReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: reassignedRRHost.id,
-          reassignedById,
+          reassignedById: reassignedById,
         }),
       },
       select: bookingSelect,
     });
+
+    try {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      // TODO: Pass proper actor with user UUID once available
+      await bookingEventHandlerService.onReassignment(
+        booking.uid,
+        makeSystemActor(),
+        {
+          assignedToId: { old: oldUserId, new: reassignedRRHost.id },
+          assignedById: { old: null, new: reassignedById },
+          reassignmentReason: { old: null, new: "Round robin reassignment" },
+          userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
+          title: { old: oldTitle, new: newBookingTitle },
+        }
+      );
+    } catch (error) {
+      logger.error("Failed to create booking audit log for round robin reassignment", error);
+    }
   } else {
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
@@ -299,10 +323,10 @@ export const roundRobinReassignment = async ({
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: originalOrganizer.id,
-        },
-      })
+      where: {
+        userId: originalOrganizer.id,
+      },
+    })
     : null;
 
   const evt: CalendarEvent = {
@@ -341,12 +365,6 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  if (hasOrganizerChanged) {
-    // location might changed and will be new created in eventManager.create (organizer default location)
-    evt.videoCallData = undefined;
-    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
-    evt.iCalUID = undefined;
-  }
   const credentials = await prisma.credential.findMany({
     where: {
       userId: organizer.id,

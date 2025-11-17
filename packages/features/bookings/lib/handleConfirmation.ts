@@ -30,12 +30,15 @@ import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import { getCalEventResponses } from "./getCalEventResponses";
+import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { makeUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null };
+  user: EventManagerUser & { username: string | null; uuid: string };
   evt: CalendarEvent;
   recurringEventId?: string;
   prisma: PrismaClient;
@@ -44,6 +47,7 @@ export async function handleConfirmation(args: {
     startTime: Date;
     id: number;
     uid: string;
+    status: BookingStatus;
     eventType: {
       currency: string;
       description: string | null;
@@ -313,6 +317,24 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    try {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const auditData: AcceptedAuditData = {
+        status: {
+          old: booking.status,
+          new: BookingStatus.ACCEPTED,
+        },
+      };
+      const actor = makeUserActor(user.uuid);
+      await bookingEventHandlerService.onBookingAccepted(
+        updatedBooking.uid,
+        actor,
+        auditData
+      );
+    } catch (error) {
+      log.error("Failed to create booking audit log for confirmation", error);
+    }
   }
 
   const teamId = await getTeamIdFromEventType({
