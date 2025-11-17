@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -146,7 +146,7 @@ async function postHandler(request: NextRequest) {
         memberId: booking.user?.id ?? null,
         teamId,
       });
-      const hideBranding = await shouldHideBrandingForEventWithPrisma({
+      const hideBranding = await shouldHideBrandingForEvent({
         eventTypeId: booking.eventType?.id ?? 0,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,

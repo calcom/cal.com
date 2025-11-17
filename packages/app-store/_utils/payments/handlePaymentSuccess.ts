@@ -8,7 +8,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -106,7 +106,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       },
     });
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
-    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: booking.eventType?.id ?? 0,
       team: booking.eventType?.team ?? null,
       owner: userWithCredentials ?? null,

@@ -13,7 +13,7 @@ import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -131,7 +131,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   } else if (areEmailsEnabled) {
     const organizationId = booking.eventType?.team?.parentId ?? user.organizationId ?? null;
 
-    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: booking.eventTypeId ?? 0,
       team: booking.eventType?.team ?? null,
       owner: booking.eventType?.team ? null : user ?? null,

@@ -1,7 +1,7 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -213,7 +213,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     },
   });
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: updatedBooking.userId, teamId });
-  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: updatedBooking.eventTypeId ?? 0,
     team: updatedBooking.eventType?.team ?? null,
     owner: updatedBooking.eventType?.team ? null : updatedBooking.eventType?.owner ?? null,

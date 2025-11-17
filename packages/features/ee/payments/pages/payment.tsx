@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
@@ -55,7 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const profile = {
     name: eventType.team?.name || user?.name || null,
     theme: (!eventType.team?.name && user?.theme) || null,
-    hideBranding: await shouldHideBrandingForEventWithPrisma({
+    hideBranding: await shouldHideBrandingForEvent({
       eventTypeId: eventType.id,
       team: eventType.team,
       owner: eventType.users[0] ?? null,

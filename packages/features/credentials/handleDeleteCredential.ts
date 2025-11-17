@@ -11,7 +11,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -337,7 +337,7 @@ const handleDeleteCredential = async ({
 
             const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
 
-            const hideBranding = await shouldHideBrandingForEventWithPrisma({
+            const hideBranding = await shouldHideBrandingForEvent({
               eventTypeId: booking.eventTypeId ?? 0,
               team: booking.eventType?.team ?? null,
               owner: booking.eventType?.team ? null : booking.user ?? null,

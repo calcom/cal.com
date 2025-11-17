@@ -7,7 +7,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
@@ -289,7 +289,10 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   try {
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
-    if (eventTypeId) {
+    if (!eventTypeId) {
+      logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+      hideBranding = false;
+    } else {
       const teamId = await getTeamIdFromEventType({
         eventType: {
           team: { id: booking.eventType?.teamId ?? null },
@@ -297,7 +300,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
         },
       });
       const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
-      hideBranding = await shouldHideBrandingForEventWithPrisma({
+      hideBranding = await shouldHideBrandingForEvent({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
