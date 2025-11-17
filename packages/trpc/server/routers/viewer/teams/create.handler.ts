@@ -22,11 +22,13 @@ const generateCheckoutSession = async ({
   teamSlug,
   teamName,
   userId,
+  isOnboarding,
   gclid,
 }: {
   teamSlug: string;
   teamName: string;
   userId: number;
+  isOnboarding?: boolean;
   gclid?: string;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
@@ -38,6 +40,7 @@ const generateCheckoutSession = async ({
     teamSlug,
     teamName,
     userId,
+    isOnboarding,
     gclid,
   });
 
@@ -51,7 +54,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name } = input;
+  const { slug, name, bio, isOnboarding } = input;
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
@@ -83,6 +86,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       teamSlug: slug,
       teamName: name,
       userId: user.id,
+      isOnboarding,
       gclid: input.gclid,
     });
 
@@ -99,6 +103,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data: {
       slug,
       name,
+      bio: bio || null,
       members: {
         create: {
           userId: ctx.user.id,

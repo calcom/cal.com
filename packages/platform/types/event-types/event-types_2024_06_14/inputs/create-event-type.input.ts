@@ -493,7 +493,8 @@ export class BaseCreateEventTypeInput {
   @ValidateNested()
   @Type(() => CalVideoSettings)
   @DocsPropertyOptional({
-    description: "Cal video settings for the event type",
+    description:
+      "Cal video settings for the event type. Platform customers can't manage this property because currently we have no way of determining if managed user is a host or an attendee.",
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;

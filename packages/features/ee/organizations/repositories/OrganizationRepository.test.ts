@@ -6,8 +6,10 @@ import { OrganizationRepository } from "@calcom/features/ee/organizations/reposi
 import type { Prisma } from "@calcom/prisma/client";
 
 vi.mock("@calcom/lib/server/repository/teamUtils", () => ({
-  getParsedTeam: (org: any) => org,
+  getParsedTeam: <T>(org: T) => org,
 }));
+
+const organizationRepository = new OrganizationRepository({ prismaClient: prismock });
 
 async function createOrganization(
   data: Prisma.TeamCreateInput & {
@@ -72,20 +74,22 @@ beforeEach(async () => {
 
 describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
   it("should return null if no organization matches the email domain", async () => {
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
     expect(result).toBeNull();
   });
 
-  it("should throw an error if multiple organizations match the email domain", async () => {
+  it("should return null if multiple organizations match the email domain", async () => {
     await createReviewedOrganization({ name: "Test Org 1", orgAutoAcceptEmail: "example.com" });
     await createReviewedOrganization({ name: "Test Org 2", orgAutoAcceptEmail: "example.com" });
 
-    await expect(
-      OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email: "test@example.com" })
-    ).rejects.toThrow("Multiple organizations found with the same auto accept email domain");
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toBeNull();
   });
 
   it("should return the parsed organization if a single match is found", async () => {
@@ -94,7 +98,7 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
       orgAutoAcceptEmail: "example.com",
     });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -104,7 +108,7 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
   it("should not confuse a team with organization", async () => {
     await createTeam({ name: "Test Team", orgAutoAcceptEmail: "example.com" });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -114,11 +118,70 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
   it("should correctly match orgAutoAcceptEmail", async () => {
     await createReviewedOrganization({ name: "Test Org", orgAutoAcceptEmail: "noexample.com" });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
     expect(result).toEqual(null);
+  });
+
+  it("should return null when orgAutoJoinOnSignup is false", async () => {
+    await prismock.team.create({
+      data: {
+        name: "Test Org",
+        isOrganization: true,
+        organizationSettings: {
+          create: {
+            orgAutoAcceptEmail: "example.com",
+            isOrganizationVerified: true,
+            isAdminReviewed: true,
+            orgAutoJoinOnSignup: false,
+          },
+        },
+      },
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it("should return organization when orgAutoJoinOnSignup is true", async () => {
+    const organization = await prismock.team.create({
+      data: {
+        name: "Test Org",
+        isOrganization: true,
+        organizationSettings: {
+          create: {
+            orgAutoAcceptEmail: "example.com",
+            isOrganizationVerified: true,
+            isAdminReviewed: true,
+            orgAutoJoinOnSignup: true,
+          },
+        },
+      },
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toEqual(organization);
+  });
+
+  it("should return organization when orgAutoJoinOnSignup is not explicitly set (defaults to true)", async () => {
+    const organization = await createReviewedOrganization({
+      name: "Test Org",
+      orgAutoAcceptEmail: "example.com",
+    });
+
+    const result = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+      email: "test@example.com",
+    });
+
+    expect(result).toEqual(organization);
   });
 });
 
@@ -129,7 +192,7 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
       organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: true } },
     });
 
-    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+    const result = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
 
     expect(result).toEqual({
       id: verifiedOrganization.id,
@@ -145,7 +208,7 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
       organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: false } },
     });
 
-    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+    const result = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
 
     expect(result).toEqual(null);
   });
@@ -169,7 +232,7 @@ describe("Organization.create", () => {
       bannerUrl: "https://example.com/banner.jpg",
     };
 
-    const organization = await OrganizationRepository.create(orgData);
+    const organization = await organizationRepository.create(orgData);
 
     expect(organization).toMatchObject({
       name: "Test Organization",
@@ -198,7 +261,7 @@ describe("Organization.create", () => {
       bannerUrl: null,
     };
 
-    const organization = await OrganizationRepository.create(orgData);
+    const organization = await organizationRepository.create(orgData);
 
     expect(organization).toMatchObject({
       name: "Test Organization",

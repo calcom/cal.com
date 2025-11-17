@@ -49,11 +49,13 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  isOnboarding,
   gclid,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  isOnboarding?: boolean;
   gclid?: string;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
@@ -65,15 +67,15 @@ export const generateTeamCheckoutSession = async ({
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-          discounts: [
-            {
-              coupon:
-                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                  ? dubCustomer.discount.couponTestId
-                  : dubCustomer.discount.couponId,
-            },
-          ],
-        }
+        discounts: [
+          {
+            coupon:
+              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                ? dubCustomer.discount.couponTestId
+                : dubCustomer.discount.couponId,
+          },
+        ],
+      }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
@@ -100,6 +102,7 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
       ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
     },
   });
