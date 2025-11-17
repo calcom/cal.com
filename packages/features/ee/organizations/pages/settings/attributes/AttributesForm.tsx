@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { SettingsToggle, SelectField, Input, InputField, Form, Label } from "@calcom/ui/components/form";
@@ -261,7 +262,10 @@ const GroupOptions = ({
   const { t } = useLocale();
   return (
     <>
-      <Label>{t("Group Options")}</Label>
+      <Label className="flex items-center">
+        {t("group_options")}
+        <InfoBadge content={t("group_options_description")} />
+      </Label>
       <div>
         {fields.map((option, index) => {
           const isAGroupOption = option.isGroup;
