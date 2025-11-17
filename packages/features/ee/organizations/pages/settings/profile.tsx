@@ -10,6 +10,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -20,6 +21,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIconButton } from "@calcom/ui/components/button";
+import { Dialog } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -86,6 +89,7 @@ const OrgProfileView = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const utils = trpc.useUtils();
 
   const orgBranding = useOrgBranding();
 
@@ -107,6 +111,24 @@ const OrgProfileView = ({
     },
     [error, router]
   );
+
+  const deleteOrganizationMutation = trpc.viewer.teams.delete.useMutation({
+    async onSuccess() {
+      await utils.viewer.organizations.listCurrent.invalidate();
+      await utils.viewer.teams.list.invalidate();
+      showToast(t("your_organization_disbanded_successfully"), "success");
+      router.push(`${WEBAPP_URL}/teams`);
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  function deleteOrganization() {
+    if (currentOrganisation?.id) {
+      deleteOrganizationMutation.mutate({ teamId: currentOrganisation.id });
+    }
+  }
 
   if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader />;
@@ -150,7 +172,6 @@ const OrgProfileView = ({
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),
                     }}
@@ -170,7 +191,38 @@ const OrgProfileView = ({
             </div>
           </div>
         )}
-        {/* LEAVE ORG should go above here ^ */}
+
+        {permissions?.canDelete && (
+          <>
+            <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+              <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+              <p className="text-subtle text-sm">{t("organization_deletion_cannot_be_undone")}</p>
+            </div>
+            <Dialog>
+              <SectionBottomActions align="end">
+                <DialogTrigger asChild>
+                  <Button
+                    color="destructive"
+                    className="border"
+                    StartIcon="trash-2"
+                    data-testid="delete-organization-button">
+                    {t("delete_organization")}
+                  </Button>
+                </DialogTrigger>
+              </SectionBottomActions>
+              <ConfirmationDialogContent
+                variety="danger"
+                title={t("delete_organization")}
+                confirmBtnText={t("confirm_delete_organization")}
+                isPending={deleteOrganizationMutation.isPending}
+                onConfirm={() => {
+                  deleteOrganization();
+                }}>
+                {t("delete_organization_confirmation_message")}
+              </ConfirmationDialogContent>
+            </Dialog>
+          </>
+        )}
       </>
     </LicenseRequired>
   );
@@ -221,7 +273,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("organization_id_copied"), "success");
-    } catch (error) {
+    } catch {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };
@@ -289,7 +341,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                 <>
                   <OrgBanner
                     data-testid="profile-upload-banner"
-                    alt={`${defaultValues.name} Banner` || ""}
+                    alt={defaultValues.name ? `${defaultValues.name} Banner` : ""}
                     className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
                     fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}

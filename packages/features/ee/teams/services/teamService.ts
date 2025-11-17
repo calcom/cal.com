@@ -132,7 +132,16 @@ export class TeamService {
     const teamRepo = new TeamRepository(prisma);
     const deletedTeam = await teamRepo.deleteById({ id });
 
-    // Step 4: Clean up any final, non-critical external state.
+    // Step 4: Log the deletion for tracking purposes
+    if (deletedTeam) {
+      if (deletedTeam.isOrganization) {
+        logger.info(`Organization deleted: ${deletedTeam.name} (ID: ${deletedTeam.id})`);
+      } else {
+        logger.info(`Team deleted: ${deletedTeam.name} (ID: ${deletedTeam.id})`);
+      }
+    }
+
+    // Step 5: Clean up any final, non-critical external state.
     if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
       deleteDomain(deletedTeam.slug);
     }
