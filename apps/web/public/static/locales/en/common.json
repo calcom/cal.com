@@ -3275,6 +3275,8 @@
   "calibration": "Calibration",
   "shortfall": "Shortfall",
   "routing_form": "Routing Form",
+  "no_routing_forms": "No Routing Forms created yet.",
+  "empty_routing_forms_description": "Create routing forms to select projects to view their routing positions",
   "go_back_and_save": "Go back and save",
   "save_changes": "Save changes",
   "leave_without_saving": "Leave without saving",
