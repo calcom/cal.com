@@ -84,7 +84,9 @@ export default function Bookings(props: BookingsProps) {
 }
 
 function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
+  // Force view to be "list" if calendar view is disabled
+  const view = bookingsV3Enabled ? _view : "list";
   const { t } = useLocale();
   const searchParams = useSearchParams();
 

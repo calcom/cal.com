@@ -236,22 +236,18 @@ function BookingsListInner({
 
   // Extract today's bookings for the "Today" section (only used in "upcoming" status)
   const bookingsToday = useMemo<RowData[]>(() => {
-    return (
-      data?.bookings
-        .filter(
-          (booking: BookingOutput) =>
-            dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        )
-        .map((booking) => ({
-          type: "data" as const,
-          booking,
-          recurringInfo: data?.recurringInfo.find(
-            (info) => info.recurringEventId === booking.recurringEventId
-          ),
-          isToday: true,
-        })) ?? []
-    );
+    return (data?.bookings ?? [])
+      .filter(
+        (booking: BookingOutput) =>
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+      )
+      .map((booking) => ({
+        type: "data" as const,
+        booking,
+        recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+        isToday: true,
+      }));
   }, [data, user?.timeZone]);
 
   // Combine data with section separators for "upcoming" tab
@@ -318,9 +314,7 @@ export function BookingsListContainer({
   totalRowCount,
 }: BookingsListContainerProps) {
   // Extract bookings from data for BookingDetailsSheet
-  const bookings = useMemo(() => {
-    return data?.bookings.map((booking) => booking) ?? [];
-  }, [data]);
+  const bookings = useMemo(() => data?.bookings ?? [], [data]);
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
