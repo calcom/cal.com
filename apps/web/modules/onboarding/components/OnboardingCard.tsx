@@ -12,9 +12,17 @@ type OnboardingCardProps = {
   children: ReactNode;
   footer: ReactNode;
   isLoading?: boolean;
+  floatingFooter?: boolean;
 };
 
-export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }: OnboardingCardProps) => {
+export const OnboardingCard = ({
+  title,
+  subtitle,
+  children,
+  footer,
+  isLoading,
+  floatingFooter = false,
+}: OnboardingCardProps) => {
   const pathname = usePathname();
 
   // Animation variants for entry and exit
@@ -56,7 +64,8 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
           </div>
 
           {/* Content */}
-          <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4">
+          <div
+            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 ${floatingFooter ? "pb-20" : ""}`}>
             {isLoading ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SkeletonText className="h-40 w-full" />
@@ -70,7 +79,13 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </AnimatePresence>
 
       {/* Footer */}
-      <div className="flex w-full items-center justify-start py-2">{footer}</div>
+      {floatingFooter ? (
+        <div className="absolute bottom-0 left-0 right-0 z-10 flex w-full items-center justify-start rounded-[12px] bg-[rgba(255,255,255,0.01)] p-2 shadow-[0px_12px_32px_-6px_rgba(0,0,0,0.12),0px_0px_0px_1px_rgba(111,107,107,0.1),0px_1px_3px_0px_rgba(63,70,75,0.1)] backdrop-blur-[6px] backdrop-filter">
+          {footer}
+        </div>
+      ) : (
+        <div className="flex w-full items-center justify-start py-2">{footer}</div>
+      )}
     </div>
   );
 };

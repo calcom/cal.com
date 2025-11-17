@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -19,6 +21,8 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   const { t } = useLocale();
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
   const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showFadeGradient, setShowFadeGradient] = useState(false);
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
@@ -26,6 +30,35 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
+
+  const handleScroll = () => {
+    const element = scrollContainerRef.current;
+    if (!element) return;
+
+    const hasOverflow = element.scrollHeight > element.clientHeight;
+    const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 1;
+
+    setShowFadeGradient(hasOverflow && !isAtBottom);
+  };
+
+  // Check for overflow when data loads or changes
+  useEffect(() => {
+    const checkOverflow = () => {
+      const element = scrollContainerRef.current;
+      if (!element) return;
+
+      const hasOverflow = element.scrollHeight > element.clientHeight;
+      const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 1;
+
+      setShowFadeGradient(hasOverflow && !isAtBottom);
+    };
+
+    // Check immediately and after a short delay to ensure DOM is updated
+    checkOverflow();
+    const timeoutId = setTimeout(checkOverflow, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [queryIntegrations.data?.items]);
 
   const handleContinue = () => {
     submitPersonalOnboarding();
@@ -42,6 +75,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         title={t("connect_your_calendar")}
         subtitle={t("connect_calendar_to_prevent_conflicts")}
         isLoading={queryIntegrations.isPending}
+        floatingFooter={true}
         footer={
           <div className="flex w-full items-center justify-end gap-4">
             <Button
@@ -61,16 +95,24 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
             </Button>
           </div>
         }>
-        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-          {queryIntegrations.data?.items?.map((app) => (
-            <InstallableAppCard
-              key={app.slug}
-              app={app}
-              isInstalling={installingAppSlug === app.slug}
-              onInstallClick={setInstallingAppSlug}
-              installOptions={createInstallHandlers(app.slug)}
-            />
-          ))}
+        <div className="relative">
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="scroll-bar grid max-h-[35vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+            {queryIntegrations.data?.items?.map((app) => (
+              <InstallableAppCard
+                key={app.slug}
+                app={app}
+                isInstalling={installingAppSlug === app.slug}
+                onInstallClick={setInstallingAppSlug}
+                installOptions={createInstallHandlers(app.slug)}
+              />
+            ))}
+          </div>
+          {showFadeGradient && (
+            <div className="from-default pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t to-transparent" />
+          )}
         </div>
       </OnboardingCard>
 
