@@ -56,7 +56,7 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+const _delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
 };
 
@@ -127,20 +127,20 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export type EventManagerInitParams = {
   user: EventManagerUser;
-  eventTypeAppMetadata?: Record<string, any>;
+  eventTypeAppMetadata?: Record<string, unknown>;
 };
 
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
-  appOptions?: Record<string, any>;
+  appOptions?: Record<string, unknown>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, unknown>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -509,9 +509,8 @@ export default class EventManager {
         ? reference.thirdPartyRecurringEventId
         : reference.uid;
 
-    const calendarCredential = await this.getCredentialAndWarnIfNotFound(
+    const calendarCredential = await this.getCalendarCredentialAndWarnIfNotFound(
       credentialId,
-      this.calendarCredentials,
       credentialType,
       reference.delegationCredentialId
     );
@@ -530,51 +529,81 @@ export default class EventManager {
     log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
     const { uid: bookingRefUid, credentialId } = reference;
 
-    const videoCredential = await this.getCredentialAndWarnIfNotFound(
-      credentialId,
-      this.videoCredentials,
-      reference.type
-    );
+    const videoCredential = await this.getVideoCredentialAndWarnIfNotFound(credentialId, reference.type);
 
     if (videoCredential) {
       await deleteMeeting(videoCredential, bookingRefUid);
     }
   }
 
-  private async getCredentialAndWarnIfNotFound(
+  private async getVideoCredentialAndWarnIfNotFound(
     credentialId: number | null | undefined,
-    credentials: CredentialForCalendarService[],
+    type: string
+  ): Promise<CredentialForCalendarService | null | undefined> {
+    return this.getCredentialInternal("video", credentialId, type);
+  }
+
+  private async getCalendarCredentialAndWarnIfNotFound(
+    credentialId: number | null | undefined,
     type: string,
     delegationCredentialId?: string | null
-  ) {
-    if (delegationCredentialId) {
+  ): Promise<CredentialForCalendarService | null | undefined> {
+    return this.getCredentialInternal("calendar", credentialId, type, delegationCredentialId);
+  }
+
+  private async getCredentialInternal(
+    kind: "video" | "calendar",
+    credentialId: number | null | undefined,
+    type: string,
+    delegationCredentialId?: string | null
+  ): Promise<CredentialForCalendarService | null | undefined> {
+    const credentials = kind === "video" ? this.videoCredentials : this.calendarCredentials;
+    const expectedSuffixes = kind === "video" ? ["_video", "_conferencing"] : ["_calendar"];
+
+    if (kind === "calendar" && delegationCredentialId) {
       return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
+
     const credential = credentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
-    } else {
-      const credential =
-        typeof credentialId === "number" && credentialId > 0
-          ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
-          : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-            this.videoCredentials.find((cred) => cred.type === type) ||
-            this.calendarCredentials.find((cred) => cred.type === type) ||
-            null;
+    }
 
-      if (!credential) {
+    let foundCredential: CredentialForCalendarService | null | undefined = null;
+
+    if (typeof credentialId === "number" && credentialId > 0) {
+      foundCredential = await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId });
+    } else {
+      // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
+      foundCredential = credentials.find((cred) => cred.type === type) || null;
+    }
+
+    if (foundCredential) {
+      const hasValidSuffix = expectedSuffixes.some((suffix) => foundCredential!.type.endsWith(suffix));
+      if (!hasValidSuffix) {
         log.error(
-          "getCredentialAndWarnIfNotFound: Could not find credential",
+          `get${kind === "video" ? "Video" : "Calendar"}CredentialAndWarnIfNotFound: Found non-${kind} credential`,
           safeStringify({
             credentialId,
-            type,
-            videoCredentials: this.videoCredentials,
+            credentialType: foundCredential.type,
+            expectedType: type,
+            expectedSuffixes,
           })
         );
+        return null;
       }
-
-      return credential;
+    } else {
+      log.error(
+        `get${kind === "video" ? "Video" : "Calendar"}CredentialAndWarnIfNotFound: Could not find ${kind} credential`,
+        safeStringify({
+          credentialId,
+          type,
+          availableCredentials: credentials.map((c) => ({ id: c.id, type: c.type })),
+        })
+      );
     }
+
+    return foundCredential;
   }
 
   /**
@@ -1170,10 +1199,9 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
-      if (error instanceof Error) {
-        message = message.replace("{thing}", error.message);
-      }
+      const message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      const errorMessage = error instanceof Error ? message.replace("{thing}", error.message) : message;
+      log.error("updateAllCalendarEvents error", errorMessage);
 
       return Promise.resolve(
         calendarReference?.map((reference) => {
