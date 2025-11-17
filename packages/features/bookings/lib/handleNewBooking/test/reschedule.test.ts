@@ -201,7 +201,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: organizer.email,
@@ -220,7 +220,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -438,7 +438,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -629,7 +629,7 @@ describe("handleNewBooking", () => {
             to: {
               description: "",
               location: "integrations:daily",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -827,7 +827,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1058,7 +1058,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1307,7 +1307,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1522,7 +1522,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1766,7 +1766,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1857,7 +1857,7 @@ describe("handleNewBooking", () => {
           3. Should send appropriate notifications
           4. Should update/create necessary video conference links
         `,
-        async ({ emails }) => {
+        async () => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
@@ -1941,7 +1941,7 @@ describe("handleNewBooking", () => {
           );
 
           // Mock video meeting creation for Cal Video
-          const videoMock = mockSuccessfulVideoMeetingCreation({
+          const _videoMock = mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
 
@@ -1982,7 +1982,7 @@ describe("handleNewBooking", () => {
               location: BookingLocations.GoogleMeet,
             },
             to: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2123,7 +2123,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: booker.email,
@@ -2144,7 +2144,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2275,7 +2275,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2293,7 +2293,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2475,7 +2475,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2493,7 +2493,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2630,7 +2630,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2651,7 +2651,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2800,7 +2800,7 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2820,7 +2820,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2844,7 +2844,7 @@ describe("handleNewBooking", () => {
 
     test(
       "should use correct credentials when round robin reschedule changes host - original host credentials for deletion, new host for creation",
-      async ({ emails }) => {
+      async () => {
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
@@ -2918,7 +2918,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const videoMock = mockSuccessfulVideoMeetingCreation({
+        const _videoMock = mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
         });
 
@@ -2966,6 +2966,143 @@ describe("handleNewBooking", () => {
         expect(createdBooking.userId).toBe(newHost.id);
         expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T14:00:00.000Z`);
         expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T14:15:00.000Z`);
+      },
+      timeout
+    );
+
+    test(
+      "should use Google Meet when round robin reschedule changes host to one with Google Calendar",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const originalHost = getOrganizer({
+          name: "Original Host",
+          email: "originalhost@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstMorningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "original@google.com",
+          },
+        });
+
+        const newHost = getOrganizer({
+          name: "New Host",
+          email: "newhost@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstEveningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "newhost@google.com",
+          },
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "google-meet-rr-reschedule-uid";
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [{ id: 101 }, { id: 102 }],
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                locations: [{ type: "integrations:google:meet" }],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 1,
+                userId: 101,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T05:00:00.000Z`,
+                endTime: `${plus1DateString}T05:15:00.000Z`,
+                location: "integrations:google:meet",
+                references: [
+                  {
+                    type: appStoreMetadata.googlecalendar.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASSWORD",
+                    meetingUrl: "https://meet.google.com/original-meeting",
+                    externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                    credentialId: undefined,
+                  },
+                ],
+              },
+            ],
+            organizer: originalHost,
+            usersApartFromOrganizer: [newHost],
+            apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"]],
+          })
+        );
+
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "NEW_GOOGLE_EVENT_ID",
+            iCalUID: "NEW_GOOGLE_EVENT_ID",
+            hangoutLink: "https://meet.google.com/new-meeting",
+          },
+          update: { uid: "UPDATED_EVENT_ID" },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: uidOfBookingToBeRescheduled,
+            start: `${plus1DateString}T14:00:00.000Z`,
+            end: `${plus1DateString}T14:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:google:meet" },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        // Verify that the new booking uses the new host
+        expect(createdBooking.userId).toBe(newHost.id);
+
+        // Verify that Google Calendar was used for creation (not Cal Video)
+        expect(calendarMock.createEventCalls.length).toBe(1);
+        const createCall = calendarMock.createEventCalls[0];
+        expect(createCall.args.calEvent.organizer.email).toBe(newHost.email);
+
+        // Verify that the booking has a Google Meet link, not Cal Video
+        const newBooking = await prismaMock.booking.findFirst({
+          where: {
+            uid: createdBooking.uid,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(newBooking?.references).toBeDefined();
+        const googleCalendarRef = newBooking?.references.find((ref) =>
+          ref.type.includes("google_calendar")
+        );
+        expect(googleCalendarRef).toBeDefined();
+        expect(googleCalendarRef?.meetingUrl).toContain("meet.google.com");
+
+        // Ensure no Cal Video reference was created
+        const calVideoRef = newBooking?.references.find((ref) => ref.type.includes("daily"));
+        expect(calVideoRef).toBeUndefined();
       },
       timeout
     );
@@ -3055,7 +3192,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const _calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: { uid: "NEW_EVENT_ID" },
           update: { uid: "UPDATED_EVENT_ID" },
         });
@@ -3086,7 +3223,7 @@ describe("handleNewBooking", () => {
           },
           to: {
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: 1,
             // Only recurring event can have recurringEventId

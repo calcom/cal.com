@@ -1884,6 +1884,16 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
+      // This ensures that for locations like Google Meet, the correct destination calendar is used
+      const newOrganizerDestinationCalendar = organizerUser.destinationCalendar
+        ? [organizerUser.destinationCalendar]
+        : null;
+      const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+        ?.withDestinationCalendar(newOrganizerDestinationCalendar)
+        .build();
+      if (updatedEvt) {
+        evt = updatedEvt;
+      }
     }
 
     if (changedOrganizer && originalRescheduledBooking?.user) {
