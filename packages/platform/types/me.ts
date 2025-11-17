@@ -5,6 +5,7 @@ export const userSchemaResponse = z.object({
   email: z.string(),
   name: z.string().nullable(),
   avatarUrl: z.string().nullable(),
+  bio: z.string().nullable(),
   timeFormat: z.number().int().default(12),
   defaultScheduleId: z.number().int().nullable(),
   weekStart: z.string(),
