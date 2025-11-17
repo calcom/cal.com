@@ -998,7 +998,7 @@ const DisplayAttendees = ({
   attendees.sort((a, b) => a.id - b.id);
 
   return (
-    <div className="text-emphasis text-sm">
+    <div className="text-emphasis text-sm" onClick={(e) => e.stopPropagation()}>
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
       <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
