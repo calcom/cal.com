@@ -283,6 +283,12 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  // In non-browser or torn-down environments (like unit test teardown),
+  // `document` might not exist anymore.
+  if (typeof document === "undefined") {
+    return;
+  }
+
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
