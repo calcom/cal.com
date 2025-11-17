@@ -613,6 +613,7 @@ export const getOptions = ({
           completedOnboarding: user.completedOnboarding,
           customBrandingEnabled: !!user.bannerUrl,
           emailVerified: user.emailVerified,
+          avatarUrl: user.avatarUrl,
         } as JWT;
       }
 
@@ -720,6 +721,7 @@ export const getOptions = ({
           completedOnboarding: existingUser.completedOnboarding,
           customBrandingEnabled: !!existingUser.bannerUrl,
           emailVerified: existingUser.emailVerified,
+          avatarUrl: existingUser.avatarUrl,
         } as JWT;
       }
 
@@ -760,6 +762,7 @@ export const getOptions = ({
           completedOnboarding: token.completedOnboarding,
           customBrandingEnabled: !!token.customBrandingEnabled,
           emailVerified: token.emailVerified,
+          avatarUrl: token.avatarUrl,
         },
       };
       return calendsoSession;
