@@ -4,7 +4,7 @@ import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-stor
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -144,7 +144,7 @@ async function cancelAttendeeSeat(
               memberId: bookingToDelete.userId,
               teamId,
             });
-            return await shouldHideBrandingForEventWithPrisma({
+            return await shouldHideBrandingForEvent({
               eventTypeId: bookingToDelete.eventTypeId,
               team: bookingToDelete.eventType?.team ?? null,
               owner: bookingToDelete.user ?? null,
