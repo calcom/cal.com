@@ -51,12 +51,14 @@ export const generateTeamCheckoutSession = async ({
   userId,
   isOnboarding,
   gclid,
+  campaignId,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
   gclid?: string;
+  campaignId?: string;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -104,6 +106,7 @@ export const generateTeamCheckoutSession = async ({
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
       ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
+      ...(campaignId && { campaignId }), // Add Google Ads Campaign ID for conversion tracking
     },
   });
   return session;
@@ -130,6 +133,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
   gclid?: string;
+  campaignId?: string;
 }) => {
   const {
     teamId,
@@ -140,6 +144,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
     gclid,
+    campaignId,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
@@ -198,6 +203,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     metadata: {
       teamId,
       ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
+      ...(campaignId && { campaignId }), // Add Google Ads Campaign ID for conversion tracking
     },
     subscription_data: {
       metadata: {

@@ -13,6 +13,7 @@ export const ZCreateInputSchema = z.object({
   bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
   gclid: z.string().optional(),
+  campaignId: z.string().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
-import { getGclid } from "@calcom/lib/analytics/gclid";
+import { getGoogleAdsData } from "@calcom/lib/analytics/gclid";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -41,9 +41,10 @@ export default function UpgradePage() {
             buttonRaw={
               <Button
                 onClick={() => {
-                  const gclid = getGclid();
+                  const adsData = getGoogleAdsData();
                   publishOrgMutation.mutate({
-                    gclid: gclid || undefined,
+                    gclid: adsData?.gclid,
+                    campaignId: adsData?.campaignId,
                   });
                 }}>
                 {t("upgrade")}

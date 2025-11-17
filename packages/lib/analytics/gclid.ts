@@ -7,28 +7,27 @@ import { localStorage } from "@calcom/lib/webstorage";
 
 import { useGeolocation } from "./geolocation";
 
-const GCLID_STORAGE_KEY = "gclid";
-const GCLID_EXPIRY_KEY = "gclid_expiry";
-const GCLID_EXPIRY_DAYS = 90; // Google Ads attribution window
+const GOOGLE_ADS_STORAGE_KEY = "google_ads_data";
 
-function storeGclid(gclid: string): void {
+export interface GoogleAdsData {
+  gclid: string;
+  campaignId?: string;
+}
+
+function storeGoogleAdsData(data: GoogleAdsData): void {
   if (typeof window === "undefined") {
     return;
   }
 
   try {
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + GCLID_EXPIRY_DAYS);
-
-    localStorage.setItem(GCLID_STORAGE_KEY, gclid);
-    localStorage.setItem(GCLID_EXPIRY_KEY, expiryDate.getTime().toString());
+    localStorage.setItem(GOOGLE_ADS_STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.error("[Google Ads] Error storing gclid:", error);
+    console.error("[Google Ads] Error storing data:", error);
   }
 }
 
 /**
- * Automatically capture gclid from URL parameters
+ * Automatically capture gclid and campaign ID from URL parameters
  */
 export function useGclidCapture(): void {
   const searchParams = useSearchParams();
@@ -43,52 +42,34 @@ export function useGclidCapture(): void {
       const gclid = searchParams.get("gclid");
 
       if (gclid) {
-        storeGclid(gclid);
+        // Get campaign ID from Google Ads parameter
+        const campaignId = searchParams.get("gad_campaignid") || undefined;
+
+        storeGoogleAdsData({
+          gclid,
+          campaignId,
+        });
       }
     } catch (error) {
-      console.error("[Google Ads] Error capturing gclid:", error);
+      console.error("[Google Ads] Error capturing data:", error);
     }
   }, [searchParams, isUS, loading]);
 }
 
-export function getGclid(): string | null {
+export function getGoogleAdsData(): GoogleAdsData | null {
   if (typeof window === "undefined") {
     return null;
   }
 
   try {
-    const gclid = localStorage.getItem(GCLID_STORAGE_KEY);
-    const expiryTimestamp = localStorage.getItem(GCLID_EXPIRY_KEY);
-
-    if (!gclid || !expiryTimestamp) {
+    const data = localStorage.getItem(GOOGLE_ADS_STORAGE_KEY);
+    if (!data) {
       return null;
     }
 
-    const expiryDate = new Date(parseInt(expiryTimestamp, 10));
-    const now = new Date();
-
-    if (now > expiryDate) {
-      localStorage.removeItem(GCLID_STORAGE_KEY);
-      localStorage.removeItem(GCLID_EXPIRY_KEY);
-      return null;
-    }
-
-    return gclid;
+    return JSON.parse(data);
   } catch (error) {
-    console.error("[Google Ads] Error retrieving gclid:", error);
+    console.error("[Google Ads] Error retrieving data:", error);
     return null;
-  }
-}
-
-export function clearGclid(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    localStorage.removeItem(GCLID_STORAGE_KEY);
-    localStorage.removeItem(GCLID_EXPIRY_KEY);
-  } catch (error) {
-    console.error("[Google Ads] Error clearing gclid:", error);
   }
 }

@@ -64,6 +64,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
       billingPeriod: metadata.data?.billingPeriod ?? undefined,
       gclid: input.gclid,
+      campaignId: input.campaignId,
     });
 
     if (!checkoutSession.url)

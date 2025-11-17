@@ -16,17 +16,24 @@ const log = logger.getSubLogger({ prefix: ["checkout.session.completed"] });
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
 
-  // Store gclid in Stripe customer metadata for Zapier tracking
-  if (session.metadata?.gclid && session.customer) {
+  // Store gclid and campaignId in Stripe customer metadata for Zapier tracking
+  if ((session.metadata?.gclid || session.metadata?.campaignId) && session.customer) {
     try {
       const customerId = typeof session.customer === "string" ? session.customer : session.customer.id;
+      const metadataUpdate: { gclid?: string; campaignId?: string } = {};
+
+      if (session.metadata.gclid) {
+        metadataUpdate.gclid = session.metadata.gclid;
+      }
+      if (session.metadata.campaignId) {
+        metadataUpdate.campaignId = session.metadata.campaignId;
+      }
+
       await stripe.customers.update(customerId, {
-        metadata: {
-          gclid: session.metadata.gclid,
-        },
+        metadata: metadataUpdate,
       });
     } catch (error) {
-      log.error("Failed to update Stripe customer metadata with gclid", { error });
+      log.error("Failed to update Stripe customer metadata with Google Ads data", { error });
     }
   }
 
