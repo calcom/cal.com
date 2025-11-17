@@ -5,7 +5,7 @@ import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
-import { GclidTracker } from "@calcom/lib/analytics/GclidTracker";
+import { GoogleAdsTracker } from "@calcom/lib/analytics/GoogleAdsTracker";
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
@@ -17,7 +17,7 @@ function MyApp(props: AppProps) {
 
   return (
     <SessionProvider session={pageProps.session ?? undefined}>
-      <GclidTracker />
+      <GoogleAdsTracker />
       <WebPushProvider>
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>

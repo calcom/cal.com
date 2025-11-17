@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
-import { getGoogleAdsData } from "@calcom/lib/analytics/gclid";
+import { getGoogleAdsData } from "@calcom/lib/analytics/googleads";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

@@ -29,7 +29,7 @@ function storeGoogleAdsData(data: GoogleAdsData): void {
 /**
  * Automatically capture gclid and campaign ID from URL parameters
  */
-export function useGclidCapture(): void {
+export function useGoogleAdsCapture(): void {
   const searchParams = useSearchParams();
   const { isUS, loading } = useGeolocation();
 
@@ -71,5 +71,23 @@ export function getGoogleAdsData(): GoogleAdsData | null {
   } catch (error) {
     console.error("[Google Ads] Error retrieving data:", error);
     return null;
+  }
+}
+
+// Legacy function for backward compatibility
+export function getGclid(): string | null {
+  const data = getGoogleAdsData();
+  return data?.gclid || null;
+}
+
+export function clearGoogleAdsData(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(GOOGLE_ADS_STORAGE_KEY);
+  } catch (error) {
+    console.error("[Google Ads] Error clearing data:", error);
   }
 }

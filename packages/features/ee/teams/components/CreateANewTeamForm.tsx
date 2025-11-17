@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { getGoogleAdsData } from "@calcom/lib/analytics/gclid";
+import { getGoogleAdsData } from "@calcom/lib/analytics/googleads";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
