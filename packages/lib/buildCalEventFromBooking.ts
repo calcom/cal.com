@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { Prisma } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
 import { getTranslation } from "./server/i18n";
@@ -63,12 +64,27 @@ export const buildCalEventFromBooking = async ({
   organizer,
   location,
   conferenceCredentialId,
+  organizationId,
 }: {
   booking: Booking;
   organizer: Organizer;
   location: string;
   conferenceCredentialId: number | null;
+  organizationId?: number | null;
 }) => {
+  let organizationSettings = null;
+  if (organizationId) {
+    organizationSettings = await prisma.organizationSettings.findUnique({
+      where: { organizationId },
+      select: {
+        disableGuestConfirmationEmail: true,
+        disableGuestCancellationEmail: true,
+        disableGuestRescheduledEmail: true,
+        disableGuestRequestEmail: true,
+      },
+    });
+  }
+
   const attendeesList = await Promise.all(
     booking.attendees.map(async (attendee) => {
       return {
@@ -113,5 +129,13 @@ export const buildCalEventFromBooking = async ({
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     iCalUID: booking.iCalUID ?? booking.uid,
     iCalSequence: booking.iCalSequence ?? 0,
+    ...(organizationId && organizationSettings
+      ? {
+          organization: {
+            id: organizationId,
+            settings: organizationSettings,
+          },
+        }
+      : {}),
   };
 };

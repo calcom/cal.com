@@ -95,6 +95,26 @@ const updateOrganizationSettings = async ({
     data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableGuestConfirmationEmail")) {
+    data.disableGuestConfirmationEmail = input.disableGuestConfirmationEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableGuestCancellationEmail")) {
+    data.disableGuestCancellationEmail = input.disableGuestCancellationEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableGuestRescheduledEmail")) {
+    data.disableGuestRescheduledEmail = input.disableGuestRescheduledEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableGuestRequestEmail")) {
+    data.disableGuestRequestEmail = input.disableGuestRequestEmail;
+  }
+
   // If no settings values have changed lets skip this update
   if (Object.keys(data).length === 0) return;
 

@@ -56,7 +56,32 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-const eventTypeDisableAttendeeEmail = (metadata?: EventTypeMetadata) => {
+const eventTypeDisableAttendeeEmail = (
+  metadata?: EventTypeMetadata,
+  organizationSettings?: {
+    disableGuestConfirmationEmail?: boolean;
+    disableGuestCancellationEmail?: boolean;
+    disableGuestRescheduledEmail?: boolean;
+    disableGuestRequestEmail?: boolean;
+  },
+  emailType?: "confirmation" | "cancellation" | "rescheduled" | "request"
+) => {
+  if (organizationSettings && emailType) {
+    switch (emailType) {
+      case "confirmation":
+        if (organizationSettings.disableGuestConfirmationEmail) return true;
+        break;
+      case "cancellation":
+        if (organizationSettings.disableGuestCancellationEmail) return true;
+        break;
+      case "rescheduled":
+        if (organizationSettings.disableGuestRescheduledEmail) return true;
+        break;
+      case "request":
+        if (organizationSettings.disableGuestRequestEmail) return true;
+        break;
+    }
+  }
   return !!metadata?.disableStandardEmails?.all?.attendee;
 };
 
@@ -86,7 +111,10 @@ const _sendScheduledEmailsAndSMS = async (
     }
   }
 
-  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+  if (
+    !attendeeEmailDisabled &&
+    !eventTypeDisableAttendeeEmail(eventTypeMetadata, calEvent.organization?.settings, "confirmation")
+  ) {
     emailsToSend.push(
       ...formattedCalEvent.attendees.map((attendee) => {
         return sendEmail(
@@ -264,7 +292,7 @@ const _sendRescheduledEmailsAndSMS = async (
     }
   }
 
-  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata, calEvent.organization?.settings, "rescheduled")) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));
@@ -401,7 +429,7 @@ const _sendAttendeeRequestEmailAndSMS = async (
   attendee: Person,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
-  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata, calEvent.organization?.settings, "request")) return;
 
   const calendarEvent = formatCalEvent(calEvent);
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
@@ -463,7 +491,7 @@ export const sendCancelledEmailsAndSMS = async (
     }
   }
 
-  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata, calEvent.organization?.settings, "cancellation")) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(

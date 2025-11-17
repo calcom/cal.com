@@ -1,4 +1,4 @@
-// This is your Prisma Schema file 
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -687,6 +687,11 @@ model OrganizationSettings {
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
   orgAutoJoinOnSignup                 Boolean    @default(true)
+
+  disableGuestConfirmationEmail Boolean @default(false)
+  disableGuestCancellationEmail Boolean @default(false)
+  disableGuestRescheduledEmail  Boolean @default(false)
+  disableGuestRequestEmail      Boolean @default(false)
 }
 
 enum MembershipRole {

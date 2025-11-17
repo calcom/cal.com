@@ -222,6 +222,15 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  organization?: {
+    id: number;
+    settings?: {
+      disableGuestConfirmationEmail?: boolean;
+      disableGuestCancellationEmail?: boolean;
+      disableGuestRescheduledEmail?: boolean;
+      disableGuestRequestEmail?: boolean;
+    };
+  };
 }
 
 export interface EntryPoint {
