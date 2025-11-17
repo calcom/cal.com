@@ -279,11 +279,9 @@ export class OrganizationPaymentService {
       })
     );
 
-    /* eslint-disable turbo/no-undeclared-env-vars */
-    const trialDays = process.env.ORGANIZATION_TRIAL_DAYS
-      ? parseInt(process.env.ORGANIZATION_TRIAL_DAYS, 10)
+    const trialDays = process.env.STRIPE_ORG_TRIAL_DAYS
+      ? parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10)
       : undefined;
-    /* eslint-enable turbo/no-undeclared-env-vars */
 
     const subscriptionData =
       trialDays && !isNaN(trialDays) && trialDays > 0
@@ -304,7 +302,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
-      subscriptionData,
+      ...(subscriptionData && { subscriptionData }),
     });
   }
 
