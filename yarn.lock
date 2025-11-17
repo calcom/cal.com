@@ -3438,7 +3438,7 @@ __metadata:
     "@tanstack/react-table": ^8.20.6
     "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
-    "@trigger.dev/sdk": ^4.0.0
+    "@trigger.dev/sdk": 4.1.0
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
     akismet-api: ^6.0.0
@@ -9658,10 +9658,11 @@ __metadata:
   linkType: hard
 
 "@modelcontextprotocol/sdk@npm:^1.17.0":
-  version: 1.20.2
-  resolution: "@modelcontextprotocol/sdk@npm:1.20.2"
+  version: 1.22.0
+  resolution: "@modelcontextprotocol/sdk@npm:1.22.0"
   dependencies:
-    ajv: ^6.12.6
+    ajv: ^8.17.1
+    ajv-formats: ^3.0.1
     content-type: ^1.0.5
     cors: ^2.8.5
     cross-spawn: ^7.0.5
@@ -9673,7 +9674,12 @@ __metadata:
     raw-body: ^3.0.0
     zod: ^3.23.8
     zod-to-json-schema: ^3.24.1
-  checksum: 72a1acecc05255b4d89d202a02b5e21b8e41e4fbba4be59049404ee1e52ac5a7431b21af8b5aa53f4441f0da7fd25e03f98f8780db87475f81f3e6fa4250caa7
+  peerDependencies:
+    "@cfworker/json-schema": ^4.1.1
+  peerDependenciesMeta:
+    "@cfworker/json-schema":
+      optional: true
+  checksum: a51a5e04611c5d632939d628be6cbe3696de9dee522f81ed75b85411acbdaf295a205cfeb044e92705408027c894e95c96e71497aef22056c3fe84ffed1633eb
   languageName: node
   linkType: hard
 
@@ -11796,10 +11802,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/semantic-conventions@npm:^1.29.0, @opentelemetry/semantic-conventions@npm:^1.34.0":
-  version: 1.37.0
-  resolution: "@opentelemetry/semantic-conventions@npm:1.37.0"
-  checksum: 54939335f17affb05cc6c95dcabeeb6fedd3044a327b19fc38e8439a3651360b85af375f1d601d50835bea3cdb2344e0955c27f3aa6116f32cd5aabbed302b39
+"@opentelemetry/semantic-conventions@npm:^1.29.0":
+  version: 1.38.0
+  resolution: "@opentelemetry/semantic-conventions@npm:1.38.0"
+  checksum: 15f3cf77c86efd54cf321a1a04aa6ed04679eea635411ec85f4e0e2843b6d50f5139e28bd80a4cebc8e2aade4f867d9b972850a19b18064d69b2a01c6c61752e
   languageName: node
   linkType: hard
 
@@ -11807,6 +11813,13 @@ __metadata:
   version: 1.30.0
   resolution: "@opentelemetry/semantic-conventions@npm:1.30.0"
   checksum: 53d3489f11eeae07d12e878e4ae6df2de72b6a05ea434cfa2c2301023b9d3df35bcaafaeb294be708b93ae946b510067baf35008a3fd0275f52f0e0790014240
+  languageName: node
+  linkType: hard
+
+"@opentelemetry/semantic-conventions@npm:^1.34.0":
+  version: 1.37.0
+  resolution: "@opentelemetry/semantic-conventions@npm:1.37.0"
+  checksum: 54939335f17affb05cc6c95dcabeeb6fedd3044a327b19fc38e8439a3651360b85af375f1d601d50835bea3cdb2344e0955c27f3aa6116f32cd5aabbed302b39
   languageName: node
   linkType: hard
 
@@ -12723,6 +12736,13 @@ __metadata:
     "@prisma/prisma-schema-wasm": 6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43
     fs-extra: 11.3.0
   checksum: b3db96a505ad0dff6176f5d8f57141f6de3e76fb4facb7acfa1e9ce882fa19b099c47c8d2444ff564bb714d0063371153df01c3eb0559e06afb8cdff032cf59e
+  languageName: node
+  linkType: hard
+
+"@protobuf-ts/runtime@npm:^2.11.1":
+  version: 2.11.1
+  resolution: "@protobuf-ts/runtime@npm:2.11.1"
+  checksum: f06be086ee261c7840783f4054167b215d9f8a2e22ced2fe2198574c54293ce099d635b59b90c156c3efcd66d9401880f1e3ecd56c779eb4a89dc27a12d1b6b3
   languageName: node
   linkType: hard
 
@@ -15465,8 +15485,8 @@ __metadata:
   linkType: hard
 
 "@rollup/rollup-darwin-arm64@npm:^4.18.1":
-  version: 4.52.5
-  resolution: "@rollup/rollup-darwin-arm64@npm:4.52.5"
+  version: 4.53.2
+  resolution: "@rollup/rollup-darwin-arm64@npm:4.53.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -15902,6 +15922,17 @@ __metadata:
     colors: ~1.2.1
     string-argv: ~0.3.1
   checksum: 1e62fc7aadf868c3c38db08429266962e9e1088cffd03d46e6378dd8125700540d00b566830e9510ff301a3aad3a7c55f7595a4a43d428355f648520ae9979b5
+  languageName: node
+  linkType: hard
+
+"@s2-dev/streamstore@npm:0.17.3":
+  version: 0.17.3
+  resolution: "@s2-dev/streamstore@npm:0.17.3"
+  dependencies:
+    "@protobuf-ts/runtime": ^2.11.1
+  peerDependencies:
+    typescript: ^5.9.3
+  checksum: f2f474089c7a2ebb64d1e9e91c6cef6a5cc7f8769f7fcd4552edb4fbcb026d76d1b306e69225bb3a907e578dfe81e2356f961af1b9de1bd1dc04d0c3590159bb
   languageName: node
   linkType: hard
 
@@ -18051,21 +18082,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/build@npm:4.0.5":
-  version: 4.0.5
-  resolution: "@trigger.dev/build@npm:4.0.5"
+"@trigger.dev/build@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@trigger.dev/build@npm:4.1.0"
   dependencies:
-    "@trigger.dev/core": 4.0.5
+    "@trigger.dev/core": 4.1.0
     pkg-types: ^1.1.3
     tinyglobby: ^0.2.2
     tsconfck: 3.1.3
-  checksum: e5e3d52ea18f36325fd9ab90fe465d1b3bbc69610c53620c99dc4e9c4d0655cb875043103fe47570f415b7b0918bac4ef8566bdc2fde8efb2e54dff76ef9be74
+  checksum: eb4df614833268bab1b5d62c428d63c037b11cc83fb44b3181e730c4856917c0895ef5862df850ff2f9a225be7c3d5beac9af506079dc307eb5bb524e4ddbfdb
   languageName: node
   linkType: hard
 
-"@trigger.dev/core@npm:4.0.5":
-  version: 4.0.5
-  resolution: "@trigger.dev/core@npm:4.0.5"
+"@trigger.dev/core@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@trigger.dev/core@npm:4.1.0"
   dependencies:
     "@bugsnag/cuid": ^3.1.1
     "@electric-sql/client": 1.0.14
@@ -18082,6 +18113,7 @@ __metadata:
     "@opentelemetry/sdk-trace-base": 2.0.1
     "@opentelemetry/sdk-trace-node": 2.0.1
     "@opentelemetry/semantic-conventions": 1.36.0
+    "@s2-dev/streamstore": 0.17.3
     dequal: ^2.0.3
     eventsource: ^3.0.5
     eventsource-parser: ^3.0.0
@@ -18099,16 +18131,16 @@ __metadata:
     zod: 3.25.76
     zod-error: 1.5.0
     zod-validation-error: ^1.5.0
-  checksum: 715fe1917365acd6ae21f5a8eaa9f99852a863873811e42bc7e7c7f2db4945ca6f56032d68c0d2cd39fad4ed54cc4cdc7f2633b92732062c7b4681c51a2a5199
+  checksum: 7f9a611c32765fde3bb08a3f1d3aa9f96b3e830f6347f2ff9c0d8c12e14db347d03b41a0035af0a774e1aaddcfc5a881ac4af7052cbafcb0d37addf9346f1047
   languageName: node
   linkType: hard
 
-"@trigger.dev/schema-to-json@npm:4.0.5":
-  version: 4.0.5
-  resolution: "@trigger.dev/schema-to-json@npm:4.0.5"
+"@trigger.dev/schema-to-json@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@trigger.dev/schema-to-json@npm:4.1.0"
   dependencies:
     "@sodaru/yup-to-json-schema": ^2
-    "@trigger.dev/core": 4.0.5
+    "@trigger.dev/core": 4.1.0
     effect: ^3
     zod: 3.25.76
     zod-to-json-schema: ^3.24.0
@@ -18129,17 +18161,17 @@ __metadata:
       optional: true
     valibot:
       optional: true
-  checksum: 86332798f316dce75b4ce5f6e2edb2a387b573097fe76d8edb5026de32d5359851df5086742ec3e1eef92db7daeb544e913b00ef1e1eb6d52e0f2b484168318e
+  checksum: ceefca203e9102e9aa5e417b41e3548c1dfcef88a20986b4740401a19bb0fe2bdf02059108b3aaa6868639fa83ce2cf68112c5ae9e48638b05efb2f5e673714d
   languageName: node
   linkType: hard
 
-"@trigger.dev/sdk@npm:^4.0.0":
-  version: 4.0.5
-  resolution: "@trigger.dev/sdk@npm:4.0.5"
+"@trigger.dev/sdk@npm:4.1.0":
+  version: 4.1.0
+  resolution: "@trigger.dev/sdk@npm:4.1.0"
   dependencies:
     "@opentelemetry/api": 1.9.0
     "@opentelemetry/semantic-conventions": 1.36.0
-    "@trigger.dev/core": 4.0.5
+    "@trigger.dev/core": 4.1.0
     chalk: ^5.2.0
     cronstrue: ^2.21.0
     debug: ^4.3.4
@@ -18155,7 +18187,7 @@ __metadata:
   peerDependenciesMeta:
     ai:
       optional: true
-  checksum: 0bebecd90fa36dadca190da52a5274b2acc1717f87368653374c7a9d9dbb3b7e4dfe2a36120303e88cd4774b9be3ad5948fc9b163c484eddc4ab7173bf87e76e
+  checksum: 4c2c4a0a316d781bca45b9cd306f9b34e577b0142376de13082df7b127f6ad5a60cc3e359532826bd837babf2db52367d1f7dcd4f1584b0ac26df11835273f12
   languageName: node
   linkType: hard
 
@@ -21256,6 +21288,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv-formats@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "ajv-formats@npm:3.0.1"
+  dependencies:
+    ajv: ^8.0.0
+  peerDependencies:
+    ajv: ^8.0.0
+  peerDependenciesMeta:
+    ajv:
+      optional: true
+  checksum: f4e1fe232d67fcafc02eafe373a7a9962351e0439dd0736647ca75c93c3da23b430b6502c255ab4315410ae330d4f3013ac9fe226c40b2524ca93a58e786d086
+  languageName: node
+  linkType: hard
+
 "ajv-keywords@npm:^3.5.2":
   version: 3.5.2
   resolution: "ajv-keywords@npm:3.5.2"
@@ -21298,6 +21344,18 @@ __metadata:
     require-from-string: ^2.0.2
     uri-js: ^4.2.2
   checksum: 5e0ff226806763be73e93dd7805b634f6f5921e3e90ca04acdf8db81eed9d8d3f0d4c5f1213047f45ebbf8047ffe0c840fa1ef2ec42c3a644899f69aa72b5bef
+  languageName: node
+  linkType: hard
+
+"ajv@npm:^8.17.1":
+  version: 8.17.1
+  resolution: "ajv@npm:8.17.1"
+  dependencies:
+    fast-deep-equal: ^3.1.3
+    fast-uri: ^3.0.1
+    json-schema-traverse: ^1.0.0
+    require-from-string: ^2.0.2
+  checksum: 1797bf242cfffbaf3b870d13565bd1716b73f214bb7ada9a497063aada210200da36e3ed40237285f3255acc4feeae91b1fb183625331bad27da95973f7253d9
   languageName: node
   linkType: hard
 
@@ -23179,7 +23237,6 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
-    "@trigger.dev/sdk": ^4.0.0
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.9
     c8: ^7.13.0
@@ -26452,12 +26509,12 @@ __metadata:
   linkType: hard
 
 "effect@npm:^3":
-  version: 3.18.4
-  resolution: "effect@npm:3.18.4"
+  version: 3.19.4
+  resolution: "effect@npm:3.19.4"
   dependencies:
     "@standard-schema/spec": ^1.0.0
     fast-check: ^3.23.1
-  checksum: d3623a2caff3f9ce62a89c0e1847d336572a60b76bd7437f8563b4d750ab70edea7862b460ff84ff3d9791646052e246e465736767324d5e2c3855a6a5f88f74
+  checksum: e6f245787d712005a949594afe751d5334653bc77ed10c21b6d481f003131aa926e24012d834ce4cda666c155840a19f53b26d3e7474977c9af09bf5b3ab06c9
   languageName: node
   linkType: hard
 
@@ -29122,6 +29179,13 @@ __metadata:
   version: 1.0.6
   resolution: "fast-text-encoding@npm:1.0.6"
   checksum: 9d58f694314b3283e785bf61954902536da228607ad246905e30256f9ab8331f780ac987e7222c9f5eafd04168d07e12b8054c85cedb76a2c05af0e82387a903
+  languageName: node
+  linkType: hard
+
+"fast-uri@npm:^3.0.1":
+  version: 3.1.0
+  resolution: "fast-uri@npm:3.1.0"
+  checksum: daab0efd3548cc53d0db38ecc764d125773f8bd70c34552ff21abdc6530f26fa4cb1771f944222ca5e61a0a1a85d01a104848ff88c61736de445d97bd616ea7e
   languageName: node
   linkType: hard
 
@@ -47773,8 +47837,8 @@ __metadata:
   linkType: hard
 
 "trigger.dev@npm:^4.0.0":
-  version: 4.0.5
-  resolution: "trigger.dev@npm:4.0.5"
+  version: 4.1.0
+  resolution: "trigger.dev@npm:4.1.0"
   dependencies:
     "@clack/prompts": 0.11.0
     "@depot/cli": 0.0.1-cli.2.80.0
@@ -47787,9 +47851,9 @@ __metadata:
     "@opentelemetry/resources": 2.0.1
     "@opentelemetry/sdk-trace-node": 2.0.1
     "@opentelemetry/semantic-conventions": 1.36.0
-    "@trigger.dev/build": 4.0.5
-    "@trigger.dev/core": 4.0.5
-    "@trigger.dev/schema-to-json": 4.0.5
+    "@trigger.dev/build": 4.1.0
+    "@trigger.dev/core": 4.1.0
+    "@trigger.dev/schema-to-json": 4.1.0
     ansi-escapes: ^7.0.0
     braces: ^3.0.3
     c12: ^1.11.1
@@ -47839,7 +47903,7 @@ __metadata:
     zod-validation-error: ^1.5.0
   bin:
     trigger: dist/esm/index.js
-  checksum: 2f08b74e8b5f056c4a110d162bbd1768cc6545fe543ebdd72570f1751505a85672a6dcaa9bdea6c383b8abf5434ec7823ae1759c9e05e6915f6470606dabd51d
+  checksum: c1830c52b64d12bf9567e0bc3bda3db05c0f5307dcc446e02cc146a1efec14314bc5b5e59704690e47c9e4c8cb59466582f4bb707c57dee3b2c7c825df88fc8b
   languageName: node
   linkType: hard
 
