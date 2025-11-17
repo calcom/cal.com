@@ -82,7 +82,7 @@ export function useInitialFormValues({
   // Check if organization has disabled autofill from URL parameters
   const isAutofillDisabledByOrg =
     eventType?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
-    eventType?.owner?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
+    eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
     false;
   useEffect(() => {
     (async function () {

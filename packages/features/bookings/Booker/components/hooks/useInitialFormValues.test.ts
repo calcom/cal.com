@@ -212,9 +212,11 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
         bookingFields: mockBookingFields,
         team: null,
         owner: {
-          organization: {
-            organizationSettings: {
-              disableAutofillOnBookingPage: true,
+          profile: {
+            organization: {
+              organizationSettings: {
+                disableAutofillOnBookingPage: true,
+              },
             },
           },
         },
