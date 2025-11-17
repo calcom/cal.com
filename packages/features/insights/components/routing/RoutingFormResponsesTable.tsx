@@ -1,7 +1,8 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
- 
+import { TimezoneBadge } from "@calcom/features/insights/components/booking";
+
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -14,6 +15,8 @@ import {
   DataTableSegment,
   ColumnFilterType,
   convertMapToFacetedValues,
+  useFilterValue,
+  ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
 import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
@@ -22,7 +25,7 @@ import { trpc } from "@calcom/trpc";
 import { RoutingFormResponsesDownload } from "../../filters/Download";
 import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "../../hooks/useInsightsColumns";
-import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsOrgTeams } from "../../hooks/useInsightsOrgTeams";
 import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
@@ -38,7 +41,8 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 };
 
 export function RoutingFormResponsesTable() {
-  const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
+  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
 
   const { t } = useLocale();
 
@@ -150,8 +154,9 @@ export function RoutingFormResponsesTable() {
       {ctaContainerRef.current &&
         createPortal(
           <>
-            <DateRangeFilter column={createdAtColumn} />
+            <DateRangeFilter column={createdAtColumn} options={{ convertToTimeZone: true }} />
             <RoutingFormResponsesDownload sorting={sorting} />
+            <TimezoneBadge />
           </>,
           ctaContainerRef.current
         )}
