@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import slugify from "@calcom/lib/slugify";
 
 import { DynamicComponent } from "../../_components/DynamicComponent";
 
@@ -11,6 +12,7 @@ export const AppSetupMap = {
   "caldav-calendar": dynamic(() => import("../../caldavcalendar/pages/setup")),
   "ics-feed": dynamic(() => import("../../ics-feedcalendar/pages/setup")),
   zapier: dynamic(() => import("../../zapier/pages/setup")),
+  "whatsapp-connector": dynamic(() => import("../../whatsapp-connector/pages/setup")),
   make: dynamic(() => import("../../make/pages/setup")),
   sendgrid: dynamic(() => import("../../sendgrid/pages/setup")),
   stripe: dynamic(() => import("../../stripepayment/pages/setup")),

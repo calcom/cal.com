@@ -58,6 +58,7 @@ const executeStepLogic = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
+  console.log("reminderScheduler");
   const requiresRateLimiting = isSMSOrWhatsappAction(stepConfig.action);
 
   if (requiresRateLimiting) {
@@ -197,6 +198,7 @@ const executeStepLogic = async (
 
     await scheduleWhatsappReminder({
       evt: eventData,
+      workflow: workflowConfig,
       reminderPhone: whatsappRecipient,
       triggerEvent: workflowConfig.trigger,
       action: stepConfig.action as CalIdScheduleTextReminderAction,
@@ -211,6 +213,8 @@ const executeStepLogic = async (
       calIdTeamId: workflowConfig.calIdTeamId,
       isVerificationPending: stepConfig.numberVerificationPending,
       seatReferenceUid,
+      metaTemplateName: stepConfig.metaTemplateName,
+      metaPhoneNumberId: stepConfig.metaTemplatePhoneNumberId,
     });
   }
 };
@@ -265,6 +269,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     }
 
     const stepIterator = workflowInstance.steps[Symbol.iterator]();
+
     let currentStep = stepIterator.next();
 
     while (!currentStep.done) {

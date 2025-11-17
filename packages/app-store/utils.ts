@@ -146,10 +146,12 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
  * @returns - true if app supports team install
  */
 export function doesAppSupportTeamInstall({
+  slug,
   appCategories,
   concurrentMeetings = undefined,
   isPaid,
 }: {
+  slug: string;
   appCategories: string[];
   concurrentMeetings: boolean | undefined;
   isPaid: boolean;
@@ -161,7 +163,9 @@ export function doesAppSupportTeamInstall({
   return !appCategories.some(
     (category) =>
       category === "calendar" ||
-      (defaultVideoAppCategories.includes(category as AppCategories) && !concurrentMeetings)
+      (defaultVideoAppCategories.includes(category as AppCategories) &&
+        !concurrentMeetings &&
+        slug != "whatsapp-business")
   );
 }
 

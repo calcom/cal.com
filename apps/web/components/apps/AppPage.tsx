@@ -122,6 +122,7 @@ export const AppPage = ({
    */
   const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
   const availableForTeams = doesAppSupportTeamInstall({
+    slug,
     appCategories: categories,
     concurrentMeetings: concurrentMeetings,
     isPaid: !!paid,
@@ -141,12 +142,14 @@ export const AppPage = ({
         returnTo: WEBAPP_URL + onBoardingUrl,
       });
     } else if (!availableForTeams) {
+      console.log("Not available for teams");
       mutation.mutate({ type });
     } else {
       const onBoardingUrl = await getAppOnboardingUrl({
         slug: slug,
         step: AppOnboardingSteps.ACCOUNTS_STEP,
       });
+      console.log("onBoardingUrl is: ", onBoardingUrl);
 
       router.push(onBoardingUrl);
     }
@@ -276,6 +279,7 @@ export const AppPage = ({
             props = {
               ...props,
               onClick: async () => {
+                console.log("installating 4");
                 await handleAppInstall();
               },
               loading: isLoading,
@@ -296,6 +300,7 @@ export const AppPage = ({
             props = {
               ...props,
               onClick: async () => {
+                console.log("installating");
                 await handleAppInstall();
               },
               loading: isLoading,

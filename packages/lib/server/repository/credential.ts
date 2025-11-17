@@ -15,6 +15,7 @@ type CredentialCreateInput = {
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
+  calIdTeamId?: string | null;
 };
 
 type CredentialUpdateInput = {
