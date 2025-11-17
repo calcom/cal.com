@@ -4,7 +4,6 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
-import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
@@ -17,7 +16,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -89,12 +87,6 @@ const AppearanceView = ({
   const userThemeFormMethods = useForm({
     defaultValues: {
       theme: user.theme,
-    },
-  });
-
-  const headerUrlFormMethods = useForm({
-    defaultValues: {
-      metadata: user.metadata as z.infer<typeof userMetadata>,
     },
   });
 
@@ -424,71 +416,6 @@ const AppearanceView = ({
                   {t("update")}
                 </Button>
               </SettingsToggle>
-            </div>
-          </Form>
-
-          <Form
-            form={headerUrlFormMethods}
-            handleSubmit={(values) => {
-              mutation.mutate(values);
-            }}>
-            <div className="border-subtle mt-6 rounded-md border p-6">
-              <Controller
-                control={headerUrlFormMethods.control}
-                name="metadata.headerUrl"
-                render={({ field: { value, onChange } }) => {
-                  const showRemoveLogoButton = value !== null;
-                  return (
-                    <div className="flex flex-col items-start">
-                      <Label className="font-semibold">{t("booking_page_header_background")}</Label>
-                      <span className="mt-1 text-subtle mb-8 text-sm">
-                        {t("booking_page_header_background_description")}
-                      </span>
-                      <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
-                        {!value ? (
-                          <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
-                        ) : (
-                          <img className="h-full w-full" src={value} />
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <CustomBannerUploader
-                          target="metadata.headerUrl"
-                          id="svg-upload"
-                          buttonMsg={t("upload_image")}
-                          fieldName="Header"
-                          mimeType="image/svg+xml"
-                          height={600}
-                          width={3200}
-                          handleAvatarChange={(newHeaderUrl) => {
-                            onChange(newHeaderUrl);
-                            mutation.mutate({
-                              metadata: { headerUrl: newHeaderUrl },
-                            });
-                          }}
-                          imageSrc={
-                            getPlaceholderHeader(
-                              value,
-                              headerUrlFormMethods.getValues("metadata.headerUrl")
-                            ) ?? undefined
-                          }
-                          triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        />
-                        {showRemoveLogoButton && (
-                          <Button
-                            color="secondary"
-                            onClick={() => {
-                              onChange(null);
-                              mutation.mutate({ metadata: { headerUrl: null } });
-                            }}>
-                            {t("remove")}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }}
-              />
             </div>
           </Form>
 
