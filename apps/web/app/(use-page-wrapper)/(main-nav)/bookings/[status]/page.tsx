@@ -64,7 +64,10 @@ const Page = async ({ params }: PageProps) => {
     : false;
 
   return (
-    <ShellMainAppDir heading={t("bookings")} CTA={bookingsV3Enabled ? <ViewToggleButton /> : null}>
+    <ShellMainAppDir
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      CTA={bookingsV3Enabled ? <ViewToggleButton /> : null}>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
