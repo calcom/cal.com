@@ -1,5 +1,4 @@
 import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
@@ -133,7 +132,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                 : ""
             )}
             onChange={(event) => {
-              event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
