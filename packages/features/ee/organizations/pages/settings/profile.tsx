@@ -213,7 +213,7 @@ const OrgProfileView = ({
               <ConfirmationDialogContent
                 variety="danger"
                 title={t("admin_delete_organization_title", {
-                  organizationName: currentOrg?.name || "",
+                  organizationName: currentOrganisation?.name ?? "",
                 })}
                 confirmBtnText={t("delete")}
                 isPending={deleteOrganizationMutation.isPending}
