@@ -171,6 +171,10 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     priceId = fixedPrice as string;
   }
 
+  const orgTrialDays = process.env.STRIPE_ORG_TRIAL_DAYS
+    ? parseInt(process.env.STRIPE_ORG_TRIAL_DAYS)
+    : null;
+
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
@@ -198,6 +202,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
         teamId,
         dubCustomerId: userId,
       },
+      ...(isOrg && !!orgTrialDays && { trial_period_days: orgTrialDays }),
     },
   });
   return { url: session.url };
