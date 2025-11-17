@@ -80,7 +80,7 @@ export const OnboardingCard = ({
 
       {/* Footer */}
       {floatingFooter ? (
-        <div className="absolute bottom-0 left-0 right-0 z-10 flex w-full items-center justify-start rounded-[12px] bg-[rgba(255,255,255,0.01)] p-2 shadow-[0px_12px_32px_-6px_rgba(0,0,0,0.12),0px_0px_0px_1px_rgba(111,107,107,0.1),0px_1px_3px_0px_rgba(63,70,75,0.1)] backdrop-blur-[6px] backdrop-filter">
+        <div className="absolute bottom-0 left-0 right-[12px] z-10 flex items-center justify-start rounded-[12px] bg-[rgba(255,255,255,0.01)] p-2 shadow-[0px_12px_32px_-6px_rgba(0,0,0,0.12),0px_0px_0px_1px_rgba(111,107,107,0.1),0px_1px_3px_0px_rgba(63,70,75,0.1)] backdrop-blur-[6px] backdrop-filter">
           {footer}
         </div>
       ) : (

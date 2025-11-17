@@ -99,7 +99,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="scroll-bar grid max-h-[35vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+            className="scroll-bar grid max-h-[35vh] grid-cols-1 gap-3 overflow-y-scroll pb-20 sm:grid-cols-2">
             {queryIntegrations.data?.items?.map((app) => (
               <InstallableAppCard
                 key={app.slug}
