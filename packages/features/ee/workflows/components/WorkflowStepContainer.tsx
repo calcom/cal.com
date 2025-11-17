@@ -1520,7 +1520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   ? t("how_form_responses_as_variables")
                   : t("how_booking_questions_as_variables")}
               </h1>
-              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
+              <div className="mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
