@@ -57,8 +57,9 @@ export function RecurringTab({
                 value={recurringInterval}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  // Don't allow empty or 0 values
+                  // Don't allow empty or 0 values; fall back to 1 so users can keep editing
                   if (numericValue === "" || numericValue === "0") {
+                    setRecurringInterval("1");
                     return;
                   }
                   const num = parseInt(numericValue);
@@ -108,8 +109,9 @@ export function RecurringTab({
                 value={recurringOccurrences}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
-                  // Don't allow empty or 0 values
+                  // Don't allow empty or 0 values; fall back to 1 so users can keep editing
                   if (numericValue === "" || numericValue === "0") {
+                    setRecurringOccurrences("1");
                     return;
                   }
                   const num = parseInt(numericValue);

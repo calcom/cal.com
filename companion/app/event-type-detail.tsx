@@ -1125,7 +1125,7 @@ export default function EventTypeDetail() {
 
       // Boolean flags - always set the actual boolean value so toggling off works
       payload.metadata = {
-        ...payload.metadata,
+        ...(payload.metadata || {}),
         disableCancelling,
         disableRescheduling,
         sendCalVideoTranscription,
