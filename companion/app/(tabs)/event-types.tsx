@@ -388,9 +388,13 @@ export default function EventTypes() {
               </View>
             ) : null}
           </View>
-          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
-            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+          <TouchableOpacity
+            className="items-center justify-center border border-[#E5E5EA] rounded-lg"
+            style={{ width: 32, height: 32 }}
+            onPress={() => handleEventTypeLongPress(item)}
+          >
+            <Ionicons name="ellipsis-vertical" size={20} color="#3C3F44" />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
