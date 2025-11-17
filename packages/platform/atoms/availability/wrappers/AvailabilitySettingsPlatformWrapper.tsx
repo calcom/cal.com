@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { forwardRef } from "react";
+import { forwardRef, useRef } from "react";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
+import type { UpdateScheduleResponse } from "@calcom/features/schedules/services/ScheduleService";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
@@ -12,9 +12,9 @@ import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
-import type { CustomClassNames, AvailabilitySettingsFormRef } from "../AvailabilitySettings";
+import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import type { AvailabilityFormValues } from "../types";
+import type { AvailabilityFormValues, AvailabilitySettingsFormRef } from "../types";
 
 export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
@@ -84,6 +84,8 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
     },
   });
 
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useAtomUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
@@ -92,6 +94,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
           description: "Schedule updated successfully",
         });
       }
+      callbacksRef.current?.onSuccess?.();
     },
     onError: (err) => {
       onUpdateError?.(err);
@@ -100,6 +103,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
           description: "Could not update schedule",
         });
       }
+      callbacksRef.current?.onError?.(err);
     },
   });
 
@@ -198,6 +202,8 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
         onFormStateChange={onFormStateChange}
+        callbacksRef={callbacksRef}
+        isDryRun={isDryRun}
       />
     </AtomsWrapper>
   );

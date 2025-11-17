@@ -1,7 +1,9 @@
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -89,6 +91,30 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       }));
   }
 
+  // Filter teams based on permission if provided
+  let hasPermissionForFiltered: boolean[] = [];
+  if (input?.withPermission) {
+    const permissionService = new PermissionCheckService();
+    const { permission, fallbackRoles } = input.withPermission;
+
+    const permissionChecks = await Promise.all(
+      teamsData.map((membership) =>
+        permissionService.checkPermission({
+          userId: ctx.user.id,
+          teamId: membership.team.id,
+          permission: permission as PermissionString,
+          fallbackRoles: fallbackRoles ? (fallbackRoles as MembershipRole[]) : [],
+        })
+      )
+    );
+
+    // Store permission results for teams that passed the filter
+    hasPermissionForFiltered = permissionChecks.filter((hasPermission) => hasPermission);
+    teamsData = teamsData.filter((_, index) => permissionChecks[index]);
+  }
+
+  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
+
   return [
     {
       teamId: null,
@@ -99,7 +125,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       }),
       readOnly: false,
     },
-    ...teamsData.map((membership) => ({
+    ...teamsData.map((membership, index) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,
@@ -107,7 +133,9 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
         ? getPlaceholderAvatar(membership.team.parent.logoUrl, membership.team.parent.name)
         : getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
       role: membership.role,
-      readOnly: !withRoleCanCreateEntity(membership.role),
+      readOnly: input?.withPermission
+        ? !hasPermissionForFiltered[index]
+        : !rolesWithWriteAccess.includes(membership.role),
     })),
   ];
 };

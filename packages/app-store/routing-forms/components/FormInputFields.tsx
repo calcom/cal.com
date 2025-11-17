@@ -1,6 +1,8 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+"use client";
+
 import type { Dispatch, SetStateAction } from "react";
 
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";

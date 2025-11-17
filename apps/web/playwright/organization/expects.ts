@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "playwright/fixtures/emails";
 
@@ -15,9 +15,6 @@ export async function expectInvitationEmailToBeReceived(
   returnLink?: string
 ) {
   if (!emails) return null;
-  // We need to wait for the email to go through, otherwise it will fail
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(2000);
   const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
   expect(receivedEmails?.total).toBe(1);
   const [firstReceivedEmail] = (receivedEmails as Messages).items;

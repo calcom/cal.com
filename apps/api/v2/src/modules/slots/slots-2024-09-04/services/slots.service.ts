@@ -23,12 +23,14 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import {
+import { SchedulingType } from "@calcom/platform-libraries";
+import { validateRoundRobinSlotAvailability } from "@calcom/platform-libraries/slots";
+import type {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
   ReserveSlotInput_2024_09_04,
 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -147,13 +149,26 @@ export class SlotsService_2024_09_04 {
     }
 
     const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
-    if (nonSeatedEventAlreadyBooked) {
+    const isRoundRobinEvent = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    if (nonSeatedEventAlreadyBooked && !isRoundRobinEvent) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+    if (isRoundRobinEvent) {
+      try {
+        await validateRoundRobinSlotAvailability(input.eventTypeId, startDate, endDate, eventType.hosts);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new UnprocessableEntityException(error?.message);
+        }
+        throw error;
+      }
+    } else {
+      await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    }
 
-    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(

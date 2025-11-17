@@ -9,7 +9,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User, Team } from "@prisma/client";
 import * as request from "supertest";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -19,8 +18,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UserResponse } from "@calcom/platform-types";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import type { UserResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Me Endpoints", () => {
   describe("User Authentication", () => {
@@ -31,6 +30,7 @@ describe("Me Endpoints", () => {
     let profilesRepositoryFixture: ProfileRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     const userEmail = `me-controller-user-${randomString()}@api.com`;
+    const name = "Me Controller User";
     let user: User;
     let org: Team;
 
@@ -56,6 +56,7 @@ describe("Me Endpoints", () => {
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+        name,
       });
 
       org = await organizationsRepositoryFixture.create({
@@ -93,6 +94,7 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.name).toEqual(user.name);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);

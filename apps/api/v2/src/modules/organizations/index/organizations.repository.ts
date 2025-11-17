@@ -4,23 +4,17 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
+import { OrganizationRepository } from "@calcom/platform-libraries/organizations";
 import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
-export class OrganizationsRepository {
+export class OrganizationsRepository extends OrganizationRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly stripeService: StripeService
-  ) {}
-
-  async findById(organizationId: number) {
-    return this.dbRead.prisma.team.findUnique({
-      where: {
-        id: organizationId,
-        isOrganization: true,
-      },
-    });
+  ) {
+    super({ prismaClient: dbWrite.prisma });
   }
 
   async findByIds(organizationIds: number[]) {
@@ -171,6 +165,16 @@ export class OrganizationsRepository {
         slug,
         parentId: null,
         isOrganization: true,
+      },
+    });
+  }
+
+  async findTeamByPlatformBillingId(billingId: number) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        platformBilling: {
+          id: billingId,
+        },
       },
     });
   }

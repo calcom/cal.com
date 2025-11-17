@@ -119,7 +119,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -175,7 +175,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -193,7 +193,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -213,16 +212,16 @@ describe("handleNewBooking", () => {
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },
             organizer,
             emails,
             bookingTimeRange: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               start: createdBookings[0].startTime!,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               end: createdBookings[0].endTime!,
             },
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -338,7 +337,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -472,7 +471,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -527,7 +526,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -545,7 +544,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -565,7 +563,7 @@ describe("handleNewBooking", () => {
           expectSuccessfulBookingCreationEmails({
             booker,
             booking: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },
@@ -691,7 +689,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -746,7 +744,7 @@ describe("handleNewBooking", () => {
 
             await expectBookingToBeInDatabase({
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -764,7 +762,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -783,7 +780,7 @@ describe("handleNewBooking", () => {
 
           expectSuccessfulBookingCreationEmails({
             booking: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBookings[0].uid!,
               urlOrigin: WEBSITE_URL,
             },
@@ -949,7 +946,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -1104,7 +1101,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -1325,7 +1322,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",

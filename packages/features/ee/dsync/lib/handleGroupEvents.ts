@@ -1,10 +1,10 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
+import { addNewMembersToEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { addNewMembersToEventTypes } from "@calcom/lib/server/queries/teams";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import {
@@ -185,7 +185,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     });
 
     // Send emails to new members
-    const newMembers = users.filter((user) => !user.teams.find((team) => team.id === group.teamId));
+    const newMembers = users.filter((user) => !user.teams.find((team) => team.teamId === group.teamId));
     const newOrgMembers = users.filter(
       (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );

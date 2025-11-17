@@ -29,7 +29,7 @@ export const BookerEmbed = (
         preventEventTypeRedirect?: BookerPlatformWrapperAtomPropsForTeam["preventEventTypeRedirect"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
-        organizationId?: undefined;
+        organizationId?: number;
         routingFormUrl?: undefined;
       })
     | (BookerPlatformWrapperAtomPropsForTeam & { organizationId?: number; routingFormUrl?: undefined })
@@ -58,7 +58,7 @@ export const BookerEmbed = (
           apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
         }}>
         <BookerPlatformWrapper
-          {...(Boolean(routingTeamId)
+          {...(routingTeamId
             ? {
                 eventSlug: eventTypeSlug,
                 isTeamEvent: true,

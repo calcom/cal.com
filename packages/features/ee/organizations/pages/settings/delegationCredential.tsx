@@ -174,7 +174,7 @@ function CreateDelegationDialog({
         serviceAccountKey: validatedKey.data,
       });
     } catch (e) {
-      console.log("error", e);
+      console.error(e);
       form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
       return;
     }
@@ -403,7 +403,7 @@ function DelegationCredentialList() {
 
   return (
     <div>
-      {!!delegations?.length ? (
+      {delegations?.length ? (
         <>
           <ul className="space-y-2 [&>*:last-child]:rounded-b-xl">
             {delegations.map(

@@ -10,7 +10,8 @@ import {
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -179,7 +180,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     return {
       topic: event.title,
       type: 2, // Means that this is a scheduled meeting
-      start_time: dayjs(event.startTime).utc().format(),
+      start_time: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
@@ -316,7 +317,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             id: credential.id,
           },
           data: {
-            key: newTokenObject,
+            // z.passthrough() is not allowed in Prisma, but we know this is trusted.
+            key: newTokenObject as unknown as Prisma.InputJsonValue,
           },
         });
       },

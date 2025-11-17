@@ -1,7 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn } from "class-validator";
+import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn, IsOptional } from "class-validator";
+
+import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
 
 export const EMAIL_HOST = "email_host";
 export const EMAIL_ATTENDEE = "email_attendee";
@@ -10,6 +11,7 @@ export const SMS_ATTENDEE = "sms_attendee";
 export const SMS_NUMBER = "sms_number";
 export const WHATSAPP_ATTENDEE = "whatsapp_attendee";
 export const WHATSAPP_NUMBER = "whatsapp_number";
+export const CAL_AI_PHONE_CALL = "cal_ai_phone_call";
 
 export const STEP_ACTIONS = [
   EMAIL_HOST,
@@ -19,7 +21,10 @@ export const STEP_ACTIONS = [
   SMS_NUMBER,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
+  CAL_AI_PHONE_CALL,
 ] as const;
+
+export const FORM_ALLOWED_STEP_ACTIONS = [EMAIL_ATTENDEE, EMAIL_ADDRESS, SMS_ATTENDEE, SMS_NUMBER] as const;
 
 export const STEP_ACTIONS_TO_ENUM = {
   [EMAIL_HOST]: WorkflowActions.EMAIL_HOST,
@@ -29,6 +34,7 @@ export const STEP_ACTIONS_TO_ENUM = {
   [WHATSAPP_ATTENDEE]: WorkflowActions.WHATSAPP_ATTENDEE,
   [WHATSAPP_NUMBER]: WorkflowActions.WHATSAPP_NUMBER,
   [SMS_NUMBER]: WorkflowActions.SMS_NUMBER,
+  [CAL_AI_PHONE_CALL]: WorkflowActions.CAL_AI_PHONE_CALL,
 } as const;
 
 export const ENUM_TO_STEP_ACTIONS = {
@@ -39,10 +45,11 @@ export const ENUM_TO_STEP_ACTIONS = {
   [WorkflowActions.WHATSAPP_ATTENDEE]: WHATSAPP_ATTENDEE,
   [WorkflowActions.WHATSAPP_NUMBER]: WHATSAPP_NUMBER,
   [WorkflowActions.SMS_NUMBER]: SMS_NUMBER,
+  [WorkflowActions.CAL_AI_PHONE_CALL]: CAL_AI_PHONE_CALL,
 } as const;
 
 export type StepAction = (typeof STEP_ACTIONS)[number];
-export type StepActionsType = (typeof STEP_ACTIONS)[number];
+export type FormAllowedStepAction = (typeof FORM_ALLOWED_STEP_ACTIONS)[number];
 
 export const REMINDER = "reminder";
 export const CUSTOM = "custom";
@@ -127,6 +134,13 @@ export class BaseWorkflowStepDto {
   @ApiProperty({ description: "Displayed sender name.", type: String })
   @IsString()
   sender!: string;
+}
+
+export class BaseFormWorkflowStepDto extends BaseWorkflowStepDto {
+  @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
+  @IsString()
+  @IsIn(FORM_ALLOWED_STEP_ACTIONS)
+  action!: FormAllowedStepAction;
 }
 
 export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
@@ -255,6 +269,15 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
   @ValidateNested()
   @Type(() => TextWorkflowMessageDto)
   message!: TextWorkflowMessageDto;
+
+  @ApiPropertyOptional({
+    description: "whether or not the attendees are required to provide their phone numbers when booking",
+    example: true,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  phoneRequired: boolean = false;
 }
 
 export class WorkflowPhoneNumberStepDto extends BaseWorkflowStepDto {
@@ -297,4 +320,88 @@ export class WorkflowPhoneWhatsAppAttendeeStepDto extends BaseWorkflowStepDto {
   @ValidateNested()
   @Type(() => TextWorkflowMessageDto)
   message!: TextWorkflowMessageDto;
+
+  @ApiPropertyOptional({
+    description: "whether or not the attendees are required to provide their phone numbers when booking",
+    example: true,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  phoneRequired: boolean = false;
+}
+
+export type UpdateWorkflowStepDto =
+  | UpdateEmailAttendeeWorkflowStepDto
+  | UpdateEmailAddressWorkflowStepDto
+  | UpdateEmailHostWorkflowStepDto
+  | UpdateWhatsAppAttendeePhoneWorkflowStepDto
+  | UpdatePhoneWhatsAppNumberWorkflowStepDto
+  | UpdatePhoneAttendeeWorkflowStepDto
+  | UpdatePhoneNumberWorkflowStepDto;
+export class UpdateEmailAttendeeWorkflowStepDto extends WorkflowEmailAttendeeStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export class UpdateEmailAddressWorkflowStepDto extends WorkflowEmailAddressStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export class UpdateEmailHostWorkflowStepDto extends WorkflowEmailHostStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export class UpdatePhoneWhatsAppNumberWorkflowStepDto extends WorkflowPhoneWhatsAppNumberStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdatePhoneAttendeeWorkflowStepDto extends WorkflowPhoneAttendeeStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdatePhoneNumberWorkflowStepDto extends WorkflowPhoneNumberStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWhatsAppAttendeeStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
 }

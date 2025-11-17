@@ -1,17 +1,20 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
-import type { IHitPaySetupProps } from "./index";
+
+export type IHitPaySetupProps = z.infer<typeof hitpayCredentialKeysSchema>;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const notFound = { notFound: true } as const;
 
   if (typeof ctx.params?.slug !== "string") return notFound;
 
-  const { req } = ctx;
+  const { req, query } = ctx;
   const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
@@ -20,10 +23,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return redirect;
   }
 
+  const teamId = query.teamId ? Number(query.teamId) : null;
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId, userId: session.user.id });
+  const installForObject = teamId ? { teamId } : { userId: session.user.id };
+
   const credentials = await prisma.credential.findFirst({
     where: {
       type: "hitpay_payment",
-      userId: session?.user.id,
+      ...installForObject,
     },
   });
 

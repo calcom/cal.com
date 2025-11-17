@@ -1,22 +1,23 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
 import { Toaster } from "sonner";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
+import { useFormbricks } from "@calcom/features/formbricks/formbricks-client";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { DynamicModals } from "./DynamicModals";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -26,8 +27,6 @@ import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
-  const pathname = usePathname();
-  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
 
   useFormbricks();
 
@@ -38,11 +37,10 @@ const Layout = (props: LayoutProps) => {
       </div>
 
       <TimezoneChangeDialog />
+      <DynamicModals />
 
       <div className="flex min-h-screen flex-col">
-        {banners && !props.isPlatformUser && !isFullPageWithoutSidebar && (
-          <BannerContainer banners={banners} />
-        )}
+        {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
 
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer ? (

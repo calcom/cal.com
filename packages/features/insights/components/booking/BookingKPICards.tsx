@@ -84,7 +84,6 @@ export const BookingKPICards = () => {
             <StatItem key={item.title} index={index}>
               <KPICard
                 title={item.title}
-                value={data[item.index].count}
                 previousMetricData={data[item.index]}
                 previousDateRange={data.previousRange}
               />
@@ -99,7 +98,6 @@ export const BookingKPICards = () => {
             <StatItem key={item.title} index={index}>
               <KPICard
                 title={item.title}
-                value={data[item.index].count}
                 previousMetricData={data[item.index]}
                 previousDateRange={data.previousRange}
               />

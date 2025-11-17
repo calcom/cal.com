@@ -13,6 +13,7 @@ import React, {
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
@@ -68,6 +69,12 @@ export type CustomClassNames = {
   subtitlesClassName?: string;
   scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
+  dateOverrideClassNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
+  };
   hiddenSwitchClassname?: {
     container?: string;
     thumb?: string;
@@ -117,6 +124,8 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
+  callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
+  isDryRun?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -180,14 +189,23 @@ const DateOverride = ({
   travelSchedules,
   weekStart,
   overridesModalClassNames,
+  classNames,
   handleSubmit,
+  isDryRun = false,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
+  classNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
+  };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  isDryRun?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -198,12 +216,14 @@ const DateOverride = ({
 
   const handleAvailabilityUpdate = () => {
     const updatedValues = getValues() as AvailabilityFormValues;
-    handleSubmit(updatedValues);
+    if (!isDryRun) {
+      handleSubmit(updatedValues);
+    }
   };
 
   return (
-    <div className="p-6">
-      <h3 className="text-emphasis font-medium leading-6">
+    <div className={cn("p-6", classNames?.container)}>
+      <h3 className={cn("text-emphasis font-medium leading-6", classNames?.title)}>
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
@@ -211,7 +231,9 @@ const DateOverride = ({
           </span>
         </Tooltip>
       </h3>
-      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
+      <p className={cn("text-subtle mb-4 text-sm", classNames?.description)}>
+        {t("date_overrides_subtitle")}
+      </p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
@@ -223,6 +245,7 @@ const DateOverride = ({
           hour12={Boolean(userTimeFormat === 12)}
           travelSchedules={travelSchedules}
           handleAvailabilityUpdate={handleAvailabilityUpdate}
+          isDryRun={isDryRun}
         />
         <DateOverrideInputDialog
           className={overridesModalClassNames}
@@ -234,8 +257,13 @@ const DateOverride = ({
           }}
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
+          isDryRun={isDryRun}
           Trigger={
-            <Button color="secondary" StartIcon="plus" data-testid="add-override">
+            <Button
+              className={classNames?.button}
+              color="secondary"
+              StartIcon="plus"
+              data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -286,6 +314,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       bulkUpdateModalProps,
       allowSetToDefault = true,
       allowDelete = true,
+      callbacksRef,
+      isDryRun,
     } = props;
     const [openSidebar, setOpenSidebar] = useState(false);
     const { t, i18n } = useLocale();
@@ -316,13 +346,27 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-    const handleFormSubmit = useCallback(() => {
-      if (saveButtonRef.current) {
-        saveButtonRef.current.click();
-      } else {
-        form.handleSubmit(handleSubmit)();
-      }
-    }, [form, handleSubmit]);
+    const handleFormSubmit = useCallback(
+      (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+        if (callbacksRef && customCallbacks) {
+          callbacksRef.current = customCallbacks;
+        }
+
+        if (saveButtonRef.current) {
+          saveButtonRef.current.click();
+        } else {
+          form.handleSubmit(async (data) => {
+            try {
+              await handleSubmit(data);
+              callbacksRef?.current?.onSuccess?.();
+            } catch (error) {
+              callbacksRef?.current?.onError?.(error as Error);
+            }
+          })();
+        }
+      },
+      [form, handleSubmit, callbacksRef]
+    );
 
     const validateForm = useCallback(async () => {
       const isValid = await form.trigger();
@@ -637,18 +681,22 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <DateOverride
-                  workingHours={schedule.workingHours}
-                  userTimeFormat={timeFormat}
-                  handleSubmit={handleSubmit}
-                  travelSchedules={travelSchedules}
-                  weekStart={
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      weekStart
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                  }
-                  overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                />
+                <BookerStoreProvider>
+                  <DateOverride
+                    isDryRun={isDryRun}
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                    classNames={customClassNames?.dateOverrideClassNames}
+                  />
+                </BookerStoreProvider>
               )}
             </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

@@ -11,7 +11,7 @@ export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const Codes = {
   react: {
     inline: ({
@@ -112,6 +112,9 @@ export default function MyApp() {
     ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
   >Click me</button>;
 };`;
+    },
+    headless: () => {
+      return null;
     },
   },
   "react-atom": {
@@ -230,17 +233,22 @@ export default function Booker( props : BookerProps ) {
   );
 };`;
     },
+    headless: () => {
+      return null;
+    },
   },
   HTML: {
     inline: ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["inline"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
@@ -251,16 +259,17 @@ export default function Booker( props : BookerProps ) {
 
   ${uiInstructionCode}`;
     },
-
     "floating-popup": ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["floatingPopup"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       const floatingButtonArg = JSON.stringify({
@@ -277,11 +286,13 @@ export default function Booker( props : BookerProps ) {
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`
@@ -291,6 +302,9 @@ export default function Booker( props : BookerProps ) {
   // \`data-cal-config='${JSON.stringify(previewState.config)}'\`
 
   ${uiInstructionCode}`;
+    },
+    headless: () => {
+      return null;
     },
   },
 };
@@ -317,7 +331,7 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
       indentedBlock.push(line);
     });
     // non-null assertion is okay because we know that we are referencing last element.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const indentationMatch = partWithoutBlock
       .split("\n")
       .at(-1)!

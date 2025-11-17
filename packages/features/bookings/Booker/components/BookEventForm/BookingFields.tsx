@@ -1,34 +1,129 @@
+import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-import { SystemField } from "../../../lib/SystemField";
+type TouchedFields = {
+  responses?: Record<string, boolean>;
+};
 
+type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+const PhoneLocationSchema = z.object({
+  value: z.literal(DefaultEventLocationTypeEnum.Phone),
+  optionValue: z.string().optional(),
+});
 export const BookingFields = ({
   fields,
   locations,
   rescheduleUid,
   isDynamicGroupBooking,
   bookingData,
+  isPaidEvent,
+  paymentCurrency = "USD",
 }: {
-  fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+  fields: Fields;
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
+  isPaidEvent?: boolean;
+  paymentCurrency?: string;
 }) => {
-  const { t } = useLocale();
-  const { watch, setValue } = useFormContext();
+  const { t, i18n } = useLocale();
+  const { watch, setValue, formState } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
+  // Identify all phone fields (except location field)
+  const otherPhoneFieldNames = useMemo(
+    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
+    [fields]
+  );
+
+  // Track last synced value to avoid redundant updates
+  const lastSyncedPhoneRef = useRef<string | null>(null);
+
+  // Event-driven sync function
+  const syncPhoneFields = (locationValue: unknown) => {
+    const parsed = PhoneLocationSchema.safeParse(locationValue);
+    if (!parsed.success) return;
+    const { optionValue } = parsed.data;
+    const phone = (optionValue ?? "").trim();
+
+    // Skip if empty or same as last sync (avoid redundant updates during typing)
+    if (!phone || phone === lastSyncedPhoneRef.current) return;
+
+    // Copy phone to other phone fields (only if user hasn't manually touched them)
+    otherPhoneFieldNames.forEach((name) => {
+      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+
+      if (!targetTouched) {
+        setValue(`responses.${name}`, phone, {
+          shouldDirty: false,
+          shouldValidate: false,
+        });
+      }
+    });
+
+    lastSyncedPhoneRef.current = phone;
+  };
+
+  const getPriceFormattedLabel = (label: string, price: number) =>
+    `${label} (${Intl.NumberFormat(i18n.language, {
+      style: "currency",
+      currency: paymentCurrency,
+    }).format(price)})`;
+
+  const getFieldWithDirectPricing = (field: Fields[number]) => {
+    if (!fieldTypesConfigMap[field.type]?.supportsPricing || !field.label || !field.price) {
+      return field;
+    }
+
+    const price = typeof field.price === "string" ? parseFloat(field.price) : field.price;
+    const label = getPriceFormattedLabel(field.label, price);
+
+    return {
+      ...field,
+      label,
+      ...(fieldsThatSupportLabelAsSafeHtml.includes(field.type) && field.labelAsSafeHtml
+        ? { labelAsSafeHtml: markdownToSafeHTML(label) }
+        : { labelAsSafeHtml: undefined }),
+    };
+  };
+
+  const getFieldWithOptionLevelPrices = (field: Fields[number]) => {
+    if (!fieldTypesConfigMap[field.type]?.optionsSupportPricing || !field.options) return field;
+
+    return {
+      ...field,
+      options: field.options.map((opt) => {
+        const option = opt as { value: string; label: string; price?: number };
+        const optionPrice = option.price;
+
+        // Only add price to label if there's a price
+        if (!optionPrice) return option;
+
+        return {
+          ...option,
+          label: getPriceFormattedLabel(option.label, optionPrice),
+        };
+      }),
+    };
+  };
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -134,8 +229,33 @@ export const BookingFields = ({
           });
         }
 
+        // Add price display for custom inputs with prices
+        let fieldWithPrice = field;
+
+        if (isPaidEvent) {
+          // Handle number fields and boolean (single checkbox) fields
+          if (fieldTypesConfigMap[field.type]?.supportsPricing) {
+            fieldWithPrice = getFieldWithDirectPricing(field);
+          }
+
+          // Handle fields with option-level prices (select, multiselect, and checkbox group)
+          if (fieldTypesConfigMap[field.type]?.optionsSupportPricing) {
+            fieldWithPrice = getFieldWithOptionLevelPrices(fieldWithPrice);
+          }
+        }
+
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField
+            className="mb-4"
+            field={{ ...fieldWithPrice, hidden }}
+            readOnly={readOnly}
+            key={index}
+            {...(field.name === SystemField.Enum.location && {
+              onValueChange: ({ value }) => {
+                syncPhoneFields(value);
+              },
+            })}
+          />
         );
       })}
     </div>

@@ -12,7 +12,7 @@ import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/ex
 
 import { describe, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
@@ -60,7 +60,7 @@ describe("getSchedule", () => {
 
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = mockCalendar("googlecalendar", {
+      const googleCalendarMock = await mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -151,7 +151,7 @@ describe("getSchedule", () => {
       // Create Delegation credential for the org user isn't part of
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = mockCalendar("googlecalendar", {
+      const googleCalendarMock = await mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",

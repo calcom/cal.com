@@ -4,10 +4,11 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
-import customTemplate from "./templates/customTemplate";
+import customTemplate, { transformBookingResponsesToVariableFormat } from "./templates/customTemplate";
 
 export const bulkShortenLinks = async (links: string[]) => {
   if (!process.env.DUB_API_KEY) {
@@ -73,7 +74,7 @@ export const getSMSMessageWithVariables = async (
     timeZone: timeZone,
     location: evt.location,
     additionalNotes: evt.additionalNotes,
-    responses: evt.responses,
+    responses: transformBookingResponsesToVariableFormat(evt.responses),
     meetingUrl,
     cancelLink,
     rescheduleLink,
@@ -115,11 +116,7 @@ export const getAttendeeToBeUsedInSMS = (
 };
 
 export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: dayjs.Dayjs | null) => {
-  if (
-    trigger === WorkflowTriggerEvents.NEW_EVENT ||
-    trigger === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(trigger)) {
     return true;
   }
 

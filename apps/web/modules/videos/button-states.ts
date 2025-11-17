@@ -13,7 +13,7 @@ export const BUTTONS = {
     iconPathDarkMode: TRANSCRIPTION_STARTED_ICON,
   },
   START_TRANSCRIPTION: {
-    label: "Cal.ai",
+    label: "Transcribe",
     tooltip: "Transcription powered by AI",
     iconPath: TRANSCRIPTION_STOPPED_ICON,
     iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,

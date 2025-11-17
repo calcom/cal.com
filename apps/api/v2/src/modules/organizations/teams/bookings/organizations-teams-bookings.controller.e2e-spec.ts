@@ -8,7 +8,6 @@ import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -28,14 +27,14 @@ import {
   X_CAL_CLIENT_ID,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import {
+import type {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
   describe("Organization Team bookings", () => {
@@ -61,6 +60,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
     let teamUser2: User;
 
     let team1EventTypeId: number;
+    let bookingUid: string;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -238,6 +238,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
+              bookingUid = data.uid;
               expect(data.hosts.length).toEqual(1);
               expect(data.hosts[0].id).toEqual(teamUser.id);
               expect(data.status).toEqual("accepted");
@@ -309,6 +310,27 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should get bookings by teamId and bookingUid", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/teams/${team1.id}/bookings?bookingUid=${bookingUid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data[0].uid).toEqual(bookingUid);
+          });
+      });
+
       it("should not get bookings by teamId and non existing eventTypeId", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/teams/${team1.id}/bookings?eventTypeId=90909`)
@@ -337,8 +359,8 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
       return client;
     }
 
-    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+    function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
+      return !Array.isArray(data) && typeof data === "object" && data !== null && "id" in data;
     }
 
     afterAll(async () => {

@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import shuffle from "lodash/shuffle";
 import { useState, memo } from "react";
 
@@ -6,7 +6,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui/components/card";
 
-export const tips = [
+type Tip = {
+  id: number;
+  thumbnailUrl: string;
+  mediaLink?: string;
+  title: string;
+  description: string;
+  href: string;
+  coverPhoto?: string;
+  variant?: "SidebarCard" | "NewLaunchSidebarCard";
+};
+
+export const tips: Tip[] = [
   {
     id: 17,
     thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
@@ -145,12 +156,12 @@ export const tips = [
   },
 ];
 
-const reversedTips = shuffle(tips).slice(0).reverse();
+const reversedTips = [...shuffle(tips).slice(0).reverse()];
 
 function Tips() {
   const { t } = useLocale();
 
-  const [list, setList] = useState<typeof tips>(() => {
+  const [list, setList] = useState<Tip[]>(() => {
     if (typeof window === "undefined") {
       return reversedTips;
     }
@@ -186,49 +197,59 @@ function Tips() {
 
   const baseOriginalList = list.slice(0).reverse();
   return (
-    <div
-      className="hidden pb-4 pt-8 lg:grid"
-      /* ref={animationRef} */
-      style={{
-        gridTemplateColumns: "1fr",
-      }}>
-      {list.map((tip) => {
-        const isTopTip = baseOriginalList.indexOf(tip) === 0;
-        return (
-          <div
-            className="relative"
-            style={{
-              gridRowStart: 1,
-              gridColumnStart: 1,
-            }}
-            key={tip.id}>
+    <>
+      <div
+        className="hidden pb-4 pt-8 lg:grid"
+        /* ref={animationRef} */
+        style={{
+          gridTemplateColumns: "1fr",
+        }}>
+        {list.map((tip) => {
+          const isTopTip = baseOriginalList.indexOf(tip) === 0;
+          return (
             <div
               className="relative"
               style={{
-                transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
-                top: -baseOriginalList.indexOf(tip) * 10,
-                opacity: `${1 - baseOriginalList.indexOf(tip) / 7}`,
-              }}>
-              <Card
-                variant="SidebarCard"
-                thumbnailUrl={tip.thumbnailUrl}
-                mediaLink={isTopTip ? tip.mediaLink : undefined}
-                title={tip.title}
-                description={tip.description}
-                learnMore={isTopTip ? { href: tip.href, text: t("learn_more") } : undefined}
-                actionButton={
-                  isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
-                }
-                containerProps={{
-                  tabIndex: isTopTip ? undefined : -1,
-                  "aria-hidden": isTopTip ? undefined : "true",
-                }}
-              />
+                gridRowStart: 1,
+                gridColumnStart: 1,
+              }}
+              key={tip.id}>
+              <div
+                className="relative"
+                style={{
+                  transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
+                  top: -baseOriginalList.indexOf(tip) * 10,
+                  opacity: `${1 - baseOriginalList.indexOf(tip) / 7}`,
+                }}>
+                <Card
+                  variant={tip.variant ?? "SidebarCard"}
+                  thumbnailUrl={tip.thumbnailUrl}
+                  coverPhoto={tip.coverPhoto}
+                  mediaLink={isTopTip ? tip.mediaLink : undefined}
+                  title={t(tip.title)}
+                  description={t(tip.description)}
+                  learnMore={
+                    isTopTip
+                      ? {
+                          href: tip.href,
+                          text: t("learn_more"),
+                        }
+                      : undefined
+                  }
+                  actionButton={
+                    isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
+                  }
+                  containerProps={{
+                    tabIndex: isTopTip ? undefined : -1,
+                    "aria-hidden": isTopTip ? undefined : "true",
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 

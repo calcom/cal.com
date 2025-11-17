@@ -5,7 +5,7 @@ import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
-import { DEFAULT_ROLE_IDS } from "../lib/constants";
+import { DEFAULT_ROLE_IDS, DefaultPBACRole } from "../lib/constants";
 import { PermissionDiffService } from "./permission-diff.service";
 import { PermissionService } from "./permission.service";
 
@@ -75,6 +75,10 @@ export class RoleService {
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
+
+    // Reassign all users with this role to the members_role
+    await this.repository.reassignUsersToRole(roleId, DefaultPBACRole.MEMBER_ROLE);
+
     await this.repository.delete(roleId);
   }
 
@@ -87,19 +91,32 @@ export class RoleService {
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot update default roles");
     }
-    // Validate permissions
+
+    const permissionChanges = await this.getUpdatePermissionChanges(data);
+
+    return this.repository.update(data.roleId, permissionChanges, {
+      color: data.updates?.color,
+      name: data.updates?.name,
+    });
+  }
+
+  private async getUpdatePermissionChanges(data: UpdateRolePermissionsData) {
+    if (!data.permissions) {
+      return {
+        toAdd: [],
+        toRemove: [],
+      };
+    }
+
     const validationResult = this.permissionService.validatePermissions(data.permissions);
+
     if (!validationResult.isValid) {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
     const existingPermissions = await this.repository.getPermissions(data.roleId);
     const permissionChanges = this.permissionDiffService.calculateDiff(data.permissions, existingPermissions);
-
-    return this.repository.update(data.roleId, permissionChanges, {
-      color: data.updates?.color,
-      name: data.updates?.name,
-    });
+    return permissionChanges;
   }
 
   async roleBelongsToTeam(roleId: string, teamId: number) {

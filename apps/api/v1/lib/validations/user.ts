@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
-import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
+import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 
 import { isValidBase64Image } from "~/lib/utils/isValidBase64Image";
 import { timeZone } from "~/lib/validations/shared/timeZone";
@@ -68,7 +68,7 @@ const usernameSchema = z
   });
 
 // @note: These are the values that are editable via PATCH method on the user Model
-export const schemaUserBaseBodyParams = User.pick({
+export const schemaUserBaseBodyParams = UserSchema.pick({
   name: true,
   email: true,
   username: true,
@@ -151,7 +151,7 @@ export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
   .strict();
 
 // @note: These are the values that are always returned when reading a user
-export const schemaUserReadPublic = User.pick({
+export const schemaUserReadPublic = UserSchema.pick({
   id: true,
   username: true,
   name: true,

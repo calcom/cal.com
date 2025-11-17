@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-empty-function */
+ 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -25,6 +25,7 @@ export type Host = {
   priority: number;
   weight: number;
   scheduleId?: number | null;
+  groupId: string | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;

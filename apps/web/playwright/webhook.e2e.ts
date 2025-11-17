@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
@@ -367,7 +367,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await expect(page.getByTestId("success-page")).toBeVisible();
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } })!;
     expect(newBooking).not.toBeNull();
 

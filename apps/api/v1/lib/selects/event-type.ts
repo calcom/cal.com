@@ -1,0 +1,68 @@
+import type { Prisma } from "@calcom/prisma/client";
+
+export const eventTypeSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  length: true,
+  hidden: true,
+  position: true,
+  userId: true,
+  teamId: true,
+  scheduleId: true,
+  eventName: true,
+  timeZone: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodDays: true,
+  periodCountCalendarDays: true,
+  requiresConfirmation: true,
+  recurringEvent: true,
+  disableGuests: true,
+  hideCalendarNotes: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  schedulingType: true,
+  price: true,
+  currency: true,
+  slotInterval: true,
+  parentId: true,
+  successRedirectUrl: true,
+  description: true,
+  locations: true,
+  metadata: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  bookingFields: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  durationLimits: true,
+  customInputs: {
+    select: { id: true, label: true, required: true, options: true, type: true, placeholder: true },
+  },
+  hashedLink: {
+    select: { link: true },
+  },
+  team: {
+    select: { slug: true },
+  },
+  hosts: {
+    select: {
+      userId: true,
+      isFixed: true,
+      scheduleId: true,
+    },
+  },
+  owner: {
+    select: { username: true, id: true, timeZone: true },
+  },
+  children: {
+    select: {
+      id: true,
+      userId: true,
+    },
+  },
+} satisfies Prisma.EventTypeSelect;

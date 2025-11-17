@@ -5,8 +5,8 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { FeedbackTable } from "../FeedbackTable";
 import { LoadingInsight } from "../LoadingInsights";
+import { RecentFeedbackTableContent } from "./RecentFeedbackTableContent";
 
 export const RecentFeedbackTable = () => {
   const { t } = useLocale();
@@ -26,7 +26,7 @@ export const RecentFeedbackTable = () => {
 
   return (
     <ChartCard title={t("recent_ratings")}>
-      <FeedbackTable data={data} />
+      <RecentFeedbackTableContent data={data} />
     </ChartCard>
   );
 };

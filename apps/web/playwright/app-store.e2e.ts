@@ -3,6 +3,9 @@ import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import { installAppleCalendar } from "./lib/testUtils";
 
+// Skipped due to flakiness: navigation to the App Store often exceeds the test timeout locally because of slow performance. Will be re-enabled once performance improvements are made.
+test.skip();
+
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());

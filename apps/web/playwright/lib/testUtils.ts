@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -155,6 +155,7 @@ export const bookTimeSlot = async (
     title?: string;
     attendeePhoneNumber?: string;
     expectedStatusCode?: number;
+    isRecurringEvent?: boolean;
   }
 ) => {
   // --- fill form
@@ -166,8 +167,9 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await submitAndWaitForResponse(page, "/api/book/event", {
-    action: () => page.locator('[name="email"]').press("Enter"),
+  const url = opts?.isRecurringEvent ? "/api/book/recurring-event" : "/api/book/event";
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
     expectedStatusCode: opts?.expectedStatusCode,
   });
 };
@@ -211,7 +213,7 @@ export async function setupManagedEvent({
     addManagedEventToTeamMates: true,
     managedEventUnlockedFields: unlockedFields,
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
@@ -222,10 +224,7 @@ export const createNewSeatedEventType = async (page: Page, args: { eventTitle: s
   const eventTitle = args.eventTitle;
   await createNewUserEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
-  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-    "aria-current",
-    "page"
-  );
+  await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -276,11 +275,17 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
+  waitForEmailMs = 5000,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
+  waitForEmailMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
+
+  // Wait for email to be sent/received
+  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
+
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
@@ -366,7 +371,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
       },
     ],
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
   return { user, eventType };
 }
@@ -477,7 +482,7 @@ export async function gotoBookingPage(page: Page) {
 }
 
 export async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }

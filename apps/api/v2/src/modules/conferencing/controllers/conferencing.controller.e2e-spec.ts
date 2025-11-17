@@ -7,7 +7,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -15,14 +14,14 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
-  ERROR_STATUS,
   GOOGLE_CALENDAR_ID,
   GOOGLE_CALENDAR_TYPE,
   GOOGLE_MEET,
   GOOGLE_MEET_TYPE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 
 describe("Conferencing Endpoints", () => {
   describe("conferencing controller e2e tests", () => {

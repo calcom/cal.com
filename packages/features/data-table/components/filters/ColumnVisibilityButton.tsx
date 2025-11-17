@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -74,15 +74,15 @@ function ColumnVisibilityButtonComponent<TData>(
               })}
             </CommandGroup>
           </CommandList>
-          <CommandSeparator />
+          <CommandSeparator className="mb-0" />
           <CommandGroup>
             <CommandItem
               onSelect={() => {
-                allColumns.forEach((column) => column.toggleVisibility(true));
+                table.toggleAllColumnsVisible(true);
               }}
               className={classNames(
-                "w-full justify-center text-center",
-                buttonClasses({ color: "secondary" })
+                buttonClasses({ color: "secondary" }),
+                "mt-0 w-full cursor-pointer justify-center text-center"
               )}>
               {t("show_all_columns")}
             </CommandItem>

@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { Fragment, useState, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import React, { Fragment, useState, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -15,22 +18,41 @@ const usePersistedExpansionState = (itemName: string) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
-      if (stored !== null) {
-        setIsExpanded(JSON.parse(stored));
-      }
-    } catch (_error) {}
+    const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
+    if (stored !== null) {
+      setIsExpanded(JSON.parse(stored));
+    }
   }, [itemName]);
 
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
-    try {
-      sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
-    } catch (_error) {}
+    sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
   };
 
   return [isExpanded, setPersistedExpansion] as const;
+};
+
+const useBuildHref = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const prevPathnameRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    prevPathnameRef.current = pathname;
+  }, [pathname]);
+
+  const buildHref = (childItem: NavigationItemType) => {
+    if (
+      childItem.preserveQueryParams &&
+      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current, nextPathname: childItem.href })
+    ) {
+      const params = searchParams?.toString();
+      return params ? `${childItem.href}?${params}` : childItem.href;
+    }
+    return childItem.href;
+  };
+
+  return buildHref;
 };
 
 export type NavigationItemType = {
@@ -55,6 +77,7 @@ export type NavigationItemType = {
     isChild?: boolean;
     pathname: string | null;
   }) => boolean;
+  preserveQueryParams?: (context: { prevPathname: string | null; nextPathname: string }) => boolean;
 };
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
@@ -73,6 +96,10 @@ export const NavigationItem: React.FC<{
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const buildHref = useBuildHref();
+
+  const isTablet = useMediaQuery("(max-width: 1024px)");
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   if (!shouldDisplayNavigationItem) return null;
 
@@ -86,13 +113,55 @@ export const NavigationItem: React.FC<{
   return (
     <Fragment>
       {isParentNavigationItem ? (
-        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Tooltip
+          side="right"
+          open={isTooltipOpen}
+          content={
+            hasChildren ? (
+              <div className="pointer-events-auto flex flex-col space-y-1 p-1">
+                <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">
+                  {t(item.name)}
+                </span>
+                <div className="flex flex-col">
+                  {item.child?.map((childItem) => {
+                    const childIsCurrent =
+                      typeof childItem.isCurrent === "function"
+                        ? childItem.isCurrent({ isChild: true, item: childItem, pathname })
+                        : defaultIsCurrent({ isChild: true, item: childItem, pathname });
+                    return (
+                      <Link
+                        key={childItem.name}
+                        href={buildHref(childItem)}
+                        aria-current={childIsCurrent ? "page" : undefined}
+                        onClick={() => setIsTooltipOpen(false)}
+                        className={classNames(
+                          "group relative block rounded-md px-3 py-1 text-sm font-medium",
+                          childIsCurrent
+                            ? "bg-emphasis text-white"
+                            : "hover:bg-emphasis text-mute hover:text-emphasis"
+                        )}>
+                        {t(childItem.name)}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              t(item.name)
+            )
+          }
+          className="lg:hidden">
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
             aria-expanded={isExpanded}
             aria-current={current ? "page" : undefined}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+              if (isTablet && hasChildren) {
+                setIsTooltipOpen(!isTooltipOpen);
+              }
+            }}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               "[&[aria-current='page']]:!bg-transparent",
@@ -112,7 +181,9 @@ export const NavigationItem: React.FC<{
               />
             )}
             {isLocaleReady ? (
-              <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
+              <span
+                className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+                data-testid={`${item.name}-test`}>
                 {t(item.name)}
                 {item.badge && item.badge}
               </span>
@@ -128,7 +199,7 @@ export const NavigationItem: React.FC<{
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <Link
             data-test-id={item.name}
-            href={item.href}
+            href={isChild ? buildHref(item) : item.href}
             aria-label={t(item.name)}
             target={item.target}
             className={classNames(
@@ -166,6 +237,11 @@ export const NavigationItem: React.FC<{
               </span>
             ) : (
               <SkeletonText className="h-[20px] w-full" />
+            )}
+            {item.name === "workflows" && (
+              <Badge startIcon="sparkles" variant="purple">
+                Cal.ai
+              </Badge>
             )}
           </Link>
         </Tooltip>
@@ -218,6 +294,7 @@ export const MobileNavigationMoreItem: React.FC<{
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const buildHref = useBuildHref();
 
   if (!shouldDisplayNavigationItem) return null;
 
@@ -247,7 +324,7 @@ export const MobileNavigationMoreItem: React.FC<{
               {item.child.map((childItem) => (
                 <li key={childItem.name} className="border-subtle border-t">
                   <Link
-                    href={childItem.href}
+                    href={buildHref(childItem)}
                     className="hover:bg-muted flex items-center p-4 pl-12 transition">
                     <span className="text-default font-medium">
                       {isLocaleReady ? t(childItem.name) : <SkeletonText />}

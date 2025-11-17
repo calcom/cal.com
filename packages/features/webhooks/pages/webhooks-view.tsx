@@ -2,38 +2,32 @@
 
 import { useRouter } from "next/navigation";
 
+import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
+type WebhooksByViewer = RouterOutputs["viewer"]["webhook"]["getByViewer"];
+
 type Props = {
-  data: RouterOutputs["viewer"]["webhook"]["getByViewer"];
-  isAdmin: boolean;
+  data: WebhooksByViewer;
 };
 
-const WebhooksView = ({ data, isAdmin }: Props) => {
+const WebhooksView = ({ data }: Props) => {
   return (
     <div>
-      <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
+      <WebhooksList webhooksByViewer={data} />
     </div>
   );
 };
 
-const WebhooksList = ({
-  webhooksByViewer,
-  isAdmin,
-}: {
-  webhooksByViewer: WebhooksByViewer;
-  isAdmin: boolean;
-}) => {
+const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
   const { t } = useLocale();
   const router = useRouter();
   const { profiles, webhookGroups } = webhooksByViewer;
@@ -45,9 +39,9 @@ const WebhooksList = ({
     <SettingsHeader
       title={t("webhooks")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton /> : null}
       borderInShellHeader={false}>
-      {!!webhookGroups.length ? (
+      {webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>
@@ -70,8 +64,11 @@ const WebhooksList = ({
                     <WebhookListItem
                       key={webhook.id}
                       webhook={webhook}
-                      readOnly={group.metadata?.readOnly ?? false}
                       lastItem={group.webhooks.length === index + 1}
+                      permissions={{
+                        canEditWebhook: group?.metadata?.canModify ?? false,
+                        canDeleteWebhook: group?.metadata?.canDelete ?? false,
+                      }}
                       onEditWebhook={() =>
                         router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                       }
@@ -88,7 +85,7 @@ const WebhooksList = ({
           headline={t("create_your_first_webhook")}
           description={t("create_your_first_webhook_description", { appName: APP_NAME })}
           className="mt-6 rounded-b-lg"
-          buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
+          buttonRaw={<CreateNewWebhookButton />}
           border={true}
         />
       )}

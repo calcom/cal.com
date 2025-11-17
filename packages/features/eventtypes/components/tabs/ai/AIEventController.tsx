@@ -5,9 +5,9 @@ import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import PhoneInput from "@calcom/features/components/phone-input";
-import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
-import { TEMPLATES_FIELDS } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
-import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { getTemplateFieldsSchema } from "@calcom/features/calAIPhone/getTemplateFieldsSchema";
+import { templateFieldsMap } from "@calcom/features/calAIPhone/template-fields-map";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
@@ -102,7 +102,7 @@ const TemplateFields = () => {
   const { control, watch } = formMethods;
 
   const templateType = watch("aiPhoneCallConfig.templateType");
-  const fields = TEMPLATES_FIELDS[templateType as TemplateType];
+  const fields = templateFieldsMap[templateType as TemplateType];
 
   return (
     <div className="space-y-4">
@@ -113,7 +113,7 @@ const TemplateFields = () => {
             name={`aiPhoneCallConfig.${field.name}`}
             render={({ field: { value, onChange }, fieldState: { error } }) => {
               const { variableName, ...restField } = field;
-              const variableInfo = !!variableName ? `: ${t("variable")} {{${variableName}}}` : "";
+              const variableInfo = variableName ? `: ${t("variable")} {{${variableName}}}` : "";
               return (
                 <div>
                   <ComponentForField
@@ -148,7 +148,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
     onSuccess: (data) => {
-      if (!!data?.callId) {
+      if (data?.callId) {
         showToast("Phone Call Created successfully", "success");
       }
     },

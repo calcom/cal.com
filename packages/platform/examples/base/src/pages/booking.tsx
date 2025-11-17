@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -42,6 +41,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="event-type-card"
                     onClick={() => {
                       setEventTypeSlug(event.slug);
                       setEventTypeDuration(event.lengthInMinutes);
@@ -93,6 +93,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             <Booker
               // timeZones={["Europe/London", "Asia/Kolkata"]}
               // isBookingDryRun={true}
+              // roundRobinHideOrgAndTeam={true}
+              defaultFormValues={{ name: "Bob the booker", email: "bob@thebooker.com" }}
               bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
               eventSlug={eventTypeSlug}
               onCreateBookingSuccess={(data) => {
@@ -135,6 +137,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 : { username: props.calUsername })}
               hostsLimit={3}
               allowUpdatingUrlParams={true}
+              silentlyHandleCalendarFailures={false}
+              // hideEventMetadata={true}
             />
           </>
         )}

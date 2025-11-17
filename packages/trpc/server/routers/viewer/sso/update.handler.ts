@@ -1,5 +1,10 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import {
+  canAccessOrganization,
+  samlProductID,
+  samlTenantID,
+  tenantPrefix,
+} from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,7 +23,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const { encodedRawMetadata, teamId } = input;
 
-  const { message, access } = await canAccess(ctx.user, teamId);
+  const { message, access } = await canAccessOrganization(ctx.user, teamId);
 
   if (!access) {
     throw new TRPCError({

@@ -4,12 +4,13 @@ import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/constants";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -37,7 +38,7 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
+ 
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
@@ -85,10 +86,16 @@ export default class GoogleCalendarService implements Calendar {
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
     );
+
+    const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+      .filter((domain) => domain.trim() !== "")
+      .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
+
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
@@ -100,7 +107,7 @@ export default class GoogleCalendarService implements Calendar {
         // We use || instead of ?? here to handle empty strings
         email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
       },
-      ...eventAttendees,
+      ...(event.hideOrganizerEmail && !isOrganizerExempt ? [] : eventAttendees),
     ];
 
     if (event.team?.members) {
@@ -189,7 +196,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
     if (calEvent.hideCalendarEventDetails) {
@@ -348,7 +355,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
     if (event.location) {
@@ -459,7 +466,7 @@ export default class GoogleCalendarService implements Calendar {
     args: FreeBusyArgs,
     shouldServeCache?: boolean
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    if (shouldServeCache === false) return await this.fetchAvailability(args);
+    if (!shouldServeCache) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability({
       credentialId: this.credential.id,
@@ -1111,6 +1118,20 @@ export default class GoogleCalendarService implements Calendar {
     } catch (error) {
       // should not be reached because Google Cal always has a primary cal
       logger.error("Error getting primary calendar", { error });
+      throw error;
+    }
+  }
+
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const primaryCalendar = await this.getPrimaryCalendar();
+      if (!primaryCalendar?.timeZone) {
+        this.log.warn("No timezone found in primary calendar, defaulting to UTC");
+        return "UTC";
+      }
+      return primaryCalendar.timeZone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Google Calendar", { error });
       throw error;
     }
   }

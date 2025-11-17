@@ -1,23 +1,27 @@
-import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { DailyLocationType } from "@calcom/app-store/locations";
+import {
+  type EventTypeAppMetadataSchema,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { DailyLocationType } from "@calcom/lib/location";
-import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { EventTypeAppMetadataSchema, EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type App = {
@@ -280,11 +284,7 @@ const handleDeleteCredential = async ({
             });
 
             for (const payment of booking.payment) {
-              try {
-                await deletePayment(payment.id, credential);
-              } catch (e) {
-                console.error(e);
-              }
+              await deletePayment(payment.id, credential);
               await prisma.payment.delete({
                 where: {
                   id: payment.id,
@@ -298,10 +298,11 @@ const handleDeleteCredential = async ({
               },
             });
 
-            await prisma.bookingReference.deleteMany({
+            await prisma.bookingReference.updateMany({
               where: {
                 bookingId: booking.id,
               },
+              data: { deleted: true },
             });
 
             const attendeesListPromises = booking.attendees.map(async (attendee) => {
@@ -349,7 +350,7 @@ const handleDeleteCredential = async ({
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
                 hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
-                team: !!booking.eventType?.team
+                team: booking.eventType?.team
                   ? {
                       name: booking.eventType.team.name,
                       id: booking.eventType.team.id,
@@ -390,18 +391,19 @@ const handleDeleteCredential = async ({
     }
   }
 
-  // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
-  if (credential.app?.slug === "zapier") {
+  // if zapier or make get disconnected, delete its apiKey, delete its webhooks and cancel all scheduled jobs
+  if (credential.app?.slug === "zapier" || credential.app?.slug === "make") {
+    const ownerFilter = teamId ? { teamId } : { userId };
     await prisma.apiKey.deleteMany({
       where: {
-        userId: userId,
-        appId: "zapier",
+        ...ownerFilter,
+        appId: credential.app.slug,
       },
     });
     await prisma.webhook.deleteMany({
       where: {
-        userId: userId,
-        appId: "zapier",
+        ...ownerFilter,
+        appId: credential.app.slug,
       },
     });
 

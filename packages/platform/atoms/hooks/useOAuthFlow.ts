@@ -1,5 +1,5 @@
 import type { AxiosError, AxiosRequestConfig } from "axios";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import usePrevious from "react-use/lib/usePrevious";
@@ -42,7 +42,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
 
               setIsRefreshing(false);
             }
-            return Promise.reject(err.response);
+            return Promise.reject(err);
           })
         : "";
 

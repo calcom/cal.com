@@ -27,6 +27,7 @@ const workspaces = packagedEmbedTestsOnly
           name: `IntegrationTests`,
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          globalSetup: new URL("./tests/integration/global-setup.ts", import.meta.url).pathname,
           setupFiles: ["setupVitest.ts"],
         },
         resolve: {
@@ -136,8 +137,18 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/app-store-core",
           include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          exclude: ["packages/app-store/delegationCredential.test.ts"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/app-store-delegation-credential",
+          include: ["packages/app-store/delegationCredential.test.ts"],
+          environment: "node",
+          setupFiles: ["setupVitest.ts"],
         },
       },
       {

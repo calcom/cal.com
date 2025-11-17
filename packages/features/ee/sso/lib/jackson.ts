@@ -30,19 +30,15 @@ const opts: JacksonOption = {
   },
   idpEnabled: true,
   clientSecretVerifier,
-  ory: {
-    projectId: undefined,
-    sdkToken: undefined,
-  },
 };
 
 declare global {
-  /* eslint-disable no-var */
+   
   var connectionController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
   var samlSPConfig: ISPSSOConfig | undefined;
   var dsyncController: IDirectorySyncController | undefined;
-  /* eslint-enable no-var */
+   
 }
 
 export default async function init() {
