@@ -15,7 +15,6 @@ This guide will help you migrate your integration from Cal.com API V1 to V2. The
 - **Enhanced security**: Improved authentication methods and security measures
 - **User-friendly responses**: Cleaner, more consistent response objects
 - **New features**: Access to platform features, organization management, and more
-- **Higher rate limits**: OAuth-based authentication supports up to 500 requests per minute
 
 ## Authentication changes
 
@@ -27,25 +26,11 @@ curl https://api.cal.com/v1/event-types?apiKey=cal_test_xxxxxx
 ```
 
 ### V2 authentication
-V2 offers three authentication methods with improved security:
+In V2, authentication uses header-based API keys for improved security:
 
-#### 1. API key (header-based)
 ```bash
 curl https://api.cal.com/v2/event-types \
   -H "Authorization: Bearer cal_live_xxxxxx"
-```
-
-#### 2. OAuth client credentials (for platform customers)
-```bash
-curl https://api.cal.com/v2/platform/managed-users \
-  -H "x-cal-client-id: your_client_id" \
-  -H "x-cal-secret-key: your_secret_key"
-```
-
-#### 3. Managed user access token
-```bash
-curl https://api.cal.com/v2/bookings \
-  -H "Authorization: Bearer managed_user_access_token"
 ```
 
 ## Base URL changes
@@ -245,8 +230,6 @@ V2 provides:
 | Authentication Method | V1 Rate Limit | V2 Rate Limit |
 |----------------------|---------------|---------------|
 | API Key | 120 req/min | 120 req/min |
-| OAuth Client Credentials | N/A | 500 req/min |
-| Managed User Access Token | N/A | 500 req/min |
 
 ## Migration checklist
 
@@ -276,7 +259,7 @@ V2 provides:
   </Step>
   
   <Step title="Monitor and optimize">
-    Take advantage of higher rate limits and new features to optimize your integration
+    Take advantage of new features to optimize your integration
   </Step>
 </Steps>
 
