@@ -1,5 +1,4 @@
 import type { EventStatus } from "ics";
-import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
@@ -21,10 +20,13 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
-import type { FormSubmissionData } from "./reminderScheduler";
+import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
-import customTemplate from "./templates/customTemplate";
+import customTemplate, {
+  transformBookingResponsesToVariableFormat,
+  transformRoutingFormResponsesToVariableFormat,
+} from "./templates/customTemplate";
 import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
@@ -45,13 +47,7 @@ export type ScheduleReminderArgs = {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
-} & (
-  | { evt: BookingInfo; formData?: never }
-  | {
-      evt?: never;
-      formData: FormSubmissionData;
-    }
-);
+} & WorkflowContextData;
 
 type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   sendTo: string[];
@@ -68,7 +64,12 @@ type SendEmailReminderParams = {
     subject: string;
     html: string;
     replyTo?: string;
-    attachments?: any[];
+    attachments?: {
+      content: string;
+      filename: string;
+      contentType: string;
+      disposition: string;
+    }[];
     sender?: string | null;
   };
   sendTo: string[];
@@ -165,7 +166,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
       attendeeName = attendeeToBeUsedInMail.name;
       timeZone = evt.organizer.timeZone;
       break;
-    case WorkflowActions.EMAIL_ATTENDEE:
+    case WorkflowActions.EMAIL_ATTENDEE: {
       // check if first attendee of sendTo is present in the attendees list, if not take the evt attendee
       const attendeeEmailToBeUsedInMailFromEvt = evt.attendees.find(
         (attendee) => attendee.email === sendTo[0]
@@ -177,6 +178,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
       attendeeName = evt.organizer.name;
       timeZone = attendeeToBeUsedInMail.timeZone;
       break;
+    }
   }
 
   let emailContent = {
@@ -205,7 +207,7 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
       timeZone: timeZone,
       location: evt.location,
       additionalNotes: evt.additionalNotes,
-      responses: evt.responses,
+      responses: transformBookingResponsesToVariableFormat(evt.responses),
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
         recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
@@ -364,12 +366,16 @@ const scheduleEmailReminderForForm = async (
 
   if (emailBody) {
     const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
-    //todo: add variables
-    const emailSubjectTemplate = customTemplate(emailSubject, {}, formData.user.locale, timeFormat);
+
+    const variables: VariablesType = {
+      responses: transformRoutingFormResponsesToVariableFormat(formData.responses),
+    };
+
+    const emailSubjectTemplate = customTemplate(emailSubject, variables, formData.user.locale, timeFormat);
     emailContent.emailSubject = emailSubjectTemplate.text;
     emailContent.emailBody = customTemplate(
       emailBody,
-      {},
+      variables,
       formData.user.locale,
       timeFormat,
       hideBranding
