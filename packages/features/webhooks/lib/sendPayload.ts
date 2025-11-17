@@ -3,7 +3,6 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
-import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -95,11 +94,7 @@ export type EventPayloadType = CalendarEvent &
     paymentData?: Payment;
   };
 
-export type WebhookPayloadType =
-  | EventPayloadType
-  | OOOEntryPayloadType
-  | BookingNoShowUpdatedPayload
-  | DelegationCredentialErrorPayloadType;
+export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
 
 type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
 
@@ -196,17 +191,11 @@ export function isOOOEntryPayload(data: WebhookPayloadType): data is OOOEntryPay
 }
 
 export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShowUpdatedPayload {
-  return "message" in data && "bookingUid" in data;
-}
-
-export function isDelegationCredentialErrorPayload(
-  data: WebhookPayloadType
-): data is DelegationCredentialErrorPayloadType {
-  return "error" in data && "credential" in data && "user" in data;
+  return "message" in data;
 }
 
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
-  return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
 }
 
 const sendPayload = async (
@@ -233,13 +222,7 @@ const sendPayload = async (
   }
 
   if (body === undefined) {
-    if (
-      template &&
-      (isOOOEntryPayload(data) ||
-        isEventPayload(data) ||
-        isNoShowPayload(data) ||
-        isDelegationCredentialErrorPayload(data))
-    ) {
+    if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
       body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
     } else {
       body = JSON.stringify({
