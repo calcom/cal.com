@@ -1,4 +1,4 @@
-import emailReminderTemplate from "@calid/features/modules/workflows/templates/email/reminder";
+  import emailReminderTemplate from "@calid/features/modules/workflows/templates/email/reminder";
 import type { Workflow } from "@prisma/client";
 
 import { SENDER_NAME } from "@calcom/lib/constants";

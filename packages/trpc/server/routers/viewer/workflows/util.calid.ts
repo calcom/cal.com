@@ -440,6 +440,7 @@ async function getCalIdRemindersFromRemovedEventTypes(
 }
 
 export async function scheduleCalIdWorkflowNotifications({
+  workflow,
   activeOn,
   isCalIdTeam,
   workflowSteps,
@@ -450,6 +451,7 @@ export async function scheduleCalIdWorkflowNotifications({
   calIdTeamId,
   alreadyScheduledActiveOnIds,
 }: {
+  workflow: CalIdWorkflow;
   activeOn: number[];
   isCalIdTeam: boolean;
   workflowSteps: Partial<CalIdWorkflowStep>[];
@@ -463,6 +465,7 @@ export async function scheduleCalIdWorkflowNotifications({
   const bookingsToScheduleNotifications = await getCalIdBookings(activeOn, alreadyScheduledActiveOnIds);
 
   await scheduleCalIdBookingReminders(
+    workflow,
     bookingsToScheduleNotifications,
     workflowSteps,
     time,
@@ -515,7 +518,7 @@ export async function scheduleCalIdBookingReminders(
   userId: number,
   calIdTeamId: number | null
 ) {
-  if (!bookings.length) return;
+  if (!bookings || !bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
 
   // For CalId workflows, we don't use organization concept
@@ -622,6 +625,7 @@ export async function scheduleCalIdBookingReminders(
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
+          workflow,
           evt: bookingInfo,
           reminderPhone: step.sendTo,
           triggerEvent: trigger,
@@ -635,6 +639,8 @@ export async function scheduleCalIdBookingReminders(
           template: step.template,
           userId: userId,
           calIdTeamId: calIdTeamId,
+          metaTemplateName: step.metaTemplateName,
+          metaPhoneNumberId: step.metaTemplatePhoneNumberId,
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -656,6 +662,7 @@ export async function scheduleCalIdBookingReminders(
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
+            workflow,
             evt: bookingInfo,
             reminderPhone: booking.smsReminderNumber,
             triggerEvent: trigger,
@@ -670,6 +677,8 @@ export async function scheduleCalIdBookingReminders(
             sender: step.sender,
             userId: userId,
             calIdTeamId: calIdTeamId,
+            metaTemplateName: step.metaTemplateName,
+            metaPhoneNumberId: step.metaTemplatePhoneNumberId,
           });
         }
       }

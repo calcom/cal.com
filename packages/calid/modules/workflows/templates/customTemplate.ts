@@ -26,6 +26,7 @@ export type VariablesType = {
   attendeeTimezone?: string;
   eventTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
+  eventTime?: Dayjs;
 };
 
 interface ProcessingConfiguration {

@@ -271,6 +271,8 @@ export const calIdWorkflowSelect = {
       numberRequired: true,
       workflowId: true,
       stepNumber: true,
+      metaTemplateName: true,
+      metaTemplatePhoneNumberId: true,
       // disableOnMarkNoShow: true,
     },
   },

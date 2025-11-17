@@ -5,6 +5,8 @@ export const ENDPOINTS = [
   "admin",
   "apiKeys",
   "appRoutingForms",
+  "appWhatsappBusiness",
+  "whatsappBusiness",
   "apps",
   "auth",
   "availability",

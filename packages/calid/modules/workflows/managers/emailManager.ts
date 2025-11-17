@@ -22,7 +22,7 @@ import type { timeUnitLowerCase } from "../config/constants";
 import type { CalIdScheduleEmailReminderAction } from "../config/types";
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
-import type { VariablesType } from "../templates/customTemplate";
+import { constructVariablesForTemplate } from "./constructTemplateVariable";
 import customTemplate from "../templates/customTemplate";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
@@ -164,37 +164,6 @@ const resolveRecipientDetails = (
   };
 };
 
-const constructVariablesForTemplate = (
-  eventData: CalIdBookingInfo,
-  participantData: CalIdAttendeeInBookingInfo,
-  eventStartTime: string,
-  eventEndTime: string,
-  targetTimezone: string,
-  bookerBaseUrl: string
-): VariablesType => {
-  return {
-    eventName: eventData.title || "",
-    organizerName: eventData.organizer.name,
-    attendeeName: participantData.name,
-    attendeeFirstName: participantData.firstName,
-    attendeeLastName: participantData.lastName,
-    attendeeEmail: participantData.email,
-    eventDate: dayjs(eventStartTime).tz(targetTimezone),
-    eventEndTime: dayjs(eventEndTime).tz(targetTimezone),
-    timeZone: targetTimezone,
-    location: eventData.location,
-    additionalNotes: eventData.additionalNotes,
-    responses: eventData.responses,
-    meetingUrl: bookingMetadataSchema.parse(eventData.metadata || {})?.videoCallUrl,
-    cancelLink: `${bookerBaseUrl}/booking/${eventData.uid}?cancel=true`,
-    rescheduleLink: `${bookerBaseUrl}/reschedule/${eventData.uid}`,
-    ratingUrl: `${bookerBaseUrl}/booking/${eventData.uid}?rating`,
-    noShowUrl: `${bookerBaseUrl}/booking/${eventData.uid}?noShow=true`,
-    attendeeTimezone: eventData.attendees[0].timeZone,
-    eventTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
-    eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
-  };
-};
 
 const generateEmailContentFromTemplate = (
   templateType: WorkflowTemplates | undefined,

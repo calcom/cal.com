@@ -26,6 +26,8 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
 import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
+import { ZCalidGetWhatsAppPhoneNumbersInputSchema } from "./getWhatsAppPhoneNumbers.schema";
+import { ZCalidGetWhatsAppTemplatesInputSchema } from "./getWhatsAppTemplates.schema";
 import { ZListInputSchema } from "./list.schema";
 import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 import { ZToggleInputSchema } from "./toggle.schema";
@@ -71,6 +73,8 @@ type WorkflowsRouterHandlerCache = {
   calid_workflowOrder?: typeof import("./calid/workflowOrder.handler").calIdWorkflowOrderHandler;
   calid_toggle?: typeof import("./calid/toggle.handler").calIdToggleHandler;
   calid_duplicate?: typeof import("./calid/duplicate.handler").calIdDuplicateHandler;
+  getWhatsAppPhoneNumbers: typeof import("./getWhatsAppPhoneNumbers.handler").getWhatsAppPhoneNumbersHandler;
+  getWhatsAppTemplates: typeof import("./getWhatsAppTemplates.handler").getWhatsAppTemplatesHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -652,5 +656,33 @@ export const workflowsRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.calid_workflowOrder({ ctx, input });
+    }),
+
+  getWhatsAppPhoneNumbers: authedProcedure
+    .input(ZCalidGetWhatsAppPhoneNumbersInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getWhatsAppPhoneNumbers) {
+        UNSTABLE_HANDLER_CACHE.getWhatsAppPhoneNumbers = await import(
+          "./getWhatsAppPhoneNumbers.handler"
+        ).then((mod) => mod.getWhatsAppPhoneNumbersHandler);
+      }
+      if (!UNSTABLE_HANDLER_CACHE.getWhatsAppPhoneNumbers) {
+        throw new Error("Failed to load handler");
+      }
+      return UNSTABLE_HANDLER_CACHE.getWhatsAppPhoneNumbers({ ctx, input });
+    }),
+
+  getWhatsAppTemplates: authedProcedure
+    .input(ZCalidGetWhatsAppTemplatesInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getWhatsAppTemplates) {
+        UNSTABLE_HANDLER_CACHE.getWhatsAppTemplates = await import("./getWhatsAppTemplates.handler").then(
+          (mod) => mod.getWhatsAppTemplatesHandler
+        );
+      }
+      if (!UNSTABLE_HANDLER_CACHE.getWhatsAppTemplates) {
+        throw new Error("Failed to load handler");
+      }
+      return UNSTABLE_HANDLER_CACHE.getWhatsAppTemplates({ ctx, input });
     }),
 });

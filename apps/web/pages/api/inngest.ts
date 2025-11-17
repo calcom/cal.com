@@ -1,9 +1,12 @@
 import { Inngest } from "inngest";
 import { serve } from "inngest/next";
 
+import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
 import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly";
+
+import { whatsappReminderScheduled, cancelWhatsappReminder } from "./whatsapp-reminder-scheduled";
 
 export const inngestClient = new Inngest({
   id: INNGEST_ID,
@@ -11,6 +14,7 @@ export const inngestClient = new Inngest({
 });
 
 const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+const WHATSAPP_TEMPLATE_SYNC_CRON = process.env.WHATSAPP_TEMPLATE_SYNC_CRON ?? "0 * * * *";
 
 export const config = {
   api: {
@@ -20,6 +24,15 @@ export const config = {
     },
   },
 };
+
+const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
+  { id: `whatsapp-template-sync-${key}`, retries: 2 },
+  { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
+  async ({ step, logger }) => {
+    await syncTemplates({ step, logger });
+    return { message: `WhatsApp template sync completed` };
+  }
+);
 
 const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `import-from-calendly-${key}`, retries: 2 },
@@ -50,9 +63,41 @@ const handleBookingExportFn = inngestClient.createFunction(
   }
 );
 
-// Create an API that serves zero functions
+const handleWhatsappReminderScheduled = inngestClient.createFunction(
+  {
+    id: `whatsapp-reminder-scheduled-${key}`,
+    name: "Send Scheduled WhatsApp Reminder",
+    retries: 1,
+    cancelOn: [
+      {
+        event: "whatsapp/reminder.cancelled",
+        match: "data.reminderId",
+      },
+      {
+        event: "booking/cancelled",
+        match: "data.bookingUid",
+      },
+    ],
+  },
+  {
+    event: `whatsapp/reminder.scheduled-${key}`,
+  },
+  whatsappReminderScheduled
+);
+
+const handleCancelWhatsappReminder = inngestClient.createFunction(
+  {
+    id: `whatsapp-reminder-cancelled-${key}`,
+    name: "Cancel WhatsApp Reminder",
+  },
+  {
+    event: `whatsapp/reminder.cancelled-${key}`,
+  },
+  cancelWhatsappReminder
+);
+
 export default serve({
   client: inngestClient,
-  functions: [handleCalendlyImportFn, handleBookingExportFn],
+  functions: [ handleCalendlyImportFn, handleBookingExportFn, handleWhatsAppTemplateSyncFn, handleWhatsappReminderScheduled, handleCancelWhatsappReminder],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });

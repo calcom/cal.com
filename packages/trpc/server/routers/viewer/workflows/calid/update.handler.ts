@@ -23,6 +23,7 @@ import {
   getCalIdEmailTemplateText,
 } from "../util.calid";
 import type { TCalIdUpdateInputSchema } from "./update.schema";
+import { Prisma } from "@prisma/client";
 
 type CalIdUpdateOptions = {
   ctx: {
@@ -210,6 +211,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
       activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
       isCalIdTeam: false,
       workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      workflow: userWorkflow,
       time,
       timeUnit,
       trigger,
@@ -326,6 +328,8 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
           reminderBody: newStep.reminderBody,
           emailSubject: newStep.emailSubject,
           template: newStep.template,
+          metaTemplateName: newStep.metaTemplateName,
+          metaTemplatePhoneNumberId: newStep.metaTemplatePhoneNumberId,
           numberRequired: newStep.numberRequired,
           sender: newStep.sender,
           numberVerificationPending: false,

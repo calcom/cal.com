@@ -1,5 +1,6 @@
 import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
 import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
+import app_whatsappBusiness from "@calcom/app-store/whatsapp-business/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
@@ -40,6 +41,7 @@ import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { webhookRouter } from "./webhook/_router";
+import { whatsappBusinessRouter } from "./whatsappBusiness/_router";
 import { workflowsRouter } from "./workflows/_router";
 
 export const viewerRouter = router({
@@ -63,6 +65,7 @@ export const viewerRouter = router({
   apiKeys: apiKeysRouter,
   slots: slotsRouter,
   workflows: workflowsRouter,
+  whatsappBusiness: whatsappBusinessRouter,
   saml: ssoRouter,
   dsync: dsyncRouter,
   i18n: i18nRouter,
@@ -86,4 +89,5 @@ export const viewerRouter = router({
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
   calidTeams: calIdTeamsRouter,
+  appWhatsappBusiness: app_whatsappBusiness,
 });
