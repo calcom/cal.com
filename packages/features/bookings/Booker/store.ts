@@ -43,7 +43,7 @@ const _iso_3166_1_alpha_2_codes = [
   "za", "zm", "zw"
 ] as const;
 
-type CountryCode = typeof _iso_3166_1_alpha_2_codes[number];
+export type CountryCode = typeof _iso_3166_1_alpha_2_codes[number];
 
 
 /**
