@@ -131,7 +131,12 @@ export default class Office365CalendarService implements Calendar {
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
 
-        if (this.credential.userId && this.credential.user && this.credential.appId) {
+        if (
+          this.credential.userId &&
+          this.credential.user &&
+          this.credential.appId &&
+          this.credential.delegatedToId
+        ) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -143,7 +148,7 @@ export default class Office365CalendarService implements Calendar {
               id: this.credential.userId,
               email: this.credential.user.email,
             },
-            orgId: this.credential.teamId,
+            delegationCredentialId: this.credential.delegatedToId,
           });
         }
 
@@ -165,7 +170,12 @@ export default class Office365CalendarService implements Calendar {
           "Delegation credential without clientId or Secret"
         );
 
-        if (this.credential.userId && this.credential.user && this.credential.appId) {
+        if (
+          this.credential.userId &&
+          this.credential.user &&
+          this.credential.appId &&
+          this.credential.delegatedToId
+        ) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -177,7 +187,7 @@ export default class Office365CalendarService implements Calendar {
               id: this.credential.userId,
               email: this.credential.user.email,
             },
-            orgId: this.credential.teamId,
+            delegationCredentialId: this.credential.delegatedToId,
           });
         }
 
@@ -207,7 +217,12 @@ export default class Office365CalendarService implements Calendar {
         "Delegation credential without clientId or Secret"
       );
 
-      if (this.credential.userId && this.credential.user && this.credential.appId) {
+      if (
+        this.credential.userId &&
+        this.credential.user &&
+        this.credential.appId &&
+        this.credential.delegatedToId
+      ) {
         await triggerDelegationCredentialErrorWebhook({
           error,
           credential: {
@@ -219,7 +234,7 @@ export default class Office365CalendarService implements Calendar {
             id: this.credential.userId,
             email: this.credential.user.email,
           },
-          orgId: this.credential.teamId,
+          delegationCredentialId: this.credential.delegatedToId,
         });
       }
 
@@ -260,7 +275,12 @@ export default class Office365CalendarService implements Calendar {
           "User might not exist in Microsoft Azure Active Directory"
         );
 
-        if (this.credential.userId && this.credential.user && this.credential.appId) {
+        if (
+          this.credential.userId &&
+          this.credential.user &&
+          this.credential.appId &&
+          this.credential.delegatedToId
+        ) {
           await triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
@@ -272,7 +292,7 @@ export default class Office365CalendarService implements Calendar {
               id: this.credential.userId ?? 0,
               email: this.credential.user.email,
             },
-            orgId: this.credential.teamId,
+            delegationCredentialId: this.credential.delegatedToId,
           });
         }
 
