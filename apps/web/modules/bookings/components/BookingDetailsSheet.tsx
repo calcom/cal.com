@@ -89,25 +89,25 @@ function BookingDetailsSheetInner({
   // Get navigation state directly from the store
   const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
   const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
 
   const handleClose = () => {
-    setSelectedBookingId(null);
+    setSelectedBookingUid(null);
   };
 
   const storeApi = useBookingDetailsSheetStoreApi();
 
   const handleNext = () => {
-    const nextId = storeApi.getState().getNextBookingId();
-    if (nextId !== null) {
-      setSelectedBookingId(nextId);
+    const nextUid = storeApi.getState().getNextBookingUid();
+    if (nextUid !== null) {
+      setSelectedBookingUid(nextUid);
     }
   };
 
   const handlePrevious = () => {
-    const prevId = storeApi.getState().getPreviousBookingId();
-    if (prevId !== null) {
-      setSelectedBookingId(prevId);
+    const prevUid = storeApi.getState().getPreviousBookingUid();
+    if (prevUid !== null) {
+      setSelectedBookingUid(prevUid);
     }
   };
 

@@ -28,7 +28,7 @@ export function BookingsCalendarView({
   onWeekStartChange,
   isPending = false,
 }: BookingsCalendarViewProps) {
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
@@ -84,7 +84,7 @@ export function BookingsCalendarView({
           options: {
             status: booking.status,
             ...(eventTypeColor && { color: eventTypeColor }),
-            bookingId: booking.id,
+            bookingUid: booking.uid,
           },
         };
       });
@@ -150,9 +150,9 @@ export function BookingsCalendarView({
           showBorder={false}
           borderColor="subtle"
           onEventClick={(event) => {
-            const bookingId = event.options?.bookingId;
-            if (bookingId) {
-              setSelectedBookingId(bookingId);
+            const bookingUid = event.options?.bookingUid;
+            if (bookingUid) {
+              setSelectedBookingUid(bookingUid);
             }
           }}
           hideHeader

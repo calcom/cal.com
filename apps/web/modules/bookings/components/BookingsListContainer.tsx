@@ -44,13 +44,13 @@ function BookingsListInner({
 }: BookingsListContainerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
 
   const handleBookingClick = useCallback(
-    (bookingId: number) => {
-      setSelectedBookingId(bookingId);
+    (bookingUid: string) => {
+      setSelectedBookingUid(bookingUid);
     },
-    [setSelectedBookingId]
+    [setSelectedBookingUid]
   );
 
   // Define table columns for filtering (hidden columns used for filter UI)
@@ -165,7 +165,7 @@ function BookingsListInner({
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
-                {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.id) })}
+                {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.uid) })}
                 {...booking}
               />
             );
