@@ -99,9 +99,9 @@ export type ExtendedBookingCreateBody = z.input<typeof extendedBookingCreateBody
 
 // It has only the legacy props that are part of `responses` now. The API can still hit old props
 export const bookingCreateSchemaLegacyPropsForApi = z.object({
-  email: z.string(),
+  email: z.string().email({ message: "Invalid email" }),
   name: z.string(),
-  guests: z.array(z.string()).optional(),
+  guests: z.array(z.string().email({ message: "Invalid guest email" })).optional(),
   notes: z.string().optional(),
   location: z.string(),
   smsReminderNumber: z.string().optional().nullable(),
