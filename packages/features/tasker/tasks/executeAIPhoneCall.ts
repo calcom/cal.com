@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
+import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
@@ -51,6 +52,13 @@ function getVariablesFromFormResponse({
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
+    // Include any custom form responses
+    ...Object.fromEntries(
+      Object.entries(responses || {}).map(([key, value]) => [
+        formatIdentifierToVariable(key),
+        value.value?.toString() || "",
+      ])
+    ),
   };
 }
 
@@ -97,11 +105,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
     // Include any custom form responses
     ...Object.fromEntries(
       Object.entries(responses || {}).map(([key, value]) => [
-        key
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase(),
+        formatIdentifierToVariable(key),
         value.value?.toString() || "",
       ])
     ),
@@ -192,9 +196,9 @@ export async function executeAIPhoneCall(payload: string) {
 
     // form triggers don't have a booking
     const booking = workflowReminder.booking as BookingWithRelations | null;
-    const responses = data.responses;
+    const routingFormResponses = data.responses;
 
-    if (!booking && !responses) {
+    if (!booking && !routingFormResponses) {
       log.warn(`No form responses or booking found for workflow reminder ${data.workflowReminderId}`);
       throw new Error("No booking, response, or form responses found");
     }
@@ -214,7 +218,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     // Prefer response variables if present, else fall back to booking
     let dynamicVariables: VariablesType | undefined;
-    if (responses) {
+    if (routingFormResponses) {
       const workflowStep = workflowReminder.workflowStep;
       const eventTypeId =
         data.routedEventTypeId ??
@@ -228,7 +232,7 @@ export async function executeAIPhoneCall(payload: string) {
         return;
       }
       dynamicVariables = getVariablesFromFormResponse({
-        responses,
+        responses: routingFormResponses,
         eventTypeId,
         numberToCall,
       });
