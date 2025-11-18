@@ -95,7 +95,12 @@ export default function Signup({
   const {
     register,
     formState: { isSubmitting, errors, isSubmitSuccessful },
+    watch,
   } = formMethods;
+
+  const watchedEmail = watch("email");
+  const watchedPassword = watch("password");
+  const watchedCfToken = watch("cfToken");
 
   useEffect(() => {
     captureAndStoreUtmParams();
@@ -246,7 +251,7 @@ export default function Signup({
     setInWebView(isWebView());
   }, []);
 
-  const RequirementItem = ({ check, label }) => (
+  const RequirementItem = ({ check, label }: { check: boolean; label: string }) => (
     <p
       className={`flex items-center text-xs transition-all duration-300 ${
         check ? "text-green-600" : "text-gray-200"
@@ -434,6 +439,7 @@ export default function Signup({
                       data-testid="signup-passwordfield"
                       prefixIcon="lock"
                       autoComplete="new-password"
+                      // disabled={!formMethods.getValues("email")}
                       label={t("password")}
                       variant="floating"
                       showStrengthMeter={true}
@@ -469,11 +475,11 @@ export default function Signup({
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.email ||
-                      !formMethods.getValues("email") ||
-                      !formMethods.getValues("password") ||
+                      !watchedEmail ||
+                      !watchedPassword ||
                       (CLOUDFLARE_SITE_ID &&
                         !process.env.NEXT_PUBLIC_IS_E2E &&
-                        !formMethods.getValues("cfToken")) ||
+                        !watchedCfToken) ||
                       isSubmitting
                     }>
                     {t("create_account")}

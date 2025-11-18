@@ -81,7 +81,7 @@ export async function handlePaymentSuccess(
   if (!existingPayment) {
     log.error(`Payment with id '${paymentId}' not found.`);
     throw new HttpCode({
-      statusCode: 404,
+      statusCode: 200,
       message: `Payment with id '${paymentId}' not found.`,
     });
   }

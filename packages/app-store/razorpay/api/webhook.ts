@@ -198,13 +198,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
       log.error("Failed to verify webhook signature:", error);
       // Throw error - signature verification failure is critical
-      throw new HttpCode({ statusCode: 400, message: "Signature verification failed" });
+      return res.status(200).json({
+        received: true,
+        message: "Signature verification failed",
+      });
     }
 
     if (!isValid) {
       log.error("Razorpay webhook signature mismatch");
       // Throw error - invalid signature is a security issue
-      throw new HttpCode({ statusCode: 400, message: "Invalid signature" });
+      return res.status(200).json({
+        received: true,
+        message: "Invalid signature",
+      });
     }
 
     // Parse the request body
