@@ -28,7 +28,7 @@ async function postHandler(req: NextRequest) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `2fa:enable:${session.user.id}`,
+    identifier: `api:totp-enable:${session.user.id}`,
   });
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
