@@ -76,7 +76,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   };
 
   const handleBack = () => {
-    router.push("/onboarding/teams/details");
+    router.push("/onboarding/teams/invite");
   };
 
   const handleSkip = async () => {
