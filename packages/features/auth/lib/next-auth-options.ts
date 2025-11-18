@@ -15,8 +15,8 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -98,6 +98,43 @@ const getDomainFromEmail = (email: string): string => email.split("@")[1];
 
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
+
+const deriveNameParts = ({
+  givenName,
+  lastName,
+  fullName,
+}: {
+  givenName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+}) => {
+  const normalizedGiven = givenName?.trim();
+  const normalizedLast = lastName?.trim();
+  if (normalizedGiven || normalizedLast) {
+    return {
+      givenName: normalizedGiven || "",
+      lastName: normalizedLast || null,
+    };
+  }
+  if (!fullName) {
+    return {
+      givenName: "",
+      lastName: null,
+    };
+  }
+  const trimmed = fullName.trim();
+  if (!trimmed) {
+    return {
+      givenName: "",
+      lastName: null,
+    };
+  }
+  const [first, ...rest] = trimmed.split(" ");
+  return {
+    givenName: first,
+    lastName: rest.length ? rest.join(" ").trim() || null : null,
+  };
+};
 
 type UserTeams = {
   teams: (Membership & {
@@ -512,6 +549,8 @@ export const getOptions = ({
           upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
+          givenName: session?.givenName ?? token.givenName,
+          lastName: session?.lastName ?? token.lastName,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
         } as JWT;
@@ -524,6 +563,8 @@ export const getOptions = ({
             username: true,
             avatarUrl: true,
             name: true,
+            givenName: true,
+            lastName: true,
             email: true,
             role: true,
             locale: true,
@@ -580,6 +621,8 @@ export const getOptions = ({
         return {
           ...existingUserWithoutTeamsField,
           ...token,
+          givenName: existingUserWithoutTeamsField.givenName,
+          lastName: existingUserWithoutTeamsField.lastName,
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
@@ -614,10 +657,17 @@ export const getOptions = ({
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         // any other credentials, add user info
+        const credentialNameParts = deriveNameParts({
+          givenName: (user as { givenName?: string | null })?.givenName,
+          lastName: (user as { lastName?: string | null })?.lastName,
+          fullName: user.name,
+        });
         return {
           ...token,
           id: user.id,
           name: user.name,
+          givenName: credentialNameParts.givenName,
+          lastName: credentialNameParts.lastName,
           username: user.username,
           orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
@@ -717,11 +767,18 @@ export const getOptions = ({
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });
         log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
+        const oauthNameParts = deriveNameParts({
+          givenName: existingUser.givenName,
+          lastName: existingUser.lastName,
+          fullName: existingUser.name,
+        });
         return {
           ...token,
           upId,
           id: existingUser.id,
           name: existingUser.name,
+          givenName: oauthNameParts.givenName,
+          lastName: oauthNameParts.lastName,
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
@@ -749,6 +806,11 @@ export const getOptions = ({
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
+      const sessionNameParts = deriveNameParts({
+        givenName: (token as { givenName?: string | null })?.givenName,
+        lastName: (token as { lastName?: string | null })?.lastName,
+        fullName: token.name as string | null,
+      });
       const calendsoSession: Session = {
         ...session,
         profileId,
@@ -758,6 +820,8 @@ export const getOptions = ({
           ...session.user,
           id: token.id as number,
           name: token.name,
+          givenName: sessionNameParts.givenName,
+          lastName: sessionNameParts.lastName,
           username: token.username as string,
           orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
@@ -1026,6 +1090,11 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
+          const newUserNameParts = deriveNameParts({
+            givenName: (user as { givenName?: string | null })?.givenName,
+            lastName: (user as { lastName?: string | null })?.lastName,
+            fullName: user.name,
+          });
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1033,6 +1102,8 @@ export const getOptions = ({
               username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
               emailVerified: new Date(Date.now()),
               name: user.name,
+              givenName: newUserNameParts.givenName,
+              lastName: newUserNameParts.lastName,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,

@@ -1,4 +1,3 @@
- 
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
@@ -35,6 +34,45 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
+const normalizeNamePart = (value?: string | null) => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : undefined;
+};
+
+const splitLegacyFullName = (fullName?: string | null) => {
+  if (!fullName) {
+    return {
+      givenName: undefined,
+      lastName: undefined,
+    };
+  }
+  const trimmed = fullName.trim();
+  if (!trimmed) {
+    return {
+      givenName: undefined,
+      lastName: undefined,
+    };
+  }
+  const firstSpaceIndex = trimmed.indexOf(" ");
+  if (firstSpaceIndex === -1) {
+    return {
+      givenName: trimmed,
+      lastName: undefined,
+    };
+  }
+  return {
+    givenName: trimmed.slice(0, firstSpaceIndex),
+    lastName: trimmed.slice(firstSpaceIndex + 1).trim() || undefined,
+  };
+};
+
+const buildFullName = (givenName?: string | null, lastName?: string | null) => {
+  const normalizedGiven = givenName?.trim() || "";
+  const normalizedLast = lastName?.trim() || "";
+  return [normalizedGiven, normalizedLast].filter(Boolean).join(" ").trim();
+};
+
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const billingService = new StripeBillingService();
@@ -43,16 +81,57 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
-  const { travelSchedules, ...rest } = input;
-
-  const secondaryEmails = input?.secondaryEmails || [];
-  delete input.secondaryEmails;
+  const {
+    travelSchedules,
+    name: legacyName,
+    givenName,
+    lastName,
+    secondaryEmails: inputSecondaryEmails = [],
+    ...rest
+  } = input;
 
   const data: Prisma.UserUpdateInput = {
     ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
+
+  const secondaryEmails = inputSecondaryEmails;
+
+  const normalizedGivenName = normalizeNamePart(givenName);
+  const normalizedLastName =
+    lastName === undefined ? undefined : lastName.trim().length ? lastName.trim() : null;
+  const legacyNameParts = legacyName !== undefined ? splitLegacyFullName(legacyName) : {};
+
+  const effectiveGivenName =
+    normalizedGivenName !== undefined
+      ? normalizedGivenName
+      : legacyNameParts.givenName !== undefined
+      ? legacyNameParts.givenName
+      : undefined;
+
+  const effectiveLastName =
+    normalizedLastName !== undefined
+      ? normalizedLastName
+      : legacyNameParts.lastName !== undefined
+      ? legacyNameParts.lastName
+      : undefined;
+
+  if (effectiveGivenName !== undefined) {
+    data.givenName = effectiveGivenName;
+  }
+
+  if (effectiveLastName !== undefined) {
+    data.lastName = effectiveLastName;
+  }
+
+  if (effectiveGivenName !== undefined || effectiveLastName !== undefined) {
+    const computedFullName = buildFullName(
+      effectiveGivenName ?? user.givenName,
+      effectiveLastName ?? (effectiveLastName === null ? null : user.lastName)
+    );
+    data.name = computedFullName || null;
+  }
 
   let isPremiumUsername = false;
 
@@ -230,6 +309,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       identityProviderId: true,
       metadata: true,
       name: true,
+      givenName: true,
+      lastName: true,
       createdDate: true,
       avatarUrl: true,
       locale: true,
@@ -312,7 +393,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           username: updatedUser.username ?? "Nameless User",
           emailFrom: user.email,
           // We know email has been changed here so we can use input
-           
+
           emailTo: input.email!,
         },
       });
@@ -373,6 +454,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
+    name: updatedUser.name,
+    givenName: updatedUser.givenName,
+    lastName: updatedUser.lastName,
     email: emailVerification && !secondaryEmail?.emailVerified ? user.email : input.email,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,

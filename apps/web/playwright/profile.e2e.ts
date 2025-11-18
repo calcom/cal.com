@@ -34,6 +34,31 @@ test.describe("Teams", () => {
 });
 
 test.describe("Update Profile", () => {
+  test("allows editing given and last name separately", async ({ page, users }) => {
+    const user = await users.create({
+      name: "Jane Doe",
+    });
+
+    await user.apiLogin();
+    await page.goto("/settings/my-account/profile");
+
+    const givenNameInput = page.locator('input[name="givenName"]');
+    const lastNameInput = page.locator('input[name="lastName"]');
+
+    await expect(givenNameInput).toHaveValue("Jane");
+    await expect(lastNameInput).toHaveValue("Doe");
+
+    await givenNameInput.fill("Janet");
+    await lastNameInput.fill("Smith");
+
+    await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
+      action: () => page.getByTestId("profile-submit-button").click(),
+    });
+
+    await expect(givenNameInput).toHaveValue("Janet");
+    await expect(lastNameInput).toHaveValue("Smith");
+  });
+
   test("Cannot update a users email when existing user has same email (verification enabled)", async ({
     page,
     users,

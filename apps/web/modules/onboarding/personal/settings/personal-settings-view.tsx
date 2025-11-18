@@ -44,19 +44,56 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   }, [personalDetails.avatar, user]);
 
   const formSchema = z.object({
-    name: z
+    givenName: z
       .string()
+      .trim()
       .min(1, t("name_required"))
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+    lastName: z
+      .string()
+      .trim()
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
     bio: z.string().optional(),
   });
 
+  const deriveNameDefaults = () => {
+    if (personalDetails.givenName || personalDetails.lastName) {
+      return {
+        givenName: personalDetails.givenName || "",
+        lastName: personalDetails.lastName || "",
+      };
+    }
+    if (user?.givenName || user?.lastName) {
+      return {
+        givenName: user?.givenName || "",
+        lastName: user?.lastName || "",
+      };
+    }
+    const fallback = (userName || user?.name || "").trim();
+    if (!fallback) {
+      return {
+        givenName: "",
+        lastName: "",
+      };
+    }
+    const [first, ...rest] = fallback.split(" ");
+    return {
+      givenName: first,
+      lastName: rest.join(" ").trim(),
+    };
+  };
+
+  const { givenName: defaultGivenName, lastName: defaultLastName } = deriveNameDefaults();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: personalDetails.name || userName || "",
+      givenName: defaultGivenName,
+      lastName: defaultLastName,
       bio: personalDetails.bio || "",
     },
   });
@@ -91,13 +128,15 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   const handleContinue = form.handleSubmit(async (data) => {
     // Save to store
     setPersonalDetails({
-      name: data.name,
+      givenName: data.givenName,
+      lastName: data.lastName || "",
       bio: data.bio || "",
     });
 
     // Save to backend
     await mutation.mutateAsync({
-      name: data.name,
+      givenName: data.givenName,
+      lastName: data.lastName || "",
       bio: data.bio || "",
     });
 
@@ -107,6 +146,21 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   if (!user) {
     return null;
   }
+
+  const combineName = (given?: string, last?: string) => {
+    return [given, last]
+      .filter((part) => part && part.length)
+      .join(" ")
+      .trim();
+  };
+
+  const watchedGivenName = form.watch("givenName");
+  const watchedLastName = form.watch("lastName");
+  const previewName =
+    combineName(
+      watchedGivenName || personalDetails.givenName || defaultGivenName,
+      watchedLastName || personalDetails.lastName || defaultLastName
+    ) || undefined;
 
   return (
     <>
@@ -174,11 +228,23 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               </div>
 
               {/* Name */}
-              <div className="flex w-full flex-col gap-1.5">
-                <TextField label={t("your_name")} {...form.register("name")} placeholder="John Doe" />
-                {form.formState.errors.name && (
-                  <p className="text-error text-sm">{form.formState.errors.name.message}</p>
-                )}
+              <div className="grid w-full gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <TextField label={t("first_name")} {...form.register("givenName")} placeholder="John" />
+                  {form.formState.errors.givenName && (
+                    <p className="text-error text-sm">{form.formState.errors.givenName.message}</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <TextField
+                    label={t("last_name")}
+                    placeholder={t("optional")}
+                    {...form.register("lastName")}
+                  />
+                  {form.formState.errors.lastName && (
+                    <p className="text-error text-sm">{form.formState.errors.lastName.message}</p>
+                  )}
+                </div>
               </div>
 
               {/* Username */}
@@ -209,7 +275,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
         {/* Right column - Browser view */}
         <OnboardingBrowserView
           avatar={imageSrc || personalDetails.avatar || user.avatar}
-          name={form.watch("name") || personalDetails.name || user.name || undefined}
+          name={previewName || undefined}
           bio={form.watch("bio") || personalDetails.bio || undefined}
           username={personalDetails.username || user.username || undefined}
         />
