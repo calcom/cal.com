@@ -759,9 +759,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(2);
@@ -863,9 +864,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(1);
@@ -953,9 +955,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should return both form responses (original user's and team member's)
       expect(results).toHaveLength(2);
@@ -1070,7 +1073,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               id: "bookingStatusOrder",
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
-                data: ["pending", "accepted"],
+                data: ["2", "1"], // String values that will be converted to numbers
               },
             },
           ],
@@ -1081,7 +1084,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       expect(filterConditions).toEqual(
         Prisma.sql`(rfrd."createdAt" >= ${defaultFilters.startDate}::timestamp AND rfrd."createdAt" <= ${
           defaultFilters.endDate
-        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${["pending", "accepted"]}))`
+        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${[2, 1]}))`
       );
 
       await testData.cleanup();
@@ -1188,6 +1191,45 @@ describe("InsightsRoutingService Integration Tests", () => {
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
                 data: [testData.user.id, 999],
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`(rfrd."createdAt" >= ${defaultFilters.startDate}::timestamp AND rfrd."createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND (rfrd."bookingUserId" = ANY(${[testData.user.id, 999]}))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by member user IDs with string values (multi-select)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingUserId",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [String(testData.user.id), "999"], // String values that will be converted to numbers
               },
             },
           ],
@@ -1450,7 +1492,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               id: "bookingStatusOrder",
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
-                data: ["pending"],
+                data: ["2"], // String value that will be converted to number (2 = PENDING)
               },
             },
             {
@@ -1476,7 +1518,7 @@ describe("InsightsRoutingService Integration Tests", () => {
         Prisma.sql`(((rfrd."createdAt" >= ${defaultFilters.startDate}::timestamp AND rfrd."createdAt" <= ${
           defaultFilters.endDate
         }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${[
-          "pending",
+          2,
         ]}))) AND (rfrd."bookingAssignmentReason" ILIKE ${`%manual%`})) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
         WHERE rrf."responseId" = rfrd."id"
@@ -1556,7 +1598,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               id: "bookingStatusOrder",
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
-                data: ["pending", "accepted"],
+                data: ["2", "1"], // String values that will be converted to numbers (2=PENDING, 1=ACCEPTED)
               },
             },
           ],
@@ -1567,10 +1609,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       expect(filterConditions).toEqual(
         Prisma.sql`((rfrd."createdAt" >= ${defaultFilters.startDate}::timestamp AND rfrd."createdAt" <= ${
           defaultFilters.endDate
-        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${[
-          "pending",
-          "accepted",
-        ]}))) AND (rfrd."formId" = ${"form-456"})`
+        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${[2, 1]}))) AND (rfrd."formId" = ${"form-456"})`
       );
 
       await testData.cleanup();
@@ -1600,7 +1639,7 @@ describe("InsightsRoutingService Integration Tests", () => {
               id: "bookingStatusOrder", // System filter
               value: {
                 type: ColumnFilterType.MULTI_SELECT,
-                data: ["pending"],
+                data: ["2"], // String value that will be converted to number (2 = PENDING)
               },
             },
             {
@@ -1618,7 +1657,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       expect(filterConditions).toEqual(
         Prisma.sql`((rfrd."createdAt" >= ${defaultFilters.startDate}::timestamp AND rfrd."createdAt" <= ${
           defaultFilters.endDate
-        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${["pending"]}))) AND (EXISTS (
+        }::timestamp) AND (rfrd."bookingStatusOrder" = ANY(${[2]}))) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
         WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${customFieldId}

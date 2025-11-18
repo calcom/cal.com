@@ -653,7 +653,7 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
 /**
  * It includes in-memory DelegationCredential credentials as well.
  */
-export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<User, "id" | "email">) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,

@@ -118,6 +118,9 @@ test("multiple duration selection updates event length correctly", async ({ page
 
   await page.goto(`/${user.username}/multiple-duration`);
 
+  // Wait for time slots to be visible and clickable
+  await page.locator('[data-testid="time"]').nth(0).waitFor({ state: "visible" });
+
   await page.locator('[data-testid="multiple-choice-30mins"]').waitFor({ state: "visible" });
 
   await test.step("verify default 30min duration is selected", async () => {
@@ -193,9 +196,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

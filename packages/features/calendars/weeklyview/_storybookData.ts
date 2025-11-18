@@ -13,7 +13,7 @@ export const events: CalendarEvent[] = [
     end: startDate.add(45, "minutes").toDate(),
     options: {
       allDay: false,
-      borderColor: "#ff0000",
+      color: "#ff0000",
       status: "ACCEPTED",
     },
     source: "Booking",
@@ -37,7 +37,7 @@ export const events: CalendarEvent[] = [
     source: "Booking",
     options: {
       status: "PENDING",
-      borderColor: "#ff0000",
+      color: "#ff0000",
       allDay: false,
     },
   },

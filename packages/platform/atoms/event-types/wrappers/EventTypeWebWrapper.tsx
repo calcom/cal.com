@@ -55,8 +55,9 @@ const AssignmentWarningDialog = dynamic(
 );
 
 const EventSetupTab = dynamic(() =>
-  // import web wrapper when it's ready
-  import("./EventSetupTabWebWrapper").then((mod) => mod)
+    // import web wrapper when it's ready
+    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>

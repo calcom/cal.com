@@ -5,12 +5,12 @@ import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
+const isIntegrationTest = process.env.INTEGRATION_TESTS === "true";
 const pool =
-  process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
+  !isIntegrationTest && (process.env.USE_POOL === "true" || process.env.USE_POOL === "1")
     ? new Pool({
         connectionString: connectionString,
         max: 5,
@@ -66,7 +66,6 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
   }
 
   return new PrismaClient(finalOptions)
-    .$extends(usageTrackingExtention(baseClient))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
@@ -79,7 +78,6 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
 // Explanation why we cast as PrismaClient. When we leave Prisma to its devices it tries to infer logic based on the extensions, but this is not a simple extends.
 // this makes the PrismaClient export type-hint impossible and it also is a massive hit on Prisma type hinting performance.
 export const prisma: PrismaClient = baseClient
-  .$extends(usageTrackingExtention(baseClient))
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
