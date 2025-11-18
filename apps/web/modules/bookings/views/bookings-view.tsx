@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 
@@ -20,8 +20,7 @@ import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import { BookingsListContainer } from "../components/BookingsListContainer";
@@ -89,44 +88,57 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
   const view = bookingsV3Enabled ? _view : "list";
   const { t } = useLocale();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const tabs: HorizontalTabItemProps[] = useMemo(() => {
+  const tabOptions = useMemo(() => {
     const queryString = searchParams?.toString() || "";
 
     const baseTabConfigs = [
       {
-        name: "upcoming",
+        value: "upcoming",
+        label: "upcoming",
         path: "/bookings/upcoming",
-        "data-testid": "upcoming",
+        dataTestId: "upcoming",
       },
       {
-        name: "unconfirmed",
+        value: "unconfirmed",
+        label: "unconfirmed",
         path: "/bookings/unconfirmed",
-        "data-testid": "unconfirmed",
+        dataTestId: "unconfirmed",
       },
       {
-        name: "recurring",
+        value: "recurring",
+        label: "recurring",
         path: "/bookings/recurring",
-        "data-testid": "recurring",
+        dataTestId: "recurring",
       },
       {
-        name: "past",
+        value: "past",
+        label: "past",
         path: "/bookings/past",
-        "data-testid": "past",
+        dataTestId: "past",
       },
       {
-        name: "cancelled",
+        value: "cancelled",
+        label: "cancelled",
         path: "/bookings/cancelled",
-        "data-testid": "cancelled",
+        dataTestId: "cancelled",
       },
     ];
 
     return baseTabConfigs.map((tabConfig) => ({
-      name: tabConfig.name,
+      value: tabConfig.value,
+      label: t(tabConfig.label),
+      dataTestId: tabConfig.dataTestId,
       href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
-      "data-testid": tabConfig["data-testid"],
     }));
-  }, [searchParams]);
+  }, [searchParams, t]);
+
+  const currentTab = useMemo(() => {
+    const pathMatch = pathname?.match(/\/bookings\/(\w+)/);
+    return pathMatch?.[1] || "upcoming";
+  }, [pathname]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -185,12 +197,17 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between">
-        <HorizontalTabs
-          tabs={tabs.map((tab) => ({
-            ...tab,
-            name: t(tab.name),
-          }))}
+      <div className="mb-4 flex flex-row flex-wrap justify-between lg:mb-5">
+        <ToggleGroup
+          value={currentTab}
+          onValueChange={(value) => {
+            if (!value) return;
+            const selectedTab = tabOptions.find((tab) => tab.value === value);
+            if (selectedTab?.href) {
+              router.push(selectedTab.href);
+            }
+          }}
+          options={tabOptions}
         />
       </div>
       <main className="w-full">

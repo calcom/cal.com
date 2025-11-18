@@ -56,7 +56,7 @@ export const ToggleGroup = ({
             "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         }}
         className={classNames(
-          `bg-subtle border-subtle rounded-[10px] border p-0.5`,
+          `bg-muted rounded-[10px] p-0.5`,
           orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
           orientation === "vertical" && "flex w-fit flex-col gap-0.5",
           props.className,
