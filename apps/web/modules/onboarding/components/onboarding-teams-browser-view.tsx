@@ -66,7 +66,7 @@ export const OnboardingTeamsBrowserView = ({
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
-            className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-xl border"
+            className="bg-default border-muted flex h-full w-full flex-col overflow-hidden rounded-tl-xl border"
             variants={containerVariants}
             initial="initial"
             animate="animate"
@@ -79,8 +79,9 @@ export const OnboardingTeamsBrowserView = ({
             <div className="border-subtle flex flex-col border-b">
               <div className="relative">
                 {/* Banner Image */}
-                <div className="border-subtle relative h-40 w-full overflow-hidden rounded-t-xl border-b">
+                <div className="border-subtle relative h-40 w-full overflow-hidden border-b">
                   {organizationBanner ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={organizationBanner}
                       alt={organizationName || ""}
@@ -152,10 +153,10 @@ export const OnboardingTeamsBrowserView = ({
                     <Icon name="users" className="text-subtle h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-1 text-center">
-                    <p className="text-default text-sm font-semibold leading-tight">
+                    <p className="text-default truncate text-sm font-semibold leading-tight">
                       {t("onboarding_teams_browser_view_no_teams_title")}
                     </p>
-                    <p className="text-subtle text-xs font-medium leading-tight">
+                    <p className="text-subtle truncate text-xs font-medium leading-tight">
                       {t("onboarding_teams_browser_view_no_teams_description")}
                     </p>
                   </div>

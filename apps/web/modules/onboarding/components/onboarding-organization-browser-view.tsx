@@ -112,7 +112,7 @@ export const OnboardingOrganizationBrowserView = ({
             <div className="border-subtle flex flex-col border-b">
               <div className="relative">
                 {/* Banner Image */}
-                <div className="border-subtle relative h-40 w-full overflow-hidden rounded-t-xl border-b">
+                <div className="border-subtle relative h-40 w-full overflow-hidden border-b">
                   {bannerUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={bannerUrl} alt={name || ""} className="h-full w-full object-cover" />
