@@ -256,5 +256,5 @@ export const ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS =
   process.env._CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS;
 
 export const ORG_TRIAL_DAYS = process.env.STRIPE_ORG_TRIAL_DAYS
-  ? parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10)
+  ? Math.max(0, parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10))
   : null;
