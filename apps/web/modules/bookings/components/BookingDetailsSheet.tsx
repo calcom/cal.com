@@ -194,7 +194,6 @@ function BookingDetailsSheetInner({
                 variant="icon"
                 color="minimal"
                 StartIcon="x"
-                disabled={!hasNext}
                 onClick={(e) => {
                   e.preventDefault();
                   handleClose();
