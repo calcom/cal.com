@@ -9,6 +9,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -28,7 +29,6 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -76,11 +76,16 @@ async function handler(input: CancelBookingInput) {
     allRemainingBookings,
     cancellationReason,
     seatReferenceUid,
+    seatReferenceUids: rawSeatReferenceUids,
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
     skipCancellationReasonValidation = false,
   } = bookingCancelInput.parse(body);
+
+  // Normalize seat references to array for handling both single and multiple seat cancellations
+  const seatReferenceUids = seatReferenceUid ? [seatReferenceUid] : rawSeatReferenceUids || [];
+
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
@@ -118,15 +123,26 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
+  // Check if user is admin/owner (has full access) - this check is needed for cancellation reason validation
+  let isUserAdminOrOwner = false;
+  if (userId && !isCancellationUserHost) {
+    const bookingAccessService = new BookingAccessService(prisma);
+    isUserAdminOrOwner = await bookingAccessService.doesUserIdHaveAccessToBooking({
+      userId,
+      bookingUid: bookingToDelete.uid,
+    });
+  }
+
+  const requiresCancellationReason = isCancellationUserHost || isUserAdminOrOwner;
   if (
     !platformClientId &&
     !cancellationReason?.trim() &&
-    isCancellationUserHost &&
+    requiresCancellationReason &&
     !skipCancellationReasonValidation
   ) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required when you are the host, admin, or owner",
     });
   }
 
@@ -137,28 +153,8 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
-  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
-    const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
-      if (host.user.id === userId) return true;
-    });
-
-    const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
-
-    const userIsOrgAdminOfBookingUser =
-      userId &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
-        userId,
-        bookingToDelete.userId
-      ));
-
-    if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
-      throw new HttpError({
-        statusCode: 401,
-        message: "User not a host of this event or an admin of the booking user",
-      });
-    }
-  }
+  // Note: Authorization for seated event seat removal is handled in cancelAttendeeSeat
+  // using BookingAccessService for proper permission checking
 
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
@@ -316,14 +312,19 @@ async function handler(input: CancelBookingInput) {
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
+  // Determine if cancellation is by host/admin/owner
+  const isCancelledByHostOrAdmin = isCancellationUserHost || isUserAdminOrOwner;
+
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
-      seatReferenceUid: seatReferenceUid,
+      seatReferenceUids: seatReferenceUids,
       bookingToDelete,
+      userId,
     },
     dataForWebhooks,
-    bookingToDelete?.eventType?.metadata as EventTypeMetadata
+    bookingToDelete?.eventType?.metadata as EventTypeMetadata,
+    { isCancelledByHost: isCancelledByHostOrAdmin }
   );
   if (result)
     return {

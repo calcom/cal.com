@@ -131,6 +131,47 @@ export class BookingRepository {
     });
   }
 
+  /**
+   * Delete booking seats by reference UIDs
+   * @param seatReferenceUids Array of seat reference UIDs to delete
+   * @returns Number of deleted seats
+   */
+  async deleteBookingSeatsByReferenceUids(seatReferenceUids: string[]): Promise<number> {
+    const result = await this.prismaClient.bookingSeat.deleteMany({
+      where: {
+        referenceUid: { in: seatReferenceUids },
+      },
+    });
+    return result.count;
+  }
+
+  /**
+   * Delete attendees by their IDs
+   * @param attendeeIds Array of attendee IDs to delete
+   * @returns Number of deleted attendees
+   */
+  async deleteAttendeesByIds(attendeeIds: number[]): Promise<number> {
+    const result = await this.prismaClient.attendee.deleteMany({
+      where: {
+        id: { in: attendeeIds },
+      },
+    });
+    return result.count;
+  }
+
+  /**
+   * Get user by ID (for permission checks)
+   * @param userId User ID
+   * @returns User email or null
+   */
+  async getUserEmailById(userId: number): Promise<string | null> {
+    const user = await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    return user?.email ?? null;
+  }
+
   async getBookingWithEventTypeTeamId({ bookingId }: { bookingId: number }) {
     return await this.prismaClient.booking.findUnique({
       where: {

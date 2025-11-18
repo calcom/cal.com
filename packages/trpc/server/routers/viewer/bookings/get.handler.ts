@@ -582,7 +582,7 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
                 ).as("attendee"),
               ])

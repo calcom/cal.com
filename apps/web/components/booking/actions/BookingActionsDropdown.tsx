@@ -31,6 +31,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { RemoveBookingSeatsDialog } from "../RemoveBookingSeatsDialog";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
@@ -38,6 +39,7 @@ import {
   getEditEventActions,
   getAfterEventActions,
   getReportAction,
+  getRemoveSeatsAction,
   shouldShowEditActions,
   type BookingActionContext,
 } from "./bookingActions";
@@ -85,6 +87,10 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
   const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
+  const isRemoveSeatsDialogOpen = useBookingActionsStoreContext((state) => state.isRemoveSeatsDialogOpen);
+  const setIsRemoveSeatsDialogOpen = useBookingActionsStoreContext(
+    (state) => state.setIsRemoveSeatsDialogOpen
+  );
 
   const cardCharged = booking?.payment[0]?.success;
 
@@ -237,6 +243,7 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
   } as BookingActionContext;
 
   const cancelEventAction = getCancelEventAction(actionContext);
+  const removeSeatsAction = getRemoveSeatsAction(actionContext);
 
   const shouldShowEdit = shouldShowEditActions(actionContext);
   const baseEditEventActions = getEditEventActions(actionContext);
@@ -409,6 +416,15 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
         isRecurring={isRecurring}
         status={getBookingStatus()}
       />
+      <RemoveBookingSeatsDialog
+        booking={booking}
+        isOpen={isRemoveSeatsDialogOpen}
+        onClose={() => setIsRemoveSeatsDialogOpen(false)}
+        onSuccess={() => {
+          utils.viewer.bookings.invalidate();
+          showToast(t("seats_removed_successfully"), "success");
+        }}
+      />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -579,6 +595,23 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
         </DropdownMenuItem>
       </>
       <DropdownMenuSeparator />
+      {removeSeatsAction && (
+        <DropdownMenuItem
+          className="rounded-lg"
+          key={removeSeatsAction.id}
+          disabled={removeSeatsAction.disabled}>
+          <DropdownItem
+            type="button"
+            color={removeSeatsAction.color}
+            StartIcon={removeSeatsAction.icon}
+            onClick={() => setIsRemoveSeatsDialogOpen(true)}
+            disabled={removeSeatsAction.disabled}
+            data-testid={removeSeatsAction.id}
+            className={removeSeatsAction.disabled ? "text-muted" : undefined}>
+            {removeSeatsAction.label}
+          </DropdownItem>
+        </DropdownMenuItem>
+      )}
       <DropdownMenuItem
         className="rounded-lg"
         key={cancelEventAction.id}
