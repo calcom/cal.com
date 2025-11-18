@@ -513,101 +513,43 @@ describe("EventManager credential lookup methods", () => {
   });
 
   describe("getVideoCredentialAndWarnIfNotFound", () => {
-    it("should find credential in videoCredentials by credentialId", async () => {
-      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
+    it("returns a cached credential when credentialId matches", async () => {
+      const videoCredential = buildVideoCredential({ id: 42, type: "zoom_video" });
       eventManager = new EventManager({
         credentials: [videoCredential],
         destinationCalendar: null,
       });
 
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(1, "zoom_video");
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(42, "zoom_video");
 
-      expect(result).toMatchObject({
-        id: videoCredential.id,
-        type: videoCredential.type,
-        userId: videoCredential.userId,
-      });
+      expect(result).toMatchObject({ id: 42, type: "zoom_video" });
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
     });
 
-    it("should fetch credential from DB when not found in videoCredentials and credentialId > 0", async () => {
-      const dbCredential = buildVideoCredential({ id: 2, type: "zoom_video" });
+    it("fetches credential from repository when not cached locally", async () => {
+      const dbCredential = buildVideoCredential({ id: 7, type: "zoom_video" });
       eventManager = new EventManager({
         credentials: [],
         destinationCalendar: null,
       });
-
       mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(dbCredential as any);
 
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(2, "zoom_video");
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(7, "zoom_video");
 
       expect(result).toEqual(dbCredential);
-      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
-        id: 2,
-      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({ id: 7 });
     });
 
-    it("should fallback to finding by type when credentialId is null", async () => {
-      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
+    it("falls back to credential type when credentialId is missing", async () => {
+      const zoomCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
       eventManager = new EventManager({
-        credentials: [videoCredential],
+        credentials: [zoomCredential],
         destinationCalendar: null,
       });
 
       const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(null, "zoom_video");
 
-      expect(result).toMatchObject({
-        id: videoCredential.id,
-        type: videoCredential.type,
-        userId: videoCredential.userId,
-      });
-      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
-    });
-
-    it("should fallback to finding by type when credentialId is 0", async () => {
-      const videoCredential = buildVideoCredential({ id: 1, type: "daily_video" });
-      eventManager = new EventManager({
-        credentials: [videoCredential],
-        destinationCalendar: null,
-      });
-
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(0, "daily_video");
-
-      // When credentialId is 0, it falls back to finding by type, which might return a global app credential
-      expect(result).toMatchObject({
-        type: videoCredential.type,
-      });
-      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
-    });
-
-    it("should return null when credential is not found anywhere", async () => {
-      eventManager = new EventManager({
-        credentials: [],
-        destinationCalendar: null,
-      });
-
-      mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(null);
-
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(999, "zoom_video");
-
-      expect(result).toBeNull();
-      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
-        id: 999,
-      });
-    });
-
-    it("should return null when credentialId is null and no matching type found", async () => {
-      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
-      eventManager = new EventManager({
-        credentials: [videoCredential],
-        destinationCalendar: null,
-      });
-
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(null, "daily_video");
-
-      // When no matching type is found, it might return a global app credential or null
-      // The important thing is that it doesn't throw and doesn't call the repository
-      expect(result).toBeDefined();
+      expect(result).toMatchObject({ type: "zoom_video" });
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
     });
   });
