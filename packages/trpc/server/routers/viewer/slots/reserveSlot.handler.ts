@@ -23,13 +23,19 @@ export function getReservedSlotUidFromCookies(req?: {
 
 export function getReservedSlotUidFromRequest(req?: {
   cookies: Record<string, string | undefined> | undefined;
-  body?: { reservedSlotUid?: string };
+  body?: { reservedSlotUid?: string } | Array<{ reservedSlotUid?: string }>;
 }) {
   const fromCookies = getReservedSlotUidFromCookies(req);
   if (fromCookies) {
     return fromCookies;
   }
-  return req?.body?.reservedSlotUid;
+  if (req?.body && !Array.isArray(req.body)) {
+    return req.body.reservedSlotUid;
+  }
+  if (Array.isArray(req?.body)) {
+    return req.body[0]?.reservedSlotUid;
+  }
+  return undefined;
 }
 
 interface ReserveSlotOptions {
