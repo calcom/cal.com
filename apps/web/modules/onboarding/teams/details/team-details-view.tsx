@@ -13,7 +13,6 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
 
@@ -157,7 +156,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                   value={teamBio}
                   onChange={(e) => setTeamBio(e.target.value)}
                   placeholder={t("team_bio_placeholder")}
-                  className="border-default min-h-[80px] rounded-[10px] border px-2 py-1.5 text-sm"
+                  className="border-default max-h-[150px] min-h-[80px] rounded-[10px] border px-2 py-1.5 text-sm"
                   rows={3}
                 />
               </div>

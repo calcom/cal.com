@@ -94,9 +94,9 @@ export const OnboardingBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default text-sm font-medium leading-tight">{displayUrl}</p>
+          <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
@@ -123,8 +123,8 @@ export const OnboardingBrowserView = ({
                   alt={name || ""}
                   className="border-2 border-white"
                 />
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-emphasis text-xl font-semibold leading-tight">
+                <div className="flex w-full flex-col gap-2">
+                  <h2 className="text-emphasis w-full truncate text-xl font-semibold leading-tight">
                     {name || t("your_name")}
                   </h2>
                   <p
