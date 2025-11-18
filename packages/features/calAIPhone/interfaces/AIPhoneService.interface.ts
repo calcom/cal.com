@@ -243,6 +243,8 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    gclid?: string;
+    campaignId?: string;
   }): Promise<{ url: string; message: string }>;
 
   /**
