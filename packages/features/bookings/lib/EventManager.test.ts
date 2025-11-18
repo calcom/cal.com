@@ -23,24 +23,6 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
-vi.mock("@calcom/lib/logger", () => ({
-  default: {
-    getSubLogger: vi.fn(() => ({
-      error: vi.fn(),
-      warn: vi.fn(),
-      debug: vi.fn(),
-      silly: vi.fn(),
-      log: vi.fn(),
-      info: vi.fn(),
-    })),
-    debug: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    log: vi.fn(),
-    info: vi.fn(),
-  },
-}));
-
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 const mockedCredentialRepository = vi.mocked(CredentialRepository);
 
