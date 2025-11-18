@@ -7,10 +7,15 @@ export class OrganizationSettingsRepository {
     return await this.prismaClient.organizationSettings.findUnique({
       where: { organizationId },
       select: {
-        disableGuestConfirmationEmail: true,
-        disableGuestCancellationEmail: true,
-        disableGuestRescheduledEmail: true,
-        disableGuestRequestEmail: true,
+        disableAttendeeConfirmationEmail: true,
+        disableAttendeeCancellationEmail: true,
+        disableAttendeeRescheduledEmail: true,
+        disableAttendeeRequestEmail: true,
+        disableAttendeeReassignedEmail: true,
+        disableAttendeeAwaitingPaymentEmail: true,
+        disableAttendeeRescheduleRequestEmail: true,
+        disableAttendeeLocationChangeEmail: true,
+        disableAttendeeNewEventEmail: true,
       },
     });
   }

@@ -88,6 +88,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "general",
           href: "/settings/organizations/general",
         },
+        {
+          name: "guest_notifications",
+          href: "/settings/organizations/guest-notifications",
+        },
         ...(orgBranding
           ? [
               {

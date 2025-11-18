@@ -339,6 +339,7 @@ export const roundRobinReassignment = async ({
     customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
+    organizationId: orgId,
   };
 
   if (hasOrganizerChanged) {

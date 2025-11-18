@@ -96,23 +96,48 @@ const updateOrganizationSettings = async ({
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableGuestConfirmationEmail")) {
-    data.disableGuestConfirmationEmail = input.disableGuestConfirmationEmail;
+  if (input.hasOwnProperty("disableAttendeeConfirmationEmail")) {
+    data.disableAttendeeConfirmationEmail = input.disableAttendeeConfirmationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableGuestCancellationEmail")) {
-    data.disableGuestCancellationEmail = input.disableGuestCancellationEmail;
+  if (input.hasOwnProperty("disableAttendeeCancellationEmail")) {
+    data.disableAttendeeCancellationEmail = input.disableAttendeeCancellationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableGuestRescheduledEmail")) {
-    data.disableGuestRescheduledEmail = input.disableGuestRescheduledEmail;
+  if (input.hasOwnProperty("disableAttendeeRescheduledEmail")) {
+    data.disableAttendeeRescheduledEmail = input.disableAttendeeRescheduledEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableGuestRequestEmail")) {
-    data.disableGuestRequestEmail = input.disableGuestRequestEmail;
+  if (input.hasOwnProperty("disableAttendeeRequestEmail")) {
+    data.disableAttendeeRequestEmail = input.disableAttendeeRequestEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeReassignedEmail")) {
+    data.disableAttendeeReassignedEmail = input.disableAttendeeReassignedEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeAwaitingPaymentEmail")) {
+    data.disableAttendeeAwaitingPaymentEmail = input.disableAttendeeAwaitingPaymentEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeRescheduleRequestEmail")) {
+    data.disableAttendeeRescheduleRequestEmail = input.disableAttendeeRescheduleRequestEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeLocationChangeEmail")) {
+    data.disableAttendeeLocationChangeEmail = input.disableAttendeeLocationChangeEmail;
+  }
+
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("disableAttendeeNewEventEmail")) {
+    data.disableAttendeeNewEventEmail = input.disableAttendeeNewEventEmail;
   }
 
   // If no settings values have changed lets skip this update
