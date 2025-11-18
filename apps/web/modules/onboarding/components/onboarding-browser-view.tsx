@@ -156,7 +156,7 @@ export const OnboardingBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="secondary" size="sm" EndIcon="arrow-right">
+                    <Button color="secondary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
                       {t("book_now")}
                     </Button>
                   </div>
