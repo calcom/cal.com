@@ -44,8 +44,7 @@ export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
           onClick={() => {
             const adsData = getGoogleAdsData();
             publishOrgMutation.mutate({
-              gclid: adsData?.gclid,
-              campaignId: adsData?.campaignId,
+              googleAds: adsData,
             });
           }}>
           {t("upgrade_banner_action")}
