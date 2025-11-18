@@ -83,7 +83,13 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
         title={t("onboarding_org_details_title")}
         subtitle={t("onboarding_org_details_subtitle")}
         footer={
-          <div className="flex w-full items-center justify-end gap-4">
+          <div className="flex w-full items-center justify-between gap-4">
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => router.push("/onboarding/getting-started")}>
+              {t("back")}
+            </Button>
             <Button
               color="primary"
               className="rounded-[10px]"

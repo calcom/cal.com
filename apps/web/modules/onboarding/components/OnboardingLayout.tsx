@@ -10,8 +10,8 @@ import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
   userEmail: string;
-  currentStep: number;
-  totalSteps: number;
+  currentStep?: number;
+  totalSteps?: number;
   children: ReactNode;
 };
 
@@ -45,7 +45,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
       {/* Footer with progress dots and sign out */}
       <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
         <div className="flex min-h-[6px] items-center gap-1">
-          {totalSteps > 0 ? (
+          {totalSteps && totalSteps > 0 ? (
             Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCurrent = step === currentStep;
               const isPast = step < currentStep;
