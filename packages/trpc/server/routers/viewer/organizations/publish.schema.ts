@@ -6,7 +6,7 @@ export const ZPublishInputSchema = z.object({
       gclid: z.string().optional(),
       campaignId: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 
 export type TPublishInputSchema = z.infer<typeof ZPublishInputSchema>;

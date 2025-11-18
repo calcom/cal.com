@@ -29,7 +29,7 @@ const generateCheckoutSession = async ({
   teamName: string;
   userId: number;
   isOnboarding?: boolean;
-  googleAds?: { gclid?: string; campaignId?: string };
+  googleAds?: { gclid?: string; campaignId?: string } | null;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
     console.info("Team billing is disabled, not generating a checkout session.");

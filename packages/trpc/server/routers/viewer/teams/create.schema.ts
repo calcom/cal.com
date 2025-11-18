@@ -17,7 +17,7 @@ export const ZCreateInputSchema = z.object({
       gclid: z.string().optional(),
       campaignId: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

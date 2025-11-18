@@ -9,7 +9,7 @@ export const ZBuyInputSchema = z.object({
       gclid: z.string().optional(),
       campaignId: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 
 export type TBuyInputSchema = z.infer<typeof ZBuyInputSchema>;
