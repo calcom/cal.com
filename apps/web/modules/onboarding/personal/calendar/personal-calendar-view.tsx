@@ -143,7 +143,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
             ))}
           </div>
           {showFadeGradient && (
-            <div className="from-default pointer-events-none absolute -bottom-1 left-0 right-0 h-8 bg-gradient-to-t to-transparent md:h-12 xl:h-16" />
+            <div className="from-default pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t to-transparent md:h-20 xl:h-24" />
           )}
         </div>
       </OnboardingCard>
