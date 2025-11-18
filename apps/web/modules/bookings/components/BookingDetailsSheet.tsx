@@ -26,6 +26,8 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
+
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
@@ -220,6 +222,8 @@ function BookingDetailsSheetInner({
 
             <RecurringInfoSection recurringInfo={recurringInfo} />
 
+            <AssignmentReasonSection booking={booking} />
+
             <PaymentSection booking={booking} />
 
             <SlotsSection booking={booking} />
@@ -384,6 +388,30 @@ function RecurringInfoSection({
           recurringCount: recurringInfo.count,
         })}
       </p>
+    </Section>
+  );
+}
+
+function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  if (!booking.assignmentReason || booking.assignmentReason.length === 0) {
+    return null;
+  }
+
+  return (
+    <Section title={t("assignment_reason")}>
+      <div className="space-y-2">
+        {booking.assignmentReason.map((reason, index) => {
+          const reasonTitle = assignmentReasonBadgeTitleMap(reason.reasonEnum);
+          return (
+            <div key={index} className="text-default flex items-center text-sm">
+              <span>{t(reasonTitle)}</span>
+              {reason.reasonString && <span>: {reason.reasonString}</span>}
+            </div>
+          );
+        })}
+      </div>
     </Section>
   );
 }
