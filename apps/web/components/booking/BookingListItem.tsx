@@ -499,8 +499,12 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            <BookingActionsDropdown booking={booking} context="list" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {isCancelled && booking.rescheduled && (
+              <div className="hidden items-center md:flex">
+                <RequestSentMessage />
+              </div>
+            )}
             {shouldShowIndividualReportButton(actionContext) && (
               <div className="flex items-center space-x-2">
                 <Button
@@ -516,17 +520,13 @@ function BookingListItem(booking: BookingItemProps) {
                 />
               </div>
             )}
-            {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-            {isCancelled && booking.rescheduled && (
-              <div className="hidden h-full items-center md:flex">
-                <RequestSentMessage />
-              </div>
-            )}
+            <BookingActionsDropdown booking={booking} context="list" />
           </div>
         </div>
         <BookingItemBadges
           booking={booking}
           isPending={isPending}
+          isRejected={isRejected}
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
@@ -540,6 +540,7 @@ function BookingListItem(booking: BookingItemProps) {
 const BookingItemBadges = ({
   booking,
   isPending,
+  isRejected,
   recurringDates,
   userTimeFormat,
   userTimeZone,
@@ -547,6 +548,7 @@ const BookingItemBadges = ({
 }: {
   booking: BookingItemProps;
   isPending: boolean;
+  isRejected: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
@@ -567,6 +569,11 @@ const BookingItemBadges = ({
             {t("rescheduled")}
           </Badge>
         </Tooltip>
+      )}
+      {isRejected && !isRescheduled && booking.assignmentReason.length === 0 && (
+        <Badge variant="gray" className="ltr:mr-2 rtl:ml-2">
+          {t("rejected")}
+        </Badge>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
