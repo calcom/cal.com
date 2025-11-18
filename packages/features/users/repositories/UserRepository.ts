@@ -344,6 +344,8 @@ export class UserRepository {
         id: true,
         username: true,
         name: true,
+        givenName: true,
+        lastName: true,
         email: true,
         metadata: true,
         identityProvider: true,

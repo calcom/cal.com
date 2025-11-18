@@ -99,43 +99,6 @@ const getDomainFromEmail = (email: string): string => email.split("@")[1];
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
-const deriveNameParts = ({
-  givenName,
-  lastName,
-  fullName,
-}: {
-  givenName?: string | null;
-  lastName?: string | null;
-  fullName?: string | null;
-}) => {
-  const normalizedGiven = givenName?.trim();
-  const normalizedLast = lastName?.trim();
-  if (normalizedGiven || normalizedLast) {
-    return {
-      givenName: normalizedGiven || "",
-      lastName: normalizedLast || null,
-    };
-  }
-  if (!fullName) {
-    return {
-      givenName: "",
-      lastName: null,
-    };
-  }
-  const trimmed = fullName.trim();
-  if (!trimmed) {
-    return {
-      givenName: "",
-      lastName: null,
-    };
-  }
-  const [first, ...rest] = trimmed.split(" ");
-  return {
-    givenName: first,
-    lastName: rest.length ? rest.join(" ").trim() || null : null,
-  };
-};
-
 type UserTeams = {
   teams: (Membership & {
     team: Pick<Team, "metadata">;
@@ -543,14 +506,18 @@ export const getOptions = ({
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
+        const updatedGivenName = session?.givenName ?? token.givenName;
+        const updatedLastName = session?.lastName ?? token.lastName;
+        const updatedName = session?.name ?? token.name;
+
         return {
           ...token,
           profileId: session?.profileId ?? token.profileId ?? null,
           upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
-          name: session?.name ?? token.name,
-          givenName: session?.givenName ?? token.givenName,
-          lastName: session?.lastName ?? token.lastName,
+          name: updatedName,
+          givenName: updatedGivenName,
+          lastName: updatedLastName,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
         } as JWT;
@@ -657,17 +624,12 @@ export const getOptions = ({
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         // any other credentials, add user info
-        const credentialNameParts = deriveNameParts({
-          givenName: (user as { givenName?: string | null })?.givenName,
-          lastName: (user as { lastName?: string | null })?.lastName,
-          fullName: user.name,
-        });
         return {
           ...token,
           id: user.id,
           name: user.name,
-          givenName: credentialNameParts.givenName,
-          lastName: credentialNameParts.lastName,
+          givenName: (user as { givenName?: string | null })?.givenName ?? "",
+          lastName: (user as { lastName?: string | null })?.lastName ?? null,
           username: user.username,
           orgAwareUsername: user?.org ? user.profile?.username : user.username,
           email: user.email,
@@ -767,18 +729,13 @@ export const getOptions = ({
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });
         log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
-        const oauthNameParts = deriveNameParts({
-          givenName: existingUser.givenName,
-          lastName: existingUser.lastName,
-          fullName: existingUser.name,
-        });
         return {
           ...token,
           upId,
           id: existingUser.id,
           name: existingUser.name,
-          givenName: oauthNameParts.givenName,
-          lastName: oauthNameParts.lastName,
+          givenName: existingUser.givenName ?? "",
+          lastName: existingUser.lastName ?? null,
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
@@ -806,11 +763,7 @@ export const getOptions = ({
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
-      const sessionNameParts = deriveNameParts({
-        givenName: (token as { givenName?: string | null })?.givenName,
-        lastName: (token as { lastName?: string | null })?.lastName,
-        fullName: token.name as string | null,
-      });
+
       const calendsoSession: Session = {
         ...session,
         profileId,
@@ -820,8 +773,8 @@ export const getOptions = ({
           ...session.user,
           id: token.id as number,
           name: token.name,
-          givenName: sessionNameParts.givenName,
-          lastName: sessionNameParts.lastName,
+          givenName: (token as { givenName?: string | null })?.givenName ?? "",
+          lastName: (token as { lastName?: string | null })?.lastName ?? null,
           username: token.username as string,
           orgAwareUsername: token.orgAwareUsername,
           role: token.role as UserPermissionRole,
@@ -1090,11 +1043,19 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
-          const newUserNameParts = deriveNameParts({
-            givenName: (user as { givenName?: string | null })?.givenName,
-            lastName: (user as { lastName?: string | null })?.lastName,
-            fullName: user.name,
-          });
+          // For OAuth, try to get givenName/lastName from provider, fall back to splitting name
+          const userGivenName = (user as { givenName?: string | null })?.givenName;
+          const userLastName = (user as { lastName?: string | null })?.lastName;
+          let givenName = userGivenName?.trim() || "";
+          let lastName = userLastName?.trim() || null;
+
+          // If not provided by OAuth, split the full name as fallback
+          if (!givenName && user.name) {
+            const nameParts = user.name.trim().split(" ");
+            givenName = nameParts[0] || "";
+            lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ").trim() || null : null;
+          }
+
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1102,8 +1063,8 @@ export const getOptions = ({
               username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
               emailVerified: new Date(Date.now()),
               name: user.name,
-              givenName: newUserNameParts.givenName,
-              lastName: newUserNameParts.lastName,
+              givenName,
+              lastName,
               ...(user.image && { avatarUrl: user.image }),
               email: user.email,
               identityProvider: idP,

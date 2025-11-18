@@ -59,6 +59,39 @@ test.describe("Update Profile", () => {
     await expect(lastNameInput).toHaveValue("Smith");
   });
 
+  test("allows multi-word given name without splitting", async ({ page, users }) => {
+    const user = await users.create({
+      name: "John Doe",
+    });
+
+    await user.apiLogin();
+    await page.goto("/settings/my-account/profile");
+
+    const givenNameInput = page.locator('input[name="givenName"]');
+    const lastNameInput = page.locator('input[name="lastName"]');
+
+    // Initially should be split from legacy name
+    await expect(givenNameInput).toHaveValue("John");
+    await expect(lastNameInput).toHaveValue("Doe");
+
+    // User enters multi-word given name
+    await givenNameInput.fill("John Michael");
+    await lastNameInput.fill("Smith");
+
+    await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
+      action: () => page.getByTestId("profile-submit-button").click(),
+    });
+
+    // After save, given name should still contain both words
+    await expect(givenNameInput).toHaveValue("John Michael");
+    await expect(lastNameInput).toHaveValue("Smith");
+
+    // Reload page to ensure data persists correctly
+    await page.reload();
+    await expect(givenNameInput).toHaveValue("John Michael");
+    await expect(lastNameInput).toHaveValue("Smith");
+  });
+
   test("Cannot update a users email when existing user has same email (verification enabled)", async ({
     page,
     users,

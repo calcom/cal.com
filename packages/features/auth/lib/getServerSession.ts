@@ -92,6 +92,8 @@ export async function getServerSession(options: {
     user: {
       id: user.id,
       name: user.name,
+      givenName: token.givenName,
+      lastName: token.lastName,
       username: user.username,
       email: user.email,
       emailVerified: user.emailVerified,

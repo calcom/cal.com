@@ -115,7 +115,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   // Profile mutation
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
-      await utils.viewer.me.invalidate();
+      await utils.viewer.me.get.invalidate();
     },
   });
 

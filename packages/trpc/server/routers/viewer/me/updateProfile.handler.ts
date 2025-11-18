@@ -40,7 +40,9 @@ const normalizeNamePart = (value?: string | null) => {
   return trimmed.length ? trimmed : undefined;
 };
 
-const splitLegacyFullName = (fullName?: string | null) => {
+const splitLegacyFullName = (
+  fullName?: string | null
+): { givenName: string | undefined; lastName: string | undefined } => {
   if (!fullName) {
     return {
       givenName: undefined,
@@ -101,7 +103,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const normalizedGivenName = normalizeNamePart(givenName);
   const normalizedLastName =
     lastName === undefined ? undefined : lastName.trim().length ? lastName.trim() : null;
-  const legacyNameParts = legacyName !== undefined ? splitLegacyFullName(legacyName) : {};
+  const legacyNameParts =
+    legacyName !== undefined
+      ? splitLegacyFullName(legacyName)
+      : { givenName: undefined, lastName: undefined };
 
   const effectiveGivenName =
     normalizedGivenName !== undefined
@@ -453,12 +458,13 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   return {
-    ...input,
     name: updatedUser.name,
     givenName: updatedUser.givenName,
     lastName: updatedUser.lastName,
     email: emailVerification && !secondaryEmail?.emailVerified ? user.email : input.email,
     avatarUrl: updatedUser.avatarUrl,
+    username: updatedUser.username,
+    locale: input.locale,
     hasEmailBeenChanged,
     sendEmailVerification: emailVerification && !secondaryEmail?.emailVerified,
   };
