@@ -263,6 +263,10 @@ export class EventTypesService_2024_06_14 {
       return [dynamicEventType];
     }
 
+    if (authUser?.id) {
+      return await this.getUserEventTypes(authUser.id);
+    }
+
     return [];
   }
 
