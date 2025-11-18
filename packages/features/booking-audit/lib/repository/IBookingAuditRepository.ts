@@ -22,6 +22,7 @@ export type BookingAuditCreateInput = {
 type BookingAudit = {
     id: string;
     bookingUid: string;
+    linkedBookingUid: string | null;
     actorId: string;
     action: BookingAuditAction;
     type: BookingAuditType;
@@ -31,9 +32,28 @@ type BookingAudit = {
     data: JsonValue;
 }
 
+export type BookingAuditWithActor = BookingAudit & {
+    actor: {
+        id: string;
+        type: string;
+        userUuid: string | null;
+        attendeeId: number | null;
+        email: string | null;
+        phone: string | null;
+        name: string | null;
+        createdAt: Date;
+    };
+}
+
 export interface IBookingAuditRepository {
     /**
      * Creates a new booking audit record
      */
     create(bookingAudit: BookingAuditCreateInput): Promise<BookingAudit>;
+
+    /**
+     * Finds all audit logs for a booking, including logs where this booking is linked
+     * Returns audit logs with actor information included
+     */
+    findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]>;
 }
