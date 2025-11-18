@@ -151,9 +151,22 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
-        <SheetHeader
-          showCloseButton={false}
-          rightContent={
+        <SheetHeader showCloseButton={false} className="w-full">
+          <div className="flex items-center justify-between gap-x-4">
+            <div className="flex min-w-0 flex-col gap-y-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <Badge variant={statusBadge.variant} className="capitalize">
+                  {statusBadge.label}
+                </Badge>
+                {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+                {recurringInfo && (
+                  <Badge variant="gray">
+                    <Icon name="repeat" className="mr-1 h-3 w-3" />
+                    {recurringInfo.count}
+                  </Badge>
+                )}
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="icon"
@@ -175,19 +188,17 @@ function BookingDetailsSheetInner({
                   handleNext();
                 }}
               />
+              <Button
+                variant="icon"
+                color="minimal"
+                StartIcon="x"
+                disabled={!hasNext}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
+              />
             </div>
-          }>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusBadge.variant} className="capitalize">
-              {statusBadge.label}
-            </Badge>
-            {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
-            {recurringInfo && (
-              <Badge variant="gray">
-                <Icon name="repeat" className="mr-1 h-3 w-3" />
-                {recurringInfo.count}
-              </Badge>
-            )}
           </div>
         </SheetHeader>
 
@@ -223,35 +234,29 @@ function BookingDetailsSheetInner({
         </SheetBody>
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
-          <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
-            <Button color="secondary" StartIcon="x" onClick={handleClose}>
-              {t("close")}
-            </Button>
+          <div className="flex w-full min-w-0 flex-row flex-wrap items-center justify-end gap-2 px-4 pb-4 pt-4">
+            <JoinMeetingButton
+              location={booking.location}
+              metadata={booking.metadata}
+              bookingStatus={booking.status}
+            />
 
-            <div className="flex gap-2">
-              <JoinMeetingButton
-                location={booking.location}
-                metadata={booking.metadata}
-                bookingStatus={booking.status}
-              />
-
-              <BookingActionsDropdown
-                booking={{
-                  ...booking,
-                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
-                  recurringInfo: undefined,
-                  loggedInUser: {
-                    userId,
-                    userTimeZone,
-                    userTimeFormat: userTimeFormat ?? null,
-                    userEmail,
-                  },
-                  isToday: false,
-                }}
-                usePortal={false}
-                context="details"
-              />
-            </div>
+            <BookingActionsDropdown
+              booking={{
+                ...booking,
+                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                recurringInfo: undefined,
+                loggedInUser: {
+                  userId,
+                  userTimeZone,
+                  userTimeFormat: userTimeFormat ?? null,
+                  userEmail,
+                },
+                isToday: false,
+              }}
+              usePortal={false}
+              context="details"
+            />
           </div>
         </SheetFooter>
       </SheetContent>
