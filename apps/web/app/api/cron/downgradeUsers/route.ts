@@ -33,6 +33,7 @@ async function postHandler(request: NextRequest) {
         metadata: true,
         isOrganization: true,
         parentId: true,
+        name: true,
       },
       skip: pageNumber * pageSize,
       take: pageSize,

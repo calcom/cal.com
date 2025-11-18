@@ -287,6 +287,7 @@ export class TeamRepository {
         metadata: true,
         parentId: true,
         isOrganization: true,
+        name: true,
       },
     });
   }
