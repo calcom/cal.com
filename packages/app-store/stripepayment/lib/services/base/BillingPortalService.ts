@@ -120,4 +120,16 @@ export abstract class BillingPortalService {
     const billingPortalUrl = await this.createBillingPortalUrl(customerId, returnUrl);
     res.redirect(302, billingPortalUrl);
   }
+
+  /** Generates a team billing portal URL without permission checks */
+  async processBillingPortalWithoutPermissionChecks({ teamId }: { teamId: number }) {
+    const customerId = await this.getCustomerId(teamId);
+    if (!customerId) {
+      throw new Error(`Customer ID not found for team ${teamId}`);
+    }
+
+    const returnUrl = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+    const billingPortalUrl = await this.createBillingPortalUrl(customerId, returnUrl);
+    return billingPortalUrl;
+  }
 }
