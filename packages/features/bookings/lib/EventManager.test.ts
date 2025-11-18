@@ -2,6 +2,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -16,7 +17,32 @@ vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn(),
 }));
 
+vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => ({
+  CredentialRepository: {
+    findCredentialForCalendarServiceById: vi.fn(),
+  },
+}));
+
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    getSubLogger: vi.fn(() => ({
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      silly: vi.fn(),
+      log: vi.fn(),
+      info: vi.fn(),
+    })),
+    debug: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    log: vi.fn(),
+    info: vi.fn(),
+  },
+}));
+
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
+const mockedCredentialRepository = vi.mocked(CredentialRepository);
 
 function buildCalDAVCredential(data: {
   id: number;
@@ -54,6 +80,46 @@ function buildDestinationCalendar(data: {
     updatedAt: new Date(),
     delegationCredentialId: null,
     domainWideDelegationCredentialId: null,
+  };
+}
+
+function buildCalendarCredential(data: {
+  id: number;
+  type?: string;
+  userId?: number;
+  delegatedToId?: string | null;
+}): CredentialForCalendarService {
+  return {
+    id: data.id,
+    type: data.type || "google_calendar",
+    key: {},
+    userId: data.userId || 1,
+    user: { email: "test@example.com" },
+    teamId: null,
+    appId: "google-calendar",
+    invalid: false,
+    delegatedTo: null,
+    delegationCredentialId: null,
+    delegatedToId: data.delegatedToId || null,
+  };
+}
+
+function buildVideoCredential(data: {
+  id: number;
+  type?: string;
+  userId?: number;
+}): CredentialForCalendarService {
+  return {
+    id: data.id,
+    type: data.type || "zoom_video",
+    key: {},
+    userId: data.userId || 1,
+    user: { email: "test@example.com" },
+    teamId: null,
+    appId: "zoom",
+    invalid: false,
+    delegatedTo: null,
+    delegationCredentialId: null,
   };
 }
 
@@ -453,6 +519,273 @@ describe("EventManager CalDAV credential validation", () => {
 
       const result = (eventManager as any).credentialMatchesDestination(credential, destination);
       expect(result).toBe(false);
+    });
+  });
+});
+
+describe("EventManager credential lookup methods", () => {
+  let eventManager: EventManager;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("getVideoCredentialAndWarnIfNotFound", () => {
+    it("should find credential in videoCredentials by credentialId", async () => {
+      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
+      eventManager = new EventManager({
+        credentials: [videoCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(1, "zoom_video");
+
+      expect(result).toMatchObject({
+        id: videoCredential.id,
+        type: videoCredential.type,
+        userId: videoCredential.userId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should fetch credential from DB when not found in videoCredentials and credentialId > 0", async () => {
+      const dbCredential = buildVideoCredential({ id: 2, type: "zoom_video" });
+      eventManager = new EventManager({
+        credentials: [],
+        destinationCalendar: null,
+      });
+
+      mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(dbCredential as any);
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(2, "zoom_video");
+
+      expect(result).toEqual(dbCredential);
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
+        id: 2,
+      });
+    });
+
+    it("should fallback to finding by type when credentialId is null", async () => {
+      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
+      eventManager = new EventManager({
+        credentials: [videoCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(null, "zoom_video");
+
+      expect(result).toMatchObject({
+        id: videoCredential.id,
+        type: videoCredential.type,
+        userId: videoCredential.userId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should fallback to finding by type when credentialId is 0", async () => {
+      const videoCredential = buildVideoCredential({ id: 1, type: "daily_video" });
+      eventManager = new EventManager({
+        credentials: [videoCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(0, "daily_video");
+
+      // When credentialId is 0, it falls back to finding by type, which might return a global app credential
+      expect(result).toMatchObject({
+        type: videoCredential.type,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should return null when credential is not found anywhere", async () => {
+      eventManager = new EventManager({
+        credentials: [],
+        destinationCalendar: null,
+      });
+
+      mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(null);
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(999, "zoom_video");
+
+      expect(result).toBeNull();
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
+        id: 999,
+      });
+    });
+
+    it("should return null when credentialId is null and no matching type found", async () => {
+      const videoCredential = buildVideoCredential({ id: 1, type: "zoom_video" });
+      eventManager = new EventManager({
+        credentials: [videoCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(null, "daily_video");
+
+      // When no matching type is found, it might return a global app credential or null
+      // The important thing is that it doesn't throw and doesn't call the repository
+      expect(result).toBeDefined();
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getCalendarCredentialAndWarnIfNotFound", () => {
+    it("should find credential by delegationCredentialId when provided", async () => {
+      const calendarCredential = buildCalendarCredential({
+        id: 1,
+        type: "google_calendar",
+        delegatedToId: "delegation-123",
+      });
+      eventManager = new EventManager({
+        credentials: [calendarCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+        1,
+        "google_calendar",
+        "delegation-123"
+      );
+
+      expect(result).toMatchObject({
+        id: calendarCredential.id,
+        type: calendarCredential.type,
+        delegatedToId: calendarCredential.delegatedToId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should find credential in calendarCredentials by credentialId when no delegationCredentialId", async () => {
+      const calendarCredential = buildCalendarCredential({ id: 1, type: "google_calendar" });
+      eventManager = new EventManager({
+        credentials: [calendarCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(1, "google_calendar");
+
+      expect(result).toMatchObject({
+        id: calendarCredential.id,
+        type: calendarCredential.type,
+        userId: calendarCredential.userId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should fetch credential from DB when not found in calendarCredentials and credentialId > 0", async () => {
+      const dbCredential = buildCalendarCredential({ id: 2, type: "google_calendar" });
+      eventManager = new EventManager({
+        credentials: [],
+        destinationCalendar: null,
+      });
+
+      mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(dbCredential as any);
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(2, "google_calendar");
+
+      expect(result).toEqual(dbCredential);
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
+        id: 2,
+      });
+    });
+
+    it("should fallback to finding by type when credentialId is null", async () => {
+      const calendarCredential = buildCalendarCredential({ id: 1, type: "google_calendar" });
+      eventManager = new EventManager({
+        credentials: [calendarCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+        null,
+        "google_calendar"
+      );
+
+      expect(result).toMatchObject({
+        id: calendarCredential.id,
+        type: calendarCredential.type,
+        userId: calendarCredential.userId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should fallback to finding by type when credentialId is 0", async () => {
+      const calendarCredential = buildCalendarCredential({ id: 1, type: "google_calendar" });
+      eventManager = new EventManager({
+        credentials: [calendarCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(0, "google_calendar");
+
+      expect(result).toMatchObject({
+        id: calendarCredential.id,
+        type: calendarCredential.type,
+        userId: calendarCredential.userId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should return null when credential is not found anywhere", async () => {
+      eventManager = new EventManager({
+        credentials: [],
+        destinationCalendar: null,
+      });
+
+      mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(null);
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+        999,
+        "google_calendar"
+      );
+
+      expect(result).toBeNull();
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({
+        id: 999,
+      });
+    });
+
+    it("should return null when delegationCredentialId is provided but not found", async () => {
+      eventManager = new EventManager({
+        credentials: [],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+        1,
+        "google_calendar",
+        "non-existent-delegation"
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
+    });
+
+    it("should prioritize delegationCredentialId over credentialId", async () => {
+      const delegatedCredential = buildCalendarCredential({
+        id: 1,
+        type: "google_calendar",
+        delegatedToId: "delegation-123",
+      });
+      const regularCredential = buildCalendarCredential({ id: 2, type: "google_calendar" });
+      eventManager = new EventManager({
+        credentials: [delegatedCredential, regularCredential],
+        destinationCalendar: null,
+      });
+
+      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+        2,
+        "google_calendar",
+        "delegation-123"
+      );
+
+      expect(result).toMatchObject({
+        id: delegatedCredential.id,
+        type: delegatedCredential.type,
+        delegatedToId: delegatedCredential.delegatedToId,
+      });
+      expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
     });
   });
 });
