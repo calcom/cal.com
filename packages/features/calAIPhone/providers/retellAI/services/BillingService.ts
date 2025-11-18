@@ -32,15 +32,13 @@ export class BillingService {
     teamId,
     agentId,
     workflowId,
-    gclid,
-    campaignId,
+    googleAds,
   }: {
     userId: number;
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
-    gclid?: string;
-    campaignId?: string;
+    googleAds?: { gclid?: string; campaignId?: string } | null;
   }) {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
@@ -84,8 +82,8 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
-        ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
-        ...(campaignId && { campaignId }), // Add Google Ads Campaign ID for conversion tracking
+        ...(googleAds?.gclid && { gclid: googleAds.gclid }), // Add Google Ads Click ID for conversion tracking
+        ...(googleAds?.campaignId && { campaignId: googleAds.campaignId }), // Add Google Ads Campaign ID for conversion tracking
       },
       subscription_data: {
         metadata: {

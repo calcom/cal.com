@@ -265,6 +265,7 @@ export class RetellAIService {
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    googleAds?: { gclid?: string; campaignId?: string } | null;
   }) {
     return this.billingService.generatePhoneNumberCheckoutSession(params);
   }

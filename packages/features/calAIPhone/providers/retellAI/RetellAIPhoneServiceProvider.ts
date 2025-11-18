@@ -169,6 +169,7 @@ export class RetellAIPhoneServiceProvider
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    googleAds?: { gclid?: string; campaignId?: string } | null;
   }): Promise<{ url: string; message: string }> {
     return await this.service.generatePhoneNumberCheckoutSession(params);
   }

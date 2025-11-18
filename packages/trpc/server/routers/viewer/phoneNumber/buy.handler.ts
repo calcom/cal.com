@@ -21,8 +21,7 @@ export const buyHandler = async ({ ctx, input }: BuyHandlerOptions) => {
     teamId: input?.teamId ?? undefined,
     agentId: input.agentId,
     workflowId: input.workflowId,
-    gclid: input.googleAds?.gclid,
-    campaignId: input.googleAds?.campaignId,
+    googleAds: input.googleAds,
   });
 
   if (checkoutSession) {
