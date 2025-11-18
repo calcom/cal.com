@@ -540,8 +540,6 @@ export default class EventManager {
     credentialId: number | null | undefined,
     type: string
   ): Promise<CredentialForCalendarService | null | undefined> {
-    const expectedSuffixes = ["_video", "_conferencing"];
-
     const credential = this.videoCredentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
@@ -557,6 +555,7 @@ export default class EventManager {
     }
 
     if (foundCredential) {
+      const expectedSuffixes = ["_video", "_conferencing"];
       const hasValidSuffix = expectedSuffixes.some((suffix) => foundCredential!.type.endsWith(suffix));
       if (!hasValidSuffix) {
         log.error(
@@ -589,8 +588,6 @@ export default class EventManager {
     type: string,
     delegationCredentialId?: string | null
   ): Promise<CredentialForCalendarService | null | undefined> {
-    const expectedSuffixes = ["_calendar"];
-
     if (delegationCredentialId) {
       return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
@@ -610,6 +607,7 @@ export default class EventManager {
     }
 
     if (foundCredential) {
+      const expectedSuffixes = ["_calendar"];
       const hasValidSuffix = expectedSuffixes.some((suffix) => foundCredential!.type.endsWith(suffix));
       if (!hasValidSuffix) {
         log.error(
@@ -1230,9 +1228,10 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      const message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
-      const errorMessage = error instanceof Error ? message.replace("{thing}", error.message) : message;
-      log.error("updateAllCalendarEvents error", errorMessage);
+      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      if (error instanceof Error) {
+        message = message.replace("{thing}", error.message);
+      }
 
       return Promise.resolve(
         calendarReference?.map((reference) => {
