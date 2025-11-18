@@ -168,7 +168,6 @@ export async function handler(
   deps: IInstantBookingCreateServiceDependencies,
   bookingMeta?: CreateBookingMeta
 ) {
-  console.log("asap bookingMeta - will remove by Lauris", bookingMeta);
   // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
   const { prismaClient: prisma } = deps;
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
