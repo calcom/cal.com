@@ -22678,7 +22678,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -22745,7 +22746,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -27394,6 +27396,10 @@
           "email": {
             "type": "string"
           },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -27419,6 +27425,7 @@
           "id",
           "username",
           "email",
+          "name",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
