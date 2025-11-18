@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -15,14 +16,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
     if (!clientId) return res.status(400).json({ message: "Office 365 client_id missing." });
     const state = encodeOAuthState(req);
+    const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`;
     const params = {
       response_type: "code",
       scope: scopes.join(" "),
       client_id: clientId,
       prompt: "select_account",
-      redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365calendar/callback`,
+      redirect_uri: redirectUri,
       state,
     };
+    // Debug logging to help troubleshoot redirect URI issues
+    logger.info("Office365 Calendar OAuth - Redirect URI and Client ID", {
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      webapp_url_for_oauth: WEBAPP_URL_FOR_OAUTH,
+    });
     const query = stringify(params);
     const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${query}`;
     res.status(200).json({ url });

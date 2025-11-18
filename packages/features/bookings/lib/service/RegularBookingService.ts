@@ -1368,8 +1368,8 @@ async function handler(
     .withMetadataAndResponses({
       additionalNotes,
       customInputs,
-      responses: eventType.seatsPerTimeSlot ? null : (reqBody.calEventResponses || null),
-      userFieldsResponses: eventType.seatsPerTimeSlot ? null : (reqBody.calEventUserFieldsResponses || null),
+      responses: reqBody.calEventResponses || null,
+      userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     })
     .withLocation({
       location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
