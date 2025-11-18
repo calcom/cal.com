@@ -24,6 +24,7 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import { BookingsListContainer } from "../components/BookingsListContainer";
+import { ViewToggleButton } from "../components/ViewToggleButton";
 import type { BookingListingStatus } from "../lib/validStatuses";
 import type { validStatuses } from "../lib/validStatuses";
 import { viewParser } from "../lib/viewParser";
@@ -197,19 +198,22 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
 
   return (
     <div className="flex flex-col">
-      <div className="mb-4 flex flex-row flex-wrap justify-between lg:mb-5">
-        <ToggleGroup
-          value={currentTab}
-          onValueChange={(value) => {
-            if (!value) return;
-            const selectedTab = tabOptions.find((tab) => tab.value === value);
-            if (selectedTab?.href) {
-              router.push(selectedTab.href);
-            }
-          }}
-          options={tabOptions}
-        />
-      </div>
+      {view === "list" && (
+        <div className="mb-4 flex flex-row flex-wrap justify-between lg:mb-5">
+          <ToggleGroup
+            value={currentTab}
+            onValueChange={(value) => {
+              if (!value) return;
+              const selectedTab = tabOptions.find((tab) => tab.value === value);
+              if (selectedTab?.href) {
+                router.push(selectedTab.href);
+              }
+            }}
+            options={tabOptions}
+          />
+          <ViewToggleButton />
+        </div>
+      )}
       <main className="w-full">
         <div className="flex w-full flex-col">
           {status === "upcoming" && !isEmpty && (
