@@ -49,6 +49,7 @@ export function BookingsList({
       totalRowCount={totalRowCount}
       variant="compact"
       paginationMode="standard"
+      separatorClassName="py-4 pl-6 text-xs uppercase leading-4"
       ToolbarLeft={
         <>
           <DataTableFilters.FilterBar table={table} />

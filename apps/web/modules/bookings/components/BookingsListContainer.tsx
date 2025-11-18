@@ -5,6 +5,7 @@ import { useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
+import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
@@ -15,7 +16,13 @@ import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
 } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput, BookingOutput } from "../types";
+import type {
+  RowData,
+  BookingRowData,
+  BookingListingStatus,
+  BookingsGetOutput,
+  BookingOutput,
+} from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
 
@@ -58,7 +65,7 @@ function BookingsListInner({
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.eventType.id, {
         id: "eventTypeId",
         header: t("event_type"),
         enableColumnFilter: true,
@@ -70,7 +77,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.eventType.team?.id, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,
@@ -82,7 +89,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
         enableColumnFilter: permissions.canReadOthersBookings,
@@ -133,7 +140,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.uid, {
         id: "bookingUid",
         header: t("booking_uid"),
         enableColumnFilter: true,
@@ -151,37 +158,30 @@ function BookingsListInner({
       columnHelper.display({
         id: "customView",
         cell: (props) => {
-          if (props.row.original.type === "data") {
-            const { booking, recurringInfo, isToday } = props.row.original;
-            return (
-              <BookingListItem
-                key={booking.id}
-                isToday={isToday}
-                loggedInUser={{
-                  userId: user?.id,
-                  userTimeZone: user?.timeZone,
-                  userTimeFormat: user?.timeFormat,
-                  userEmail: user?.email,
-                }}
-                listingStatus={status}
-                recurringInfo={recurringInfo}
-                {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.uid) })}
-                {...booking}
-              />
-            );
-          } else if (props.row.original.type === "today") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("today")}
-              </p>
-            );
-          } else if (props.row.original.type === "next") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("next")}
-              </p>
-            );
+          const row = props.row.original;
+
+          // Separator rows are handled automatically by DataTable
+          if (isSeparatorRow(row)) {
+            return null;
           }
+
+          const { booking, recurringInfo, isToday } = row;
+          return (
+            <BookingListItem
+              key={booking.id}
+              isToday={isToday}
+              loggedInUser={{
+                userId: user?.id,
+                userTimeZone: user?.timeZone,
+                userTimeFormat: user?.timeFormat,
+                userEmail: user?.email,
+              }}
+              listingStatus={status}
+              recurringInfo={recurringInfo}
+              {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.uid) })}
+              {...booking}
+            />
+          );
         },
       }),
     ];
@@ -192,7 +192,7 @@ function BookingsListInner({
    * - Deduplicates recurring bookings for recurring/unconfirmed/cancelled tabs
    * - For "upcoming" status, filters out today's bookings (they're shown in separate "Today" section)
    */
-  const flatData = useMemo<RowData[]>(() => {
+  const flatData = useMemo<BookingRowData[]>(() => {
     // For recurring/unconfirmed/cancelled tabs: track recurring series to show only one representative booking per series
     // Key: recurringEventId, Value: array of all bookings in that series
     const shownBookings: Record<string, BookingOutput[]> = {};
@@ -230,7 +230,7 @@ function BookingsListInner({
 
     return (
       data?.bookings.filter(filterBookings).map((booking) => ({
-        type: "data",
+        type: "data" as const,
         booking,
         recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
         isToday: false,
@@ -239,7 +239,7 @@ function BookingsListInner({
   }, [data, status, user?.timeZone]);
 
   // Extract today's bookings for the "Today" section (only used in "upcoming" status)
-  const bookingsToday = useMemo<RowData[]>(() => {
+  const bookingsToday = useMemo<BookingRowData[]>(() => {
     return (data?.bookings ?? [])
       .filter(
         (booking: BookingOutput) =>
@@ -264,13 +264,13 @@ function BookingsListInner({
     // For "upcoming" status, organize into "Today" and "Next" sections
     const merged: RowData[] = [];
     if (bookingsToday.length > 0) {
-      merged.push({ type: "today" as const }, ...bookingsToday);
+      merged.push({ type: "separator" as const, label: t("today") }, ...bookingsToday);
     }
     if (flatData.length > 0) {
-      merged.push({ type: "next" as const }, ...flatData);
+      merged.push({ type: "separator" as const, label: t("next") }, ...flatData);
     }
     return merged;
-  }, [bookingsToday, flatData, status]);
+  }, [bookingsToday, flatData, status, t]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
