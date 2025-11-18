@@ -2,11 +2,19 @@
 title: "Stripe connect"
 ---
 
-The Stripe connect button is used to effortlessly connect a user's Stripe account for payment processing. This allows users to accept payments for their bookings, with automatic payment collection and processing through Stripe's secure platform.
+The Stripe connect integration allows users to effortlessly connect their Stripe account for payment processing. This enables users to accept payments for their bookings, with automatic payment collection and processing through Stripe's secure platform.
 
-Below code snippet can be used to render the Stripe connect button
+## Ways to connect Stripe
 
-```js
+There are two ways to connect your Stripe account in Cal.com platform integrations:
+
+<Steps>
+  <Step title="Direct Stripe Connect atom">
+    Use the standalone Stripe Connect button atom to provide a dedicated connection interface. This is ideal when you want to give users a specific place to manage their Stripe connection.
+
+    Below code snippet can be used to render the Stripe connect button:
+
+    ```js
 import { Connect } from "@calcom/atoms";
 
 export default function ConnectStripe() {
@@ -18,25 +26,43 @@ export default function ConnectStripe() {
 }
 ```
 
-The Stripe connect atom provides a seamless way to integrate Stripe payment processing into your Cal.com platform integration. When clicked, the button redirects users to Stripe's OAuth consent page where they can authorize Cal.com to access their Stripe account. Once connected, users can start accepting payments for their bookings.
+    The Stripe connect atom provides a seamless way to integrate Stripe payment processing. When clicked, the button redirects users to Stripe's OAuth consent page where they can authorize Cal.com to access their Stripe account. Once connected, users can start accepting payments for their bookings.
 
-## Basic usage
+    **IMAGE_PLACEHOLDER_1**
+  </Step>
 
-The simplest implementation requires no additional props. The atom will handle the connection flow automatically:
+  <Step title="Event Type Settings payment tab">
+    Use the Event Type Settings component with the payments tab enabled. This approach integrates Stripe connection directly into the event type configuration flow, allowing users to set up payments while configuring their event types.
 
-```js
-import { Connect } from "@calcom/atoms";
+    Below code snippet can be used to render the Event Type Settings with the payments tab:
 
-export default function ConnectStripe() {
+    ```js
+import { EventTypeSettings } from "@calcom/atoms";
+
+export default function EventType() {
+  const eventTypeId = 123; // Your event type ID
+  
   return (
     <>
-      <Connect.Stripe />
+      <EventTypeSettings 
+        id={eventTypeId} 
+        allowDelete={true}
+        tabs={["setup", "availability", "team", "limits", "advanced", "recurring", "payments"]}
+      />
     </>
   );
 }
 ```
 
-## Custom labels
+    The Event Type Settings component includes a payments tab where users can connect their Stripe account and configure payment settings (price, currency, etc.) all in one place. This provides a more integrated experience when setting up paid event types.
+
+    **IMAGE_PLACEHOLDER_2**
+  </Step>
+</Steps>
+
+## Advanced usage
+
+### Custom labels
 
 You can customize the button labels for different states (default, loading, and already connected):
 
@@ -56,7 +82,7 @@ export default function ConnectStripe() {
 }
 ```
 
-## Redirect URLs
+### Redirect URLs
 
 You can specify custom redirect URLs for successful connections and error scenarios:
 
@@ -75,7 +101,7 @@ export default function ConnectStripe() {
 }
 ```
 
-## Team integration
+### Team integration
 
 For team-based Stripe connections, pass the `teamId` prop:
 
@@ -93,7 +119,7 @@ export default function ConnectStripe() {
 }
 ```
 
-## Handling connection status
+### Handling connection status
 
 You can use callback functions to handle connection check success and errors:
 
@@ -120,7 +146,7 @@ export default function ConnectStripe() {
 }
 ```
 
-## Custom styling
+### Custom styling
 
 You can customize the appearance of the button using the `className`, `icon`, and `color` props:
 
