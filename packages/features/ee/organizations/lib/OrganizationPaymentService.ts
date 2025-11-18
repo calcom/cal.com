@@ -4,6 +4,7 @@ import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -277,16 +278,11 @@ export class OrganizationPaymentService {
       })
     );
 
-    const trialDays = process.env.STRIPE_ORG_TRIAL_DAYS
-      ? parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10)
+    const subscriptionData = ORG_TRIAL_DAYS
+      ? {
+          trial_period_days: ORG_TRIAL_DAYS,
+        }
       : undefined;
-
-    const subscriptionData =
-      trialDays && !isNaN(trialDays) && trialDays > 0
-        ? {
-            trial_period_days: trialDays,
-          }
-        : undefined;
 
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
