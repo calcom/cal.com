@@ -12,7 +12,6 @@ import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
-import type { WidgetsWithoutFactory } from "./react-awesome-query-builder/config/types";
 
 export type FormInputFieldsProps = {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
@@ -32,7 +31,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
 
   const fullConfig = getQueryBuilderConfigForFormFields(form);
   const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
-    config: { widgets: fullConfig.widgets as unknown as WidgetsWithoutFactory, settings: fullConfig.settings },
+    config: fullConfig,
     configFor: ConfigFor.FormFields,
   });
 
