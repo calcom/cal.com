@@ -1,3 +1,4 @@
+/* eslint-disable */
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
@@ -223,8 +224,6 @@ const nextConfig = (phase) => {
       "@calcom/dayjs",
       "@calcom/emails",
       "@calcom/embed-core",
-      "@calcom/embed-react",
-      "@calcom/embed-snippet",
       "@calcom/features",
       "@calcom/lib",
       "@calcom/prisma",
@@ -406,7 +405,7 @@ const nextConfig = (phase) => {
       }, */
       ];
 
-      if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      if (process.env.NEXT_PUBLIC_API_V2_URL) {
         afterFiles.push({
           source: "/api/v2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,

@@ -17,7 +17,7 @@ export const MembershipUserSelect: Prisma.UserSelect = {
   name: true,
   metadata: true,
   bio: true,
-};
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class TeamsMembershipsRepository {

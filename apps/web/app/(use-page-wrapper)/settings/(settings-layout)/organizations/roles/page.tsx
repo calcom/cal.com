@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
-import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
 
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";

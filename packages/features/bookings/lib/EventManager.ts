@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
@@ -10,6 +9,7 @@ import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calc
 import getApps from "@calcom/app-store/utils";
 import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
 import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import CrmManager from "@calcom/features/crmManager/crmManager";
 import CRMScheduler from "@calcom/features/crmManager/crmScheduler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -24,7 +24,6 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";

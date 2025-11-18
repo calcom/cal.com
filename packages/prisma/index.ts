@@ -1,18 +1,31 @@
-import { PrismaClient, type Prisma } from "@calcom/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { usageTrackingExtention } from "./extensions/usage-tracking";
-import { bookingReferenceMiddleware } from "./middleware";
+import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
-const prismaOptions: Prisma.PrismaClientOptions = {};
+const connectionString = process.env.DATABASE_URL || "";
+const isIntegrationTest = process.env.INTEGRATION_TESTS === "true";
+const pool =
+  !isIntegrationTest && (process.env.USE_POOL === "true" || process.env.USE_POOL === "1")
+    ? new Pool({
+        connectionString: connectionString,
+        max: 5,
+        idleTimeoutMillis: 300000,
+      })
+    : undefined;
+
+const adapter = pool ? new PrismaPg(pool) : new PrismaPg({ connectionString });
+const prismaOptions: Prisma.PrismaClientOptions = {
+  adapter,
+};
 
 const globalForPrisma = global as unknown as {
   baseClient: PrismaClient;
 };
-
 const loggerLevel = parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL ?? "", 10);
 
 if (!isNaN(loggerLevel)) {
@@ -33,20 +46,31 @@ if (!isNaN(loggerLevel)) {
       break;
   }
 }
-
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
-export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClient({ ...prismaOptions, ...options })
-    .$extends(usageTrackingExtention(baseClient))
+export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
+  let finalOptions = { ...prismaOptions };
+
+  if (options?.datasources?.db?.url) {
+    const customConnectionString = options.datasources.db.url;
+    const customAdapter = new PrismaPg({ connectionString: customConnectionString });
+
+    const { datasources: _datasources, ...restOptions } = options;
+    finalOptions = {
+      ...prismaOptions,
+      ...restOptions,
+      adapter: customAdapter,
+    };
+  } else if (options) {
+    finalOptions = { ...prismaOptions, ...options };
+  }
+
+  return new PrismaClient(finalOptions)
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
-
-// If any changed on middleware server restart is required
-// TODO: Migrate it to $extends
-bookingReferenceMiddleware(baseClient);
+};
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
@@ -54,7 +78,6 @@ bookingReferenceMiddleware(baseClient);
 // Explanation why we cast as PrismaClient. When we leave Prisma to its devices it tries to infer logic based on the extensions, but this is not a simple extends.
 // this makes the PrismaClient export type-hint impossible and it also is a massive hit on Prisma type hinting performance.
 export const prisma: PrismaClient = baseClient
-  .$extends(usageTrackingExtention(baseClient))
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())

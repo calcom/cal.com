@@ -86,7 +86,9 @@ export class PrismaPhoneNumberRepository {
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await this.prismaClient.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await this.prismaClient.$queryRaw<
+            (AgentRawResult & { phoneNumberId: number; agentType: string })[]
+          >`
         SELECT
           a.id,
           a.name,
@@ -236,15 +238,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async findByIdWithTeamAccess({
-    id,
-    teamId,
-    userId,
-  }: {
-    id: number;
-    teamId: number;
-    userId: number;
-  }) {
+  async findByIdWithTeamAccess({ id, teamId, userId }: { id: number; teamId: number; userId: number }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     if (!accessibleTeamIds.includes(teamId)) {
@@ -380,7 +374,9 @@ export class PrismaPhoneNumberRepository {
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await this.prismaClient.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await this.prismaClient.$queryRaw<
+            (AgentRawResult & { phoneNumberId: number; agentType: string })[]
+          >`
         SELECT
           a.id,
           a.name,
@@ -522,13 +518,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async updateInboundAgentId({
-    id,
-    agentId,
-  }: {
-    id: number;
-    agentId: string;
-  }) {
+  async updateInboundAgentId({ id, agentId }: { id: number; agentId: string }) {
     // Atomic update: only set if inboundAgentId is currently null
     return await this.prismaClient.calAiPhoneNumber.updateMany({
       where: {
@@ -557,7 +547,7 @@ export class PrismaPhoneNumberRepository {
         userId: true,
         teamId: true,
         user: { select: { id: true, email: true, name: true } },
-        team: { select: { id: true, name: true } },
+        team: { select: { id: true, name: true, parentId: true } },
       },
     });
   }

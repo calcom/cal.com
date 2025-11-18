@@ -125,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     t: __t,
     dataTestid,
     size,

@@ -112,4 +112,3 @@ export function DecoyBookingSuccessCard({
     </div>
   );
 }
-

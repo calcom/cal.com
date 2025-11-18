@@ -121,7 +121,6 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
  * @returns A new object without the _resource property
  */
 export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
-
   const { _resource, ...rest } = config;
   return rest;
 };
@@ -167,6 +166,25 @@ export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): Permi
   });
 
   return filteredRegistry as PermissionRegistry;
+};
+
+export const getAllPermissionStringsForScope = (scope: Scope): PermissionString[] => {
+  const registry = getPermissionsForScope(scope);
+  return Object.entries(registry).flatMap(([resource, config]) =>
+    Object.keys(config)
+      .filter((k) => k !== "_resource")
+      .map((action) => `${resource}.${action}` as PermissionString)
+  );
+};
+
+const getPermissionSetForScope = (scope: Scope): Set<PermissionString> => {
+  return new Set(getAllPermissionStringsForScope(scope));
+};
+
+export const isValidPermissionStringForScope = (val: unknown, scope: Scope): val is PermissionString => {
+  if (!isValidPermissionString(val)) return false;
+  const allowed = getPermissionSetForScope(scope);
+  return allowed.has(val as PermissionString);
 };
 
 // Keep in mind these are on a team/organization level, not a user level
@@ -515,12 +533,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_organization_attributes",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Update organization attributes",
       category: "attributes",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Delete]: {
@@ -528,6 +548,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
     },
     [CrudAction.Create]: {
@@ -535,6 +556,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
+      scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
     },
   },

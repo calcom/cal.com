@@ -8,6 +8,8 @@ import {
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   FORM_ALLOWED_STEP_ACTIONS,
+  SMS_ATTENDEE,
+  SMS_NUMBER,
   UpdateEmailAddressWorkflowStepDto,
   UpdateEmailAttendeeWorkflowStepDto,
   UpdateEmailHostWorkflowStepDto,
@@ -75,6 +77,8 @@ export class UpdateFormWorkflowDto {
     oneOf: [
       { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
       { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
+      { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
     ],
     type: "array",
   })
@@ -90,8 +94,15 @@ export class UpdateFormWorkflowDto {
       subTypes: [
         { value: UpdateEmailAddressWorkflowStepDto, name: EMAIL_ADDRESS },
         { value: UpdateEmailAttendeeWorkflowStepDto, name: EMAIL_ATTENDEE },
+        { value: UpdatePhoneAttendeeWorkflowStepDto, name: SMS_ATTENDEE },
+        { value: UpdatePhoneNumberWorkflowStepDto, name: SMS_NUMBER },
       ],
     },
   })
-  steps?: (UpdateEmailAddressWorkflowStepDto | UpdateEmailAttendeeWorkflowStepDto)[];
+  steps?: (
+    | UpdateEmailAddressWorkflowStepDto
+    | UpdateEmailAttendeeWorkflowStepDto
+    | UpdatePhoneNumberWorkflowStepDto
+    | UpdatePhoneAttendeeWorkflowStepDto
+  )[];
 }

@@ -135,8 +135,8 @@ function UsersTableBare() {
     },
   });
 
-  const handleImpersonateUser = async (username: string | null) => {
-    await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
+  const handleImpersonateUser = async (email: string | null) => {
+    await signIn("impersonation-auth", { username: email, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
@@ -243,7 +243,7 @@ function UsersTableBare() {
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
-                          onClick: () => handleImpersonateUser(user?.username),
+                          onClick: () => handleImpersonateUser(user?.email),
                           icon: "user",
                         },
                         {
@@ -275,7 +275,7 @@ function UsersTableBare() {
                           id: "impersonation",
                           label: "Impersonate",
                           onClick: () => {
-                            setSelectedUser(user.username);
+                            setSelectedUser(user.email);
                             setShowImpersonateModal(true);
                           },
                           icon: "venetian-mask",
@@ -345,7 +345,7 @@ const DeleteUserDialog = ({
   onClose: () => void;
 }) => {
   return (
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
+     
     <Dialog name="delete-user" open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title="Delete User"

@@ -12,9 +12,9 @@ import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRo
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";

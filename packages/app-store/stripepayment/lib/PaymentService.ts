@@ -2,13 +2,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";

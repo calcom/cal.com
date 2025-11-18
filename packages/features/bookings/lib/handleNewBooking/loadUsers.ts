@@ -4,10 +4,10 @@ import {
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
 } from "@calcom/features/users/lib/getRoutedUsers";
+import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma, { userSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -100,7 +100,7 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   }
   return findUsersByUsername({
     usernameList: dynamicUserList,
-    orgSlug: !!currentOrgDomain ? currentOrgDomain : null,
+    orgSlug: currentOrgDomain ? currentOrgDomain : null,
   });
 };
 

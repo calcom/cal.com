@@ -308,7 +308,7 @@ const WeightedAttributesSelector = ({
           />
         </div>
         <div className="bg-muted mt-1 rounded-xl p-2">
-          {!!attributeIdForWeights ? (
+          {attributeIdForWeights ? (
             <SelectField
               size="sm"
               containerClassName="data-testid-select-router"

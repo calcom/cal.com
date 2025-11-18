@@ -172,7 +172,7 @@ export const updateMeetingTokenIfExpired = async ({
 
   try {
     await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  } catch (err) {
+  } catch {
     const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
         room_name: roomName,
@@ -202,10 +202,9 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
   userId,
 }: {
   meetingToken: string | null;
-  userId?: number;
+  userId?: number | string;
 }) => {
   if (!meetingToken) return null;
-
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {
@@ -426,7 +425,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           getRecordingsResponseSchema.parse
         );
         return Promise.resolve(res);
-      } catch (err) {
+      } catch {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },

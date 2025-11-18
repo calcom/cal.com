@@ -1,10 +1,10 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
@@ -770,6 +770,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -971,6 +972,7 @@ export class EventTypeRepository {
         select: {
           isFixed: true,
           userId: true,
+          groupId: true,
           priority: true,
           weight: true,
           scheduleId: true,
@@ -1066,6 +1068,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -1132,6 +1135,7 @@ export class EventTypeRepository {
             },
             weight: true,
             priority: true,
+            groupId: true,
             createdAt: true,
           },
         },
@@ -1153,6 +1157,44 @@ export class EventTypeRepository {
       ...eventType,
       hosts: hostsWithSelectedCalendars(eventType.hosts),
     };
+  }
+
+  async findByIdIncludeHostsAndTeamMembers({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        bookingRequiresAuthentication: true,
+        userId: true,
+        teamId: true,
+        hosts: {
+          select: {
+            userId: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+            isOrganization: true,
+            members: {
+              where: {
+                accepted: true,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+              select: {
+                userId: true,
+                role: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {

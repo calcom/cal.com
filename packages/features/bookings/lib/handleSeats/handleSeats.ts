@@ -1,10 +1,10 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 

@@ -24,7 +24,7 @@ export const STEP_ACTIONS = [
   CAL_AI_PHONE_CALL,
 ] as const;
 
-export const FORM_ALLOWED_STEP_ACTIONS = [EMAIL_ATTENDEE, EMAIL_ADDRESS] as const;
+export const FORM_ALLOWED_STEP_ACTIONS = [EMAIL_ATTENDEE, EMAIL_ADDRESS, SMS_ATTENDEE, SMS_NUMBER] as const;
 
 export const STEP_ACTIONS_TO_ENUM = {
   [EMAIL_HOST]: WorkflowActions.EMAIL_HOST,

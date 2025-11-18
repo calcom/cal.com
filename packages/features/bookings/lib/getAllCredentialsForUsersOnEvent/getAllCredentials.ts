@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

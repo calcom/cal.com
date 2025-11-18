@@ -47,7 +47,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!eventType) return { notFound: true } as const;
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true } as const;
+  if (eventType.users.length === 0 && !eventType.team) return { notFound: true } as const;
 
   const [user] = eventType?.users.length
     ? eventType.users

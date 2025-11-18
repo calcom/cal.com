@@ -10,30 +10,27 @@ import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
-  SMS_REMINDER_NUMBER_FIELD,
-  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-} from "@calcom/lib/bookings/SystemField";
-import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
   getAIAgentCallPhoneNumberField,
   getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { WorkflowType as PrismaWorkflowType, type Workflow } from "@calcom/prisma/client";
+import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowType as PrismaWorkflowType } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -912,6 +909,8 @@ export async function scheduleBookingReminders(
           userId,
           teamId,
           verifiedAt: step?.verifiedAt ?? null,
+          submittedPhoneNumber: booking.smsReminderNumber,
+          routedEventTypeId: null,
         });
       }
     });

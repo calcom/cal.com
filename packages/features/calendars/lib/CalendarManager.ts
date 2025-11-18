@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -515,6 +515,11 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
 
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
     calendarEvent.attendees = [];
+  }
+
+  if (calEvent.seatsPerTimeSlot){
+    calendarEvent.responses = null;
+    calendarEvent.userFieldsResponses = null;
   }
 
   return calendarEvent;

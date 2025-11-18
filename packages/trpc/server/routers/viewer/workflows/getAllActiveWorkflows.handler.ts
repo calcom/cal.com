@@ -1,6 +1,6 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
+import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

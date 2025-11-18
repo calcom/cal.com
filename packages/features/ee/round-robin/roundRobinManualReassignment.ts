@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
@@ -8,12 +7,13 @@ import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
-} from "@calcom/emails";
+} from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -26,7 +26,6 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
@@ -151,9 +150,20 @@ export const roundRobinManualReassignment = async ({
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
+
+  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts,
+    attendees: booking.attendees,
+    organizer,
+    previousHost: previousRRHost || null,
+    reassignedHost: newUser,
+  });
+
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
-    const responseSchema = getBookingResponsesSchema({
+    const responseSchema = getBookingResponsesPartialSchema({
       bookingFields: eventType.bookingFields,
       view: "reschedule",
     });
@@ -180,7 +190,8 @@ export const roundRobinManualReassignment = async ({
       attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
-      teamName: eventType.team?.name,
+      // we send on behalf of team if >1 round robin attendee | collective
+      teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
@@ -244,17 +255,7 @@ export const roundRobinManualReassignment = async ({
     hasOrganizerChanged,
   });
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
-
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-
-  const teamMembers = await getTeamMembers({
-    eventTypeHosts,
-    attendees: booking.attendees,
-    organizer,
-    previousHost: previousRRHost || null,
-    reassignedHost: newUser,
-  });
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -312,7 +313,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  if( hasOrganizerChanged ){
+  if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
@@ -385,7 +386,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {

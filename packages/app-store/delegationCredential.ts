@@ -3,6 +3,10 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -10,10 +14,6 @@ import {
 } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -653,7 +653,7 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
 /**
  * It includes in-memory DelegationCredential credentials as well.
  */
-export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<User, "id" | "email">) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
