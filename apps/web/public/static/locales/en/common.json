@@ -4007,5 +4007,7 @@
   "onboarding_browser_view_ask_question_description": "Ask a question",
   "onboarding_browser_view_default_bio": "Add your bio here...",
   "book_now": "Book now",
+  "only_available_on_orgs_plan": "This feature is available on the Organization plan",
+  "upgrade_team_to_orgs_with_price": "Upgrade your team to get access to this and much more for $37 per month/user.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
