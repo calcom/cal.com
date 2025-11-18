@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
           "react-dom/client",
           "@prisma/client",
           "react/jsx-dev-runtime",
-        , "react-awesome-query-builder"],
+        , "react-awesome-query-builder", "react-awesome-query-builder", "react-awesome-query-builder"],
         output: {
           globals: {
             react: "React",
