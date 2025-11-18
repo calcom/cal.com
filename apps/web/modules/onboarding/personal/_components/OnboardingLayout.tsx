@@ -1,5 +1,10 @@
+"use client";
+
+import { signOut } from "next-auth/react";
 import type { ReactNode } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
@@ -9,6 +14,12 @@ type OnboardingLayoutProps = {
 };
 
 export const OnboardingLayout = ({ userEmail, currentStep, children }: OnboardingLayoutProps) => {
+  const { t } = useLocale();
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/auth/logout" });
+  };
+
   return (
     <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
       {/* Header */}
@@ -33,8 +44,15 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
       </div>
 
       {/* Main content */}
-      <div className="flex h-full w-full items-start justify-center px-6 py-8">
+      <div className="flex w-full flex-1 items-start justify-center px-6 py-8">
         <div className="flex w-full max-w-[600px] flex-col gap-4">{children}</div>
+      </div>
+
+      {/* Footer with signout button */}
+      <div className="flex w-full items-center justify-center px-6 py-6">
+        <Button onClick={handleSignOut} color="minimal">
+          {t("sign_out")}
+        </Button>
       </div>
     </div>
   );

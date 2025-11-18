@@ -116,6 +116,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -130,6 +131,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/message-pin.svg",
     category: "other",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -312,7 +314,6 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
     if (location.displayLocationPublicly || !eventLocationType) {
       return location;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
       logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;

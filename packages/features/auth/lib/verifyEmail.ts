@@ -5,7 +5,7 @@ import {
   sendEmailVerificationCode,
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
-} from "@calcom/emails/email-manager";
+} from "@calcom/emails/auth-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";

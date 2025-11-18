@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
+import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -11,6 +12,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
@@ -21,14 +23,10 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
-
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {
@@ -47,6 +45,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let hostsRepositoryFixture: HostsRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     const teamUserEmail = `reassign-bookings-2024-08-13-user1-${randomString()}@api.com`;
     const teamUserEmail2 = `reassign-bookings-2024-08-13-user2-${randomString()}@api.com`;
@@ -54,23 +53,26 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamUser1: User;
     let teamUser2: User;
     let teamUser3: User;
+    let teamUser1ApiKey: string;
+    let teamUser2ApiKey: string;
 
     let teamRoundRobinEventTypeId: number;
     let teamRoundRobinFixedHostEventTypeId: number;
     let teamRoundRobinNonFixedEventTypeId: number;
+    let teamRoundRobinWithRescheduleReasonEventTypeId: number;
 
     let teamRoundRobinNonFixedEventTypeTitle: string;
     let teamRoundRobinFixedHostEventTypeTitle: string;
+    let teamRoundRobinWithRescheduleReasonEventTypeTitle: string;
 
     let roundRobinBooking: Booking;
+    let rescheduleReasonBookingUid: string;
+    let rescheduleReasonBookingInitialHostId: number;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        teamUserEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -86,6 +88,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({
@@ -121,6 +124,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
         locale: "en",
         name: `reassign-bookings-2024-08-13-user3-${randomString()}`,
       });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(teamUser1.id, null);
+      teamUser1ApiKey = `cal_test_${keyString}`;
+
+      const { keyString: keyString2 } = await apiKeysRepositoryFixture.createApiKey(teamUser2.id, null);
+      teamUser2ApiKey = `cal_test_${keyString2}`;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `reassign-bookings-2024-08-13-schedule-${randomString()}`,
@@ -389,6 +398,74 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      const teamEventTypeWithRescheduleReason = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team.id },
+        },
+        users: {
+          connect: [{ id: teamUser1.id }, { id: teamUser2.id }],
+        },
+        title: `reassign-bookings-2024-08-13-reschedule-reason-event-type-${randomString()}`,
+        slug: `reassign-bookings-2024-08-13-reschedule-reason-event-type-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [
+          {
+            name: "rescheduleReason",
+            type: "textarea",
+            defaultLabel: "Reason for rescheduling",
+            required: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system",
+            views: [
+              {
+                id: "reschedule",
+                label: "Reschedule View",
+              },
+            ],
+          },
+        ],
+        locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+      });
+
+      teamRoundRobinWithRescheduleReasonEventTypeId = teamEventTypeWithRescheduleReason.id;
+      teamRoundRobinWithRescheduleReasonEventTypeTitle = teamEventTypeWithRescheduleReason.title;
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser1.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamEventTypeWithRescheduleReason.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamEventTypeWithRescheduleReason.id,
+          },
+        },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -401,6 +478,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${roundRobinBooking.uid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -440,6 +518,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${roundRobinBooking.uid}/reassign/${teamUser1.id}`)
         .send(body)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -490,6 +569,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser2ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -539,6 +619,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign/${teamUser3.id}`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -556,6 +637,147 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const expectedReassignedTitle = `${teamRoundRobinFixedHostEventTypeTitle} between ${team.name} and Alice`;
           expect(reassigned?.title).toEqual(expectedReassignedTitle);
         });
+    });
+
+    it("should preserve attendee name when reassigning round robin host manually with rescheduleReason required", async () => {
+      const bookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2050, 0, 10, 13, 0, 0)).toISOString(),
+        eventTypeId: teamRoundRobinWithRescheduleReasonEventTypeId,
+        attendee: {
+          name: "David",
+          email: "david@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        meetingUrl: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingUid = createResponse.body.data.uid;
+      rescheduleReasonBookingUid = bookingUid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toBeDefined();
+      const initialHostId = booking!.userId!;
+      rescheduleReasonBookingInitialHostId = initialHostId;
+
+      const expectedInitialTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${
+        booking?.userId === teamUser1.id ? teamUser1.name : teamUser2.name
+      } and David`;
+      expect(booking?.title).toEqual(expectedInitialTitle);
+      expect(booking?.title).not.toContain("Nameless");
+
+      const reassignToHostId = initialHostId === teamUser1.id ? teamUser2.id : teamUser1.id;
+      const reassignToHostName = reassignToHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign/${reassignToHostId}`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(reassignToHostId);
+
+          const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(reassigned?.userId).toEqual(reassignToHostId);
+
+          const expectedReassignedTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${reassignToHostName} and David`;
+          expect(reassigned?.title).toEqual(expectedReassignedTitle);
+          expect(reassigned?.title).not.toContain("Nameless");
+        });
+    });
+
+    it("should preserve attendee name when reassigning round robin host automatically with rescheduleReason required", async () => {
+      const bookingUid = rescheduleReasonBookingUid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toBeDefined();
+
+      const currentHostId = booking!.userId!;
+      const initialHostId = rescheduleReasonBookingInitialHostId;
+      const initialHostName = initialHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
+
+      expect(currentHostId).not.toEqual(initialHostId);
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(initialHostId);
+
+          const autoReassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(autoReassigned?.userId).toEqual(initialHostId);
+
+          const expectedAutoReassignedTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${initialHostName} and David`;
+          expect(autoReassigned?.title).toEqual(expectedAutoReassignedTitle);
+          expect(autoReassigned?.title).not.toContain("Nameless");
+        });
+    });
+
+    it("should return 403 when unauthorized user tries to reassign booking", async () => {
+      const unauthorizedUserEmail = `fake-user-${randomString()}@api.com`;
+      const unauthorizedUser = await userRepositoryFixture.create({
+        email: unauthorizedUserEmail,
+        locale: "en",
+        name: `fake-user-${randomString()}`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+      const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${roundRobinBooking.uid}/reassign`)
+        .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(403);
+
+      expect(response.body.error.message).toBe(BOOKING_REASSIGN_PERMISSION_ERROR);
+
+      await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
+    });
+
+    it("should return 403 when unauthorized user tries to reassign booking to specific user", async () => {
+      const unauthorizedUserEmail = `fake-user-${randomString()}@api.com`;
+      const unauthorizedUser = await userRepositoryFixture.create({
+        email: unauthorizedUserEmail,
+        locale: "en",
+        name: `fake-user-${randomString()}`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+      const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${roundRobinBooking.uid}/reassign/${teamUser2.id}`)
+        .send({ reason: "Testing unauthorized access" })
+        .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(403);
+
+      expect(response.body.error.message).toBe(BOOKING_REASSIGN_PERMISSION_ERROR);
+
+      await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
     });
 
     async function createOAuthClient(organizationId: number) {
