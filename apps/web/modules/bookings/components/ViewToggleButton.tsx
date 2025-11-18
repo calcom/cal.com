@@ -18,7 +18,7 @@ export function ViewToggleButton() {
     viewParser.withDefault("list").withOptions({ clearOnDefault: true })
   );
   const [, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
-  const isMobile = !useMediaQuery("(min-width: 640px)");
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
     // Force list view on mobile
@@ -28,6 +28,10 @@ export function ViewToggleButton() {
       setView("list");
     }
   }, [isMobile, view, setView, setActiveFilters]);
+
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <div className="hidden sm:block">
