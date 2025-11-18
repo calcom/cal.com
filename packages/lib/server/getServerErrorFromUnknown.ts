@@ -67,6 +67,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     });
   }
   if (isYupError(cause)) {
+    // The ics library (v2.37.0) uses Yup for validation
     return new HttpError({
       statusCode: 400,
       message: parseYupErrors(cause.inner, cause.message),
