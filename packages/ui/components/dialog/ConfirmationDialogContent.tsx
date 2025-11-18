@@ -75,7 +75,11 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
               {description}
             </DialogPrimitive.Description>
           )}
-          {children && <div className="text-subtle text-sm">{children}</div>}
+          {children && (
+            <DialogPrimitive.Description asChild>
+              <div className="text-subtle text-sm">{children}</div>
+            </DialogPrimitive.Description>
+          )}
         </div>
       </div>
       <div className="my-5 flex flex-row-reverse gap-x-2 sm:my-8">
