@@ -527,11 +527,18 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
       return hasAvailableEditAction || hasAvailableAfterAction;
     }
 
-    // For booking-details-sheet context, also check report and cancel actions
+    // For booking-details-sheet context, also check report, cancel, and remove seats actions
     const isReportAvailable = !reportActionWithHandler.disabled;
     const isCancelAvailable = !cancelEventAction.disabled;
+    const isRemoveSeatsAvailable = removeSeatsAction !== null && !removeSeatsAction.disabled;
 
-    return hasAvailableEditAction || hasAvailableAfterAction || isReportAvailable || isCancelAvailable;
+    return (
+      hasAvailableEditAction ||
+      hasAvailableAfterAction ||
+      isReportAvailable ||
+      isCancelAvailable ||
+      isRemoveSeatsAvailable
+    );
   };
 
   // Don't render dropdown if no actions are available

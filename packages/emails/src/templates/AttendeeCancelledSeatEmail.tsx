@@ -13,12 +13,12 @@ export const AttendeeCancelledSeatEmail = ({
 
   return (
     <AttendeeScheduledEmail
-      {...props}
       title={title}
       headerType="xCircle"
       subject={subject}
       subtitle=""
       callToAction={null}
+      {...props}
     />
   );
 };

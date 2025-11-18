@@ -23,7 +23,7 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const attendeeCount = this.attendees.length;
-    const attendeeNames = this.getAttendeeNames();
+    const attendeeNames = this.getFormattedAttendeeName();
 
     const subjectKey =
       attendeeCount === 1
@@ -50,7 +50,7 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
     };
   }
 
-  private getAttendeeNames(): string {
+  private getFormattedAttendeeName(): string {
     const count = this.attendees.length;
     if (count === 1) {
       return this.attendees[0].name;
@@ -65,14 +65,14 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
   }
 
   protected getTextBody(): string {
-    const attendeeNames = this.getAttendeeNames();
+    const attendeeNames = this.getFormattedAttendeeName();
     const action = this.isCancelledByHost ? "were_removed" : "have_cancelled";
 
     return this.t("attendees_cancelled_seats_text", {
       attendees: attendeeNames,
       action: this.t(action),
       eventType: this.calEvent.type,
-      name: this.calEvent.attendees[0]?.name || "Guest",
+      name: this.calEvent.attendees[0]?.name || this.t("guest"),
       date: this.getFormattedDate(),
     });
   }
