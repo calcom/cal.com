@@ -30,7 +30,7 @@ async function handler(req: NextRequest) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `api:topt-disable:${session.user.id}`,
+    identifier: `api:totp-disable:${session.user.id}`,
   });
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, include: { password: true } });
