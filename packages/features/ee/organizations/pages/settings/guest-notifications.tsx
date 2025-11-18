@@ -27,13 +27,24 @@ const GuestNotificationsView = ({
           <DisableGuestBookingEmailsSetting
             orgId={currentOrg.id}
             settings={{
-              disableGuestConfirmationEmail:
-                currentOrg.organizationSettings.disableGuestConfirmationEmail ?? false,
-              disableGuestCancellationEmail:
-                currentOrg.organizationSettings.disableGuestCancellationEmail ?? false,
-              disableGuestRescheduledEmail:
-                currentOrg.organizationSettings.disableGuestRescheduledEmail ?? false,
-              disableGuestRequestEmail: currentOrg.organizationSettings.disableGuestRequestEmail ?? false,
+              disableAttendeeConfirmationEmail:
+                currentOrg.organizationSettings.disableAttendeeConfirmationEmail ?? false,
+              disableAttendeeCancellationEmail:
+                currentOrg.organizationSettings.disableAttendeeCancellationEmail ?? false,
+              disableAttendeeRescheduledEmail:
+                currentOrg.organizationSettings.disableAttendeeRescheduledEmail ?? false,
+              disableAttendeeRequestEmail:
+                currentOrg.organizationSettings.disableAttendeeRequestEmail ?? false,
+              disableAttendeeReassignedEmail:
+                currentOrg.organizationSettings.disableAttendeeReassignedEmail ?? false,
+              disableAttendeeAwaitingPaymentEmail:
+                currentOrg.organizationSettings.disableAttendeeAwaitingPaymentEmail ?? false,
+              disableAttendeeRescheduleRequestEmail:
+                currentOrg.organizationSettings.disableAttendeeRescheduleRequestEmail ?? false,
+              disableAttendeeLocationChangeEmail:
+                currentOrg.organizationSettings.disableAttendeeLocationChangeEmail ?? false,
+              disableAttendeeNewEventEmail:
+                currentOrg.organizationSettings.disableAttendeeNewEventEmail ?? false,
             }}
           />
         )}

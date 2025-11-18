@@ -75,6 +75,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   const [disableRescheduled, setDisableRescheduled] = useState(
     props.settings.disableAttendeeRescheduledEmail
   );
+
   const [disableRequest, setDisableRequest] = useState(props.settings.disableAttendeeRequestEmail);
   const [disableReassigned, setDisableReassigned] = useState(props.settings.disableAttendeeReassignedEmail);
   const [disableAwaitingPayment, setDisableAwaitingPayment] = useState(
