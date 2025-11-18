@@ -1569,6 +1569,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             oldNormalBooking = created;
             expect(oldNormalBooking).toBeDefined();
             expect(oldNormalBooking.uid).toBeDefined();
+            console.log(`asap 1 oldNormalBooking scheduled uid: ${oldNormalBooking.uid}`);
           } else {
             throw new Error("should create a booking to be rescheduled - Invalid response data");
           }
@@ -1588,6 +1589,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
+              console.log(`asap 2 oldNormalBooking rescheduled uid: ${oldNormalBooking.uid}`);
               const afterCreate = new Date();
               const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
@@ -1697,6 +1699,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const data: RecurringBookingOutput_2024_08_13 = responseBody.data;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
+              console.log(`asap 3 reschedule recurring booking uid ${data.uid}`);
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
               expect(data.hosts[0].email).toEqual(user.email);
