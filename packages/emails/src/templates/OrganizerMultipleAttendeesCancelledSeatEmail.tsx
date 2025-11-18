@@ -31,12 +31,10 @@ export const OrganizerMultipleAttendeesCancelledSeatEmail = ({
   if (attendeeCount === 1) {
     titleKey = isCancelledByHost ? "attendee_was_removed" : "attendee_no_longer_attending";
   } else {
-    titleKey = isCancelledByHost
-      ? "multiple_attendees_were_removed"
-      : "multiple_attendees_no_longer_attending";
+    titleKey = isCancelledByHost ? "some_attendees_were_removed" : "some_attendees_no_longer_attending";
   }
 
-  const titleText = attendeeCount === 1 ? t(titleKey) : t(titleKey, { count: attendeeCount });
+  const titleText = attendeeCount === 1 ? t(titleKey) : t(titleKey);
   const action = isCancelledByHost
     ? attendeeCount === 1
       ? t("was_removed")

@@ -28,14 +28,13 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
     const subjectKey =
       attendeeCount === 1
         ? "attendee_no_longer_attending_subject"
-        : "multiple_attendees_no_longer_attending_subject";
+        : "some_attendees_no_longer_attending_subject";
 
     return {
       to: `${this.calEvent.organizer.name} <${this.calEvent.organizer.email}>`,
       from: `Cal.com <${this.getMailerOptions().from}>`,
       ...getReplyToHeader(this.calEvent),
       subject: `${this.t(subjectKey, {
-        count: attendeeCount,
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
