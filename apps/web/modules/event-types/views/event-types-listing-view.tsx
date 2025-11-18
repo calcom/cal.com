@@ -817,7 +817,7 @@ export const InfiniteEventTypeList = ({
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
-          <p className="mt-5">
+          <div className="mt-5">
             {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
               <ul className="ml-4 list-disc">
                 <li>{t("delete_managed_event_type_description_1")}</li>
@@ -826,7 +826,7 @@ export const InfiniteEventTypeList = ({
             ) : (
               t("delete_event_type_description")
             )}
-          </p>
+          </div>
         </ConfirmationDialogContent>
       </Dialog>
     </div>
@@ -884,8 +884,7 @@ const EmptyEventTypeList = ({
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }

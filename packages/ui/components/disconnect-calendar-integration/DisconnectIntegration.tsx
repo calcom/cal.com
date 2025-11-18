@@ -45,7 +45,7 @@ export const DisconnectIntegrationComponent = ({
           title={t("remove_app")}
           confirmBtnText={t("yes_remove_app")}
           onConfirm={onDeletionConfirmation}>
-          <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
+          <div className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</div>
         </ConfirmationDialogContent>
       </Dialog>
     </>
