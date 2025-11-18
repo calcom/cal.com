@@ -127,20 +127,20 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export type EventManagerInitParams = {
   user: EventManagerUser;
-  eventTypeAppMetadata?: Record<string, unknown>;
+  eventTypeAppMetadata?: Record<string, any>;
 };
 
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
-  appOptions?: Record<string, unknown>;
+  appOptions?: Record<string, any>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, unknown>) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
