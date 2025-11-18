@@ -8,13 +8,14 @@ import { useFilterValue } from "@calcom/features/data-table/hooks/useFilterValue
 import { getDefaultStartDate, getDefaultEndDate } from "@calcom/features/data-table/lib/dateRange";
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
+import type { WorkflowMethods } from "@calcom/prisma/enums";
 
 export function useInsightsWorkflowsParameters() {
   const { userId, teamId, scope, selectedTeamId } = useInsightsOrgTeams();
   const { timeZone } = useDataTable();
 
   const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
-  const type = useFilterValue("type", ZSingleSelectFilterValue)?.data as string | undefined;
+  const type = useFilterValue("workflowType", ZSingleSelectFilterValue)?.data as WorkflowMethods | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
 
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
