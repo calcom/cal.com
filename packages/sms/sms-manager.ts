@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
@@ -42,7 +42,7 @@ const handleSendingSMS = async ({
         phoneNumber: reminderPhone,
         body: smsMessage,
         sender: senderID,
-        ...(!!teamId ? { teamId } : { userId: organizerUserId }),
+        ...(teamId ? { teamId } : { userId: organizerUserId }),
         bookingUid,
       },
     });
