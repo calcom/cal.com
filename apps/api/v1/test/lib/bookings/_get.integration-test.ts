@@ -50,6 +50,8 @@ describe("GET /api/bookings", () => {
       },
     });
   });
+  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
+  const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
   it("Does not return bookings of other users when user has no permission", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
