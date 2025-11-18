@@ -216,7 +216,7 @@ function BookingDetailsSheetInner({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={provider.iconUrl}
-                      className="h-4 w-4 flex-shrink-0 rounded-sm"
+                      className="h-4 w-4 shrink-0 rounded-sm"
                       alt={`${provider.label} logo`}
                     />
                   )}
@@ -320,12 +320,12 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={provider.iconUrl}
-            className="h-4 w-4 flex-shrink-0 rounded-sm"
+            className="h-4 w-4 shrink-0 rounded-sm"
             alt={`${provider?.label} logo`}
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-default flex-shrink-0">{provider?.label}:</span>
+          <span className="text-default shrink-0">{provider?.label}:</span>
           <a
             href={locationToDisplay}
             target="_blank"
