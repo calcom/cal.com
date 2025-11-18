@@ -44,24 +44,28 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
 
       {/* Footer with progress dots and sign out */}
       <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
-        <div className="flex items-center gap-1">
-          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
-            const isCurrent = step === currentStep;
-            const isPast = step < currentStep;
-            const isUpcoming = step > currentStep;
+        <div className="flex min-h-[6px] items-center gap-1">
+          {totalSteps > 0 ? (
+            Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
+              const isCurrent = step === currentStep;
+              const isPast = step < currentStep;
+              const isUpcoming = step > currentStep;
 
-            return (
-              <div
-                key={step}
-                className={classNames("shrink-0 rounded-full transition-all", {
-                  "h-[6px] w-[6px] bg-[var(--cal-text)]": isCurrent,
-                  "h-[4px] w-[4px] bg-[var(--cal-text-subtle)]": isPast,
-                  "h-[4px] w-[4px] bg-[var(--cal-text-muted)] opacity-50": isUpcoming,
-                })}
-                aria-label={`Step ${step} of ${totalSteps}`}
-              />
-            );
-          })}
+              return (
+                <div
+                  key={step}
+                  className={classNames("shrink-0 rounded-full transition-all", {
+                    "h-[6px] w-[6px] bg-[var(--cal-text)]": isCurrent,
+                    "h-[4px] w-[4px] bg-[var(--cal-text-subtle)]": isPast,
+                    "h-[4px] w-[4px] bg-[var(--cal-text-muted)] opacity-50": isUpcoming,
+                  })}
+                  aria-label={`Step ${step} of ${totalSteps}`}
+                />
+              );
+            })
+          ) : (
+            <div className="h-[6px]" aria-hidden="true" />
+          )}
         </div>
         <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
           {t("sign_out")}

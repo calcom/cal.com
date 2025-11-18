@@ -109,7 +109,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   return (
     <>
       <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={1}>
+      <OnboardingLayout userEmail={userEmail}>
         {/* Left column - Main content */}
         <OnboardingCard
           title={t("onboarding_select_plan")}
