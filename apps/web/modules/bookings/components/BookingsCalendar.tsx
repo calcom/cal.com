@@ -14,6 +14,7 @@ import { CUSTOM_PRESET } from "@calcom/features/data-table/lib/dateRange";
 
 import type { RowData, BookingListingStatus, BookingOutput } from "../types";
 import { BookingsCalendarView } from "./BookingsCalendarView";
+import { ViewToggleButton } from "./ViewToggleButton";
 
 type BookingsCalendarProps = {
   status: BookingListingStatus;
@@ -72,6 +73,7 @@ export function BookingsCalendar({
           <DataTableFilters.ClearFiltersButton />
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
+          <ViewToggleButton />
         </div>
       </div>
       {hasError && ErrorView ? (

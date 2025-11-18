@@ -6,7 +6,7 @@ export const ZGetInputSchema = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
-    status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
+    statuses: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).array(),
     eventTypeIds: z.number().array().optional(),
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),

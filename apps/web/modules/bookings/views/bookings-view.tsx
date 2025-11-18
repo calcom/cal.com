@@ -25,7 +25,7 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import { BookingsListContainer } from "../components/BookingsListContainer";
-import { ViewToggleButton } from "../components/ViewToggleButton";
+import type { BookingListingStatus } from "../lib/validStatuses";
 import type { validStatuses } from "../lib/validStatuses";
 import { viewParser } from "../lib/viewParser";
 
@@ -143,12 +143,19 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
   const queryLimit = shouldPaginate ? limit : 100; // Use max limit for calendar view
   const queryOffset = shouldPaginate ? offset : 0; // Reset offset for calendar view
 
+  // For calendar view, fetch all statuses except cancelled
+  // For list view, use the current tab's status
+  const finalStatuses: BookingListingStatus[] = useMemo(
+    () => (view === "calendar" ? ["upcoming", "unconfirmed", "recurring", "past"] : [status]),
+    [view, status]
+  );
+
   const query = trpc.viewer.bookings.get.useQuery(
     {
       limit: queryLimit,
       offset: queryOffset,
       filters: {
-        status,
+        statuses: finalStatuses,
         eventTypeIds,
         teamIds,
         userIds,
@@ -185,8 +192,6 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
             name: t(tab.name),
           }))}
         />
-
-        <ViewToggleButton />
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">

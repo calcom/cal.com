@@ -22,7 +22,7 @@ type GetOptions = {
   take: number;
   skip: number;
   filters: {
-    status?: InputByStatus;
+    statuses: InputByStatus[];
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;

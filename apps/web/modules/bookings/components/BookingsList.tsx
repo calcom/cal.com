@@ -9,6 +9,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { RowData, BookingListingStatus } from "../types";
+import { ViewToggleButton } from "./ViewToggleButton";
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
@@ -58,6 +59,7 @@ export function BookingsList({
           <DataTableFilters.ClearFiltersButton />
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
+          <ViewToggleButton />
         </>
       }
       LoaderView={<SkeletonLoader />}
