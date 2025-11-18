@@ -111,6 +111,26 @@ describe("getServerErrorFromUnknown", () => {
     expect(result.statusCode).toBe(500);
     expect(result.message).toBe("OAuth client creation failed");
   });
+
+  test("should handle a Yup ValidationError", () => {
+    const yupError = {
+      name: "ValidationError",
+      message: "Validation failed",
+      inner: [
+        { path: "email", message: "email is required", type: "required" },
+        { path: "name", message: "name must be at least 3 characters", type: "min" },
+      ],
+      errors: ["email is required", "name must be at least 3 characters"],
+    };
+
+    const result = getServerErrorFromUnknown(yupError);
+
+    expect(result).toBeInstanceOf(HttpError);
+    expect(result.statusCode).toBe(400);
+    expect(result.message).toBe("email is required; name must be at least 3 characters");
+    expect(result.cause).toEqual(yupError);
+    expect(result.name).toBe("HttpError");
+  });
 });
 
 test400Codes.forEach((errorCode) => {
