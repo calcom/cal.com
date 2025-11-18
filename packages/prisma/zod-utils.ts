@@ -510,6 +510,21 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    // Custom branding assets for user's public booking page
+    businessLogo: z
+      .object({
+        objectKey: z.string(), // UUID referencing Avatar table
+        uploadedAt: z.string(), // ISO timestamp
+        originalFilename: z.string(),
+      })
+      .optional(),
+    favicon: z
+      .object({
+        objectKey: z.string(), // UUID referencing Avatar table
+        uploadedAt: z.string(), // ISO timestamp
+        originalFilename: z.string(),
+      })
+      .optional(),
   })
   .nullable();
 

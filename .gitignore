@@ -105,3 +105,8 @@ packages/**/.yarn/ci-cache/
 
 # AI
 .claude
+
+# local development files
+.specstory/
+.cursorindexingignore
+.local/

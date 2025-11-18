@@ -15,6 +15,7 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
@@ -61,6 +62,13 @@ export function UserPage(props: PageProps) {
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
 
+  // Get business logo URL from user metadata
+  // Type assertion: User.metadata field is JSON but follows userMetadata schema
+  const metadata = user?.metadata as typeof userMetadata._type | undefined;
+  const businessLogoUrl = metadata?.businessLogo?.objectKey
+    ? `/api/avatar/${metadata.businessLogo.objectKey}.png`
+    : null;
+
   return (
     <>
       <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
@@ -70,6 +78,22 @@ export function UserPage(props: PageProps) {
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
+          {/* Business Logo Display - centered at top of page */}
+          {businessLogoUrl && (
+            <div className="mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={businessLogoUrl}
+                alt="Business logo"
+                className="mx-auto max-h-[150px] max-w-[400px] object-contain sm:max-w-[300px] md:max-w-[400px]"
+                onError={(e) => {
+                  // Hide image if it fails to load
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          )}
+
           <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
             <UserAvatar
               size="lg"
@@ -99,7 +123,7 @@ export function UserPage(props: PageProps) {
               <>
                 <div
                   className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
+                   
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>

@@ -25,6 +25,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
@@ -65,6 +66,11 @@ const AppearanceView = ({
     user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(
+    user?.metadata?.businessLogo?.objectKey
+      ? `/api/avatar/${user.metadata.businessLogo.objectKey}.png`
+      : undefined
+  );
   useTheme(user?.appTheme);
   useBrandColors(user?.appTheme ?? null, {
     brandColor: user?.brandColor,
@@ -150,6 +156,32 @@ const AppearanceView = ({
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
       revalidateHasTeamPlan();
+    },
+  });
+
+  // Logo upload mutation - handles business logo upload
+  const uploadLogoMutation = trpc.viewer.me.uploadLogo.useMutation({
+    onSuccess: async (data) => {
+      await utils.viewer.me.invalidate();
+      revalidateSettingsAppearance();
+      setLogoUrl(data.url);
+      showToast(t("logo_uploaded_successfully"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message || t("error_uploading_logo"), "error");
+    },
+  });
+
+  // Logo deletion mutation - removes business logo
+  const deleteLogoMutation = trpc.viewer.me.deleteLogo.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
+      revalidateSettingsAppearance();
+      setLogoUrl(undefined);
+      showToast(t("logo_deleted_successfully"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message || t("error_deleting_logo"), "error");
     },
   });
 
@@ -386,6 +418,81 @@ const AppearanceView = ({
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
+
+          {/* Business Logo Upload Section */}
+          <div className="border-subtle mt-6 rounded-t-lg border p-6">
+            <div className="mb-4">
+              <p className="text-default text-base font-semibold">Business Logo</p>
+              <p className="text-default text-sm">
+                Upload your business logo to display at the top of your public booking page (max 400×150px)
+              </p>
+            </div>
+            <div className="border-subtle flex flex-col gap-4 border-x border-b p-6">
+              {/* Logo Preview */}
+              {logoUrl && (
+                <div className="mb-4">
+                  <p className="text-default mb-2 text-sm font-medium">Current Logo</p>
+                  <div className="border-subtle bg-muted flex items-center justify-center rounded-md border p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoUrl}
+                      alt="Business logo preview"
+                      className="max-h-[150px] max-w-[400px] object-contain"
+                      onError={() => setLogoUrl(undefined)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Upload and Delete Controls */}
+              <div className="flex gap-2">
+                <ImageUploader
+                  id="business-logo-uploader"
+                  buttonMsg={logoUrl ? "Replace Logo" : "Upload Logo"}
+                  handleAvatarChange={(base64Image) => {
+                    // Validate file size (max 5MB)
+                    const estimatedSize = (base64Image.length * 3) / 4;
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    if (estimatedSize > maxSize) {
+                      showToast("Logo file size exceeds maximum allowed size of 5MB", "error");
+                      return;
+                    }
+
+                    // Validate image format
+                    if (!base64Image.startsWith("data:image/")) {
+                      showToast("Invalid image format. Please upload a PNG, JPG, or SVG image.", "error");
+                      return;
+                    }
+
+                    uploadLogoMutation.mutate({
+                      data: base64Image,
+                      originalFilename: "logo.png",
+                    });
+                  }}
+                  imageSrc={logoUrl}
+                  target="logo"
+                  uploadInstruction="Max 5MB, formats: PNG, JPG, SVG"
+                  disabled={uploadLogoMutation.isPending}
+                  testId="business-logo"
+                />
+
+                {logoUrl && (
+                  <Button
+                    color="secondary"
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete your business logo?")) {
+                        deleteLogoMutation.mutate();
+                      }
+                    }}
+                    disabled={deleteLogoMutation.isPending}
+                    loading={deleteLogoMutation.isPending}
+                    data-testid="delete-business-logo-btn">
+                    Delete Logo
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <SettingsToggle
             toggleSwitchAtTheEnd={true}

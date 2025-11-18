@@ -27,9 +27,32 @@ export const getMultipleDurationValue = (
 function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
   const searchParams = useSearchParams();
 
+  // Get business logo URL from the event owner's metadata
+  // Check subsetOfUsers first (for public events), fallback to users array
+  const eventOwner = eventData.subsetOfUsers?.[0] || eventData.users?.[0];
+  const businessLogoUrl = eventOwner?.metadata?.businessLogo?.objectKey
+    ? `/api/avatar/${eventOwner.metadata.businessLogo.objectKey}.png`
+    : null;
+
   return (
     <BookingPageErrorBoundary>
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+        {/* Business Logo Display - centered at top of booking page */}
+        {businessLogoUrl && (
+          <div className="mb-6 px-4 pt-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={businessLogoUrl}
+              alt="Business logo"
+              className="mx-auto max-h-[150px] max-w-[400px] object-contain sm:max-w-[300px] md:max-w-[400px]"
+              onError={(e) => {
+                // Hide image if it fails to load
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
+
         <Booker
           username={user}
           eventSlug={slug}
