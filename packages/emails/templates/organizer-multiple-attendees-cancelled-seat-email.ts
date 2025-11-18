@@ -25,7 +25,6 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
     const attendeeCount = this.attendees.length;
     const attendeeNames = this.getAttendeeNames();
 
-    // Dynamic subject based on attendee count
     const subjectKey =
       attendeeCount === 1
         ? "attendee_no_longer_attending_subject"
@@ -58,7 +57,6 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
     } else if (count === 2) {
       return `${this.attendees[0].name} ${this.t("and")} ${this.attendees[1].name}`;
     } else {
-      // For 3+ attendees, list all names: "jack, john, justin"
       const names = this.attendees.map((a) => a.name);
       const lastTwo = names.slice(-2).join(` ${this.t("and")} `);
       const rest = names.slice(0, -2);

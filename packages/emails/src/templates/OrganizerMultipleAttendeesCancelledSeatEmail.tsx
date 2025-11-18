@@ -27,9 +27,6 @@ export const OrganizerMultipleAttendeesCancelledSeatEmail = ({
     );
   }
 
-  // Determine title based on number of attendees and who initiated the cancellation
-  // Subject remains the same (event_cancelled_subject)
-  // Use actual count: "2 attendees", "3 attendees", "4 attendees", etc.
   let titleKey = "";
   if (attendeeCount === 1) {
     titleKey = isCancelledByHost ? "attendee_was_removed" : "attendee_no_longer_attending";
@@ -39,14 +36,7 @@ export const OrganizerMultipleAttendeesCancelledSeatEmail = ({
       : "multiple_attendees_no_longer_attending";
   }
 
-  // Render title with count for multiple attendees
   const titleText = attendeeCount === 1 ? t(titleKey) : t(titleKey, { count: attendeeCount });
-
-  // Subtitle always uses the actual attendee names with appropriate action
-  // Examples:
-  // - "jack was removed. This means a seat has opened up..."
-  // - "jack and john were removed. This means seats have opened up..."
-  // - "jack, john, and justin were removed. This means seats have opened up..."
   const action = isCancelledByHost
     ? attendeeCount === 1
       ? t("was_removed")

@@ -11,12 +11,9 @@ export const OrganizerAttendeeCancelledSeatEmail = ({
 }: OrganizerAttendeeCancelledSeatEmailProps) => {
   const t = props.calEvent.organizer.language.translate;
 
-  // Use different title and subtitle based on who initiated the cancellation
-  // Subject remains the same (event_cancelled_subject)
   const title = isCancelledByHost ? "attendee_was_removed" : "attendee_no_longer_attending";
   const subtitleKey = isCancelledByHost ? "attendee_was_removed_subtitle" : "attendee_has_cancelled_subtitle";
 
-  // Get attendee name for subtitle
   const attendeeName = props.attendee?.name || "Guest";
 
   return (

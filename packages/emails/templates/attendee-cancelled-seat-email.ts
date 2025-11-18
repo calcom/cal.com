@@ -13,7 +13,6 @@ export default class AttendeeCancelledSeatEmail extends AttendeeScheduledEmail {
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
-    // Use different subject based on who initiated the cancellation
     const subjectKey = this.isCancelledByHost
       ? "event_cancelled_subject"
       : "event_no_longer_attending_subject";

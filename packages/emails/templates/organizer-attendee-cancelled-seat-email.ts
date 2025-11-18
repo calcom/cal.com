@@ -23,8 +23,6 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
       });
     }
 
-    // Use different text based on who initiated the cancellation
-    // "was removed" if host-initiated, "has canceled" if attendee-initiated
     const textBodyKey = this.isCancelledByHost
       ? "event_request_cancelled_by_host"
       : "event_request_cancelled";

@@ -81,13 +81,11 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
 export function getRemoveSeatsAction(context: BookingActionContext): ActionType | null {
   const { booking, isUpcoming, isCancelled, t } = context;
 
-  // Only show for seated events with seats, that are upcoming and not cancelled
-  if (
-    !booking.eventType?.seatsPerTimeSlot ||
-    booking.seatsReferences.length === 0 ||
-    !isUpcoming ||
-    isCancelled
-  ) {
+  const isNotSeatedEvent = !booking.eventType?.seatsPerTimeSlot;
+  const hasNoSeatsToRemove = booking.seatsReferences.length === 0;
+  const shouldHideRemoveSeatsAction = isNotSeatedEvent || hasNoSeatsToRemove || !isUpcoming || isCancelled;
+
+  if (shouldHideRemoveSeatsAction) {
     return null;
   }
 
@@ -258,9 +256,6 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
     case "cancel":
       return isDisabledCancelling || isBookingInPast;
     case "remove_seats":
-      // Remove seats should not be disabled by isDisabledCancelling
-      // Backend will enforce permissions (team owners/org admins can remove any seats)
-      // Only disable if booking is in the past or there are no seats
       return isBookingInPast || booking.seatsReferences.length === 0;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);

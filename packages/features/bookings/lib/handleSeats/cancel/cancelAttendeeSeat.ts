@@ -57,7 +57,6 @@ async function cancelAttendeeSeat(
   const INVALID_SEAT_REFERENCE_ALL = "all";
   const DEFAULT_LOCALE = "en";
 
-  // Filter out invalid values like "all" or empty strings before validation
   const filteredSeatReferenceUids = data.seatReferenceUids.filter(
     (uid) => uid && uid !== INVALID_SEAT_REFERENCE_ALL && typeof uid === "string"
   );
@@ -107,7 +106,6 @@ async function cancelAttendeeSeat(
     throw new HttpError({ statusCode: 400, message: "One or more seats not found in this booking" });
   }
 
-  // Allow removing all seats - booking will remain active with 0 attendees
   const bookingRepository = new BookingRepository(prisma);
 
   if (userId) {
@@ -193,11 +191,10 @@ async function cancelAttendeeSeat(
     try {
       await Promise.all(integrationsToUpdate);
     } catch (error) {
-      // Log but don't fail - integrations are best-effort
       logger.error("Failed to update some calendar integrations", error);
     }
 
-    // Send emails to each canceled attendee with their own locale (FIXES LOCALE BUG)
+    // Send emails to each canceled attendee with their own locale
     const shouldSendAttendeeEmails = !eventTypeDisableAttendeeEmail(eventTypeMetadata);
     if (shouldSendAttendeeEmails) {
       for (const attendee of attendees) {
@@ -215,7 +212,7 @@ async function cancelAttendeeSeat(
       }
     }
 
-    // Host email: Send ONE email to host with info about ALL cancelled/removed attendees
+    // Send ONE email to host with info about ALL cancelled/removed attendees
     const shouldSendHostEmail = !eventTypeDisableHostEmail(eventTypeMetadata);
     if (shouldSendHostEmail) {
       const hostLocale = evt.organizer.language.locale ?? DEFAULT_LOCALE;

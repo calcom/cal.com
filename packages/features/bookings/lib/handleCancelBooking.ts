@@ -83,7 +83,6 @@ async function handler(input: CancelBookingInput) {
     skipCancellationReasonValidation = false,
   } = bookingCancelInput.parse(body);
 
-  // Normalize seat references to array for handling both single and multiple seat cancellations
   const seatReferenceUids = seatReferenceUid ? [seatReferenceUid] : rawSeatReferenceUids || [];
 
   const bookingToDelete = await getBookingToDelete(id, uid);
@@ -123,7 +122,6 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  // Check if user is admin/owner (has full access) - this check is needed for cancellation reason validation
   let isUserAdminOrOwner = false;
   if (userId && !isCancellationUserHost) {
     const bookingAccessService = new BookingAccessService(prisma);
@@ -152,9 +150,6 @@ async function handler(input: CancelBookingInput) {
       message: "Cannot cancel a booking that has already ended",
     });
   }
-
-  // Note: Authorization for seated event seat removal is handled in cancelAttendeeSeat
-  // using BookingAccessService for proper permission checking
 
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
@@ -312,7 +307,6 @@ async function handler(input: CancelBookingInput) {
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
-  // Determine if cancellation is by host/admin/owner
   const isCancelledByHostOrAdmin = isCancellationUserHost || isUserAdminOrOwner;
 
   // If it's just an attendee of a booking then just remove them from that booking

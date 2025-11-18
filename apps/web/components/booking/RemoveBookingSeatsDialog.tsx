@@ -39,24 +39,14 @@ export function RemoveBookingSeatsDialog({
     },
   });
 
-  // Determine if user is just an attendee (not organizer/admin)
-  // If they're just an attendee, they should only see their own seat for privacy
   const userEmail = booking.loggedInUser?.userEmail;
   const isUserOrganizer = userEmail === booking.user?.email;
 
-  // Check if user is just an attendee (has a seat but is not organizer)
-  // If user has a seat but is NOT the organizer, they're likely just an attendee
-  // Team admins/owners who aren't attendees won't have a seat, so they'll see all seats
-  // Backend will enforce permissions when they try to remove seats
   const userSeat = userEmail
     ? booking.seatsReferences?.find((seat) => seat.attendee?.email === userEmail)
     : null;
   const isJustAttendee = !!userSeat && !isUserOrganizer;
 
-  // Build options from seat references
-  // seatsReferences structure: { referenceUid: string, attendee: { email: string, name: string } | null }
-  // For team admins/owners who aren't attendees, all seats should still be visible
-  // Backend now includes attendee.name in the query, so we can use it directly
   const allSeatOptions = (booking.seatsReferences || [])
     .map((seatRef) => {
       if (!seatRef?.referenceUid) return null;
@@ -65,13 +55,10 @@ export function RemoveBookingSeatsDialog({
       const attendeeName = attendee?.name;
       const attendeeEmail = attendee?.email;
 
-      // If user is just an attendee, only show their own seat (hide other attendees' info)
       if (isJustAttendee) {
-        // Only include this seat if it's the user's own seat
         if (seatRef.referenceUid !== userSeat?.referenceUid) {
-          return null;
-        }
-        // For their own seat, show their name and email (they can see their own info)
+            return null;
+          }
         if (attendeeName && attendeeEmail) {
           return {
             value: seatRef.referenceUid,
@@ -88,11 +75,9 @@ export function RemoveBookingSeatsDialog({
             label: attendeeName,
           };
         }
-        // If no attendee info available, filter out this seat
         return null;
       }
 
-      // For organizers/admins: show full attendee info
       let label: string;
       if (attendeeName && attendeeEmail) {
         label = `${attendeeName} (${attendeeEmail})`;
@@ -101,7 +86,6 @@ export function RemoveBookingSeatsDialog({
       } else if (attendeeName) {
         label = attendeeName;
       } else {
-        // Fallback: use referenceUid if no attendee info available
         label = `Seat ${seatRef.referenceUid.slice(0, 8)}...`;
       }
 
@@ -120,19 +104,14 @@ export function RemoveBookingSeatsDialog({
       return;
     }
 
-    // Allow removing all seats - booking will remain active with 0 attendees
-
     setLoading(true);
 
     try {
-      // Extract values from selected options
       const seatReferenceUids = selected.map((option) => option.value);
 
-      // Get CSRF token
       const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
       const { csrfToken } = await response.json();
 
-      // Call the cancel API
       const res = await fetch("/api/cancel", {
         body: JSON.stringify({
           uid: booking.uid,
