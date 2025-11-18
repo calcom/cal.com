@@ -44,29 +44,22 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
 
       {/* Footer with progress dots and sign out */}
       <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
-            const isCurrentStep = step === currentStep;
-            const isCompleted = step < currentStep;
+            const isCurrent = step === currentStep;
+            const isPast = step < currentStep;
+            const isUpcoming = step > currentStep;
+
             return (
-              <div key={step} className="relative flex shrink-0 items-center justify-center">
-                <div
-                  className={classNames("absolute rounded-full transition-all", {
-                    "h-2 w-2": !isCurrentStep,
-                    "h-3 w-3": isCurrentStep,
-                    "bg-emphasis": isCompleted || isCurrentStep,
-                    "bg-muted": !isCompleted && !isCurrentStep,
-                  })}
-                />
-                {(isCompleted || isCurrentStep) && (
-                  <div
-                    className={classNames("bg-emphasis absolute rounded-full", {
-                      "h-1 w-1": !isCurrentStep,
-                      "h-1.5 w-1.5": isCurrentStep,
-                    })}
-                  />
-                )}
-              </div>
+              <div
+                key={step}
+                className={classNames("shrink-0 rounded-full transition-all", {
+                  "h-[6px] w-[6px] bg-[var(--cal-text)]": isCurrent,
+                  "h-[4px] w-[4px] bg-[var(--cal-text-subtle)]": isPast,
+                  "h-[4px] w-[4px] bg-[var(--cal-text-muted)] opacity-50": isUpcoming,
+                })}
+                aria-label={`Step ${step} of ${totalSteps}`}
+              />
             );
           })}
         </div>
