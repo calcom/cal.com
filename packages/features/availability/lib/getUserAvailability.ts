@@ -501,16 +501,13 @@ export class UserAvailabilityService {
     );
 
     if (
-      !(
-        schedule?.availability ||
-        (eventType?.availability.length ? eventType.availability : user.availability)
-      )
+      !schedule.availability && !eventType?.availability
     ) {
       throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
     }
 
     const availability = (
-      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+      schedule?.availability || eventType?.availability || []
     ).map((a) => ({
       ...a,
       userId: user.id,
