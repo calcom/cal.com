@@ -2286,6 +2286,7 @@
   "responses_collection_waiting_description": "Wait for some time for responses to be collected. You can go and submit the form yourself as well.",
   "this_is_what_your_users_would_see": "This is what your users would see",
   "identifies_name_field": "Identifies field by this name.",
+  "identifier_url_parameter": "Identifier (URL Parameter, i.e.: &what-is-your-name=john-doe)",
   "add_1_option_per_line": "Add 1 option per line",
   "select_a_router": "Select a router",
   "add_a_new_route": "Add a new Route",
