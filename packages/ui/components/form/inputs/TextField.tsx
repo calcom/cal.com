@@ -69,7 +69,7 @@ type AddonProps = {
   children: React.ReactNode;
   className?: string;
   error?: boolean;
-  onClickAddon?: React.MouseEventHandler<HTMLDivElement>;
+  onClickAddon?: (e: React.MouseEvent<HTMLDivElement>) => void;
   size?: "sm" | "md";
   position?: "start" | "end";
 };
@@ -201,7 +201,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               position="end"
               onClickAddon={(e) => {
                 handleFocusInput(e);
-                onClickAddon?.();
+                onClickAddon?.(e);
               }}
               className={classNames(addOnClassname)}>
               {addOnSuffix}
