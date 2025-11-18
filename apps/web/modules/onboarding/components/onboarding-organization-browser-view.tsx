@@ -88,9 +88,9 @@ export const OnboardingOrganizationBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default text-sm font-medium leading-tight">{displayUrl}</p>
+          <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
@@ -114,6 +114,7 @@ export const OnboardingOrganizationBrowserView = ({
                 {/* Banner Image */}
                 <div className="border-subtle relative h-40 w-full overflow-hidden rounded-t-xl border-b">
                   {bannerUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={bannerUrl} alt={name || ""} className="h-full w-full object-cover" />
                   ) : (
                     <div className="bg-emphasis h-full w-full" />
@@ -133,7 +134,7 @@ export const OnboardingOrganizationBrowserView = ({
 
               {/* Organization Info */}
               <div className="flex flex-col gap-2 px-4 pb-4 pt-12">
-                <h2 className="text-emphasis text-xl font-semibold leading-tight">
+                <h2 className="text-emphasis truncate text-xl font-semibold leading-tight">
                   {name || t("organization_name")}
                 </h2>
                 <p
@@ -148,7 +149,7 @@ export const OnboardingOrganizationBrowserView = ({
 
             {/* Events List */}
             <div className="flex flex-col overflow-y-hidden">
-              {events.map((event, index) => (
+              {events.map((event) => (
                 <div key={event.title} className="border opacity-30 first:border-t-0">
                   <div className="flex items-center justify-between gap-3 px-5 py-4">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -163,7 +164,7 @@ export const OnboardingOrganizationBrowserView = ({
                       </div>
                       <p className="text-subtle text-sm font-medium leading-tight">{event.description}</p>
                     </div>
-                    <Button color="secondary" size="sm" EndIcon="arrow-right">
+                    <Button color="secondary" size="sm" EndIcon="arrow-right" tabIndex={-1}>
                       {t("book_now")}
                     </Button>
                   </div>
