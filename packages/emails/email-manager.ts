@@ -58,13 +58,13 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-const fetchOrganizationEmailSettings = async (organizationId?: number | null) => {
+export const fetchOrganizationEmailSettings = async (organizationId?: number | null) => {
   if (!organizationId) return null;
   const repo = new OrganizationSettingsRepository(prisma);
   return await repo.getEmailSettings(organizationId);
 };
 
-const shouldSkipAttendeeEmail = async (
+export const shouldSkipAttendeeEmail = async (
   metadata: EventTypeMetadata | undefined,
   organizationId: number | null,
   emailType?:
@@ -78,8 +78,6 @@ const shouldSkipAttendeeEmail = async (
     | "location_change"
     | "new_event"
 ) => {
-  if (metadata?.disableStandardEmails?.all?.attendee) return true;
-
   const organizationSettings = await fetchOrganizationEmailSettings(organizationId);
 
   if (organizationSettings && emailType) {
@@ -113,8 +111,7 @@ const shouldSkipAttendeeEmail = async (
         break;
     }
   }
-
-  return false;
+  return !!metadata?.disableStandardEmails?.all?.attendee;
 };
 
 const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
