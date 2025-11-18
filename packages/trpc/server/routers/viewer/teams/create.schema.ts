@@ -12,8 +12,12 @@ export const ZCreateInputSchema = z.object({
     .transform((v) => v || null),
   bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
-  gclid: z.string().optional(),
-  campaignId: z.string().optional(),
+  googleAds: z
+    .object({
+      gclid: z.string().optional(),
+      campaignId: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

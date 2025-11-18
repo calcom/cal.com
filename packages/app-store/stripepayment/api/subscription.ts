@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getServerSession({ req });
     const userId = session?.user?.id;
     let { intentUsername = null } = req.query;
-    const { callbackUrl, gclid } = req.query;
+    const { callbackUrl } = req.query;
     if (!userId || !intentUsername) {
       res.status(404).json({ message: "Missing required parameters: userId or intentUsername" });
       return;
@@ -52,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer: customerId,
       success_url: return_url,
       cancel_url: return_url,
-      ...(gclid && typeof gclid === "string" && { metadata: { gclid } }),
     };
 
     const checkPremiumResult = await checkPremiumUsername(intentUsername);

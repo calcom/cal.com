@@ -63,8 +63,8 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
       billingPeriod: metadata.data?.billingPeriod ?? undefined,
-      gclid: input.gclid,
-      campaignId: input.campaignId,
+      gclid: input.googleAds?.gclid,
+      campaignId: input.googleAds?.campaignId,
     });
 
     if (!checkoutSession.url)

@@ -43,8 +43,7 @@ export default function UpgradePage() {
                 onClick={() => {
                   const adsData = getGoogleAdsData();
                   publishOrgMutation.mutate({
-                    gclid: adsData?.gclid,
-                    campaignId: adsData?.campaignId,
+                    googleAds: adsData,
                   });
                 }}>
                 {t("upgrade")}

@@ -67,8 +67,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
 
       createTeamMutation.mutate({
         ...v,
-        gclid: adsData?.gclid,
-        campaignId: adsData?.campaignId,
+        googleAds: adsData,
       });
     }
   };

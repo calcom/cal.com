@@ -1,8 +1,12 @@
 import { z } from "zod";
 
 export const ZPublishInputSchema = z.object({
-  gclid: z.string().optional(),
-  campaignId: z.string().optional(),
+  googleAds: z
+    .object({
+      gclid: z.string().optional(),
+      campaignId: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type TPublishInputSchema = z.infer<typeof ZPublishInputSchema>;

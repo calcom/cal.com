@@ -1,3 +1,4 @@
+import { getGoogleAdsData } from "@calcom/lib/analytics/googleads";
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -116,10 +117,12 @@ export function BuyNumberDialog({ open, onOpenChange, agentId, workflowId, teamI
                 if (!agentId || !workflowId) {
                   return;
                 }
+                const adsData = getGoogleAdsData();
                 buyNumberMutation.mutate({
                   agentId: agentId,
                   workflowId: workflowId,
                   teamId: teamId ?? undefined,
+                  googleAds: adsData,
                 });
               }}
               loading={buyNumberMutation.isPending}

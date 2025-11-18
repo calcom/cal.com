@@ -73,21 +73,3 @@ export function getGoogleAdsData(): GoogleAdsData | null {
     return null;
   }
 }
-
-// Legacy function for backward compatibility
-export function getGclid(): string | null {
-  const data = getGoogleAdsData();
-  return data?.gclid || null;
-}
-
-export function clearGoogleAdsData(): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    localStorage.removeItem(GOOGLE_ADS_STORAGE_KEY);
-  } catch (error) {
-    console.error("[Google Ads] Error clearing data:", error);
-  }
-}
