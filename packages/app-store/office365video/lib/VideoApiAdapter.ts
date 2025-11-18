@@ -42,6 +42,24 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
 
+  async function triggerDelegationCredentialError(error: Error): Promise<void> {
+    if (credential.userId && credential.user && credential.appId && credential.delegatedToId) {
+      await triggerDelegationCredentialErrorWebhook({
+        error,
+        credential: {
+          id: credential.id,
+          type: credential.type,
+          appId: credential.appId,
+        },
+        user: {
+          id: credential.userId ?? 0,
+          email: credential.user.email,
+        },
+        delegationCredentialId: credential.delegatedToId,
+      });
+    }
+  }
+
   const auth = new OAuthManager({
     credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
     resourceOwner: {
@@ -68,21 +86,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           "Delegation credential without clientId or Secret"
         );
 
-        if (credential.userId && credential.user && credential.appId) {
-          await triggerDelegationCredentialErrorWebhook({
-            error,
-            credential: {
-              id: credential.id,
-              type: credential.type,
-              appId: credential.appId,
-            },
-            user: {
-              id: credential.userId ?? 0,
-              email: credential.user.email,
-            },
-            orgId: credential.teamId,
-          });
-        }
+        await triggerDelegationCredentialError(error);
 
         throw error;
       }
@@ -130,21 +134,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
 
-        if (credential.userId && credential.user && credential.appId) {
-          await triggerDelegationCredentialErrorWebhook({
-            error,
-            credential: {
-              id: credential.id,
-              type: credential.type,
-              appId: credential.appId,
-            },
-            user: {
-              id: credential.userId ?? 0,
-              email: credential.user.email,
-            },
-            orgId: credential.teamId,
-          });
-        }
+        await triggerDelegationCredentialError(error);
 
         throw error;
       }
@@ -179,21 +169,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         "Delegation credential without clientId or Secret"
       );
 
-      if (credential.userId && credential.user && credential.appId) {
-        await triggerDelegationCredentialErrorWebhook({
-          error,
-          credential: {
-            id: credential.id,
-            type: credential.type,
-            appId: credential.appId,
-          },
-          user: {
-            id: credential.userId ?? 0,
-            email: credential.user.email,
-          },
-          orgId: credential.teamId,
-        });
-      }
+      await triggerDelegationCredentialError(error);
 
       throw error;
     }
@@ -231,21 +207,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         "User might not exist in Microsoft Azure Active Directory"
       );
 
-      if (credential.userId && credential.user && credential.appId) {
-        await triggerDelegationCredentialErrorWebhook({
-          error,
-          credential: {
-            id: credential.id,
-            type: credential.type,
-            appId: credential.appId,
-          },
-          user: {
-            id: credential.userId ?? 0,
-            email: credential.user.email,
-          },
-          orgId: credential.teamId,
-        });
-      }
+      await triggerDelegationCredentialError(error);
 
       throw error;
     }
