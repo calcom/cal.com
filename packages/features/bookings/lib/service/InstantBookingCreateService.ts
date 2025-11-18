@@ -280,7 +280,7 @@ export async function handler(
 
   const newBooking = await (async () => {
     if (bookingMeta?.reservedSlotUid) {
-      return createInstantBookingWithReservedSlot(createBookingObj, {
+      return createInstantBookingWithReservedSlot(prisma, createBookingObj, {
         eventTypeId: reqBody.eventTypeId,
         slotUtcStart: bookingStartUtc,
         slotUtcEnd: bookingEndUtc,
