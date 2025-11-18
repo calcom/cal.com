@@ -154,6 +154,9 @@ export class FeaturesRepository implements IFeaturesRepository {
     try {
       // Prismock limitation: findUnique may fail, use findFirst instead
       const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+        select: {
+          id: true,
+        },
         where: {
           userId,
           featureId: slug,
