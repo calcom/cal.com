@@ -65,7 +65,9 @@ export const OnboardingCard = ({
 
           {/* Content */}
           <div
-            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 ${floatingFooter ? "pb-20" : ""}`}>
+            className={`flex h-full min-h-0 w-full flex-1 flex-col gap-4 [container-type:size] ${
+              floatingFooter ? "pb-10" : ""
+            }`}>
             {isLoading ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SkeletonText className="h-40 w-full" />
@@ -84,7 +86,7 @@ export const OnboardingCard = ({
           {footer}
         </div>
       ) : (
-        <div className="flex w-full items-center justify-start py-2">{footer}</div>
+        <div className="mt-4 flex w-full items-center justify-start py-2">{footer}</div>
       )}
     </div>
   );
