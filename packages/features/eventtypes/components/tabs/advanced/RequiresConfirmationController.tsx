@@ -109,13 +109,11 @@ export default function RequiresConfirmationController({
               checked={requiresConfirmation}
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
-                const wasEnabled = formMethods.getValues("requiresConfirmation");
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
-                } else if (!wasEnabled) {
+                } else {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", true, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
@@ -130,7 +128,6 @@ export default function RequiresConfirmationController({
                       : undefined
                   }
                   onValueChange={(val) => {
-                    const wasEnabled = formMethods.getValues("requiresConfirmation");
                     if (val === "always") {
                       formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
@@ -138,11 +135,9 @@ export default function RequiresConfirmationController({
                         shouldDirty: true,
                       });
                       setRequiresConfirmationSetup(undefined);
-                      if (!wasEnabled) {
-                        formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
-                          shouldDirty: true,
-                        });
-                      }
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     } else if (val === "notice") {
                       formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
@@ -151,11 +146,9 @@ export default function RequiresConfirmationController({
                         requiresConfirmationSetup || defaultRequiresConfirmationSetup,
                         { shouldDirty: true }
                       );
-                      if (!wasEnabled) {
-                        formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
-                          shouldDirty: true,
-                        });
-                      }
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     }
                   }}>
                   <div
