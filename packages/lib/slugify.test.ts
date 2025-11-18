@@ -55,8 +55,17 @@ describe("slugify", () => {
     expect(slugify("📚🕯️")).toEqual("");
   });
 
-  it.skip("should remove unicode", () => {
+  it("should remove unicode", () => {
     expect(slugify("Hello ®️ There")).toEqual("hello-there");
     expect(slugify("®️")).toEqual("");
+  });
+
+  it("should handle complex strings with multiple special characters, spaces, and mixed case", () => {
+    expect(slugify("  --Hello---World!!!_123--  ")).toEqual("hello-world-123");
+    expect(slugify("!@#$%^&*()_+|}{:?><,./;'[]\\=-`~")).toEqual("");
+    expect(slugify("  Leading and Trailing Spaces  ")).toEqual("leading-and-trailing-spaces");
+    expect(slugify("String with.periods and-dashes_and#hashes")).toEqual(
+      "string-with.periods-and-dashes-and-hashes"
+    );
   });
 });
