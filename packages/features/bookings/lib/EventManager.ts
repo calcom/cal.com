@@ -545,37 +545,19 @@ export default class EventManager {
       return credential;
     }
 
-    let foundCredential: CredentialForCalendarService | null | undefined = null;
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
+          this.videoCredentials.find((cred) => cred.type === type) || null;
 
-    if (typeof credentialId === "number" && credentialId > 0) {
-      foundCredential = await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId });
-    } else {
-      // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-      foundCredential = this.videoCredentials.find((cred) => cred.type === type) || null;
-    }
-
-    if (foundCredential) {
-      const expectedSuffixes = ["_video", "_conferencing"];
-      const hasValidSuffix = expectedSuffixes.some((suffix) => foundCredential!.type.endsWith(suffix));
-      if (!hasValidSuffix) {
-        log.error(
-          "getVideoCredentialAndWarnIfNotFound: Found non-video credential",
-          safeStringify({
-            credentialId,
-            credentialType: foundCredential.type,
-            expectedType: type,
-            expectedSuffixes,
-          })
-        );
-        return null;
-      }
-    } else {
+    if (!foundCredential) {
       log.error(
         "getVideoCredentialAndWarnIfNotFound: Could not find video credential",
         safeStringify({
           credentialId,
           type,
-          availableCredentials: this.videoCredentials.map((c) => ({ id: c.id, type: c.type })),
+          videoCredentials: this.videoCredentials,
         })
       );
     }
@@ -591,43 +573,23 @@ export default class EventManager {
     if (delegationCredentialId) {
       return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
-
     const credential = this.calendarCredentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
     }
 
-    let foundCredential: CredentialForCalendarService | null | undefined = null;
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : this.calendarCredentials.find((cred) => cred.type === type) || null;
 
-    if (typeof credentialId === "number" && credentialId > 0) {
-      foundCredential = await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId });
-    } else {
-      // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-      foundCredential = this.calendarCredentials.find((cred) => cred.type === type) || null;
-    }
-
-    if (foundCredential) {
-      const expectedSuffixes = ["_calendar"];
-      const hasValidSuffix = expectedSuffixes.some((suffix) => foundCredential!.type.endsWith(suffix));
-      if (!hasValidSuffix) {
-        log.error(
-          "getCalendarCredentialAndWarnIfNotFound: Found non-calendar credential",
-          safeStringify({
-            credentialId,
-            credentialType: foundCredential.type,
-            expectedType: type,
-            expectedSuffixes,
-          })
-        );
-        return null;
-      }
-    } else {
+    if (!foundCredential) {
       log.error(
         "getCalendarCredentialAndWarnIfNotFound: Could not find calendar credential",
         safeStringify({
           credentialId,
           type,
-          availableCredentials: this.calendarCredentials.map((c) => ({ id: c.id, type: c.type })),
+          calendarCredentials: this.calendarCredentials,
         })
       );
     }
