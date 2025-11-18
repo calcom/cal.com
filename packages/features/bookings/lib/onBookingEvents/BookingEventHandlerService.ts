@@ -1,5 +1,5 @@
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
-import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
+import type { AcceptedAuditData } from "@calcom/features/booking-audit/lib/actions/AcceptedAuditActionService";
 import type { CancelledAuditData } from "@calcom/features/booking-audit/lib/actions/CancelledAuditActionService";
 import type { RejectedAuditData } from "@calcom/features/booking-audit/lib/actions/RejectedAuditActionService";
 import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
@@ -12,7 +12,6 @@ import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-au
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Actor } from "../types/actor";
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
@@ -21,25 +20,6 @@ interface BookingEventHandlerDeps {
   log: ISimpleLogger;
   hashedLinkService: HashedLinkService;
   bookingAuditService: BookingAuditService;
-}
-
-// Type guard functions for discriminating audit data types
-function isStatusChangeAuditData(
-  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
-): data is StatusChangeAuditData {
-  return data !== undefined && "status" in data && !("cancellationReason" in data) && !("rejectionReason" in data);
-}
-
-function isCancelledAuditData(
-  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
-): data is CancelledAuditData {
-  return data !== undefined && "cancellationReason" in data;
-}
-
-function isRejectedAuditData(
-  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
-): data is RejectedAuditData {
-  return data !== undefined && "rejectionReason" in data;
 }
 
 export class BookingEventHandlerService {
@@ -147,7 +127,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAccepted(bookingUid: string, actor: Actor, data?: StatusChangeAuditData) {
+  async onBookingAccepted(bookingUid: string, actor: Actor, data?: AcceptedAuditData) {
     try {
       await this.bookingAuditService.onBookingAccepted(bookingUid, actor, data);
     } catch (error) {
@@ -192,44 +172,6 @@ export class BookingEventHandlerService {
       await this.bookingAuditService.onBookingRejected(bookingUid, actor, data);
     } catch (error) {
       this.log.error("Error while creating booking rejected audit", safeStringify(error));
-    }
-  }
-
-  private async onBookingStatusChange(
-    bookingUid: string,
-    actor: Actor,
-    status: BookingStatus,
-    data?: StatusChangeAuditData | CancelledAuditData | RejectedAuditData
-  ) {
-    try {
-      // Route to the appropriate specific method based on status
-      switch (status) {
-        case "ACCEPTED": {
-          // Type guard: ensure data is StatusChangeAuditData or undefined
-          const statusData = isStatusChangeAuditData(data) ? data : undefined;
-          await this.bookingAuditService.onBookingAccepted(bookingUid, actor, statusData);
-          break;
-        }
-        case "REJECTED": {
-          // Caller must provide RejectedAuditData for REJECTED status
-          if (isRejectedAuditData(data)) {
-            await this.bookingAuditService.onBookingRejected(bookingUid, actor, data);
-          }
-          break;
-        }
-        case "CANCELLED": {
-          // Caller must provide CancelledAuditData for CANCELLED status
-          if (isCancelledAuditData(data)) {
-            await this.bookingAuditService.onBookingCancelled(bookingUid, actor, data);
-          }
-          break;
-        }
-      }
-    } catch (error) {
-      this.log.error(
-        `Error while creating booking status change audit for status: ${status}`,
-        safeStringify(error)
-      );
     }
   }
 

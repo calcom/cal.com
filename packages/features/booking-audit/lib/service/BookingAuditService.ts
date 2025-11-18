@@ -4,6 +4,7 @@ import type { TFunction } from "next-i18next";
 import logger from "@calcom/lib/logger";
 
 import type { Actor } from "../../../bookings/lib/types/actor";
+import { AcceptedAuditActionService, type AcceptedAuditData } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService, type AttendeeAddedAuditData } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData } from "../actions/AttendeeRemovedAuditActionService";
@@ -15,15 +16,13 @@ import { ReassignmentAuditActionService, type ReassignmentAuditData } from "../a
 import { RejectedAuditActionService, type RejectedAuditData } from "../actions/RejectedAuditActionService";
 import { RescheduleRequestedAuditActionService, type RescheduleRequestedAuditData } from "../actions/RescheduleRequestedAuditActionService";
 import { RescheduledAuditActionService, type RescheduledAuditData } from "../actions/RescheduledAuditActionService";
-import { StatusChangeAuditActionService, type StatusChangeAuditData } from "../actions/StatusChangeAuditActionService";
-import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import type { IBookingAuditRepository, BookingAuditType, BookingAuditAction } from "../repository/IBookingAuditRepository";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 interface BookingAuditServiceDeps {
     bookingAuditRepository: IBookingAuditRepository;
-    actorRepository: IAuditActorRepository;
+    auditActorRepository: IAuditActorRepository;
 }
 
 type CreateBookingAuditInput = {
@@ -49,11 +48,16 @@ type BookingAudit = {
 
 /**
  * BookingAuditService - Central service for all booking audit operations
- * Handles both write (audit creation) and read (display) operations
+ * Handles audit creation (write operations only)
+ * Read/display operations are handled by BookingAuditViewerService
  * Each action service manages its own schema versioning
+ * 
+ * Note: PENDING and AWAITING_HOST actions are intentionally not implemented.
+ * These represent initial booking states captured by the CREATED action.
  */
 export class BookingAuditService {
     private readonly createdActionService: CreatedAuditActionService;
+    private readonly acceptedActionService: AcceptedAuditActionService;
     private readonly cancelledActionService: CancelledAuditActionService;
     private readonly rejectedActionService: RejectedAuditActionService;
     private readonly rescheduledActionService: RescheduledAuditActionService;
@@ -64,16 +68,16 @@ export class BookingAuditService {
     private readonly locationChangedActionService: LocationChangedAuditActionService;
     private readonly hostNoShowUpdatedActionService: HostNoShowUpdatedAuditActionService;
     private readonly attendeeNoShowUpdatedActionService: AttendeeNoShowUpdatedAuditActionService;
-    private readonly statusChangeActionService: StatusChangeAuditActionService;
     private readonly bookingAuditRepository: IBookingAuditRepository;
-    private readonly actorRepository: IAuditActorRepository;
+    private readonly auditActorRepository: IAuditActorRepository;
 
     constructor(private readonly deps: BookingAuditServiceDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
-        this.actorRepository = deps.actorRepository;
+        this.auditActorRepository = deps.auditActorRepository;
 
         // Each service instantiates its own helper with its specific schema
         this.createdActionService = new CreatedAuditActionService();
+        this.acceptedActionService = new AcceptedAuditActionService();
         this.cancelledActionService = new CancelledAuditActionService();
         this.rejectedActionService = new RejectedAuditActionService();
         this.rescheduledActionService = new RescheduledAuditActionService();
@@ -84,7 +88,6 @@ export class BookingAuditService {
         this.locationChangedActionService = new LocationChangedAuditActionService();
         this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
         this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
-        this.statusChangeActionService = new StatusChangeAuditActionService();
     }
 
     /**
@@ -96,18 +99,18 @@ export class BookingAuditService {
             case "id":
                 return actor.id;
             case "user": {
-                const userActor = await this.actorRepository.upsertUserActor(actor.userUuid);
+                const userActor = await this.auditActorRepository.upsertUserActor(actor.userUuid);
                 return userActor.id;
             }
             case "attendee": {
-                const attendeeActor = await this.actorRepository.findByAttendeeId(actor.attendeeId);
+                const attendeeActor = await this.auditActorRepository.findByAttendeeId(actor.attendeeId);
                 if (!attendeeActor) {
                     throw new Error(`Attendee actor not found for attendeeId: ${actor.attendeeId}`);
                 }
                 return attendeeActor.id;
             }
             case "guest": {
-                const guestActor = await this.actorRepository.upsertGuestActor(
+                const guestActor = await this.auditActorRepository.upsertGuestActor(
                     actor.email ?? "",
                     actor.name,
                     actor.phone
@@ -162,9 +165,9 @@ export class BookingAuditService {
     async onBookingAccepted(
         bookingUid: string,
         actor: Actor,
-        data?: StatusChangeAuditData
+        data?: AcceptedAuditData
     ): Promise<BookingAudit> {
-        const parsedData = data ? this.statusChangeActionService.parseFields(data) : null;
+        const parsedData = data ? this.acceptedActionService.parseFields(data) : null;
         const actorId = await this.resolveActorId(actor);
         return this.createAuditRecord({
             bookingUid,
@@ -358,8 +361,8 @@ export class BookingAuditService {
                 return this.createdActionService.getDisplaySummary(data, t);
             }
             case "ACCEPTED": {
-                const data = this.statusChangeActionService.parseStored(audit.data);
-                return this.statusChangeActionService.getDisplaySummary(data, t);
+                const data = this.acceptedActionService.parseStored(audit.data);
+                return this.acceptedActionService.getDisplaySummary(data, t);
             }
             case "CANCELLED": {
                 const data = this.cancelledActionService.parseStored(audit.data);
@@ -421,8 +424,8 @@ export class BookingAuditService {
                 return this.createdActionService.getDisplayDetails(data, t);
             }
             case "ACCEPTED": {
-                const data = this.statusChangeActionService.parseStored(audit.data);
-                return this.statusChangeActionService.getDisplayDetails(data, t);
+                const data = this.acceptedActionService.parseStored(audit.data);
+                return this.acceptedActionService.getDisplayDetails(data, t);
             }
             case "CANCELLED": {
                 const data = this.cancelledActionService.parseStored(audit.data);
