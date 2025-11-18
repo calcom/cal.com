@@ -21,7 +21,7 @@ function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequest
   return cause instanceof Prisma.PrismaClientKnownRequestError;
 }
 
-function isYupValidationError(cause: unknown): cause is {
+function isYupError(cause: unknown): cause is {
   name: string;
   message: string;
   inner: Array<{ path?: string; message: string; type?: string }>;
@@ -36,7 +36,7 @@ function isYupValidationError(cause: unknown): cause is {
   );
 }
 
-function parseYupValidationErrors(
+function parseYupErrors(
   inner: Array<{ path?: string; message: string; type?: string }>,
   fallbackMessage: string
 ): string {
@@ -66,10 +66,10 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       cause,
     });
   }
-  if (isYupValidationError(cause)) {
+  if (isYupError(cause)) {
     return new HttpError({
       statusCode: 400,
-      message: parseYupValidationErrors(cause.inner, cause.message),
+      message: parseYupErrors(cause.inner, cause.message),
       cause,
     });
   }
