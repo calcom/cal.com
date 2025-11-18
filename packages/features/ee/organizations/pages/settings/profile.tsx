@@ -21,11 +21,10 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIconButton } from "@calcom/ui/components/button";
-import { Checkbox } from "@calcom/ui/components/checkbox";
-import { Dialog } from "@calcom/ui/components/dialog";
+import { Dialog, DialogClose } from "@calcom/ui/components/dialog";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
+import { Form, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -222,12 +221,16 @@ const OrgProfileView = ({
                 title={t("admin_delete_organization_title", {
                   organizationName: currentOrganisation?.name ?? "",
                 })}
-                confirmBtnText={t("delete")}
-                isPending={deleteOrganizationMutation.isPending}
-                isConfirmDisabled={!deleteConfirmationChecked}
-                onConfirm={() => {
-                  deleteOrganization();
-                }}>
+                confirmBtn={
+                  <DialogClose
+                    color="primary"
+                    loading={deleteOrganizationMutation.isPending}
+                    disabled={!deleteConfirmationChecked}
+                    onClick={() => deleteOrganization()}
+                    data-testid="dialog-confirmation">
+                    {deleteOrganizationMutation.isPending ? t("loading") : t("delete")}
+                  </DialogClose>
+                }>
                 <ul className="ml-4 mt-5 list-disc space-y-2">
                   <li>{t("admin_delete_organization_description_1")}</li>
                   <li>{t("admin_delete_organization_description_2")}</li>
@@ -238,7 +241,7 @@ const OrgProfileView = ({
                   <Checkbox
                     id="delete-confirmation"
                     checked={deleteConfirmationChecked}
-                    onCheckedChange={(checked) => setDeleteConfirmationChecked(checked === true)}
+                    onCheckedChange={(checked: boolean) => setDeleteConfirmationChecked(checked === true)}
                   />
                   <label
                     htmlFor="delete-confirmation"
