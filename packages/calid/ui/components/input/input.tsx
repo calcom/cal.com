@@ -169,6 +169,7 @@ export const InputField = forwardRef<
     min,
     max,
     onChange,
+    onInput,
     value,
     ...passThrough
   } = props;
@@ -222,7 +223,12 @@ export const InputField = forwardRef<
               className
             )}
             {...passThrough}
-            onChange={onChange}
+            onChange={(e) => {
+              onChange(e);
+            }}
+            onInput={(e) => {
+              onInput(e);
+            }}
             disabled={readOnly || disabled}
             ref={ref}
             onFocus={(e) => {
@@ -602,11 +608,12 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
 
   // Floating variant with custom container
   if (variant === "floating") {
-    const containerState = passwordValue && showStrengthColors
-      ? passwordStrength.containerState
-      : isFocused
-      ? "focused"
-      : "default";
+    const containerState =
+      passwordValue && showStrengthColors
+        ? passwordStrength.containerState
+        : isFocused
+        ? "focused"
+        : "default";
 
     return (
       <div className="w-full">
@@ -646,7 +653,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
             }}
             className={cn(
               prefixIcon ? "py-3 pl-10 pr-10" : "px-4 py-3 pr-10",
-              "bg-default font-medium text-default",
+              "bg-default text-default font-medium",
               props.className
             )}
           />
