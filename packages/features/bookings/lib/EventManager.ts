@@ -56,10 +56,6 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const _delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
-  return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
-};
-
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getLocationFromApp(location);
   if (eventLocationType) {
