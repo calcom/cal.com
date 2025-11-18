@@ -1501,16 +1501,51 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       describe("normal booking", () => {
+        let normalBookingUser: User;
+        let normalBookingEventType: EventType;
+        let normalBookingEventTypeId: number;
+        const normalBookingUserEmail = `user-bookings-normal-user-${randomString(5)}@api.com`;
+        const normalBookingEventTypeSlug = `user-bookings-normal-event-type-${randomString(5)}`;
+
         let oldNormalBooking: BookingOutput_2024_08_13;
         let newNormalBooking: BookingOutput_2024_08_13;
 
         const RESCHEDULE_REASON = "Flying to venus that day";
-        const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(10)}@api.com`;
+        const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(5)}@api.com`;
+
+        beforeAll(async () => {
+          normalBookingUser = await userRepositoryFixture.create({
+            email: normalBookingUserEmail,
+            username: normalBookingUserEmail,
+          });
+
+          const userSchedule: CreateScheduleInput_2024_04_15 = {
+            name: `user-bookings-normal-schedule-${randomString()}`,
+            timeZone: "Europe/Rome",
+            isDefault: true,
+          };
+          await schedulesService.createUserSchedule(normalBookingUser.id, userSchedule);
+
+          normalBookingEventType = await eventTypesRepositoryFixture.create(
+            {
+              title: `user-bookings-normal-event-type-${randomString()}`,
+              slug: normalBookingEventTypeSlug,
+              length: 60,
+            },
+            normalBookingUser.id
+          );
+          normalBookingEventTypeId = normalBookingEventType.id;
+        });
+
+        afterAll(async () => {
+          await bookingsRepositoryFixture.deleteAllBookings(normalBookingUser.id, normalBookingUser.email);
+          await userRepositoryFixture.deleteByEmail(normalBookingUser.email);
+        });
 
         it("should create a booking to be rescheduled", async () => {
           const bookingBody: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2040, 1, 9, 10, 0, 0)).toISOString(),
-            eventTypeId,
+            eventTypeId: normalBookingEventTypeId,
             attendee: {
               name: `user-venus-bookings-attendee-${randomString(10)}`,
               email: `user-venus-bookings-attendee-${randomString(10)}@gmail.com`,
