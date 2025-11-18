@@ -89,9 +89,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
 
   return (
     <div className="space-y-6">
-      <Alert severity="warning">
-        {t("disable_guest_emails_warning")}
-      </Alert>
+      <Alert severity="warning" title={t("disable_guest_emails_warning")} />
 
       <SettingsToggle
         toggleSwitchAtTheEnd={true}

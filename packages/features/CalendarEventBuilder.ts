@@ -7,7 +7,6 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
-import { prisma } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
@@ -115,19 +114,6 @@ export class CalendarEventBuilder {
     const organizationId = user.profiles?.[0]?.organizationId ?? null;
     const bookerUrl = await getBookerBaseUrl(eventType.team?.parentId ?? organizationId);
 
-    let organizationSettings = null;
-    if (organizationId) {
-      organizationSettings = await prisma.organizationSettings.findUnique({
-        where: { organizationId },
-        select: {
-          disableGuestConfirmationEmail: true,
-          disableGuestCancellationEmail: true,
-          disableGuestRescheduledEmail: true,
-          disableGuestRequestEmail: true,
-        },
-      });
-    }
-
     const parsedBookingResponses = bookingResponsesSchema.safeParse(responses);
     const bookingResponses = parsedBookingResponses.success ? parsedBookingResponses.data : null;
 
@@ -188,15 +174,8 @@ export class CalendarEventBuilder {
       })
       .withRecurring(recurring)
       .withUid(uid)
-      .withOneTimePassword(oneTimePassword);
-
-    // Organization settings
-    if (organizationId && organizationSettings) {
-      builder.withOrganization({
-        id: organizationId,
-        settings: organizationSettings,
-      });
-    }
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId);
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -501,18 +480,10 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  withOrganization(organization?: {
-    id: number;
-    settings?: {
-      disableGuestConfirmationEmail?: boolean;
-      disableGuestCancellationEmail?: boolean;
-      disableGuestRescheduledEmail?: boolean;
-      disableGuestRequestEmail?: boolean;
-    };
-  }) {
+  withOrganization(organizationId?: number | null) {
     this.event = {
       ...this.event,
-      organization,
+      organizationId,
     };
     return this;
   }
@@ -524,7 +495,8 @@ export class CalendarEventBuilder {
       !this.event.endTime ||
       !this.event.type ||
       !this.event.bookerUrl ||
-      !this.event.title
+      !this.event.title ||
+      this.event.organizationId === undefined
     ) {
       return null;
     }

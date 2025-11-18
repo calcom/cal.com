@@ -1387,6 +1387,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withOrganization(organizerOrganizationId)
     .build();
 
   if (!builtEvt) {
