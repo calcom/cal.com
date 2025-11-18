@@ -262,9 +262,10 @@ export function BookingActionsDropdown({
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
-  // Get pending actions (accept/reject)
+  // Get pending actions (accept/reject) - only for details context
   const shouldShowPending = shouldShowPendingActions(actionContext);
-  const basePendingActions = shouldShowPending ? getPendingActions(actionContext) : [];
+  const basePendingActions =
+    shouldShowPending && context === "details" ? getPendingActions(actionContext) : [];
   const pendingActions: ActionType[] = basePendingActions.map((action) => ({
     ...action,
     disabled: mutation.isPending,
@@ -587,7 +588,7 @@ export function BookingActionsDropdown({
         </DropdownMenuTrigger>
         <ConditionalPortal>
           <DropdownMenuContent>
-            {context === "details" && pendingActions.length > 0 && (
+            {pendingActions.length > 0 && (
               <>
                 <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>
                 {pendingActions.map((action) => (

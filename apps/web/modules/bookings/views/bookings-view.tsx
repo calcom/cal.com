@@ -19,6 +19,7 @@ import {
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
@@ -169,6 +170,11 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
   const isPending = query.isPending;
   const totalRowCount = query.data?.totalCount;
+  const hasError = !!query.error;
+
+  const errorView = query.error ? (
+    <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+  ) : undefined;
 
   return (
     <div className="flex flex-col">
@@ -193,6 +199,8 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
               isPending={isPending}
               totalRowCount={totalRowCount}
               enableDetailsSheet={bookingsV3Enabled}
+              ErrorView={errorView}
+              hasError={hasError}
             />
           )}
           {bookingsV3Enabled && view === "calendar" && (
@@ -201,6 +209,8 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
               permissions={permissions}
               data={query.data}
               isPending={isPending}
+              ErrorView={errorView}
+              hasError={hasError}
             />
           )}
         </div>

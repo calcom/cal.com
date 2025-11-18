@@ -28,6 +28,8 @@ interface BookingsListContainerProps {
   isPending: boolean;
   enableDetailsSheet: boolean;
   totalRowCount?: number;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 }
 
 function BookingsListInner({
@@ -37,6 +39,8 @@ function BookingsListInner({
   isPending,
   enableDetailsSheet,
   totalRowCount,
+  ErrorView,
+  hasError,
 }: BookingsListContainerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
@@ -291,7 +295,14 @@ function BookingsListInner({
 
   return (
     <>
-      <BookingsList status={status} table={table} isPending={isPending} totalRowCount={totalRowCount} />
+      <BookingsList
+        status={status}
+        table={table}
+        isPending={isPending}
+        totalRowCount={totalRowCount}
+        ErrorView={ErrorView}
+        hasError={hasError}
+      />
 
       {enableDetailsSheet && (
         <BookingDetailsSheet
@@ -312,6 +323,8 @@ export function BookingsListContainer({
   isPending,
   enableDetailsSheet,
   totalRowCount,
+  ErrorView,
+  hasError,
 }: BookingsListContainerProps) {
   // Extract bookings from data for BookingDetailsSheet
   const bookings = useMemo(() => data?.bookings ?? [], [data]);
@@ -325,6 +338,8 @@ export function BookingsListContainer({
         isPending={isPending}
         enableDetailsSheet={enableDetailsSheet}
         totalRowCount={totalRowCount}
+        ErrorView={ErrorView}
+        hasError={hasError}
       />
     </BookingDetailsSheetStoreProvider>
   );

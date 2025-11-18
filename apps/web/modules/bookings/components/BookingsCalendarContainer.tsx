@@ -31,6 +31,8 @@ interface BookingsCalendarContainerProps {
   };
   data?: BookingsGetOutput;
   isPending?: boolean;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 }
 
 export function BookingsCalendarContainer({
@@ -38,6 +40,8 @@ export function BookingsCalendarContainer({
   permissions,
   data,
   isPending = false,
+  ErrorView,
+  hasError,
 }: BookingsCalendarContainerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
@@ -143,6 +147,8 @@ export function BookingsCalendarContainer({
         currentWeekStart={currentWeekStart}
         setCurrentWeekStart={setCurrentWeekStart}
         bookings={bookings}
+        ErrorView={ErrorView}
+        hasError={hasError}
       />
 
       <BookingDetailsSheet
