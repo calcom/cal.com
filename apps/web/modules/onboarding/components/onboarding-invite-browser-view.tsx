@@ -117,7 +117,7 @@ export const OnboardingInviteBrowserView = ({
   }
 
   return (
-    <div className="bg-default border-subtle bg-muted hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border xl:flex">
+    <div className="border-subtle bg-muted hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border xl:flex">
       {/* Content */}
       <div className="h-full px-6 pt-6">
         <AnimatePresence mode="wait">
@@ -145,7 +145,7 @@ export const OnboardingInviteBrowserView = ({
                     {displayInviterName} invited you to join {displayName}
                   </h2>
                   <p className="text-subtle text-left text-sm font-normal leading-tight">
-                    We're emailing you all the details
+                    We&apos;re emailing you all the details
                   </p>
                 </div>
               </div>
@@ -156,12 +156,16 @@ export const OnboardingInviteBrowserView = ({
               {displayItems.map((item, index) => (
                 <div
                   key={`${item.email}-${index}`}
-                  className="bg-default border-subtle flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border p-4">
+                  className="bg-default border-subtle flex aspect-square w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-4">
                   <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="flex flex-col items-center">
-                      <p className="text-default text-sm font-semibold leading-tight">{item.name}</p>
-                      <p className="text-subtle text-xs font-medium leading-tight">{item.email}</p>
+                  <div className="flex w-full min-w-0 flex-col items-center gap-4">
+                    <div className="flex w-full min-w-0 flex-col items-center">
+                      <p className="text-default w-full truncate text-center text-sm font-semibold leading-tight">
+                        {item.name}
+                      </p>
+                      <p className="text-subtle w-full truncate text-center text-xs font-medium leading-tight">
+                        {item.email}
+                      </p>
                     </div>
                     {item.team && (
                       <div className="bg-emphasis text-emphasis rounded-md px-2 py-0.5 text-xs">

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
 
@@ -41,7 +41,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     if (!selectedPlan || !previousPlanRef.current) return "down";
     const previousOrder = planOrder[previousPlanRef.current];
     const currentOrder = planOrder[selectedPlan];
-    return currentOrder > previousOrder ? "down" : "up";
+    return currentOrder > previousOrder ? "up" : "down";
   };
 
   const direction = getDirection();
