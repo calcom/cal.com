@@ -6,6 +6,11 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
+import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
+import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
+import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
+import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -35,6 +40,9 @@ import { Module } from "@nestjs/common";
     SchedulesModule_2024_04_15,
     EventTypesModule_2024_06_14,
     ProfilesModule,
+    RegularBookingModule,
+    RecurringBookingModule,
+    InstantBookingModule,
   ],
   providers: [
     TokensRepository,
@@ -49,6 +57,8 @@ import { Module } from "@nestjs/common";
     AppsRepository,
     CalendarsRepository,
     SelectedCalendarsRepository,
+    PrismaEventTypeRepository,
+    PrismaTeamRepository,
   ],
   controllers: [BookingsController_2024_04_15],
 })

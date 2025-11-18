@@ -2,13 +2,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -46,8 +46,14 @@ export class PaymentService implements IAbstractPaymentService {
 
   private async getPayment(where: Prisma.PaymentWhereInput) {
     const payment = await prisma.payment.findFirst({ where });
-    if (!payment) throw new Error("Payment not found");
-    if (!payment.externalId) throw new Error("Payment externalId not found");
+    // if payment isn't found, return null.
+    if (!payment) {
+      return null;
+    }
+    // if it is found, but there's no externalId - it indicates invalid state and an error should be thrown.
+    if (!payment.externalId) {
+      throw new Error("Payment externalId not found");
+    }
     return { ...payment, externalId: payment.externalId };
   }
 
@@ -326,13 +332,21 @@ export class PaymentService implements IAbstractPaymentService {
     throw new Error("Method not implemented.");
   }
 
-  async refund(paymentId: Payment["id"]): Promise<Payment> {
+  async refund(paymentId: Payment["id"]): Promise<Payment | null> {
+    const payment = await this.getPayment({
+      id: paymentId,
+    });
+    if (!payment) {
+      return null;
+    }
+    if (!payment.success) {
+      throw new Error("Unable to refund failed payment");
+    }
+    if (payment.refunded) {
+      // refunded already, bail early as success without throwing an error.
+      return payment;
+    }
     try {
-      const payment = await this.getPayment({
-        id: paymentId,
-        success: true,
-        refunded: false,
-      });
       const refund = await this.stripe.refunds.create(
         {
           payment_intent: payment.externalId,
@@ -399,8 +413,12 @@ export class PaymentService implements IAbstractPaymentService {
       const payment = await this.getPayment({
         id: paymentId,
       });
-      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
+      // no payment found, return false.
+      if (!payment) {
+        return false;
+      }
 
+      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
       if (!stripeAccount) {
         throw new Error("Stripe account not found");
       }

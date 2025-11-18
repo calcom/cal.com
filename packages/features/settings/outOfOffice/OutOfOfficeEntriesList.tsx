@@ -7,8 +7,8 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -38,7 +38,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
@@ -63,8 +62,17 @@ interface OutOfOfficeEntry {
   canEditAndDelete: boolean;
 }
 
-export default function OutOfOfficeEntriesList() {
+export default function OutOfOfficeEntriesList({
+  onOpenCreateDialog,
+  onOpenEditDialog,
+}: {
+  onOpenCreateDialog: () => void;
+  onOpenEditDialog: (entry: BookingRedirectForm) => void;
+}) {
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  if (!pathname) return null;
 
   return (
     <SettingsHeader
@@ -73,27 +81,29 @@ export default function OutOfOfficeEntriesList() {
       CTA={
         <div className="flex gap-2">
           <OutOfOfficeToggleGroup />
-          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
+          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" onClick={onOpenCreateDialog} />
         </div>
       }>
-      <DataTableProvider useSegments={useSegments}>
-        <OutOfOfficeEntriesListContent />
+      <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+        <OutOfOfficeEntriesListContent
+          onOpenCreateDialog={onOpenCreateDialog}
+          onOpenEditDialog={onOpenEditDialog}
+        />
       </DataTableProvider>
     </SettingsHeader>
   );
 }
 
-function OutOfOfficeEntriesListContent() {
+function OutOfOfficeEntriesListContent({
+  onOpenCreateDialog,
+  onOpenEditDialog,
+}: {
+  onOpenCreateDialog: () => void;
+  onOpenEditDialog: (entry: BookingRedirectForm) => void;
+}) {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
-  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
-    useState<BookingRedirectForm | null>(null);
-  const [openModal, setOpenModal] = useState(false);
-  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
-    setCurrentlyEditingOutOfOfficeEntry(entry);
-    setOpenModal(true);
-  };
 
   const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
@@ -285,7 +295,7 @@ function OutOfOfficeEntriesListContent() {
                           forUserAvatar: item.user?.avatarUrl,
                           toUserName: item.toUser?.name || item.toUser?.username,
                         };
-                        editOutOfOfficeEntry(outOfOfficeEntryData);
+                        onOpenEditDialog(outOfOfficeEntryData);
                       }}
                       disabled={isPending || isFetching || !item.canEditAndDelete}
                     />
@@ -321,7 +331,7 @@ function OutOfOfficeEntriesListContent() {
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching]);
+  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t]);
 
   const table = useReactTable({
     data: flatData,
@@ -341,7 +351,6 @@ function OutOfOfficeEntriesListContent() {
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
-      useFormState;
     },
     onError: () => {
       showToast(`An error occurred`, "error");
@@ -383,7 +392,7 @@ function OutOfOfficeEntriesListContent() {
                 ? t("ooo_team_empty_description")
                 : t("ooo_empty_description")
             }
-            buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
+            buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" onClick={onOpenCreateDialog} />}
             customIcon={
               <div className="mt-4 h-[102px]">
                 <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
@@ -408,16 +417,6 @@ function OutOfOfficeEntriesListContent() {
           />
         }
       />
-      {openModal && (
-        <CreateOrEditOutOfOfficeEntryModal
-          openModal={openModal}
-          closeModal={() => {
-            setOpenModal(false);
-            setCurrentlyEditingOutOfOfficeEntry(null);
-          }}
-          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-        />
-      )}
     </>
   );
 }

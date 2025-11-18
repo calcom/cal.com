@@ -4,10 +4,14 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.9.0",
+  "version": "1.12.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com"
+  },
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../prisma/client/*.d.ts ./dist/packages/prisma-client",
+    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
     "publish-npm": "yarn build && npm publish --access public",
     "test": "jest",
     "dev-on": "node scripts/dev-on.js",

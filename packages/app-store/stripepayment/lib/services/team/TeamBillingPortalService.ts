@@ -1,6 +1,5 @@
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSubscriptionFromId } from "../../subscriptions";
 import { BillingPortalService } from "../base/BillingPortalService";
@@ -21,22 +20,32 @@ export class TeamBillingPortalService extends BillingPortalService {
   async getCustomerId(teamId: number): Promise<string | null> {
     const log = logger.getSubLogger({ prefix: ["TeamBillingPortalService", "getCustomerId"] });
 
-    const team = await this.teamRepository.findById({ id: teamId });
+    const team = await this.teamRepository.findByIdIncludePlatformBilling({ id: teamId });
     if (!team) return null;
 
-    const teamMetadataParsed = teamMetadataSchema.safeParse(team.metadata);
+    let teamSubscriptionId = "";
 
-    if (!teamMetadataParsed.success || !teamMetadataParsed.data?.subscriptionId) {
-      return null;
+    if (team.isPlatform) {
+      const subscriptionId = this.getValidatedTeamSubscriptionIdForPlatform(
+        team.platformBilling?.subscriptionId
+      );
+
+      if (!subscriptionId) return null;
+      teamSubscriptionId = subscriptionId;
+    } else {
+      const subscriptionId = this.getValidatedTeamSubscriptionId(team.metadata);
+
+      if (!subscriptionId) return null;
+      teamSubscriptionId = subscriptionId;
     }
 
     try {
-      const subscription = await getSubscriptionFromId(teamMetadataParsed.data.subscriptionId);
+      const subscription = await getSubscriptionFromId(teamSubscriptionId);
 
       if (!subscription?.customer) {
         log.warn("Subscription found but no customer ID", {
           teamId,
-          subscriptionId: teamMetadataParsed.data.subscriptionId,
+          teamSubscriptionId,
         });
         return null;
       }

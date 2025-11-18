@@ -640,10 +640,6 @@ select:focus {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
-.intercom-lightweight-app {
-  @apply z-40 !important;
-}
-
 [data-radix-popper-content-wrapper] {
   border: none;
 }

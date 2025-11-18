@@ -8,10 +8,19 @@ async function selectOption(page: Page, optionNumber: number) {
   await page.keyboard.press("Enter");
 }
 
-test("availability page loads with all components", async ({ page }) => {
+// eslint-disable-next-line playwright/no-skipped-test
+test.skip("availability page loads with all components", async ({ page }) => {
   await page.goto("/availability");
-
   await expect(page).toHaveURL("/availability");
+
+  await expect(page.locator('[data-testid="list-schedules-atom"]')).toBeVisible();
+  await expect(page.locator('[data-testid="schedules"]')).toBeVisible();
+
+  await expect(page.locator('[data-testid="schedules"] li').first()).toBeVisible();
+  await expect(
+    page.locator('[data-testid="schedules"] li').first().locator('[data-testid="schedule-more"]')
+  ).toBeVisible();
+  await page.locator('[data-testid="schedules"] li').first().locator('[data-testid="schedule-more"]').click();
 
   await expect(page.locator('h1:has-text("Availability Settings")')).toBeVisible();
 

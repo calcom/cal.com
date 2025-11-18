@@ -81,10 +81,13 @@ test.describe("Managed Event Types", () => {
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
     await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page"); // fix the race condition
     await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); //fix the race condition
+
     await page.locator("#location-select").click();
-    const optionText = await getByKey(page, "organizer_default_conferencing_app");
-    await expect(optionText).toBeVisible();
-    await optionText.click();
+    const targetText = (await localize("en"))("organizer_default_conferencing_app");
+    const options = page.locator('[data-testid="location-select-item-conferencing"]');
+    const targetOption = options.locator(`text=${targetText}`);
+    await expect(targetOption).toBeVisible();
+    await targetOption.click();
     await saveAndWaitForResponse(page);
 
     await page.getByTestId("vertical-tab-assignment").click();
@@ -190,7 +193,7 @@ test.describe("Managed Event Types", () => {
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [
-    { slug: "setup", locator: (page) => getByKey(page, "translate_description_button") },
+    { slug: "setup", locator: (page) => getByKey(page, "allow_multiple_durations") },
     {
       slug: "team",
       locator: (page) => getByKey(page, "automatically_add_all_team_members"),
@@ -239,5 +242,5 @@ async function gotoBookingPage(page: Page) {
 }
 
 async function saveAndWaitForResponse(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1");
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1");
 }

@@ -48,6 +48,19 @@ export class ErrorsBookingsService_2024_08_13 {
         throw new BadRequestException("Attempting to book a meeting in the past.");
       } else if (error.message === "hosts_unavailable_for_booking") {
         throw new BadRequestException(hostsUnavaile);
+      } else if (error.message === "booker_limit_exceeded_error") {
+        throw new BadRequestException(
+          "Attendee with this email can't book because the maximum number of active bookings has been reached."
+        );
+      } else if (error.message === "booker_limit_exceeded_error_reschedule") {
+        const errorData =
+          "data" in error ? (error.data as { rescheduleUid: string }) : { rescheduleUid: undefined };
+        let message =
+          "Attendee with this email can't book because the maximum number of active bookings has been reached.";
+        if (errorData?.rescheduleUid) {
+          message += ` You can reschedule your existing booking (${errorData.rescheduleUid}) to a new timeslot instead.`;
+        }
+        throw new BadRequestException(message);
       }
     }
     throw error;

@@ -2,6 +2,7 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
@@ -15,6 +16,7 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
   constructor(private prismaClient: PrismaClient) {}
@@ -182,6 +184,38 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       const result = await this.prismaClient.$queryRaw<unknown[]>(query);
       return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Enables a feature for a specific team.
+   * @param teamId - The ID of the team to enable the feature for
+   * @param featureId - The feature identifier to enable
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature enabling fails
+   */
+  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+        },
+        update: {},
+      });
+      // Clear cache when features are modified
+      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;

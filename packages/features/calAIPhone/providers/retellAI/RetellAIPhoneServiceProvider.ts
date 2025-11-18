@@ -210,7 +210,7 @@ export class RetellAIPhoneServiceProvider
     return await this.service.getAgentWithDetails(params);
   }
 
-  async createAgent(params: {
+  async createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -225,7 +225,27 @@ export class RetellAIPhoneServiceProvider
     providerAgentId: string;
     message: string;
   }> {
-    const result = await this.service.createAgent(params);
+    const result = await this.service.createOutboundAgent(params);
+    return {
+      id: result.id,
+      providerAgentId: result.providerAgentId,
+      message: result.message,
+    };
+  }
+
+  async createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }> {
+    const result = await this.service.createInboundAgent(params);
     return {
       id: result.id,
       providerAgentId: result.providerAgentId,
@@ -244,6 +264,8 @@ export class RetellAIPhoneServiceProvider
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }
