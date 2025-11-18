@@ -443,6 +443,9 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    //Get the initial offset for the first event in minute (e.g., +60 for GMT+1)
+    const initialUtcOffset = startTime.offset;
+
     const guests =
       inputBooking.guests && platformClientId
         ? await this.platformBookingsService.getPlatformAttendeesEmails(inputBooking.guests, platformClientId)
@@ -460,7 +463,19 @@ export class InputBookingsService_2024_08_13 {
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
+      //compare current event offset with initial offset
+      // if the offset changes the timeshift has occured
+      const timeShiftDetected = startTime.offset !== initialUtcOffset;
       const endTime = startTime.plus({ minutes: lengthInMinutes });
+
+      // if (timeShiftDetected) {
+
+      //   Logger.log(
+      //     `Time shift detected for recurring event ${recurringEventId} at ${startTime.toISO()}.
+      //     Initial Offset: ${initialUtcOffset} min, Current Offset: ${startTime.offset} min`,
+      //     'RecurringBooking'
+      //   );
+      // }
 
       events.push({
         start: startTime.toISO(),
@@ -469,7 +484,10 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        metadata: inputBooking.metadata || {},
+        metadata: {
+          ...inputBooking.metadata,
+          timeShiftDetected: timeShiftDetected ? "true" : "false",
+        },
         hasHashedBookingLink: false,
         guests,
         verificationCode: inputBooking.emailVerificationCode,

@@ -104,6 +104,7 @@ function buildSlotsWithDateRanges({
       toUser?: IToUser;
       reason?: string;
       emoji?: string;
+      timeShiftDetected?: boolean;
     }
   >();
 
@@ -183,6 +184,9 @@ function buildSlotsWithDateRanges({
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
+      const actualStartMinuteOfDay = slotStartTime.minute() + slotStartTime.hour() * 60;
+      const timeShiftDetected = actualStartMinuteOfDay !== expectedStartMinuteOfDay;
+
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
         time: Dayjs;
@@ -192,8 +196,10 @@ function buildSlotsWithDateRanges({
         toUser?: IToUser;
         reason?: string;
         emoji?: string;
+        timeShiftDetected?: boolean;
       } = {
         time: slotStartTime,
+        timeShiftDetected: timeShiftDetected,
       };
 
       if (dateOutOfOfficeExists) {
@@ -202,6 +208,7 @@ function buildSlotsWithDateRanges({
         slotData = {
           time: slotStartTime,
           away: true,
+          timeShiftDetected: timeShiftDetected,
           ...(fromUser && { fromUser }),
           ...(toUser && { toUser }),
           ...(reason && { reason }),

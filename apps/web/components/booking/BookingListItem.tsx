@@ -176,7 +176,7 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
-
+  
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
@@ -186,6 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isPending = booking.status === BookingStatus.PENDING;
   const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
+  const isTimeShifted = metadata?.timeShiftDetected == "true";
 
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -445,6 +446,11 @@ function BookingListItem(booking: BookingItemProps) {
                     {t("pending_payment")}
                   </Badge>
                 )}
+                {isTimeShifted && (
+                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                    {t("time_shift")}
+                  </Badge>
+                )}
                 {recurringDates !== undefined && (
                   <div className="text-muted text-sm sm:hidden">
                     <RecurringBookingsTooltip
@@ -551,6 +557,7 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+
 }) => {
   const { t } = useLocale();
 
@@ -559,6 +566,11 @@ const BookingItemBadges = ({
       {isPending && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
+        </Badge>
+      )}
+      {timeShiftDetected && (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+          {t("time_shift")}
         </Badge>
       )}
       {isRescheduled && (
