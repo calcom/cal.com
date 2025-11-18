@@ -1,6 +1,6 @@
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 
-export type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
+export type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["statuses"][number];
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
