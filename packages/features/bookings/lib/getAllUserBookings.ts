@@ -22,7 +22,7 @@ type GetOptions = {
   take: number;
   skip: number;
   filters: {
-    statuses: InputByStatus[];
+    statuses?: InputByStatus[];
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
@@ -41,7 +41,10 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     prisma,
     kysely,
     bookingListingByStatus,
-    filters: filters,
+    filters: {
+      ...filters,
+      statuses: filters.statuses ?? bookingListingByStatus,
+    },
     sort,
     take,
     skip,
