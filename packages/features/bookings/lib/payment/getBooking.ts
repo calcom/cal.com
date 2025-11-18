@@ -66,6 +66,8 @@ export async function getBooking(bookingId: number) {
           title: true,
           teamId: true,
           parentId: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           parent: {
             select: {
               teamId: true,
@@ -195,6 +197,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
   };
 
   return {

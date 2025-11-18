@@ -1,5 +1,5 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { sendScheduledEmailsAndSMS, sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -16,6 +16,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
+
 export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
@@ -96,7 +97,22 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    
+    if (evt.seatsPerTimeSlot) {
+      const newAttendee = evt.attendees[evt.attendees.length - 1];
+      const isNewSeat = evt.attendees.length > 1;
+      await sendScheduledSeatsEmailsAndSMS(
+        { ...evt },
+        newAttendee,
+        isNewSeat,
+        !!evt.seatsShowAttendees,
+        undefined,
+        undefined,
+        eventType.metadata
+      );
+    } else {
+      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    }
   }
 
   throw new HttpCode({
