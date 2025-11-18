@@ -74,7 +74,15 @@ const getAppBySlug = async (appSlug: string) => {
   return app;
 };
 
-const getEventTypes = async (userId: number, teamIds?: number[], isConferencing = false) => {
+const getEventTypes = async ({
+  userId,
+  teamIds,
+  isConferencing = false,
+}: {
+  userId: number;
+  teamIds?: number[];
+  isConferencing?: boolean;
+}) => {
   const eventTypeSelect = {
     id: true,
     description: true,
@@ -258,11 +266,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
     if (isOrg) {
       const teamIds = userTeams.map((item) => item.id);
-      eventTypeGroups = await getEventTypes(user.id, teamIds, isConferencing);
+      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds, isConferencing });
     } else if (parsedTeamIdParam) {
-      eventTypeGroups = await getEventTypes(user.id, [parsedTeamIdParam], isConferencing);
+      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds: [parsedTeamIdParam], isConferencing });
     } else {
-      eventTypeGroups = await getEventTypes(user.id, undefined, isConferencing);
+      eventTypeGroups = await getEventTypes({ userId: user.id, isConferencing });
     }
     if (isConferencing && eventTypeGroups) {
       const destinationCalendar = await prisma.destinationCalendar.findFirst({

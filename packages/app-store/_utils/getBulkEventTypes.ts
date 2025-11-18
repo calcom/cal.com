@@ -50,8 +50,7 @@ export const getBulkUserEventTypes = async (userId: number) => {
 
   return processEventTypes(
     filteredEventTypes.map((eventType) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { metadata, ...rest } = eventType;
+      const { metadata: _metadata, ...rest } = eventType;
       return { ...rest };
     })
   );
