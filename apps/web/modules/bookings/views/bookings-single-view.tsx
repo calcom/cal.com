@@ -1207,7 +1207,7 @@ function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
               <br />
               {formatToLocalizedTime({
                 date: dayjs(dateStr),
@@ -1225,7 +1225,7 @@ function RecurringBookings({
                 timeZone: tz,
               })}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -1240,7 +1240,7 @@ function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
                     <br />
                     {formatToLocalizedTime({
                       date: dayjs(dateStr),
@@ -1256,7 +1256,7 @@ function RecurringBookings({
                       timeZone: tz,
                     })}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}
