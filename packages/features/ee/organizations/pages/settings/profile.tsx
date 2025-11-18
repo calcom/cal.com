@@ -21,6 +21,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIconButton } from "@calcom/ui/components/button";
+import { Checkbox } from "@calcom/ui/components/checkbox";
 import { Dialog } from "@calcom/ui/components/dialog";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
@@ -90,6 +91,7 @@ const OrgProfileView = ({
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const [deleteConfirmationChecked, setDeleteConfirmationChecked] = useState(false);
 
   const orgBranding = useOrgBranding();
 
@@ -112,7 +114,7 @@ const OrgProfileView = ({
     [error, router]
   );
 
-  const deleteOrganizationMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteOrganizationMutation = trpc.viewer.organizations.deleteOrganization.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listCurrent.invalidate();
       await utils.viewer.teams.list.invalidate();
@@ -126,7 +128,7 @@ const OrgProfileView = ({
 
   function deleteOrganization() {
     if (currentOrganisation?.id) {
-      deleteOrganizationMutation.mutate({ teamId: currentOrganisation.id });
+      deleteOrganizationMutation.mutate({ orgId: currentOrganisation.id });
     }
   }
 
@@ -198,7 +200,12 @@ const OrgProfileView = ({
               <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
               <p className="text-subtle text-sm">{t("delete_organization")}</p>
             </div>
-            <Dialog>
+            <Dialog
+              onOpenChange={(open) => {
+                if (!open) {
+                  setDeleteConfirmationChecked(false);
+                }
+              }}>
               <SectionBottomActions align="end">
                 <DialogTrigger asChild>
                   <Button
@@ -217,6 +224,7 @@ const OrgProfileView = ({
                 })}
                 confirmBtnText={t("delete")}
                 isPending={deleteOrganizationMutation.isPending}
+                isConfirmDisabled={!deleteConfirmationChecked}
                 onConfirm={() => {
                   deleteOrganization();
                 }}>
@@ -226,6 +234,18 @@ const OrgProfileView = ({
                   <li>{t("admin_delete_organization_description_3")}</li>
                   <li>{t("admin_delete_organization_description_4")}</li>
                 </ul>
+                <div className="mt-6 flex items-start space-x-2">
+                  <Checkbox
+                    id="delete-confirmation"
+                    checked={deleteConfirmationChecked}
+                    onCheckedChange={(checked) => setDeleteConfirmationChecked(checked === true)}
+                  />
+                  <label
+                    htmlFor="delete-confirmation"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t("confirm_delete_organization_checkbox")}
+                  </label>
+                </div>
               </ConfirmationDialogContent>
             </Dialog>
           </>

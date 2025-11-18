@@ -788,6 +788,7 @@
   "delete_organization": "Delete Organization",
   "delete_organization_confirmation_message": "Are you sure you want to delete this organization? All teams and members will be deleted. This action cannot be undone.",
   "confirm_delete_organization": "Yes, delete organization",
+  "confirm_delete_organization_checkbox": "I understand that this action cannot be undone and all data will be permanently deleted",
   "organization_deletion_cannot_be_undone": "Deleting an organization cannot be undone. All teams and members will be permanently deleted.",
   "your_organization_disbanded_successfully": "Your organization has been deleted successfully",
   "remove_member_confirmation_message": "Are you sure you want to remove this member from the team?",
