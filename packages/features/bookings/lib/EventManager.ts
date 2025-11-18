@@ -557,7 +557,7 @@ export default class EventManager {
         safeStringify({
           credentialId,
           type,
-          videoCredentials: this.videoCredentials,
+          videoCredentialIds: this.videoCredentials.map((cred) => cred.id),
         })
       );
     }
@@ -589,7 +589,7 @@ export default class EventManager {
         safeStringify({
           credentialId,
           type,
-          calendarCredentials: this.calendarCredentials,
+          calendarCredentialIds: this.calendarCredentials.map((cred) => cred.id),
         })
       );
     }
