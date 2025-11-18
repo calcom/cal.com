@@ -57,3 +57,9 @@ export const displayNameToLocationValue = (
   return { type: "integration", integration: appId };
 };
 
+export default {
+  formatDuration,
+  truncateTitle,
+  formatAppIdToDisplayName,
+  displayNameToLocationValue,
+};

@@ -517,3 +517,4 @@ export function AdvancedTab(props: AdvancedTabProps) {
   );
 }
 
+export default AdvancedTab;

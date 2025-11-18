@@ -135,3 +135,4 @@ export function RecurringTab({
   );
 }
 
+export default RecurringTab;

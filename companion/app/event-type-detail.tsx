@@ -31,7 +31,7 @@ import {
 import { slugify } from "../utils/slugify";
 import { BasicsTab } from "./event-type-detail/tabs/BasicsTab";
 import { AvailabilityTab } from "./event-type-detail/tabs/AvailabilityTab";
-import { LimitsTab } from "./event-type-detail/tabs/LimitsTab";
+import LimitsTab from "./event-type-detail/tabs/LimitsTab";
 import { AdvancedTab } from "./event-type-detail/tabs/AdvancedTab";
 import { RecurringTab } from "./event-type-detail/tabs/RecurringTab";
 
