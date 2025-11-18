@@ -141,7 +141,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }
         }>
         <IconSprites />
-        <GoogleAdsTracker />
         <SpeculationRules
           // URLs In Navigation
           prerenderPathsOnHover={[
@@ -157,6 +156,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
 
         <Providers isEmbed={isEmbed} nonce={nonce}>
+          <GoogleAdsTracker />
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>
