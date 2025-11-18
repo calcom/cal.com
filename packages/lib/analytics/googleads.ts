@@ -3,27 +3,13 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { localStorage } from "@calcom/lib/webstorage";
+import { getCookie, setCookie } from "@calcom/lib/cookie";
 
 import { useGeolocation } from "./geolocation";
-
-const GOOGLE_ADS_STORAGE_KEY = "google_ads_data";
 
 export interface GoogleAdsData {
   gclid: string;
   campaignId?: string;
-}
-
-function storeGoogleAdsData(data: GoogleAdsData): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    localStorage.setItem(GOOGLE_ADS_STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.error("[Google Ads] Error storing data:", error);
-  }
 }
 
 /**
@@ -42,13 +28,16 @@ export function useGoogleAdsCapture(): void {
       const gclid = searchParams.get("gclid");
 
       if (gclid) {
-        // Get campaign ID from Google Ads parameter
-        const campaignId = searchParams.get("gad_campaignid") || undefined;
+        const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
+        const domain = isLocalhost ? "" : "domain=.cal.com; ";
+        const cookieOptions = `${domain}path=/; max-age=31536000000; ${isLocalhost ? "" : "secure; "
+          }samesite=lax`;
+        setCookie("gclid", gclid, cookieOptions);
 
-        storeGoogleAdsData({
-          gclid,
-          campaignId,
-        });
+        const campaignId = searchParams.get("gad_campaignid");
+        if (campaignId) {
+          setCookie("campaignId", campaignId, cookieOptions);
+        }
       }
     } catch (error) {
       console.error("[Google Ads] Error capturing data:", error);
@@ -62,12 +51,18 @@ export function getGoogleAdsData(): GoogleAdsData | null {
   }
 
   try {
-    const data = localStorage.getItem(GOOGLE_ADS_STORAGE_KEY);
-    if (!data) {
+    const gclid = getCookie("gclid");
+
+    if (!gclid) {
       return null;
     }
 
-    return JSON.parse(data);
+    const campaignId = getCookie("campaignId");
+
+    return {
+      gclid,
+      campaignId: campaignId || undefined,
+    };
   } catch (error) {
     console.error("[Google Ads] Error retrieving data:", error);
     return null;
