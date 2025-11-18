@@ -46,7 +46,7 @@ const useBuildHref = () => {
       childItem.preserveQueryParams &&
       childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current, nextPathname: childItem.href })
     ) {
-      const params = searchParams.toString();
+      const params = searchParams?.toString();
       return params ? `${childItem.href}?${params}` : childItem.href;
     }
     return childItem.href;

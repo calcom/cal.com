@@ -2169,6 +2169,746 @@
         "tags": ["Orgs / Memberships"]
       }
     },
+    "/v2/organizations/{orgId}/roles": {
+      "post": {
+        "operationId": "OrganizationsRolesController_createRole",
+        "summary": "Create a new organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgRoleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrgRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles"]
+      },
+      "get": {
+        "operationId": "OrganizationsRolesController_getAllRoles",
+        "summary": "Get all organization roles",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllOrgRolesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles"]
+      }
+    },
+    "/v2/organizations/{orgId}/roles/{roleId}": {
+      "get": {
+        "operationId": "OrganizationsRolesController_getRole",
+        "summary": "Get a specific organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrgRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles"]
+      },
+      "patch": {
+        "operationId": "OrganizationsRolesController_updateRole",
+        "summary": "Update an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrgRoleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateOrgRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles"]
+      },
+      "delete": {
+        "operationId": "OrganizationsRolesController_deleteRole",
+        "summary": "Delete an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteOrgRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles"]
+      }
+    },
+    "/v2/organizations/{orgId}/roles/{roleId}/permissions": {
+      "post": {
+        "operationId": "OrganizationsRolesPermissionsController_addPermissions",
+        "summary": "Add permissions to an organization role (single or batch)",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgRolePermissionsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrgRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles / Permissions"]
+      },
+      "get": {
+        "operationId": "OrganizationsRolesPermissionsController_listPermissions",
+        "summary": "List permissions for an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrgRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles / Permissions"]
+      },
+      "put": {
+        "operationId": "OrganizationsRolesPermissionsController_setPermissions",
+        "summary": "Replace all permissions for an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgRolePermissionsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrgRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Roles / Permissions"]
+      },
+      "delete": {
+        "operationId": "OrganizationsRolesPermissionsController_removePermissions",
+        "summary": "Remove multiple permissions from an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissions",
+            "required": false,
+            "in": "query",
+            "description": "Permissions to remove (format: resource.action). Supports comma-separated values as well as repeated query params.",
+            "example": "?permissions=eventType.read,booking.read",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "*.*",
+                  "role.create",
+                  "role.read",
+                  "role.update",
+                  "role.delete",
+                  "eventType.create",
+                  "eventType.read",
+                  "eventType.update",
+                  "eventType.delete",
+                  "team.create",
+                  "team.read",
+                  "team.update",
+                  "team.delete",
+                  "team.invite",
+                  "team.remove",
+                  "team.listMembers",
+                  "team.listMembersPrivate",
+                  "team.changeMemberRole",
+                  "team.impersonate",
+                  "organization.create",
+                  "organization.read",
+                  "organization.listMembers",
+                  "organization.listMembersPrivate",
+                  "organization.invite",
+                  "organization.remove",
+                  "organization.manageBilling",
+                  "organization.changeMemberRole",
+                  "organization.impersonate",
+                  "organization.update",
+                  "booking.read",
+                  "booking.readOrgBookings",
+                  "booking.readRecordings",
+                  "booking.update",
+                  "insights.read",
+                  "workflow.create",
+                  "workflow.read",
+                  "workflow.update",
+                  "workflow.delete",
+                  "organization.attributes.read",
+                  "organization.attributes.update",
+                  "organization.attributes.delete",
+                  "organization.attributes.create",
+                  "routingForm.create",
+                  "routingForm.read",
+                  "routingForm.update",
+                  "routingForm.delete",
+                  "webhook.create",
+                  "webhook.read",
+                  "webhook.update",
+                  "webhook.delete",
+                  "watchlist.create",
+                  "watchlist.read",
+                  "watchlist.update",
+                  "watchlist.delete"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Roles / Permissions"]
+      }
+    },
+    "/v2/organizations/{orgId}/roles/{roleId}/permissions/{permission}": {
+      "delete": {
+        "operationId": "OrganizationsRolesPermissionsController_removePermission",
+        "summary": "Remove a permission from an organization role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permission",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Roles / Permissions"]
+      }
+    },
     "/v2/organizations/{orgId}/routing-forms": {
       "get": {
         "operationId": "OrganizationsRoutingFormsController_getOrganizationRoutingForms",
@@ -3120,6 +3860,16 @@
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
             "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
             "schema": {
               "type": "string"
             }
@@ -4866,6 +5616,806 @@
           }
         },
         "tags": ["Orgs / Teams / Memberships"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/roles": {
+      "post": {
+        "operationId": "OrganizationsTeamsRolesController_createRole",
+        "summary": "Create a new organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRoleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles"]
+      },
+      "get": {
+        "operationId": "OrganizationsTeamsRolesController_getAllRoles",
+        "summary": "Get all organization team roles",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllTeamRolesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}": {
+      "get": {
+        "operationId": "OrganizationsTeamsRolesController_getRole",
+        "summary": "Get a specific organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles"]
+      },
+      "patch": {
+        "operationId": "OrganizationsTeamsRolesController_updateRole",
+        "summary": "Update an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamRoleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles"]
+      },
+      "delete": {
+        "operationId": "OrganizationsTeamsRolesController_deleteRole",
+        "summary": "Delete an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTeamRoleOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions": {
+      "post": {
+        "operationId": "OrganizationsTeamsRolesPermissionsController_addPermissions",
+        "summary": "Add permissions to an organization team role (single or batch)",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRolePermissionsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles / Permissions"]
+      },
+      "get": {
+        "operationId": "OrganizationsTeamsRolesPermissionsController_listPermissions",
+        "summary": "List permissions for an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles / Permissions"]
+      },
+      "put": {
+        "operationId": "OrganizationsTeamsRolesPermissionsController_setPermissions",
+        "summary": "Replace all permissions for an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRolePermissionsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamRolePermissionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Roles / Permissions"]
+      },
+      "delete": {
+        "operationId": "OrganizationsTeamsRolesPermissionsController_removePermissions",
+        "summary": "Remove multiple permissions from an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissions",
+            "required": false,
+            "in": "query",
+            "description": "Permissions to remove (format: resource.action). Supports comma-separated values as well as repeated query params.",
+            "example": "?permissions=eventType.read,booking.read",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "role.create",
+                  "role.read",
+                  "role.update",
+                  "role.delete",
+                  "eventType.create",
+                  "eventType.read",
+                  "eventType.update",
+                  "eventType.delete",
+                  "team.read",
+                  "team.update",
+                  "team.delete",
+                  "team.invite",
+                  "team.remove",
+                  "team.listMembers",
+                  "team.listMembersPrivate",
+                  "team.changeMemberRole",
+                  "team.impersonate",
+                  "booking.read",
+                  "booking.readTeamBookings",
+                  "booking.readRecordings",
+                  "booking.update",
+                  "insights.read",
+                  "workflow.create",
+                  "workflow.read",
+                  "workflow.update",
+                  "workflow.delete",
+                  "routingForm.create",
+                  "routingForm.read",
+                  "routingForm.update",
+                  "routingForm.delete",
+                  "webhook.create",
+                  "webhook.read",
+                  "webhook.update",
+                  "webhook.delete"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Roles / Permissions"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions/{permission}": {
+      "delete": {
+        "operationId": "OrganizationsTeamsRolesPermissionsController_removePermission",
+        "summary": "Remove a permission from an organization team role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "roleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permission",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Roles / Permissions"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/routing-forms": {
@@ -10039,7 +11589,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
         "summary": "Get an event type",
-        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    \n    Access control: This endpoint fetches an event type by ID and returns it only if the authenticated user is authorized. Authorization is granted to:\n    - System admins\n    - The event type owner\n    - Hosts of the event type or users assigned to the event type\n    - Team admins/owners of the team that owns the team event type\n    - Organization admins/owners of the event type owner's organization\n    - Organization admins/owners of the team's parent organization\n\n    Note: Update and delete endpoints remain restricted to the event type owner only.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -16355,7 +17905,7 @@
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "calVideoSettings": {
-            "description": "Cal video settings for the event type",
+            "description": "Cal video settings for the event type. Platform customers can't manage this property because currently we have no way of determining if managed user is a host or an attendee.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CalVideoSettings"
@@ -17626,6 +19176,380 @@
         },
         "required": ["status", "data"]
       },
+      "EventTypeTeam": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "bannerUrl",
+          "name",
+          "logoUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "theme"
+        ]
+      },
+      "TeamEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "object",
+            "example": 60,
+            "nullable": true
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "example": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "recurrence": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "seatsPerTimeSlot": {
+            "type": "object",
+            "nullable": true
+          },
+          "forwardParamsSuccessRedirect": {
+            "type": "object",
+            "nullable": true
+          },
+          "successRedirectUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "bookingLimitsCount": {
+            "type": "object"
+          },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "type": "object"
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookerLayouts": {
+            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+          },
+          "confirmationPolicy": {
+            "type": "object"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "$ref": "#/components/schemas/Seats_2024_06_14"
+          },
+          "offsetStart": {
+            "type": "number"
+          },
+          "customName": {
+            "type": "string"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "ownerId": {
+            "type": "object",
+            "nullable": true
+          },
+          "parentEventTypeId": {
+            "type": "object",
+            "description": "For managed event types, parent event type is the event type that this event type is based on",
+            "nullable": true
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean"
+          },
+          "schedulingType": {
+            "type": "string",
+            "enum": ["roundRobin", "collective", "managed"]
+          },
+          "team": {
+            "$ref": "#/components/schemas/EventTypeTeam"
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
+          }
+        },
+        "required": [
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "recurrence",
+          "metadata",
+          "price",
+          "currency",
+          "lockTimeZoneToggleOnBookingPage",
+          "forwardParamsSuccessRedirect",
+          "successRedirectUrl",
+          "isInstantEvent",
+          "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
+          "teamId",
+          "hosts",
+          "schedulingType",
+          "team"
+        ]
+      },
       "GetEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -17635,10 +19559,12 @@
             "example": "success"
           },
           "data": {
-            "nullable": true,
-            "allOf": [
+            "oneOf": [
               {
                 "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
               }
             ]
           }
@@ -18055,6 +19981,48 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "StripConnectOutputDto": {
+        "type": "object",
+        "properties": {
+          "authUrl": {
+            "type": "string"
+          }
+        },
+        "required": ["authUrl"]
+      },
+      "StripConnectOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/StripConnectOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "StripCredentialsSaveOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["url"]
+      },
+      "StripCredentialsCheckOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "object",
+            "example": "success"
+          }
+        },
+        "required": ["status"]
       },
       "OrgTeamOutputDto": {
         "type": "object",
@@ -19492,7 +21460,7 @@
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "calVideoSettings": {
-            "description": "Cal video settings for the event type",
+            "description": "Cal video settings for the event type. Platform customers can't manage this property because currently we have no way of determining if managed user is a host or an attendee.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CalVideoSettings"
@@ -19570,380 +21538,6 @@
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
-      },
-      "EventTypeTeam": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "slug",
-          "bannerUrl",
-          "name",
-          "logoUrl",
-          "weekStart",
-          "brandColor",
-          "darkBrandColor",
-          "theme"
-        ]
-      },
-      "TeamEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "lengthInMinutesOptions": {
-            "example": [15, 30, 60],
-            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "object",
-            "example": 60,
-            "nullable": true
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "example": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "recurrence": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "price": {
-            "type": "number"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "seatsPerTimeSlot": {
-            "type": "object",
-            "nullable": true
-          },
-          "forwardParamsSuccessRedirect": {
-            "type": "object",
-            "nullable": true
-          },
-          "successRedirectUrl": {
-            "type": "object",
-            "nullable": true
-          },
-          "isInstantEvent": {
-            "type": "boolean"
-          },
-          "seatsShowAvailabilityCount": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "scheduleId": {
-            "type": "number",
-            "nullable": true
-          },
-          "bookingLimitsCount": {
-            "type": "object"
-          },
-          "bookerActiveBookingsLimit": {
-            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean"
-          },
-          "bookingLimitsDuration": {
-            "type": "object"
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookerLayouts": {
-            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-          },
-          "confirmationPolicy": {
-            "type": "object"
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "$ref": "#/components/schemas/Seats_2024_06_14"
-          },
-          "offsetStart": {
-            "type": "number"
-          },
-          "customName": {
-            "type": "string"
-          },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
-          "hideOrganizerEmail": {
-            "type": "boolean",
-            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
-          },
-          "calVideoSettings": {
-            "description": "Cal video settings for the event type",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CalVideoSettings"
-              }
-            ]
-          },
-          "hidden": {
-            "type": "boolean"
-          },
-          "bookingRequiresAuthentication": {
-            "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "ownerId": {
-            "type": "object",
-            "nullable": true
-          },
-          "parentEventTypeId": {
-            "type": "object",
-            "description": "For managed event types, parent event type is the event type that this event type is based on",
-            "nullable": true
-          },
-          "hosts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "assignAllTeamMembers": {
-            "type": "boolean"
-          },
-          "schedulingType": {
-            "type": "string",
-            "enum": ["roundRobin", "collective", "managed"]
-          },
-          "team": {
-            "$ref": "#/components/schemas/EventTypeTeam"
-          },
-          "emailSettings": {
-            "description": "Email settings for this event type. Only available for organization team event types.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
-              }
-            ]
-          },
-          "rescheduleWithSameRoundRobinHost": {
-            "type": "boolean",
-            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
-          }
-        },
-        "required": [
-          "id",
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "recurrence",
-          "metadata",
-          "price",
-          "currency",
-          "lockTimeZoneToggleOnBookingPage",
-          "forwardParamsSuccessRedirect",
-          "successRedirectUrl",
-          "isInstantEvent",
-          "scheduleId",
-          "hidden",
-          "bookingRequiresAuthentication",
-          "teamId",
-          "hosts",
-          "schedulingType",
-          "team"
-        ]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -20343,6 +21937,12 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "schedulingType": {
+            "type": "string",
+            "enum": ["collective", "roundRobin"],
+            "example": "collective",
+            "description": "The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide `hosts` or `assignAllTeamMembers` in the request body, otherwise the event type will have no hosts - this is required because\n      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one."
           },
           "hosts": {
             "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
@@ -21078,7 +22678,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -21145,7 +22746,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "DELEGATION_CREDENTIAL_ERROR"
             ]
           },
           "secret": {
@@ -23405,48 +25007,6 @@
         },
         "required": ["status", "data"]
       },
-      "StripConnectOutputDto": {
-        "type": "object",
-        "properties": {
-          "authUrl": {
-            "type": "string"
-          }
-        },
-        "required": ["authUrl"]
-      },
-      "StripConnectOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/StripConnectOutputDto"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "StripCredentialsSaveOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": ["url"]
-      },
-      "StripCredentialsCheckOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "object",
-            "example": "success"
-          }
-        },
-        "required": ["status"]
-      },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -24607,6 +26167,786 @@
           }
         }
       },
+      "CreateOrgRoleInput": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the role"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions for this role (format: resource.action). On update, this field replaces the entire permission set for the role (full replace). Use granular permission endpoints for one-by-one changes.",
+            "example": ["eventType.read", "eventType.create", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "*.*",
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.create",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "organization.create",
+                "organization.read",
+                "organization.listMembers",
+                "organization.listMembersPrivate",
+                "organization.invite",
+                "organization.remove",
+                "organization.manageBilling",
+                "organization.changeMemberRole",
+                "organization.impersonate",
+                "organization.update",
+                "booking.read",
+                "booking.readOrgBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "organization.attributes.read",
+                "organization.attributes.update",
+                "organization.attributes.delete",
+                "organization.attributes.create",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
+              ]
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the role"
+          }
+        },
+        "required": ["name"]
+      },
+      "OrgRoleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the role"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the role"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true,
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description of the role"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true,
+            "description": "Organization ID this role belongs to"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of role",
+            "enum": ["SYSTEM", "CUSTOM"]
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions assigned to this role in 'resource.action' format.",
+            "example": ["booking.read", "eventType.create"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "*.*",
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.create",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "organization.create",
+                "organization.read",
+                "organization.listMembers",
+                "organization.listMembersPrivate",
+                "organization.invite",
+                "organization.remove",
+                "organization.manageBilling",
+                "organization.changeMemberRole",
+                "organization.impersonate",
+                "organization.update",
+                "booking.read",
+                "booking.readOrgBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "organization.attributes.read",
+                "organization.attributes.update",
+                "organization.attributes.delete",
+                "organization.attributes.create",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the role was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the role was last updated"
+          }
+        },
+        "required": ["id", "name", "type", "permissions", "createdAt", "updatedAt"]
+      },
+      "CreateOrgRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetOrgRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetAllOrgRolesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgRoleOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateOrgRoleInput": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the role"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions for this role (format: resource.action). On update, this field replaces the entire permission set for the role (full replace). Use granular permission endpoints for one-by-one changes.",
+            "example": ["eventType.read", "eventType.create", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "*.*",
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.create",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "organization.create",
+                "organization.read",
+                "organization.listMembers",
+                "organization.listMembersPrivate",
+                "organization.invite",
+                "organization.remove",
+                "organization.manageBilling",
+                "organization.changeMemberRole",
+                "organization.impersonate",
+                "organization.update",
+                "booking.read",
+                "booking.readOrgBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "organization.attributes.read",
+                "organization.attributes.update",
+                "organization.attributes.delete",
+                "organization.attributes.create",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
+              ]
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the role"
+          }
+        }
+      },
+      "UpdateOrgRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "DeleteOrgRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateOrgRolePermissionsInput": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "description": "Permissions to add (format: resource.action)",
+            "example": ["eventType.read", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "*.*",
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.create",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "organization.create",
+                "organization.read",
+                "organization.listMembers",
+                "organization.listMembersPrivate",
+                "organization.invite",
+                "organization.remove",
+                "organization.manageBilling",
+                "organization.changeMemberRole",
+                "organization.impersonate",
+                "organization.update",
+                "booking.read",
+                "booking.readOrgBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "organization.attributes.read",
+                "organization.attributes.update",
+                "organization.attributes.delete",
+                "organization.attributes.create",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
+              ]
+            }
+          }
+        },
+        "required": ["permissions"]
+      },
+      "GetOrgRolePermissionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateTeamRoleInput": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the role"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions for this role (format: resource.action). On update, this field replaces the entire permission set for the role (full replace). Use granular permission endpoints for one-by-one changes.",
+            "example": ["eventType.read", "eventType.create", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "booking.read",
+                "booking.readTeamBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete"
+              ]
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the role"
+          }
+        },
+        "required": ["name"]
+      },
+      "TeamRoleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the role"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the role"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true,
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description of the role"
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true,
+            "description": "Team ID this role belongs to"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of role",
+            "enum": ["SYSTEM", "CUSTOM"]
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions assigned to this role in 'resource.action' format.",
+            "example": ["booking.read", "eventType.create"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "booking.read",
+                "booking.readTeamBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the role was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the role was last updated"
+          }
+        },
+        "required": ["id", "name", "type", "permissions", "createdAt", "updatedAt"]
+      },
+      "CreateTeamRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetTeamRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetAllTeamRolesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamRoleOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateTeamRoleInput": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "Color for the role (hex code)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the role"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Permissions for this role (format: resource.action). On update, this field replaces the entire permission set for the role (full replace). Use granular permission endpoints for one-by-one changes.",
+            "example": ["eventType.read", "eventType.create", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "booking.read",
+                "booking.readTeamBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete"
+              ]
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the role"
+          }
+        }
+      },
+      "UpdateTeamRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "DeleteTeamRoleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/TeamRoleOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateTeamRolePermissionsInput": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "description": "Permissions to add (format: resource.action)",
+            "example": ["eventType.read", "booking.read"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "role.create",
+                "role.read",
+                "role.update",
+                "role.delete",
+                "eventType.create",
+                "eventType.read",
+                "eventType.update",
+                "eventType.delete",
+                "team.read",
+                "team.update",
+                "team.delete",
+                "team.invite",
+                "team.remove",
+                "team.listMembers",
+                "team.listMembersPrivate",
+                "team.changeMemberRole",
+                "team.impersonate",
+                "booking.read",
+                "booking.readTeamBookings",
+                "booking.readRecordings",
+                "booking.update",
+                "insights.read",
+                "workflow.create",
+                "workflow.read",
+                "workflow.update",
+                "workflow.delete",
+                "routingForm.create",
+                "routingForm.read",
+                "routingForm.update",
+                "routingForm.delete",
+                "webhook.create",
+                "webhook.read",
+                "webhook.update",
+                "webhook.delete"
+              ]
+            }
+          }
+        },
+        "required": ["permissions"]
+      },
+      "GetTeamRolePermissionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
       "RoutingFormResponseOutput": {
         "type": "object",
         "properties": {
@@ -25056,6 +27396,10 @@
           "email": {
             "type": "string"
           },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -25081,6 +27425,7 @@
           "id",
           "username",
           "email",
+          "name",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",

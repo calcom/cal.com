@@ -198,11 +198,6 @@ export class CreateBookingInput_2024_04_15 {
   @IsBoolean()
   @IsOptional()
   @ApiHideProperty()
-  _shouldServeCache?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
   _isDryRun?: boolean;
 
   // reroutingFormResponses is similar to rescheduling which can only be done by the organiser

@@ -5,7 +5,7 @@ import type {
   InsightsBookingBaseService,
 } from "@calcom/features/insights/services/InsightsBookingBaseService";
 import type { InsightsBookingService } from "@calcom/features/insights/services/InsightsBookingDIService";
-import { prismaModule } from "@calcom/prisma/prisma.module";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 
 import { createContainer } from "../di";
 import { insightsBookingModule } from "../modules/InsightsBooking";

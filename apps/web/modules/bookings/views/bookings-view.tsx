@@ -8,6 +8,8 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import {
   DataTableProvider,
+  DataTableFilters,
+  DataTableSegment,
   type SystemFilterSegment,
   useDataTable,
   ColumnFilterType,
@@ -30,8 +32,10 @@ import BookingListItem from "@components/booking/BookingListItem";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
+import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
 import { BookingsCalendar } from "../components/BookingsCalendar";
 import { BookingsList } from "../components/BookingsList";
+import { useBookingCursor } from "../hooks/useBookingCursor";
 import type { RowData, BookingOutput } from "../types";
 
 type BookingsProps = {
@@ -97,6 +101,12 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
+  const [selectedBookingId, setSelectedBookingId] = useQueryState("selectedId", {
+    defaultValue: null,
+    parse: (value) => (value ? parseInt(value, 10) : null),
+    serialize: (value) => (value ? String(value) : ""),
+    clearOnDefault: true,
+  });
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -275,6 +285,8 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
+                // uncomment this line to enable BookingDetailsSheet
+                // onClick={() => setSelectedBookingId(booking.id)}
                 {...booking}
               />
             );
@@ -367,6 +379,21 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
     return merged;
   }, [bookingsToday, flatData, status]);
 
+  const selectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    const dataRow = finalData.find(
+      (row): row is Extract<RowData, { type: "data" }> =>
+        row.type === "data" && row.booking.id === selectedBookingId
+    );
+    return dataRow?.booking ?? null;
+  }, [selectedBookingId, finalData]);
+
+  const bookingNavigation = useBookingCursor({
+    bookings: finalData,
+    selectedBookingId,
+    setSelectedBookingId,
+  });
+
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
   const table = useReactTable<RowData>({
@@ -403,10 +430,25 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" && (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-          )}
-          {query.status !== "error" && (
+          {query.status === "error" ? (
+            <>
+              <div className="grid w-full items-center gap-2 pb-4">
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex w-full flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.FilterBar table={table} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.ClearFiltersButton />
+                      <DataTableSegment.SaveButton />
+                      <DataTableSegment.Select />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            </>
+          ) : (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -425,6 +467,19 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
           )}
         </div>
       </main>
+      <BookingDetailsSheet
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBookingId(null)}
+        userTimeZone={user?.timeZone}
+        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+        userId={user?.id}
+        userEmail={user?.email}
+        onPrevious={bookingNavigation.onPrevious}
+        hasPrevious={bookingNavigation.hasPrevious}
+        onNext={bookingNavigation.onNext}
+        hasNext={bookingNavigation.hasNext}
+      />
     </div>
   );
 }
