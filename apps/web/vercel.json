@@ -21,10 +21,6 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/calendar-cache/cron",
-      "schedule": "* * * * *"
-    },
-    {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
     },
