@@ -7,12 +7,13 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-import billing from "..";
+import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/IBillingRepository";
+import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
+import { StripeBillingService } from "../stripe-billing-service";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -23,8 +24,12 @@ export class InternalTeamBilling implements TeamBilling {
   private _team!: Omit<TeamBillingInput, "metadata"> & {
     metadata: NonNullable<z.infer<typeof teamPaymentMetadataSchema>>;
   };
+  private billingRepository: IBillingRepository;
+  private billingService: StripeBillingService;
   constructor(team: TeamBillingInput) {
     this.team = team;
+    this.billingRepository = BillingRepositoryFactory.getRepository(team.isOrganization);
+    this.billingService = new StripeBillingService();
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -51,7 +56,7 @@ export class InternalTeamBilling implements TeamBilling {
       const { subscriptionId } = this.team.metadata;
       log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`);
       if (!subscriptionId) throw Error("missing subscriptionId");
-      await billing.handleSubscriptionCancel(subscriptionId);
+      await this.billingService.handleSubscriptionCancel(subscriptionId);
       await this.downgrade();
       log.info(`Cancelled subscription ${subscriptionId} for team ${this.team.id}`);
     } catch (error) {
@@ -125,9 +130,6 @@ export class InternalTeamBilling implements TeamBilling {
       const { id: teamId, metadata, isOrganization } = this.team;
 
       const { url } = await this.checkIfTeamPaymentRequired();
-      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(
-        this.team.id
-      );
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));
 
       /**
@@ -154,7 +156,11 @@ export class InternalTeamBilling implements TeamBilling {
       }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      await billing.handleSubscriptionUpdate({ subscriptionId, subscriptionItemId, membershipCount });
+      await this.billingService.handleSubscriptionUpdate({
+        subscriptionId,
+        subscriptionItemId,
+        membershipCount,
+      });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {
       this.logErrorFromUnknown(error);
@@ -166,7 +172,7 @@ export class InternalTeamBilling implements TeamBilling {
     /** If there's no paymentId, we need to pay this team */
     if (!paymentId) return { url: null, paymentId: null, paymentRequired: true };
     /** If there's a pending session but it isn't paid, we need to pay this team */
-    const checkoutSessionIsPaid = await billing.checkoutSessionIsPaid(paymentId);
+    const checkoutSessionIsPaid = await this.billingService.checkoutSessionIsPaid(paymentId);
     if (!checkoutSessionIsPaid) return { url: null, paymentId, paymentRequired: true };
     /** If the session is already paid we return the upgrade URL so team is updated. */
     return {
@@ -179,7 +185,7 @@ export class InternalTeamBilling implements TeamBilling {
   async getSubscriptionStatus() {
     const { subscriptionId } = this.team.metadata;
     if (!subscriptionId) return null;
-    return await billing.getSubscriptionStatus(subscriptionId);
+    return await this.billingService.getSubscriptionStatus(subscriptionId);
   }
 
   /**
@@ -197,12 +203,15 @@ export class InternalTeamBilling implements TeamBilling {
       }
 
       // End the trial by converting to regular subscription
-      await billing.handleEndTrial(subscriptionId);
+      await this.billingService.handleEndTrial(subscriptionId);
       log.info(`Successfully ended trial for team ${this.team.id}`);
       return true;
     } catch (error) {
       this.logErrorFromUnknown(error);
       return false;
     }
+  }
+  async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
+    await this.billingRepository.create(args);
   }
 }

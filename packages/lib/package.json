@@ -10,8 +10,8 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
   },
   "dependencies": {
-    "@calcom/config": "*",
-    "@calcom/dayjs": "*",
+    "@calcom/config": "workspace:*",
+    "@calcom/dayjs": "workspace:*",
     "@formbricks/api": "^1.7.0",
     "@formbricks/js": "^2.1.0",
     "@sendgrid/client": "^7.7.0",
@@ -32,8 +32,9 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@calcom/tsconfig": "*",
-    "@calcom/types": "*",
+    "@calcom/eslint-config": "workspace:*",
+    "@calcom/tsconfig": "workspace:*",
+    "@calcom/types": "workspace:*",
     "@faker-js/faker": "^7.3.0",
     "typescript": "^5.9.0-beta"
   }

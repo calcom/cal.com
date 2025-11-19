@@ -2,6 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
@@ -98,14 +99,9 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
             ]
           : []),
         {
-          name: "privacy",
+          name: "privacy_and_security",
           href: "/settings/organizations/privacy",
         },
-        {
-          name: "billing",
-          href: "/settings/organizations/billing",
-        },
-        { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
           href: "/settings/organizations/sso",
@@ -175,8 +171,7 @@ const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
   "privacy",
-  "billing",
-  "OAuth Clients",
+  "privacy_and_security",
   "SSO",
   "directory_sync",
   "delegation_credential",
@@ -184,6 +179,8 @@ const organizationAdminKeys = [
 
 export interface SettingsPermissions {
   canViewRoles?: boolean;
+  canViewOrganizationBilling?: boolean;
+  canUpdateOrganization?: boolean;
 }
 
 const useTabs = ({
@@ -199,7 +196,6 @@ const useTabs = ({
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   const processTabsMemod = useMemo(() => {
     const processedTabs = getTabs(orgBranding).map((tab) => {
@@ -212,10 +208,10 @@ const useTabs = ({
         };
       } else if (tab.href === "/settings/organizations") {
         const newArray = (tab?.children ?? []).filter(
-          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+          (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
 
-        if (isOrgAdminOrOwner) {
+        if (permissions?.canUpdateOrganization) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -230,13 +226,36 @@ const useTabs = ({
           });
         }
 
-        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
-        // This prevents showing the menu item when user has no organization permissions
-        if (isPbacEnabled && permissions?.canViewRoles) {
-          newArray.push({
-            name: "roles_and_permissions",
-            href: "/settings/organizations/roles",
-          });
+        // Add pbac menu item - show opt-in page if not enabled, regular page if enabled
+        if (isPbacEnabled) {
+          if (permissions?.canViewRoles) {
+            newArray.push({
+              name: "roles_and_permissions",
+              href: "/settings/organizations/roles",
+            });
+          }
+
+          if (permissions?.canViewOrganizationBilling) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
+        } else {
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
+          // Show roles page (modal will appear if PBAC not enabled)
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "roles",
+              href: "/settings/organizations/roles",
+              isBadged: true, // Show "New" badge
+            });
+          }
         }
 
         return {
@@ -257,7 +276,7 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => isOrgAdminOrOwner || childTab.name !== "admin_api"
+          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
         );
         return { ...tab, children: filtered };
       }
@@ -267,12 +286,12 @@ const useTabs = ({
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
-      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
+      if (tab.name === "other_teams" && !permissions?.canUpdateOrganization) return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [isAdmin, orgBranding, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
 
   return processTabsMemod;
 };
@@ -337,22 +356,22 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const searchParams = useCompatSearchParams();
+  const searchParamsId = searchParams?.get("id");
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === searchParamsId,
       }));
       setTeamMenuState(teamStates);
       setTimeout(() => {
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), teams]);
+  }, [searchParamsId, teams]);
 
   return (
     <>
@@ -411,9 +430,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       )}
                     </div>
                     {!team.parentId && (
-                      <img
+                      <Image
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        width={16}
+                        height={16}
+                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -431,6 +452,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
+                      className="me-5 h-7 w-auto !px-2"
                       disableChevron
                     />
                   )}
@@ -438,6 +460,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
+                    className="me-5 h-7 w-auto !px-2"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -458,6 +481,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -467,6 +491,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
+                            className="me-5 h-7 w-auto !px-2"
                             disableChevron
                           />
                         </>
@@ -475,6 +500,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                     </>
@@ -529,12 +555,13 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
 
+  const searchParamsId = searchParams?.get("id");
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
       const otherTeamStates = otherTeams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === searchParamsId,
       }));
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
@@ -542,13 +569,10 @@ const SettingsSidebarContainer = ({
         const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
           (bottom) => bottom.dataset.testid === "vertical-tab-Members"
         )[1];
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Settings layout isn't embedded
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), otherTeams]);
-
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
+  }, [searchParamsId, otherTeams]);
 
   return (
     <nav
@@ -577,8 +601,10 @@ const SettingsSidebarContainer = ({
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
-                        <img
-                          className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
+                        <Image
+                          width={16}
+                          height={16}
+                          className="rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
                           alt="Organization Logo"
                         />
@@ -594,17 +620,23 @@ const SettingsSidebarContainer = ({
                   </div>
                   <div className="my-3 space-y-px">
                     {tab.children?.map((child, index) => (
-                      <VerticalTabItem
-                        key={child.href}
-                        name={t(child.name)}
-                        isExternalLink={child.isExternalLink}
-                        href={child.href || "/"}
-                        textClassNames="text-emphasis font-medium text-sm"
-                        className={`me-5 h-7 w-auto !px-2 ${
-                          tab.children && index === tab.children?.length - 1 && "!mb-3"
-                        }`}
-                        disableChevron
-                      />
+                      <div key={child.href} className="flex items-start gap-2">
+                        <VerticalTabItem
+                          name={t(child.name)}
+                          isExternalLink={child.isExternalLink}
+                          href={child.href || "/"}
+                          textClassNames="text-emphasis font-medium text-sm"
+                          className={`h-7 w-fit !px-2 ${
+                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          }`}
+                          disableChevron
+                        />
+                        {child.isBadged && (
+                          <Badge variant="blue" className="mt-0.5 text-xs">
+                            New
+                          </Badge>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </React.Fragment>
@@ -626,16 +658,17 @@ const SettingsSidebarContainer = ({
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
+                          {t("my_teams")}
                         </Skeleton>
                       </div>
                     </Link>
                     <TeamListCollapsible teamFeatures={teamFeatures} />
-                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
+                    {(!orgBranding?.id || permissions?.canUpdateOrganization) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         icon="plus"
                         disableChevron
                       />
@@ -721,9 +754,11 @@ const SettingsSidebarContainer = ({
                                     )}
                                   </div>
                                   {!otherTeam.parentId && (
-                                    <img
+                                    <Image
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      width={16}
+                                      height={16}
+                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
@@ -737,12 +772,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <>
@@ -821,13 +858,11 @@ export default function SettingsLayoutAppDirClient({
     return () => {
       window.removeEventListener("resize", closeSideContainer);
     };
-  }, []);
+  }, [setSideContainerOpen]);
 
   useEffect(() => {
-    if (sideContainerOpen) {
-      setSideContainerOpen(!sideContainerOpen);
-    }
-  }, [pathname]);
+    setSideContainerOpen((prev) => (prev ? false : prev));
+  }, [pathname, setSideContainerOpen]);
 
   return (
     <Shell

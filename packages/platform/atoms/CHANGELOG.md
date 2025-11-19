@@ -1,5 +1,45 @@
 ## 1.1.2
 
+## 1.12.1
+
+### Patch Changes
+
+- [#24786](https://github.com/calcom/cal.com/pull/24786) [`e47ddf9`](https://github.com/calcom/cal.com/commit/e47ddf983559816ab7ce9789eee97254124b1a4c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR updates Booker atom to have a new prop called handleCreateRecurringBooking for handling recurring events.
+
+## 1.12.0
+
+### Minor Changes
+
+- [#24709](https://github.com/calcom/cal.com/pull/24709) [`c0530cc`](https://github.com/calcom/cal.com/commit/c0530cc91c145dd2d56d32ff981c8fa49ee382fa) Thanks [@ibex088](https://github.com/ibex088)! - Fix Vite “process is undefined” error by defining process.env in atoms build.
+
+## 1.11.0
+
+### Minor Changes
+
+- [#24010](https://github.com/calcom/cal.com/pull/24010) [`09ee39a`](https://github.com/calcom/cal.com/commit/09ee39a3d8602e2c1000b5bb12f64d843c77e97a) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds ability to display bookings of a user event for calendar view atom
+
+- [#24205](https://github.com/calcom/cal.com/pull/24205) [`0757b00`](https://github.com/calcom/cal.com/commit/0757b00db754814a8c1017bc9cf83064bb6bbe45) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds an atom to list a user's schedule. Furthermore, there was also another atom introduced which can be used to create a new schedule for a user.
+
+### Patch Changes
+
+- [#24464](https://github.com/calcom/cal.com/pull/24464) [`ec3656e`](https://github.com/calcom/cal.com/commit/ec3656e646dd0fde90e4e604b3c87c23b01402a9) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds dry run behaviour for date overrides in the `AvailabilitySettings` atom
+
+## 1.10.0
+
+### Minor Changes
+
+- [#24001](https://github.com/calcom/cal.com/pull/24001) [`752cfa6`](https://github.com/calcom/cal.com/commit/752cfa6bf98a826e8f49a590c8b0e70c9007ebfc) Thanks [@ThyMinimalDev](https://github.com/ThyMinimalDev)! - Reduced bundle size by removing unnecessary types
+
+## 1.9.0
+
+### Minor Changes
+
+- [#23840](https://github.com/calcom/cal.com/pull/23840) [`63740c0`](https://github.com/calcom/cal.com/commit/63740c02c752f89a90d8373fb19c09e3f0da935f) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR adds a new atom called `CalendarView` which is a read only calendar view component for a user.
+
+### Patch Changes
+
+- [#23891](https://github.com/calcom/cal.com/pull/23891) [`4f114ef`](https://github.com/calcom/cal.com/commit/4f114ef8d3b241394976ed930be70197eff6431d) Thanks [@supalarry](https://github.com/supalarry)! - fix: EventTypeSettings Checkbox booking field label
+
 ## 1.8.0
 
 ### Minor Changes

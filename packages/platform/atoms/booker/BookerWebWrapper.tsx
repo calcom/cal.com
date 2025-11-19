@@ -21,6 +21,7 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hoo
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
@@ -31,7 +32,6 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -55,7 +55,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
-  const selectedDate = searchParams?.get("date");
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
@@ -139,23 +139,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const isEmbed = useIsEmbed();
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
-    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
-      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
-      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
-
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
+  const { prefetchNextMonth, monthCount } = usePrefetch({
+    date,
+    month,
+    bookerLayout,
+    bookerState,
+  });
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -196,20 +185,17 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   // Toggle query param for overlay calendar
   const onOverlaySwitchStateChange = useCallback(
     (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      const url = new URL(window.location.href);
       if (state) {
-        current.set("overlayCalendar", "true");
+        url.searchParams.set("overlayCalendar", "true");
         localStorage.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        current.delete("overlayCalendar");
+        url.searchParams.delete("overlayCalendar");
         localStorage.removeItem("overlayCalendarSwitchDefault");
       }
-      // cast to string
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
+      router.push(`${url.pathname}${url.search}`);
     },
-    [searchParams, pathname, router]
+    [router]
   );
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -227,6 +213,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession]);
 
   return (

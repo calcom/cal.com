@@ -6,15 +6,15 @@
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
-import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
@@ -70,7 +70,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 }: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
   );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
@@ -296,6 +296,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
           form,
           chosenRouteId: route.id,
         },
+        // During Preview testing we could consider the current time itself as the meeting start time
+        meetingStartTime: new Date(),
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
   const timeAfterGetOrderedLuckyUsers = performance.now();

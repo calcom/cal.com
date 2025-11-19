@@ -5,12 +5,15 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
-import { getCurrencySymbol } from "@calcom/app-store/_utils/payments/currencyConversions";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -31,7 +34,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
+import type { fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -378,6 +381,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (data.name === "guests" && type !== "multiemail") {
+              showToast(t("guests_field_must_be_multiemail"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -418,7 +427,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -452,11 +461,11 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4" data-testid="options-container">
-        <ul ref={animationRef} className="flex flex-col gap-1">
+        <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center gap-2">
-                <div className="flex-grow">
+                <div className="relative flex-grow">
                   <Input
                     required
                     value={option.label}
@@ -472,7 +481,23 @@ function Options({
                     }}
                     readOnly={readOnly}
                     placeholder={t("enter_option", { index: index + 1 })}
+                    className={value.length > 2 && !readOnly ? "pr-8" : ""}
                   />
+                  {value.length > 2 && !readOnly && (
+                    <Button
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      size="sm"
+                      color="minimal"
+                      StartIcon="x"
+                      onClick={() => {
+                        if (!value) return;
+                        const newOptions = [...(value || [])];
+                        newOptions.splice(index, 1);
+                        onChange(newOptions);
+                      }}
+                    />
+                  )}
                 </div>
                 {showPrice && (
                   <div className="w-24">
@@ -497,21 +522,6 @@ function Options({
                     />
                   </div>
                 )}
-                {value.length > 2 && !readOnly && (
-                  <Button
-                    type="button"
-                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                    size="sm"
-                    color="minimal"
-                    StartIcon="x"
-                    onClick={() => {
-                      if (!value) return;
-                      const newOptions = [...(value || [])];
-                      newOptions.splice(index, 1);
-                      onChange(newOptions);
-                    }}
-                  />
-                )}
               </div>
             </li>
           ))}
@@ -520,6 +530,7 @@ function Options({
           <Button
             color="minimal"
             data-testid="add-option"
+            className="mt-3"
             onClick={() => {
               const newOptions = [...(value || [])];
               newOptions.push({ label: "", value: "", price: 0 });
@@ -571,6 +582,7 @@ function FieldEditDialog({
   paymentCurrency: string;
 }) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
@@ -597,14 +609,22 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto">
-            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
+            <DialogHeader
+              title={t("add_a_booking_question")}
+              subtitle={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="booking_questions_description"
+                  href="https://cal.com/help/event-types/booking-questions"
+                />
+              }
+            />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
@@ -648,7 +668,7 @@ function FieldEditDialog({
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <div>
-                      {formFieldType === "boolean" ? (
+                      {formFieldType === "boolean" && !isPlatform ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
                       ) : (
                         <InputField
@@ -689,7 +709,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -872,7 +892,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
@@ -938,13 +957,13 @@ function VariantFields({
     <>
       {supportsVariantToggle ? (
         <Switch
+          classNames={{ container: "mt-1" }}
           checked={!isDefaultVariant}
           label={variantToggleLabel}
           data-testid="variant-toggle"
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

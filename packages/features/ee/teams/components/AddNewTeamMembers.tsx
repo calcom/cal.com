@@ -113,7 +113,7 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
             />
           ))}
         </ul>
-        {totalFetched && (
+        {totalFetched > 0 && (
           <div className="text-default text-center">
             <Button
               color="minimal"

@@ -2,10 +2,11 @@ import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -53,6 +54,19 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
   const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
 
+  const permissionService = new PermissionCheckService();
+  // Check if user has organization-level eventType.create permission (equivalent to org admin for event types)
+  let hasOrgEventTypeCreatePermission = isOrgAdmin; // Default fallback
+
+  if (ctx.user.organizationId) {
+    hasOrgEventTypeCreatePermission = await permissionService.checkPermission({
+      userId,
+      teamId: ctx.user.organizationId,
+      permission: "eventType.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+  }
+
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
 
@@ -78,27 +92,26 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
       },
     };
   }
 
   if (teamId && schedulingType) {
-    const hasMembership = await ctx.prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId: teamId,
-        accepted: true,
-      },
-    });
-
     const isSystemAdmin = ctx.user.role === "ADMIN";
 
-    if (
-      !isSystemAdmin &&
-      !isOrgAdmin &&
-      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
-    ) {
-      console.warn(`User ${userId} does not have permission to create this new event type`);
+    // Only check for team-level permissions - this will also check for membership
+    const hasCreatePermission = await permissionService.checkPermission({
+      userId,
+      teamId,
+      permission: "eventType.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!isSystemAdmin && !hasOrgEventTypeCreatePermission && !hasCreatePermission) {
+      // If none of the above conditions are met, the user is unauthorized.
+      // which means the user is not admin of the team nor the org.
+      console.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
@@ -110,9 +123,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
-  // If we are in an organization & they are not admin & they are not creating an event on a teamID
+  // If we are in an organization & they don't have org-level eventType.create permission & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+  if (ctx.user.organizationId && !hasOrgEventTypeCreatePermission && !teamId) {
     const orgSettings = await ctx.prisma.organizationSettings.findUnique({
       where: {
         organizationId: ctx.user.organizationId,

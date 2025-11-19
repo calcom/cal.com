@@ -3,6 +3,7 @@ import Link from "next/link";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Navbar({ username }: { username?: string }) {
   return (
     <nav className="flex h-[75px] w-[100%] items-center justify-between bg-black px-14 py-3 text-white">
@@ -13,9 +14,11 @@ export function Navbar({ username }: { username?: string }) {
           </h1>
         </Link>
       </div>
-      {username && <div className="capitalize">👤 {username}</div>}
       <div className={`${poppins.className}`}>
         <ul className="flex gap-x-7">
+          <li>
+            <Link href="/calendar-view">Week View</Link>
+          </li>
           <li>
             <Link href="/calendars">Calendar</Link>
           </li>

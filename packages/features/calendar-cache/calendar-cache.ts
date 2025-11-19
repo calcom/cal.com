@@ -1,6 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getCredentialForCalendarCache } from "@calcom/app-store/delegationCredential";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";

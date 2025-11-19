@@ -23,7 +23,7 @@ const mockFindFirstEventType = (
   return eventType;
 };
 
-vi.mock("@calcom/emails/email-manager", () => {
+vi.mock("@calcom/emails/integration-email-service", () => {
   return {
     sendSlugReplacementEmail: () => ({}),
   };
@@ -126,7 +126,6 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -143,9 +142,10 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
+      const { createdAt, updatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
-          ...evType,
+          ...expectedEvType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
@@ -188,7 +188,6 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -206,7 +205,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -299,7 +298,6 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -317,9 +315,10 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
+      const { createdAt, updatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
-          ...evType,
+          ...expectedEvType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
           bookingLimits: undefined,
@@ -364,7 +363,6 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -383,7 +381,7 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -421,7 +419,7 @@ describe("handleChildrenEventTypes", () => {
         timeZone: _timeZone,
         parentId: _parentId,
         userId: _userId,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
@@ -430,7 +428,6 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
-        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -454,7 +451,6 @@ describe("handleChildrenEventTypes", () => {
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
         useEventTypeDestinationCalendarEmail: false,
-        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],
@@ -464,7 +460,11 @@ describe("handleChildrenEventTypes", () => {
         ...evType,
       };
 
-      prismaMock.eventType.update.mockResolvedValue(mockUpdatedEventType);
+      prismaMock.eventType.update.mockResolvedValue({
+        ...mockUpdatedEventType,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
       await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -480,9 +480,10 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
 
+      const { createdAt, updatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
-          ...evType,
+          ...expectedEvType,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -507,7 +508,7 @@ describe("handleChildrenEventTypes", () => {
           allowReschedulingCancelledBookings: false,
         },
       });
-      const { profileId, rrSegmentQueryValue, ...rest } = evType;
+      const { profileId, rrSegmentQueryValue, createdAt: _, updatedAt: __, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {

@@ -1,8 +1,9 @@
 import { _generateMetadata } from "app/_utils";
 
 import OrgAttributesCreatePage from "@calcom/ee/organizations/pages/settings/attributes/attributes-create-view";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import { validateUserHasOrgAdmin } from "../../../actions/validateUserHasOrgAdmin";
+import { validateUserHasOrgPerms } from "../../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,7 +15,10 @@ export const generateMetadata = async () =>
   );
 
 const OrgAttributesCreatePageWrapper = async () => {
-  await validateUserHasOrgAdmin();
+  await validateUserHasOrgPerms({
+    permission: "organization.attributes.create",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
 
   return <OrgAttributesCreatePage />;
 };

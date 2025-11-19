@@ -66,7 +66,7 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 }));
 
 const mockFindOriginalRescheduledBooking = vi.fn();
-vi.mock("@calcom/lib/server/repository/booking", () => ({
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   BookingRepository: vi.fn().mockImplementation(() => ({
     findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
   })),
@@ -76,7 +76,7 @@ vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.contro
   checkIfUsersAreBlocked: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/lib/di/containers/QualifiedHosts", () => ({
+vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
   getQualifiedHostsService: vi.fn().mockReturnValue({
     findQualifiedHostsWithDelegationCredentials: vi.fn().mockResolvedValue({
       qualifiedRRHosts: [],
@@ -86,7 +86,7 @@ vi.mock("@calcom/lib/di/containers/QualifiedHosts", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/EventManager", () => ({
+vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
   default: vi.fn().mockImplementation(() => ({
     reschedule: vi.fn().mockResolvedValue({
       results: [],
@@ -133,7 +133,7 @@ vi.mock("@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers", (
   }),
 }));
 
-vi.mock("@calcom/lib/server/repository/profile", () => ({
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
     findManyForUser: vi.fn().mockResolvedValue([]),
     buildPersonalProfileFromUser: vi.fn().mockReturnValue({

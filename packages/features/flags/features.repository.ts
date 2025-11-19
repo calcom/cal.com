@@ -2,6 +2,7 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
@@ -15,6 +16,7 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
   constructor(private prismaClient: PrismaClient) {}
@@ -141,6 +143,40 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Checks if a specific user has access to a feature, ignoring hierarchical (parent) teams.
+   * Only checks direct user assignments and direct team memberships — does not traverse parents.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user has direct or same-level team access to the feature
+   * @throws Error if the feature access check fails
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      // Prismock limitation: findUnique may fail, use findFirst instead
+      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+        select: {
+          userId: true,
+        },
+        where: {
+          userId,
+          featureId: slug,
+        },
+      });
+      if (userHasFeature) return true;
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+        userId,
+        slug
+      );
+
+      return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Private helper method to check if a user belongs to any team that has access to a feature.
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
@@ -182,6 +218,72 @@ export class FeaturesRepository implements IFeaturesRepository {
 
       const result = await this.prismaClient.$queryRaw<unknown[]>(query);
       return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a user belongs to any direct team that has access to a feature.
+   * This version ignores parent/child team relationships — no recursion or hierarchy traversal.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature (direct only)
+   * @throws Error if the query fails
+   * @private
+   */
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Team" t
+        INNER JOIN "Membership" m ON m."teamId" = t.id
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" tf
+            WHERE tf."teamId" = t.id
+              AND tf."featureId" = ${slug}
+          )
+        LIMIT 1;
+      `;
+
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Enables a feature for a specific team.
+   * @param teamId - The ID of the team to enable the feature for
+   * @param featureId - The feature identifier to enable
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature enabling fails
+   */
+  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+        },
+        update: {},
+      });
+      // Clear cache when features are modified
+      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
