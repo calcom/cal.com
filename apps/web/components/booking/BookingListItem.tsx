@@ -832,11 +832,14 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
       showToast(err.message, "error");
     },
   });
-  const { control, handleSubmit } = useForm<{
-    attendees: BookingAttendee[];
-  }>({
+
+  type FormValues = {
+    attendees: Array<{ id: number; email: string; noShow: boolean }>;
+  };
+
+  const { control, handleSubmit } = useForm<FormValues>({
     defaultValues: {
-      attendees,
+      attendees: attendees.map((a) => ({ id: a.id, email: a.email, noShow: a.noShow || false })),
     },
     mode: "onBlur",
   });
@@ -846,10 +849,10 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     name: "attendees",
   });
 
-  const onSubmit = (data: { attendees: BookingAttendee[] }) => {
+  const onSubmit = (data: FormValues) => {
     const filteredData = data.attendees.slice(1).map((attendee) => ({
       email: attendee.email,
-      noShow: attendee.noShow || false,
+      noShow: attendee.noShow,
     }));
     noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
