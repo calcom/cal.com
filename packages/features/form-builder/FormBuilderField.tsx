@@ -25,7 +25,6 @@ const renderLabel = (field: Partial<RhfFormField>) => {
   if (field.labelAsSafeHtml) {
     return (
       <span
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }}
       />
     );
@@ -66,10 +65,12 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  onValueChange,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  onValueChange?: (args: { name: string; value: unknown; prevValue: unknown }) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -87,15 +88,18 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          const setAndNotify = (val: unknown) => {
+            onChange(val);
+            onValueChange?.({ name: field.name, value: val, prevValue: value });
+          };
+
           return (
             <div>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
                 readOnly={readOnly || shouldBeDisabled}
-                setValue={(val: unknown) => {
-                  onChange(val);
-                }}
+                setValue={setAndNotify}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
               />
