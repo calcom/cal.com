@@ -67,7 +67,7 @@ export default function RootLayout() {
     <AuthProvider>
       <ErrorBoundary>
         {Platform.OS === 'web' ? (
-          <View style={{ width: 400, height: "100vh", display: 'flex', flexDirection: 'column' }} className="bg-white">
+          <View style={{ width: 400, flex: 1, display: 'flex', flexDirection: 'column' }} className="bg-white">
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             {stackContent}
           </View>

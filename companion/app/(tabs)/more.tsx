@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
@@ -7,6 +7,7 @@ import { Header } from "../../components/Header";
 interface MoreMenuItem {
   name: string;
   icon: keyof typeof Ionicons.glyphMap;
+  isExternal?: boolean;
   href?: string;
   onPress?: () => void;
 }
@@ -14,43 +15,50 @@ interface MoreMenuItem {
 export default function More() {
   const router = useRouter();
 
+  const openExternalLink = async (url: string, fallbackMessage: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", `Cannot open ${fallbackMessage} on your device.`);
+      }
+    } catch (error) {
+      console.error(`Failed to open ${url}:`, error);
+      Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
+    }
+  };
+
   const menuItems: MoreMenuItem[] = [
     {
       name: "Profile",
       icon: "person-outline",
-      href: "/profile",
+      isExternal: true,
+      onPress: () => openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page"),
     },
     {
       name: "Apps",
       icon: "grid-outline",
-      onPress: () => {
-        console.log("Apps pressed");
-        // TODO: Navigate to apps page when implemented
-      },
+      isExternal: true,
+      onPress: () => openExternalLink("https://app.cal.com/apps", "Apps page"),
     },
     {
       name: "Routing",
       icon: "git-branch-outline",
-      onPress: () => {
-        console.log("Routing pressed");
-        // TODO: Navigate to routing page when implemented
-      },
+      isExternal: true,
+      onPress: () => openExternalLink("https://app.cal.com/routing", "Routing page"),
     },
     {
       name: "Workflows",
       icon: "flash-outline",
-      onPress: () => {
-        console.log("Workflows pressed");
-        // TODO: Navigate to workflows page when implemented
-      },
+      isExternal: true,
+      onPress: () => openExternalLink("https://app.cal.com/workflows", "Workflows page"),
     },
     {
       name: "Insights",
       icon: "bar-chart-outline",
-      onPress: () => {
-        console.log("Insights pressed");
-        // TODO: Navigate to insights page when implemented
-      },
+      isExternal: true,
+      onPress: () => openExternalLink("https://app.cal.com/insights", "Insights page"),
     },
   ];
 
@@ -74,7 +82,11 @@ export default function More() {
                 <Ionicons name={item.icon} size={20} color="#333" />
                 <Text className="text-base font-semibold text-[#333] ml-3">{item.name}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              {item.isExternal ? (
+                <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              )}
             </TouchableOpacity>
           ))}
         </View>
