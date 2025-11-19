@@ -167,7 +167,7 @@ async function createPlatformAndSetupUser({
 
   const membershipRole = MembershipRole.OWNER;
 
-  if (team) {
+  if (!!team) {
     await associateUserAndOrg({
       teamId: team.id,
       userId: platformUser.id,
@@ -440,25 +440,15 @@ async function createOrganizationAndAddMembersAndTeams({
         },
       },
       members: {
-        create: orgMembersInDb.map((member) => {
-          const role = (member.orgMembership.role || "MEMBER") as MembershipRole;
-          const customRoleId =
-            role === MembershipRole.OWNER
-              ? "owner_role"
-              : role === MembershipRole.ADMIN
-              ? "admin_role"
-              : "member_role";
-          return {
-            user: {
-              connect: {
-                id: member.id,
-              },
+        create: orgMembersInDb.map((member) => ({
+          user: {
+            connect: {
+              id: member.id,
             },
-            role: role,
-            customRoleId: customRoleId,
-            accepted: member.orgMembership.accepted,
-          };
-        }),
+          },
+          role: member.orgMembership.role || "MEMBER",
+          accepted: member.orgMembership.accepted,
+        })),
       },
     },
     select: {
@@ -610,19 +600,12 @@ async function createOrganizationAndAddMembersAndTeams({
       if (!team) {
         throw Error(`Team with slug ${teamSlug} not found`);
       }
-      const customRoleId =
-        role === MembershipRole.OWNER
-          ? "owner_role"
-          : role === MembershipRole.ADMIN
-          ? "admin_role"
-          : "member_role";
       await prisma.membership.create({
         data: {
           createdAt: new Date(),
           teamId: team.id,
           userId: member.id,
           role: role,
-          customRoleId: customRoleId,
           accepted: true,
         },
       });
@@ -1047,7 +1030,7 @@ async function main() {
     },
   });
 
-  if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
+  if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
     await createUserAndEventType({
       user: {
         email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
@@ -1063,7 +1046,7 @@ async function main() {
         },
       ],
       credentials: [
-        process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+        !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
           ? {
               type: "google_calendar",
               key: JSON.parse(process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS) as Prisma.JsonObject,
@@ -1552,7 +1535,7 @@ async function main() {
 
 async function runSeed() {
   await prisma.$connect();
-
+  
   await mainAppStore();
   await main();
   await mainHugeEventTypesSeed();
