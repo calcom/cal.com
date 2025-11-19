@@ -70,6 +70,20 @@ export async function getBooking(bookingId: number) {
               parentId: true,
             },
           },
+          calIdTeam: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          calIdWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
+            },
+          },
+          calIdTeamId: true,
         },
       },
       metadata: true,

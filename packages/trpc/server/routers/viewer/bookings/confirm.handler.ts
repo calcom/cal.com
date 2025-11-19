@@ -117,6 +117,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               name: true,
             },
           },
+          calIdWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
+            },
+          },
         },
       },
       location: true,
