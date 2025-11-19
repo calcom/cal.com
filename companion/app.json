@@ -16,7 +16,14 @@
     "ios": {
       "supportsTablet": true,
       "deploymentTarget": "18.0",
-      "bundleIdentifier": "com.calcom.companion"
+      "bundleIdentifier": "com.calcom.companion",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["expo-wxt-app"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +31,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.calcom.companion"
+      "package": "com.calcom.companion",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "expo-wxt-app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
