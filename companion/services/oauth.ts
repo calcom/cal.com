@@ -23,8 +23,8 @@ const getRedirectUri = () => {
 };
 
 export const OAUTH_CONFIG = {
-  clientId: process.env.EXPO_PUBLIC_CAL_OAUTH_CLIENT_ID || 'YOUR_CLIENT_ID',
-  clientSecret: process.env.EXPO_PUBLIC_CAL_OAUTH_CLIENT_SECRET || 'YOUR_CLIENT_SECRET',
+  clientId: process.env.EXPO_PUBLIC_CAL_CLIENT_ID || 'YOUR_CLIENT_ID',
+  clientSecret: process.env.EXPO_PUBLIC_CAL_CLIENT_SECRET || 'YOUR_CLIENT_SECRET',
   authorizationEndpoint: 'https://app.cal.com/auth/oauth2/authorize',
   tokenEndpoint: 'https://app.cal.com/api/auth/oauth/token',
   refreshEndpoint: 'https://app.cal.com/api/auth/oauth/refreshToken',
