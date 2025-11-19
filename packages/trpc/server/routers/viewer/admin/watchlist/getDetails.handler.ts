@@ -1,4 +1,5 @@
 import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,20 +21,25 @@ export const getWatchlistEntryDetailsHandler = async ({ input }: GetWatchlistEnt
       entryId: input.id,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An error occurred";
-
-    if (message.includes("not found")) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message,
-      });
-    }
-
-    if (message.includes("only view system blocklist entries")) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message,
-      });
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.NOT_FOUND:
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: error.message,
+          });
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
     }
 
     throw new TRPCError({

@@ -1,4 +1,5 @@
 import { getOrganizationWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,13 +36,20 @@ export const listWatchlistEntriesHandler = async ({ ctx, input }: ListWatchlistE
       filters: input.filters,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An error occurred";
-
-    if (message.includes("not authorized")) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message,
-      });
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
     }
 
     throw new TRPCError({
