@@ -1,5 +1,4 @@
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,35 +13,34 @@ type DismissReportOptions = {
 };
 
 export const dismissReportHandler = async ({ input }: DismissReportOptions) => {
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const service = getAdminWatchlistOperationsService();
 
-  // Validate report exists (no org filtering - admin can access any report)
-  const reports = await bookingReportRepo.findReportsByIds({
-    reportIds: [input.reportId],
-  });
+  try {
+    return await service.dismissReport({
+      reportId: input.reportId,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An error occurred";
 
-  if (reports.length === 0) {
+    if (message.includes("not found")) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message,
+      });
+    }
+
+    if (message.includes("already been added to the blocklist")) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message,
+      });
+    }
+
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Report not found",
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to dismiss report",
     });
   }
-
-  const report = reports[0];
-
-  if (report.watchlistId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cannot dismiss a report that has already been added to the blocklist",
-    });
-  }
-
-  await bookingReportRepo.updateReportStatus({
-    reportId: input.reportId,
-    status: "DISMISSED",
-  });
-
-  return { success: true };
 };
 
 export default dismissReportHandler;

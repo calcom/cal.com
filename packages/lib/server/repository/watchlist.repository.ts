@@ -93,12 +93,8 @@ export class WatchlistRepository implements IWatchlistRepository {
     meta: { totalRowCount: number };
   }> {
     const where = {
-      ...(params.organizationId !== undefined && {
-        organizationId: params.organizationId,
-      }),
-      ...(params.isGlobal !== undefined && {
-        isGlobal: params.isGlobal,
-      }),
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
       ...(params.searchTerm && {
         value: {
           contains: params.searchTerm,
@@ -290,21 +286,8 @@ export class WatchlistRepository implements IWatchlistRepository {
       return { deleted: 0 };
     }
 
-    await this.prismaClient.$transaction(async (tx) => {
-      await tx.watchlistAudit.createMany({
-        data: entries.map((entry) => ({
-          watchlistId: entry.id,
-          type: entry.type,
-          value: entry.value,
-          description: entry.description,
-          action: entry.action,
-          changedByUserId: params.userId,
-        })),
-      });
-
-      await tx.watchlist.deleteMany({
-        where: { id: { in: entries.map((e) => e.id) } },
-      });
+    await this.prismaClient.watchlist.deleteMany({
+      where: { id: { in: entries.map((e) => e.id) } },
     });
 
     return { deleted: entries.length };

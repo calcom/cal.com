@@ -1,8 +1,4 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole, WatchlistAction } from "@calcom/prisma/enums";
+import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,58 +23,33 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
     });
   }
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: user.id,
-    teamId: organizationId,
-    permission: "watchlist.create",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-
-  if (!hasPermission) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to create blocklist entries",
-    });
-  }
-
-  const watchlistRepo = new WatchlistRepository(prisma);
-
-  if (input.type === "EMAIL" && !emailRegex.test(input.value)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid email address format",
-    });
-  }
-
-  if (input.type === "DOMAIN" && !domainRegex.test(input.value)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid domain format (e.g., example.com)",
-    });
-  }
+  const service = getOrganizationWatchlistOperationsService();
 
   try {
-    const entry = await watchlistRepo.createEntry({
+    return await service.createWatchlistEntry({
       type: input.type,
-      value: input.value.toLowerCase(),
-      organizationId,
-      action: WatchlistAction.BLOCK,
+      value: input.value,
       description: input.description,
       userId: user.id,
+      organizationId,
     });
-
-    return {
-      success: true,
-      entry,
-    };
   } catch (error) {
-    if (error instanceof Error && error.message.includes("already exists")) {
+    const message = error instanceof Error ? error.message : "An error occurred";
+
+    if (message.includes("not authorized")) {
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This entry already exists in the blocklist for your organization",
+        code: "UNAUTHORIZED",
+        message,
       });
     }
+
+    if (message.includes("Invalid email") || message.includes("Invalid domain") || message.includes("already exists")) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message,
+      });
+    }
+
     throw error;
   }
 };

@@ -1,14 +1,8 @@
-import { prisma } from "@calcom/prisma";
+import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 export const pendingReportsCountHandler = async () => {
-  const count = await prisma.bookingReport.count({
-    where: {
-      status: "PENDING",
-      watchlistId: null,
-    },
-  });
-
-  return count;
+  const service = getAdminWatchlistQueryService();
+  return await service.getPendingReportsCount();
 };
 
 export default pendingReportsCountHandler;

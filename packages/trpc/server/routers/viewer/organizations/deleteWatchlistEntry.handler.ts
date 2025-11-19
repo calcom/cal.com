@@ -1,7 +1,6 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,23 +25,7 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
     });
   }
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: user.id,
-    teamId: organizationId,
-    permission: "watchlist.delete",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-
-  if (!hasPermission) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to delete blocklist entries",
-    });
-  }
-
   const watchlistRepo = new WatchlistRepository(prisma);
-
   const { entry } = await watchlistRepo.findEntryWithAuditAndReports(input.id);
 
   if (!entry) {
@@ -59,14 +42,24 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
     });
   }
 
-  try {
-    await watchlistRepo.deleteEntry(input.id, user.id);
+  const service = getOrganizationWatchlistOperationsService();
 
-    return {
-      success: true,
-      message: "Blocklist entry deleted successfully",
-    };
+  try {
+    return await service.deleteWatchlistEntry({
+      entryId: input.id,
+      userId: user.id,
+      organizationId,
+    });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "An error occurred";
+
+    if (message.includes("not authorized")) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message,
+      });
+    }
+
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Failed to delete blocklist entry",

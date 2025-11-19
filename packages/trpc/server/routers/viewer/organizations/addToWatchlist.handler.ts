@@ -1,12 +1,4 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import {
-  normalizeEmail,
-  extractDomainFromEmail,
-} from "@calcom/features/watchlist/lib/utils/normalization";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole, WatchlistAction } from "@calcom/prisma/enums";
+import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import { TRPCError } from "@trpc/server";
 
@@ -31,106 +23,40 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     });
   }
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: user.id,
-    teamId: organizationId,
-    permission: "watchlist.create",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-
-  if (!hasPermission) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not authorized to add entries to the watchlist",
-    });
-  }
-
-  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
-  const watchlistRepo = new WatchlistRepository(prisma);
-
-  const validReports = await bookingReportRepo.findReportsByIds({
-    reportIds: input.reportIds,
-    organizationId,
-  });
-
-  if (validReports.length !== input.reportIds.length) {
-    const foundIds = validReports.map((r) => r.id);
-    const missingIds = input.reportIds.filter((id) => !foundIds.includes(id));
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Booking report(s) not found: ${missingIds.join(", ")}`,
-    });
-  }
-
-  const reportsToAdd = validReports.filter((report) => !report.watchlistId);
-
-  if (reportsToAdd.length === 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "All selected bookers are already in the watchlist",
-    });
-  }
+  const service = getOrganizationWatchlistOperationsService();
 
   try {
-    const results = await Promise.all(
-      reportsToAdd.map(async (report) => {
-        const value =
-          input.type === "EMAIL"
-            ? normalizeEmail(report.bookerEmail)
-            : extractDomainFromEmail(report.bookerEmail);
-
-        const existingWatchlist = await watchlistRepo.checkExists({
-          type: input.type,
-          value,
-          organizationId,
-        });
-
-        let watchlistId: string;
-
-        if (existingWatchlist) {
-          watchlistId = existingWatchlist.id;
-        } else {
-          const newWatchlist = await watchlistRepo.createEntry({
-            type: input.type,
-            value,
-            organizationId,
-            action: WatchlistAction.BLOCK,
-            description: input.description,
-            userId: user.id,
-          });
-          watchlistId = newWatchlist.id;
-        }
-
-        await bookingReportRepo.linkWatchlistToReport({
-          reportId: report.id,
-          watchlistId,
-        });
-
-        await bookingReportRepo.updateReportStatus({
-          reportId: report.id,
-          status: "BLOCKED",
-          organizationId,
-        });
-
-        return { reportId: report.id, watchlistId, value };
-      })
-    );
-
-    return {
-      success: true,
-      message: `Successfully added ${reportsToAdd.length} report(s) to watchlist`,
-      addedCount: reportsToAdd.length,
-      skippedCount: validReports.length - reportsToAdd.length,
-      results: results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
-    };
+    return await service.addReportsToWatchlistInternal({
+      reportIds: input.reportIds,
+      type: input.type,
+      description: input.description,
+      userId: user.id,
+      organizationId,
+    });
   } catch (error) {
-    if (error instanceof Error && error.message.includes("already exists")) {
+    const message = error instanceof Error ? error.message : "An error occurred";
+
+    if (message.includes("not authorized")) {
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This entry already exists in the watchlist for your organization",
+        code: "UNAUTHORIZED",
+        message,
       });
     }
+
+    if (message.includes("not found")) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message,
+      });
+    }
+
+    if (message.includes("already in the watchlist") || message.includes("Invalid email") || message.includes("already exists")) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message,
+      });
+    }
+
     throw error;
   }
 };
