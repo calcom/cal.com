@@ -969,6 +969,7 @@ export class EventTypeRepository {
           redirectUrlOnExit: true,
         },
       },
+      captchaType: true,
     } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
@@ -1822,11 +1823,12 @@ export class EventTypeRepository {
           redirectUrlOnExit: true,
         },
       },
+      captchaType: true,
     } satisfies Prisma.EventTypeSelect;
 
     const userCalIdTeamIds = await MembershipRepository.findUserCalIdTeamIds({ userId });
 
-    return await this.prismaClient.eventType.findFirst({
+    const val = await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -1853,5 +1855,6 @@ export class EventTypeRepository {
       },
       select: CompleteEventTypeSelect,
     });
+    return val;
   }
 }

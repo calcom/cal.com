@@ -329,6 +329,7 @@ export const getEventTypeByIdForCalId = async ({
     currentOrganizationId,
     prisma,
   });
+  console.log("rawEventType__", rawEventType);
 
   if (!rawEventType) {
     if (isTrpcCall) {
