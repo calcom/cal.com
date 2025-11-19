@@ -70,6 +70,18 @@ export default function Onboarding() {
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* Temporary helper link for OAuth redirect issue */}
+        {Platform.OS === 'web' && (
+          <TouchableOpacity
+            onPress={() => router.push('/oauth-helper')}
+            style={{ marginTop: 12, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#6b7280', fontSize: 12 }}>
+              OAuth not redirecting? Use helper →
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
