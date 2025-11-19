@@ -567,7 +567,7 @@ export async function getBookings({
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select(["users.id", "users.name", "users.email"])
+              .select(["users.id", "users.name", "users.email", "users.avatarUrl", "users.username"])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
@@ -748,7 +748,76 @@ export async function getBookings({
       };
     })
   );
-  return { bookings, recurringInfo, totalCount };
+
+  // Enrich attendees with user data
+  const enrichedBookings = await enrichAttendeesWithUserData(bookings, kysely);
+
+  return { bookings: enrichedBookings, recurringInfo, totalCount };
+}
+
+type EnrichedUserData = {
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  username: string | null;
+};
+
+/**
+ * Enriches booking attendees with user data by performing a left outer join
+ * between attendees and users tables on email addresses.
+ *
+ * @param bookings - Array of bookings with attendees to enrich
+ * @param kysely - Kysely database client instance
+ * @returns Bookings with attendees enriched with user data (name, email, avatarUrl, username)
+ */
+async function enrichAttendeesWithUserData<
+  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> }
+>(
+  bookings: TBooking[],
+  kysely: Kysely<DB>
+): Promise<
+  Array<
+    Omit<TBooking, "attendees"> & {
+      attendees: Array<TBooking["attendees"][number] & { user: EnrichedUserData | null }>;
+    }
+  >
+> {
+  // Extract all unique attendee emails from bookings
+  const allAttendees = bookings.flatMap((booking) => booking.attendees);
+  const uniqueAttendeeEmails = Array.from(new Set(allAttendees.map((attendee) => attendee.email)));
+
+  // Query attendees with left join to users table
+  const enrichedAttendees =
+    uniqueAttendeeEmails.length > 0
+      ? await kysely
+          .selectFrom("Attendee")
+          .leftJoin("users", "users.email", "Attendee.email")
+          .select(["Attendee.id", "users.name", "users.email", "users.avatarUrl", "users.username"])
+          .where("Attendee.email", "in", uniqueAttendeeEmails)
+          .execute()
+      : [];
+
+  // Create a lookup map for O(1) access by attendee ID
+  const attendeeUserDataMap = new Map<number, EnrichedUserData>(
+    enrichedAttendees.map((enriched) => [
+      enriched.id,
+      {
+        name: enriched.name,
+        email: enriched.email,
+        avatarUrl: enriched.avatarUrl,
+        username: enriched.username,
+      },
+    ])
+  );
+
+  // Map over bookings and enrich each attendee with user data
+  return bookings.map((booking) => ({
+    ...booking,
+    attendees: booking.attendees.map((attendee) => ({
+      ...attendee,
+      user: attendeeUserDataMap.get(attendee.id) || null,
+    })),
+  }));
 }
 
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {

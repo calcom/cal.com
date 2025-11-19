@@ -7,6 +7,8 @@ export type BookingsGetOutput = RouterOutputs["viewer"]["bookings"]["get"];
 
 export type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
+export type BookingAttendee = BookingOutput["attendees"][0];
+
 export type RecurringInfo = {
   recurringEventId: string | null;
   count: number;

@@ -8,6 +8,7 @@ import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { bookingMetadataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -282,6 +283,7 @@ function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
 }
 
 function WhoSection({ booking }: { booking: BookingOutput }) {
+  console.log("💡 booking", booking);
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
@@ -290,12 +292,18 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           <div className="flex items-center gap-4">
             <Avatar
               size="md"
-              imageSrc={getPlaceholderAvatar(null, booking.user.name)}
-              alt={booking.user.name || ""}
+              imageSrc={
+                booking.user.avatarUrl
+                  ? getUserAvatarUrl(booking.user)
+                  : getPlaceholderAvatar(null, booking.user.name || booking.user.email)
+              }
+              alt={booking.user.name || booking.user.email || ""}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                <p className="text-emphasis truncate text-sm font-medium">
+                  {booking.user.name || booking.user.email}
+                </p>
                 <Badge variant="blue" size="sm">
                   {t("host")}
                 </Badge>
@@ -305,15 +313,26 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           </div>
         )}
 
-        {booking.attendees.map((attendee, idx) => (
-          <div key={idx} className="flex items-center gap-4">
-            <Avatar size="md" imageSrc={getPlaceholderAvatar(null, attendee.name)} alt={attendee.name} />
-            <div className="min-w-0 flex-1">
-              <p className="text-emphasis truncate text-sm font-medium">{attendee.name}</p>
-              <p className="text-default truncate text-sm">{attendee.email}</p>
+        {booking.attendees.map((attendee, idx) => {
+          const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+          return (
+            <div key={idx} className="flex items-center gap-4">
+              <Avatar
+                size="md"
+                imageSrc={
+                  attendee.user?.avatarUrl
+                    ? getUserAvatarUrl(attendee.user)
+                    : getPlaceholderAvatar(null, name)
+                }
+                alt={name}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-emphasis truncate text-sm font-medium">{name}</p>
+                <p className="text-default truncate text-sm">{attendee.email}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );

@@ -46,6 +46,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
+import type { BookingAttendee } from "../../modules/bookings/types";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
   useBookingActionsStoreContext,
@@ -150,15 +151,10 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
+  const attendeeList = booking.attendees.map((attendee) => ({
+    ...attendee,
+    noShow: attendee.noShow || false,
+  }));
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
@@ -727,21 +723,13 @@ const FirstAttendee = ({
   );
 };
 
-type AttendeeProps = {
-  name?: string;
-  email: string;
-  phoneNumber: string | null;
-  id: number;
-  noShow: boolean;
-};
-
 type NoShowProps = {
   bookingUid: string;
   isBookingInPast: boolean;
 };
 
-const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber } = attendeeProps;
+const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber, user } = attendeeProps;
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
@@ -758,6 +746,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
     },
   });
 
+  const displayName = user?.name || name || user?.email || email;
+
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
@@ -767,10 +757,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <>
-              {name || email} <Icon name="eye-off" className="inline h-4" />
+              {displayName} <Icon name="eye-off" className="inline h-4" />
             </>
           ) : (
-            <>{name || email}</>
+            <>{displayName}</>
           )}
         </button>
       </DropdownMenuTrigger>
@@ -825,20 +815,16 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 };
 
 type GroupedAttendeeProps = {
-  attendees: AttendeeProps[];
+  attendees: BookingAttendee[];
   bookingUid: string;
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const { bookingUid } = groupedAttendeeProps;
-  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
-    return {
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    };
-  });
+  const attendees = groupedAttendeeProps.attendees.map((attendee) => ({
+    ...attendee,
+    noShow: attendee.noShow || false,
+  }));
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
@@ -851,7 +837,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     },
   });
   const { control, handleSubmit } = useForm<{
-    attendees: AttendeeProps[];
+    attendees: BookingAttendee[];
   }>({
     defaultValues: {
       attendees,
@@ -864,8 +850,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     name: "attendees",
   });
 
-  const onSubmit = (data: { attendees: AttendeeProps[] }) => {
-    const filteredData = data.attendees.slice(1);
+  const onSubmit = (data: { attendees: BookingAttendee[] }) => {
+    const filteredData = data.attendees.slice(1).map((attendee) => ({
+      email: attendee.email,
+      noShow: attendee.noShow || false,
+    }));
     noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
   };
@@ -924,7 +913,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   );
 };
 
-const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
+const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
@@ -995,7 +984,7 @@ const DisplayAttendees = ({
   bookingUid,
   isBookingInPast,
 }: {
-  attendees: AttendeeProps[];
+  attendees: BookingAttendee[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
