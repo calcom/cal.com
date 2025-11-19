@@ -12,18 +12,20 @@ import * as ExpoLinking from 'expo-linking';
 // TODO: Replace with actual OAuth credentials from Cal.com team
 const getRedirectUri = () => {
   // IMPORTANT: This must match what Cal.com team registered for your OAuth client
-  // Based on the redirect behavior, Cal.com has registered: https://app.cal.com/event-types
-  // You need to ask Cal.com team to update this to your app's deep link or use this URL
   
   if (Platform.OS === 'web') {
-    // For web, use current origin + callback path
+    // For web, we need to use the SAME origin (localhost:8081 in dev)
+    // This is because web browsers can't handle custom URL schemes like expo-wxt-app://
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/oauth/callback`;
+      // Use current window location
+      const origin = window.location.origin; // e.g., http://localhost:8081
+      return `${origin}/oauth/callback`;
     }
     return 'http://localhost:8081/oauth/callback';
   }
+  
   // For native (iOS/Android), use deep link scheme
-  // NOTE: If Cal.com doesn't support custom schemes, you may need to use https://yourdomain.com/oauth/callback
+  // This will only work if Cal.com team sets this as the redirect_uri for your OAuth client
   return 'expo-wxt-app://oauth/callback';
 };
 
