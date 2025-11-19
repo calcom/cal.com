@@ -298,6 +298,182 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(user).toBeDefined();
     });
 
+    describe("reschedule normal booking", () => {
+      let normalBookingUser: User;
+      let normalBookingEventType: EventType;
+      let normalBookingEventTypeId: number;
+      const normalBookingUserEmail = `user-bookings-normal-user-${randomString(5)}@api.com`;
+      const normalBookingEventTypeSlug = `user-bookings-normal-event-type-${randomString(5)}`;
+
+      let oldNormalBooking: BookingOutput_2024_08_13;
+      let newNormalBooking: BookingOutput_2024_08_13;
+
+      const RESCHEDULE_REASON = "Flying to venus that day";
+      const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(5)}@api.com`;
+
+      beforeAll(async () => {
+        normalBookingUser = await userRepositoryFixture.create({
+          email: normalBookingUserEmail,
+          username: normalBookingUserEmail,
+        });
+
+        const userSchedule: CreateScheduleInput_2024_04_15 = {
+          name: `user-bookings-normal-schedule-${randomString()}`,
+          timeZone: "Europe/Rome",
+          isDefault: true,
+        };
+        await schedulesService.createUserSchedule(normalBookingUser.id, userSchedule);
+
+        normalBookingEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `user-bookings-normal-event-type-${randomString()}`,
+            slug: normalBookingEventTypeSlug,
+            length: 60,
+          },
+          normalBookingUser.id
+        );
+        normalBookingEventTypeId = normalBookingEventType.id;
+      });
+
+      afterAll(async () => {
+        await bookingsRepositoryFixture.deleteAllBookings(normalBookingUser.id, normalBookingUser.email);
+        await userRepositoryFixture.deleteByEmail(normalBookingUser.email);
+      });
+
+      it("should create a booking to be rescheduled", async () => {
+        const bookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 1, 9, 10, 0, 0)).toISOString(),
+          eventTypeId: normalBookingEventTypeId,
+          attendee: {
+            name: `user-venus-bookings-attendee-${randomString(10)}`,
+            email: `user-venus-bookings-attendee-${randomString(10)}@gmail.com`,
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/oj12u83128u9312ou3",
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(bookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        expect(bookingResponseBody.data).toBeDefined();
+        expect(responseDataIsBooking(bookingResponseBody.data)).toBe(true);
+        if (responseDataIsBooking(bookingResponseBody.data)) {
+          const created: BookingOutput_2024_08_13 = bookingResponseBody.data;
+          oldNormalBooking = created;
+          expect(oldNormalBooking).toBeDefined();
+          expect(oldNormalBooking.uid).toBeDefined();
+        } else {
+          throw new Error("should create a booking to be rescheduled - Invalid response data");
+        }
+      });
+
+      it("should reschedule", async () => {
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 1, 9, 12, 0, 0)).toISOString(),
+          reschedulingReason: RESCHEDULE_REASON,
+          rescheduledBy: RESCHEDULED_BY,
+        };
+
+        const beforeCreate = new Date();
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${oldNormalBooking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const afterCreate = new Date();
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+
+            // note(Lauris): rescheduling related fields
+            const data: BookingOutput_2024_08_13 = responseBody.data as BookingOutput_2024_08_13;
+            expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
+            expect(data.rescheduledFromUid).toEqual(oldNormalBooking.uid);
+            expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
+
+            // note(Lauris): other booking fields
+            expect(data.start).toEqual(body.start);
+            expect(data.end).toEqual(new Date(Date.UTC(2040, 1, 9, 13, 0, 0)).toISOString());
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
+            expect(data.status).toEqual(oldNormalBooking.status);
+            expect(data.duration).toEqual(oldNormalBooking.duration);
+            expect(data.eventTypeId).toEqual(oldNormalBooking.eventTypeId);
+            expect(data.attendees[0]).toEqual(oldNormalBooking.attendees[0]);
+            expect(data.location).toEqual(oldNormalBooking.location);
+            expect(data.absentHost).toEqual(oldNormalBooking.absentHost);
+            expect(data.metadata).toEqual(oldNormalBooking.metadata);
+
+            newNormalBooking = data;
+            expect(newNormalBooking).toBeDefined();
+
+            // When a booking is rescheduled, a new booking is created and the old booking is cancelled.
+            // We want to make sure the createdAt date of the new booking is between the beforeCreate and afterCreate dates.
+            const createdAtDate = new Date(data.createdAt);
+            expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+            expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+          });
+      });
+
+      it("should fetch old booking and verify rescheduledToUid and rescheduledByEmail and status cancelled", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${oldNormalBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.rescheduledToUid).toEqual(newNormalBooking.uid);
+              expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
+              expect(data.status).toEqual("cancelled");
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should fetch new booking and verify rescheduledFromUid, rescheduledByEmail and reschedulingReason", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${newNormalBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.rescheduledFromUid).toEqual(oldNormalBooking.uid);
+              expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
+              expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
+              expect(data.status).toEqual("accepted");
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+    });
+
     describe("create bookings", () => {
       describe("invalid metadata", () => {
         it("should not be able to create a booking with metadata with more than 50 keys", async () => {
@@ -1497,182 +1673,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
           );
           await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
           await bookingsRepositoryFixture.deleteById(newBooking.id);
-        });
-      });
-
-      describe("normal booking", () => {
-        let normalBookingUser: User;
-        let normalBookingEventType: EventType;
-        let normalBookingEventTypeId: number;
-        const normalBookingUserEmail = `user-bookings-normal-user-${randomString(5)}@api.com`;
-        const normalBookingEventTypeSlug = `user-bookings-normal-event-type-${randomString(5)}`;
-
-        let oldNormalBooking: BookingOutput_2024_08_13;
-        let newNormalBooking: BookingOutput_2024_08_13;
-
-        const RESCHEDULE_REASON = "Flying to venus that day";
-        const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(5)}@api.com`;
-
-        beforeAll(async () => {
-          normalBookingUser = await userRepositoryFixture.create({
-            email: normalBookingUserEmail,
-            username: normalBookingUserEmail,
-          });
-
-          const userSchedule: CreateScheduleInput_2024_04_15 = {
-            name: `user-bookings-normal-schedule-${randomString()}`,
-            timeZone: "Europe/Rome",
-            isDefault: true,
-          };
-          await schedulesService.createUserSchedule(normalBookingUser.id, userSchedule);
-
-          normalBookingEventType = await eventTypesRepositoryFixture.create(
-            {
-              title: `user-bookings-normal-event-type-${randomString()}`,
-              slug: normalBookingEventTypeSlug,
-              length: 60,
-            },
-            normalBookingUser.id
-          );
-          normalBookingEventTypeId = normalBookingEventType.id;
-        });
-
-        afterAll(async () => {
-          await bookingsRepositoryFixture.deleteAllBookings(normalBookingUser.id, normalBookingUser.email);
-          await userRepositoryFixture.deleteByEmail(normalBookingUser.email);
-        });
-
-        it("should create a booking to be rescheduled", async () => {
-          const bookingBody: CreateBookingInput_2024_08_13 = {
-            start: new Date(Date.UTC(2040, 1, 9, 10, 0, 0)).toISOString(),
-            eventTypeId: normalBookingEventTypeId,
-            attendee: {
-              name: `user-venus-bookings-attendee-${randomString(10)}`,
-              email: `user-venus-bookings-attendee-${randomString(10)}@gmail.com`,
-              timeZone: "Europe/Rome",
-              language: "it",
-            },
-            location: "https://meet.google.com/oj12u83128u9312ou3",
-          };
-
-          const bookingResponse = await request(app.getHttpServer())
-            .post("/v2/bookings")
-            .send(bookingBody)
-            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
-
-          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-          expect(bookingResponseBody.data).toBeDefined();
-          expect(responseDataIsBooking(bookingResponseBody.data)).toBe(true);
-          if (responseDataIsBooking(bookingResponseBody.data)) {
-            const created: BookingOutput_2024_08_13 = bookingResponseBody.data;
-            oldNormalBooking = created;
-            expect(oldNormalBooking).toBeDefined();
-            expect(oldNormalBooking.uid).toBeDefined();
-          } else {
-            throw new Error("should create a booking to be rescheduled - Invalid response data");
-          }
-        });
-
-        it("should reschedule", async () => {
-          const body: RescheduleBookingInput_2024_08_13 = {
-            start: new Date(Date.UTC(2040, 1, 9, 12, 0, 0)).toISOString(),
-            reschedulingReason: RESCHEDULE_REASON,
-            rescheduledBy: RESCHEDULED_BY,
-          };
-
-          const beforeCreate = new Date();
-          return request(app.getHttpServer())
-            .post(`/v2/bookings/${oldNormalBooking.uid}/reschedule`)
-            .send(body)
-            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201)
-            .then(async (response) => {
-              const afterCreate = new Date();
-              const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
-              expect(responseBody.status).toEqual(SUCCESS_STATUS);
-              expect(responseBody.data).toBeDefined();
-
-              // note(Lauris): rescheduling related fields
-              const data: BookingOutput_2024_08_13 = responseBody.data as BookingOutput_2024_08_13;
-              expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
-              expect(data.rescheduledFromUid).toEqual(oldNormalBooking.uid);
-              expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
-
-              // note(Lauris): other booking fields
-              expect(data.start).toEqual(body.start);
-              expect(data.end).toEqual(new Date(Date.UTC(2040, 1, 9, 13, 0, 0)).toISOString());
-              expect(data.id).toBeDefined();
-              expect(data.uid).toBeDefined();
-              expect(data.hosts[0].id).toEqual(user.id);
-              expect(data.hosts[0].username).toEqual(user.username);
-              expect(data.hosts[0].email).toEqual(user.email);
-              expect(data.status).toEqual(oldNormalBooking.status);
-              expect(data.duration).toEqual(oldNormalBooking.duration);
-              expect(data.eventTypeId).toEqual(oldNormalBooking.eventTypeId);
-              expect(data.attendees[0]).toEqual(oldNormalBooking.attendees[0]);
-              expect(data.location).toEqual(oldNormalBooking.location);
-              expect(data.absentHost).toEqual(oldNormalBooking.absentHost);
-              expect(data.metadata).toEqual(oldNormalBooking.metadata);
-
-              newNormalBooking = data;
-              expect(newNormalBooking).toBeDefined();
-
-              // When a booking is rescheduled, a new booking is created and the old booking is cancelled.
-              // We want to make sure the createdAt date of the new booking is between the beforeCreate and afterCreate dates.
-              const createdAtDate = new Date(data.createdAt);
-              expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-              expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
-            });
-        });
-
-        it("should fetch old booking and verify rescheduledToUid and rescheduledByEmail and status cancelled", async () => {
-          return request(app.getHttpServer())
-            .get(`/v2/bookings/${oldNormalBooking.uid}`)
-            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(200)
-            .then(async (response) => {
-              const responseBody: GetBookingOutput_2024_08_13 = response.body;
-              expect(responseBody.status).toEqual(SUCCESS_STATUS);
-              expect(responseBody.data).toBeDefined();
-              expect(responseDataIsBooking(responseBody.data)).toBe(true);
-
-              if (responseDataIsBooking(responseBody.data)) {
-                const data: BookingOutput_2024_08_13 = responseBody.data;
-                expect(data.rescheduledToUid).toEqual(newNormalBooking.uid);
-                expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
-                expect(data.status).toEqual("cancelled");
-              } else {
-                throw new Error(
-                  "Invalid response data - expected booking but received array of possibly recurring bookings"
-                );
-              }
-            });
-        });
-
-        it("should fetch new booking and verify rescheduledFromUid, rescheduledByEmail and reschedulingReason", async () => {
-          return request(app.getHttpServer())
-            .get(`/v2/bookings/${newNormalBooking.uid}`)
-            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(200)
-            .then(async (response) => {
-              const responseBody: GetBookingOutput_2024_08_13 = response.body;
-              expect(responseBody.status).toEqual(SUCCESS_STATUS);
-              expect(responseBody.data).toBeDefined();
-              expect(responseDataIsBooking(responseBody.data)).toBe(true);
-
-              if (responseDataIsBooking(responseBody.data)) {
-                const data: BookingOutput_2024_08_13 = responseBody.data;
-                expect(data.rescheduledFromUid).toEqual(oldNormalBooking.uid);
-                expect(data.rescheduledByEmail).toEqual(RESCHEDULED_BY);
-                expect(data.reschedulingReason).toEqual(RESCHEDULE_REASON);
-                expect(data.status).toEqual("accepted");
-              } else {
-                throw new Error(
-                  "Invalid response data - expected booking but received array of possibly recurring bookings"
-                );
-              }
-            });
         });
       });
 
