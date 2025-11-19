@@ -15,6 +15,7 @@ import {
   Clipboard,
   Animated,
   Image,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -1270,7 +1271,14 @@ export default function EventTypeDetail() {
         </View>
 
         {/* Content */}
-        <ScrollView style={{ flex: 1, paddingTop: 120, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
+        <ScrollView
+          style={{
+            flex: 1,
+            paddingTop: Platform.OS === "web" ? 120 : 180,
+            paddingBottom: 250
+          }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
+        >
           {activeTab === "basics" && (
             <BasicsTab
               eventTitle={eventTitle}

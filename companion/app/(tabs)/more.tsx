@@ -60,6 +60,12 @@ export default function More() {
       isExternal: true,
       onPress: () => openExternalLink("https://app.cal.com/insights", "Insights page"),
     },
+    {
+      name: "Support",
+      icon: "help-circle-outline",
+      isExternal: true,
+      onPress: () => openExternalLink("https://go.cal.com/support", "Support"),
+    },
   ];
 
   return (
@@ -90,6 +96,9 @@ export default function More() {
             </TouchableOpacity>
           ))}
         </View>
+        <Text className="text-sm text-gray-500 mt-4">
+          We view the companion as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.
+        </Text>
       </ScrollView>
     </View>
   );
