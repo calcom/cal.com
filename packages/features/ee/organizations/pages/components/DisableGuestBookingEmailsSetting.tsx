@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Alert } from "@calcom/ui/components/alert";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Switch } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -27,9 +29,18 @@ interface EmailRowProps {
   isDisabled: boolean;
   onToggle: (type: EmailType, disabled: boolean) => void;
   testId: string;
+  disabled?: boolean;
 }
 
-const EmailRow = ({ emailType, labelKey, descriptionKey, isDisabled, onToggle, testId }: EmailRowProps) => {
+const EmailRow = ({
+  emailType,
+  labelKey,
+  descriptionKey,
+  isDisabled,
+  onToggle,
+  testId,
+  disabled,
+}: EmailRowProps) => {
   const { t } = useLocale();
 
   return (
@@ -41,6 +52,7 @@ const EmailRow = ({ emailType, labelKey, descriptionKey, isDisabled, onToggle, t
           checked={!isDisabled}
           onCheckedChange={(checked) => onToggle(emailType, !checked)}
           data-testid={testId}
+          disabled={disabled}
         />
       </td>
     </tr>
@@ -66,6 +78,8 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   const utils = trpc.useUtils();
   const { t } = useLocale();
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   const [disableConfirmation, setDisableConfirmation] = useState(
     props.settings.disableAttendeeConfirmationEmail
   );
@@ -89,16 +103,16 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   );
   const [disableNewEvent, setDisableNewEvent] = useState(props.settings.disableAttendeeNewEventEmail);
 
-  const allEnabled =
-    !disableConfirmation &&
-    !disableCancellation &&
-    !disableRescheduled &&
-    !disableRequest &&
-    !disableReassigned &&
-    !disableAwaitingPayment &&
-    !disableRescheduleRequest &&
-    !disableLocationChange &&
-    !disableNewEvent;
+  const allDisabled =
+    disableConfirmation &&
+    disableCancellation &&
+    disableRescheduled &&
+    disableRequest &&
+    disableReassigned &&
+    disableAwaitingPayment &&
+    disableRescheduleRequest &&
+    disableLocationChange &&
+    disableNewEvent;
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
@@ -112,27 +126,27 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
     },
   });
 
-  const handleDisableAll = (checked: boolean) => {
+  const handleDisableAll = (disable: boolean) => {
     mutation.mutate({
-      disableAttendeeConfirmationEmail: checked,
-      disableAttendeeCancellationEmail: checked,
-      disableAttendeeRescheduledEmail: checked,
-      disableAttendeeRequestEmail: checked,
-      disableAttendeeReassignedEmail: checked,
-      disableAttendeeAwaitingPaymentEmail: checked,
-      disableAttendeeRescheduleRequestEmail: checked,
-      disableAttendeeLocationChangeEmail: checked,
-      disableAttendeeNewEventEmail: checked,
+      disableAttendeeConfirmationEmail: disable,
+      disableAttendeeCancellationEmail: disable,
+      disableAttendeeRescheduledEmail: disable,
+      disableAttendeeRequestEmail: disable,
+      disableAttendeeReassignedEmail: disable,
+      disableAttendeeAwaitingPaymentEmail: disable,
+      disableAttendeeRescheduleRequestEmail: disable,
+      disableAttendeeLocationChangeEmail: disable,
+      disableAttendeeNewEventEmail: disable,
     });
-    setDisableConfirmation(checked);
-    setDisableCancellation(checked);
-    setDisableRescheduled(checked);
-    setDisableRequest(checked);
-    setDisableReassigned(checked);
-    setDisableAwaitingPayment(checked);
-    setDisableRescheduleRequest(checked);
-    setDisableLocationChange(checked);
-    setDisableNewEvent(checked);
+    setDisableConfirmation(disable);
+    setDisableCancellation(disable);
+    setDisableRescheduled(disable);
+    setDisableRequest(disable);
+    setDisableReassigned(disable);
+    setDisableAwaitingPayment(disable);
+    setDisableRescheduleRequest(disable);
+    setDisableLocationChange(disable);
+    setDisableNewEvent(disable);
   };
 
   const handleIndividualToggle = (
@@ -194,17 +208,36 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
 
   return (
     <div className="space-y-6">
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <ConfirmationDialogContent
+          variety="warning"
+          title={t("disable_all_guest_booking_emails_confirm_title")}
+          confirmBtnText={t("disable_all")}
+          onConfirm={() => {
+            handleDisableAll(true);
+            setShowConfirmDialog(false);
+          }}>
+          <p className="mt-2">{t("disable_all_guest_booking_emails_confirm_description")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
+
       <Alert severity="warning" title={t("disable_guest_emails_warning")} />
 
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
-        checked={!allEnabled}
+        checked={allDisabled}
         title={t("disable_all_booking_emails_to_guests")}
         labelClassName="text-sm font-semibold"
         description={t("disable_all_booking_emails_to_guests_description")}
         switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
         data-testid="disable-all-guest-emails"
-        onCheckedChange={handleDisableAll}
+        onCheckedChange={(checked) => {
+          if (checked) {
+            setShowConfirmDialog(true);
+          } else {
+            handleDisableAll(false);
+          }
+        }}
       />
 
       <div className="border-subtle overflow-hidden rounded-lg border">
@@ -224,6 +257,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableConfirmation}
               onToggle={handleIndividualToggle}
               testId="disable-guest-confirmation-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="cancellation"
@@ -232,6 +266,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableCancellation}
               onToggle={handleIndividualToggle}
               testId="disable-guest-cancellation-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="rescheduled"
@@ -240,6 +275,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRescheduled}
               onToggle={handleIndividualToggle}
               testId="disable-guest-rescheduled-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="request"
@@ -248,6 +284,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRequest}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-request-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="reassigned"
@@ -256,6 +293,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableReassigned}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reassigned-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="awaiting_payment"
@@ -264,6 +302,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableAwaitingPayment}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-awaiting-payment-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="reschedule_request"
@@ -272,6 +311,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRescheduleRequest}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reschedule-request-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="location_change"
@@ -280,6 +320,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableLocationChange}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-location-change-email"
+              disabled={allDisabled}
             />
             <EmailRow
               emailType="new_event"
@@ -288,6 +329,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableNewEvent}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-new-event-email"
+              disabled={allDisabled}
             />
           </tbody>
         </table>
