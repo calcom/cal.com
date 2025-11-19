@@ -3934,7 +3934,6 @@
   "reschedule_request": "Reschedule Request",
   "location_change": "Location Change",
   "guest_added": "Guest Added",
-  "you_need_to_accept_invitation_to_manage_guest_notifications": "You need to accept the organization invitation to manage guest notifications",
   "invalid_domain_format": "Invalid domain format. Example: example.com",
   "invalid_email_address": "Invalid email address. Example: user@example.com",
   "reason_for_adding_to_blocklist": "Reason for adding to blocklist",

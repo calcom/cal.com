@@ -72,9 +72,11 @@ interface IDisableGuestBookingEmailsSettingProps {
     disableAttendeeLocationChangeEmail: boolean;
     disableAttendeeNewEventEmail: boolean;
   };
+  readOnly?: boolean;
 }
 
 const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSettingProps) => {
+  const { readOnly = false } = props;
   const utils = trpc.useUtils();
   const { t } = useLocale();
 
@@ -231,6 +233,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
         description={t("disable_all_booking_emails_to_guests_description")}
         switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
         data-testid="disable-all-guest-emails"
+        disabled={readOnly}
         onCheckedChange={(checked) => {
           if (checked) {
             setShowConfirmDialog(true);
@@ -257,7 +260,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableConfirmation}
               onToggle={handleIndividualToggle}
               testId="disable-guest-confirmation-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="cancellation"
@@ -266,7 +269,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableCancellation}
               onToggle={handleIndividualToggle}
               testId="disable-guest-cancellation-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="rescheduled"
@@ -275,7 +278,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRescheduled}
               onToggle={handleIndividualToggle}
               testId="disable-guest-rescheduled-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="request"
@@ -284,7 +287,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRequest}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-request-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="reassigned"
@@ -293,7 +296,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableReassigned}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reassigned-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="awaiting_payment"
@@ -302,7 +305,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableAwaitingPayment}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-awaiting-payment-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="reschedule_request"
@@ -311,7 +314,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableRescheduleRequest}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reschedule-request-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="location_change"
@@ -320,7 +323,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableLocationChange}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-location-change-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
             <EmailRow
               emailType="new_event"
@@ -329,7 +332,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               isDisabled={disableNewEvent}
               onToggle={handleIndividualToggle}
               testId="disable-attendee-new-event-email"
-              disabled={allDisabled}
+              disabled={readOnly || allDisabled}
             />
           </tbody>
         </table>

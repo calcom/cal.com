@@ -3,18 +3,31 @@
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/components/skeleton";
 
 import DisableGuestBookingEmailsSetting from "../components/DisableGuestBookingEmailsSetting";
 
-const GuestNotificationsView = ({
-  permissions,
-}: {
-  permissions: { canRead: boolean; canEdit: boolean };
-}) => {
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mb-8 mt-6 space-y-6">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+      </div>
+    </SkeletonContainer>
+  );
+};
+
+const GuestNotificationsView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
   const { t } = useLocale();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
   const isInviteOpen = !currentOrg?.user.accepted;
   const isDisabled = !permissions.canEdit || isInviteOpen;
+
+  if (isPending) return <SkeletonLoader />;
 
   if (!currentOrg) return null;
 
@@ -23,36 +36,29 @@ const GuestNotificationsView = ({
   return (
     <LicenseRequired>
       <div className="space-y-8">
-        {permissions.canEdit && !isDisabled && (
-          <DisableGuestBookingEmailsSetting
-            orgId={currentOrg.id}
-            settings={{
-              disableAttendeeConfirmationEmail:
-                currentOrg.organizationSettings.disableAttendeeConfirmationEmail ?? false,
-              disableAttendeeCancellationEmail:
-                currentOrg.organizationSettings.disableAttendeeCancellationEmail ?? false,
-              disableAttendeeRescheduledEmail:
-                currentOrg.organizationSettings.disableAttendeeRescheduledEmail ?? false,
-              disableAttendeeRequestEmail:
-                currentOrg.organizationSettings.disableAttendeeRequestEmail ?? false,
-              disableAttendeeReassignedEmail:
-                currentOrg.organizationSettings.disableAttendeeReassignedEmail ?? false,
-              disableAttendeeAwaitingPaymentEmail:
-                currentOrg.organizationSettings.disableAttendeeAwaitingPaymentEmail ?? false,
-              disableAttendeeRescheduleRequestEmail:
-                currentOrg.organizationSettings.disableAttendeeRescheduleRequestEmail ?? false,
-              disableAttendeeLocationChangeEmail:
-                currentOrg.organizationSettings.disableAttendeeLocationChangeEmail ?? false,
-              disableAttendeeNewEventEmail:
-                currentOrg.organizationSettings.disableAttendeeNewEventEmail ?? false,
-            }}
-          />
-        )}
-        {isDisabled && (
-          <p className="text-muted text-sm">
-            {t("you_need_to_accept_invitation_to_manage_guest_notifications")}
-          </p>
-        )}
+        <DisableGuestBookingEmailsSetting
+          orgId={currentOrg.id}
+          settings={{
+            disableAttendeeConfirmationEmail:
+              currentOrg.organizationSettings.disableAttendeeConfirmationEmail ?? false,
+            disableAttendeeCancellationEmail:
+              currentOrg.organizationSettings.disableAttendeeCancellationEmail ?? false,
+            disableAttendeeRescheduledEmail:
+              currentOrg.organizationSettings.disableAttendeeRescheduledEmail ?? false,
+            disableAttendeeRequestEmail: currentOrg.organizationSettings.disableAttendeeRequestEmail ?? false,
+            disableAttendeeReassignedEmail:
+              currentOrg.organizationSettings.disableAttendeeReassignedEmail ?? false,
+            disableAttendeeAwaitingPaymentEmail:
+              currentOrg.organizationSettings.disableAttendeeAwaitingPaymentEmail ?? false,
+            disableAttendeeRescheduleRequestEmail:
+              currentOrg.organizationSettings.disableAttendeeRescheduleRequestEmail ?? false,
+            disableAttendeeLocationChangeEmail:
+              currentOrg.organizationSettings.disableAttendeeLocationChangeEmail ?? false,
+            disableAttendeeNewEventEmail:
+              currentOrg.organizationSettings.disableAttendeeNewEventEmail ?? false,
+          }}
+          readOnly={isDisabled}
+        />
       </div>
     </LicenseRequired>
   );
