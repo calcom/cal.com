@@ -1,6 +1,7 @@
 {
-  "name": "expo-wxt-app",
-  "version": "1.0.1",
+  "name": "cal-companion",
+  "displayName": "Cal.com Companion",
+  "version": "1.7.0",
   "main": "index.js",
   "scripts": {
     "start": "expo start",

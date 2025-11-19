@@ -1213,7 +1213,10 @@ export default function EventTypeDetail() {
               left: 0,
               right: 0,
               zIndex: 1000,
-              paddingHorizontal: 20,
+              paddingHorizontal: 8, // px-2 equivalent
+              '@media (min-width: 768px)': {
+                paddingHorizontal: 16, // md:px-4 equivalent
+              },
               paddingBottom: 12,
               paddingTop: insets.top + 8,
             },
@@ -1229,7 +1232,7 @@ export default function EventTypeDetail() {
             </Text>
 
             <TouchableOpacity
-              className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
+              className={`px-2 md:px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}>
               <Text className="text-white text-base font-semibold">
@@ -1250,7 +1253,7 @@ export default function EventTypeDetail() {
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
-                className={`px-4 py-2 rounded-[20px] min-w-[80px] items-center ${
+                className={`px-2 md:px-4 py-2 rounded-[20px] min-w-[80px] items-center ${
                   activeTab === tab.id ? "bg-[#EEEFF2]" : ""
                 }`}
                 onPress={() => setActiveTab(tab.id)}>
@@ -1267,7 +1270,7 @@ export default function EventTypeDetail() {
         </View>
 
         {/* Content */}
-        <ScrollView style={{ flex: 1, paddingTop: 180, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
+        <ScrollView style={{ flex: 1, paddingTop: 120, paddingBottom: 250 }} contentContainerStyle={{ padding: 20, paddingBottom: 200 }}>
           {activeTab === "basics" && (
             <BasicsTab
               eventTitle={eventTitle}
@@ -1311,7 +1314,7 @@ export default function EventTypeDetail() {
                   {availableDurations.map((duration) => (
                     <TouchableOpacity
                       key={duration}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
                         selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
                       }`}
                       onPress={() => toggleDurationSelection(duration)}>
@@ -1425,7 +1428,7 @@ export default function EventTypeDetail() {
                   ].map((tz) => (
                     <TouchableOpacity
                       key={tz}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
                         selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
                       }`}
                       onPress={() => {
@@ -1468,7 +1471,7 @@ export default function EventTypeDetail() {
                       {groups.map((group) => (
                         <View key={group.category}>
                           {/* Section Header */}
-                          <View className="px-4 py-2">
+                          <View className="px-2 md:px-4 py-2">
                             <Text className="text-xs font-normal text-[#666] uppercase tracking-wide">
                               {group.category}
                             </Text>
@@ -1478,7 +1481,7 @@ export default function EventTypeDetail() {
                             <TouchableOpacity
                               key={option.value}
                               activeOpacity={0.7}
-                              className={`flex-row justify-between items-center py-2.5 px-4 rounded-lg ${
+                              className={`flex-row justify-between items-center py-2.5 px-2 md:px-4 rounded-lg ${
                                 selectedLocation === option.label ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
                               }`}
                               style={{ marginBottom: 2 }}
@@ -1630,7 +1633,7 @@ export default function EventTypeDetail() {
                   return (
                     <TouchableOpacity
                       key={option}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
                         isSelected ? "bg-[#F0F0F0]" : ""
                       }`}
                       onPress={() => {
@@ -1665,7 +1668,7 @@ export default function EventTypeDetail() {
                   return (
                     <TouchableOpacity
                       key={option}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
                         isSelected ? "bg-[#F0F0F0]" : ""
                       }`}
                       onPress={() => {

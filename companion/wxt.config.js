@@ -1,13 +1,14 @@
 import { defineConfig } from 'wxt';
-import { copyFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
 
 export default defineConfig({
+  srcDir: 'extension',
+  entrypointsDir: 'entrypoints',
+  outDir: '.output',
   manifest: {
-    permissions: ['activeTab', 'http://localhost:8081/*'],
     name: 'Cal.com Companion',
-    description: 'Your calendar companion for quick booking and scheduling',
     version: '1.7.0',
+    description: 'Your calendar companion for quick booking and scheduling',
+    permissions: ['activeTab', 'http://localhost:8081/*'],
     content_security_policy: {
       extension_pages: "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
     },
@@ -15,8 +16,6 @@ export default defineConfig({
       default_title: 'Cal.com Companion'
     }
   },
-  srcDir: 'extension',
-  publicDir: 'dist',
   vite: () => ({
     resolve: {
       alias: {

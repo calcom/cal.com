@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Force light color scheme for all web components */
+  :root {
+    color-scheme: light only;
+  }
+  
+  html {
+    color-scheme: light;
+  }
+  
+  * {
+    color-scheme: light;
+  }
+
+  input:focus {
+    --tw-ring-color: rgb(0 0 0);
+    --tw-border-opacity: 1;
+    border-color: rgb(0 0 0);
+  }
+}

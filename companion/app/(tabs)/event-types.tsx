@@ -42,6 +42,28 @@ export default function EventTypes() {
   const [newEventDuration, setNewEventDuration] = useState("15");
   const [username, setUsername] = useState<string>("");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  
+  // Modal state for web platform action sheet
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
+  
+  // Toast state for web platform
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [copiedEventTypeId, setCopiedEventTypeId] = useState<number | null>(null);
+
+  // Function to show toast
+  const showToastMessage = (message: string, eventTypeId?: number) => {
+    setToastMessage(message);
+    setShowToast(true);
+    if (eventTypeId) {
+      setCopiedEventTypeId(eventTypeId);
+    }
+    setTimeout(() => {
+      setShowToast(false);
+      setCopiedEventTypeId(null);
+    }, 2000);
+  };
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -177,8 +199,15 @@ export default function EventTypes() {
   };
 
   const handleEventTypeLongPress = (eventType: EventType) => {
+    if (Platform.OS === "web") {
+      // Show custom modal for web platform
+      setSelectedEventType(eventType);
+      setShowActionModal(true);
+      return;
+    }
+    
     if (Platform.OS !== "ios") {
-      // Fallback for non-iOS platforms
+      // Fallback for non-iOS platforms (Android)
       Alert.alert(eventType.title, eventType.description || "", [
         { text: "Cancel", style: "cancel" },
         { text: "Copy Link", onPress: () => handleCopyLink(eventType) },
@@ -223,9 +252,18 @@ export default function EventTypes() {
     try {
       const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       Clipboard.setString(link);
-      Alert.alert("Link Copied", "Event type link copied to clipboard");
+      
+      if (Platform.OS === "web") {
+        showToastMessage("Link copied!", eventType.id);
+      } else {
+        Alert.alert("Link Copied", "Event type link copied to clipboard");
+      }
     } catch (error) {
-      Alert.alert("Error", "Failed to copy link. Please try again.");
+      if (Platform.OS === "web") {
+        showToastMessage("Failed to copy link");
+      } else {
+        Alert.alert("Error", "Failed to copy link. Please try again.");
+      }
     }
   };
 
@@ -393,7 +431,11 @@ export default function EventTypes() {
             style={{ width: 32, height: 32 }}
             onPress={() => handleCopyLink(item)}
           >
-            <Ionicons name="link" size={20} color="#3C3F44" />
+            <Ionicons 
+              name={copiedEventTypeId === item.id ? "checkmark" : "link-outline"} 
+              size={20} 
+              color={copiedEventTypeId === item.id ? "#10B981" : "#3C3F44"} 
+            />
           </TouchableOpacity>
           <TouchableOpacity
             className="items-center justify-center border border-[#E5E5EA] rounded-r-lg"
@@ -434,11 +476,11 @@ export default function EventTypes() {
   if (eventTypes.length === 0) {
     return (
       <View className="flex-1 bg-gray-100 pt-[54px]">
-        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
+        <View className="bg-gray-100 px-2 md:px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
           <TextInput
-            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
             placeholder="Search event types"
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={handleSearch}
             autoCapitalize="none"
@@ -459,11 +501,11 @@ export default function EventTypes() {
     return (
       <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
+        <View className="bg-gray-100 px-2 md:px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
           <TextInput
-            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
             placeholder="Search event types"
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={handleSearch}
             autoCapitalize="none"
@@ -485,9 +527,9 @@ export default function EventTypes() {
       <Header />
       <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
         <TextInput
-          className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200"
+          className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
           placeholder="Search event types"
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor="#9CA3AF"
           value={searchQuery}
           onChangeText={handleSearch}
           autoCapitalize="none"
@@ -503,7 +545,7 @@ export default function EventTypes() {
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}>
-        <View className="px-4 pt-4">
+        <View className="px-2 md:px-4 pt-4">
           <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden">
             {filteredEventTypes.map((item, index) => (
               <View key={item.id.toString()}>
@@ -547,7 +589,7 @@ export default function EventTypes() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-[#374151] mb-2">Title</Text>
                 <TextInput
-                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB]"
+                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB] focus:ring-2 focus:ring-black focus:border-black"
                   placeholder="Quick Chat"
                   placeholderTextColor="#9CA3AF"
                   value={newEventTitle}
@@ -567,7 +609,7 @@ export default function EventTypes() {
               {/* URL */}
               <View className="mb-4">
                 <Text className="text-sm font-medium text-[#374151] mb-2">URL</Text>
-                <View className="flex-row items-center bg-white rounded-md border border-[#D1D5DB]">
+                <View className="flex-row items-center bg-white rounded-md border border-[#D1D5DB] focus-within:ring-2 focus-within:ring-black focus-within:border-black">
                   <Text className="text-base text-[#6B7280] px-3">https://cal.com/{username}/</Text>
                   <TextInput
                     className="flex-1 py-2.5 pr-3 text-base text-[#111827]"
@@ -589,7 +631,7 @@ export default function EventTypes() {
               <View className="mb-4">
                 <Text className="text-sm font-medium text-[#374151] mb-2">Description</Text>
                 <TextInput
-                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB]"
+                  className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB] focus:ring-2 focus:ring-black focus:border-black"
                   placeholder="A quick video meeting."
                   placeholderTextColor="#9CA3AF"
                   value={newEventDescription}
@@ -606,7 +648,7 @@ export default function EventTypes() {
                 <Text className="text-sm font-medium text-[#374151] mb-2">Duration</Text>
                 <View className="flex-row items-center">
                   <TextInput
-                    className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB] w-20 text-center"
+                    className="bg-white rounded-md px-3 py-2.5 text-base text-[#111827] border border-[#D1D5DB] w-20 text-center focus:ring-2 focus:ring-black focus:border-black"
                     placeholder="15"
                     placeholderTextColor="#9CA3AF"
                     value={newEventDuration}
@@ -649,6 +691,116 @@ export default function EventTypes() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Action Modal for Web Platform */}
+      <Modal
+        visible={showActionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowActionModal(false);
+          setSelectedEventType(null);
+        }}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => {
+            setShowActionModal(false);
+            setSelectedEventType(null);
+          }}>
+          <TouchableOpacity
+            className="bg-white rounded-2xl w-full max-w-sm mx-4"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}>
+            {selectedEventType && (
+              <>
+                <View className="p-6 border-b border-gray-200">
+                  <Text className="text-lg font-semibold text-gray-900 mb-2">
+                    {selectedEventType.title}
+                  </Text>
+                  {selectedEventType.description && (
+                    <Text className="text-sm text-gray-600">
+                      {normalizeMarkdown(selectedEventType.description)}
+                    </Text>
+                  )}
+                </View>
+                
+                <View className="p-2">
+                  <TouchableOpacity
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      setSelectedEventType(null);
+                      handleCopyLink(selectedEventType);
+                    }}>
+                    <Ionicons 
+                      name={selectedEventType && copiedEventTypeId === selectedEventType.id ? "checkmark" : "link"} 
+                      size={20} 
+                      color={selectedEventType && copiedEventTypeId === selectedEventType.id ? "#10B981" : "#6B7280"} 
+                    />
+                    <Text className="ml-3 text-base text-gray-900">Copy Link</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      setSelectedEventType(null);
+                      handleShare(selectedEventType);
+                    }}>
+                    <Ionicons name="share" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Share</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      setSelectedEventType(null);
+                      handleEdit(selectedEventType);
+                    }}>
+                    <Ionicons name="create" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Edit</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      setSelectedEventType(null);
+                      handleDelete(selectedEventType);
+                    }}>
+                    <Ionicons name="trash" size={20} color="#EF4444" />
+                    <Text className="ml-3 text-base text-red-500">Delete</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <View className="p-2 md:p-4 border-t border-gray-200">
+                  <TouchableOpacity
+                    className="w-full p-3 bg-gray-100 rounded-lg"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      setSelectedEventType(null);
+                    }}>
+                    <Text className="text-center text-base font-medium text-gray-700">
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Toast for Web Platform */}
+      {showToast && (
+        <View className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+          <View className="bg-gray-800 px-6 py-3 rounded-full shadow-lg">
+            <Text className="text-white text-sm font-medium">{toastMessage}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

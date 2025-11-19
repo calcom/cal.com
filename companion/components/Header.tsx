@@ -82,7 +82,7 @@ export function Header() {
   return (
     <>
       <View
-        className="bg-white border-b border-[#E5E5EA] flex-row items-center justify-between px-4"
+        className="bg-white border-b border-[#E5E5EA] flex-row items-center justify-between px-2 md:px-4"
         style={{ paddingTop: insets.top + 4 , paddingBottom: 4 }}
       >
         {/* Left: Cal.com Logo */}

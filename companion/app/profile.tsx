@@ -123,7 +123,7 @@ export default function Profile() {
           ),
           headerRight: () => (
             <TouchableOpacity
-              className={`px-4 py-2 bg-black rounded-[10px] min-w-[70px] items-center mr-4 ${saving ? "opacity-60" : ""}`}
+              className={`px-2 md:px-4 py-2 bg-black rounded-[10px] min-w-[70px] items-center mr-4 ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}>
               <Text className="text-white text-base font-semibold">Update</Text>
@@ -147,7 +147,7 @@ export default function Profile() {
                 </Text>
               </View>
               <TouchableOpacity
-                className="px-4 py-2 bg-white border border-[#E5E5EA] rounded-lg"
+                className="px-2 md:px-4 py-2 bg-white border border-[#E5E5EA] rounded-lg"
                 onPress={() => Alert.alert("Coming Soon", "Avatar upload will be available soon")}>
                 <Text className="text-base font-medium text-[#333]">Upload Avatar</Text>
               </TouchableOpacity>
