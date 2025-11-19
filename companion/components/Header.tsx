@@ -69,8 +69,8 @@ export function Header() {
               text: "Sign Out",
               style: "destructive",
               onPress: () => {
-                // TODO: Implement sign out
-                console.log("Sign Out pressed");
+                // Navigate back to onboarding screen
+                router.replace("/onboarding");
               },
             },
           ]
