@@ -4,19 +4,15 @@ import { join } from 'path';
 
 export default defineConfig({
   manifest: {
-    permissions: ['activeTab'],
+    permissions: ['activeTab', 'http://localhost:8081/*'],
     name: 'Cal.com Companion',
     description: 'Your calendar companion for quick booking and scheduling',
-    version: '1.2.0',
-    web_accessible_resources: [
-      {
-        resources: ["expo/*", "assets/*", "favicon.ico", "index.html"],
-        matches: ["<all_urls>"]
-      }
-    ],
+    version: '1.7.0',
+    content_security_policy: {
+      extension_pages: "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
+    },
     action: {
-      default_title: "Cal.com Companion",
-      default_popup: "popup.html"
+      default_title: 'Cal.com Companion'
     }
   },
   srcDir: 'extension',

@@ -50,7 +50,6 @@ declare module "wxt/browser" {
     | "/favicon.ico"
     | "/index.html"
     | "/metadata.json"
-    | "/popup.html"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {
     getURL(path: PublicPath): string;

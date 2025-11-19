@@ -10,7 +10,7 @@ export default function RootLayout() {
   );
 
   return Platform.OS === 'web' ? (
-    <View style={{ width: 400, height: 600, display: 'flex', flexDirection: 'column' }}>
+    <View style={{ width: 400, height: "100vh", display: 'flex', flexDirection: 'column' }}>
       {stackContent}
     </View>
   ) : (
