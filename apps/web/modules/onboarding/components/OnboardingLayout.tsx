@@ -48,8 +48,8 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
           {totalSteps && totalSteps > 0 ? (
             Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
               const isCurrent = step === currentStep;
-              const isPast = step < currentStep;
-              const isUpcoming = step > currentStep;
+              const isPast = currentStep !== undefined && step < currentStep;
+              const isUpcoming = currentStep !== undefined && step > currentStep;
 
               return (
                 <div
