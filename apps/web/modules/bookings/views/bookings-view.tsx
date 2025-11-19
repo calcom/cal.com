@@ -211,7 +211,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
             }}
             options={tabOptions}
           />
-          <ViewToggleButton />
+          {bookingsV3Enabled && <ViewToggleButton />}
         </div>
       )}
       <main className="w-full">
