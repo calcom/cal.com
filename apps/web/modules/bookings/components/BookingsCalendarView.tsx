@@ -18,16 +18,12 @@ type BookingsCalendarViewProps = {
   bookings: BookingOutput[];
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
-  isPending?: boolean;
-  onOpenDetails: (bookingId: number) => void;
 };
 
 export function BookingsCalendarView({
   bookings,
   currentWeekStart,
   onWeekStartChange,
-  isPending = false,
-  onOpenDetails,
 }: BookingsCalendarViewProps) {
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
@@ -48,10 +44,8 @@ export function BookingsCalendarView({
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
   const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
 
-  // Intentionally only runs on mount to trigger the initial currentWeekStart
   useEffect(() => {
     onWeekStartChange(currentWeekStart);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const events = useMemo<CalendarEvent[]>(() => {
@@ -84,7 +78,6 @@ export function BookingsCalendarView({
           options: {
             status: booking.status,
             ...(eventTypeColor && { color: eventTypeColor }),
-            bookingId: booking.id,
           },
         };
       });
@@ -116,7 +109,6 @@ export function BookingsCalendarView({
       <div className="mx-4 mt-4 flex items-center justify-between py-1.5">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">{weekRange}</h2>
-          {isPending && <Icon name="refresh-cw" className="text-muted h-4 w-4 animate-spin" />}
         </div>
         <div className="flex items-center gap-2">
           <Button color="secondary" onClick={goToToday} className="capitalize leading-4">
@@ -149,12 +141,7 @@ export function BookingsCalendarView({
           showBackgroundPattern={false}
           showBorder={false}
           borderColor="subtle"
-          onEventClick={(event) => {
-            const bookingId = event.options?.bookingId;
-            if (bookingId) {
-              onOpenDetails(bookingId);
-            }
-          }}
+          onEventClick={(_event) => {}}
           hideHeader
         />
       </div>
