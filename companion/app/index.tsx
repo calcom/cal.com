@@ -1,5 +1,7 @@
 import { Redirect } from 'expo-router';
 
 export default function Index() {
-  return <Redirect href="/(tabs)/event-types" />;
+  // Start with onboarding screen
+  // Later we can add logic to check if user has completed onboarding
+  return <Redirect href="/onboarding" />;
 }

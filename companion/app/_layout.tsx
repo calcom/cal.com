@@ -8,6 +8,7 @@ export default function RootLayout() {
 
   const stackContent = (
     <Stack>
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );
