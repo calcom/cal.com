@@ -19,9 +19,7 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       team: {
         isOrganization: true,
         organizationSettings: {
-          is: {
-            isAdminAPIEnabled: true,
-          },
+          isAdminAPIEnabled: true,
         },
       },
       OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
