@@ -146,7 +146,39 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
+  
+  // Handle Stripe redirect after 3D Secure authentication
+  // When redirect_status=succeeded is present, the payment webhook might not have processed yet
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const redirectStatus = searchParams?.get("redirect_status");
+  const paymentIntent = searchParams?.get("payment_intent");
+  
+  useEffect(() => {
+    // If we just got redirected from Stripe with success status, but payment is not confirmed yet
+    if (redirectStatus === "succeeded" && paymentIntent && props.paymentStatus && !props.paymentStatus.success) {
+      setIsCheckingPayment(true);
+      
+      // Poll for payment status by reloading the page every 2 seconds for up to 30 seconds
+      const maxAttempts = 15;
+      let attempts = 0;
+      
+      const pollInterval = setInterval(() => {
+        attempts++;
+        
+        // Reload the page to check updated payment status from server
+        window.location.reload();
+        
+        // Stop polling after max attempts (though reload will clear the interval anyway)
+        if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+        }
+      }, 2000);
+      
+      return () => clearInterval(pollInterval);
+    }
+  }, [redirectStatus, paymentIntent, props.paymentStatus]);
+  
+  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success && !isCheckingPayment;
 
   const attendees = bookingInfo?.attendees;
 
@@ -393,6 +425,10 @@ export default function Success(props: PageProps) {
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
+    if (isCheckingPayment && !isCancelled) {
+      return "Processing payment...";
+    }
+
     if (isAwaitingPayment && !isCancelled) {
       return props.paymentStatus?.paymentOption === "HOLD"
         ? t("meeting_awaiting_payment_method")

@@ -6,6 +6,10 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -13,10 +17,10 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, type EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-
 export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
@@ -97,21 +101,87 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
+    // For seated events, send emails only to the attendee who just completed payment
     if (evt.seatsPerTimeSlot) {
-      const newAttendee = evt.attendees[evt.attendees.length - 1];
-      const isNewSeat = evt.attendees.length > 1;
-      await sendScheduledSeatsEmailsAndSMS(
-        { ...evt },
-        newAttendee,
-        isNewSeat,
-        !!evt.seatsShowAttendees,
-        undefined,
-        undefined,
-        eventType.metadata
-      );
+      // Find the attendee who just paid by checking which attendee's booking was just updated
+      // The payment is linked to a specific booking, and we need to find the most recent attendee
+      // For seated events with payment, we should only email the person who just paid
+
+      // Get the booking with attendees to find who just paid
+      const bookingWithAttendees = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          attendees: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+              phoneNumber: true,
+              bookingSeat: {
+                select: {
+                  id: true,
+                  referenceUid: true,
+                  bookingId: true,
+                },
+              },
+            },
+            orderBy: {
+              id: "desc",
+            },
+          },
+        },
+      });
+
+      // The most recently added attendee is the one who just paid
+      const newestAttendee = bookingWithAttendees?.attendees[0];
+
+      if (newestAttendee) {
+        // Find this attendee in the evt.attendees array
+        const attendeeWhoPaid = evt.attendees.find((a) => a.email === newestAttendee.email);
+
+        if (attendeeWhoPaid) {
+          const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
+
+          let isHostConfirmationEmailsDisabled = false;
+          let isAttendeeConfirmationEmailDisabled = false;
+
+          if (workflows) {
+            isHostConfirmationEmailsDisabled =
+              eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+            isAttendeeConfirmationEmailDisabled =
+              eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+            if (isHostConfirmationEmailsDisabled) {
+              isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+            }
+
+            if (isAttendeeConfirmationEmailDisabled) {
+              isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+            }
+          }
+
+          // Check if this is a new seat (if there are other attendees already)
+          const newSeat = evt.attendees.length > 1;
+
+          // Send emails only to the attendee who just paid
+          await sendScheduledSeatsEmailsAndSMS(
+            evt,
+            attendeeWhoPaid,
+            newSeat,
+            !!evt.seatsShowAttendees,
+            isHostConfirmationEmailsDisabled,
+            isAttendeeConfirmationEmailDisabled,
+            eventTypeMetadata
+          );
+        }
+      }
     } else {
-      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+      // For non-seated events, send regular emails to all attendees
+      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventTypeMetadata);
     }
   }
 

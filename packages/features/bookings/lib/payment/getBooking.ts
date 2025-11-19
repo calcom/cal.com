@@ -22,6 +22,8 @@ async function getEventType(id: number) {
       recurringEvent: true,
       requiresConfirmation: true,
       metadata: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
     },
   });
 }
@@ -33,6 +35,24 @@ export async function getBooking(bookingId: number) {
     select: {
       ...bookingMinimalSelect,
       responses: true,
+      attendees: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+          phoneNumber: true,
+          bookingSeat: {
+            select: {
+              id: true,
+              referenceUid: true,
+              data: true,
+              metadata: true,
+            },
+          },
+        },
+      },
       eventType: {
         select: {
           owner: {
@@ -66,8 +86,6 @@ export async function getBooking(bookingId: number) {
           title: true,
           teamId: true,
           parentId: true,
-          seatsPerTimeSlot: true,
-          seatsShowAttendees: true,
           parent: {
             select: {
               teamId: true,
@@ -197,8 +215,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    seatsPerTimeSlot: eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: eventType?.seatsShowAttendees,
   };
 
   return {
