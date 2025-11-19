@@ -49,6 +49,8 @@ export async function getBooking(bookingId: number) {
               referenceUid: true,
               data: true,
               metadata: true,
+              bookingId: true,
+              attendeeId: true,
             },
           },
         },
@@ -162,6 +164,7 @@ export async function getBooking(bookingId: number) {
         translate: await getTranslation(attendee.locale ?? "en", "common"),
         locale: attendee.locale ?? "en",
       },
+      bookingSeat: attendee.bookingSeat,
     };
   });
 

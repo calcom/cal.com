@@ -105,79 +105,51 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
     // For seated events, send emails only to the attendee who just completed payment
     if (evt.seatsPerTimeSlot) {
-      // Find the attendee who just paid by checking which attendee's booking was just updated
-      // The payment is linked to a specific booking, and we need to find the most recent attendee
-      // For seated events with payment, we should only email the person who just paid
+      // Find the attendee who just paid - it's the one with the most recently created bookingSeat
+      // evt.attendees already includes bookingSeat information from getBooking()
+      const attendeeWhoPaid = evt.attendees
+        .filter((a) => a.bookingSeat)
+        .sort((a, b) => {
+          // Sort by bookingSeat.id descending to get the newest
+          const aId = a.bookingSeat?.id ?? 0;
+          const bId = b.bookingSeat?.id ?? 0;
+          return bId - aId;
+        })[0];
 
-      // Get the booking with attendees to find who just paid
-      const bookingWithAttendees = await prisma.booking.findUnique({
-        where: { id: bookingId },
-        select: {
-          attendees: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              timeZone: true,
-              locale: true,
-              phoneNumber: true,
-              bookingSeat: {
-                select: {
-                  id: true,
-                  referenceUid: true,
-                  bookingId: true,
-                },
-              },
-            },
-            orderBy: {
-              id: "desc",
-            },
-          },
-        },
-      });
+      if (attendeeWhoPaid) {
+        const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
 
-      // The most recently added attendee is the one who just paid
-      const newestAttendee = bookingWithAttendees?.attendees[0];
+        let isHostConfirmationEmailsDisabled = false;
+        let isAttendeeConfirmationEmailDisabled = false;
 
-      if (newestAttendee) {
-        // Find this attendee in the evt.attendees array
-        const attendeeWhoPaid = evt.attendees.find((a) => a.email === newestAttendee.email);
+        if (workflows) {
+          isHostConfirmationEmailsDisabled =
+            eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
-        if (attendeeWhoPaid) {
-          const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
-
-          let isHostConfirmationEmailsDisabled = false;
-          let isAttendeeConfirmationEmailDisabled = false;
-
-          if (workflows) {
-            isHostConfirmationEmailsDisabled =
-              eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
-            isAttendeeConfirmationEmailDisabled =
-              eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-            if (isHostConfirmationEmailsDisabled) {
-              isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-            }
-
-            if (isAttendeeConfirmationEmailDisabled) {
-              isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-            }
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
           }
 
-          // Check if this is a new seat (if there are other attendees already)
-          const newSeat = evt.attendees.length > 1;
-
-          // Send emails only to the attendee who just paid
-          await sendScheduledSeatsEmailsAndSMS(
-            evt,
-            attendeeWhoPaid,
-            newSeat,
-            !!evt.seatsShowAttendees,
-            isHostConfirmationEmailsDisabled,
-            isAttendeeConfirmationEmailDisabled,
-            eventTypeMetadata
-          );
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
         }
+
+        // Check if this is a new seat (if there are other attendees already)
+        const newSeat = evt.attendees.length > 1;
+
+        // Send emails only to the attendee who just paid
+        await sendScheduledSeatsEmailsAndSMS(
+          evt,
+          attendeeWhoPaid,
+          newSeat,
+          !!evt.seatsShowAttendees,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled,
+          eventTypeMetadata
+        );
       }
     } else {
       // For non-seated events, send regular emails to all attendees
