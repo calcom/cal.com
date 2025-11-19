@@ -328,7 +328,7 @@ export default function Availability() {
   return (
     <View className="flex-1 bg-[#f8f9fa]">
       <Header />
-      <View className="px-4 pt-4 flex-1">
+      <View className="px-2 md:px-4 pt-4 flex-1">
         <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
           <FlatList
             data={schedules}
@@ -402,7 +402,7 @@ export default function Availability() {
             <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
               <View className="flex-row justify-end space-x-2 gap-2">
                 <TouchableOpacity
-                  className="px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
+                  className="px-2 md:px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
                   onPress={() => {
                     setShowCreateModal(false);
                     setNewScheduleName("");
@@ -411,7 +411,7 @@ export default function Availability() {
                   <Text className="text-base font-medium text-[#374151]">Close</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`px-4 py-2 bg-[#111827] rounded-xl ${creating ? "opacity-60" : ""}`}
+                  className={`px-2 md:px-4 py-2 bg-[#111827] rounded-xl ${creating ? "opacity-60" : ""}`}
                   onPress={handleCreateSchedule}
                   disabled={creating}>
                   <Text className="text-base font-medium text-white">

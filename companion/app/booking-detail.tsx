@@ -682,7 +682,7 @@ export default function BookingDetail() {
             <View className="bg-[#F9FAFB] border-t border-[#E5E7EB] rounded-b-2xl px-8 py-4">
               <View className="flex-row justify-end space-x-2 gap-2">
                 <TouchableOpacity
-                  className="px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
+                  className="px-2 md:px-4 py-2 rounded-xl bg-white border border-[#D1D5DB]"
                   onPress={() => {
                     setShowRescheduleModal(false);
                     setRescheduleReason("");
@@ -691,7 +691,7 @@ export default function BookingDetail() {
                   <Text className="text-base font-medium text-[#374151]">Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`px-4 py-2 bg-[#111827] rounded-xl ${rescheduling ? "opacity-60" : ""}`}
+                  className={`px-2 md:px-4 py-2 bg-[#111827] rounded-xl ${rescheduling ? "opacity-60" : ""}`}
                   onPress={handleReschedule}
                   disabled={rescheduling}>
                   <Text className="text-base font-medium text-white">

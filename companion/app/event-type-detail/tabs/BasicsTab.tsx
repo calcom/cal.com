@@ -193,7 +193,7 @@ export function BasicsTab(props: BasicsTabProps) {
                     {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
                   </Text>
                   <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 text-base text-[#333]"
                     placeholder={currentLocation.organizerInputPlaceholder || ""}
                     value={isAddress ? props.locationAddress : props.locationLink}
                     onChangeText={(text) => {
@@ -222,7 +222,7 @@ export function BasicsTab(props: BasicsTabProps) {
                     {currentLocation.organizerInputLabel || "Phone Number"}
                   </Text>
                   <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 text-base text-[#333]"
+                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 text-base text-[#333]"
                     placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
                     value={props.locationPhone}
                     onChangeText={props.setLocationPhone}

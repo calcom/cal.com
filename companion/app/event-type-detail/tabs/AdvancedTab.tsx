@@ -182,7 +182,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           Customize the questions asked on the booking page.
         </Text>
         <TouchableOpacity
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-4 py-3 flex-row items-center justify-center"
+          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 flex-row items-center justify-center"
           onPress={() =>
             Alert.alert("Coming Soon", "Booking questions customization will be available soon.")
           }>

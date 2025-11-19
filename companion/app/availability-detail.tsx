@@ -480,7 +480,7 @@ export default function AvailabilityDetail() {
           ),
           headerRight: () => (
             <TouchableOpacity
-              className={`px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center mr-4 ${saving ? "opacity-60" : ""}`}
+              className={`px-2 md:px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center mr-4 ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
               disabled={saving}
             >

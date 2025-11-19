@@ -201,7 +201,7 @@ export default function LimitsTab(props: LimitsTabProps) {
                 </View>
               ))}
               <TouchableOpacity
-                className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
+                className="flex-row items-center justify-center mt-4 py-3 px-2 md:px-4 bg-transparent border border-black rounded-lg gap-2"
                 onPress={props.addFrequencyLimit}>
                 <Ionicons name="add" size={20} color="#000" />
                 <Text className="text-base text-black font-medium">Add Limit</Text>
@@ -276,7 +276,7 @@ export default function LimitsTab(props: LimitsTabProps) {
                 </View>
               ))}
               <TouchableOpacity
-                className="flex-row items-center justify-center mt-4 py-3 px-4 bg-transparent border border-black rounded-lg gap-2"
+                className="flex-row items-center justify-center mt-4 py-3 px-2 md:px-4 bg-transparent border border-black rounded-lg gap-2"
                 onPress={props.addDurationLimit}>
                 <Ionicons name="add" size={20} color="#000" />
                 <Text className="text-base text-black font-medium">Add Limit</Text>

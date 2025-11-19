@@ -306,15 +306,19 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const renderSegmentedControl = () => {
     return (
       <>
-        <View className="bg-white px-4 py-3 border-b border-gray-200">
+        <View className="bg-white px-2 md:px-4 py-3 border-b border-gray-200">
           <SegmentedControl
             values={filterLabels}
             selectedIndex={activeIndex}
             onChange={handleSegmentChange}
             style={{ height: 40 }}
+            appearance="light"
+            backgroundColor="#F2F2F7"
+            tintColor="#007AFF"
+            textColor="#000000"
           />
         </View>
-        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300">
+        <View className="bg-gray-100 px-2 md:px-4 py-2 border-b border-gray-300">
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
               className="flex-row items-center bg-white rounded-lg border border-gray-200" 
@@ -864,7 +868,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const renderListItem = ({ item }: { item: ListItem }) => {
     if (item.type === "monthHeader") {
       return (
-        <View className="bg-[#E5E5EA] px-4 py-3 border-b border-[#E5E5EA]">
+        <View className="bg-[#E5E5EA] px-2 md:px-4 py-3 border-b border-[#E5E5EA]">
           <Text className="text-base font-bold text-[#333]">{item.monthYear}</Text>
         </View>
       );
@@ -939,7 +943,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     <View className="flex-1 bg-[#f8f9fa]">
       <Header />
       {renderSegmentedControl()}
-      <View className="px-4 pt-4 flex-1">
+      <View className="px-2 md:px-4 pt-4 flex-1">
         <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
           <FlatList
             data={groupBookingsByMonth(filteredBookings)}
