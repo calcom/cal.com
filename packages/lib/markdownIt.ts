@@ -192,7 +192,7 @@ export function unescapeMarkdown(markdown: string): string {
   // The negative character class avoids matching emphasis/bold like `**` or `--`.
   const unorderedListRegex = /^(\s*)([-*])([^\s*-])/gm;
   // For numbered lists: `  1.item` -> `  1. item`
-  const orderedListRegex = /^(\s*\d+\.)(\S)/gm;
+  const orderedListRegex = /^(\s*\d+\.)([^\d\s])/gm;
 
   result = result.replace(unorderedListRegex, "$1$2 $3").replace(orderedListRegex, "$1 $2");
 
