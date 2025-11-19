@@ -281,7 +281,10 @@
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
-    "USE_POOL"
+    "USE_POOL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_API_URL",
+    "ENABLE_ASYNC_TASKER"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -373,7 +376,8 @@
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
-        "USE_POOL"
+        "USE_POOL",
+        "LOGGER_BRIDGE_LOG_LEVEL"
       ]
     },
     "@calcom/ai#build": {
@@ -445,6 +449,7 @@
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
+    "dev:trigger": {},
     "dx": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false

@@ -1213,6 +1213,16 @@ export class BookingRepository {
             timeZone: true,
             locale: true,
             phoneNumber: true,
+            bookingSeat: {
+              select: {
+                id: true,
+                referenceUid: true,
+                bookingId: true,
+                attendeeId: true,
+                data: true,
+                metadata: true,
+              },
+            },
           },
         },
         user: {
@@ -1234,6 +1244,7 @@ export class BookingRepository {
         eventType: {
           select: {
             id: true,
+            title: true,
             slug: true,
             description: true,
             hideCalendarNotes: true,
@@ -1308,6 +1319,13 @@ export class BookingRepository {
                 workflow: {
                   select: {
                     id: true,
+                    name: true,
+                    trigger: true,
+                    timeUnit: true,
+                    userId: true,
+                    teamId: true,
+                    steps: true,
+                    time: true,
                   },
                 },
               },
@@ -1320,11 +1338,7 @@ export class BookingRepository {
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
-          },
-          where: {
-            type: {
-              endsWith: "_video",
-            },
+            uid: true,
           },
         },
         seatsReferences: {

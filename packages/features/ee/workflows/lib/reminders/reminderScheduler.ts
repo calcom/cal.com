@@ -6,26 +6,19 @@ import {
   isWhatsappAction,
   isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
-import { scheduleEmailReminder } from "./emailReminderManager";
 import type { BookingInfo } from "./smsReminderManager";
-import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
-import { scheduleWhatsappReminder } from "./whatsappReminderManager";
+import type { ScheduleTextReminderAction } from "./smsReminderManager";
 
 export type FormSubmissionData = {
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
@@ -117,6 +110,7 @@ const processWorkflowStep = async (
   };
 
   if (isSMSAction(step.action)) {
+    const { scheduleSMSReminder } = await import("./smsReminderManager");
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
 
     await scheduleSMSReminder({
@@ -133,6 +127,7 @@ const processWorkflowStep = async (
     step.action === WorkflowActions.EMAIL_HOST ||
     step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
+    const { scheduleEmailReminder } = await import("./emailReminderManager");
     let sendTo: string[] = [];
 
     switch (step.action) {
@@ -164,6 +159,10 @@ const processWorkflowStep = async (
           const limitGuestsDate = new Date("2025-01-13");
 
           if (workflow.userId) {
+            const [{ prisma }, { UserRepository }] = await Promise.all([
+              import("@calcom/prisma"),
+              import("@calcom/features/users/repositories/UserRepository"),
+            ]);
             const userRepository = new UserRepository(prisma);
             const user = await userRepository.findById({ id: workflow.userId });
             if (user?.createdDate && user.createdDate > limitGuestsDate) {
@@ -204,6 +203,7 @@ const processWorkflowStep = async (
       return;
     }
 
+    const { scheduleWhatsappReminder } = await import("./whatsappReminderManager");
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
 
     await scheduleWhatsappReminder({
@@ -215,6 +215,7 @@ const processWorkflowStep = async (
       evt,
     });
   } else if (isCalAIAction(step.action)) {
+    const { scheduleAIPhoneCall } = await import("./aiPhoneCallManager");
     await scheduleAIPhoneCall({
       triggerEvent: workflow.trigger,
       timeSpan: {
@@ -293,7 +294,10 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId?: number | null;
   userId?: number | null;
 }) => {
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const [{ CreditService }, { prisma }] = await Promise.all([
+    import("@calcom/features/ee/billing/credit-service"),
+    import("@calcom/prisma"),
+  ]);
 
   let userIdsWithNoCredits: number[] = userId ? [userId] : [];
 
@@ -369,6 +373,11 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
       },
     },
   });
+
+  const [twilio, { sendOrScheduleWorkflowEmails }] = await Promise.all([
+    import("./providers/twilioProvider"),
+    import("./providers/emailProvider"),
+  ]);
 
   await Promise.allSettled(scheduledMessages.map((msg) => twilio.cancelSMS(msg.referenceId ?? "")));
 
