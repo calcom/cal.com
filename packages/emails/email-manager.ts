@@ -114,6 +114,54 @@ export const shouldSkipAttendeeEmail = async (
   return !!metadata?.disableStandardEmails?.all?.attendee;
 };
 
+export const shouldSkipAttendeeEmailWithSettings = (
+  metadata: EventTypeMetadata | undefined,
+  organizationSettings: Awaited<ReturnType<typeof fetchOrganizationEmailSettings>>,
+  emailType?:
+    | "confirmation"
+    | "cancellation"
+    | "rescheduled"
+    | "request"
+    | "reassigned"
+    | "awaiting_payment"
+    | "reschedule_request"
+    | "location_change"
+    | "new_event"
+): boolean => {
+  if (organizationSettings && emailType) {
+    switch (emailType) {
+      case "confirmation":
+        if (organizationSettings.disableAttendeeConfirmationEmail) return true;
+        break;
+      case "cancellation":
+        if (organizationSettings.disableAttendeeCancellationEmail) return true;
+        break;
+      case "rescheduled":
+        if (organizationSettings.disableAttendeeRescheduledEmail) return true;
+        break;
+      case "request":
+        if (organizationSettings.disableAttendeeRequestEmail) return true;
+        break;
+      case "reassigned":
+        if (organizationSettings.disableAttendeeReassignedEmail) return true;
+        break;
+      case "awaiting_payment":
+        if (organizationSettings.disableAttendeeAwaitingPaymentEmail) return true;
+        break;
+      case "reschedule_request":
+        if (organizationSettings.disableAttendeeRescheduleRequestEmail) return true;
+        break;
+      case "location_change":
+        if (organizationSettings.disableAttendeeLocationChangeEmail) return true;
+        break;
+      case "new_event":
+        if (organizationSettings.disableAttendeeNewEventEmail) return true;
+        break;
+    }
+  }
+  return !!metadata?.disableStandardEmails?.all?.attendee;
+};
+
 const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.host;
 };
@@ -210,13 +258,14 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
+  const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   for (const person of teamMembersAndAttendees) {
     const isAttendee = calendarEvent.attendees.some((attendee) => attendee.email === person.email);
     const isTeamMember = !!calendarEvent.team?.members.some((member) => member.email === person.email);
 
     if (isAttendee && !isTeamMember) {
-      if (!(await shouldSkipAttendeeEmail(eventTypeMetadata, calEvent.organizationId, "rescheduled"))) {
+      if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, "rescheduled")) {
         emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
         if (person.phoneNumber) {
           emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
@@ -693,11 +742,12 @@ export const sendAddGuestsEmailsAndSMS = async (args: {
   }
 
   const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+  const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
 
   for (const attendee of calendarEvent.attendees) {
     if (newGuests.includes(attendee.email)) {
       // New guests get confirmation emails
-      if (!(await shouldSkipAttendeeEmail(eventTypeMetadata, calEvent.organizationId, "confirmation"))) {
+      if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, "confirmation")) {
         emailsAndSMSToSend.push(sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee)));
 
         if (attendee.phoneNumber) {
@@ -705,7 +755,7 @@ export const sendAddGuestsEmailsAndSMS = async (args: {
         }
       }
     } else {
-      if (!(await shouldSkipAttendeeEmail(eventTypeMetadata, calEvent.organizationId, "new_event"))) {
+      if (!shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, "new_event")) {
         emailsAndSMSToSend.push(sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee)));
       }
     }
