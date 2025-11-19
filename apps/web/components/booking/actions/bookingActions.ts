@@ -1,7 +1,7 @@
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
-import type { BookingItemProps } from "./types";
+import type { BookingItemProps } from "../types";
 
 export interface BookingActionContext {
   booking: BookingItemProps;

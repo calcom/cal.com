@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
+import { useCalendarStore } from "../../state/store";
 import type { BorderColor } from "../../types/common";
 
 type Props = {
@@ -15,9 +16,38 @@ type Props = {
 
 export function DateValues({ showBorder, borderColor, days, containerNavRef }: Props) {
   const { i18n } = useLocale();
+  const timezone = useCalendarStore((state) => state.timezone);
+  const showTimezone = useCalendarStore((state) => state.showTimezone ?? false);
+
   const formatDate = (date: dayjs.Dayjs): string => {
     return new Intl.DateTimeFormat(i18n.language, { weekday: "short" }).format(date.toDate());
   };
+
+  const getTimezoneDisplay = () => {
+    if (!showTimezone || !timezone) return null;
+    try {
+      const timeRaw = dayjs().tz(timezone);
+      const utcOffsetInMinutes = timeRaw.utcOffset();
+
+      // Convert offset to decimal hours
+      const offsetInHours = Math.abs(utcOffsetInMinutes / 60);
+      const sign = utcOffsetInMinutes < 0 ? "-" : "+";
+
+      // If offset is 0, just return "GMT"
+      if (utcOffsetInMinutes === 0) {
+        return "GMT";
+      }
+
+      // Format as decimal (e.g., 1.5 for 1:30, 1 for 1:00)
+      const offsetFormatted = `${sign}${offsetInHours}`;
+
+      return `GMT ${offsetFormatted}`;
+    } catch {
+      // Fallback to showing the timezone name if formatting fails
+      return timezone.split("/").pop()?.replace(/_/g, " ") || timezone;
+    }
+  };
+
   return (
     <div
       ref={containerNavRef}
@@ -49,11 +79,14 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
       <div className="text-subtle -mr-px hidden auto-cols-fr leading-6 sm:flex">
         <div
           className={classNames(
-            "col-end-1 w-16",
+            "col-end-1 flex w-16 items-center justify-center",
             showBorder &&
               (borderColor === "subtle" ? "border-l-subtle border-l" : "border-l-default border-l")
+          )}>
+          {showTimezone && timezone && (
+            <span className="text-muted text-xs font-medium">{getTimezoneDisplay()}</span>
           )}
-        />
+        </div>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (

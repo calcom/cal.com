@@ -1,9 +1,67 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
+
+export type WorkflowVariableResponses = Record<
+  string,
+  {
+    value:
+      | string
+      | number
+      | boolean
+      | string[]
+      | Record<string, string>
+      | { value: string; optionValue: string };
+  }
+>;
+
+export function transformBookingResponsesToVariableFormat(
+  responses: CalEventResponses | null | undefined
+): WorkflowVariableResponses | null {
+  if (!responses) return null;
+
+  const transformed: WorkflowVariableResponses = {};
+
+  for (const [key, response] of Object.entries(responses)) {
+    if (response?.value !== undefined) {
+      transformed[key] = {
+        value: response.value,
+      };
+    }
+  }
+
+  return Object.keys(transformed).length > 0 ? transformed : null;
+}
+
+export function transformRoutingFormResponsesToVariableFormat(
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null | undefined
+): WorkflowVariableResponses | null {
+  if (!responses) return null;
+
+  const transformed: WorkflowVariableResponses = {};
+
+  for (const [key, response] of Object.entries(responses)) {
+    if (response?.value !== undefined) {
+      transformed[key] = {
+        value: response.value,
+      };
+    }
+  }
+
+  return Object.keys(transformed).length > 0 ? transformed : null;
+}
+
+export function formatIdentifierToVariable(key: string): string {
+  return key
+    .replace(/[^a-zA-Z0-9 ]/g, "")
+    .trim()
+    .replaceAll(" ", "_")
+    .toUpperCase();
+}
 
 export type VariablesType = {
   eventName?: string;
@@ -17,7 +75,7 @@ export type VariablesType = {
   timeZone?: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: CalEventResponses | null;
+  responses?: WorkflowVariableResponses | null;
   meetingUrl?: string;
   cancelLink?: string;
   cancelReason?: string | null;
@@ -42,12 +100,15 @@ const customTemplate = (
   timeFormat?: TimeFormat,
   isBrandingDisabled?: boolean
 ) => {
-  const translatedDate = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(variables.eventDate?.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate());
+  const eventDate = variables.eventDate;
+  const translatedDate = eventDate
+    ? new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(eventDate.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate())
+    : "";
 
   let locationString = variables.location || "";
 
@@ -132,23 +193,21 @@ const customTemplate = (
       return;
     }
 
+    // handle custom variables from form/booking responses
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formatedToVariable = customInput
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase();
+        const formatedToVariable = formatIdentifierToVariable(customInput);
 
-        if (
-          variable === formatedToVariable &&
-          variables.responses &&
-          variables.responses[customInput as keyof typeof variables.responses].value
-        ) {
-          dynamicText = dynamicText.replace(
-            `{${variable}}`,
-            variables.responses[customInput as keyof typeof variables.responses].value.toString()
-          );
+        if (variable === formatedToVariable && variables.responses) {
+          const response = variables.responses[customInput];
+          if (response?.value !== undefined) {
+            const responseValue = response.value;
+            const valueString = Array.isArray(responseValue)
+              ? responseValue.join(", ")
+              : String(responseValue);
+
+            dynamicText = dynamicText.replace(`{${variable}}`, valueString);
+          }
         }
       });
     }

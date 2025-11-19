@@ -89,6 +89,7 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
@@ -380,11 +381,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  const hasAiAction = hasCalAIAction(steps);
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
   const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
 
-  const disallowFormTriggers = hasAiAction || hasEmailToHostAction || hasWhatsappAction;
+  const disallowFormTriggers = hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
@@ -1398,12 +1398,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   />
                 </div>
               )}
-              {!props.readOnly && !isFormTrigger(trigger) && (
+              {!props.readOnly && (
                 <div className="ml-1 mt-2">
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
                       <Icon name="circle-help" className="h-3 w-3" />
-                      <p className="text-left text-xs">{t("using_booking_questions_as_variables")}</p>
+                      <p className="text-left text-xs">
+                        {isFormTrigger(trigger)
+                          ? t("using_form_responses_as_variables")
+                          : t("using_booking_questions_as_variables")}
+                      </p>
                     </div>
                   </button>
                 </div>
@@ -1511,19 +1515,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold">
+                {isFormTrigger(trigger)
+                  ? t("how_form_responses_as_variables")
+                  : t("how_booking_questions_as_variables")}
+              </h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ignore_special_characters_booking_questions")}</li>
+                  <li>
+                    {isFormTrigger(trigger)
+                      ? t("ignore_special_characters_form_responses")
+                      : t("ignore_special_characters_booking_questions")}
+                  </li>
                 </ul>
                 <div className="mt-4">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -1542,7 +1554,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
@@ -1587,7 +1599,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
-            eventTypeOptions={props.allOptions}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1598,6 +1610,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 
@@ -1609,6 +1623,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10)) || []}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 
