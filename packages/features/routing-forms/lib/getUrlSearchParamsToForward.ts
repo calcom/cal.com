@@ -96,7 +96,7 @@ export function getUrlSearchParamsToForward({
     }
   }
 
-  const attributeRoutingConfigParams: Record<string, any> = {};
+  const attributeRoutingConfigParams: Record<string, string> = {};
 
   if (attributeRoutingConfig) {
     for (const key of Object.keys(attributeRoutingConfig)) {
@@ -124,7 +124,7 @@ export function getUrlSearchParamsToForward({
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
-    ...(teamMembersMatchingAttributeLogic
+    ...(teamMembersMatchingAttributeLogic && teamMembersMatchingAttributeLogic.length > 0
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
     ...(typeof formResponseId === "number"

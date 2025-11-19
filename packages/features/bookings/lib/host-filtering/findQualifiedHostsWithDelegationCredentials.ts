@@ -166,10 +166,13 @@ export class QualifiedHostsService {
       officalRRHosts.filter((host) => host.user.email === contactOwnerEmail)
     );
 
-    const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
-      officalRRHosts,
-      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+    const filteredByRoutedTeamMemberIds = officalRRHosts.filter((host) =>
+      routedTeamMemberIds.includes(host.user.id)
     );
+    const hostsAfterRoutedTeamMemberIdsMatching =
+      routedTeamMemberIds.length === 0 && filteredByRoutedTeamMemberIds.length === 0
+        ? [] // Explicitly return empty when routing found no matches
+        : applyFilterWithFallback(officalRRHosts, filteredByRoutedTeamMemberIds);
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
       if (hostsAfterContactOwnerMatching.length === 1) {
