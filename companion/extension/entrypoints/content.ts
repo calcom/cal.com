@@ -69,6 +69,9 @@ export default defineContentScript({
     toggleButton.style.fontSize = '16px';
     toggleButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
     toggleButton.style.transition = 'all 0.2s ease';
+    toggleButton.style.display = 'flex';
+    toggleButton.style.alignItems = 'center';
+    toggleButton.style.justifyContent = 'center';
     toggleButton.title = 'Toggle sidebar';
 
     // Create close button
@@ -89,6 +92,9 @@ export default defineContentScript({
     closeButton.style.fontSize = '16px';
     closeButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
     closeButton.style.transition = 'all 0.2s ease';
+    closeButton.style.display = 'flex';
+    closeButton.style.alignItems = 'center';
+    closeButton.style.justifyContent = 'center';
     closeButton.title = 'Close sidebar';
 
     // Add hover effects
