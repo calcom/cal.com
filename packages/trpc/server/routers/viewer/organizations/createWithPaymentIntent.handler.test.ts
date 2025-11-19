@@ -1,6 +1,5 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -18,35 +17,36 @@ vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "test-stripe-org-product-id");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS", "30");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW", "37");
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
 const STRIPE_ORG_MONTHLY_PRICE_ID = process.env.STRIPE_ORG_MONTHLY_PRICE_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
-const checkoutSessionsCreate = vi.fn();
-const pricesCreate = vi.fn();
-const customersCreate = vi.fn();
+const mockSharedStripe = vi.hoisted(() => ({
+  prices: {
+    create: vi.fn(),
+    retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
+  },
+  customers: {
+    create: vi.fn(),
+  },
+  subscriptions: {
+    cancel: vi.fn(),
+    retrieve: vi.fn(),
+    update: vi.fn(),
+  },
+  checkout: {
+    sessions: {
+      create: vi.fn(),
+      retrieve: vi.fn(),
+    },
+  },
+  paymentIntents: {
+    create: vi.fn(),
+  },
+}));
 
-function MockStripe() {
-  return {
-    checkout: {
-      sessions: {
-        create: checkoutSessionsCreate,
-      },
-    },
-    prices: {
-      create: pricesCreate,
-    },
-    customers: {
-      create: customersCreate,
-    },
-  };
-}
-
-vi.mock("stripe", () => ({
-  default: vi.fn(),
+vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
+  default: mockSharedStripe,
 }));
 
 const mockInput = {
@@ -137,9 +137,7 @@ function expectStripePriceCreated({
   product: string;
   recurring: { interval: string };
 }) {
-  // @ts-expect-error We don't care about arguments to Stripe
-  const stripe = new Stripe();
-  expect(stripe.prices.create).toHaveBeenCalledWith(
+  expect(mockSharedStripe.prices.create).toHaveBeenCalledWith(
     expect.objectContaining({
       // Multiply by 100 is requirement of Stripe.
       unit_amount: amount * 100,
@@ -151,9 +149,7 @@ function expectStripePriceCreated({
 }
 
 function expectStripePriceNotCreated() {
-  // @ts-expect-error We don't care about arguments to Stripe
-  const stripe = new Stripe();
-  expect(stripe.prices.create).not.toHaveBeenCalled();
+  expect(mockSharedStripe.prices.create).not.toHaveBeenCalled();
 }
 
 function expectStripeSubscriptionCreated({
@@ -165,8 +161,7 @@ function expectStripeSubscriptionCreated({
   priceId: string;
   quantity: number;
 }) {
-  // @ts-expect-error We don't care about arguments to Stripe
-  expect(new Stripe().checkout.sessions.create).toHaveBeenCalledWith(
+  expect(mockSharedStripe.checkout.sessions.create).toHaveBeenCalledWith(
     expect.objectContaining({
       customer: customerId,
       line_items: [
@@ -191,9 +186,8 @@ describe("createWithPaymentIntent handler", () => {
     await prismock.reset();
     mockStripe();
     function mockStripe() {
-      // @ts-expect-error Not all props are defined on MockStripe
-      vi.mocked(Stripe).mockImplementation(MockStripe);
-      checkoutSessionsCreate.mockImplementation(() => {
+      // Set up the shared Stripe instance mock implementations
+      mockSharedStripe.checkout.sessions.create.mockImplementation(() => {
         const sessionId = `test-session-id-${uuidv4()}`;
         lastCreatedSessionId = sessionId;
         return {
@@ -202,7 +196,7 @@ describe("createWithPaymentIntent handler", () => {
         };
       });
 
-      pricesCreate.mockImplementation(() => {
+      mockSharedStripe.prices.create.mockImplementation(() => {
         const priceId = `test-price-id-${uuidv4()}`;
         lastCreatedPriceId = priceId;
         return {
@@ -210,7 +204,7 @@ describe("createWithPaymentIntent handler", () => {
         };
       });
 
-      customersCreate.mockImplementation(() => {
+      mockSharedStripe.customers.create.mockImplementation(() => {
         const customerId = `test-customer-id-${uuidv4()}`;
         lastCreatedCustomerId = customerId;
         return {
