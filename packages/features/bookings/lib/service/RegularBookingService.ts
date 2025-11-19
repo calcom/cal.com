@@ -137,8 +137,7 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
 }
 
 function hasCalVideoSettings(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventType: any
+  eventType: Awaited<ReturnType<typeof getEventType>>
 ): eventType is getEventTypeResponse {
   return eventType && typeof eventType === "object" && "calVideoSettings" in eventType;
 }
@@ -1664,6 +1663,15 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
+  // Sync calVideoSettings from eventTypeForProcessing to eventType
+  // This ensures eventType has both the runtime updates (like recurringEvent.count) and calVideoSettings
+  if (hasCalVideoSettings(eventType)) {
+    // eventType already has calVideoSettings, no action needed
+  } else {
+    // eventType is missing calVideoSettings, copy from eventTypeForProcessing
+    (eventType as unknown as getEventTypeResponse).calVideoSettings = eventTypeForProcessing.calVideoSettings;
+  }
+
   const changedOrganizer =
     !!originalRescheduledBooking &&
     (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -1721,7 +1729,7 @@ async function handler(
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
-          eventTypeData: eventTypeForProcessing,
+          eventTypeData: eventType as getEventTypeResponse,
           id: eventTypeId,
           slug: eventTypeSlug,
           organizerUser,
@@ -2595,10 +2603,11 @@ async function handler(
         teamId,
         orgId,
         isDryRun,
-        calVideoSettings: eventTypeForProcessing.calVideoSettings
+        calVideoSettings: (eventType as getEventTypeResponse).calVideoSettings
           ? {
-              ...eventTypeForProcessing.calVideoSettings,
-              redirectUrlOnExit: eventTypeForProcessing.calVideoSettings.redirectUrlOnExit ?? undefined,
+              ...(eventType as getEventTypeResponse).calVideoSettings,
+              redirectUrlOnExit:
+                (eventType as getEventTypeResponse).calVideoSettings?.redirectUrlOnExit ?? undefined,
             }
           : null,
       });

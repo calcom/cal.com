@@ -76,6 +76,29 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           return Promise.resolve();
         })
       );
+    } else {
+      // No webhooks exist, but automatic tracking is enabled - schedule default 15-minute trigger
+      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
+      noShowPromises.push(
+        tasker.create(
+          "triggerHostNoShowWebhook",
+          {
+            triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+            bookingId: booking.id,
+            webhook: {
+              id: "",
+              subscriberUrl: "",
+              payloadTemplate: null,
+              eventTriggers: [],
+              appId: null,
+              secret: null,
+              time: 15,
+              timeUnit: "MINUTE",
+            },
+          },
+          { scheduledAt, referenceUid: booking.uid }
+        )
+      );
     }
   }
 
@@ -113,6 +136,29 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
 
           return Promise.resolve();
         })
+      );
+    } else {
+      // No webhooks exist, but automatic tracking is enabled - schedule default 15-minute trigger
+      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
+      noShowPromises.push(
+        tasker.create(
+          "triggerGuestNoShowWebhook",
+          {
+            triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+            bookingId: booking.id,
+            webhook: {
+              id: "",
+              subscriberUrl: "",
+              payloadTemplate: null,
+              eventTriggers: [],
+              appId: null,
+              secret: null,
+              time: 15,
+              timeUnit: "MINUTE",
+            },
+          },
+          { scheduledAt, referenceUid: booking.uid }
+        )
       );
     }
   }
