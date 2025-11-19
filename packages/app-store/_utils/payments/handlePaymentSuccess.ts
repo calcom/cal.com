@@ -1,5 +1,5 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import { sendScheduledEmailsAndSMS, sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -96,7 +96,25 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    const isSeatedEvent = evt.seatsPerTimeSlot !== null && evt.seatsPerTimeSlot !== undefined;
+    
+    if (isSeatedEvent && evt.attendees.length > 0) {
+      const currentAttendee = evt.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid
+      ) || evt.attendees[0];
+      
+      await sendScheduledSeatsEmailsAndSMS(
+        { ...evt },
+        currentAttendee,
+        false,
+        !!evt.seatsShowAttendees,
+        undefined,
+        undefined,
+        eventType.metadata
+      );
+    } else {
+      await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
+    }
   }
 
   throw new HttpCode({

@@ -33,6 +33,15 @@ export async function getBooking(bookingId: number) {
     select: {
       ...bookingMinimalSelect,
       responses: true,
+      attendees: {
+        include: {
+          bookingSeat: {
+            select: {
+              referenceUid: true,
+            },
+          },
+        },
+      },
       eventType: {
         select: {
           owner: {
@@ -72,6 +81,8 @@ export async function getBooking(bookingId: number) {
             },
           },
           slug: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           workflows: {
             select: {
               workflow: {
@@ -195,6 +206,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
   };
 
   return {
