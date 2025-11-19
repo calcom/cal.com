@@ -5,18 +5,17 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  getFacetedUniqueValues,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTableProvider,
@@ -27,13 +26,14 @@ import {
   useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
+import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -152,17 +152,32 @@ interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["teams"]["get"][];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
+  permissions: MemberPermissions;
 }
 
 export default function MemberList(props: Props) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier={pathname}>
       <MemberListContent {...props} />
     </DataTableProvider>
   );
 }
 
 function MemberListContent(props: Props) {
+  const { facetedTeamValues } = props;
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
@@ -280,8 +295,6 @@ function MemberListContent(props: Props) {
   //   return owners.length;
   // };
 
-  const isAdminOrOwner = checkAdminOrOwner(props.team.membership.role);
-
   const removeMember = () =>
     removeMemberMutation.mutate({
       teamIds: [props.team?.id],
@@ -364,7 +377,9 @@ function MemberListContent(props: Props) {
         header: "Role",
         size: 100,
         cell: ({ row, table }) => {
-          const { role, accepted } = row.original;
+          const { role, accepted, customRole } = row.original;
+          const roleName = customRole?.name || role;
+          const roleIdentifier = customRole?.id || role;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -382,22 +397,25 @@ function MemberListContent(props: Props) {
                 data-testid="member-role"
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
-                  table.getColumn("role")?.setFilterValue([role]);
+                  table.getColumn("role")?.setFilterValue([roleIdentifier]);
                 }}>
-                {role}
+                {roleName}
               </Badge>
             </div>
           );
         },
         filterFn: (rows, id, filterValue) => {
           const { data } = filterValue;
+          const { role, accepted, customRole } = rows.original;
+          const roleIdentifier = customRole?.id || role;
+
           if (data.includes("PENDING")) {
-            if (data.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || data.includes(rows.getValue(id));
+            if (data.length === 1) return !accepted;
+            else return !accepted || data.includes(roleIdentifier);
           }
 
-          // Show only the selected roles
-          return data.includes(rows.getValue(id));
+          // Show only the selected roles (check both traditional role and custom role ID)
+          return data.includes(roleIdentifier);
         },
       },
       {
@@ -412,17 +430,19 @@ function MemberListContent(props: Props) {
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
+          // TODO(SEAN) In a follow up can we rename canChangeMemberRole to canEditMembers - role is a bit specific.
+          const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
+          const canRemove = props.permissions?.canRemove ?? false;
+          const canImpersonate = props.permissions?.canImpersonate ?? false;
+          const canResendInvitation = props.permissions?.canInvite ?? false;
           const editMode =
-            (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || !isSelf)) ||
-            (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
-            props.isOrgAdminOrOwner;
+            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+
           const impersonationMode =
-            editMode &&
+            canImpersonate &&
             !user.disableImpersonation &&
             user.accepted &&
             process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
-          const resendInvitation = editMode && !user.accepted;
           return (
             <>
               {props.team.membership?.accepted && (
@@ -478,22 +498,24 @@ function MemberListContent(props: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "EDIT_USER_SHEET",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                StartIcon="pencil">
-                                {t("edit")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canChangeRole ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "EDIT_USER_SHEET",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="pencil">
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                             {impersonationMode && (
                               <>
                                 <DropdownMenuItem>
@@ -515,7 +537,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {resendInvitation && (
+                            {canResendInvitation && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -531,23 +553,25 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "SET_DELETE_ID",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                color="destructive"
-                                StartIcon="user-x">
-                                {t("remove")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canRemove ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_DELETE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  color="destructive"
+                                  StartIcon="user-x">
+                                  {t("remove")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                           </DropdownMenuContent>
                         </DropdownMenuPortal>
                       </Dropdown>
@@ -644,11 +668,28 @@ function MemberListContent(props: Props) {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (facetedTeamValues) {
+        switch (columnId) {
+          case "role": {
+            // Include both traditional roles and PBAC custom roles
+            const allRoles = facetedTeamValues.roles.map((role) => ({
+              label: role.name,
+              value: role.id,
+            }));
+
+            return convertFacetedValuesToMap(allRoles);
+          }
+          default:
+            return new Map();
+        }
+      }
+      return new Map();
+    },
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
+  useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,
@@ -680,7 +721,7 @@ function MemberListContent(props: Props) {
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            {isAdminOrOwner && (
+            {props.permissions.canInvite && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"

@@ -21,7 +21,7 @@ test.describe("Onboarding", () => {
       // tests whether the user makes it to /getting-started
       // after login with completedOnboarding false
       await page.waitForURL("/getting-started");
-      await expect(page.locator('text="Next Step"')).toBeVisible(); // Fix race condition
+      await expect(page.locator('text="Connect your calendar"')).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
         // Check required fields

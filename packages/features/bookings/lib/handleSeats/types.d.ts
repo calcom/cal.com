@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { Booking } from "../handleNewBooking/createBooking";
@@ -9,6 +9,18 @@ import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromD
 import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
+export type Invitee = {
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  timeZone: string;
+  phoneNumber?: string;
+  language: {
+    translate: TFunction;
+    locale: string;
+  };
+}[];
 
 export type NewSeatedBookingObject = {
   rescheduleUid: string | undefined;

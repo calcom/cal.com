@@ -2,8 +2,8 @@ import type { MutableRefObject } from "react";
 import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
 
@@ -59,7 +59,7 @@ export const tabs = [
               embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline"></div>\n`
+                  )};overflow:scroll" id="my-cal-inline-${namespace}"></div>\n`
                 : ""
             }<script type="text/javascript">
   ${embedSnippetString}
@@ -188,7 +188,7 @@ ${getEmbedTypeSpecificString({
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
     >(function Preview({ calLink, embedType }, ref) {
-      const bookerUrl = useBookerUrl();
+      const bookerUrl = useEmbedBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
       if (ref instanceof Function || !ref) {
         return null;
@@ -283,6 +283,8 @@ const getEmbedTypeSpecificString = ({
       ...codeGeneratorInput,
       previewState: previewState.elementClick,
     });
+  } else if (embedType === "headless") {
+    return frameworkCodes[embedType]();
   }
   return "";
 };
@@ -329,7 +331,7 @@ const getInstructionString = ({
 };
 
 function useGetEmbedSnippetString(namespace: string | null) {
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = useEmbedBookerUrl();
   // TODO: Import this string from @calcom/embed-snippet
   // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
   // If we can minify that during build time and then import the built code here, that could work

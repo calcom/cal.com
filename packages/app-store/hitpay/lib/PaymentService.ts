@@ -1,4 +1,3 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import axios from "axios";
 import qs from "qs";
 import { v4 as uuidv4 } from "uuid";
@@ -9,6 +8,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -41,7 +41,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string
   ) {
     try {
-      const booking: PaidBooking | null = await prisma.booking.findFirst({
+      const booking: PaidBooking | null = await prisma.booking.findUnique({
         where: {
           id: bookingId,
         },

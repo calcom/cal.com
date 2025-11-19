@@ -67,7 +67,7 @@ export const Select = <
             innerClassNames?.option
           ),
         placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () => cx("text-default w-4 h-4"),
+        dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
         control: (state) =>
           cx(
             inputStyles({ size }),
@@ -106,13 +106,14 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
+            "flex !items-start justify-center mt-0.5 h-full",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
                 : "rotate-180 transition-transform w-4 h-4"
               : hasMultiLastIcons
-              ? "[&>*:last-child]:w-4 [&>*:last-child]:h-4 text-default"
-              : "w-4 h-4 text-default"
+              ? "[&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4 text-default"
+              : "transition-transform w-4 h-4 text-default"
           ),
         multiValueRemove: () => "text-default py-auto",
 
@@ -218,7 +219,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

@@ -3,7 +3,7 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import {
+import type {
   GetReservedSlotOutput_2024_09_04,
   RangeSlot_2024_09_04,
   RangeSlotsOutput_2024_09_04,
@@ -13,7 +13,7 @@ import {
   Slot_2024_09_04,
   SlotsOutput_2024_09_04,
 } from "@calcom/platform-types";
-import { SelectedSlots } from "@calcom/prisma/client";
+import type { SelectedSlots } from "@calcom/prisma/client";
 
 type GetAvailableSlots = {
   slots: Record<string, { time: string; attendees?: number; bookingUid?: string; away?: boolean }[]>;

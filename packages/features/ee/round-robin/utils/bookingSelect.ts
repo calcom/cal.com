@@ -1,4 +1,5 @@
 import type { Prisma } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 export const bookingSelect = {
   uid: true,
@@ -13,8 +14,18 @@ export const bookingSelect = {
   eventTypeId: true,
   destinationCalendar: true,
   user: {
-    include: {
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      locale: true,
+      timeZone: true,
+      timeFormat: true,
       destinationCalendar: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   },
   attendees: true,

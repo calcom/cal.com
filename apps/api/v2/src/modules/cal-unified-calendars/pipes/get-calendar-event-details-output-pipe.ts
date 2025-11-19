@@ -3,7 +3,7 @@ import {
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
-} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 import { PipeTransform, Injectable } from "@nestjs/common";
 
 export interface GoogleCalendarEventResponse {
@@ -94,22 +94,21 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.locations = this.transformLocations(googleEvent);
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
-      calendarEvent.attendees = googleEvent.attendees
-        .filter((attendee) => !attendee.organizer)
-        .map((attendee) => {
-          return {
-            email: attendee.email,
-            name: attendee.displayName,
-            responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
-            organizer: attendee.organizer,
-            self: attendee.self,
-            optional: attendee.optional,
-          };
-        });
+      calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
+        return {
+          email: attendee.email,
+          name: attendee.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
+          host: attendee.organizer,
+          self: attendee.self,
+          optional: attendee.optional,
+        };
+      });
     }
 
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
+    calendarEvent.calendarEventOwner = googleEvent.organizer;
     calendarEvent.hosts = this.transformHosts(googleEvent);
 
     calendarEvent.source = "google";
@@ -159,28 +158,28 @@ export class GoogleCalendarEventOutputPipe
     }
   }
 
-  private transformHosts(googleEvent: GoogleCalendarEventResponse): Array<{ email: string; name?: string }> {
-    if (googleEvent.organizer) {
-      return [
-        {
-          email: googleEvent.organizer.email,
-          name: googleEvent.organizer.displayName,
-        },
-      ];
-    } else if (googleEvent.attendees) {
-      // If no explicit organizer, find the first attendee with organizer flag
-      const organizerAttendee = googleEvent.attendees.find((attendee) => attendee.organizer);
-      if (organizerAttendee) {
-        return [
-          {
-            email: organizerAttendee.email,
-            name: organizerAttendee.displayName,
-          },
-        ];
-      }
+  private transformHosts(googleEvent: GoogleCalendarEventResponse) {
+    const hosts: Array<{ email: string; name?: string; responseStatus: CalendarEventResponseStatus | null }> =
+      [];
+
+    const organizerAttendees = googleEvent?.attendees?.filter((attendee) => attendee.organizer);
+    if (organizerAttendees?.length) {
+      organizerAttendees.forEach((organizer) => {
+        hosts.push({
+          email: organizer.email,
+          name: organizer.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(organizer.responseStatus),
+        });
+      });
+    } else {
+      hosts.push({
+        email: googleEvent.organizer.email,
+        name: googleEvent.organizer.displayName,
+        responseStatus: null,
+      });
     }
 
-    return [];
+    return hosts;
   }
 
   private transformLocations(
@@ -196,6 +195,8 @@ export class GoogleCalendarEventOutputPipe
           regionCode: entryPoint.regionCode,
         };
       });
+    } else if (googleEvent.location) {
+      return [{ type: "video", url: googleEvent.location }];
     } else if (googleEvent.hangoutLink) {
       return [{ type: "video", url: googleEvent.hangoutLink }];
     }

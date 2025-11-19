@@ -1,5 +1,8 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -40,20 +43,20 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   const upgradeableTeamMememberships = getUpgradeableHandler({ userId: ctx.user.id });
   const upgradeableOrgMememberships = checkIfOrgNeedsUpgradeHandler({ ctx });
   const shouldEmailVerify = shouldVerifyEmailHandler({ ctx });
-  const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
+  // const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
   const appsWithInavlidCredentials = checkInvalidAppCredentials({ ctx });
 
   const [
     teamUpgradeBanner,
     orgUpgradeBanner,
     verifyEmailBanner,
-    calendarCredentialBanner,
+    // calendarCredentialBanner,
     invalidAppCredentialBanners,
   ] = await Promise.allSettled([
     upgradeableTeamMememberships,
     upgradeableOrgMememberships,
     shouldEmailVerify,
-    isInvalidCalendarCredential,
+    // isInvalidCalendarCredential,
     appsWithInavlidCredentials,
   ]);
 
@@ -61,8 +64,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     teamUpgradeBanner: teamUpgradeBanner.status === "fulfilled" ? teamUpgradeBanner.value : [],
     orgUpgradeBanner: orgUpgradeBanner.status === "fulfilled" ? orgUpgradeBanner.value : [],
     verifyEmailBanner: verifyEmailBanner.status === "fulfilled" ? !verifyEmailBanner.value.isVerified : false,
-    calendarCredentialBanner:
-      calendarCredentialBanner.status === "fulfilled" ? calendarCredentialBanner.value : false,
+    calendarCredentialBanner: false,
     invalidAppCredentialBanners:
       invalidAppCredentialBanners.status === "fulfilled" ? invalidAppCredentialBanners.value : [],
   };

@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown bg-default border-subtle relative z-10 origin-top-right space-y-[1px] rounded-xl border p-1 text-sm",
+          "shadow-dropdown bg-default border-subtle relative z-50 origin-top-right space-y-[1px] rounded-xl border p-1 text-sm",
           "w-[220px]",
           props.className
         )}
@@ -171,7 +171,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
       )}>
       <>
         {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
-        <div className={classNames("w-fit text-sm font-medium leading-none", childrenClassName)}>
+        <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>
         {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}

@@ -1,5 +1,6 @@
 "use client";
 
+import { $isListItemNode } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $createLineBreakNode,
@@ -19,6 +20,12 @@ const CustomEnterKeyPlugin = () => {
       (event: any) => {
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+
+          if ($isListItemNode(anchorNode) || $isListItemNode(anchorNode.getParent())) {
+            return false; // Don't prevent default - let Lexical handle list behavior
+          }
+
           event.preventDefault();
           const lineBreakNode = $createLineBreakNode();
           selection.insertNodes([lineBreakNode]);

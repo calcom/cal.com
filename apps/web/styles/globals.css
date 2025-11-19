@@ -106,6 +106,8 @@
   --cal-bg-error: hsla(3, 66%, 93%, 1); /* #f9e3e2 - error backgrounds */
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1); /* Keeping existing dark error */
 
+  --cal-bg-launch-dark: hsla(242, 53%, 10%, 1); /* #0D0C27 - Launch card dark background */
+
   /* Borders */
   --cal-border-emphasis: hsla(218, 11%, 65%, 1); /* gray.400 - input:hover */
   --cal-border: hsla(216, 12%, 84%, 1); /* gray.300 - inputs */
@@ -195,6 +197,8 @@
   --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
   --cal-bg-visualization-7-subtle: hsla(0, 70%, 35%, 1); /* red-200 */
   --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+
+  --cal-bg-launch-dark: hsla(242, 53%, 10%, 1); /* #0D0C27 - Launch card dark background */
 
   /* Legacy Background Components - Consider deprecating */
   --cal-bg-info: hsla(228, 56%, 33%, 1); /* Keeping existing info background */
@@ -636,10 +640,11 @@ select:focus {
   @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
-.intercom-lightweight-app {
-  @apply z-40 !important;
-}
-
 [data-radix-popper-content-wrapper] {
   border: none;
+}
+
+html[dir="rtl"] .react-tel-input .flag-dropdown {
+  left: auto !important;
+  right: 0 !important;
 }

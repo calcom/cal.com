@@ -1,7 +1,10 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+const log = logger.getSubLogger({ prefix: ["[checkActiveBookingsLimitForBooker]"] });
 
 export const checkActiveBookingsLimitForBooker = async ({
   eventTypeId,
@@ -57,7 +60,10 @@ const checkActiveBookingsLimit = async ({
   });
 
   if (bookingsCount >= maxActiveBookingsPerBooker) {
-    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded);
+    log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
+    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded, {
+      count: maxActiveBookingsPerBooker,
+    });
   }
 };
 
@@ -104,6 +110,7 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
   const lastBooking = bookingsCount[bookingsCount.length - 1];
 
   if (bookingsCount.length >= maxActiveBookingsPerBooker) {
+    log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
     throw new ErrorWithCode(
       ErrorCode.BookerLimitExceededReschedule,
       ErrorCode.BookerLimitExceededReschedule,

@@ -50,7 +50,7 @@ export function createBookingPageFixture(page: Page) {
       await page.goto("/event-types");
     },
     updateEventType: async () => {
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
     },
@@ -197,6 +197,22 @@ export function createBookingPageFixture(page: Page) {
     },
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
+    },
+    getAITranslationToggleDisabled: async () => {
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await page.waitForSelector('[data-testid="ai_translation_toggle"]', {
+        timeout: 5000,
+        state: "attached",
+      });
+      const toggle = page.getByTestId("ai_translation_toggle");
+      return (await toggle.getAttribute("disabled")) !== null;
+    },
+    toggleAITranslation: async () => {
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await page.getByTestId("ai_translation_toggle").click();
+    },
+    updateEventTypeDescription: async (description: string) => {
+      await page.getByTestId("editor-input").fill(description);
     },
   };
 }

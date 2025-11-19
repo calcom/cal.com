@@ -1,5 +1,4 @@
 import { LightningAddress } from "@getalby/lightning-tools";
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
@@ -7,6 +6,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -31,7 +31,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookingId: Booking["id"]
   ) {
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         select: {
           uid: true,
           title: true,

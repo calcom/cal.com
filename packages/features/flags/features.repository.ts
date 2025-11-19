@@ -1,9 +1,9 @@
-import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
-import db from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
-import type { AppFlags } from "./config";
+import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -16,7 +16,10 @@ interface CacheOptions {
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
+
+  constructor(private prismaClient: PrismaClient) {}
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -32,9 +35,8 @@ export class FeaturesRepository implements IFeaturesRepository {
       return FeaturesRepository.featuresCache.data;
     }
 
-    const features = await db.feature.findMany({
+    const features = await this.prismaClient.feature.findMany({
       orderBy: { slug: "asc" },
-      cacheStrategy: { swr: 300, ttl: 300 },
     });
 
     FeaturesRepository.featuresCache = {
@@ -56,6 +58,35 @@ export class FeaturesRepository implements IFeaturesRepository {
       acc[flag.slug as keyof AppFlags] = flag.enabled;
       return acc;
     }, {} as AppFlags);
+  }
+
+  /**
+   * Gets all features enabled for a specific team in a map format.
+   * @param teamId - The ID of the team to get features for
+   * @returns Promise<{ [slug: string]: boolean } | null>
+   */
+  public async getTeamFeatures(teamId: number) {
+    const result = await this.prismaClient.teamFeatures.findMany({
+      where: {
+        teamId,
+      },
+      include: {
+        feature: {
+          select: {
+            slug: true,
+            enabled: true,
+          },
+        },
+      },
+    });
+
+    if (!result.length) return null;
+
+    const features: TeamFeatures = Object.fromEntries(
+      result.map((teamFeature) => [teamFeature.feature.slug, true])
+    ) as TeamFeatures;
+
+    return features;
   }
 
   /**
@@ -93,7 +124,7 @@ export class FeaturesRepository implements IFeaturesRepository {
        * FIXME refactor when upgrading prismock
        * https://github.com/morintd/prismock/issues/592
        */
-      const userHasFeature = await db.userFeatures.findFirst({
+      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
         where: {
           userId,
           featureId: slug,
@@ -105,6 +136,40 @@ export class FeaturesRepository implements IFeaturesRepository {
       const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
       if (userBelongsToTeamWithFeature) return true;
       return false;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a specific user has access to a feature, ignoring hierarchical (parent) teams.
+   * Only checks direct user assignments and direct team memberships — does not traverse parents.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user has direct or same-level team access to the feature
+   * @throws Error if the feature access check fails
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      // Prismock limitation: findUnique may fail, use findFirst instead
+      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+        select: {
+          userId: true,
+        },
+        where: {
+          userId,
+          featureId: slug,
+        },
+      });
+      if (userHasFeature) return true;
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+        userId,
+        slug
+      );
+
+      return userBelongsToTeamWithFeature;
     } catch (err) {
       captureException(err);
       throw err;
@@ -126,7 +191,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with teams the user belongs to
           SELECT DISTINCT t.id, t."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = t.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" t
@@ -138,7 +203,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT DISTINCT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
@@ -151,8 +216,74 @@ export class FeaturesRepository implements IFeaturesRepository {
         LIMIT 1;
       `;
 
-      const result = await db.$queryRaw<unknown[]>(query);
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
       return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a user belongs to any direct team that has access to a feature.
+   * This version ignores parent/child team relationships — no recursion or hierarchy traversal.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature (direct only)
+   * @throws Error if the query fails
+   * @private
+   */
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Team" t
+        INNER JOIN "Membership" m ON m."teamId" = t.id
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" tf
+            WHERE tf."teamId" = t.id
+              AND tf."featureId" = ${slug}
+          )
+        LIMIT 1;
+      `;
+
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Enables a feature for a specific team.
+   * @param teamId - The ID of the team to enable the feature for
+   * @param featureId - The feature identifier to enable
+   * @param assignedBy - The user or what assigned the feature
+   * @returns Promise<void>
+   * @throws Error if the feature enabling fails
+   */
+  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.upsert({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+        create: {
+          teamId,
+          featureId,
+          assignedBy,
+        },
+        update: {},
+      });
+      // Clear cache when features are modified
+      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
@@ -170,10 +301,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned
-      const teamHasFeature = await db.teamFeatures.findFirst({
+      const teamHasFeature = await this.prismaClient.teamFeatures.findUnique({
         where: {
-          teamId,
-          featureId,
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
         },
       });
       if (teamHasFeature) return true;
@@ -183,7 +316,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with the initial team
           SELECT id, "parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team"
@@ -194,7 +327,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
@@ -207,7 +340,7 @@ export class FeaturesRepository implements IFeaturesRepository {
         LIMIT 1;
       `;
 
-      const result = await db.$queryRaw<unknown[]>(query);
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
       return result.length > 0;
     } catch (err) {
       captureException(err);

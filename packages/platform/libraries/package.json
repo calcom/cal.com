@@ -17,13 +17,13 @@
     "publish-npm": "yarn && node scripts/prepublish.js && rm -rf dist && yarn build && npm publish --access public && node scripts/postpublish.js"
   },
   "dependencies": {
-    "@calcom/features": "*",
-    "@calcom/lib": "*"
+    "@calcom/features": "workspace:*",
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.3.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.0-beta",
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
@@ -68,6 +68,31 @@
       "import": "./dist/conferencing.js",
       "require": "./dist/conferencing.cjs",
       "types": "./dist/conferencing.d.ts"
+    },
+    "./repositories": {
+      "import": "./dist/repositories.js",
+      "require": "./dist/repositories.cjs",
+      "types": "./dist/repositories.d.ts"
+    },
+    "./bookings": {
+      "import": "./dist/bookings.js",
+      "require": "./dist/bookings.cjs",
+      "types": "./dist/bookings.d.ts"
+    },
+    "./organizations": {
+      "import": "./dist/organizations.js",
+      "require": "./dist/organizations.cjs",
+      "types": "./dist/organizations.d.ts"
+    },
+    "./private-links": {
+      "import": "./dist/private-links.js",
+      "require": "./dist/private-links.cjs",
+      "types": "./dist/private-links.d.ts"
+    },
+    "./pbac": {
+      "import": "./dist/pbac.js",
+      "require": "./dist/pbac.cjs",
+      "types": "./dist/pbac.d.ts"
     }
   },
   "typesVersions": {
@@ -92,6 +117,21 @@
       ],
       "conferencing": [
         "dist/conferencing.d.ts"
+      ],
+      "repositories": [
+        "dist/repositories.d.ts"
+      ],
+      "bookings": [
+        "dist/bookings.d.ts"
+      ],
+      "organizations": [
+        "dist/organizations.d.ts"
+      ],
+      "private-links": [
+        "dist/private-links.d.ts"
+      ],
+      "pbac": [
+        "dist/pbac.d.ts"
       ]
     }
   }

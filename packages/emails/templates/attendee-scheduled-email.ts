@@ -6,8 +6,8 @@ import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class AttendeeScheduledEmail extends BaseEmail {
@@ -73,13 +73,11 @@ ${getRichDescription(this.calEvent, this.t)}
   }
 
   protected getTimezone(): string {
-    // Timezone is based on the first attendee in the attendee list
-    // as the first attendee is the one who created the booking
-    return this.calEvent.attendees[0].timeZone;
+    return this.attendee.timeZone;
   }
 
   protected getLocale(): string {
-    return this.calEvent.attendees[0].language.locale;
+    return this.attendee.language.locale;
   }
 
   protected getInviteeStart(format: string) {

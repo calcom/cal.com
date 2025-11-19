@@ -17,6 +17,15 @@ const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 export type ClientPageProps = UserTypePageProps | TeamTypePageProps;
 
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
+};
+
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);

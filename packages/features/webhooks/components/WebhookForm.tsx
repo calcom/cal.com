@@ -73,6 +73,166 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   ],
 } as const;
 
+function getWebhookVariables(t: (key: string) => string) {
+  return [
+    {
+      category: t("webhook_event_and_booking"),
+      variables: [
+        {
+          name: "triggerEvent",
+          variable: "{{triggerEvent}}",
+          type: "String",
+          description: t("webhook_trigger_event"),
+        },
+        {
+          name: "createdAt",
+          variable: "{{createdAt}}",
+          type: "Datetime",
+          description: t("webhook_created_at"),
+        },
+        { name: "type", variable: "{{type}}", type: "String", description: t("webhook_type") },
+        { name: "title", variable: "{{title}}", type: "String", description: t("webhook_title") },
+        {
+          name: "startTime",
+          variable: "{{startTime}}",
+          type: "Datetime",
+          description: t("webhook_start_time"),
+        },
+        {
+          name: "endTime",
+          variable: "{{endTime}}",
+          type: "Datetime",
+          description: t("webhook_end_time"),
+        },
+        {
+          name: "description",
+          variable: "{{description}}",
+          type: "String",
+          description: t("webhook_description"),
+        },
+        {
+          name: "location",
+          variable: "{{location}}",
+          type: "String",
+          description: t("webhook_location"),
+        },
+        { name: "uid", variable: "{{uid}}", type: "String", description: t("webhook_uid") },
+        {
+          name: "rescheduleUid",
+          variable: "{{rescheduleUid}}",
+          type: "String",
+          description: t("webhook_reschedule_uid"),
+        },
+        {
+          name: "cancellationReason",
+          variable: "{{cancellationReason}}",
+          type: "String",
+          description: t("webhook_cancellation_reason"),
+        },
+        {
+          name: "rejectionReason",
+          variable: "{{rejectionReason}}",
+          type: "String",
+          description: t("webhook_rejection_reason"),
+        },
+      ],
+    },
+    {
+      category: t("webhook_people"),
+      variables: [
+        {
+          name: "organizer.name",
+          variable: "{{organizer.name}}",
+          type: "String",
+          description: t("webhook_organizer_name"),
+        },
+        {
+          name: "organizer.email",
+          variable: "{{organizer.email}}",
+          type: "String",
+          description: t("webhook_organizer_email"),
+        },
+        {
+          name: "organizer.timezone",
+          variable: "{{organizer.timezone}}",
+          type: "String",
+          description: t("webhook_organizer_timezone"),
+        },
+        {
+          name: "organizer.language.locale",
+          variable: "{{organizer.language.locale}}",
+          type: "String",
+          description: t("webhook_organizer_locale"),
+        },
+        {
+          name: "organizer.username",
+          variable: "{{organizer.username}}",
+          type: "String",
+          description: t("webhook_organizer_username"),
+        },
+        {
+          name: "organizer.usernameInOrg",
+          variable: "{{organizer.usernameInOrg}}",
+          type: "String",
+          description: t("webhook_organizer_username_in_org"),
+        },
+        {
+          name: "attendees.0.name",
+          variable: "{{attendees.0.name}}",
+          type: "String",
+          description: t("webhook_attendee_name"),
+        },
+        {
+          name: "attendees.0.email",
+          variable: "{{attendees.0.email}}",
+          type: "String",
+          description: t("webhook_attendee_email"),
+        },
+        {
+          name: "attendees.0.timeZone",
+          variable: "{{attendees.0.timeZone}}",
+          type: "String",
+          description: t("webhook_attendee_timezone"),
+        },
+        {
+          name: "attendees.0.language.locale",
+          variable: "{{attendees.0.language.locale}}",
+          type: "String",
+          description: t("webhook_attendee_locale"),
+        },
+      ],
+    },
+    {
+      category: t("webhook_teams"),
+      variables: [
+        {
+          name: "team.name",
+          variable: "{{team.name}}",
+          type: "String",
+          description: t("webhook_team_name"),
+        },
+        {
+          name: "team.members",
+          variable: "{{team.members}}",
+          type: "String[]",
+          description: t("webhook_team_members"),
+        },
+      ],
+    },
+    {
+      category: t("webhook_metadata"),
+      variables: [
+        {
+          name: "metadata.videoCallUrl",
+          variable: "{{metadata.videoCallUrl}}",
+          type: "String",
+          description: t("webhook_video_call_url"),
+        },
+      ],
+    },
+  ];
+}
+
 export type WebhookFormValues = {
   subscriberUrl: string;
   active: boolean;
@@ -94,6 +254,7 @@ const WebhookForm = (props: {
 }) => {
   const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
   const { t } = useLocale();
+  const webhookVariables = getWebhookVariables(t);
 
   const triggerOptions = overrideTriggerOptions
     ? [...overrideTriggerOptions]
@@ -130,20 +291,61 @@ const WebhookForm = (props: {
     },
   });
 
-  const showTimeSection = formMethods
-    .watch("eventTriggers")
-    ?.find(
-      (trigger) =>
-        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    );
+  const triggers = formMethods.watch("eventTriggers") || [];
+  const subscriberUrl = formMethods.watch("subscriberUrl");
+  const time = formMethods.watch("time");
+  const timeUnit = formMethods.watch("timeUnit");
+
+  const isCreating = !props?.webhook?.id;
+  const needsTime = triggers.some(
+    (t) =>
+      t === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+      t === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
+  const hasTime = !!time && !!timeUnit;
+  const hasUrl = !!subscriberUrl;
+  const showTimeSection = needsTime;
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
   );
+
+  function insertVariableIntoTemplate(current: string, name: string, value: string): string {
+    try {
+      const parsed = JSON.parse(current || "{}");
+      parsed[name] = value;
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      const trimmed = current.trim();
+      if (trimmed === "{}" || trimmed === "") {
+        return `{\n  "${name}": "${value}"\n}`;
+      }
+
+      if (trimmed.endsWith("}")) {
+        const withoutClosing = trimmed.slice(0, -1);
+        const needsComma = withoutClosing.trim().endsWith('"') || withoutClosing.trim().endsWith("}");
+        return `${withoutClosing}${needsComma ? "," : ""}\n  "${name}": "${value}"\n}`;
+      }
+
+      return `${current}\n"${name}": "${value}"`;
+    }
+  }
+
+  const [showVariables, setShowVariables] = useState(false);
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
+
+  const canSubmit = isCreating
+    ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
+    : formMethods.formState.isDirty || changeSecret;
+
+  useEffect(() => {
+    if (isCreating && needsTime && !time && !timeUnit) {
+      formMethods.setValue("time", 5, { shouldDirty: true });
+      formMethods.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
+    }
+  }, [isCreating, needsTime, time, timeUnit, formMethods]);
 
   useEffect(() => {
     if (changeSecret) {
@@ -211,6 +413,12 @@ const WebhookForm = (props: {
                   grow
                   options={translatedTriggerOptions}
                   isMulti
+                  styles={{
+                    indicatorsContainer: (base) => ({
+                      ...base,
+                      alignItems: "flex-start",
+                    }),
+                  }}
                   value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));
@@ -333,14 +541,52 @@ const WebhookForm = (props: {
                 />
               </div>
               {useCustomTemplate && (
-                <TextArea
-                  name="customPayloadTemplate"
-                  rows={3}
-                  value={value}
-                  onChange={(e) => {
-                    formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true });
-                  }}
-                />
+                <div className="space-y-3">
+                  <TextArea
+                    name="customPayloadTemplate"
+                    rows={8}
+                    value={value || ""}
+                    placeholder={`{\n\n}`}
+                    onChange={(e) =>
+                      formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true })
+                    }
+                  />
+
+                  <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
+                    {showVariables ? t("webhook_hide_variables") : t("webhook_show_variable")}
+                  </Button>
+
+                  {showVariables && (
+                    <div className="border-muted max-h-80 overflow-y-auto rounded-md border p-3">
+                      {webhookVariables.map(({ category, variables }) => (
+                        <div key={category} className="mb-4">
+                          <h4 className="mb-2 text-sm font-medium">{category}</h4>
+                          <div className="space-y-2">
+                            {variables.map(({ name, variable, description }) => (
+                              <div
+                                key={name}
+                                className="hover:bg-muted  cursor-pointer rounded p-2 text-sm transition-colors"
+                                onClick={() => {
+                                  const currentValue = formMethods.getValues("payloadTemplate") || "{}";
+                                  const updatedValue = insertVariableIntoTemplate(
+                                    currentValue,
+                                    name,
+                                    variable
+                                  );
+                                  formMethods.setValue("payloadTemplate", updatedValue, {
+                                    shouldDirty: true,
+                                  });
+                                }}>
+                                <div className="text-emphasis font-mono">{variable}</div>
+                                <div className="text-muted mt-1 text-xs">{description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
@@ -357,7 +603,7 @@ const WebhookForm = (props: {
         <Button
           type="submit"
           data-testid="create_webhook"
-          disabled={!formMethods.formState.isDirty && !changeSecret}
+          disabled={!canSubmit}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>

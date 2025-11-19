@@ -11,11 +11,11 @@ import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { LastUsed, useLastUsed } from "@calcom/features/auth/lib/hooks/useLastUsed";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
@@ -25,7 +25,6 @@ import { Button } from "@calcom/ui/components/button";
 import { EmailField, PasswordField } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
@@ -53,8 +52,7 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: // eslint-disable-next-line @typescript-eslint/ban-types
-PageProps & WithNonceProps<{}>) {
+}: PageProps) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -64,7 +62,7 @@ PageProps & WithNonceProps<{}>) {
         .string()
         .min(1, `${t("error_required_field")}`)
         .regex(emailRegex, `${t("enter_valid_email")}`),
-      ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
+      ...(totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();

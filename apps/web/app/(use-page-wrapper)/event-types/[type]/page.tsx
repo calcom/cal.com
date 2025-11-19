@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getEventTypePermissions } from "@calcom/features/pbac/lib/event-type-permissions";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -59,7 +60,10 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("This event type does not exist");
   }
 
-  return <EventTypeWebWrapper data={data} id={eventTypeId} />;
+  // Fetch permissions for the event type's team
+  const permissions = await getEventTypePermissions(session.user.id, data.eventType.teamId);
+
+  return <EventTypeWebWrapper data={data} id={eventTypeId} permissions={permissions} />;
 };
 
 export default ServerPage;

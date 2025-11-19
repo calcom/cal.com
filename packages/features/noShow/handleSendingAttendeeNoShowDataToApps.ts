@@ -1,10 +1,11 @@
 import type { z } from "zod";
 
 import type { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
-import CrmManager from "@calcom/lib/crmManager/crmManager";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import CrmManager from "@calcom/features/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { eventTypeAppMetadataOptionalSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { NoShowAttendees } from "../handleMarkNoShow";
 import { noShowEnabledApps } from "./noShowEnabledApps";
@@ -16,7 +17,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
   attendees: NoShowAttendees
 ) {
   // Get event type metadata
-  const eventTypeQuery = await prisma.booking.findFirst({
+  const eventTypeQuery = await prisma.booking.findUnique({
     where: {
       uid: bookingUid,
     },
@@ -62,7 +63,7 @@ async function handleCRMNoShow(
 ) {
   // Handle checking if no she in CrmService
 
-  const credential = await prisma.credential.findFirst({
+  const credential = await prisma.credential.findUnique({
     where: {
       id: appData.credentialId,
     },

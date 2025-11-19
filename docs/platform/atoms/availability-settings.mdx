@@ -125,11 +125,123 @@ Along with the props, Availability settings atom accepts custom styles via the *
 | formClassName             | Form which contains the days and toggles                              |
 | timezoneSelectClassName   | Adds styling to the timezone select component                         |
 | subtitlesClassName        | Styles the subtitle                                                   |
-| scheduleContainer         | Styles the entire schedule component                                  |
-| scheduleDay               | Adds styling to just the day of a particular schedule                 |
-| dayRanges                 | Adds styling to day ranges                                            |
-| timeRanges                | Time ranges in the availability settings can be customized            |
-| labelAndSwitchContainer   | Adds styling to label and switches                                    |
-| overridesModalClassNames  | Adds styling to the date overrides modal                              |
+| scheduleClassNames        | An object for granular styling of schedule components (see detailed table below) |
+| dateOverrideClassNames    | An object for granular styling of date override components (see detailed table below) |
+
+### scheduleClassNames Object Structure
+
+The `scheduleClassNames` prop accepts an object with the following structure for granular styling of schedule components:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `schedule` | Styles the entire schedule component |
+| `scheduleContainer` | Styles the schedule container |
+| `scheduleDay` | Adds styling to just the day of a particular schedule |
+| `dayRanges` | Adds styling to day ranges |
+| `timeRangeField` | Styles the time range input fields |
+| `labelAndSwitchContainer` | Adds styling to label and switches |
+| `timePicker` | An object for granular styling of time picker dropdown components (see nested table below) |
+
+#### timePicker Object Structure (nested within scheduleClassNames)
+
+The `timePicker` prop accepts an object with the following structure for granular styling of time picker dropdown components. This applies to the time selection dropdowns (e.g., [ 9:00 ]) that users can click to open a dropdown with available times or click to manually enter a time:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `container` | Styles the main time picker container |
+| `valueContainer` | Styles the container that holds the selected value |
+| `value` | Styles the displayed selected time value |
+| `input` | Styles the input field for manual time entry |
+| `dropdown` | Styles the dropdown menu with time options |
+
+### dateOverrideClassNames Object Structure
+
+The `dateOverrideClassNames` prop accepts an object with the following structure for granular styling of date override components:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `container` | Styles the main container |
+| `title` | Styles the title|
+| `description` | Styles the description |
+| `button` | Styles the button to add date override |
 
 <Info>Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.</Info>
+
+## Programmatic Form Validation and Submission
+
+The AvailabilitySettings component supports programmatic form validation and submission through a ref-based API. This allows you to validate availability data and submit forms programmatically without user interaction.
+
+```js
+import { useRef } from 'react';
+import { AvailabilitySettings } from "@calcom/atoms";
+import type { AvailabilitySettingsFormRef } from "@calcom/atoms";
+
+export function AvailabilityWithValidation() {
+  const availabilityRef = useRef<AvailabilitySettingsFormRef>(null);
+
+  const handleValidate = async () => {
+    const result = await availabilityRef.current?.validateForm();
+    if (result?.isValid) {
+      console.log("Availability form is valid");
+    } else {
+      console.log("Validation errors:", result?.errors);
+    }
+  };
+
+  const handleSubmit = () => {
+    availabilityRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        // Additional success handling logic here
+        console.log('Availability updated successfully');
+      },
+      onError: (error) => {
+        // Additional error handling logic here
+        console.error('Error updating availability:', error);
+      }
+    });
+  };
+
+  return (
+    <>
+      <AvailabilitySettings
+        ref={availabilityRef}
+        onUpdateSuccess={() => {
+          console.log("Updated schedule successfully");
+        }}
+        onFormStateChange={(formState) => {
+          console.log("Form state changed:", formState);
+        }}
+      />
+      <button onClick={handleValidate}>Validate Form</button>
+      <button onClick={handleSubmit}>Submit Form</button>
+    </>
+  );
+}
+```
+
+### Ref Methods
+
+| Method | Description |
+|:-------|:------------|
+| validateForm | Validates the current availability form state and returns a promise with validation results. |
+| handleFormSubmit | Programmatically submits the availability form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
+
+### Callbacks
+
+The `handleFormSubmit` method accepts an optional callbacks object with the following properties:
+
+```typescript
+type AvailabilitySettingsFormCallbacks = {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+};
+```
+
+- **onSuccess**: Called when the form submission is successful. This allows you to execute additional logic after a successful update.
+- **onError**: Called when an error occurs during form submission. The error parameter contains details about what went wrong, allowing you to handle specific error cases or display custom error messages.
+
+The `validateForm` method returns an `AvailabilityFormValidationResult` object with:
+- `isValid`: Boolean indicating if the form passed validation
+- `errors`: Object containing any validation errors found
+
+**Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.

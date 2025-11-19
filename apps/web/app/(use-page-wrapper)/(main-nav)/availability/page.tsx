@@ -3,11 +3,17 @@ import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_ty
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
 
@@ -22,15 +28,6 @@ export const generateMetadata = async () => {
     "/availability"
   );
 };
-
-const getCachedMe = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
-    return await meCaller.get();
-  },
-  ["viewer.me.get"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
 
 const getCachedAvailabilities = unstable_cache(
   async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
@@ -49,34 +46,35 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const t = await getTranslate();
   const _headers = await headers();
   const _cookies = await cookies();
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
 
-  const [me, cachedAvailabilities] = await Promise.all([
-    getCachedMe(_headers, _cookies),
-    getCachedAvailabilities(_headers, _cookies),
-  ]);
+  const cachedAvailabilities = await getCachedAvailabilities(_headers, _cookies);
 
   // Transform the data to ensure startTime, endTime, and date are Date objects
   // This is because the data is cached and as a result the data is converted to a string
   const availabilities = {
     ...cachedAvailabilities,
-    schedules: cachedAvailabilities.schedules.map((schedule) => ({
-      ...schedule,
-      availability: schedule.availability.map((avail) => ({
-        ...avail,
-        startTime: new Date(avail.startTime),
-        endTime: new Date(avail.endTime),
-        date: avail.date ? new Date(avail.date) : null,
-      })),
-    })),
+    schedules: cachedAvailabilities.schedules.map((schedule) => getScheduleListItemData(schedule)),
   };
 
-  const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
+  const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
+  const organizationRepository = getOrganizationRepository();
   const isOrgPrivate = organizationId
-    ? await OrganizationRepository.checkIfPrivate({
+    ? await organizationRepository.checkIfPrivate({
         orgId: organizationId,
       })
     : false;
-  const canViewTeamAvailability = me.organization?.isOrgAdmin || !isOrgPrivate;
+
+  const permissionService = new PermissionCheckService();
+  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+    userId: session.user.id,
+    permission: "availability.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+  const canViewTeamAvailability = teamIdsWithPermission.length > 0 || !isOrgPrivate;
 
   return (
     <ShellMainAppDir
@@ -91,9 +89,9 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
         />
       }>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
-        <AvailabilitySliderTable userTimeFormat={me?.timeFormat ?? null} isOrg={!!organizationId} />
+        <AvailabilitySliderTable isOrg={!!organizationId} />
       ) : (
-        <AvailabilityList availabilities={availabilities ?? { schedules: [] }} me={me} />
+        <AvailabilityList availabilities={availabilities ?? { schedules: [] }} />
       )}
     </ShellMainAppDir>
   );

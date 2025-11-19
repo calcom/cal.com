@@ -1,24 +1,10 @@
 import logger from "@calcom/lib/logger";
-import type { AnalyticsService, AnalyticsServiceClass } from "@calcom/types/AnalyticsService";
+import type { AnalyticsService } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { AnalyticsServiceMap } from "../analytics.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["AnalyticsManager"] });
-
-interface AnalyticsApp {
-  lib: {
-    AnalyticsService: AnalyticsServiceClass;
-  };
-}
-
-const isAnalyticsService = (x: unknown): x is AnalyticsApp =>
-  !!x &&
-  typeof x === "object" &&
-  "lib" in x &&
-  typeof x.lib === "object" &&
-  !!x.lib &&
-  "AnalyticsService" in x.lib;
 
 export const getAnalyticsService = async ({
   credential,
@@ -30,22 +16,21 @@ export const getAnalyticsService = async ({
 
   const analyticsName = analyticsType.split("_")[0];
 
-  const analyticsAppImportFn = appStore[analyticsName as keyof typeof appStore];
+  const analyticsAppImportFn = AnalyticsServiceMap[analyticsName as keyof typeof AnalyticsServiceMap];
 
   if (!analyticsAppImportFn) {
     log.warn(`analytics app not implemented`);
     return null;
   }
 
-  const analyticsApp = await analyticsAppImportFn();
+  const analyticsApp = await analyticsAppImportFn;
 
-  if (!isAnalyticsService(analyticsApp)) {
-    log.warn(`Analytics is not implemented`);
+  const AnalyticsService = analyticsApp.default;
+
+  if (!AnalyticsService || typeof AnalyticsService !== "function") {
+    log.warn(`analytics of type ${analyticsType} is not implemented`);
     return null;
   }
-
-  const AnalyticsService = analyticsApp.lib.AnalyticsService;
-  log.info("Got analyticsApp", AnalyticsService);
 
   return new AnalyticsService(credential);
 };

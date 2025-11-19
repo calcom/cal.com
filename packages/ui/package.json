@@ -34,6 +34,7 @@
     "./components/form/timezone-select": "./components/form/timezone-select/index.ts",
     "./components/hover-card": "./components/hover-card/index.tsx",
     "./components/image-uploader": "./components/image-uploader/index.ts",
+    "./components/file-uploader": "./components/file-uploader/index.ts",
     "./components/layout": "./components/layout/index.ts",
     "./components/list": "./components/list/index.ts",
     "./components/logo": "./components/logo/index.ts",
@@ -42,6 +43,7 @@
     "./components/organization-banner": "./components/organization-banner/index.ts",
     "./components/pagination": "./components/pagination/index.ts",
     "./components/popover": "./components/popover/index.ts",
+    "./components/progress-bar": "./components/progress-bar/index.ts",
     "./components/radio": "./components/radio/index.ts",
     "./components/scrollable": "./components/scrollable/index.ts",
     "./components/sheet": "./components/sheet/index.ts",
@@ -55,8 +57,7 @@
     "./components/unpublished-entity": "./components/unpublished-entity/index.ts",
     "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./components/app-list-card/AppListCard": "./components/app-list-card/AppListCard.tsx",
-    "./components/section": "./components/section/index.ts",
-    "./__mocks__/ui": "./__mocks__/ui.tsx"
+    "./components/section": "./components/section/index.ts"
   },
   "license": "MIT",
   "scripts": {
@@ -71,8 +72,9 @@
     "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {
-    "@calcom/lib": "*",
+    "@calcom/lib": "workspace:*",
     "@formkit/auto-animate": "1.0.0-beta.5",
+    "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-popover": "^1.0.2",
@@ -90,7 +92,6 @@
     "cmk": "^0.1.1",
     "date-fns": "^3.6.0",
     "downshift": "^6.1.9",
-    "next": "^13.5.6",
     "next-seo": "^6.0.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.0",
@@ -102,8 +103,9 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@calcom/config": "*",
-    "@calcom/tsconfig": "*",
+    "@calcom/config": "workspace:*",
+    "@calcom/eslint-config": "workspace:*",
+    "@calcom/tsconfig": "workspace:*",
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "18.0.26",
     "@types/react-dom": "^18.0.9",
@@ -112,6 +114,6 @@
     "fs-extra": "^11.2.0",
     "lucide-static": "^0.424.0",
     "node-html-parser": "^6.1.13",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.0-beta"
   }
 }

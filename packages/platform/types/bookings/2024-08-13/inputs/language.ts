@@ -41,6 +41,7 @@ export enum BookingLanguage {
   "ta" = "ta",
   "uk" = "uk",
   "zh-TW" = "zh-TW",
+  "bn" = "bn",
 }
 
 export type BookingLanguageType = keyof typeof BookingLanguage;

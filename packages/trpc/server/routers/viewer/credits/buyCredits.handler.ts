@@ -1,6 +1,11 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,35 +30,53 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
   const { quantity, teamId } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const team = await TeamService.fetchTeamOrThrow(teamId);
 
-    if (!adminMembership) {
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
     }
   } else {
     // if user id is part of a team, user can't buy credits for themselves
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
 
-    if (memberships.length > 0) {
+    if (memberships && memberships.length > 0) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
     }
   }
 
-  const redirect_uri = teamId
-    ? `${WEBAPP_URL}/settings/teams/${teamId}/billing`
-    : `${WEBAPP_URL}/settings/billing`;
+  let redirectUrl = `${WEBAPP_URL}/settings/billing`;
+
+  if (teamId) {
+    // Check if the team is an organization
+    const teamRepository = new TeamRepository(prisma);
+    const team = await teamRepository.findById({ id: teamId });
+
+    if (team?.isOrganization) {
+      redirectUrl = `${WEBAPP_URL}/settings/organizations/billing`;
+    } else {
+      redirectUrl = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+    }
+  }
 
   const billingService = new StripeBillingService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
     quantity,
-    successUrl: redirect_uri,
-    cancelUrl: redirect_uri,
+    successUrl: redirectUrl,
+    cancelUrl: redirectUrl,
     metadata: {
       ...(teamId && { teamId: teamId.toString() }),
       userId: ctx.user.id.toString(),

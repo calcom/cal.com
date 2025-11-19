@@ -5,9 +5,13 @@ import { describe, it, expect, vi } from "vitest";
 import { Editor } from "./Editor";
 import type { TextEditorProps } from "./types";
 
+vi.mock("@calcom/lib/hooks/useMediaQuery", () => ({
+  default: (_query: string) => false,
+}));
+
 describe("Editor", () => {
   const defaultProps: TextEditorProps = {
-    getText: vi.fn(() => ""),
+    getText: vi.fn(),
     setText: vi.fn(),
     variables: ["name", "email"],
     height: "200px",

@@ -1,7 +1,7 @@
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type checkInvalidAppCredentialsOptions = {
@@ -13,24 +13,21 @@ type checkInvalidAppCredentialsOptions = {
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
   const userId = ctx.user.id;
 
+  // First get the teams where user is admin/owner
+  const userTeamIds = await prisma.membership.findMany({
+    where: {
+      userId: userId,
+      accepted: true,
+      role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
   const apps = await prisma.credential.findMany({
     where: {
-      OR: [
-        {
-          userId: userId,
-        },
-        {
-          team: {
-            members: {
-              some: {
-                userId: userId,
-                accepted: true,
-                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-              },
-            },
-          },
-        },
-      ],
+      OR: [{ userId }, { teamId: { in: userTeamIds.map((membership) => membership.teamId) } }],
       invalid: true,
     },
     select: {

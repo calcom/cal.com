@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -55,10 +54,20 @@ const generateCheckoutSession = async ({
 
 async function checkPermissions({ ctx, input }: PublishOptions) {
   const { profile } = ctx.user;
-  if (profile?.organizationId && !isOrganisationAdmin(ctx.user.id, profile.organizationId))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  if (!profile?.organizationId && !(await isTeamAdmin(ctx.user.id, input.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  const permissionCheckService = new PermissionCheckService();
+
+  const isOrg = !!profile?.organizationId;
+  const permission = isOrg ? "organization.update" : "team.update";
+  const teamId = isOrg ? profile.organizationId : input.teamId;
+
+  const hasUpdatePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission,
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasUpdatePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 }
 
 export const publishHandler = async ({ ctx, input }: PublishOptions) => {
@@ -66,7 +75,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   await checkPermissions({ ctx, input });
 
   try {
-    const { redirectUrl, status } = await TeamRepository.publish(teamId);
+    const { redirectUrl, status } = await TeamService.publish(teamId);
     if (redirectUrl) return { url: redirectUrl, status };
   } catch (error) {
     /** We return the url for client redirect if needed */

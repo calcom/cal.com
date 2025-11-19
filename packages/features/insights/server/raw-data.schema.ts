@@ -39,9 +39,19 @@ export type RoutingFormStatsInput = {
   sorting?: Sorting[];
 };
 
-export type RoutingFormResponsesInput = RoutingFormStatsInput & {
-  offset?: number;
-  limit?: number;
+export type InsightsRoutingServiceInput = {
+  scope: "user" | "team" | "org";
+  selectedTeamId?: number;
+
+  columnFilters?: ColumnFilter[];
+  startDate: string;
+  endDate: string;
+};
+
+export type InsightsRoutingServicePaginatedInput = InsightsRoutingServiceInput & {
+  sorting?: Sorting[];
+  offset: number;
+  limit: number;
 };
 
 export const routingFormStatsInputSchema = z.object({
@@ -56,8 +66,43 @@ export const routingFormStatsInputSchema = z.object({
   sorting: z.array(ZSorting).optional(),
 }) satisfies z.ZodType<RoutingFormStatsInput>;
 
-export const routingFormResponsesInputSchema = z.object({
-  ...routingFormStatsInputSchema.shape,
-  offset: z.number().optional(),
-  limit: z.number().max(100).optional(),
-}) satisfies z.ZodType<RoutingFormResponsesInput>;
+export const insightsRoutingServiceInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+}) satisfies z.ZodType<InsightsRoutingServiceInput>;
+
+export const insightsRoutingServicePaginatedInputSchema = z.object({
+  ...insightsRoutingServiceInputSchema.shape,
+  offset: z.number(),
+  limit: z.number().max(100),
+  sorting: z.array(ZSorting).optional(),
+}) satisfies z.ZodType<InsightsRoutingServicePaginatedInput>;
+
+export const routingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});
+
+export const routedToPerPeriodInputSchema = routingRepositoryBaseInputSchema.extend({
+  period: z.enum(["perDay", "perWeek", "perMonth"]),
+  limit: z.number().int().min(1).max(100).default(10),
+  searchQuery: z.string().trim().min(1).optional(),
+});
+
+export const routedToPerPeriodCsvInputSchema = routingRepositoryBaseInputSchema.extend({
+  period: z.enum(["perDay", "perWeek", "perMonth"]),
+  searchQuery: z.string().trim().min(1).optional(),
+});
+
+export const bookingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  timeZone: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});

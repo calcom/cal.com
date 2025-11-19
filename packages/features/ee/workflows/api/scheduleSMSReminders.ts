@@ -5,9 +5,9 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -16,7 +16,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
+import { select, getWorkflowRecipientEmail } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -29,32 +29,17 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  //delete all scheduled sms reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      OR: [
-        {
-          method: WorkflowMethods.SMS,
-          scheduledDate: {
-            lte: dayjs().toISOString(),
-          },
-        },
-        {
-          retryCount: {
-            gt: 1,
-          },
-        },
-      ],
-    },
-  });
-
   //find all unscheduled SMS reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select: {
@@ -123,10 +108,20 @@ export async function handler(req: NextRequest) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const recipientEmail = getWorkflowRecipientEmail({
+          action: reminder.workflowStep.action || WorkflowActions.SMS_NUMBER,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          organizerEmail: reminder.booking.user?.email,
+        });
+
         const urls = {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+            recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+          }`,
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+            recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+          }`,
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
@@ -176,9 +171,7 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-          message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
-        }
+        const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
 
         const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
@@ -186,6 +179,7 @@ export async function handler(req: NextRequest) {
             body: message,
             scheduledDate: reminder.scheduledDate,
             sender: senderID,
+            bodyWithoutOptOut: smsMessageWithoutOptOut,
             bookingUid: reminder.booking.uid,
             userId,
             teamId,

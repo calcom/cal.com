@@ -70,3 +70,4 @@ This will generate a public URL that you can use to access your localhost server
 ## DNS setup
 
 When a new organization is created, other than not being verified up until the admin accepts it in settings as explained in step 6, a flag gets created that marks the organization as missing DNS setup. That flag get auto-checked by the system upon organization creation when the Cal instance is deployed in Vercel and the subdomain registration was successful. Logging in as admin and going to Settings > Organizations section, you will see that flag as a badge, designed to give admins a glimpe on what is pending in terms of making an organization work. Alongside the mentioned badge, an email gets sent to admins in order to warn them there is a pending action about setting up DNS for the newly created organization to work.
+Read more about the Organization Setup [here](https://cal.com/docs/self-hosting/guides/organization/organization-setup)

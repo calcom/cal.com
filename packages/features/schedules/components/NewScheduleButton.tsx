@@ -1,3 +1,4 @@
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -31,6 +32,7 @@ export function NewScheduleButton({
     onSuccess: async ({ schedule }) => {
       await router.push(`/availability/${schedule.id}${fromEventType ? "?fromEventType=true" : ""}`);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
+      revalidateAvailabilityList();
       utils.viewer.availability.list.setData(undefined, (data) => {
         const newSchedule = { ...schedule, isDefault: false, availability: [] };
         if (!data)
@@ -75,7 +77,9 @@ export function NewScheduleButton({
             id="name"
             required
             placeholder={t("default_schedule_name")}
-            {...register("name")}
+            {...register("name", {
+              setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+            })}
           />
           <DialogFooter>
             <DialogClose />

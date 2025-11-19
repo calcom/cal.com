@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
@@ -85,6 +85,7 @@ export const sendSMS = async ({
   }
 
   if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
@@ -172,6 +173,7 @@ export const scheduleSMS = async ({
   }
 
   if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
@@ -225,7 +227,7 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
         .services(process.env.TWILIO_VERIFY_SID)
         .verificationChecks.create({ to: phoneNumber, code: code });
       return verification_check.status;
-    } catch (e) {
+    } catch {
       return "failed";
     }
   }
@@ -239,7 +241,7 @@ export const getMessageBody = async (referenceId: string) => {
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -265,11 +267,11 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       (membership) => membership.team.smsLockState === SMSLockState.LOCKED
     );
 
-    if (!!memberOfLockedTeam) {
+    if (memberOfLockedTeam) {
       return true;
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -284,11 +286,14 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
   return countryCode;
 }
 
-export async function getPriceForSMS(smsSid: string) {
+export async function getMessageInfo(smsSid: string) {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
-  if (message.price == null || message.price === "null") return null;
-  return Math.abs(parseFloat(message.price));
+  const price = message.price ? Math.abs(parseFloat(message.price)) : null;
+
+  const numSegments = message.numSegments ? parseInt(message.numSegments) : null;
+
+  return { price, numSegments };
 }
 
 export async function validateWebhookRequest({

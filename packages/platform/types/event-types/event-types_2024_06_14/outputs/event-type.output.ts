@@ -35,6 +35,7 @@ import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-cou
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
 import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
+import { EmailSettings_2024_06_14 } from "../inputs/email-settings.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -56,6 +57,7 @@ import {
   TextFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
+import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
@@ -178,7 +180,8 @@ class EventTypeTeam {
   BaseBookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
-  RangeWindow_2024_06_14
+  RangeWindow_2024_06_14,
+  EmailSettings_2024_06_14
 )
 class BaseEventTypeOutput_2024_06_14 {
   @IsInt()
@@ -347,6 +350,11 @@ class BaseEventTypeOutput_2024_06_14 {
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
+  @Type(() => BookerActiveBookingsLimitOutput_2024_06_14)
+  @ApiPropertyOptional({ type: BookerActiveBookingsLimitOutput_2024_06_14 })
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimitOutput_2024_06_14;
+
+  @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional()
   onlyShowFirstAvailableSlot?: boolean;
@@ -439,6 +447,19 @@ class BaseEventTypeOutput_2024_06_14 {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
@@ -513,4 +534,20 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @Type(() => EventTypeTeam)
   @DocsProperty()
   team!: EventTypeTeam;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EmailSettings_2024_06_14)
+  @ApiPropertyOptional({
+    description: "Email settings for this event type. Only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
 
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
@@ -32,7 +32,8 @@ export const isAvailableHandler = async ({
   const { slots, eventTypeId } = input;
 
   // Get event type details for time bounds validation
-  const eventType = await EventTypeRepository.findByIdMinimal({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+  const eventType = await eventTypeRepo.findByIdMinimal({ id: eventTypeId });
 
   if (!eventType) {
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
@@ -40,9 +41,8 @@ export const isAvailableHandler = async ({
 
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
-  const reservedSlots = uid
-    ? await SelectedSlotsRepository.findManyReservedByOthers(slots, eventTypeId, uid)
-    : [];
+  const slotsRepo = new PrismaSelectedSlotRepository(ctx.prisma);
+  const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
 
   // Map all slots to their availability status
   const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {

@@ -1,10 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
-
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 type BookingSelect = {
   description: true;
@@ -46,7 +44,7 @@ function getResponsesFromOldBooking(
 }
 
 async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boolean) {
-  const rawBooking = await prisma.booking.findFirst({
+  const rawBooking = await prisma.booking.findUnique({
     where: {
       uid,
     },
@@ -101,7 +99,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
   return booking;
 }
 
-export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
+export type GetBookingType = Awaited<ReturnType<typeof getBooking>>;
 
 export const getBookingWithResponses = <
   T extends Prisma.BookingGetPayload<{
@@ -115,17 +113,15 @@ export const getBookingWithResponses = <
 ) => {
   return {
     ...booking,
-    responses: isSeatedEvent
-      ? bookingResponsesDbSchema.parse(booking.responses || {})
-      : bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
-  } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
+    responses: isSeatedEvent ? booking.responses : booking.responses || getResponsesFromOldBooking(booking),
+  } as Omit<T, "responses"> & { responses: Record<string, any> };
 };
 
 export default getBooking;
 
 export const getBookingForReschedule = async (uid: string, userId?: number) => {
   let rescheduleUid: string | null = null;
-  const theBooking = await prisma.booking.findFirst({
+  const theBooking = await prisma.booking.findUnique({
     where: {
       uid,
     },
@@ -226,7 +222,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
  * @returns booking with masked attendee emails
  */
 export const getBookingForSeatedEvent = async (uid: string) => {
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       uid,
     },
@@ -253,7 +249,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
   if (!booking || booking.eventTypeId === null) return null;
 
   // Validate booking event type has seats enabled
-  const eventType = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: booking.eventTypeId,
     },

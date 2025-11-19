@@ -7,9 +7,9 @@ import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
 import generateIcsFile from "../lib/generateIcsFile";
 import { GenerateIcsRole } from "../lib/generateIcsFile";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export type Reassigned = { name: string | null; email: string; reason?: string; byUser?: string };
@@ -52,7 +52,8 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       to: toAddresses.join(","),
       ...getReplyToHeader(
         this.calEvent,
-        this.calEvent.attendees.map(({ email }) => email)
+        this.calEvent.attendees.map(({ email }) => email),
+        true
       ),
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
       html: await this.getHtml(

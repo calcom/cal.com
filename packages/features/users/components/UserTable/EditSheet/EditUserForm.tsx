@@ -30,10 +30,11 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
 
-type MembershipOption = {
-  value: MembershipRole;
+interface MembershipOption {
+  value: MembershipRole | string;
   label: string;
-};
+  isCustomRole?: boolean;
+}
 
 const stringOrNumber = z.string().or(z.number());
 
@@ -58,10 +59,8 @@ const editSchema = z.object({
   email: emailSchema,
   avatar: z.string(),
   bio: z.string(),
-  role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
+  role: z.union([z.nativeEnum(MembershipRole), z.string()]),
   timeZone: timeZoneSchema,
-  // schedules: z.array(z.string()),
-  // teams: z.array(z.string()),
   attributes: z.array(attributeSchema).optional(),
 });
 
@@ -84,7 +83,7 @@ export function EditForm({
   const session = useSession();
   const org = session?.data?.user?.org;
   const utils = trpc.useUtils();
-  const form = useForm({
+  const form = useForm<EditSchema>({
     resolver: zodResolver(editSchema),
     defaultValues: {
       name: selectedUser?.name ?? "",
@@ -99,7 +98,31 @@ export function EditForm({
 
   const isOwner = org?.role === MembershipRole.OWNER;
 
+  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+    // @ts-expect-error this query is only ran when we have an orgId so can ignore this
+    { teamId: org?.id },
+    {
+      enabled: !!org?.id, // Only enable the query when we have a valid team ID
+      staleTime: 30000, // Cache for 30 seconds
+    }
+  );
+
   const membershipOptions = useMemo<MembershipOption[]>(() => {
+    // Add custom roles if they exist
+    if (teamRoles?.length > 0) {
+      const roles: MembershipOption[] = [];
+      // Add custom roles
+      teamRoles.forEach((role) => {
+        roles.push({
+          value: role.id,
+          label: role.name,
+          isCustomRole: true,
+        });
+      });
+
+      return roles;
+    }
+
     const options: MembershipOption[] = [
       {
         value: MembershipRole.MEMBER,
@@ -119,7 +142,7 @@ export function EditForm({
     }
 
     return options;
-  }, [t, isOwner]);
+  }, [t, isOwner, teamRoles]);
 
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
@@ -150,7 +173,7 @@ export function EditForm({
           setMutationLoading(true);
           mutation.mutate({
             userId: selectedUser?.id ?? "",
-            role: values.role,
+            role: values.role as MembershipRole,
             username: values.username,
             name: values.name,
             email: values.email,
@@ -159,8 +182,7 @@ export function EditForm({
             timeZone: values.timeZone,
             // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
-              ? // @ts-expect-error  same as above
-                { userId: selectedUser?.id ?? "", attributes: values.attributes }
+              ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
               : undefined,
           });
           setEditMode(false);
@@ -198,15 +220,30 @@ export function EditForm({
           <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
           <div className="mb-6">
             <Label>{t("role")}</Label>
-            <ToggleGroup
-              isFullWidth
-              defaultValue={selectedUser?.role ?? "MEMBER"}
-              value={form.watch("role")}
-              options={membershipOptions}
-              onValueChange={(value: EditSchema["role"]) => {
-                form.setValue("role", value);
-              }}
-            />
+            {teamRoles?.length > 0 ? (
+              <SelectField
+                defaultValue={membershipOptions.find(
+                  (option) => option.value === (selectedUser?.role ?? "MEMBER")
+                )}
+                value={membershipOptions.find((option) => option.value === form.watch("role"))}
+                options={membershipOptions}
+                onChange={(option) => {
+                  if (option) {
+                    form.setValue("role", option.value);
+                  }
+                }}
+              />
+            ) : (
+              <ToggleGroup
+                isFullWidth
+                defaultValue={selectedUser?.role ?? "MEMBER"}
+                value={form.watch("role")}
+                options={membershipOptions}
+                onValueChange={(value) => {
+                  form.setValue("role", value);
+                }}
+              />
+            )}
           </div>
           <div className="mb-6">
             <Label>{t("timezone")}</Label>
@@ -430,7 +467,6 @@ function AttributesList(props: { selectedUserId: number }) {
     </div>
   );
 }
-
 /**
  * Ensures that options that are not owned by cal.com are not removed
  * Such options are created by dsync and removed only through corresponding dsync

@@ -1,10 +1,10 @@
 import type { NextApiRequest } from "next";
 
-import type { UserWithCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
-import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
+import type { UserWithCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
+import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
@@ -105,7 +105,9 @@ async function getHandler(req: NextApiRequest) {
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
-  const usersWithCalendars = await UserRepository.findManyByIdsIncludeDestinationAndSelectedCalendars({
+  const usersWithCalendars = await new UserRepository(
+    prisma
+  ).findManyByIdsIncludeDestinationAndSelectedCalendars({
     ids: userIds,
   });
 

@@ -10,6 +10,15 @@ import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
 import TypePage, { type PageProps as ClientPageProps } from "~/team/type-view";
 
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
+};
+
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {

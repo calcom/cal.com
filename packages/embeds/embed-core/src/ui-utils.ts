@@ -1,3 +1,4 @@
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import type { AllPossibleLayouts, EmbedThemeConfig } from "./types";
 
 export function getMaxHeightForModal() {
@@ -32,7 +33,7 @@ function detectColorScheme() {
 }
 
 function getClassBasedOnTheme(theme: EmbedThemeConfig | undefined | null) {
-  return theme ?? "light";
+  return theme === "dark" ? EMBED_DARK_THEME_CLASS : EMBED_LIGHT_THEME_CLASS;
 }
 
 export function isThemePreferenceProvided(theme: EmbedThemeConfig | undefined | null) {

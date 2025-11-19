@@ -81,7 +81,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           className="mt-2 w-full justify-center p-2 text-sm sm:mt-8"
           loading={availabilityForm.formState.isSubmitting}
           disabled={availabilityForm.formState.isSubmitting}>
-          {t("next_step_text")}
+          {t("complete_profile")}
         </Button>
       </div>
     </Form>

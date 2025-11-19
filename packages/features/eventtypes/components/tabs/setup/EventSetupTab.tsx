@@ -5,8 +5,6 @@ import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
-import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -27,6 +25,9 @@ import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import Locations from "../../locations/Locations";
+import type { LocationCustomClassNames } from "../../locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -71,18 +72,12 @@ export const EventSetupTab = (
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
 
-  const interfaceLanguageOptions =
-    props.localeOptions && props.localeOptions.length > 0
-      ? [{ label: t("visitors_browser_language"), value: "" }, ...props.localeOptions]
-      : [];
-
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -160,59 +155,21 @@ export const EventSetupTab = (
               </>
             )}
           </div>
-          {!isPlatform && (
-            <div className="[&_label]:my-1 [&_label]:font-normal">
-              <SettingsToggle
-                title={t("translate_description_button")}
-                checked={!!autoTranslateDescriptionEnabled}
-                onCheckedChange={(value) => {
-                  formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
-                }}
-                disabled={!orgId}
-                tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
-              />
-            </div>
-          )}
-          {!isPlatform && interfaceLanguageOptions.length > 0 && (
-            <div>
-              <Skeleton
-                as={Label}
-                loadingClassName="w-16"
-                htmlFor="interfaceLanguage"
-                className={customClassNames?.locationSection?.label}>
-                {t("interface_language")}
-                {shouldLockIndicator("interfaceLanguage")}
-              </Skeleton>
-              <Controller
-                name="interfaceLanguage"
-                control={formMethods.control}
-                defaultValue={eventType.interfaceLanguage ?? ""}
-                render={({ field: { value, onChange } }) => (
-                  <Select<{ label: string; value: string }>
-                    data-testid="event-interface-language"
-                    className="capitalize"
-                    options={interfaceLanguageOptions}
-                    onChange={(option) => {
-                      onChange(option?.value);
-                    }}
-                    value={interfaceLanguageOptions.find((option) => option.value === value)}
-                  />
-                )}
-              />
-            </div>
-          )}
           <TextField
             required
             label={isPlatform ? "Slug" : t("URL")}
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
-            containerClassName={classNames(customClassNames?.titleSection?.urlInput?.container)}
+            containerClassName={classNames(
+              "[&>div]:gap-0",
+              customClassNames?.titleSection?.urlInput?.container
+            )}
             labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
-            className={classNames(customClassNames?.titleSection?.urlInput?.input)}
+            className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <>
+                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -220,7 +177,7 @@ export const EventSetupTab = (
                       : formMethods.getValues("users")[0].username
                     : t("username_placeholder")}
                   /
-                </>
+                </span>
               )
             }
             {...formMethods.register("slug", {
@@ -357,7 +314,7 @@ export const EventSetupTab = (
           {!lengthLockedProps.disabled && (
             <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
               <SettingsToggle
-                title={t("allow_booker_to_select_duration")}
+                title={t("allow_multiple_durations")}
                 checked={multipleDuration !== undefined}
                 disabled={seatsEnabled}
                 tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}

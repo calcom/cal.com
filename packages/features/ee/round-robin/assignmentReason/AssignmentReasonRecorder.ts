@@ -1,6 +1,6 @@
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
-import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";
@@ -28,14 +28,18 @@ export default class AssignmentReasonRecorder {
     routingFormResponseId,
     organizerId,
     teamId,
+    isRerouting,
+    reroutedByEmail,
   }: {
     bookingId: number;
     routingFormResponseId: number;
     organizerId: number;
     teamId: number;
+    isRerouting: boolean;
+    reroutedByEmail?: string | null;
   }) {
     // Get the routing form data
-    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
       },
@@ -113,8 +117,12 @@ export default class AssignmentReasonRecorder {
       }
     }
 
-    const reasonEnum = AssignmentReasonEnum.ROUTING_FORM_ROUTING;
-    const reasonString = attributeValues.join(", ");
+    const reasonEnum = isRerouting
+      ? AssignmentReasonEnum.REROUTED
+      : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+    const reasonString = `${
+      isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : ""
+    } ${attributeValues.join(", ")}`;
 
     await prisma.assignmentReason.create({
       data: {
@@ -141,18 +149,25 @@ export default class AssignmentReasonRecorder {
     teamMemberEmail,
     recordType,
     routingFormResponseId,
+    recordId,
   }: {
     bookingId: number;
     crmAppSlug: string;
     teamMemberEmail: string;
     recordType: string;
     routingFormResponseId: number;
+    recordId?: string;
   }) {
     const appAssignmentReasonHandler = (await import("./appAssignmentReasonHandler")).default;
     const appHandler = appAssignmentReasonHandler[crmAppSlug];
     if (!appHandler) return;
 
-    const crmRoutingReason = await appHandler({ recordType, teamMemberEmail, routingFormResponseId });
+    const crmRoutingReason = await appHandler({
+      recordType,
+      teamMemberEmail,
+      routingFormResponseId,
+      recordId,
+    });
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 
@@ -186,7 +201,7 @@ export default class AssignmentReasonRecorder {
     reassignReason?: string;
     reassignmentType: RRReassignmentType;
   }) {
-    const reassignedBy = await prisma.user.findFirst({
+    const reassignedBy = await prisma.user.findUnique({
       where: {
         id: reassignById,
       },

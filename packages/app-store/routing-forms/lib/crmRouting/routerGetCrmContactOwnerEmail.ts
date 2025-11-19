@@ -1,32 +1,31 @@
-import type { z } from "zod";
-
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import type { LocalRoute } from "../../types/types";
 import { enabledAppSlugs } from "../enabledApps";
 
 export default async function routerGetCrmContactOwnerEmail({
   attributeRoutingConfig,
-  response,
+  identifierKeyedResponse,
   action,
 }: {
   attributeRoutingConfig: LocalRoute["attributeRoutingConfig"];
-  response: z.infer<typeof ZResponseInputSchema>["response"];
+  identifierKeyedResponse: Record<string, string | string[]> | null;
   action: LocalRoute["action"];
 }) {
   // Check if route is skipping CRM contact check
   if (attributeRoutingConfig?.skipContactOwner) return null;
-
   // Check if email is present
   let prospectEmail: string | null = null;
-  for (const field of Object.keys(response)) {
-    const fieldResponse = response[field];
-    if (fieldResponse.identifier === "email") {
-      prospectEmail = fieldResponse.value as string;
-      break;
+  if (identifierKeyedResponse) {
+    for (const identifier of Object.keys(identifierKeyedResponse)) {
+      const fieldResponse = identifierKeyedResponse[identifier];
+      if (identifier === "email") {
+        prospectEmail = fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
+        break;
+      }
     }
   }
   if (!prospectEmail) return null;
@@ -34,16 +33,23 @@ export default async function routerGetCrmContactOwnerEmail({
   // Determine if the action is an event type redirect
   if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId) return null;
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: action.eventTypeId });
   if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
 
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
-  let contactOwner: { email: string | null; recordType: string | null; crmAppSlug: string | null } = {
+  let contactOwner: {
+    email: string | null;
+    recordType: string | null;
+    crmAppSlug: string | null;
+    recordId: string | null;
+  } = {
     email: null,
     recordType: null,
     crmAppSlug: null,
+    recordId: null,
   };
   //   Determine if there is a CRM option enabled in the chosen route
   for (const appSlug of enabledAppSlugs) {
@@ -65,7 +71,7 @@ export default async function routerGetCrmContactOwnerEmail({
     }
   }
 
-  if (!contactOwner) {
+  if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
     const ownerQuery = await getCRMContactOwnerForRRLeadSkip(prospectEmail, eventTypeMetadata);
     if (ownerQuery?.email) contactOwner = ownerQuery;
   }

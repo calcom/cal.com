@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 import { stringify } from "querystring";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest) {
   const params = {
     response_type: "code",
     client_id,
-    redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
+    redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/${config.slug}/callback`,
     scope: "spark:kms meeting:schedules_read meeting:schedules_write", //should be "A space-separated list of scopes being requested by your integration"
     state: "",
   };

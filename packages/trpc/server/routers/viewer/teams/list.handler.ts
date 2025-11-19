@@ -1,4 +1,5 @@
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import prisma from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetListSchema } from "./list.schema";
@@ -11,7 +12,8 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
-  return TeamRepository.findTeamsByUserId({
+  const teamRepo = new TeamRepository(prisma);
+  return teamRepo.findTeamsByUserId({
     userId: ctx.user.id,
     includeOrgs: input?.includeOrgs,
   });

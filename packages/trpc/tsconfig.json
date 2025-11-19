@@ -1,19 +1,5 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "paths": {
-    "~/*": ["/*"],
-    "@calcom/app-store": ["../app-store"],
-    "@calcom/app-store/*": ["../app-store/*"],
-    "@calcom/dayjs": ["../dayjs"],
-    "@calcom/dayjs/*": ["../dayjs/*"],
-    "@calcom/features": ["../features"],
-    "@calcom/features/*": ["../features/*"],
-    "@calcom/lib": ["../lib"],
-    "@calcom/lib/*": ["../lib/*"],
-    "@calcom/prisma": ["../prisma"],
-    "@calcom/prisma/*": ["../prisma/*"],
-    "@calcom/repository/*": ["../lib/server/repository/*"]
-  },
   "include": [
     "../types/@wojtekmaj__react-daterange-picker.d.ts",
     "../types/business-days-plugin.d.ts",
@@ -33,6 +19,9 @@
     "declarationMap": false,
     "resolveJsonModule": true,
     "declarationDir": "types/server",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "paths": {
+      "~/*": ["./*"]
+    }
   }
 }

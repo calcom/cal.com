@@ -1,11 +1,10 @@
-import { Prisma } from "@prisma/client";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { DateRange } from "@calcom/lib/date-ranges";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -71,11 +70,12 @@ async function getTeamMembers({
     distinct: ["userId"],
   });
 
+  const userRepo = new UserRepository(prisma);
   const membershipWithUserProfile = [];
   for (const membership of memberships) {
     membershipWithUserProfile.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -192,10 +192,12 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     teamMembers = teamAllInfo.teamMembers;
     totalTeamMembers = teamAllInfo.totalTeamMembers;
   } else {
-    const isMember = await prisma.membership.findFirst({
+    const isMember = await prisma.membership.findUnique({
       where: {
-        teamId,
-        userId: ctx.user.id,
+        userId_teamId: {
+          userId: ctx.user.id,
+          teamId,
+        },
       },
     });
 

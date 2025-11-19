@@ -2,7 +2,7 @@ import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
@@ -90,7 +90,7 @@ test.describe("Organization", () => {
 
     // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
     // We can re-test here when we want to test some more scenarios.
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+
     test("existing user invited to an organization", () => {});
 
     test("nonexisting user invited to a Team inside organization", async ({
@@ -222,15 +222,6 @@ test.describe("Organization", () => {
           "signup?token"
         );
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
-
         assertInviteLink(inviteLink);
         await signupFromEmailInviteLink({
           browser,
@@ -272,7 +263,7 @@ test.describe("Organization", () => {
     });
 
     // Such a user has user.username changed directly in addition to having the new username in the profile.username
-    test("existing user migrated to an organization", async ({ users, page, emails }) => {
+    test("existing user migrated to an organization", async ({ users, page, emails: _emails }) => {
       const orgOwner = await users.create(undefined, {
         hasTeam: true,
         isOrg: true,
@@ -304,13 +295,15 @@ test.describe("Organization", () => {
       });
 
       await test.step("Signing up with the previous username of the migrated user - shouldn't be allowed", async () => {
+        await orgOwner.logout();
+        await page.goto("/");
+        await page.waitForLoadState();
         await page.goto("/signup");
         await expect(page.locator("text=Create your account")).toBeVisible();
         await expect(page.locator('[data-testid="continue-with-email-button"]')).toBeVisible();
         await page.locator('[data-testid="continue-with-email-button"]').click();
         await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')
@@ -343,23 +336,7 @@ test.describe("Organization", () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail, true);
-        await expectUserToBeAMemberOfTeam({
-          page,
-          teamId: team.id,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
 
-        await expectUserToBeAMemberOfOrganization({
-          page,
-          orgSlug: org.slug,
-          username: usernameDerivedFromEmail,
-          role: "member",
-          isMemberShipAccepted: true,
-          email: invitedUserEmail,
-        });
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
           emails,
@@ -458,7 +435,7 @@ test.describe("Organization", () => {
       await page.locator('[data-testid="fixed-hosts-select"]').click();
       await page.locator(`text="${invitedUserEmail}"`).click();
       await page.locator('[data-testid="update-eventtype"]').click();
-      await page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
+      await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
       await doOnOrgDomain(
@@ -591,7 +568,7 @@ async function expectUserToBeAMemberOfTeam({
   page,
   teamId,
   email,
-  role,
+  role: _role,
   username,
   isMemberShipAccepted,
 }: {

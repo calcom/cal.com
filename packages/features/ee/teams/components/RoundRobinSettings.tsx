@@ -5,12 +5,13 @@ import { useForm } from "react-hook-form";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/client";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import RoundRobinResetInterval from "./RoundRobinResetInterval";
 import RoundRobinTimestampBasis from "./RoundRobinTimestampBasis";
@@ -25,12 +26,22 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
   const rrResetInterval = team?.rrResetInterval ?? undefined;
   const utils = trpc.useUtils();
 
+  const initialResetInterval = rrResetInterval ?? RRResetInterval.MONTH;
+  const initialTimestampBasis = team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT;
+
   const form = useForm<{ rrResetInterval: RRResetInterval; rrTimestampBasis: RRTimestampBasis }>({
     defaultValues: {
-      rrResetInterval: rrResetInterval ?? RRResetInterval.MONTH,
-      rrTimestampBasis: team?.rrTimestampBasis ?? RRTimestampBasis.CREATED_AT,
+      rrResetInterval: initialResetInterval,
+      rrTimestampBasis: initialTimestampBasis,
     },
   });
+
+  const [watchedResetInterval, watchedTimestampBasis] = form.watch([
+    "rrResetInterval",
+    "rrTimestampBasis",
+  ]);
+  const hasChanges =
+    watchedResetInterval !== initialResetInterval || watchedTimestampBasis !== initialTimestampBasis;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -38,6 +49,13 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      if (team?.slug) {
+        // Rounb robin reset interval / basis governs host selection logic on the booking page.
+        revalidateTeamDataCache({
+          teamSlug: team.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("round_robin_settings_updated_successfully"), "success");
     },
   });
@@ -77,7 +95,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button type="submit" color="primary" loading={mutation.isPending}>
+        <Button type="submit" disabled={!hasChanges} color="primary" loading={mutation.isPending}>
           {t("update")}
         </Button>
       </SectionBottomActions>

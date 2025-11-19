@@ -1,41 +1,44 @@
-import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
+import { scheduleAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
-import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
+  getAIAgentCallPhoneNumberField,
+  getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowType as PrismaWorkflowType } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
 import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
-
-const log = logger.getSubLogger({ prefix: ["workflow"] });
 
 export const bookingSelect = {
   userPrimaryEmail: true,
@@ -45,6 +48,7 @@ export const bookingSelect = {
   uid: true,
   metadata: true,
   smsReminderNumber: true,
+  responses: true,
   attendees: {
     select: {
       name: true,
@@ -160,7 +164,7 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
   }
 
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -229,60 +233,32 @@ export function getSender(
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
-  isWriteOperation?: boolean
+  permission: PermissionString = "workflow.read"
 ) {
   if (!workflow) {
     return false;
   }
-  if (!isWriteOperation) {
-    const userWorkflow = await prisma.workflow.findFirst({
-      where: {
-        id: workflow.id,
-        OR: [
-          { userId: currentUserId },
-          {
-            // for read operation every team member has access
-            team: {
-              members: {
-                some: {
-                  userId: currentUserId,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-    if (userWorkflow) return true;
+
+  // For personal workflows (no teamId), check if user owns the workflow
+  if (!workflow.teamId) {
+    return workflow.userId === currentUserId;
   }
 
-  const userWorkflow = await prisma.workflow.findFirst({
-    where: {
-      id: workflow.id,
-      OR: [
-        { userId: currentUserId },
-        {
-          team: {
-            members: {
-              some: {
-                userId: currentUserId,
-                accepted: true,
-                //only admins can update team/org workflows
-                NOT: {
-                  role: MembershipRole.MEMBER,
-                },
-              },
-            },
-          },
-        },
-      ],
-    },
+  // For team workflows, use PBAC
+  const permissionService = new PermissionCheckService();
+
+  // Determine fallback roles based on permission type
+  const fallbackRoles =
+    permission === "workflow.read"
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER]
+      : [MembershipRole.ADMIN, MembershipRole.OWNER];
+
+  return await permissionService.checkPermission({
+    userId: currentUserId,
+    teamId: workflow.teamId,
+    permission,
+    fallbackRoles,
   });
-
-  if (userWorkflow) return true;
-
-  return false;
 }
 
 export async function upsertSmsReminderFieldForEventTypes({
@@ -357,6 +333,78 @@ export async function removeSmsReminderFieldForEventType({
   );
 }
 
+export async function upsertAIAgentCallPhoneNumberFieldForEventTypes({
+  activeOn,
+  workflowId,
+  isAIAgentCallPhoneNumberRequired,
+  isOrg,
+}: {
+  activeOn: number[];
+  workflowId: number;
+  isAIAgentCallPhoneNumberRequired?: boolean;
+  isOrg: boolean;
+}) {
+  let allEventTypeIds = activeOn;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOn);
+  }
+
+  for (const eventTypeId of allEventTypeIds) {
+    await upsertBookingField(
+      getAIAgentCallPhoneNumberField(),
+      getAIAgentCallPhoneNumberSource({
+        workflowId,
+        isAIAgentCallPhoneNumberRequired: isAIAgentCallPhoneNumberRequired ?? false,
+      }),
+      eventTypeId
+    );
+  }
+}
+
+export async function removeAIAgentCallPhoneNumberFieldForEventTypes({
+  activeOnToRemove,
+  workflowId,
+  isOrg,
+  activeOn,
+}: {
+  activeOnToRemove: number[];
+  workflowId: number;
+  isOrg: boolean;
+  activeOn?: number[];
+}) {
+  let allEventTypeIds = activeOnToRemove;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOnToRemove, activeOn);
+  }
+  for (const eventTypeId of allEventTypeIds) {
+    await removeAIAgentCallPhoneNumberFieldForEventType({
+      workflowId,
+      eventTypeId,
+    });
+  }
+}
+
+export async function removeAIAgentCallPhoneNumberFieldForEventType({
+  workflowId,
+  eventTypeId,
+}: {
+  workflowId: number;
+  eventTypeId: number;
+}) {
+  await removeBookingField(
+    {
+      name: CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+    },
+    {
+      id: `${workflowId}`,
+      type: "workflow",
+    },
+    eventTypeId
+  );
+}
+
 async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
   const teamMembersWithEventTypes = await prisma.membership.findMany({
     where: {
@@ -402,53 +450,85 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
   return teamEventTypes.map((et) => et.id).concat(userEventTypes);
 }
 
-export async function isAuthorizedToAddActiveOnIds(
-  newActiveIds: number[],
-  isOrg: boolean,
-  teamId?: number | null,
-  userId?: number | null
-) {
-  for (const id of newActiveIds) {
-    if (isOrg) {
-      const newTeam = await prisma.team.findFirst({
-        where: {
-          id,
+export async function isAuthorizedToAddActiveOnIds({
+  newEventTypeIds,
+  newRoutingFormIds,
+  newTeamIds,
+  teamId,
+  userId,
+}: {
+  newEventTypeIds: number[];
+  newRoutingFormIds: string[];
+  newTeamIds: number[];
+  teamId?: number | null;
+  userId?: number | null;
+}) {
+  for (const id of newTeamIds) {
+    const newTeam = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        parent: true,
+      },
+    });
+    if (newTeam?.parent?.id !== teamId) {
+      return false;
+    }
+  }
+
+  // Check authorization for event type IDs
+  for (const id of newEventTypeIds) {
+    const newEventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+          },
         },
-        select: {
-          parent: true,
-        },
-      });
-      if (newTeam?.parent?.id !== teamId) {
+        children: true,
+      },
+    });
+
+    if (newEventType) {
+      if (teamId && teamId !== newEventType.teamId) {
         return false;
       }
-    } else {
-      const newEventType = await prisma.eventType.findFirst({
-        where: {
-          id,
-        },
-        include: {
-          users: {
-            select: {
-              id: true,
-            },
-          },
-          children: true,
-        },
-      });
-
-      if (newEventType) {
-        if (teamId && teamId !== newEventType.teamId) {
-          return false;
-        }
-        if (
-          !teamId &&
-          userId &&
-          newEventType.userId !== userId &&
-          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
-        ) {
-          return false;
-        }
+      if (
+        !teamId &&
+        userId &&
+        newEventType.userId !== userId &&
+        !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
+      ) {
+        return false;
       }
+    }
+  }
+
+  // Check authorization for routing form IDs
+  for (const id of newRoutingFormIds) {
+    // For routing forms, check if user has access to the form
+    const routingForm = await prisma.app_RoutingForms_Form.findUnique({
+      where: {
+        id: String(id),
+      },
+      select: {
+        userId: true,
+        teamId: true,
+      },
+    });
+
+    if (!routingForm) return false;
+
+    if (teamId && teamId !== routingForm.teamId) {
+      return false;
+    }
+
+    if (!teamId && userId && routingForm.userId !== userId) {
+      return false;
     }
   }
   return true;
@@ -526,6 +606,8 @@ export async function scheduleWorkflowNotifications({
   teamId: number | null;
   alreadyScheduledActiveOnIds?: number[];
 }) {
+  if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
+
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
@@ -663,6 +745,7 @@ export async function scheduleBookingReminders(
       const bookingInfo = {
         uid: booking.uid,
         bookerUrl,
+        type: booking.eventType?.slug || "event",
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,
@@ -692,6 +775,7 @@ export async function scheduleBookingReminders(
         },
         metadata: booking.metadata,
         customReplyToEmail: booking.eventType?.customReplyToEmail,
+        responses: booking.responses as CalEventResponses | null,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
@@ -701,7 +785,7 @@ export async function scheduleBookingReminders(
         let sendTo: string[] = [];
 
         switch (step.action) {
-          case WorkflowActions.EMAIL_HOST:
+          case WorkflowActions.EMAIL_HOST: {
             sendTo = [bookingInfo.organizer?.email];
             const schedulingType = bookingInfo.eventType.schedulingType;
             const hosts = bookingInfo.eventType.hosts
@@ -714,6 +798,7 @@ export async function scheduleBookingReminders(
               sendTo = sendTo.concat(hosts);
             }
             break;
+          }
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
@@ -738,8 +823,6 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
-          userId,
-          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -814,6 +897,21 @@ export async function scheduleBookingReminders(
             verifiedAt: step?.verifiedAt ?? null,
           });
         }
+      } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {
+        await scheduleAIPhoneCall({
+          evt: bookingInfo,
+          triggerEvent: trigger,
+          timeSpan: {
+            time,
+            timeUnit,
+          },
+          workflowStepId: step.id,
+          userId,
+          teamId,
+          verifiedAt: step?.verifiedAt ?? null,
+          submittedPhoneNumber: booking.smsReminderNumber,
+          routedEventTypeId: null,
+        });
       }
     });
     await Promise.all(promiseScheduleReminders);
@@ -874,13 +972,14 @@ export async function getAllWorkflowsFromEventType(
     ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
     : false;
 
-  const allWorkflows = await getAllWorkflows(
-    eventTypeWorkflows,
+  const allWorkflows = await getAllWorkflows({
+    entityWorkflows: eventTypeWorkflows,
     userId,
     teamId,
     orgId,
-    workflowsLockedForUser
-  );
+    workflowsLockedForUser,
+    type: PrismaWorkflowType.EVENT_TYPE,
+  });
 
   return allWorkflows;
 }

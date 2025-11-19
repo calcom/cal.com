@@ -12,7 +12,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -50,7 +50,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     if (!team) {
       const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
-      metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+      metadata = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
@@ -80,7 +80,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     }
 
     if (!metadata) {
-      metadata = teamMetadataSchema.safeParse(team.metadata);
+      metadata = teamMetadataStrictSchema.safeParse(team.metadata);
       if (!metadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }

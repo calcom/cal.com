@@ -20,6 +20,16 @@ const initialData: AppFlags = {
   "workflow-smtp-emails": false,
   "cal-video-log-in-overlay": false,
   "use-api-v2-for-team-slots": false,
+  pbac: false,
+  "restriction-schedule": false,
+  "team-booking-page-cache": false,
+  "cal-ai-voice-agents": false,
+  "tiered-support-chat": false,
+  "calendar-subscription-cache": false,
+  "calendar-subscription-sync": false,
+  "onboarding-v3": false,
+  "booker-botid": false,
+  "booking-calendar-view": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

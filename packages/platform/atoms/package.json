@@ -4,12 +4,18 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.52",
+  "version": "1.12.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com"
+  },
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "NODE_OPTIONS='--max_old_space_size=16384' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
-    "publish": "yarn build && npm publish --access public",
-    "test": "jest"
+    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
+    "publish-npm": "yarn build && npm publish --access public",
+    "test": "jest",
+    "dev-on": "node scripts/dev-on.js",
+    "dev-off": "git checkout -- package.json vite.config.ts"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -27,7 +33,7 @@
     "postcss-prefixwrap": "1.46.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.0-beta",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-inspect": "^0.8.4",
@@ -35,13 +41,12 @@
   },
   "files": [
     "dist",
-    "globals.min.css"
+    "globals.min.css",
+    "fonts"
   ],
-  "main": "./dist/cal-atoms.umd.cjs",
   "module": "./dist/cal-atoms.js",
   "exports": {
     ".": {
-      "require": "./dist/cal-atoms.umd.cjs",
       "import": "./dist/cal-atoms.js",
       "types": "./dist/index.d.ts"
     },
@@ -83,7 +88,6 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-awesome-query-builder": "^5.1.2",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "typescript": "^5.0.0"
   }
 }

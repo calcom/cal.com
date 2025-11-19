@@ -9,6 +9,21 @@ function _fireEvent(fullName: string, detail: CustomEventDetail) {
   window.dispatchEvent(event);
 }
 
+type BaseBookingEventPayload = {
+  title: string | undefined;
+  startTime: string | undefined;
+  endTime: string | undefined;
+  eventTypeId: number | null | undefined;
+  status: string | undefined;
+  paymentRequired: boolean;
+  isRecurring: boolean;
+  /**
+   * This is only used for recurring bookings
+   */
+  allBookings?: { startTime: string; endTime: string }[];
+  videoCallUrl?: string;
+};
+
 export type EventDataMap = {
   eventTypeSelected: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,20 +37,14 @@ export type EventDataMap = {
     };
   };
   linkReady: Record<string, never>;
-  bookingSuccessfulV2: {
+  availabilityLoaded: {
+    eventId: number;
+    eventSlug: string;
+  };
+  __connectInitiated: Record<string, never>;
+  __connectCompleted: Record<string, never>;
+  bookingSuccessfulV2: BaseBookingEventPayload & {
     uid: string | undefined;
-    title: string | undefined;
-    startTime: string | undefined;
-    endTime: string | undefined;
-    eventTypeId: number | null | undefined;
-    status: string | undefined;
-    paymentRequired: boolean;
-    isRecurring: boolean;
-    /**
-     * This is only used for recurring bookings
-     */
-    allBookings?: { startTime: string; endTime: string }[];
-    videoCallUrl?: string;
   };
 
   /**
@@ -54,20 +63,11 @@ export type EventDataMap = {
     };
     confirmed: boolean;
   };
-  rescheduleBookingSuccessfulV2: {
+  rescheduleBookingSuccessfulV2: BaseBookingEventPayload & {
     uid: string | undefined;
-    title: string | undefined;
-    startTime: string | undefined;
-    endTime: string | undefined;
-    eventTypeId: number | null | undefined;
-    status: string | undefined;
-    paymentRequired: boolean;
-    isRecurring: boolean;
-    /**
-     * This is only used for recurring bookings
-     */
-    allBookings?: { startTime: string; endTime: string }[];
   };
+  dryRunBookingSuccessfulV2: BaseBookingEventPayload;
+  dryRunRescheduleBookingSuccessfulV2: BaseBookingEventPayload;
   /**
    * @deprecated Use `rescheduleBookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
    */
@@ -108,6 +108,12 @@ export type EventDataMap = {
     iframeHeight: number;
     iframeWidth: number;
     isFirstTime: boolean;
+  };
+  __scrollByDistance: {
+    /**
+     * Distance in pixels to scroll by.
+     */
+    distance: number;
   };
 };
 

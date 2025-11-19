@@ -1,5 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,7 +23,7 @@ const checkDelegationCredentialFeature = async ({
 }) => {
   const user = ctx.user;
   const t = await getTranslation(user.locale ?? "en", "common");
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
 
   if (!user.organizationId) {
     throw new TRPCError({

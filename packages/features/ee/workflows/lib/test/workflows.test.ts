@@ -13,9 +13,14 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
+import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import tasker from "@calcom/features/tasker";
+import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
+import type { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
   WorkflowMethods,
@@ -30,11 +35,10 @@ import {
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
-import * as sendgridProvider from "../reminders/providers/sendgridProvider";
 
 const workflowSelect = {
   id: true,
@@ -57,7 +61,7 @@ const workflowSelect = {
   steps: true,
   activeOn: true,
   activeOnTeams: true,
-};
+} satisfies Prisma.WorkflowSelect;
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-05-20T11:59:59Z"));
@@ -149,21 +153,25 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
           sender: true,
           numberVerificationPending: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
   });
 
-  const workflowRemindersData = [
+  const workflowRemindersData: Prisma.WorkflowReminderCreateInput[] = [
     {
       booking: {
         connect: {
-          bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
+          uid: "jK7Rf8iYsOpmQUw9hB1vZxP",
         },
       },
-      uuid: "uuid-1",
-      bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:00:00.000Z`,
       scheduled: false,
@@ -172,12 +180,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
+          uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
         },
       },
-      uuid: "uuid-2",
-      bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -186,13 +197,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
+          uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
         },
       },
-      uuid: "uuid-3",
-
-      bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -201,13 +214,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
+          uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
         },
       },
-      uuid: "uuid-4",
-
-      bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -250,7 +265,7 @@ vi.mock("@calcom/lib/constants", async () => {
 });
 
 describe("deleteRemindersOfActiveOnIds", () => {
-  test("should delete all reminders and tasks from removed event types", async ({}) => {
+  test("should delete all reminders and tasks from removed event types", async () => {
     const organizer = getOrganizer({
       name: "Organizer",
       email: "organizer@example.com",
@@ -315,7 +330,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
     );
   });
 
-  test("should delete all reminders from removed event types (org workflow)", async ({}) => {
+  test("should delete all reminders from removed event types (org workflow)", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -443,7 +458,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
 describe("scheduleBookingReminders", () => {
   setupAndTeardown();
 
-  test("schedules workflow notifications with before event trigger and email to host action", async ({}) => {
+  test("schedules workflow notifications with before event trigger and email to host action", async () => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({
       name: "Organizer",
@@ -536,7 +551,7 @@ describe("scheduleBookingReminders", () => {
     });
   });
 
-  test("schedules workflow notifications with after event trigger and email to host action", async ({}) => {
+  test("schedules workflow notifications with after event trigger and email to host action", async () => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({
       name: "Organizer",
@@ -679,7 +694,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId,
+      true
     );
 
     // number is not verified, so sms should not send
@@ -695,7 +711,6 @@ describe("scheduleBookingReminders", () => {
       },
     });
 
-    const allVerified = await prismock.verifiedNumber.findMany();
     await scheduleBookingReminders(
       bookings,
       workflow.steps,
@@ -703,7 +718,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId
+      true
     );
 
     // two sms should be scheduled
@@ -761,7 +777,7 @@ describe("scheduleBookingReminders", () => {
     });
   });
 
-  test("should not schedule reminders if date is already in the past", async ({}) => {
+  test("should not schedule reminders if date is already in the past", async () => {
     const organizer = getOrganizer({
       name: "Organizer",
       email: "organizer@example.com",
@@ -838,7 +854,7 @@ describe("scheduleBookingReminders", () => {
 });
 
 describe("deleteWorkfowRemindersOfRemovedMember", () => {
-  test("deletes all workflow reminders when member is removed from org", async ({}) => {
+  test("deletes all workflow reminders when member is removed from org", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -914,7 +930,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
     expect(tasks.length).toBe(0);
   });
 
-  test("deletes reminders if member is removed from an org team ", async ({}) => {
+  test("deletes reminders if member is removed from an org team ", async () => {
     const org = await createOrganization({
       name: "Test Org",
       slug: "testorg",
@@ -997,8 +1013,10 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     await prismock.membership.delete({
       where: {
-        userId: 101,
-        teamId: 2,
+        userId_teamId: {
+          teamId: 2, // removing from team 2
+          userId: 101, // organizer's userId
+        },
       },
     });
 
@@ -1044,7 +1062,6 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 });
 
 describe("Workflow SMTP Emails Feature Flag", () => {
-  vi.spyOn(sendgridProvider, "sendSendgridMail");
   vi.spyOn(emailProvider, "sendOrScheduleWorkflowEmails");
 
   const mockEvt = {
@@ -1080,76 +1097,242 @@ describe("Workflow SMTP Emails Feature Flag", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock SendGrid environment variables
-    process.env.SENDGRID_API_KEY = "test-key";
-    process.env.SENDGRID_EMAIL = "test@example.com";
   });
 
-  test("should use SMTP when team has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
-
-    await scheduleEmailReminder({
-      ...baseArgs,
-      teamId: 123,
-    });
-    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+  test("should use SMTP", async () => {
+    await scheduleEmailReminder(baseArgs);
     expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
   });
+});
 
-  test("should use SMTP when user has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
-
-    await scheduleEmailReminder({
-      ...baseArgs,
-      userId: 123,
-    });
-    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
-    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+describe("Routing Form Variables", () => {
+  beforeEach(() => {
+    // Reset global test storage
+    globalThis.testEmails = [];
+    globalThis.testSMS = [];
   });
 
-  test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+  test("should substitute routing form variables in email subject and body", async () => {
+    const mockFormData = {
+      responses: {
+        "contact person": {
+          value: "Jane Smith",
+          response: "Jane Smith",
+        },
+        "company name": {
+          value: "Acme Solutions",
+          response: "Acme Solutions",
+        },
+        department: {
+          value: "Engineering",
+          response: "Engineering",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
 
-    await scheduleEmailReminder({
-      ...baseArgs,
-      teamId: 123,
-    });
+    const emailArgs = {
+      emailBody: "Dear {CONTACT_PERSON} from {COMPANY_NAME} ({DEPARTMENT}), thank you for your submission.",
+      emailSubject: "Welcome {COMPANY_NAME} - {DEPARTMENT} Team",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["recipient@test.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
 
-    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
-    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+    await scheduleEmailReminder(emailArgs);
+
+    // Check that email was sent with processed variables
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Welcome Acme Solutions - Engineering Team");
+    expect(sentEmail.html).toContain("Dear Jane Smith from Acme Solutions (Engineering)");
   });
 
-  test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+  test("should handle array values in routing form variables", async () => {
+    // Using actual structure - for multi-select fields, value is array of labels, response is array of objects
+    const mockFormData = {
+      responses: {
+        "selected services": {
+          value: ["web development", "mobile app", "consulting"],
+          response: [
+            { label: "web development", id: "web-dev" },
+            { label: "mobile app", id: "mobile" },
+            { label: "consulting", id: "consulting" },
+          ],
+        },
+        "company name": {
+          value: "Digital Corp",
+          response: "Digital Corp",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
 
-    await scheduleEmailReminder({
-      ...baseArgs,
-      userId: 123,
-    });
+    const emailArgs = {
+      emailBody: "Hello {COMPANY_NAME}, you selected: {SELECTED_SERVICES}",
+      emailSubject: "Services for {COMPANY_NAME}",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["test@example.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
 
-    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
-    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+    await scheduleEmailReminder(emailArgs);
+
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Services for Digital Corp");
+    expect(sentEmail.html).toContain(
+      "Hello Digital Corp, you selected: web development, mobile app, consulting"
+    );
   });
 
-  test("should use SMTP when SendGrid is not configured", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
-    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
+  test("should handle field names with special characters in routing forms", async () => {
+    const mockFormData = {
+      responses: {
+        "company-name!@#": {
+          value: "Special Characters LLC",
+          response: "Special Characters LLC",
+        },
+        "phone number (primary)": {
+          value: "+1-555-0123",
+          response: "+1-555-0123",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
 
-    delete process.env.SENDGRID_API_KEY;
-    delete process.env.SENDGRID_EMAIL;
+    const emailArgs = {
+      emailBody: "Company: {COMPANYNAME}, Phone: {PHONE_NUMBER_PRIMARY}",
+      emailSubject: "Contact info for {COMPANYNAME}",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["test@example.com"],
+      action: WorkflowActions.EMAIL_HOST,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+    };
 
-    await scheduleEmailReminder({
-      ...baseArgs,
-      teamId: 123,
-      userId: 456,
+    await scheduleEmailReminder(emailArgs);
+
+    expect(globalThis.testEmails).toHaveLength(1);
+    const sentEmail = globalThis.testEmails[0];
+
+    expect(sentEmail.subject).toBe("Contact info for Special Characters LLC");
+    expect(sentEmail.html).toContain("Company: Special Characters LLC, Phone: +1-555-0123");
+  });
+
+  test("should pass routing form responses to AI phone call workflows", async () => {
+    // Mock the feature flag
+    const mockCheckFeature = vi
+      .spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally")
+      .mockResolvedValue(true);
+
+    // Mock rate limiting
+    const mockRateLimit = vi
+      .spyOn(rateLimitModule, "checkRateLimitAndThrowError")
+      .mockResolvedValue(undefined);
+
+    // Mock the AI agent setup
+    await prismock.agent.create({
+      data: {
+        id: "test-agent-id",
+        providerAgentId: "provider-123",
+        outboundPhoneNumbers: {
+          create: {
+            phoneNumber: "+1234567890",
+            subscriptionStatus: "ACTIVE",
+          },
+        },
+      },
     });
 
-    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
-    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+    await prismock.workflowStep.create({
+      data: {
+        id: 999,
+        stepNumber: 1,
+        action: WorkflowActions.CAL_AI_PHONE_CALL,
+        workflowId: 1,
+        agentId: "test-agent-id",
+        verifiedAt: new Date(),
+      },
+    });
+
+    const mockFormData = {
+      responses: {
+        "customer name": {
+          value: "John Doe",
+          response: "John Doe",
+        },
+        "phone preference": {
+          value: "mobile",
+          response: { label: "mobile", id: "mobile" },
+        },
+        priority: {
+          value: "high",
+          response: { label: "high", id: "high" },
+        },
+      },
+      routedEventTypeId: 123,
+      user: {
+        email: "user@test.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+    };
+
+    const aiPhoneArgs = {
+      submittedPhoneNumber: "+1-555-9999",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      timeSpan: { time: null, timeUnit: null },
+      workflowStepId: 999,
+      userId: 1,
+      teamId: null,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+      routedEventTypeId: 123,
+    };
+
+    const mockTaskerCreate = vi.spyOn(tasker, "create").mockResolvedValue("task-id");
+
+    await scheduleAIPhoneCall(aiPhoneArgs);
+
+    // Verify that the task was created with form responses
+    expect(mockTaskerCreate).toHaveBeenCalled();
+    expect(mockTaskerCreate).toHaveBeenCalledWith(
+      "executeAIPhoneCall",
+      expect.any(Object),
+      expect.any(Object)
+    );
+    const taskData = mockTaskerCreate.mock.calls[0][1] as {
+      responses?: typeof mockFormData.responses;
+      routedEventTypeId?: number;
+    };
+    expect(taskData.responses).toEqual(mockFormData.responses);
+    expect(taskData.routedEventTypeId).toBe(123);
+
+    // Clean up
+    mockTaskerCreate.mockRestore();
+    mockCheckFeature.mockRestore();
+    mockRateLimit.mockRestore();
   });
 });

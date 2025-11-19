@@ -14,7 +14,7 @@ import type { IconName } from "../icon";
 import { Icon } from "../icon";
 
 const dialogClasses = cva(
-  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
+  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-[95vw] m-auto -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
   {
     variants: {
       size: {
@@ -81,6 +81,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               e.preventDefault();
             }
           }}
+          onClick={(e) => e.stopPropagation()}
           className={classNames(
             dialogClasses({ size: props.size }),
             "max-h-[95vh]",

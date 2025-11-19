@@ -1,44 +1,34 @@
 <html>
   <head>
     <title>Embed Playground</title>
-    <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
-    <!-- <script src="./src/embed.ts" type="module"></script> -->
+    <style>
+      html.grid-row-gap body {
+        grid-row-gap: 10rem;
+        flex-flow: column;
+        display: flex;
+      }
+    </style>
+     <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
     <script>
-      const url = new URL(document.URL);
-      window.only = url.searchParams.get("only")
-      window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
-
       let popupRescheduleUid = null;
+      let popupCancelUid = null;
       let calLink = null;
       const initialNamespace = (url.searchParams.get("only") || "").split("ns:")[1] || "";
       (function defineVariables() {
         const searchParams = new URL(document.URL).searchParams;
         popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+        popupCancelUid = searchParams.get("popupCancelUid") || "qm3kwt3aTnVD7vmP9tiT2f";
         calLink = searchParams.get("calLink");
       })()
-      function generateRandomHexColor() {
-        // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
-        const randomInt = Math.floor(Math.random() * 16777216);
-
-        // Convert the integer to a hex string with 6 digits and add leading zeros if necessary
-        const hexString = randomInt.toString(16).padStart(6, "0");
-
-        // Return the hex string with a '#' prefix
-        return `#${hexString}`;
-      }
+      
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
-      function scrollToIframeInPlayground() {
-        const url = new URL(document.URL);
-        // Only run the example specified by only=, avoids distraction and faster to test.
-        const only = (window.only = url.searchParams.get("only") || '');
-        const elementIdentifier = only !== "all" ? only.replace("ns:", "") : null;
-        if (elementIdentifier) {
-          location.hash = "#cal-booking-place-" + elementIdentifier + "-iframe";
-        }
+
+      if (location.search.includes("grid-row-gap")) {
+        document.documentElement.classList.add("grid-row-gap");
       }
-      
+     
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
         Cal("init", "withoutReloadNamespace", {
           debug: true,
@@ -198,7 +188,16 @@
     </style>
   </head>
   <body>
+    <div style="margin-bottom: 20px;">
+      <h2>Different variations of the page</h2>
+      <div style="display: flex; flex-flow: row; gap: 10px;"> 
+        <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
+        <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
+        <span style="display: block"><a href="?grid-row-gap">Grid row gap version of this page here</a></span>
+    </div>
+    </div>
     <div id="misc-embeds">
+      <h2>Misc Embeds</h2>
       <div>
         <button id="add-inline-embed-in-a-new-namespace-without-reload-button" onclick="addInlineEmbedInNewNamespaceWithoutReload('#add-inline-embed-in-a-new-namespace-without-reload-button-content')">Add Inline Embed in a new namespace without reload</button>
         <div id="add-inline-embed-in-a-new-namespace-without-reload-button-content"></div>
@@ -218,8 +217,6 @@
           <div id="two-different-namespace-with-different-init-config-content-2"></div>
         </div>
       </div>
-      <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
-      <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
       <span style="display: block">
         <a href="?name=john&email=email&guests=abc&guests=def&notes=NOTES&location=%7B%22optionValue%22%3A%22%2B919999999999%22%2C%22value%22%3A%22phone%22%7D&only=ns%3ApageParamsForwarding">
           Page Params Forwarding(Prefills various fields by auto-forwarding query params)
@@ -295,6 +292,12 @@
         <script>
           document.write(
       `<button data-cal-namespace="popupRescheduleWithRescheduleUidParam" data-cal-config='{"flag.coep":"true", "rescheduleUid": "${popupRescheduleUid}"}' data-cal-link="${calLink}">Reschedule Event(with rescheduleUid param) - Needs popupRescheduleUid and calLink param</button>`
+          );
+        </script>
+        <h2>Popup Examples - Cancel Tests</h2>
+        <script>
+          document.write(
+            `<button data-cal-namespace="popupCancelBooking" data-cal-config='{"flag.coep":"true"}' data-cal-link="booking/${popupCancelUid}?cancel=true">Cancel Booking - Needs popupCancelUid param</button>`
           );
         </script>
         <h2>Popup Examples - Different Configurations</h2>
@@ -377,10 +380,10 @@
           </button>
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
-            backgroundColor: generateRandomHexColor(),
+            backgroundColor: window.generateRandomHexColor(),
           },
           disabledDateButton: {
-            backgroundColor: generateRandomHexColor(),
+            backgroundColor: window.generateRandomHexColor(),
           },}})})()">
             Change 'enabledDateButton` and `disabledDateButton` background Color[Deprecated]
           </button>
@@ -422,7 +425,16 @@
       </div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-hideEventTypeDetails">
-      <h3><a href="?only=hideEventTypeDetails">Hide EventType Details Test</a></h3>
+      <h3><a href="?only=ns:hideEventTypeDetails">Hide EventType Details Test</a></h3>
+      <div class="place"></div>
+    </div>
+
+    <div class="inline-embed-container" style="width: 500px; overflow-y: scroll;" id="cal-booking-place-windowScrollToTimeslot">
+      <h3><a href="?only=ns:windowScrollToTimeslot">Scroll to Timeslot Test - Selecting a date would scroll the window to the timeslot</a></h3>
+      <div class="place"></div>
+    </div>
+    <div class="inline-embed-container" style="height: 500px; width: 500px; overflow-y: scroll;" id="cal-booking-place-containerScrollToTimeslot">
+      <h3><a href="?only=ns:containerScrollToTimeslot">Container Scroll Test - Selecting a date would scroll the element to the timeslot</a></h3>
       <div class="place"></div>
     </div>
     <div class="inline-embed-container" id="cal-booking-place-conflicting-theme">
@@ -474,7 +486,7 @@
         </div>
       </div>
     </div>
-    <script type="module" src="./playground.ts"></script>
+    <script type="module" src="./playground/lib/playground.ts"></script>
     <script>
       if (initialNamespace.startsWith("skeletonDemo")) {
         document.getElementById("misc-embeds").style.display = "none";

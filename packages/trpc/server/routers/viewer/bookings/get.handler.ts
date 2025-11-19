@@ -1,18 +1,18 @@
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import type { Kysely } from "kysely";
 import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
+import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -99,6 +99,18 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            {
+              teamId: user.orgId,
+            },
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -139,10 +151,12 @@ export async function getBookings({
       userIdsWhereUserIsAdminOrOwner.includes(userId)
     );
 
+    const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
+
     //  Scope depends on `user.orgId`:
     // - Throw an error if trying to filter by usersIds that are not within your ORG
     // - Throw an error if trying to filter by usersIds that are not within your TEAM
-    if (!areUserIdsWithinUserOrgOrTeam) {
+    if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",
@@ -237,7 +251,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -250,10 +264,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
+    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    userEmailsWhereUserIsAdminOrOwner?.length &&
+    if (userEmailsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -267,11 +282,12 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
+    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
+    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -284,11 +300,12 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
+    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    userIdsWhereUserIsAdminOrOwner?.length &&
+    if (userIdsWhereUserIsAdminOrOwner?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -300,6 +317,7 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
+    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
@@ -480,6 +498,8 @@ export async function getBookings({
                 "EventType.currency",
                 "EventType.metadata",
                 "EventType.disableGuests",
+                "EventType.bookingFields",
+                "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
@@ -489,7 +509,7 @@ export async function getBookings({
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
                 eb
-                  .cast<SchedulingType>(
+                  .cast<SchedulingType | null>(
                     eb
                       .case()
                       .when("EventType.schedulingType", "=", "roundRobin")
@@ -498,11 +518,25 @@ export async function getBookings({
                       .then(SchedulingType["COLLECTIVE"])
                       .when("EventType.schedulingType", "=", "managed")
                       .then(SchedulingType["MANAGED"])
-                      .else(SchedulingType["ROUND_ROBIN"]) // Ensure ELSE provides a value within SchedulingTypeLiteral for cast safety
+                      .else(null)
                       .end(),
                     "varchar" // Or 'text' - use the actual SQL data type
                   )
                   .as("schedulingType"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .select((eb) => [
+                      "Host.userId",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("users")
+                          .select(["users.id", "users.email"])
+                          .whereRef("Host.userId", "=", "users.id")
+                      ).as("user"),
+                    ])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
                 "EventType.length",
                 jsonObjectFrom(
                   eb
@@ -510,6 +544,12 @@ export async function getBookings({
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("HostGroup")
+                    .select(["HostGroup.id", "HostGroup.name"])
+                    .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+                ).as("hostGroups"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -544,7 +584,6 @@ export async function getBookings({
                     .selectFrom("Attendee")
                     .select(["Attendee.email"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
@@ -557,6 +596,18 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reportedById",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.createdAt",
+              ])
+              .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
+          ).as("report"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
@@ -640,10 +691,30 @@ export async function getBookings({
     })
   );
 
+  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    if (booking.user?.id === userId) {
+      return true;
+    }
+
+    if (!booking.eventType?.hosts || booking.eventType.hosts.length === 0) {
+      return false;
+    }
+
+    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+
+    return booking.eventType.hosts.some(({ user: hostUser }) => {
+      return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
+    });
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        !checkIfUserIsHost(user.id, booking)
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 

@@ -8,6 +8,7 @@ import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import dynamic from "next/dynamic";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
@@ -15,12 +16,12 @@ import { useEffect } from "react";
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
 
@@ -33,13 +34,11 @@ const I18nextAdapter = appWithTranslation<
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      WithNonceProps<{
-        themeBasis?: string;
-        session: Session;
-        i18n?: SSRConfig;
-      }>
-    >
+    WithLocaleProps<{
+      themeBasis?: string;
+      session: Session;
+      i18n?: SSRConfig;
+    }>
   >,
   "Component"
 > & {
@@ -72,12 +71,7 @@ const getEmbedNamespace = (query: ParsedUrlQuery) => {
   return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
 };
 
-// We dont need to pass nonce to the i18n provider - this was causing x2-x3 re-renders on a hard refresh
-type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
-  pageProps: Omit<AppPropsWithChildren["pageProps"], "nonce">;
-};
-
-const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
+const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
@@ -141,7 +135,7 @@ const enum ThemeSupport {
 
 type CalcomThemeProps = PropsWithChildren<
   Pick<AppProps, "router"> &
-    Pick<AppProps["pageProps"], "nonce" | "themeBasis"> &
+    Pick<AppProps["pageProps"], "themeBasis"> &
     Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
 >;
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -253,7 +247,6 @@ function getThemeProviderProps({
     storageKey,
     forcedTheme,
     themeSupport,
-    nonce: props.nonce,
     enableColorScheme: false,
     enableSystem: themeSupport !== ThemeSupport.None,
     // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
@@ -280,30 +273,31 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   const isBookingPage = useIsBookingPage();
-  const { pageProps, ...rest } = props;
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { nonce, ...restPageProps } = pageProps;
-  const propsWithoutNonce = {
-    pageProps: {
-      ...restPageProps,
-    },
-    ...rest,
-  };
+  const _isBookingPage =
+    (typeof props.Component.isBookingPage === "function"
+      ? props.Component.isBookingPage({ router: props.router })
+      : props.Component.isBookingPage) || isBookingPage;
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <CustomI18nextProvider {...propsWithoutNonce}>
+      <CustomI18nextProvider {...props}>
         <TooltipProvider>
           <CalcomThemeProvider
             themeBasis={props.pageProps.themeBasis}
-            nonce={props.pageProps.nonce}
             isThemeSupported={props.Component.isThemeSupported}
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
-            <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
-            </FeatureFlagsProvider>
+            <NuqsAdapter>
+              <FeatureFlagsProvider>
+                {_isBookingPage ? (
+                  <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                ) : (
+                  <DynamicIntercomProvider>
+                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                  </DynamicIntercomProvider>
+                )}
+              </FeatureFlagsProvider>
+            </NuqsAdapter>
           </CalcomThemeProvider>
         </TooltipProvider>
       </CustomI18nextProvider>

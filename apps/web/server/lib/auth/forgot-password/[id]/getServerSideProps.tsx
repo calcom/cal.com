@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/react";
 
 import prisma from "@calcom/prisma";
 
@@ -28,7 +27,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     props: {
       isRequestExpired: !resetPasswordRequest,
       requestId: id,
-      csrfToken: await getCsrfToken({ req: context.req }),
     },
   };
 }

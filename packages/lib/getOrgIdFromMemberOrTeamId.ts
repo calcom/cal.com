@@ -1,45 +1,74 @@
-import prisma from "@calcom/prisma";
+import { prisma, type PrismaTransaction } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
-export default async function getOrgIdFromMemberOrTeamId(args: {
+const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
+  const conditions: Prisma.TeamWhereInput[] = [];
+
+  if (memberId) {
+    conditions.push({
+      AND: [
+        {
+          members: {
+            some: {
+              userId: memberId,
+              accepted: true,
+            },
+          },
+        },
+        {
+          isOrganization: true,
+        },
+      ],
+    });
+  }
+
+  if (teamId) {
+    conditions.push({
+      AND: [
+        {
+          children: {
+            some: {
+              id: teamId,
+            },
+          },
+        },
+        {
+          isOrganization: true,
+        },
+      ],
+    });
+  }
+
+  return {
+    OR: conditions,
+  };
+};
+
+export default async function getOrgIdFromMemberOrTeamId(
+  args: {
+    memberId?: number | null;
+    teamId?: number | null;
+  },
+  tx?: PrismaTransaction
+) {
+  const client = tx ?? prisma;
+  const orgId = await client.team.findFirst({
+    where: getOrgMemberOrTeamWhere(args.memberId, args.teamId),
+    select: {
+      id: true,
+    },
+  });
+  return orgId?.id;
+}
+
+export async function getPublishedOrgIdFromMemberOrTeamId(args: {
   memberId?: number | null;
   teamId?: number | null;
 }) {
-  const userId = args.memberId ?? 0;
-  const teamId = args.teamId ?? 0;
-
   const orgId = await prisma.team.findFirst({
     where: {
-      OR: [
-        {
-          AND: [
-            {
-              members: {
-                some: {
-                  userId,
-                  accepted: true,
-                },
-              },
-            },
-            {
-              isOrganization: true,
-            },
-          ],
-        },
-        {
-          AND: [
-            {
-              children: {
-                some: {
-                  id: teamId,
-                },
-              },
-            },
-            {
-              isOrganization: true,
-            },
-          ],
-        },
-      ],
+      ...getOrgMemberOrTeamWhere(args.memberId, args.teamId),
+      slug: { not: null },
     },
     select: {
       id: true,

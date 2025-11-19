@@ -4,9 +4,9 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable } from "@nestjs/common";
 
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-import { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
+import type { UpdateOrgMembershipDto } from "./inputs/update-organization-membership.input";
 
 export type DbOrgMembership = Awaited<ReturnType<OrganizationsMembershipRepository["findOrgMembership"]>>;
 

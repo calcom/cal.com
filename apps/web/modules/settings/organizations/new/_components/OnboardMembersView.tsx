@@ -5,18 +5,19 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -29,13 +30,35 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm />;
 };
 
-const useCheckout = () => {
+const useOrgCreation = () => {
   const { t } = useLocale();
+  const session = useSession();
+  const utils = trpc.useUtils();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
-  const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
-    onSuccess: (data) => {
+  const { useOnboardingStore } = useOnboarding();
+  const { reset } = useOnboardingStore();
+
+  // Single mutation for all flows (billing, self-hosted, admin)
+  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
+    onSuccess: async (data) => {
+      reset({
+        onboardingId: data.organizationOnboardingId,
+      });
+
       if (data.checkoutUrl) {
+        // Billing enabled - redirect to Stripe
         window.location.href = data.checkoutUrl;
+      } else if (data.organizationId) {
+        // Self-hosted - org already created, redirect to organizations
+        await utils.viewer.organizations.listCurrent.invalidate();
+        await session.update();
+        reset();
+        // Set flag to show welcome modal (using both query param and sessionStorage for reliability)
+        setShowNewOrgModalFlag();
+        window.location.href = `${window.location.origin}/settings/organizations/profile?newOrganizationModal=true`;
+      } else {
+        // Unexpected state
+        setServerErrorMessage("Unexpected response from server");
       }
     },
     onError: (error) => {
@@ -44,16 +67,16 @@ const useCheckout = () => {
   });
 
   return {
-    mutation,
-    mutate: mutation.mutate,
-    isPending: mutation.isPending,
+    mutation: intentToCreateOrgMutation,
+    mutate: intentToCreateOrgMutation.mutate,
+    isPending: intentToCreateOrgMutation.isPending,
     errorMessage: serverErrorMessage,
   };
 };
 
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
-  const { useOnboardingStore } = useOnboarding();
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const {
     addInvitedMember,
     removeInvitedMember,
@@ -62,9 +85,15 @@ export const AddNewTeamMembersForm = () => {
     invitedMembers,
     logo,
     bio,
-    onboardingId,
+    name,
+    slug,
+    billingPeriod,
+    seats,
+    pricePerSeat,
+    brandColor,
+    bannerUrl,
   } = useOnboardingStore();
-  const checkout = useCheckout();
+  const orgCreation = useOrgCreation();
 
   const teamIds = teams.filter((team) => team.isBeingMigrated && team.id > 0).map((team) => team.id);
 
@@ -117,9 +146,9 @@ export const AddNewTeamMembersForm = () => {
 
   return (
     <>
-      {checkout.errorMessage && (
+      {orgCreation.errorMessage && (
         <div className="mb-4">
-          <Alert severity="error" message={checkout.errorMessage} />
+          <Alert severity="error" message={orgCreation.errorMessage} />
         </div>
       )}
       <div className="space-y-6">
@@ -133,7 +162,7 @@ export const AddNewTeamMembersForm = () => {
                 placeholder="colleague@company.com"
               />
             </div>
-            <Button type="submit" StartIcon="plus" color="secondary">
+            <Button type="submit" StartIcon="plus" color="secondary" data-testid="invite-new-member-button">
               {t("add")}
             </Button>
           </form>
@@ -180,26 +209,36 @@ export const AddNewTeamMembersForm = () => {
           </ul>
         )}
       </div>
-      <div className="mt-3 mt-6 flex items-center justify-end">
+
+      <div className="mt-3 flex items-center justify-end">
         <Button
+          data-testid="publish-button"
           onClick={() => {
-            if (!onboardingId) {
-              console.error("Org owner email and onboardingId are required", {
-                orgOwnerEmail,
-                onboardingId,
-              });
+            // Submit ALL data to intentToCreateOrg
+            if (!name || !slug || !orgOwnerEmail) {
+              console.error("Required fields missing", { name, slug, orgOwnerEmail });
+              showToast(t("required_fields_missing"), "error");
               return;
             }
-            checkout.mutation.mutate({
+
+            orgCreation.mutate({
+              name,
+              slug,
+              orgOwnerEmail,
+              seats,
+              pricePerSeat,
+              billingPeriod,
+              creationSource: "WEBAPP" as const,
               logo,
               bio,
+              brandColor,
+              bannerUrl,
               teams,
               invitedMembers,
-              onboardingId,
             });
           }}
-          loading={checkout.isPending}>
-          {t("checkout")}
+          loading={orgCreation.isPending}>
+          {isBillingEnabled ? t("checkout") : t("create")}
         </Button>
       </div>
     </>

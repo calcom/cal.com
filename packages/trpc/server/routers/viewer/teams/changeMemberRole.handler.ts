@@ -1,6 +1,6 @@
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -15,58 +15,68 @@ type ChangeMemberRoleOptions = {
 };
 
 export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOptions) => {
-  if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  // Only owners can award owner role.
-  if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  const memberships = await prisma.membership.findMany({
-    where: {
-      teamId: input.teamId,
-    },
-  });
+  // Get team info to check if it's part of an organization
+  const teamRepo = new TeamRepository(prisma);
+  const team = await teamRepo.findById({ id: input.teamId });
+  if (!team) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+  }
 
-  const targetMembership = memberships.find((m) => m.userId === input.memberId);
-  const myMembership = memberships.find((m) => m.userId === ctx.user.id);
-  const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
-  const teamHasMoreThanOneOwner = teamOwners.length > 1;
+  // Get the organization ID (either the team's parent or the team itself if it's an org)
+  const organizationId = team.parentId || input.teamId;
 
-  if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
+  // Create role manager for this organization/team
+  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+
+  // Check permission to change roles (includes legacy validation for LegacyRoleManager)
+  try {
+    await roleManager.checkPermissionToChangeRole(
+      ctx.user.id,
+      input.teamId,
+      "team",
+      input.memberId,
+      input.role
+    );
+  } catch (error) {
     throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change the role of an owner if you are an admin.",
+      code: "UNAUTHORIZED",
+      message: error instanceof Error ? error.message : "Unauthorized",
     });
   }
 
-  if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change the role of the only owner of a team.",
-    });
-  }
-
-  if (
-    myMembership?.role === MembershipRole.ADMIN &&
-    input.memberId === ctx.user.id &&
-    input.role !== MembershipRole.MEMBER
-  ) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not change yourself to a higher role.",
-    });
-  }
-
-  const membership = await prisma.membership.update({
+  // Get the target membership for the assignRole method
+  const targetMembership = await prisma.membership.findUnique({
     where: {
       userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },
-    data: {
-      role: input.role,
+  });
+
+  if (!targetMembership) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Target membership not found" });
+  }
+
+  // Use role manager to assign the role
+  try {
+    await roleManager.assignRole(input.memberId, input.teamId, input.role, targetMembership.id);
+  } catch (error) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: error instanceof Error ? error.message : "Failed to assign role",
+    });
+  }
+
+  // Return updated membership
+  const updatedMembership = await prisma.membership.findUnique({
+    where: {
+      userId_teamId: { userId: input.memberId, teamId: input.teamId },
     },
     include: {
       team: true,
       user: true,
     },
   });
+
+  return updatedMembership;
 };
 
 export default changeMemberRoleHandler;

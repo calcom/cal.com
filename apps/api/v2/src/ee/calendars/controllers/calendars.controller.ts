@@ -9,6 +9,7 @@ import {
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
@@ -38,7 +39,6 @@ import {
   ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
@@ -53,6 +53,24 @@ import {
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
+
+export interface CalendarState {
+  accessToken: string;
+  origin: string;
+  redir?: string;
+  isDryRun?: boolean;
+}
+
+const calendarStateSchema = z.object({
+  accessToken: z.string(),
+  origin: z.string(),
+  redir: z.string().optional(),
+  isDryRun: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
+});
 
 @Controller({
   path: "/v2/calendars",
@@ -62,6 +80,7 @@ import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } f
 export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
+    private readonly calendarsCacheService: CalendarsCacheService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
     private readonly appleCalendarService: AppleCalendarService,
@@ -140,7 +159,7 @@ export class CalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get oAuth connect URL" })
+  @ApiOperation({ summary: "Get OAuth connect URL" })
   @ApiQuery({
     name: "redir",
     required: false,
@@ -181,32 +200,31 @@ export class CalendarsController {
     @Query("code") code: string,
     @Param("calendar") calendar: string
   ): Promise<{ url: string }> {
-    // state params contains our user access token
-    const stateParams = new URLSearchParams(state);
-    const { accessToken, origin, redir, isDryRun } = z
-      .object({
-        accessToken: z.string(),
-        origin: z.string(),
-        redir: z.string().nullish().optional(),
-        isDryRun: z.string().nullish().optional(),
-      })
-      .parse({
+    let stateObj: CalendarState;
+
+    try {
+      // First try to parse as JSON
+      stateObj = JSON.parse(state) as CalendarState;
+    } catch (e) {
+      // If JSON parsing fails, try URL params
+      const stateParams = new URLSearchParams(state);
+
+      const parsedState = calendarStateSchema.parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
-        redir: stateParams.get("redir"),
+        redir: stateParams.get("redir") || undefined,
         isDryRun: stateParams.get("isDryRun"),
       });
+
+      stateObj = parsedState;
+    }
+
+    const { accessToken, origin, redir, isDryRun } = stateObj;
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.save(code, accessToken, origin, redir ?? "", isDryRun === "true");
+        return await this.outlookService.save(code, accessToken, origin, redir ?? "", !!isDryRun);
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.save(
-          code,
-          accessToken,
-          origin,
-          redir ?? "",
-          isDryRun === "true"
-        );
+        return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "", !!isDryRun);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -290,6 +308,8 @@ export class CalendarsController {
     const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
       credentialId
     );
+
+    this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 
     return {
       status: SUCCESS_STATUS,

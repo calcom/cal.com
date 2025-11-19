@@ -31,12 +31,7 @@ function ValidateBookingName(validationOptions?: ValidationOptions) {
             return value.trim().length > 0;
           }
           if (typeof value === "object" && value !== null) {
-            return (
-              typeof value.firstName === "string" &&
-              typeof value.lastName === "string" &&
-              value.firstName.trim().length > 0 &&
-              value.lastName.trim().length > 0
-            );
+            return typeof value.firstName === "string" && value.firstName.trim().length > 0;
           }
           return false;
         },
@@ -198,11 +193,6 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiHideProperty()
   skipContactOwner?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
-  _shouldServeCache?: boolean;
 
   @IsBoolean()
   @IsOptional()

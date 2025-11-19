@@ -5,7 +5,7 @@ import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail {
@@ -26,7 +26,8 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       ...getReplyToHeader(
         this.calEvent,
-        this.calEvent.attendees.map(({ email }) => email)
+        this.calEvent.attendees.map(({ email }) => email),
+        true
       ),
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,

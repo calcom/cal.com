@@ -8,28 +8,53 @@ export async function assignmentReasonHandler({
   recordType,
   teamMemberEmail,
   routingFormResponseId,
+  recordId,
 }: {
   recordType: string;
   teamMemberEmail: string;
   routingFormResponseId: number;
+  recordId?: string;
 }) {
   const returnObject = { reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT };
 
   switch (recordType) {
     case SalesforceRecordEnum.CONTACT:
-      return { ...returnObject, assignmentReason: `Salesforce contact owner: ${teamMemberEmail}` };
+      return {
+        ...returnObject,
+        assignmentReason: `Salesforce contact owner: ${teamMemberEmail}${
+          recordId ? ` (Contact ID: ${recordId})` : ""
+        }`,
+      };
     case SalesforceRecordEnum.LEAD:
-      return { ...returnObject, assignmentReason: `Salesforce lead owner: ${teamMemberEmail}` };
+      return {
+        ...returnObject,
+        assignmentReason: `Salesforce lead owner: ${teamMemberEmail}${
+          recordId ? ` (Lead ID: ${recordId})` : ""
+        }`,
+      };
     case SalesforceRecordEnum.ACCOUNT:
-      return { ...returnObject, assignmentReason: `Salesforce account owner: ${teamMemberEmail}` };
+      return {
+        ...returnObject,
+        assignmentReason: `Salesforce account owner: ${teamMemberEmail}${
+          recordId ? ` (Account ID: ${recordId})` : ""
+        }`,
+      };
     case RoutingReasons.ACCOUNT_LOOKUP_FIELD:
-      const assignmentReason = await handleAccountLookupFieldReason(routingFormResponseId, teamMemberEmail);
+      const assignmentReason = await handleAccountLookupFieldReason(
+        routingFormResponseId,
+        teamMemberEmail,
+        recordId
+      );
       return { ...returnObject, assignmentReason };
   }
 }
 
-async function handleAccountLookupFieldReason(routingFormResponseId: number, teamMemberEmail: string) {
-  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+async function handleAccountLookupFieldReason(
+  routingFormResponseId: number,
+  teamMemberEmail: string,
+  recordId?: string
+) {
+  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
       id: routingFormResponseId,
     },
@@ -67,6 +92,8 @@ async function handleAccountLookupFieldReason(routingFormResponseId: number, tea
   const accountLookupFieldName = salesforceConfig?.rrSKipToAccountLookupFieldName;
 
   return accountLookupFieldName
-    ? `Salesforce account lookup field: ${accountLookupFieldName} - ${teamMemberEmail}`
+    ? `Salesforce account lookup field: ${accountLookupFieldName} - ${teamMemberEmail}${
+        recordId ? ` (Account ID: ${recordId})` : ""
+      }`
     : undefined;
 }

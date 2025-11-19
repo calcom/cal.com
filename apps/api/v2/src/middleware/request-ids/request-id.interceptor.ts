@@ -1,3 +1,4 @@
+import { extractUserContext } from "@/lib/extract-user-context";
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from "@nestjs/common";
 import { Request, Response } from "express";
 import { tap } from "rxjs/operators";
@@ -14,6 +15,7 @@ export class ResponseInterceptor implements NestInterceptor {
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());
     const { method, url } = request;
+    const userContext = extractUserContext(request);
     const startTime = Date.now();
 
     return next.handle().pipe(
@@ -39,6 +41,7 @@ export class ResponseInterceptor implements NestInterceptor {
           responseTime,
           responseBody: jsonBodyString,
           timestamp: new Date().toISOString(),
+          ...userContext,
         });
       })
     );

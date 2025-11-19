@@ -4,6 +4,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
@@ -18,6 +19,18 @@ import {
   getFieldNameFromErrorMessage,
 } from "./useShouldBeDisabledDueToPrefill";
 import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
+
+// helper to render markdown label safely
+const renderLabel = (field: Partial<RhfFormField>) => {
+  if (field.labelAsSafeHtml) {
+    return (
+      <span
+        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }}
+      />
+    );
+  }
+  return <span>{field.label}</span>;
+};
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -52,10 +65,12 @@ export const FormBuilderField = ({
   field,
   readOnly,
   className,
+  onValueChange,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
+  onValueChange?: (args: { name: string; value: unknown; prevValue: unknown }) => void;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -73,15 +88,18 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          const setAndNotify = (val: unknown) => {
+            onChange(val);
+            onValueChange?.({ name: field.name, value: val, prevValue: value });
+          };
+
           return (
             <div>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
                 readOnly={readOnly || shouldBeDisabled}
-                setValue={(val: unknown) => {
-                  onChange(val);
-                }}
+                setValue={setAndNotify}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
               />
@@ -155,7 +173,7 @@ const WithLabel = ({
           field.label && (
             <div className="mb-2 flex items-center">
               <Label className="!mb-0 flex items-center" htmlFor={htmlFor}>
-                <span>{field.label}</span>
+                {renderLabel(field)}
                 <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}
                 </span>

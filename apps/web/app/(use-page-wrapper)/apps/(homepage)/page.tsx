@@ -3,7 +3,8 @@ import { cookies, headers } from "next/headers";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -25,7 +26,8 @@ const ServerPage = async () => {
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {
-    const userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
+    const userRepo = new UserRepository(prisma);
+    const userAdminTeams = await userRepo.getUserAdminTeams({ userId: session.user.id });
     userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
     appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
   } else {

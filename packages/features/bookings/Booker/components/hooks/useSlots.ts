@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import {
@@ -78,10 +78,10 @@ const useQuickAvailabilityChecks = ({
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { id: number; length: number } | null) => {
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
   const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
-    useBookerStore(
+    useBookerStoreContext(
       (state) => [
         state.selectedTimeslot,
         state.setSelectedTimeslot,

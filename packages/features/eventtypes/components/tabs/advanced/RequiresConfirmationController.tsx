@@ -6,6 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -99,14 +100,21 @@ export default function RequiresConfirmationController({
               data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
-              description={t("requires_confirmation_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="requires_confirmation_description"
+                  href="https://cal.com/help/event-types/how-to-requires"
+                />
+              }
               checked={requiresConfirmation}
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck the "will block slot" checkbox
+                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
+                  formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
               }}>
@@ -207,7 +215,7 @@ export default function RequiresConfirmationController({
                                           customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
                                         }
                                         innerClassNames={{
-                                          control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                                          control: "rounded-l-none max-h-4 px-3 bg-subtle py-1",
                                         }}
                                         onChange={(opt) => {
                                           setRequiresConfirmationSetup({
@@ -233,36 +241,38 @@ export default function RequiresConfirmationController({
                           id="notice"
                           value="notice"
                         />
-                        <CheckboxField
-                          checked={requiresConfirmationWillBlockSlot}
-                          descriptionAsLabel
-                          description={t("requires_confirmation_will_block_slot_description")}
-                          className={customClassNames?.conditionalConfirmationRadio?.checkbox}
-                          descriptionClassName={
-                            customClassNames?.conditionalConfirmationRadio?.checkboxDescription
-                          }
-                          onChange={(e) => {
-                            // We set should dirty to properly detect when we can submit the form
-                            formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
-                              shouldDirty: true,
-                            });
-                          }}
-                        />
-                        <CheckboxField
-                          checked={requiresConfirmationForFreeEmail}
-                          descriptionAsLabel
-                          description={t("require_confirmation_for_free_email")}
-                          className={customClassNames?.conditionalConfirmationRadio?.checkbox}
-                          descriptionClassName={
-                            customClassNames?.conditionalConfirmationRadio?.checkboxDescription
-                          }
-                          onChange={(e) => {
-                            // We set should dirty to properly detect when we can submit the form
-                            formMethods.setValue("requiresConfirmationForFreeEmail", e.target.checked, {
-                              shouldDirty: true,
-                            });
-                          }}
-                        />
+                        <div className="-ml-1 space-y-2">
+                          <CheckboxField
+                            checked={requiresConfirmationWillBlockSlot}
+                            descriptionAsLabel
+                            description={t("requires_confirmation_will_block_slot_description")}
+                            className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                            descriptionClassName={
+                              customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                            }
+                            onChange={(e) => {
+                              // We set should dirty to properly detect when we can submit the form
+                              formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                          <CheckboxField
+                            checked={requiresConfirmationForFreeEmail}
+                            descriptionAsLabel
+                            description={t("require_confirmation_for_free_email")}
+                            className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                            descriptionClassName={
+                              customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                            }
+                            onChange={(e) => {
+                              // We set should dirty to properly detect when we can submit the form
+                              formMethods.setValue("requiresConfirmationForFreeEmail", e.target.checked, {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                        </div>
                       </>
                     )}
                   </div>

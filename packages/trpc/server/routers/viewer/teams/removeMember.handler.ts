@@ -1,67 +1,72 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import logger from "@calcom/lib/logger";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TRemoveMemberInputSchema } from "./removeMember.schema";
+import { RemoveMemberServiceFactory } from "./removeMember/RemoveMemberServiceFactory";
 
-const log = logger.getSubLogger({ prefix: ["viewer/teams/removeMember.handler"] });
 type RemoveMemberOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
-    sourceIp?: string;
+    user: {
+      id: number;
+      organization?: {
+        isOrgAdmin: boolean;
+      };
+    };
   };
   input: TRemoveMemberInputSchema;
 };
 
-export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
+export const removeMemberHandler = async ({
+  ctx: {
+    user: { id: userId, organization },
+  },
+  input,
+}: RemoveMemberOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `removeMember.${ctx.sourceIp}`,
+    identifier: `removeMember.${userId}`,
   });
 
   const { memberIds, teamIds, isOrg } = input;
+  const isOrgAdmin = organization?.isOrgAdmin ?? false;
 
-  const isAdmin = await Promise.all(
-    teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
-  ).then((results) => results.every((result) => result));
-
-  const isOrgAdmin = ctx.user.profile?.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
-    : false;
-
-  if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  // Only a team owner can remove another team owner.
-  const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
-    memberIds.map(async (memberId) => {
-      const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
-        teamIds.map(async (teamId) => {
-          return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(ctx.user.id, teamId));
-        })
-      ).then((results) => results.some((result) => result));
-
-      return isAnyTeamOwnerAndCurrentUserNotOwner;
-    })
-  ).then((results) => results.some((result) => result));
-
-  if (isAnyMemberOwnerAndCurrentUserNotOwner) {
+  // Note: This assumes that all teams in the request have the same PBAC setting 9999% chance they do.
+  const primaryTeamId = teamIds[0];
+  if (!primaryTeamId) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Only a team owner can remove another team owner.",
+      code: "BAD_REQUEST",
+      message: "At least one team ID must be provided",
     });
   }
 
-  if (memberIds.some((memberId) => ctx.user.id === memberId) && isAdmin && !isOrgAdmin)
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You can not remove yourself from a team you own.",
-    });
+  // Get the appropriate service based on feature flag
+  const service = await RemoveMemberServiceFactory.create(primaryTeamId);
 
-  await TeamRepository.removeMembers(teamIds, memberIds, isOrg);
+  const { hasPermission } = await service.checkRemovePermissions({
+    userId,
+    isOrgAdmin,
+    memberIds,
+    teamIds,
+    isOrg,
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  await service.validateRemoval(
+    {
+      userId,
+      isOrgAdmin,
+      memberIds,
+      teamIds,
+      isOrg,
+    },
+    hasPermission
+  );
+
+  // Perform the removal
+  await service.removeMembers(memberIds, teamIds, isOrg);
 };
 
 export default removeMemberHandler;

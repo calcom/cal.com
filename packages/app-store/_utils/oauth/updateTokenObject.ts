@@ -1,9 +1,9 @@
-import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
 
@@ -23,7 +23,7 @@ export const updateTokenObject = async ({
       id: credentialId,
     },
     data: {
-      key: tokenObject,
+      key: tokenObject as unknown as Prisma.InputJsonValue,
     },
   });
 };

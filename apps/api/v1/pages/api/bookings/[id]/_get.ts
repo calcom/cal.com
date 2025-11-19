@@ -1,5 +1,7 @@
 import type { NextApiRequest } from "next";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
@@ -100,12 +102,20 @@ export async function getHandler(req: NextApiRequest) {
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       attendees: true,
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       user: true,
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       payment: true,
       eventType: expand.includes("team") ? { include: { team: true } } : false,
     },
   });
+
+  if (!booking) {
+    throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+  }
+
   return { booking: schemaBookingReadPublic.parse(booking) };
 }
 

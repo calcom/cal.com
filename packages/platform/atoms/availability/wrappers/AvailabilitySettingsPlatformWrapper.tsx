@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { forwardRef, useRef } from "react";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
+import type { UpdateScheduleResponse } from "@calcom/features/schedules/services/ScheduleService";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
@@ -13,9 +14,9 @@ import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
-import type { AvailabilityFormValues } from "../types";
+import type { AvailabilityFormValues, AvailabilitySettingsFormRef } from "../types";
 
-type AvailabilitySettingsPlatformWrapperProps = {
+export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
@@ -37,24 +38,28 @@ type AvailabilitySettingsPlatformWrapperProps = {
   loadingStateChildren?: ReactNode;
 };
 
-export const AvailabilitySettingsPlatformWrapper = ({
-  id,
-  customClassNames,
-  onDeleteError,
-  onDeleteSuccess,
-  onUpdateError,
-  onUpdateSuccess,
-  disableEditableHeading = false,
-  enableOverrides = false,
-  onBeforeUpdate,
-  onFormStateChange,
-  allowDelete,
-  allowSetToDefault,
-  disableToasts,
-  isDryRun = false,
-  noScheduleChildren,
-  loadingStateChildren,
-}: AvailabilitySettingsPlatformWrapperProps) => {
+export const AvailabilitySettingsPlatformWrapper = forwardRef<
+  AvailabilitySettingsFormRef,
+  AvailabilitySettingsPlatformWrapperProps
+>(function AvailabilitySettingsPlatformWrapper(props, ref) {
+  const {
+    id,
+    customClassNames,
+    onDeleteError,
+    onDeleteSuccess,
+    onUpdateError,
+    onUpdateSuccess,
+    disableEditableHeading = false,
+    enableOverrides = false,
+    onBeforeUpdate,
+    onFormStateChange,
+    allowDelete,
+    allowSetToDefault,
+    disableToasts,
+    isDryRun = false,
+    noScheduleChildren,
+    loadingStateChildren,
+  } = props;
   const { isLoading, data: atomSchedule } = useAtomSchedule(id);
   const { data: me } = useMe();
   const { timeFormat } = me?.data || { timeFormat: null };
@@ -79,6 +84,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
     },
   });
 
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useAtomUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
@@ -87,6 +94,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
           description: "Schedule updated successfully",
         });
       }
+      callbacksRef.current?.onSuccess?.();
     },
     onError: (err) => {
       onUpdateError?.(err);
@@ -95,6 +103,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
           description: "Could not update schedule",
         });
       }
+      callbacksRef.current?.onError?.(err);
     },
   });
 
@@ -139,6 +148,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   return (
     <AtomsWrapper>
       <AvailabilitySettings
+        ref={ref}
         disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
           if (isDryRun) {
@@ -192,7 +202,9 @@ export const AvailabilitySettingsPlatformWrapper = ({
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
         onFormStateChange={onFormStateChange}
+        callbacksRef={callbacksRef}
+        isDryRun={isDryRun}
       />
     </AtomsWrapper>
   );
-};
+});

@@ -8,7 +8,12 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const OrgAdminOnlyLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
+  const userProfile = session?.user?.profile;
+  const userId = session?.user?.id;
+  const orgRole =
+    session?.user?.org?.role ??
+    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
 
   if (!isOrgAdminOrOwner) {
     return redirect("/settings/organizations/profile");

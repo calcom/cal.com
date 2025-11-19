@@ -1,12 +1,10 @@
 import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import InsightsPage from "~/insights/insights-view";
+
+import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -18,7 +16,7 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await checkInsightsPagePermission();
 
   const { timeZone } = await prisma.user.findUniqueOrThrow({
     where: { id: session?.user.id ?? -1 },

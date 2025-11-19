@@ -4,118 +4,182 @@ import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
 import { useDailyEvent } from "@daily-co/daily-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
+  const { t } = useLocale();
   const {
     meetingUrl,
     meetingPassword,
     booking,
     hasTeamPlan,
     calVideoLogo,
-    displayLogInOverlay,
     loggedInUserName,
     overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
+    showTranscriptionButton,
     rediectAttendeeToOnExit,
+    requireEmailForGuests,
+    isLoggedInUserPartOfMeeting,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [guestCredentials, setGuestCredentials] = useState<{
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  } | null>(null);
 
-  useEffect(() => {
-    let callFrame: DailyCall | undefined;
-    try {
-      callFrame = DailyIframe.createFrame({
-        theme: {
-          colors: {
-            accent: "#FFF",
-            accentText: "#111111",
-            background: "#111111",
-            backgroundAccent: "#111111",
-            baseText: "#FFF",
-            border: "#292929",
-            mainAreaBg: "#111111",
-            mainAreaBgAccent: "#1A1A1A",
-            mainAreaText: "#FFF",
-            supportiveText: "#FFF",
-          },
-        },
-        showLeaveButton: true,
-        iframeStyle: {
-          position: "fixed",
-          width: "100%",
-          height: "100%",
-        },
-        url: meetingUrl,
-        userName: overrideName ?? loggedInUserName ?? undefined,
-        ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-        ...(hasTeamPlan && {
-          customTrayButtons: {
-            ...(showRecordingButton
-              ? {
-                  recording: {
-                    label: "Record",
-                    tooltip: "Start or stop recording",
-                    iconPath: RECORDING_DEFAULT_ICON,
-                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
-                  },
-                }
-              : {}),
-            transcription: {
-              label: "Cal.ai",
-              tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+  const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
+  const hideLoginModal =
+    !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
+  const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
+
+  const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
+  const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
+  const activeUserName = guestCredentials?.userName ?? userNameForCall;
+
+  const createCallFrame = useCallback(
+    (userName?: string, password?: string, url?: string) => {
+      let callFrame: DailyCall | undefined;
+
+      try {
+        callFrame = DailyIframe.createFrame({
+          theme: {
+            colors: {
+              accent: "#FFF",
+              accentText: "#111111",
+              background: "#111111",
+              backgroundAccent: "#111111",
+              baseText: "#FFF",
+              border: "#292929",
+              mainAreaBg: "#111111",
+              mainAreaBgAccent: "#1A1A1A",
+              mainAreaText: "#FFF",
+              supportiveText: "#FFF",
             },
           },
-        }),
-      });
+          showLeaveButton: true,
+          iframeStyle: {
+            position: "fixed",
+            width: "100%",
+            height: "100%",
+          },
+          url: url ?? meetingUrl,
+          userName: userName,
+          ...(typeof (password ?? meetingPassword) === "string" && { token: password ?? meetingPassword }),
+          ...(hasTeamPlan && {
+            customTrayButtons: {
+              ...(showRecordingButton
+                ? {
+                    recording: {
+                      label: t("record"),
+                      tooltip: t("start_or_stop_recording"),
+                      iconPath: RECORDING_DEFAULT_ICON,
+                      iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                    },
+                  }
+                : {}),
+              ...(showTranscriptionButton
+                ? {
+                    transcription: {
+                      label: t("transcribe"),
+                      tooltip: t("transcription_powered_by_ai"),
+                      iconPath: TRANSCRIPTION_STOPPED_ICON,
+                      iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                    },
+                  }
+                : {}),
+            },
+          }),
+        });
 
-      if (overrideName) {
-        callFrame.setUserName(overrideName);
+        if (userName) {
+          callFrame.setUserName(userName);
+        }
+
+        return callFrame;
+      } catch (err) {
+        return DailyIframe.getCallInstance();
       }
-    } catch (err) {
-      callFrame = DailyIframe.getCallInstance();
-    } finally {
-      setDaily(callFrame ?? null);
+    },
+    [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton, t]
+  );
+  useEffect(() => {
+    if (!hideLoginModal && !guestCredentials) {
+      return;
+    }
+
+    let callFrame: DailyCall | null = null;
+
+    try {
+      callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
+      setDaily(callFrame);
+      setIsCallFrameReady(true);
+
       callFrame?.join();
+    } catch (error) {
+      console.error("Failed to create or join call:", error);
     }
 
     return () => {
-      callFrame?.destroy();
+      if (callFrame) {
+        try {
+          callFrame.destroy();
+        } catch (error) {
+          console.error("Error destroying call frame:", error);
+        }
+      }
+      setDaily(null);
+      setIsCallFrameReady(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    hideLoginModal,
+    activeUserName,
+    activeMeetingPassword,
+    activeMeetingUrl,
+    createCallFrame,
+    loggedInUserName,
+    overrideName,
+    guestCredentials,
+  ]);
 
   return (
     <DailyProvider callObject={daily}>
-      <div
-        className="mx-auto hidden sm:block"
-        style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe
-          showRecordingButton={showRecordingButton}
-          enableAutomaticTranscription={enableAutomaticTranscription}
-        />
-      </div>
+      {isCallFrameReady && (
+        <div
+          className="mx-auto hidden sm:block"
+          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
+          <CalVideoPremiumFeatures
+            showRecordingButton={showRecordingButton}
+            enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
+            enableAutomaticTranscription={enableAutomaticTranscription}
+            showTranscriptionButton={showTranscriptionButton}
+          />
+        </div>
+      )}
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
           <img
@@ -139,7 +203,18 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
+      {!hideLoginModal && (
+        <LogInOverlay
+          isOpen={!hideLoginModal}
+          bookingUid={booking.uid}
+          loggedInUserName={loggedInUserName ?? undefined}
+          overrideName={overrideName}
+          requireEmailForGuests={requireEmailForGuests}
+          onGuestCredentialsReceived={setGuestCredentials}
+          meetingPassword={meetingPassword}
+          meetingUrl={meetingUrl}
+        />
+      )}
 
       <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
@@ -198,8 +273,7 @@ function ProgressBar(props: ProgressBarProps) {
         intervalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [startingTime]);
 
   const prev = startDuration - duration;
   const percentage = prev * (100 / startDuration);
@@ -217,50 +291,249 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  isLoggedIn: boolean;
+  isOpen: boolean;
   bookingUid: string;
+  loggedInUserName?: string;
+  overrideName?: string;
+  requireEmailForGuests?: boolean;
+  onGuestCredentialsReceived: (credentials: {
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  }) => void;
+  meetingPassword?: string;
+  meetingUrl: string;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { isLoggedIn, bookingUid } = props;
-  const [open, setOpen] = useState(!isLoggedIn);
+  const {
+    bookingUid,
+    isOpen: _open,
+    loggedInUserName,
+    overrideName,
+    requireEmailForGuests = false,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  } = props;
+
+  const [isOpen, setIsOpen] = useState(_open);
+  const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
+  const [userEmail, setUserEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleContinueAsGuest = useCallback(async () => {
+    const trimmedName = userName.trim();
+    const trimmedEmail = userEmail.trim();
+
+    if (!trimmedName) {
+      setError(t("please_enter_name"));
+      return;
+    }
+
+    if (requireEmailForGuests) {
+      if (!trimmedEmail) {
+        setError(t("please_enter_name_and_email"));
+        return;
+      }
+
+      if (!emailRegex.test(trimmedEmail)) {
+        setError(t("invalid_email_address"));
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Only create guest session if email is required and provided
+      if (requireEmailForGuests && trimmedEmail) {
+        const csrfResponse = await fetch("/api/csrf", { cache: "no-store" });
+        const { csrfToken } = await csrfResponse.json();
+
+        const response = await fetch("/api/video/guest-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingUid,
+            email: trimmedEmail,
+            name: trimmedName,
+            csrfToken,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorKey = errorData.error;
+          throw new Error(errorKey || "Failed to create guest session");
+        }
+
+        const { meetingPassword, meetingUrl } = await response.json();
+
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
+      } else {
+        // If email not required, use existing credentials from SSR props
+        if (!meetingPassword) {
+          throw new Error("Meeting password not available");
+        }
+
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
+      }
+    } catch (error) {
+      const errorKey = error instanceof Error ? error.message : "failed_to_join_call";
+      const errorMessage = t(errorKey) || errorKey;
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  }, [
+    userName,
+    userEmail,
+    bookingUid,
+    requireEmailForGuests,
+    t,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  ]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && userName.trim() && !isLoading) {
+        handleContinueAsGuest();
+      }
+    },
+    [userName, isLoading, handleContinueAsGuest]
+  );
+
+  const handleUserNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserName(e.target.value);
+      if (error) {
+        setError(null);
+      }
+    },
+    [error]
+  );
+
+  const handleEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserEmail(e.target.value);
+      if (error) {
+        setError(null);
+      }
+    },
+    [error]
+  );
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         title={t("join_video_call")}
-        description={t("choose_how_you_d_like_to_join_call")}
-        className="bg-black text-white sm:max-w-[480px]">
-        <div className="pb-8">
-          <div className="space-y-8">
-            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
-              {t("continue_as_guest")}
+        description={t("choose_how_you_d_like_to_appear_on_the_call")}
+        className="bg-black/80 p-6 sm:max-w-lg">
+        <div className="mt-2 pb-4">
+          <div className="space-y-4">
+            <div>
+              <div className="font-semibold">{t("join_as_guest")}</div>
+              <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
+            </div>
+
+            {requireEmailForGuests ? (
+              <div className="flex flex-col gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+
+                <Input
+                  type="email"
+                  placeholder={t("email_address")}
+                  className="w-full flex-1"
+                  value={userEmail}
+                  onChange={handleEmailChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                />
+
+                <Button
+                  color="secondary"
+                  className="w-fit self-end"
+                  onClick={handleContinueAsGuest}
+                  loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+                <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Divider */}
+          <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+
+          <div className="mt-5 space-y-4">
+            <div>
+              <h4 className="text-base font-semibold text-black dark:text-white">
+                {t("sign_in_to_cal_com")}
+              </h4>
+              <p className="text-sm text-[#6B7280] dark:text-gray-300">
+                {t("track_meetings_and_manage_schedule")}
+              </p>
+            </div>
+
+            <Button
+              color="primary"
+              className="w-full justify-center"
+              onClick={() =>
+                (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
+              }>
+              {t("sign_in")}
             </Button>
-
-            {/* Divider */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
-              <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
-              <Button
-                color="primary"
-                className="mt-4 w-full justify-center"
-                onClick={() =>
-                  (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
-                }>
-                <Icon name="external-link" className="mr-2 h-4 w-4" />
-                {t("log_in_to_cal_com")}
-              </Button>
-            </div>
           </div>
         </div>
       </DialogContent>
@@ -280,6 +553,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+  const timeZone = booking.user?.timeZone;
 
   useDailyEvent("left-meeting", () => {
     if (rediectAttendeeToOnExit) {
@@ -298,11 +572,11 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
-          <p>{booking.user?.timeZone}</p>
+          <p>{timeZone}</p>
           <h3>{t("when")}:</h3>
           <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime(startTime)}
+            {formatToLocalizedTime({ date: startTime, timeZone })}
           </p>
           <h3>{t("time_left")}</h3>
           <ProgressBar
@@ -335,7 +609,6 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
               />
             </>

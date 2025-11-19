@@ -3,8 +3,8 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
-import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
@@ -64,13 +64,13 @@ export default function CreateEventTypeForm({
               required
               addOnLeading={
                 !isPlatform ? (
-                  <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                    <span className="max-w-24 md:max-w-56">
-                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
-                  </Tooltip>
+                  <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                    {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
+                  </span>
                 ) : undefined
               }
+              containerClassName="[&>div]:gap-0"
+              className="pl-0"
               {...register("slug")}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -90,12 +90,14 @@ export default function CreateEventTypeForm({
                 !isPlatform ? (
                   <Tooltip
                     content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                    <span className="max-w-24 md:max-w-56">
-                      {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                    <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+                      {`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                     </span>
                   </Tooltip>
                 ) : undefined
               }
+              containerClassName="[&>div]:gap-0"
+              className="pl-0"
               {...register("slug")}
               onChange={(e) => {
                 form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -111,6 +113,7 @@ export default function CreateEventTypeForm({
             <TextAreaField {...register("description")} placeholder={t("quick_video_meeting")} />
           ) : (
             <Editor
+              label={t("description")}
               getText={() => md.render(form.getValues("description") || "")}
               setText={(value: string) => form.setValue("description", turndown(value))}
               excludedToolbarItems={["blockType", "link"]}
@@ -141,7 +144,7 @@ export default function CreateEventTypeForm({
                   message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
                 },
               })}
-              addOnSuffix={t("minutes")}
+              addOnSuffix={t("minutes").toLowerCase()}
             />
           </div>
         </>

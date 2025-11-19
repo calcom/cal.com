@@ -3,8 +3,9 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team, Prisma } from "@prisma/client";
-import { CreationSource } from "@prisma/client";
+
+import { CreationSource } from "@calcom/platform-libraries";
+import type { Profile, User, Team, Prisma } from "@calcom/prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -73,6 +74,27 @@ export class UsersRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+      },
+      include: {
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+      },
+    });
+  }
+
+  async findOwnerByTeamIdWithProfile(teamId: number): Promise<UserWithProfile | null> {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        teams: {
+          some: {
+            teamId,
+            role: "OWNER",
+          },
+        },
       },
       include: {
         movedToProfile: {
@@ -267,7 +289,7 @@ export class UsersRepository {
         user: true,
       },
     });
-    return profiles.map((profile) => profile.user);
+    return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
   async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
@@ -383,6 +405,32 @@ export class UsersRepository {
       },
       select: {
         email: true,
+      },
+    });
+  }
+
+  async getUserEmailsVerifiedForTeam(teamId: number) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        secondaryEmails: {
+          where: {
+            emailVerified: {
+              not: null,
+            },
+          },
+          select: {
+            email: true,
+          },
+        },
       },
     });
   }

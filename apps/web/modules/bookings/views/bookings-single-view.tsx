@@ -13,6 +13,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -21,16 +22,13 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import {
-  SMS_REMINDER_NUMBER_FIELD,
-  SystemField,
-  TITLE_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
+import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
-import type { nameObjectSchema } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,7 +42,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -102,7 +100,14 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const {
+    eventType,
+    bookingInfo,
+    previousBooking,
+    requiresLoginToUpdate,
+    rescheduledToUid,
+    canViewHiddenData,
+  } = props;
 
   const {
     allRemainingBookings,
@@ -141,6 +146,7 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
+  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
 
   const attendees = bookingInfo?.attendees;
 
@@ -179,14 +185,13 @@ export default function Success(props: PageProps) {
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const [comment, setComment] = useState("");
-  const parsedRating = rating ? parseInt(rating, 10) : 3;
   const currentUserEmail =
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
     session?.user?.email ??
     undefined;
 
-  const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
+  const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
@@ -299,6 +304,12 @@ export default function Success(props: PageProps) {
     if (isCancelled) {
       return "";
     }
+    if (isAwaitingPayment && !isCancelled) {
+      return t("complete_your_booking_subject", {
+        title: eventName,
+        date: formatToLocalizedDate(date, undefined, "long", tz),
+      });
+    }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
@@ -315,17 +326,20 @@ export default function Success(props: PageProps) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       if (isAttendee) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
+        interpolation: { escapeValue: false },
       });
     }
     return t(`emailed_host_and_attendee${titleSuffix}`);
@@ -374,12 +388,17 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
+    if (isAwaitingPayment && !isCancelled) {
+      return props.paymentStatus?.paymentOption === "HOLD"
+        ? t("meeting_awaiting_payment_method")
+        : t("meeting_awaiting_payment");
+    }
+
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
@@ -478,14 +497,18 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                          !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
+                            ? "bg-success"
+                            : "",
+                          !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
+                            ? "bg-subtle"
+                            : "",
                           isCancelled ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
+                        {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && isReschedulable && (
+                        {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
                         {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
@@ -546,15 +569,27 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{cancellationReason}</p>
+                            </div>
                           </>
                         )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(bookingInfo.eventType?.hideOrganizerEmail && !isHost) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
@@ -567,7 +602,7 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
@@ -610,7 +645,7 @@ export default function Success(props: PageProps) {
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default">
+                                    <p className="text-default" data-testid="booking-host-email">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
                                   )}
@@ -684,11 +719,11 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewHiddenData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
@@ -741,15 +776,9 @@ export default function Success(props: PageProps) {
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
 
-                          const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
-                          if (
-                            isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                            field.name !== TITLE_FIELD
-                          )
+                          if (!shouldShowFieldInCustomResponses(field.name)) {
                             return null;
+                          }
 
                           const label = field.label || t(field.defaultLabel);
 
@@ -757,7 +786,6 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
-                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -828,13 +856,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {canCancelAndReschedule && (
+                                    {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
                                   </span>
                                 )}
 
-                              {canCancel && (
+                              {!isBookingInPast && canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(
@@ -856,7 +884,10 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
+                              startTime: bookingInfo?.startTime,
+                              payment: props.paymentStatus,
                             }}
+                            eventTypeMetadata={eventType.metadata}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}
@@ -1015,61 +1046,20 @@ export default function Success(props: PageProps) {
                   ) : (
                     <>
                       <div className="my-3 flex justify-center space-x-1">
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 1
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(1)}>
-                          😠
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 2
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(2)}>
-                          🙁
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 3
-                              ? "border-emphasis bg-emphasis"
-                              : " border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(3)}>
-                          😐
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 4
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(4)}>
-                          😄
-                        </button>
-                        <button
-                          className={classNames(
-                            "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
-                            rateValue === 5
-                              ? "border-emphasis bg-emphasis"
-                              : "border-muted bg-default opacity-50"
-                          )}
-                          disabled={isFeedbackSubmitted}
-                          onClick={() => setRateValue(5)}>
-                          😍
-                        </button>
+                        {RATING_OPTIONS.map((option) => (
+                          <button
+                            key={option.value}
+                            className={classNames(
+                              "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
+                              rateValue === option.value
+                                ? "border-emphasis bg-emphasis"
+                                : "border-muted bg-default opacity-50"
+                            )}
+                            disabled={isFeedbackSubmitted}
+                            onClick={() => setRateValue(option.value)}>
+                            {option.emoji}
+                          </button>
+                        ))}
                       </div>
                       <div className="my-4 space-y-1 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
@@ -1108,7 +1098,8 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations"
+                          rel="noreferrer">
                           {t("resolve")}
                         </a>
                       </span>
@@ -1218,8 +1209,21 @@ function RecurringBookings({
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
               {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
-              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+              {formatToLocalizedTime({
+                date: dayjs(dateStr),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
+              -{" "}
+              {formatToLocalizedTime({
+                date: dayjs(dateStr).add(duration, "m"),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
               </span>
@@ -1238,14 +1242,19 @@ function RecurringBookings({
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
                     {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-                    {formatToLocalizedTime(
-                      dayjs(dateStr).add(duration, "m"),
-                      language,
-                      undefined,
-                      !is24h,
-                      tz
-                    )}{" "}
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
+                    -{" "}
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr).add(duration, "m"),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
@@ -1262,8 +1271,13 @@ function RecurringBookings({
     <div className={classNames(isCancelled ? "line-through" : "")}>
       {formatToLocalizedDate(date, language, "full", tz)}
       <br />
-      {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
-      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+      {formatToLocalizedTime({ date, locale: language, hour12: !is24h, timeZone: tz })} -{" "}
+      {formatToLocalizedTime({
+        date: dayjs(date).add(duration, "m"),
+        locale: language,
+        hour12: !is24h,
+        timeZone: tz,
+      })}{" "}
       <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );

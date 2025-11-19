@@ -1,13 +1,11 @@
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
+const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 
 const plugins = [withAxiom];
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/dayjs",
@@ -17,6 +15,12 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
   ],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.plugins = [...config.plugins, new PrismaPlugin()];
+    }
+    return config;
+  },
   async headers() {
     return [
       {

@@ -64,6 +64,18 @@ describe("Tests for ListLinkItem component", () => {
       </ListLinkItem>
     );
 
+    const listLinkItemElement = screen.getByTestId("list-link-item");
+    const link = listLinkItemElement.firstChild;
+    expect(link).toHaveClass("pointer-events-none", "cursor-not-allowed", "opacity-30");
+  });
+
+  test("Should show readonly badge", () => {
+    render(
+      <ListLinkItem href="https://custom.link" heading="Go" subHeading="There" readOnly={true}>
+        Alright
+      </ListLinkItem>
+    );
+
     const badge = screen.getByTestId("badge");
     expect(badge).toBeInTheDocument();
   });

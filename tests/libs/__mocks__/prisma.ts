@@ -1,17 +1,16 @@
-import { PrismockClient } from "prismock";
+import { type DMMF } from "@prisma/client/runtime/client";
+import { getDMMF } from "@prisma/internals";
+import { readFileSync } from "fs";
 import { beforeEach, vi } from "vitest";
+import { createPrismock } from "prismock/build/main/lib/client";
 
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import * as selects from "@calcom/prisma/selects";
 
-vi.mock("@calcom/prisma", () => ({
-  default: prisma,
-  prisma,
-  readonlyPrisma: prisma,
-  ...selects,
-}));
+vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
 
-const handlePrismockBugs = () => {
+const handlePrismockBugs = (prismock: any) => {
   const __findManyWebhook = prismock.webhook.findMany;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,14 +26,93 @@ const handlePrismockBugs = () => {
   };
 };
 
-beforeEach(() => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  prismock.reset();
-  handlePrismockBugs();
+let prismockInstance: any;
+const proxyTarget = {} as PrismaClient;
+
+const prismaMockProxy = new Proxy(proxyTarget, {
+  get(target, prop) {
+    if (!prismockInstance) {
+      throw new Error("Prismock not initialized yet");
+    }
+    if (prop in target) {
+      return (target as any)[prop];
+    }
+    return prismockInstance[prop];
+  },
+  getOwnPropertyDescriptor(target, prop) {
+    if (!prismockInstance) {
+      return undefined;
+    }
+    const targetDescriptor = Object.getOwnPropertyDescriptor(target, prop);
+    if (targetDescriptor) {
+      return targetDescriptor;
+    }
+    return Object.getOwnPropertyDescriptor(prismockInstance, prop);
+  },
+  has(target, prop) {
+    if (!prismockInstance) {
+      return false;
+    }
+    if (prop in target) {
+      return true;
+    }
+    return prop in prismockInstance;
+  },
+  ownKeys(target) {
+    if (!prismockInstance) {
+      return [];
+    }
+    return Reflect.ownKeys(prismockInstance);
+  },
+  set(target, prop, value) {
+    if (!prismockInstance) {
+      throw new Error("Prismock not initialized yet");
+    }
+    (target as any)[prop] = value;
+    return true;
+  }
 });
 
-const prismock = new PrismockClient();
+vi.mock("@calcom/prisma", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@calcom/prisma/client")>();
+  const { Prisma } = original;
 
-const prisma = prismock;
-export default prisma;
+  const schemaContent = readFileSync("packages/prisma/schema.prisma", "utf-8");
+  const dmmf = await getDMMF({ datamodel: schemaContent });
+  const PrismaWithDMMF = { ...Prisma, dmmf };
+
+  const PrismockClientClass = createPrismock(
+    PrismaWithDMMF as unknown as typeof Prisma & { dmmf: DMMF.Document }
+  );
+  
+  prismockInstance = new PrismockClientClass();
+
+  if (!prismockInstance.$queryRaw) {
+    Object.defineProperty(prismockInstance, "$queryRaw", {
+      value: async () => {
+        throw new Error("$queryRaw is not implemented in prismock. Use vi.spyOn to mock it in your test.");
+      },
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
+  }
+
+  return {
+    default: prismaMockProxy,
+    prisma: prismaMockProxy,
+    readonlyPrisma: prismaMockProxy,
+    ...selects,
+  };
+});
+
+beforeEach(() => {
+  if (prismockInstance) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    prismockInstance.reset();
+    handlePrismockBugs(prismockInstance);
+  }
+});
+
+export default prismaMockProxy;

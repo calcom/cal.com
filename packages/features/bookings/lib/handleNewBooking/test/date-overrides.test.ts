@@ -28,6 +28,8 @@ import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { getNewBookingHandler } from "./getNewBookingHandler";
+
 export const Timezones = {
   "-05:00": "America/New_York",
   "00:00": "Europe/London",
@@ -48,7 +50,7 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -120,7 +122,7 @@ describe("handleNewBooking", () => {
         });
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -177,7 +179,6 @@ describe("handleNewBooking", () => {
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,
@@ -211,7 +212,7 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -298,7 +299,7 @@ describe("handleNewBooking", () => {
         });
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -355,7 +356,6 @@ describe("handleNewBooking", () => {
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,

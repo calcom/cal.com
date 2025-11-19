@@ -1,79 +1,113 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Bring this test back with the correct setup (no illegal imports)
 import { describe, it, beforeEach, vi, expect } from "vitest";
+
+import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
-describe.skip("getTeam", () => {
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
+  MembershipRepository: {
+    findUniqueByUserIdAndTeamId: vi.fn(),
+  },
+}));
+
+vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
+  getTeamWithoutMembers: vi.fn(),
+}));
+
+describe("getTeam", () => {
+  const user = {
+    id: 1,
+    organization: { isOrgAdmin: false },
+  } as NonNullable<TrpcSessionUser>;
+
+  const input = {
+    teamId: 123,
+    isOrg: false,
+  };
+
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
   });
 
-  it("should return team", async () => {
-    const team = {
-      id: 1,
-      name: "Team 1",
-      slug: "team-1",
+  it("throws UNAUTHORIZED if user is not a member of the team", async () => {
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(null);
+
+    await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+      message: "You are not a member of this team.",
+    });
+  });
+
+  it("throws NOT_FOUND if team does not exist", async () => {
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+      role: "member",
+      accepted: true,
+    });
+    (getTeamWithoutMembers as any).mockResolvedValue(null);
+
+    await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Team not found",
+    });
+  });
+
+  it("passes undefined as userId if user is org admin", async () => {
+    const adminUser = {
+      ...user,
+      organization: { isOrgAdmin: true },
     };
 
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-      teams: [
-        {
-          membership: {
-            role: "ADMIN",
-            accepted: true,
-          },
-          team,
-        },
-      ],
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+      role: "admin",
+      accepted: true,
+    });
+    (getTeamWithoutMembers as any).mockResolvedValue({
+      id: input.teamId,
+      name: "Admin Team",
     });
 
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 30,
-            length: 30,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        organizer,
-      })
-    );
+    await getTeam({ ctx: { user: adminUser }, input });
 
-    const ctx = {
-      user: {
-        id: organizer.id,
-        name: organizer.name,
-      } as NonNullable<TrpcSessionUser>,
+    expect(getTeamWithoutMembers).toHaveBeenCalledWith({
+      id: input.teamId,
+      userId: undefined,
+      isOrgView: input.isOrg,
+    });
+  });
+
+  it("returns team data with membership info if authorized", async () => {
+    const membershipData = {
+      role: "admin",
+      accepted: true,
+    };
+    const teamData = {
+      id: input.teamId,
+      name: "Team Name",
+      description: "A team",
     };
 
-    const result = await getTeam({
-      ctx,
-      input: {
-        teamId: team.id,
-      },
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(membershipData);
+    (getTeamWithoutMembers as any).mockResolvedValue(teamData);
+
+    const result = await getTeam({ ctx: { user }, input });
+
+    expect(result).toEqual({
+      ...teamData,
+      membership: membershipData,
     });
 
-    expect(result).toEqual(
-      expect.objectContaining({
-        id: team.id,
-        name: team.name,
-        slug: team.slug,
-        isOrganization: false,
-      })
-    );
+    expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      userId: user.id,
+      teamId: input.teamId,
+    });
+
+    expect(getTeamWithoutMembers).toHaveBeenCalledWith({
+      id: input.teamId,
+      userId: user.id,
+      isOrgView: input.isOrg,
+    });
   });
 });

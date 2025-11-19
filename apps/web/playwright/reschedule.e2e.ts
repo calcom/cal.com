@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -33,7 +33,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await page.locator('[data-testid="reschedule_request"]').click();
 
@@ -75,7 +76,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/past");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
     await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
@@ -91,10 +93,14 @@ test.describe("Reschedule Tests", async () => {
 
     await page.reload();
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
-    await expect(page.locator('[data-testid="reschedule"]')).toBeHidden();
-    await expect(page.locator('[data-testid="reschedule_request"]')).toBeHidden();
+    // Check that the reschedule options are visible but disabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeDisabled();
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {

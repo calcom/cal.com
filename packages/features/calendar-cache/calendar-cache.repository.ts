@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
 import { uniqueBy } from "@calcom/lib/array";
-import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
@@ -168,5 +167,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });
+  }
+
+  async getCacheStatusByCredentialIds(credentialIds: number[]) {
+    const cacheStatuses = await prisma.calendarCache.groupBy({
+      by: ["credentialId"],
+      where: {
+        credentialId: { in: credentialIds },
+      },
+      _max: {
+        updatedAt: true,
+      },
+    });
+
+    return cacheStatuses.map((cache) => ({
+      credentialId: cache.credentialId,
+      updatedAt: cache._max.updatedAt,
+    }));
   }
 }

@@ -7,14 +7,13 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
@@ -23,6 +22,10 @@ type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
   enableAutomaticTranscription: boolean;
+  enableAutomaticRecordingForOrganizer: boolean;
+  disableTranscriptionForGuests: boolean;
+  disableTranscriptionForOrganizer: boolean;
+  requireEmailForGuests: boolean;
 };
 
 const shouldEnableRecordButton = ({
@@ -57,6 +60,40 @@ const shouldEnableAutomaticTranscription = ({
   return !!calVideoSettings.enableAutomaticTranscription;
 };
 
+const shouldEnableAutomaticRecording = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan || !isOrganizer) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticRecordingForOrganizer;
+};
+
+const shouldEnableTranscriptionButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableTranscriptionForOrganizer;
+  }
+
+  return !calVideoSettings.disableTranscriptionForGuests;
+};
+
 const checkIfUserIsHost = async ({
   booking,
   sessionUserId,
@@ -73,19 +110,21 @@ const checkIfUserIsHost = async ({
     return booking.user?.id === sessionUserId;
   }
 
-  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdWithUserAccess({
     id: booking.eventTypeId,
     userId: sessionUserId,
   });
 
   // If eventType exists, it means user is either owner, host or user
-  return !eventType;
+  return !!eventType;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const booking = await BookingRepository.findBookingForMeetingPage({
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingIncludeCalVideoSettingsAndReferences({
     bookingUid: context.query.uid as string,
   });
 
@@ -119,16 +158,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       })
     : false;
 
+  const userRepo = new UserRepository(prisma);
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile
     : null;
 
+  const organizationRepository = getOrganizationRepository();
+
   const calVideoLogo = profile?.organization
-    ? await OrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
+    ? await organizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
     : null;
 
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals
@@ -170,7 +212,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     exp: epochTimeFourteenDaysAfter,
   });
 
-  const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const sessionUserId = session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const sessionUserEmail = session?.user?.email;
   const isOrganizer = await checkIfUserIsHost({
     booking: {
       eventTypeId: bookingObj.eventType?.id,
@@ -179,18 +222,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     sessionUserId,
   });
 
+  const isAttendee = sessionUserEmail
+    ? bookingObj.attendees?.some(
+        (attendee) => attendee.email.toLowerCase() === sessionUserEmail.toLowerCase()
+      ) ?? false
+    : false;
+
   // set meetingPassword for guests
   if (!isOrganizer) {
+    const userIdForToken = sessionUserId;
+
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
-      userId: sessionUserId,
+      userId: userIdForToken,
     });
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-
   // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
@@ -198,7 +248,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       videoReferencePassword,
       sessionUserId
     );
-    if (!!meetingPassword) {
+    if (meetingPassword) {
       bookingObj.references.forEach((bookRef) => {
         bookRef.meetingPassword = meetingPassword;
       });
@@ -207,20 +257,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const videoReference = getCalVideoReference(bookingObj.references);
 
-  const featureRepo = new FeaturesRepository();
-  const displayLogInOverlay = profile?.organizationId
-    ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
-    : false;
-
   const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
+  });
+
+  const enableAutomaticRecordingForOrganizer = shouldEnableAutomaticRecording({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer,
+  });
+
+  const showTranscriptionButton = shouldEnableTranscriptionButton({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer,
   });
 
   return {
@@ -241,14 +298,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
       enableAutomaticTranscription,
+      enableAutomaticRecordingForOrganizer,
+      showTranscriptionButton,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
       overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
+      requireEmailForGuests: bookingObj.eventType?.calVideoSettings?.requireEmailForGuests ?? false,
+      isLoggedInUserPartOfMeeting: isAttendee || isOrganizer,
     },
   };
 }

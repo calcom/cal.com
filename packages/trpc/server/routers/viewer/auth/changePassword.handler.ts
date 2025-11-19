@@ -1,6 +1,6 @@
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -35,7 +35,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     }
   }
 
-  const currentPasswordQuery = await prisma.userPassword.findFirst({
+  const currentPasswordQuery = await prisma.userPassword.findUnique({
     where: { userId: user.id },
   });
 

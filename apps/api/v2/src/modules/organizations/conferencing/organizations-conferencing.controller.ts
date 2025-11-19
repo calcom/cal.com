@@ -105,7 +105,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a team" })
+  @ApiOperation({ summary: "Get OAuth conferencing app's auth URL for a team" })
   async getTeamOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,

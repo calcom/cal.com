@@ -1,49 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { embedStore, getEmbedBookerState } from "../embed-iframe";
+import { fakeCurrentDocumentUrl, nextTick } from "../embed-iframe/__tests__/test-utils";
 
-// Test helper functions
-type fakeCurrentDocumentUrlParams = {
-  origin?: string;
-  path?: string;
-  params?: Record<string, string>;
-};
+beforeEach(() => {
+  // Ensure that we have it globally so that unexpected errors like 'document is not defined' don't happen due to timer being fired when test is shutting down
+  vi.useFakeTimers();
+});
 
-function fakeCurrentDocumentUrl({
-  origin = "https://example.com",
-  path = "",
-  params = {},
-}: fakeCurrentDocumentUrlParams = {}) {
-  const url = new URL(path, origin);
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, value);
-  });
-  return mockDocumentUrl(url);
-}
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.resetModules();
+  vi.useRealTimers();
+  vi.clearAllTimers();
+});
 
-function mockDocumentUrl(url: URL | string) {
-  return vi.spyOn(document, "URL", "get").mockReturnValue(url.toString());
-}
-
-function createSearchParams(params: Record<string, string>) {
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    searchParams.set(key, value);
-  });
-  return searchParams;
-}
-
-describe("embedStore.router.ensureQueryParamsInUrl", () => {
-  // Mock window.history and URL
-
+describe("embedStore.router.ensureQueryParamsInUrl", async () => {
+  let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
   const originalHistory = window.history;
   const originalURL = window.URL;
 
-  function nextTick() {
-    vi.advanceTimersByTime(100);
-  }
+  beforeEach(async () => {
+    // Mock window.history and URL
+    ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
 
-  beforeEach(() => {
     vi.useFakeTimers();
     // Mock requestAnimationFrame and cancelAnimationFrame
     window.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
@@ -75,7 +54,6 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
   it("should add missing parameters to URL", async () => {
     // Setup
     fakeCurrentDocumentUrl();
-
     // Execute
     const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
       toBeThereParams: {
@@ -163,7 +141,13 @@ describe("embedStore.router.ensureQueryParamsInUrl", () => {
   });
 });
 
-describe("getEmbedBookerState", () => {
+describe("getEmbedBookerState", async () => {
+  let getEmbedBookerState: typeof import("../embed-iframe").getEmbedBookerState;
+  beforeEach(async () => {
+    fakeCurrentDocumentUrl();
+    ({ getEmbedBookerState } = await import("../embed-iframe"));
+  });
+
   it("should return 'initializing' when bookerState is 'loading'", () => {
     const result = getEmbedBookerState({
       bookerState: "loading",
@@ -240,5 +224,140 @@ describe("getEmbedBookerState", () => {
       },
     });
     expect(result).toBe("slotsPending");
+  });
+});
+
+describe("methods", async () => {
+  let methods: typeof import("../embed-iframe").methods;
+  let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
+  let isLinkReadyMock: ReturnType<typeof vi.fn> | undefined;
+  let isBookerReadyMock: ReturnType<typeof vi.fn> | undefined;
+  let ensureQueryParamsInUrlMock: ReturnType<typeof vi.fn> | undefined;
+  let recordResponseIfQueuedMock: ReturnType<typeof vi.fn> | undefined;
+  beforeEach(async () => {
+    vi.useRealTimers();
+    fakeCurrentDocumentUrl();
+    vi.doMock("../embed-iframe/lib/utils", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("../embed-iframe/lib/utils")>();
+      return {
+        ...actual,
+        isLinkReady: isLinkReadyMock,
+        isBookerReady: isBookerReadyMock,
+        recordResponseIfQueued: recordResponseIfQueuedMock,
+      };
+    });
+    vi.doMock("../embed-iframe/lib/embedStore", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("../embed-iframe/lib/embedStore")>();
+
+      return {
+        ...actual,
+        embedStore: {
+          ...actual.embedStore,
+          router: {
+            ensureQueryParamsInUrl: ensureQueryParamsInUrlMock,
+          },
+        },
+      };
+    });
+    isLinkReadyMock = vi.fn();
+    isBookerReadyMock = vi.fn();
+    ensureQueryParamsInUrlMock = vi.fn().mockImplementation(() => {
+      console.log("Fake ensureQueryParamsInUrl called");
+      return {
+        stopEnsuringQueryParamsInUrl: vi.fn(),
+      };
+    });
+    recordResponseIfQueuedMock = vi.fn().mockResolvedValue(1);
+    ({ methods } = await import("../embed-iframe"));
+    ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
+  });
+
+  describe("methods.connect", async () => {
+    it("should ensure that 'cal.embed.connectVersion' is incremented in query params", async () => {
+      embedStore.renderState = "completed";
+      const currentConnectVersion = 1;
+      embedStore.connectVersion = currentConnectVersion;
+      fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
+      await methods.connect({
+        config: {},
+        params: {},
+      });
+      expect(ensureQueryParamsInUrlMock).toHaveBeenCalledWith({
+        toBeThereParams: {
+          "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
+        },
+        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
+      });
+    });
+
+    it("should ensure that 'cal.embed.connectVersion' is not incremented in query params when 'cal.embed.noSlotsFetchOnConnect' is true", async () => {
+      embedStore.renderState = "completed";
+      const currentConnectVersion = 1;
+      embedStore.connectVersion = currentConnectVersion;
+      fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
+      await methods.connect({
+        config: {
+          "cal.embed.noSlotsFetchOnConnect": "true",
+        },
+        params: {},
+      });
+      expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
+        toBeThereParams: {
+          "cal.embed.connectVersion": currentConnectVersion.toString(),
+        },
+        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
+      });
+    });
+
+    it("should set/update 'cal.routingFormResponseId' if the current iframe has 'cal.queuedFormResponse' in the query params", async () => {
+      embedStore.renderState = "completed";
+      const currentConnectVersion = 1;
+      embedStore.connectVersion = currentConnectVersion;
+      fakeCurrentDocumentUrl({
+        params: {
+          "cal.queuedFormResponse": "true",
+          "cal.routingFormResponseId": "1",
+          "cal.embed.connectVersion": currentConnectVersion.toString(),
+        },
+      });
+      const convertedRoutingFormResponseId = 101;
+      recordResponseIfQueuedMock?.mockResolvedValue(convertedRoutingFormResponseId);
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
+      await methods.connect({
+        config: {},
+        params: {},
+      });
+
+      expect(ensureQueryParamsInUrlMock).toHaveBeenCalledWith({
+        toBeThereParams: {
+          "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
+          "cal.routingFormResponseId": convertedRoutingFormResponseId.toString(),
+        },
+        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
+      });
+    });
+  });
+
+  describe("methods.parentKnowsIframeReady", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should set renderState to 'completed' on link ready", () => {
+      isLinkReadyMock?.mockReturnValue(true);
+      methods.parentKnowsIframeReady({});
+      expect(embedStore.renderState).not.toBe("completed");
+      nextTick();
+      expect(embedStore.renderState).toBe("completed");
+    });
   });
 });

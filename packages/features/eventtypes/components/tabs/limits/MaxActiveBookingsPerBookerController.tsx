@@ -1,13 +1,24 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { TextField, CheckboxField } from "@calcom/ui/components/form";
 
-export default function MaxActiveBookingsPerBookerController() {
+type maxActiveBookingsPerBookerLockedProps = {
+  disabled: boolean;
+  LockedIcon: false | JSX.Element;
+  isLocked: boolean;
+};
+
+export default function MaxActiveBookingsPerBookerController({
+  maxActiveBookingsPerBookerLocked,
+}: {
+  maxActiveBookingsPerBookerLocked: maxActiveBookingsPerBookerLockedProps;
+}) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -19,6 +30,7 @@ export default function MaxActiveBookingsPerBookerController() {
   const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
     "maxActiveBookingPerBookerOfferReschedule"
   );
+
   return (
     <Controller
       name="maxActiveBookingsPerBooker"
@@ -27,7 +39,8 @@ export default function MaxActiveBookingsPerBookerController() {
         return (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
-            disabled={isRecurringEvent}
+            {...maxActiveBookingsPerBookerLocked}
+            disabled={isRecurringEvent || maxActiveBookingsPerBookerLocked.disabled}
             tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
@@ -35,8 +48,14 @@ export default function MaxActiveBookingsPerBookerController() {
               isChecked && "rounded-b-none"
             )}
             childrenClassName={classNames("lg:ml-0")}
-            title={t("booker_booking_limit")}
-            description={t("booker_booking_limit_description")}
+            title={t("booker_upcoming_limit")}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="booker_booking_limit_description"
+                href="https://cal.com/help/event-types/booker-active-booking-limit"
+              />
+            }
             checked={isChecked}
             onCheckedChange={(active) => {
               if (active) {
@@ -51,6 +70,7 @@ export default function MaxActiveBookingsPerBookerController() {
                 required
                 type="number"
                 value={value ?? ""}
+                disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
                 }}
@@ -63,7 +83,8 @@ export default function MaxActiveBookingsPerBookerController() {
               <CheckboxField
                 checked={!!maxActiveBookingPerBookerOfferReschedule}
                 descriptionAsLabel
-                description={t("offer_to_reschedule_last_booking")}
+                description={t("reschedule_last_booking_offer")}
+                disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", e.target.checked, {
                     shouldDirty: true,

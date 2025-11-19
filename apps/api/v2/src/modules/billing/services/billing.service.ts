@@ -1,7 +1,8 @@
 import { AppConfig } from "@/config/type";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
+import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -23,14 +24,14 @@ import { DateTime } from "luxon";
 import Stripe from "stripe";
 
 @Injectable()
-export class BillingService implements OnModuleDestroy {
+export class BillingService implements IBillingService, OnModuleDestroy {
   private logger = new Logger("BillingService");
   private readonly webAppUrl: string;
 
   constructor(
     private readonly teamsRepository: OrganizationsRepository,
     public readonly stripeService: StripeService,
-    private readonly billingRepository: BillingRepository,
+    public readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
     private readonly usersRepository: UsersRepository,
@@ -43,18 +44,23 @@ export class BillingService implements OnModuleDestroy {
 
   async getBillingData(teamId: number) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+
     if (teamWithBilling?.platformBilling) {
       if (!teamWithBilling?.platformBilling.subscriptionId) {
-        return { team: teamWithBilling, status: "no_subscription", plan: "none" };
+        return { team: teamWithBilling, status: "no_subscription" as const, plan: "none" };
+      } else {
+        return {
+          team: teamWithBilling,
+          status: "valid" as const,
+          plan: teamWithBilling.platformBilling.plan,
+        };
       }
-
-      return { team: teamWithBilling, status: "valid", plan: teamWithBilling.platformBilling.plan };
     } else {
-      return { team: teamWithBilling, status: "no_billing", plan: "none" };
+      return { team: teamWithBilling, status: "no_billing" as const, plan: "none" };
     }
   }
 
-  async createTeamBilling(teamId: number) {
+  async createTeamBilling(teamId: number): Promise<string> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     let customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -67,7 +73,7 @@ export class BillingService implements OnModuleDestroy {
       });
     }
 
-    return customerId;
+    return customerId!;
   }
 
   async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
@@ -89,7 +95,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      currency: "usd",
       subscription_data: {
         metadata: {
           teamId: teamId.toString(),
@@ -107,6 +112,10 @@ export class BillingService implements OnModuleDestroy {
   async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id associated with the team.");
+    }
 
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
@@ -296,11 +305,24 @@ export class BillingService implements OnModuleDestroy {
         new Date(invoice.period_end * 1000)
       );
 
+      const existingSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      const perActiveUserPrice = this.billingConfigService.get(PlatformPlan.PER_ACTIVE_USER)?.base;
+      const subscriptionItem = existingSubscription.items.data.find(
+        (item) => item.price?.id === perActiveUserPrice
+      );
+
+      if (!subscriptionItem) {
+        throw new NotFoundException(
+          "No subscription item found for PER_ACTIVE_USER plan with matching price ID"
+        );
+      }
+
       await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
         items: [
-          {
-            quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1,
-          },
+          { id: subscriptionItem.id, quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1 },
         ],
       });
     }
@@ -403,6 +425,9 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const { uid, startTime, fromReschedule } = booking;
 
     const delay = startTime.getTime() - Date.now();
@@ -427,6 +452,9 @@ export class BillingService implements OnModuleDestroy {
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
   async cancelUsageByBookingUid(bookingUid: string) {
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
     if (job) {
       await job.remove();

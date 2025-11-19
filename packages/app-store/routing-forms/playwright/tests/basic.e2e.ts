@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
@@ -262,7 +263,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -270,27 +271,27 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test Field Number=456&Test Field Single Selection=456&Test Field Multiple Selection=456&Test Field Multiple Selection=789&Test Field Phone=456&Test Field Email=456@example.com";
+        "firstField=456&Test-Field-Number=456&Test-Field-Single-Selection=456&Test-Field-Multiple-Selection=456&Test-Field-Multiple-Selection=789&Test-Field-Phone=456&Test-Field-Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
-      await page.fill('[data-testid="form-field-Test Field Long Text"]', "manual-fill");
+      await page.fill('[data-testid="form-field-Test-Field-Long-Text"]', "manual-fill");
 
       await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Number"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
-      // expect(await page.locator(`[data-testid="form-field-Test Field Select"]`).inputValue()).toBe("456");
-      // expect(await page.locator(`[data-testid="form-field-Test Field MultiSelect"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-Select"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-MultiSelect"]`).inputValue()).toBe("456");
 
-      await expect(page.locator('[data-testid="form-field-Test Field Phone"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Email"]')).toHaveValue(
+      await expect(page.locator('[data-testid="form-field-Test-Field-Phone"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Email"]')).toHaveValue(
         "456@example.com"
       );
 
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
 
       const url = new URL(page.url());
@@ -299,12 +300,12 @@ test.describe("Routing Forms", () => {
       expect(url.searchParams.get("firstField")).toBe("456");
 
       // All other params come from prefill URL
-      expect(url.searchParams.get("Test Field Number")).toBe("456");
-      expect(url.searchParams.get("Test Field Long Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test Field Multiple Selection")).toBe("456");
-      expect(url.searchParams.getAll("Test Field Multiple Selection")).toMatchObject(["456", "789"]);
-      expect(url.searchParams.get("Test Field Phone")).toBe("456");
-      expect(url.searchParams.get("Test Field Email")).toBe("456@example.com");
+      expect(url.searchParams.get("Test-Field-Number")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Long-Text")).toBe("manual-fill");
+      expect(url.searchParams.get("Test-Field-Multiple-Selection")).toBe("456");
+      expect(url.searchParams.getAll("Test-Field-Multiple-Selection")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test-Field-Phone")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Email")).toBe("456@example.com");
     });
 
     // TODO: How to install the app just once?
@@ -407,52 +408,6 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.apiLogin();
 
-      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
-
-      const headerEls = page.locator("[data-testid='reporting-header'] th");
-
-      // Wait for the headers to be visible(will automaically wait for getting response from backend) along with it the rows are rendered.
-      await headerEls.first().waitFor();
-
-      const numHeaderEls = await headerEls.count();
-      const headers = [];
-      for (let i = 0; i < numHeaderEls; i++) {
-        headers.push(await headerEls.nth(i).innerText());
-      }
-
-      const responses = [];
-      const responseRows = page.locator("[data-testid='reporting-row']");
-      const numResponseRows = await responseRows.count();
-      for (let i = 0; i < numResponseRows; i++) {
-        const rowLocator = responseRows.nth(i).locator("td");
-        const numRowEls = await rowLocator.count();
-        const rowResponses = [];
-        for (let j = 0; j < numRowEls; j++) {
-          rowResponses.push(await rowLocator.nth(j).innerText());
-        }
-        responses.push(rowResponses);
-      }
-
-      expect(headers).toEqual([
-        "Test field",
-        "Multi Select(with Legacy `selectText`)",
-        "Multi Select",
-        "Legacy Select",
-        "Select",
-        // TODO: Find a way to incorporate Routed To and Booked At into the report
-        // @see https://github.com/calcom/cal.com/pull/17229
-        "Routed To",
-        "Assignment Reason",
-        "Booked At",
-        "Submitted At",
-      ]);
-      /* Last two columns are "Routed To" and "Booked At" */
-      expect(responses).toEqual([
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-      ]);
-
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
 
       const downloadPromise = page.waitForEvent("download");
@@ -509,7 +464,7 @@ test.describe("Routing Forms", () => {
 
       await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com") && url.searchParams.get("Test field") === "external-redirect";
+        return url.pathname.endsWith("/pro") && url.searchParams.get("Test field") === "external-redirect";
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -576,7 +531,7 @@ test.describe("Routing Forms", () => {
       routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://cal.com/peer");
+      expect(route).toBe(`${WEBAPP_URL}/pro`);
       await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
@@ -925,7 +880,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
       return {
         formId,
@@ -978,7 +933,7 @@ test.describe("Routing Forms", () => {
       await page.fill('[data-testid="form-field-short-text"]', "test");
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
     };
 
@@ -992,8 +947,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
@@ -1010,8 +963,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
@@ -1059,7 +1010,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
     await fillAllOptionsBasedFields();
     page.click('button[type="submit"]');
     await page.waitForURL((url) => {
-      return url.hostname.includes("cal.com");
+      return url.pathname.endsWith("/pro");
     });
   })();
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { AppCategories } from "@prisma/client";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
+import type { AppCategories } from "@calcom/prisma/client";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
@@ -123,7 +123,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
               "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
             )}>
-            {cat[0].toUpperCase() + cat.slice(1)}
+            {cat === "crm" ? cat.toUpperCase() : cat[0].toUpperCase() + cat.slice(1)}
           </li>
         ))}
       </ul>

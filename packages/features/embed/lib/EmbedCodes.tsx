@@ -113,6 +113,9 @@ export default function MyApp() {
   >Click me</button>;
 };`;
     },
+    headless: () => {
+      return null;
+    },
   },
   "react-atom": {
     inline: ({
@@ -230,37 +233,43 @@ export default function Booker( props : BookerProps ) {
   );
 };`;
     },
+    headless: () => {
+      return null;
+    },
   },
   HTML: {
     inline: ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["inline"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
-    elementOrSelector:"#my-cal-inline",
+    elementOrSelector:"#my-cal-inline-${namespace}",
     config: ${JSON.stringify(previewState.config)},
     calLink: "${calLink}",
   });
 
   ${uiInstructionCode}`;
     },
-
     "floating-popup": ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["floatingPopup"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       const floatingButtonArg = JSON.stringify({
@@ -277,11 +286,13 @@ export default function Booker( props : BookerProps ) {
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`
@@ -291,6 +302,9 @@ export default function Booker( props : BookerProps ) {
   // \`data-cal-config='${JSON.stringify(previewState.config)}'\`
 
   ${uiInstructionCode}`;
+    },
+    headless: () => {
+      return null;
     },
   },
 };

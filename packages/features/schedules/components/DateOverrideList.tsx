@@ -1,5 +1,7 @@
 import { noop } from "@tanstack/react-table";
+import { formatInTimeZone } from "date-fns-tz";
 
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -25,6 +27,7 @@ const DateOverrideList = ({
   fields,
   weekStart = 0,
   handleAvailabilityUpdate = noop,
+  isDryRun = false,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -36,8 +39,10 @@ const DateOverrideList = ({
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
+  isDryRun?: boolean;
 }) => {
   const { t, i18n } = useLocale();
+  const isPlatform = useIsPlatform();
 
   const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),
@@ -49,6 +54,10 @@ const DateOverrideList = ({
   }
 
   const timeSpan = ({ start, end }: TimeRange) => {
+    if (isPlatform) {
+      return `${formatInTimeZone(start, "UTC", "h:mm a")} - ${formatInTimeZone(end, "UTC", "h:mm a")}`;
+    }
+
     return `${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
       new Date(start.toISOString().slice(0, -1))
     )} - ${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
@@ -62,12 +71,14 @@ const DateOverrideList = ({
         <li key={item.id} className="border-subtle flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-emphasis text-sm">
-              {new Intl.DateTimeFormat(i18n.language, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                timeZone: "UTC",
-              }).format(item.ranges[0].start)}
+              {!isPlatform &&
+                new Intl.DateTimeFormat(i18n.language, {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  timeZone: "UTC",
+                }).format(item.ranges[0].start)}
+              {isPlatform && formatInTimeZone(new Date(item.ranges[0].start), "UTC", "EEE MMM dd")}
             </h3>
             {item.ranges[0].start.valueOf() - item.ranges[0].end.valueOf() === 0 ? (
               <p className="text-subtle text-xs">{t("unavailable")}</p>
@@ -94,19 +105,24 @@ const DateOverrideList = ({
               userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
-              value={item.ranges}
+              value={item.ranges.map((range) => ({
+                start: new Date(range.start),
+                end: new Date(range.end),
+              }))}
               weekStart={weekStart}
               onChange={(ranges) => {
-                // update has very weird side-effects with sorting.
-                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
-                delete unsortedFieldArrayMap[item.id];
-                handleAvailabilityUpdate();
+                if (!isDryRun) {
+                  // update has very weird side-effects with sorting.
+                  replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                  delete unsortedFieldArrayMap[item.id];
+                  handleAvailabilityUpdate();
+                }
               }}
               Trigger={
                 <DialogTrigger asChild>
                   <Button
                     tooltip={t("edit")}
-                    className="text-default"
+                    className="text-default h-5"
                     color="minimal"
                     variant="icon"
                     StartIcon="pencil"
@@ -116,22 +132,26 @@ const DateOverrideList = ({
             />
             <Tooltip content="Delete">
               <Button
-                className="text-default"
+                className="text-default h-5"
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
-                  date: new Intl.DateTimeFormat(i18n.language, {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    timeZone: "UTC",
-                  }).format(item.ranges[0].start),
+                  date: isPlatform
+                    ? formatInTimeZone(new Date(item.ranges[0].start), "UTC", "h:mm a")
+                    : new Intl.DateTimeFormat(i18n.language, {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        timeZone: "UTC",
+                      }).format(item.ranges[0].start),
                 })}
                 color="destructive"
                 variant="icon"
                 StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
-                  handleAvailabilityUpdate();
+                  if (!isDryRun) {
+                    handleAvailabilityUpdate();
+                  }
                 }}
               />
             </Tooltip>

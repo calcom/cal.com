@@ -3,12 +3,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
@@ -16,7 +17,6 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 
-import { useBookerStore } from "../../store";
 import { formatEventFromTime } from "../../utils/dates";
 import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -43,6 +43,7 @@ type BookEventFormProps = {
     confirmButton?: string;
     backButton?: string;
   };
+  timeslot: string | null;
 };
 
 export const BookEventForm = ({
@@ -62,6 +63,7 @@ export const BookEventForm = ({
   shouldRenderCaptcha,
   confirmButtonDisabled,
   classNames,
+  timeslot,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -70,12 +72,11 @@ export const BookEventForm = ({
   };
 }) => {
   const eventType = eventQuery.data;
-  const setFormValues = useBookerStore((state) => state.setFormValues);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
-  const username = useBookerStore((state) => state.username);
-  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const setFormValues = useBookerStoreContext((state) => state.setFormValues);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const username = useBookerStoreContext((state) => state.username);
+  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const { timeFormat, timezone } = useBookerTime();
 
@@ -86,6 +87,11 @@ export const BookEventForm = ({
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+  }, [eventType]);
+
+  const paymentCurrency = useMemo(() => {
+    if (!eventType) return "USD";
+    return getPaymentAppData(eventType)?.currency || "USD";
   }, [eventType]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
@@ -128,6 +134,8 @@ export const BookEventForm = ({
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
+          isPaidEvent={isPaidEvent}
+          paymentCurrency={paymentCurrency}
         />
         {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
@@ -293,6 +301,7 @@ const getError = ({
   const error = dataError;
 
   let date = "";
+  let count = 0;
 
   if (error.message === ErrorCode.BookerLimitExceededReschedule) {
     const formattedDate = formatEventFromTime({
@@ -304,9 +313,16 @@ const getError = ({
     date = `${formattedDate.date} ${formattedDate.time}`;
   }
 
+  if (error.message === ErrorCode.BookerLimitExceeded && error.data?.count) {
+    count = error.data.count;
+  }
+
+  const messageKey =
+    error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
+
   return error?.message ? (
     <>
-      {responseVercelIdHeader ?? ""} {t(error.message, { date })}
+      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
     </>
   ) : (
     <>{t("can_you_try_again")}</>

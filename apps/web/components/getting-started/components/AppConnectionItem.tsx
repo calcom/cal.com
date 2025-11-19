@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/InstallAppButtonWithoutPlanCheck";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
-import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -84,6 +84,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
                           {t("this_app_requires_connected_account", {
                             appName: title,
                             dependencyName: dependency.name,
+                            interpolation: { escapeValue: false },
                           })}
                         </span>
 

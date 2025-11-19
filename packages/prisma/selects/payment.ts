@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
+export const paymentDataSelect = {
   data: true,
   success: true,
   uid: true,
@@ -75,4 +75,4 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
       },
     },
   },
-});
+} satisfies Prisma.PaymentSelect;

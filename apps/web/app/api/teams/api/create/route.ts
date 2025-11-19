@@ -4,11 +4,15 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
+import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
+import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -21,8 +25,8 @@ const checkoutSessionMetadataSchema = z.object({
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 
-export const schemaTeamReadPublic = Team.omit({});
-export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
+export const schemaTeamReadPublic = TeamSchema.omit({});
+export const schemaMembershipPublic = MembershipSchema.merge(z.object({ team: TeamSchema }).partial());
 
 async function handler(request: NextRequest) {
   try {
@@ -52,6 +56,23 @@ async function handler(request: NextRequest) {
       },
       include: { members: true },
     });
+
+    if (checkoutSessionSubscription) {
+      const { subscriptionStart } =
+        StripeBillingService.extractSubscriptionDates(checkoutSessionSubscription);
+
+      const internalBillingService = new InternalTeamBilling(finalizedTeam);
+      await internalBillingService.saveTeamBilling({
+        teamId: finalizedTeam.id,
+        subscriptionId: checkoutSessionSubscription.id,
+        subscriptionItemId: checkoutSessionSubscription.items.data[0].id,
+        customerId: checkoutSessionSubscription.customer as string,
+        // TODO: Implement true subscription status when webhook events are implemented
+        status: SubscriptionStatus.ACTIVE,
+        planName: Plan.TEAM,
+        subscriptionStart,
+      });
+    }
 
     const response = {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,

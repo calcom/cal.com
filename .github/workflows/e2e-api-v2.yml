@@ -1,4 +1,4 @@
-name: E2E
+name: Check breaking changes and run E2E
 on:
   workflow_call:
 env:
@@ -22,11 +22,16 @@ env:
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  SLOTS_CACHE_TTL: ${{ secrets.CI_SLOTS_CACHE_TTL }}
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+  VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+  JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+  NODE_ENV: ${{ vars.CI_NODE_ENV }}
 jobs:
   e2e:
     timeout-minutes: 20
     name: E2E API v2
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: buildjet-16vcpu-ubuntu-2204
     services:
       postgres:
         image: postgres:13
@@ -67,13 +72,30 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+
+      - name: Generate Swagger
+        working-directory: apps/api/v2
+        run: yarn generate-swagger
+
+      - name: Check breaking changes
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" -w /work \
+            tufin/oasdiff:latest \
+            breaking \
+            https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json \
+            docs/api-reference/v2/openapi.json \
+            --fail-on ERR \
+            --err-ignore .github/oasdiff-err-ignore.txt
+
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
-          yarn test:e2e
+          yarn workspace @calcom/platform-libraries build && yarn test:e2e
           EXIT_CODE=$?
-          echo "yarn test:e2e command exit code: $EXIT_CODE"
+          echo "yarn workspace @calcom/platform-libraries build && yarn test:e2e command exit code: $EXIT_CODE"
           exit $EXIT_CODE
+
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

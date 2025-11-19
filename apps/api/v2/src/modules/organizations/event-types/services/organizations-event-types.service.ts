@@ -47,6 +47,10 @@ export class OrganizationsEventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
+    this.logger.debug(
+      "nl debug - create org team event type - eventTypeCreated",
+      JSON.stringify(eventTypeCreated, null, 2)
+    );
 
     return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user, true);
   }

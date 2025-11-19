@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
+import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -22,7 +22,8 @@ export const generateMetadata = async () =>
 
 const getCachedApiKeys = unstable_cache(
   async (userId: number) => {
-    return await ApiKeyRepository.findApiKeysFromUserId({ userId });
+    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    return await apiKeyRepository.findApiKeysFromUserId({ userId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.apiKeys.list"] } // Cache for 1 hour

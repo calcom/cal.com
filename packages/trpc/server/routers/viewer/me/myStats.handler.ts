@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type MyStatsOptions = {
@@ -13,7 +14,7 @@ type MyStatsOptions = {
 export const myStatsHandler = async ({ ctx }: MyStatsOptions) => {
   const { user: sessionUser } = ctx;
 
-  const additionalUserInfo = await UserRepository.getUserStats({ userId: sessionUser.id });
+  const additionalUserInfo = await new UserRepository(prisma).getUserStats({ userId: sessionUser.id });
 
   const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(
     (sum, team) => sum + team.team.eventTypes.length,

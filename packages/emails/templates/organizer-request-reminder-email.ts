@@ -1,7 +1,7 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import OrganizerRequestEmail from "./organizer-request-email";
 
 export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail {
@@ -13,7 +13,8 @@ export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail
       to: toAddresses.join(","),
       ...getReplyToHeader(
         this.calEvent,
-        this.calEvent.attendees.map(({ email }) => email)
+        this.calEvent.attendees.map(({ email }) => email),
+        true
       ),
       subject: `${this.t("event_awaiting_approval_subject", {
         title: this.calEvent.title,

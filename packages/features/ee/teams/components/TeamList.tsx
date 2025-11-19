@@ -1,10 +1,10 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import {
   ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
 } from "@calcom/lib/constants";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -17,7 +17,7 @@ import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
-  user: RouterOutputs["viewer"]["me"]["get"];
+  orgId: number | null;
   /**
    * True for teams that are pending invite acceptance
    */
@@ -28,7 +28,7 @@ export default function TeamList(props: Props) {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { user } = props;
+  const { orgId } = props;
 
   const [hideDropdown, setHideDropdown] = useState(false);
 
@@ -56,13 +56,11 @@ export default function TeamList(props: Props) {
     deleteTeamMutation.mutate({ teamId });
   }
 
-  if (!user) return null;
-  const isUserAlreadyInAnOrganization = user.profile.organization;
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
       {ORG_SELF_SERVE_ENABLED &&
         !props.pending &&
-        !isUserAlreadyInAnOrganization &&
+        !orgId &&
         props.teams.length >= ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE &&
         props.teams.map(
           (team, i) =>
@@ -73,10 +71,12 @@ export default function TeamList(props: Props) {
                   <Card
                     icon={<Icon name="building" className="h-5 w-5 text-red-700" />}
                     variant="basic"
-                    title={t("You have a lot of teams")}
-                    description={t(
-                      "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
-                    )}
+                    title={props.teams.length === 1 ? t("you_have_one_team") : t("You have a lot of teams")}
+                    description={
+                      props.teams.length === 1
+                        ? t("consider_consolidating_one_team_org")
+                        : t("consider_consolidating_multi_team_org")
+                    }
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),
@@ -103,7 +103,7 @@ export default function TeamList(props: Props) {
                       "As an organization owner, you are in charge of every team account. You can make changes with admin-only tools and see organization wide analytics in one place."
                     )}
                     actionButton={{
-                      href: "https://i.cal.com/sales/enterprise",
+                      href: "https://go.cal.com/quote",
                       child: t("learn_more"),
                     }}
                   />
@@ -116,7 +116,7 @@ export default function TeamList(props: Props) {
         <TeamListItem
           key={team?.id as number}
           team={team}
-          user={user}
+          orgId={orgId}
           onActionSelect={(action: string) => selectAction(action, team?.id as number)}
           isPending={deleteTeamMutation.isPending}
           hideDropdown={hideDropdown}

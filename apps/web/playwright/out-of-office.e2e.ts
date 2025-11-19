@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { addFilter, openFilter } from "./filter-helpers";
+import { addFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { submitAndWaitForResponse } from "./lib/testUtils";
@@ -653,11 +653,12 @@ test.describe("Out of office", () => {
     test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForResponse(
+      const responsePromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await responsePromise;
       await addFilter(page, "dateRange");
       await expect(
         page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
@@ -667,13 +668,13 @@ test.describe("Out of office", () => {
     test("Can choose date range presets", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForResponse(
+      const responsePromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await responsePromise;
       await addFilter(page, "dateRange");
-      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
@@ -776,10 +777,10 @@ test.describe("Out of office", () => {
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
-        await addFilter(page, "dateRange");
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
+        await addFilter(page, "dateRange");
         await entriesListRespPromise;
 
         //1 OOO record should be visible for member3, end=currentDate-4days
@@ -837,13 +838,12 @@ test.describe("Out of office", () => {
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
-        await addFilter(page, "dateRange");
         const entriesListRespPromise1 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
+        await addFilter(page, "dateRange");
         await entriesListRespPromise1;
 
-        await openFilter(page, "dateRange");
         const entriesListRespPromise2 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
