@@ -20,6 +20,8 @@ type BaseDataTableWrapperProps<TData> = Omit<
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
   onRowMouseclick?: (row: Row<TData>) => void;
   rowTestId?: string | ((row: Row<TData>) => string | undefined);
@@ -56,6 +58,8 @@ export function DataTableWrapper<TData>({
   ToolbarRight,
   EmptyView,
   LoaderView,
+  ErrorView,
+  hasError,
   className,
   containerClassName,
   headerClassName,
@@ -101,8 +105,10 @@ export function DataTableWrapper<TData>({
     }));
   }, [table, sorting, columnFilters, columnVisibility, setSorting, setColumnVisibility]);
 
-  let view: "loader" | "empty" | "table" = "table";
-  if (isPending && LoaderView) {
+  let view: "loader" | "empty" | "error" | "table" = "table";
+  if (hasError && ErrorView) {
+    view = "error";
+  } else if (isPending && LoaderView) {
     view = "loader";
   } else if (table.getRowCount() === 0 && EmptyView) {
     view = "empty";
@@ -122,6 +128,7 @@ export function DataTableWrapper<TData>({
           {children}
         </div>
       )}
+      {view === "error" && ErrorView}
       {view === "loader" && LoaderView}
       {view === "empty" && EmptyView}
       {view === "table" && (
