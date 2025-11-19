@@ -1,11 +1,5 @@
 import { schemaTask } from "@trigger.dev/sdk";
 
-import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
-import { prisma } from "@calcom/prisma";
-
-import { BookingEmailAndSmsTaskService } from "../../BookingEmailAndSmsTaskService";
 import { bookingNotificationsTaskConfig } from "./config";
 import { bookingNotificationTaskSchema } from "./schema";
 
@@ -14,6 +8,12 @@ export const request = schemaTask({
   schema: bookingNotificationTaskSchema,
   ...bookingNotificationsTaskConfig,
   run: async (payload) => {
+    const { TriggerDevLogger } = await import("@calcom/lib/triggerDevLogger");
+    const { BookingEmailSmsHandler } = await import("@calcom/features/bookings/lib/BookingEmailSmsHandler");
+    const { BookingRepository } = await import("@calcom/features/bookings/repositories/BookingRepository");
+    const { prisma } = await import("@calcom/prisma");
+    const { BookingEmailAndSmsTaskService } = await import("../../BookingEmailAndSmsTaskService");
+
     const triggerDevLogger = new TriggerDevLogger();
     const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: triggerDevLogger });
     const bookingRepo = new BookingRepository(prisma);

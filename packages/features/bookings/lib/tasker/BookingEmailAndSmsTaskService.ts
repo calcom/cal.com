@@ -4,11 +4,11 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import { CalendarEvent } from "@calcom/types/Calendar";
-import { JsonObject } from "@calcom/types/Json";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { JsonObject } from "@calcom/types/Json";
 
 import { BookingEmailAndSmsAsyncTasksPayload, BookingTasks } from "./types";
 
