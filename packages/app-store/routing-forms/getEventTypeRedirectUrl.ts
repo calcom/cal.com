@@ -58,6 +58,15 @@ export function getAbsoluteEventTypeRedirectUrl({
      * The origin for the team the form belongs to
      */
     teamOrigin: string;
+    /**
+     * The profile user who owns the form
+     */
+    user: {
+      /**
+       * Current username on the profile
+       */
+      username: string | null;
+    };
   };
   allURLSearchParams: URLSearchParams;
   isEmbed?: boolean;
@@ -82,7 +91,9 @@ export function getAbsoluteEventTypeRedirectUrl({
   }
 
   if (usernameInRedirectUrl && form.nonOrgUsername) {
-    const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
+    const hasSameProfileUsername = form.user?.username === form.nonOrgUsername;
+    const isEventTypeRedirectToOldUser =
+      !hasSameProfileUsername && usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
       return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }

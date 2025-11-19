@@ -1,19 +1,22 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsIn, ValidateNested } from "class-validator";
+import { IsIn } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import { EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 
+@ApiExtraModels(EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14)
 export class GetEventTypeOutput_2024_06_14 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsIn([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: EventTypeOutput_2024_06_14,
+    oneOf: [
+      { $ref: getSchemaPath(EventTypeOutput_2024_06_14) },
+      { $ref: getSchemaPath(TeamEventTypeOutput_2024_06_14) },
+    ],
   })
-  @ValidateNested()
-  @Type(() => EventTypeOutput_2024_06_14)
-  data!: EventTypeOutput_2024_06_14 | null;
+  @Type(() => Object)
+  data!: EventTypeOutput_2024_06_14 | TeamEventTypeOutput_2024_06_14 | null;
 }

@@ -62,7 +62,7 @@ function convertToTemplateOptions(
     return {
       label: t(`${template.toLowerCase()}`),
       value: template,
-      needsTeamsUpgrade: !hasPaidPlan && template !== WorkflowTemplates.REMINDER,
+      needsTeamsUpgrade: !hasPaidPlan && template === WorkflowTemplates.CUSTOM,
     } as { label: string; value: any; needsTeamsUpgrade: boolean };
   });
 }

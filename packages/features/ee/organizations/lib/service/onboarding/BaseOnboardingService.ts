@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
+import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
@@ -8,7 +8,7 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -296,8 +296,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     owner: NonNullable<Awaited<ReturnType<typeof findUserToBeOrgOwner>>>;
     orgData: OrganizationData;
   }) {
+    const organizationRepository = getOrganizationRepository();
     const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
-    let organization = orgData.id ? await OrganizationRepository.findById({ id: orgData.id }) : null;
+    let organization = orgData.id ? await organizationRepository.findById({ id: orgData.id }) : null;
 
     if (organization) {
       log.info(
@@ -328,7 +329,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       const nonOrgUsername = owner.username || "";
 
       // Create organization first to get the ID
-      const orgCreationResult = await OrganizationRepository.createWithExistingUserAsOwner({
+      const orgCreationResult = await organizationRepository.createWithExistingUserAsOwner({
         orgData: {
           ...orgData,
           // Don't pass brand assets yet - will be uploaded after org is created
@@ -394,9 +395,10 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     email: string;
     orgData: OrganizationData;
   }) {
+    const organizationRepository = getOrganizationRepository();
     let organization = orgData.id
-      ? await OrganizationRepository.findById({ id: orgData.id })
-      : await OrganizationRepository.findBySlug({ slug: orgData.slug });
+      ? await organizationRepository.findById({ id: orgData.id })
+      : await organizationRepository.findBySlug({ slug: orgData.slug });
 
     if (organization) {
       log.info(
@@ -410,7 +412,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       return { organization, owner };
     }
 
-    const orgCreationResult = await OrganizationRepository.createWithNonExistentOwner({
+    const orgCreationResult = await organizationRepository.createWithNonExistentOwner({
       orgData: {
         ...orgData,
         // To be uploaded after org is created
@@ -670,7 +672,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     }
 
     const existingMetadata = teamMetadataStrictSchema.parse(organization.metadata);
-    const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
+    const organizationRepository = getOrganizationRepository();
+    const updatedOrganization = await organizationRepository.updateStripeSubscriptionDetails({
       id: organization.id,
       stripeSubscriptionId: paymentSubscriptionId,
       stripeSubscriptionItemId: paymentSubscriptionItemId,
@@ -680,7 +683,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   }
 
   protected async hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
-    const organization = await OrganizationRepository.findBySlugIncludeOnboarding({ slug });
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.findBySlugIncludeOnboarding({ slug });
     if (!organization?.organizationOnboarding) {
       return false;
     }
