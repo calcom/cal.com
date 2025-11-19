@@ -1,7 +1,9 @@
+import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
@@ -18,27 +20,40 @@ function createTwilioClient() {
   throw new Error("Twilio credentials are missing from the .env file");
 }
 
-function getDefaultSender(whatsapp = false) {
+function getDefaultSender(isWhatsapp = false) {
   let defaultSender = process.env.TWILIO_PHONE_NUMBER;
-  if (whatsapp) {
+  if (isWhatsapp) {
     defaultSender = `whatsapp:+${process.env.TWILIO_WHATSAPP_PHONE_NUMBER}`;
   }
   return defaultSender || "";
 }
 
-function getSMSNumber(phone: string, whatsapp = false) {
-  return whatsapp ? `whatsapp:${phone}` : phone;
+function getSMSNumber(phone: string, isWhatsapp = false) {
+  return isWhatsapp ? `whatsapp:${phone}` : phone;
 }
 
-export const sendSMS = async (
-  phoneNumber: string,
-  body: string,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null,
-  whatsapp = false
-) => {
-  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
+export const sendSMS = async ({
+  phoneNumber,
+  body,
+  sender,
+  bookingUid,
+  userId,
+  teamId,
+  isWhatsapp = false,
+  contentSid,
+  contentVariables,
+}: {
+  phoneNumber: string;
+  body: string;
+  sender: string;
+  bookingUid?: string | null;
+  userId?: number | null;
+  teamId?: number | null;
+  isWhatsapp?: boolean;
+  contentSid?: string;
+  contentVariables?: Record<string, string>;
+}) => {
+  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId, contentSid }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
@@ -49,8 +64,8 @@ export const sendSMS = async (
 
   if (testMode) {
     setTestSMS({
-      to: getSMSNumber(phoneNumber, whatsapp),
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -69,25 +84,66 @@ export const sendSMS = async (
     });
   }
 
-  const response = await twilio.messages.create({
-    body: body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-  });
+  if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messageOptions: any = {
+      contentSid: contentSid,
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: getDefaultSender(isWhatsapp),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    };
 
-  return response;
+    if (contentVariables) {
+      messageOptions.contentVariables = JSON.stringify(contentVariables);
+    }
+
+    const response = await twilio.messages.create(messageOptions);
+    return response;
+  } else {
+    const response = await twilio.messages.create({
+      body: body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber),
+      from: sender || getDefaultSender(),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+    });
+
+    return response;
+  }
 };
 
-export const scheduleSMS = async (
-  phoneNumber: string,
-  body: string,
-  scheduledDate: Date,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null,
-  whatsapp = false
-) => {
+const getStatusCallbackUrl = (userId?: number | null, teamId?: number | null, bookingUid?: string | null) => {
+  const query = new URLSearchParams();
+  if (userId) query.append("userId", String(userId));
+  if (teamId) query.append("teamId", String(teamId));
+  if (bookingUid) query.append("bookingUid", bookingUid);
+  return `${WEBAPP_URL}/api/twilio/webhook${query.toString() ? `?${query.toString()}` : ""}`;
+};
+
+export const scheduleSMS = async ({
+  phoneNumber,
+  body,
+  scheduledDate,
+  sender,
+  bookingUid,
+  userId,
+  teamId,
+  isWhatsapp = false,
+  contentSid,
+  contentVariables,
+}: {
+  phoneNumber: string;
+  body: string;
+  scheduledDate: Date;
+  sender: string;
+  bookingUid?: string | null;
+  userId?: number | null;
+  teamId?: number | null;
+  isWhatsapp?: boolean;
+  contentSid?: string;
+  contentVariables?: Record<string, string>;
+}) => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -97,8 +153,8 @@ export const scheduleSMS = async (
 
   if (testMode) {
     setTestSMS({
-      to: getSMSNumber(phoneNumber, whatsapp),
-      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      from: isWhatsapp ? getDefaultSender(isWhatsapp) : sender || getDefaultSender(),
       message: body,
     });
     console.log(
@@ -116,16 +172,37 @@ export const scheduleSMS = async (
     });
   }
 
-  const response = await twilio.messages.create({
-    body: body,
-    messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    to: getSMSNumber(phoneNumber, whatsapp),
-    scheduleType: "fixed",
-    sendAt: scheduledDate,
-    from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
-  });
+  if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messageOptions: any = {
+      contentSid: contentSid,
+      to: getSMSNumber(phoneNumber, isWhatsapp),
+      scheduleType: "fixed",
+      sendAt: scheduledDate,
+      from: getDefaultSender(isWhatsapp),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+    };
 
-  return response;
+    if (contentVariables) {
+      messageOptions.contentVariables = JSON.stringify(contentVariables);
+    }
+
+    const response = await twilio.messages.create(messageOptions);
+    return response;
+  } else {
+    const response = await twilio.messages.create({
+      body,
+      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      to: getSMSNumber(phoneNumber),
+      scheduleType: "fixed",
+      sendAt: scheduledDate,
+      from: sender || getDefaultSender(),
+      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+    });
+
+    return response;
+  }
 };
 
 export const cancelSMS = async (referenceId: string) => {
@@ -150,15 +227,21 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
         .services(process.env.TWILIO_VERIFY_SID)
         .verificationChecks.create({ to: phoneNumber, code: code });
       return verification_check.status;
-    } catch (e) {
+    } catch {
       return "failed";
     }
   }
 };
 
+export const getMessageBody = async (referenceId: string) => {
+  const twilio = createTwilioClient();
+  const message = await twilio.messages(referenceId).fetch();
+  return message.body;
+};
+
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -184,15 +267,120 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       (membership) => membership.team.smsLockState === SMSLockState.LOCKED
     );
 
-    if (!!memberOfLockedTeam) {
+    if (memberOfLockedTeam) {
       return true;
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
     return user?.smsLockState === SMSLockState.LOCKED;
   }
+}
+
+export async function getCountryCodeForNumber(phoneNumber: string) {
+  const twilio = createTwilioClient();
+  const { countryCode } = await twilio.lookups.v2.phoneNumbers(phoneNumber).fetch();
+  return countryCode;
+}
+
+export async function getMessageInfo(smsSid: string) {
+  const twilio = createTwilioClient();
+  const message = await twilio.messages(smsSid).fetch();
+  const price = message.price ? Math.abs(parseFloat(message.price)) : null;
+
+  const numSegments = message.numSegments ? parseInt(message.numSegments) : null;
+
+  return { price, numSegments };
+}
+
+export async function validateWebhookRequest({
+  requestUrl,
+  params,
+  signature,
+}: {
+  requestUrl: string;
+  params: object;
+  signature: string;
+}) {
+  if (!process.env.TWILIO_TOKEN) {
+    throw new Error("TWILIO_TOKEN is not set");
+  }
+
+  const isSignatureValid = TwilioClient.validateRequest(
+    process.env.TWILIO_TOKEN,
+    signature,
+    requestUrl,
+    params
+  );
+  return isSignatureValid;
+}
+
+export async function determineOptOutType(
+  req: NextRequest
+): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
+  const signature = req.headers.get("X-Twilio-Signature");
+  const formData = await req.formData();
+  const params = Object.fromEntries(formData.entries());
+
+  if (!signature) {
+    return { error: "Missing Twilio signature" };
+  }
+
+  const fullUrl = `${WEBAPP_URL}${req.nextUrl.pathname}`;
+
+  const isSignatureValid = await validateWebhookRequest({
+    requestUrl: fullUrl,
+    params: params,
+    signature: signature,
+  });
+
+  if (!isSignatureValid) {
+    return { error: "Invalid signature" };
+  }
+
+  const accountSid = params["AccountSid"]?.valueOf();
+
+  if (accountSid !== process.env.TWILIO_SID) {
+    return { error: "Invalid account SID" };
+  }
+
+  // Twilio returns phone numbers with a + prefix
+  const phoneNumberRaw = params["From"]?.valueOf();
+
+  if (!phoneNumberRaw) {
+    return { error: "No phone number to handle" };
+  }
+
+  const phoneNumber = phoneNumberRaw.toString();
+
+  if (!formData.get("OptOutType")) {
+    return { error: "No opt out message to handle" };
+  }
+
+  const optOutMessage = formData.get("OptOutType")?.valueOf();
+
+  if (optOutMessage !== "STOP" && optOutMessage !== "START") {
+    return { error: "Invalid opt out type" };
+  }
+
+  const optOutStatus = optOutMessage === "STOP" ? true : false;
+
+  return { phoneNumber, optOutStatus };
+}
+export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
+  const twilio = createTwilioClient();
+
+  const pLimit = (await import("p-limit")).default;
+  const limit = pLimit(10);
+
+  await Promise.allSettled(
+    referenceIds.map((referenceId) => {
+      return limit(() => twilio.messages(referenceId).update({ status: "canceled" })).catch((error) => {
+        log.error(`Error canceling scheduled SMS with id ${referenceId}`, error);
+      });
+    })
+  );
 }

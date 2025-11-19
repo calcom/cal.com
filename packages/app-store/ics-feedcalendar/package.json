@@ -5,14 +5,13 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/core": "*",
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*",
-    "@calcom/ui": "*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "@calcom/ui": "workspace:*",
     "react-hook-form": "^7.43.3"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   },
   "description": "Import events from an ICS Feed into Cal.com."
 }

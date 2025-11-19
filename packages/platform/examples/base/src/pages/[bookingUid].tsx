@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { useBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +35,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {isLoading && <p>Loading...</p>}
         {!isLoading && booking && (
           <div
+            data-testid="booking-success-page"
             key={booking.id}
             className="my-10 w-[440px] overflow-hidden rounded-md border-[0.7px] border-black px-10 py-5">
             {booking.status === "accepted" ? (
@@ -43,7 +44,9 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   name="circle-check-big"
                   className="my-5 flex h-[40px] w-[40px] rounded-full bg-green-500"
                 />
-                <h1 className="text-xl font-bold">This meeting is scheduled</h1>
+                <h1 className="text-xl font-bold" data-testid="booking-success-message">
+                  This meeting is scheduled
+                </h1>
                 <p>We sent an email with a calendar invitation with the details to everyone.</p>
               </div>
             ) : (
@@ -118,7 +121,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                   </div>
                 </div>
               )}
-              {!!booking.bookingFieldsResponses?.notes && (
+              {"bookingFieldsResponses" in booking && !!booking.bookingFieldsResponses?.notes && (
                 <div className="flex gap-[70px]">
                   <div className="w-[40px]">
                     <h4>Additional notes</h4>
@@ -134,13 +137,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               <>
                 <hr className="mx-3" />
                 <div className="mx-2 my-3 text-center">
-                  <p>
+                  <p data-testid="booking-redirect-or-cancel-links">
                     Need to make a change?{" "}
                     <button
                       className="underline"
                       onClick={() => {
                         router.push(
-                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}`
+                          `/booking?rescheduleUid=${booking?.uid}&eventTypeSlug=${booking?.eventType.slug}&rescheduledBy=${props.calEmail}`
                         );
                       }}>
                       Reschedule

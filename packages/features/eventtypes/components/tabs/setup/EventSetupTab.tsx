@@ -3,10 +3,8 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
-import Locations from "@calcom/features/eventtypes/components/Locations";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -14,12 +12,22 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
+import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Editor } from "@calcom/ui/components/editor";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import Locations from "../../locations/Locations";
+import type { LocationCustomClassNames } from "../../locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -52,19 +60,24 @@ export type EventSetupTabProps = Pick<
   customClassNames?: EventSetupTabCustomClassNames;
 };
 export const EventSetupTab = (
-  props: EventSetupTabProps & { urlPrefix: string; hasOrgBranding: boolean; orgId?: number }
+  props: EventSetupTabProps & {
+    urlPrefix: string;
+    hasOrgBranding: boolean;
+    orgId?: number;
+    localeOptions?: { value: string; label: string }[];
+  }
 ) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
   const [firstRender, setFirstRender] = useState(true);
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-  const autoTranslateDescriptionEnabled = formMethods.watch("autoTranslateDescriptionEnabled");
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -142,31 +155,21 @@ export const EventSetupTab = (
               </>
             )}
           </div>
-          {!isPlatform && (
-            <div className="[&_label]:my-1 [&_label]:font-normal">
-              <SettingsToggle
-                title={t("translate_description_button")}
-                checked={!!autoTranslateDescriptionEnabled}
-                onCheckedChange={(value) => {
-                  formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
-                }}
-                disabled={!orgId}
-                tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
-              />
-            </div>
-          )}
           <TextField
             required
             label={isPlatform ? "Slug" : t("URL")}
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
-            containerClassName={classNames(customClassNames?.titleSection?.urlInput?.container)}
+            containerClassName={classNames(
+              "[&>div]:gap-0",
+              customClassNames?.titleSection?.urlInput?.container
+            )}
             labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
-            className={classNames(customClassNames?.titleSection?.urlInput?.input)}
+            className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <>
+                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -174,7 +177,7 @@ export const EventSetupTab = (
                       : formMethods.getValues("users")[0].username
                     : t("username_placeholder")}
                   /
-                </>
+                </span>
               )
             }
             {...formMethods.register("slug", {
@@ -292,15 +295,26 @@ export const EventSetupTab = (
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
               defaultValue={formMethods.getValues("length") ?? 15}
-              {...formMethods.register("length")}
+              {...formMethods.register("length", {
+                valueAsNumber: true,
+                min: {
+                  value: MIN_EVENT_DURATION_MINUTES,
+                  message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
+                },
+                max: {
+                  value: MAX_EVENT_DURATION_MINUTES,
+                  message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
+                },
+              })}
               addOnSuffix={<>{t("minutes")}</>}
-              min={1}
+              min={MIN_EVENT_DURATION_MINUTES}
+              max={MAX_EVENT_DURATION_MINUTES}
             />
           )}
           {!lengthLockedProps.disabled && (
             <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
               <SettingsToggle
-                title={t("allow_booker_to_select_duration")}
+                title={t("allow_multiple_durations")}
                 checked={multipleDuration !== undefined}
                 disabled={seatsEnabled}
                 tooltip={seatsEnabled ? t("seat_options_doesnt_multiple_durations") : undefined}

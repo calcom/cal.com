@@ -2,11 +2,11 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { TextField } from "@calcom/ui";
+import { TextField } from "@calcom/ui/components/form";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const matomoUrl = getAppData("MATOMO_URL");
   const siteId = getAppData("SITE_ID");
@@ -14,6 +14,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       hideSettingsIcon
       app={app}
       switchOnClick={(e) => {

@@ -3,13 +3,15 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 
-import type { EventNameObjectType } from "@calcom/core/event";
-import { getEventName } from "@calcom/core/event";
-import { validateCustomEventName } from "@calcom/core/event";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName, validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogClose, DialogFooter, DialogContent, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
 
 interface FormValues {
   customEventName: string;
@@ -114,19 +116,19 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
             )}>
             <div
               className={classNames(
-                "mb-2.5 flex font-normal",
+                "mb-2.5 flex items-start font-normal",
                 customClassNames?.availableVariables?.variableItem?.container
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-32",
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Event type title}`}
               </p>
               <p
                 className={classNames(
-                  "text-emphasis",
+                  "text-emphasis min-w-0 flex-1",
                   customClassNames?.availableVariables?.variableItem?.variableDescription
                 )}>
                 {t("event_name_info")}
@@ -134,22 +136,144 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
             </div>
             <div
               className={classNames(
-                "mb-2.5 flex font-normal",
+                "mb-2.5 flex items-start font-normal",
                 customClassNames?.availableVariables?.variableItem?.container
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-32",
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Event duration}`}
               </p>
               <p
                 className={classNames(
-                  "text-emphasis",
+                  "text-emphasis min-w-0 flex-1",
                   customClassNames?.availableVariables?.variableItem?.variableDescription
                 )}>
                 {t("event_duration_info")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Organiser}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("your_full_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Organiser first name}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("organizer_first_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Scheduler}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("scheduler_full_name")}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Scheduler first name}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("scheduler_first_name")}
+              </p>
+            </div>
+            {isNameFieldSplit && (
+              <div
+                className={classNames(
+                  "mb-2.5 flex items-start font-normal",
+                  customClassNames?.availableVariables?.variableItem?.container
+                )}>
+                <p
+                  className={classNames(
+                    "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                    customClassNames?.availableVariables?.variableItem?.variableName
+                  )}>
+                  {`{Scheduler last name}`}
+                </p>
+                <p
+                  className={classNames(
+                    "text-emphasis min-w-0 flex-1",
+                    customClassNames?.availableVariables?.variableItem?.variableDescription
+                  )}>
+                  {t("scheduler_last_name")}
+                </p>
+              </div>
+            )}
+            <div
+              className={classNames(
+                "mb-2.5 flex items-start font-normal",
+                customClassNames?.availableVariables?.variableItem?.container
+              )}>
+              <p
+                className={classNames(
+                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  customClassNames?.availableVariables?.variableItem?.variableName
+                )}>
+                {`{Location}`}
+              </p>
+              <p
+                className={classNames(
+                  "text-emphasis min-w-0 flex-1",
+                  customClassNames?.availableVariables?.variableItem?.variableDescription
+                )}>
+                {t("location_info")}
               </p>
             </div>
             {/* Additional variable items here */}
@@ -167,19 +291,19 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                 <div
                   key={index}
                   className={classNames(
-                    "mb-2.5 flex font-normal",
+                    "mb-2.5 flex items-start font-normal",
                     customClassNames?.availableVariables?.bookingFieldItem?.container
                   )}>
                   <p
                     className={classNames(
-                      "text-subtle ml-1 mr-5 w-32",
+                      "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
                       customClassNames?.availableVariables?.bookingFieldItem?.fieldName
                     )}>
                     {`{${bookingfield}}`}
                   </p>
                   <p
                     className={classNames(
-                      "text-emphasis capitalize",
+                      "text-emphasis min-w-0 flex-1 capitalize",
                       customClassNames?.availableVariables?.bookingFieldItem?.fieldValue
                     )}>
                     {event.bookingFields?.[bookingfield]?.toString()}

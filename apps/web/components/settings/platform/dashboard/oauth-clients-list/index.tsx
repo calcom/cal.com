@@ -1,12 +1,13 @@
 import { useRouter } from "next/navigation";
 
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
-import { EmptyScreen, Button } from "@calcom/ui";
+import type { PlatformOAuthClientDto } from "@calcom/platform-types";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { OAuthClientCard } from "@components/settings/platform/oauth-clients/OAuthClientCard";
 
 type OAuthClientsListProps = {
-  oauthClients: PlatformOAuthClient[];
+  oauthClients: PlatformOAuthClientDto[];
   isDeleting: boolean;
   handleDelete: (id: string) => Promise<void>;
 };
@@ -46,6 +47,8 @@ export const OAuthClientsList = ({ oauthClients, isDeleting, handleDelete }: OAu
                   isLoading={isDeleting}
                   onDelete={handleDelete}
                   areEmailsEnabled={client.areEmailsEnabled}
+                  areDefaultEventTypesEnabled={client.areDefaultEventTypesEnabled}
+                  areCalendarEventsEnabled={client.areCalendarEventsEnabled}
                   organizationId={client.organizationId}
                 />
               );

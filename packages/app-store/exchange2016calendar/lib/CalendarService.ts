@@ -152,7 +152,7 @@ export default class ExchangeCalendarService implements Calendar {
       const externalCalendars = await this.listCalendars();
       const calendarsToGetAppointmentsFrom = [];
       for (let i = 0; i < selectedCalendars.length; i++) {
-        //Only select vaild calendars! (We get all all active calendars on the instance! even from different users!)
+        //Only select valid calendars! (We get all all active calendars on the instance! even from different users!)
         for (let k = 0; k < externalCalendars.length; k++) {
           if (selectedCalendars[i].externalId == externalCalendars[k].externalId) {
             calendarsToGetAppointmentsFrom.push(selectedCalendars[i]);

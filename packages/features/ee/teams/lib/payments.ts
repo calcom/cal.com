@@ -2,8 +2,8 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
@@ -49,10 +49,12 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  isOnboarding,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  isOnboarding?: boolean;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -98,6 +100,7 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
     },
   });
   return session;

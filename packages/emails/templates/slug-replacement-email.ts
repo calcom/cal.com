@@ -1,8 +1,8 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
-import { renderEmail } from "..";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class SlugReplacementEmail extends BaseEmail {

@@ -8,21 +8,25 @@ export class DestinationCalendarsRepository {
   async updateCalendar(
     integration: string,
     externalId: string,
-    credentialId: number,
+
     userId: number,
-    primaryEmail: string | null
+    primaryEmail: string | null,
+    credentialId?: number,
+    delegationCredentialId?: string
   ) {
     return await this.dbWrite.prisma.destinationCalendar.upsert({
       update: {
         integration,
         externalId,
-        credentialId,
+        ...(credentialId ? { credentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
         primaryEmail,
       },
       create: {
         integration,
         externalId,
-        credentialId,
+        ...(credentialId ? { credentialId } : {}),
+        ...(delegationCredentialId ? { delegationCredentialId } : {}),
         primaryEmail,
         userId,
       },

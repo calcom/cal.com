@@ -1,45 +1,46 @@
-import type { EventTypeCustomInput } from "@prisma/client";
-import type { NextApiRequest } from "next";
 import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
+import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { EventTypeCustomInput } from "@calcom/prisma/client";
 
+import { bookingCreateSchemaLegacyPropsForApi } from "../bookingCreateBodySchema";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
+import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import { handleCustomInputs } from "./handleCustomInputs";
-import type { getEventTypeResponse } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
-export async function getBookingData<T extends z.ZodType>({
-  req,
+// Define the function with underscore prefix
+const _getBookingData = async <T extends z.ZodType>({
+  reqBody,
   eventType,
   schema,
 }: {
-  req: NextApiRequest;
+  reqBody: Record<string, any>;
   eventType: getEventTypeResponse;
   schema: T;
-}) {
-  const reqBody = await schema.parseAsync(req.body);
-  const reqBodyWithEnd = (reqBody: TgetBookingDataSchema): reqBody is ReqBodyWithEnd => {
+}) => {
+  const parsedBody = await schema.parseAsync(reqBody);
+  const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
-    if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
-      reqBody.end = dayjs.utc(reqBody.start).add(eventType.length, "minutes").format();
+    if (!Object.prototype.hasOwnProperty.call(body, "end")) {
+      body.end = dayjs.utc(body.start).add(eventType.length, "minutes").format();
     }
     return true;
   };
-  if (!reqBodyWithEnd(reqBody)) {
+  if (!parsedBodyWithEnd(parsedBody)) {
     throw new Error(ErrorCode.RequestBodyWithouEnd);
   }
-  // reqBody.end is no longer an optional property.
-  if (reqBody.customInputs) {
+  // parsedBody.end is no longer an optional property.
+  if (parsedBody.customInputs) {
     // Check if required custom inputs exist
-    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
-    const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(reqBody);
+    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], parsedBody.customInputs);
+    const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(parsedBody);
     return {
-      ...reqBody,
+      ...parsedBody,
       name: reqBodyWithLegacyProps.name,
       email: reqBodyWithLegacyProps.email,
       guests: reqBodyWithLegacyProps.guests,
@@ -54,18 +55,19 @@ export async function getBookingData<T extends z.ZodType>({
       attendeePhoneNumber: undefined,
     };
   }
-  if (!reqBody.responses) {
+  if (!parsedBody.responses) {
     throw new Error("`responses` must not be nullish");
   }
-  const responses = reqBody.responses;
+  const responses = parsedBody.responses;
 
   const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
     getCalEventResponses({
       bookingFields: eventType.bookingFields,
       responses,
+      seatsEnabled: !!eventType.seatsPerTimeSlot,
     });
   return {
-    ...reqBody,
+    ...parsedBody,
     name: responses.name,
     email: responses.email,
     attendeePhoneNumber: responses.attendeePhoneNumber,
@@ -79,9 +81,11 @@ export async function getBookingData<T extends z.ZodType>({
     // So TS doesn't complain about unknown properties
     customInputs: undefined,
   };
-}
+};
 
-export type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
+export const getBookingData = withReporting(_getBookingData, "getBookingData");
+
+export type AwaitedBookingData = Awaited<ReturnType<typeof _getBookingData>>;
 export type RescheduleReason = AwaitedBookingData["rescheduleReason"];
 export type NoEmail = AwaitedBookingData["noEmail"];
 export type AdditionalNotes = AwaitedBookingData["notes"];

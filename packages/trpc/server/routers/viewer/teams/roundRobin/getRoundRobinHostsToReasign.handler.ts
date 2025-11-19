@@ -1,13 +1,14 @@
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetRoundRobinHostsToReassignInputSchema } from "./getRoundRobinHostsToReasign.schema";
 
@@ -21,6 +22,7 @@ type GetRoundRobinHostsToReassignOptions = {
 
 async function getTeamHostsFromDB({
   eventTypeId,
+  organizationId,
   prisma,
   searchTerm,
   cursor,
@@ -28,6 +30,7 @@ async function getTeamHostsFromDB({
   excludeUserId,
 }: {
   eventTypeId: number;
+  organizationId: number | null;
   prisma: PrismaClient;
   searchTerm?: string;
   cursor?: number;
@@ -57,7 +60,7 @@ async function getTeamHostsFromDB({
         priority: true,
         user: {
           select: {
-            ...userSelect.select,
+            ...userSelect,
             credentials: {
               select: credentialForCalendarServiceSelect,
             },
@@ -77,13 +80,17 @@ async function getTeamHostsFromDB({
 
   const hasNextPage = hosts.length > limit;
   const hosts_subset = hasNextPage ? hosts.slice(0, -1) : hosts;
+  const hostsMergedWithUser = hosts_subset.map((host) => ({
+    ...host.user,
+    isFixed: host.isFixed,
+    priority: host.priority ?? 2,
+  }));
 
   return {
-    hosts: hosts_subset.map((host) => ({
-      ...host.user,
-      isFixed: host.isFixed,
-      priority: host.priority ?? 2,
-    })),
+    hosts: await enrichUsersWithDelegationCredentials({
+      orgId: organizationId,
+      users: hostsMergedWithUser,
+    }),
     totalCount,
     hasNextPage,
     nextCursor: hasNextPage ? hosts_subset[hosts_subset.length - 1].user.id : null,
@@ -97,9 +104,9 @@ async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
 }
 
 export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobinHostsToReassignOptions) => {
-  const { prisma } = ctx;
+  const { prisma, user } = ctx;
   const { bookingId, limit, cursor, searchTerm } = input;
-
+  const organizationId = user.organizationId;
   const gettingRoundRobinHostsToReassignLogger = logger.getSubLogger({
     prefix: ["gettingRoundRobinHostsToReassign", `${bookingId}`],
   });
@@ -120,6 +127,7 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
 
   const { hosts, totalCount, nextCursor } = await getTeamHostsFromDB({
     eventTypeId: booking.eventTypeId,
+    organizationId,
     prisma,
     searchTerm,
     cursor,

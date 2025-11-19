@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import type { ButtonColor } from "../button";
 import { Icon } from "../icon";
@@ -39,8 +39,8 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown bg-default border-subtle relative z-10 origin-top-right space-y-[1px] rounded-xl border p-1 text-sm",
-          "w-[220px] [&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
+          "shadow-dropdown bg-default border-subtle relative z-50 origin-top-right space-y-[1px] rounded-xl border p-1 text-sm",
+          "w-[220px]",
           props.className
         )}
         ref={forwardedRef}>
@@ -171,7 +171,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
       )}>
       <>
         {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
-        <div className={classNames("w-fit text-sm font-medium leading-none", childrenClassName)}>
+        <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>
         {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}

@@ -41,7 +41,7 @@ test.describe("Change username on settings", () => {
 
       await usernameInput.fill(item.username);
       await page.click("[data-testid=update-username-btn]");
-      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=save-username]"),
       });
 

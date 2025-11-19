@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
@@ -28,7 +28,7 @@ import { membershipIdSchema } from "~/lib/validations/membership";
  *     - memberships
  *     responses:
  *       201:
- *         description: OK, membership removed successfuly
+ *         description: OK, membership removed successfully
  *       400:
  *        description: Bad request. Membership id is invalid.
  *       401:

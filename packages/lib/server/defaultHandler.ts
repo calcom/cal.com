@@ -1,7 +1,7 @@
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 type Handlers = {
-  [method in "GET" | "POST" | "PATCH" | "PUT" | "DELETE"]?: Promise<{ default: NextApiHandler }>;
+  [method in "GET" | "POST" | "PATCH" | "PUT" | "DELETE" | "OPTIONS"]?: Promise<{ default: NextApiHandler }>;
 };
 
 /** Allows us to split big API handlers by method */
@@ -13,12 +13,5 @@ export const defaultHandler = (handlers: Handlers) => async (req: NextApiRequest
       .status(405)
       .json({ message: `Method Not Allowed (Allow: ${Object.keys(handlers).join(",")})` });
   }
-
-  try {
-    await handler(req, res);
-    return;
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
-  }
+  return await handler(req, res);
 };

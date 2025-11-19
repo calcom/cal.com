@@ -7,7 +7,10 @@ import LegacyPage from "~/maintenance/maintenance-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("under_maintenance"),
-    (t) => t("under_maintenance_description", { appName: APP_NAME })
+    (t) => t("under_maintenance_description", { appName: APP_NAME }),
+    undefined,
+    undefined,
+    "/maintenance"
   );
 };
 

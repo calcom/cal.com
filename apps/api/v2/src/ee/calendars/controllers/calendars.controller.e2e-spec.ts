@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
+import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -11,7 +12,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
 import * as request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -30,8 +30,9 @@ import {
   GOOGLE_CALENDAR_ID,
 } from "@calcom/platform-constants";
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { ICS_CALENDAR } from "@calcom/platform-constants/apps";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries";
+import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
+import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
@@ -129,7 +130,7 @@ describe("Platform Calendars Endpoints", () => {
 
   it(`/GET/v2/calendars/${GOOGLE_CALENDAR}/connect: it should redirect to auth-url for google calendar OAuth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect`)
+      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect?redir=https://cal.com&isDryRun=false`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
@@ -245,6 +246,35 @@ describe("Platform Calendars Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
+  });
+
+  it(`/GET/v2/calendars with access token`, async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/v2/calendars`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    const data: ConnectedCalendarsData = response.body.data;
+    expect(data.connectedCalendars).toBeDefined();
+    expect(data.connectedCalendars).toHaveLength(3);
+
+    const googleConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === GOOGLE_CALENDAR_TYPE
+    );
+    const office365ConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === OFFICE_365_CALENDAR_TYPE
+    );
+    const icsConnectedCalendar = data.connectedCalendars.find(
+      (calendar) => calendar.integration.type === ICS_CALENDAR_TYPE
+    );
+
+    expect(googleConnectedCalendar).toBeDefined();
+    expect(office365ConnectedCalendar).toBeDefined();
+    expect(icsConnectedCalendar).toBeDefined();
+
+    expect(data.destinationCalendar).toBeDefined();
+    expect(data.destinationCalendar.integration).toEqual(GOOGLE_CALENDAR_TYPE);
   });
 
   it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {

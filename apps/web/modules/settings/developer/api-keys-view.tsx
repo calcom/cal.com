@@ -4,23 +4,16 @@ import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
-
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return (
-    <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
-};
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
@@ -44,10 +37,12 @@ export const NewApiKeyButton = () => {
   );
 };
 
-const ApiKeysView = () => {
-  const { t } = useLocale();
+type Props = {
+  apiKeys: RouterOutputs["viewer"]["apiKeys"]["list"];
+};
 
-  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
+const ApiKeysView = ({ apiKeys: data }: Props) => {
+  const { t } = useLocale();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
@@ -63,17 +58,12 @@ const ApiKeysView = () => {
     };
   }, []);
 
-  if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-      />
-    );
-  }
-
   return (
-    <>
+    <SettingsHeader
+      title={t("api_keys")}
+      description={t("create_first_api_key_description", { appName: APP_NAME })}
+      CTA={<NewApiKeyButton />}
+      borderInShellHeader={true}>
       <LicenseRequired>
         <div>
           {data?.length ? (
@@ -109,7 +99,7 @@ const ApiKeysView = () => {
           <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
         </DialogContent>
       </Dialog>
-    </>
+    </SettingsHeader>
   );
 };
 

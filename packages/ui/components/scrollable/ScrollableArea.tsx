@@ -3,7 +3,7 @@
 import type { PropsWithChildren } from "react";
 import React, { useRef, useEffect, useState } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?: string }>) => {
   const scrollableRef = useRef<HTMLDivElement>(null);
@@ -14,7 +14,6 @@ const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?:
 
     if (scrollableElement) {
       const isElementOverflowing = scrollableElement.scrollHeight > scrollableElement.clientHeight;
-      console.log({ isElementOverflowing });
       setIsOverflowingY(isElementOverflowing);
     }
   }, []);

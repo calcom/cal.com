@@ -3,25 +3,24 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
-  DropdownActions,
-  Icon,
-  showToast,
-  Table,
-  TextField,
-} from "@calcom/ui";
+  DialogClose,
+  ConfirmationDialogContent,
+} from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { DropdownActions, Table } from "@calcom/ui/components/table";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -42,9 +41,9 @@ function UsersTableBare() {
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
       showToast("User has been deleted", "success");
-      // Lets not invalidated the whole cache, just remove the user from the cache.
-      // usefull cause in prod this will be fetching 100k+ users
-      // FIXME: Tested locally and it doesnt't work, need to investigate
+      // Lets not invalidate the whole cache, just remove the user from the cache.
+      // Useful cause in prod this will be fetching 100k+ users
+      // FIXME: Tested locally and it doesn't work, need to investigate
       utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
         if (!cachedData) {
           return {
@@ -120,13 +119,29 @@ function UsersTableBare() {
     },
   });
 
-  const handleImpersonateUser = async (username: string | null) => {
-    await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
+  const verifyWorkflows = trpc.viewer.admin.verifyWorkflows.useMutation({
+    onSuccess: () => {
+      showToast("Workflows verified", "success");
+      utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+  const whitelistUserWorkflows = trpc.viewer.admin.whitelistUserWorkflows.useMutation({
+    onSuccess: (data) => {
+      showToast(
+        data.whitelistWorkflows ? t("user_workflows_whitelisted") : t("user_workflows_unwhitelisted"),
+        "success"
+      );
+      utils.viewer.admin.listPaginated.invalidate();
+    },
+  });
+
+  const handleImpersonateUser = async (email: string | null) => {
+    await signIn("impersonation-auth", { username: email, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -135,12 +150,12 @@ function UsersTableBare() {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   useEffect(() => {
@@ -187,14 +202,16 @@ function UsersTableBare() {
                     />
 
                     <div className="text-subtle ml-4 font-medium">
-                      <div className="flex flex-row">
+                      <div className="flex gap-3">
                         <span className="text-default">{user.name}</span>
-                        <span className="ml-3">/{user.username}</span>
-                        {user.locked && (
-                          <span className="ml-3">
-                            <Icon name="lock" />
+                        <span>/{user.username}</span>
+                        {user.profiles[0]?.username && (
+                          <span className="flex items-center gap-1">
+                            <Icon name="building" className="text-subtle size-5" />
+                            <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
+                        {user.locked && <Icon name="lock" />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>
@@ -226,7 +243,7 @@ function UsersTableBare() {
                         {
                           id: "impersonate-user",
                           label: "Impersonate User",
-                          onClick: () => handleImpersonateUser(user?.username),
+                          onClick: () => handleImpersonateUser(user?.email),
                           icon: "user",
                         },
                         {
@@ -236,10 +253,29 @@ function UsersTableBare() {
                           icon: "lock",
                         },
                         {
+                          id: "verify-workflows",
+                          label: "Verify workflows",
+                          onClick: () => verifyWorkflows.mutate({ userId: user.id }),
+                          icon: "check",
+                        },
+                        {
+                          id: "whitelist-user-workflows",
+                          label: user.whitelistWorkflows
+                            ? t("remove_whitelist_status")
+                            : t("whitelist_user_workflows"),
+                          onClick: () => {
+                            whitelistUserWorkflows.mutate({
+                              userId: user.id,
+                              whitelistWorkflows: !user.whitelistWorkflows,
+                            });
+                          },
+                          icon: "check",
+                        },
+                        {
                           id: "impersonation",
                           label: "Impersonate",
                           onClick: () => {
-                            setSelectedUser(user.username);
+                            setSelectedUser(user.email);
                             setShowImpersonateModal(true);
                           },
                           icon: "venetian-mask",
@@ -309,7 +345,7 @@ const DeleteUserDialog = ({
   onClose: () => void;
 }) => {
   return (
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
+     
     <Dialog name="delete-user" open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title="Delete User"

@@ -10,7 +10,7 @@ const paramsSchema = z
     pages: [],
   });
 
-export default function RoutingForms({ params }: PageProps) {
-  const { pages } = paramsSchema.parse(params);
+export default async function RoutingForms({ params }: PageProps) {
+  const { pages } = paramsSchema.parse(await params);
   redirect(`/apps/routing-forms/${pages.length ? pages.join("/") : ""}`);
 }

@@ -1,29 +1,29 @@
 import type { z } from "zod";
 
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import EventManager from "@calcom/core/EventManager";
-import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
+import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
 
@@ -87,6 +87,7 @@ async function updateBookingLocationInDb({
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
 }) {
+  const isSeatedEvent = !!evt.seatsPerTimeSlot;
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
@@ -97,41 +98,40 @@ async function updateBookingLocationInDb({
       ...(credentialId && credentialId > 0 ? { credentialId } : {}),
     };
   });
-
-  await prisma.booking.update({
-    where: {
-      id: booking.id,
+  const responses = {
+    ...(typeof booking.responses === "object" && booking.responses),
+    location: {
+      value: evt.location,
+      optionValue: "",
     },
+  };
+
+  const bookingRepository = new BookingRepository(prisma);
+  await bookingRepository.updateLocationById({
+    where: { id: booking.id },
     data: {
       location: evt.location,
       metadata: {
         ...(typeof booking.metadata === "object" && booking.metadata),
         ...bookingMetadataUpdate,
       },
-      references: {
-        create: referencesToCreate,
-      },
-      responses: {
-        ...(typeof booking.responses === "object" && booking.responses),
-        location: {
-          value: evt.location,
-          optionValue: "",
-        },
-      },
+      referencesToCreate,
+      ...(!isSeatedEvent ? { responses } : {}),
+      iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
 }
 
-async function getAllCredentials({
+async function getAllCredentialsIncludeServiceAccountKey({
   user,
   conferenceCredentialId,
 }: {
-  user: { id: number };
+  user: { id: number; email: string };
   conferenceCredentialId: number | null;
 }) {
-  const credentials = await getUsersCredentials(user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential: CredentialPayload | null = null;
+  let conferenceCredential;
 
   if (conferenceCredentialId) {
     conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
@@ -249,7 +249,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const organizer = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
+  const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
@@ -266,7 +266,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   const eventManager = new EventManager({
     ...ctx.user,
-    credentials: await getAllCredentials({ user: ctx.user, conferenceCredentialId }),
+    credentials: await getAllCredentialsIncludeServiceAccountKey({ user: ctx.user, conferenceCredentialId }),
   });
 
   const updatedResult = await updateLocationInConnectedAppForBooking({

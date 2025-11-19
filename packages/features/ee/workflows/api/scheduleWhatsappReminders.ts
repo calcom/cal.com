@@ -1,33 +1,28 @@
-/* Schedule any workflow reminder that falls within 7 days for WHATSAPP */
-import type { NextApiRequest, NextApiResponse } from "next";
+/* Schedule any workflow reminder that falls within the next 2 hours for WHATSAPP */
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { defaultHandler } from "@calcom/lib/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
-import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
+import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelperFunctions";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
-import * as twilio from "../lib/reminders/providers/twilioProvider";
+import { scheduleSmsOrFallbackEmail } from "../lib/reminders/messageDispatcher";
+import {
+  getContentSidForTemplate,
+  getContentVariablesForTemplate,
+} from "../lib/reminders/templates/whatsapp/ContentSidMapping";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
-
-  //delete all scheduled whatsapp reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
 
   //find all unscheduled WHATSAPP reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
@@ -35,15 +30,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        gte: new Date(),
+        lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select,
   })) as PartialWorkflowReminder[];
 
   if (!unscheduledReminders.length) {
-    res.json({ ok: true });
-    return;
+    return NextResponse.json({ ok: true });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -74,13 +72,29 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const startTime = reminder.booking?.startTime.toISOString();
+      const locale = reminder.booking.user?.locale || "en";
+      const timeFormat = getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat);
+
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
+      const contentSid = getContentSidForTemplate(reminder.workflowStep.template);
+      const contentVariables = getContentVariablesForTemplate({
+        name: userName,
+        attendeeName: attendeeName || "",
+        eventName: reminder.booking?.eventType?.title,
+        eventDate: dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D"),
+        startTime: dayjs(startTime)
+          .tz(timeZone)
+          .locale(locale)
+          .format(timeFormat || "h:mma"),
+        timeZone,
+      });
       const message = templateFunction(
         false,
         reminder.booking.user?.locale || "en",
         reminder.workflowStep.action,
-        getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-        reminder.booking?.startTime.toISOString() || "",
+        timeFormat,
+        startTime || "",
         reminder.booking?.eventType?.title || "",
         timeZone || "",
         attendeeName || "",
@@ -88,24 +102,52 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          "",
-          userId,
-          teamId,
-          true
-        );
+        const scheduledNotification = await scheduleSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: sendTo,
+            body: message,
+            scheduledDate: reminder.scheduledDate,
+            sender: "",
+            bookingUid: reminder.booking.uid,
+            userId,
+            teamId,
+            isWhatsapp: true,
+            contentSid,
+            contentVariables,
+          },
+          fallbackData:
+            reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
+              ? {
+                  email: reminder.booking.attendees[0].email,
+                  t: await getTranslation(reminder.booking.attendees[0].locale || "en", "common"),
+                  replyTo: reminder.booking?.user?.email ?? "",
+                  workflowStepId: reminder.workflowStep.id,
+                }
+              : undefined,
+        });
 
-        if (scheduledSMS) {
-          await prisma.workflowReminder.update({
+        if (scheduledNotification) {
+          if (scheduledNotification.sid) {
+            await prisma.workflowReminder.update({
+              where: {
+                id: reminder.id,
+              },
+              data: {
+                scheduled: true,
+                referenceId: scheduledNotification.sid,
+              },
+            });
+          } else if (scheduledNotification.emailReminderId) {
+            await prisma.workflowReminder.delete({
+              where: {
+                id: reminder.id,
+              },
+            });
+          }
+        } else {
+          await prisma.workflowReminder.delete({
             where: {
               id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
             },
           });
         }
@@ -115,9 +157,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  res.status(200).json({ message: "WHATSAPP scheduled" });
+  return NextResponse.json({ message: "WHATSAPP scheduled" }, { status: 200 });
 }
-
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});

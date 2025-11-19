@@ -1,14 +1,16 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Section } from "@calcom/ui/components/section";
 
-import type { CredentialOwner } from "../types";
+import type { AppCardApp } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -23,8 +25,10 @@ export default function AppCard({
   switchTooltip,
   hideSettingsIcon = false,
   hideAppCardOptions = false,
+  onAppInstallSuccess,
 }: {
-  app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
+  app: AppCardApp;
+  onAppInstallSuccess: () => void;
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -37,51 +41,42 @@ export default function AppCard({
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
   const isPlatform = useIsPlatform();
 
   return (
-    <div
-      className={classNames(
-        "border-subtle",
-        app?.isInstalled && "mb-4 rounded-md border",
-        !app.enabled && "grayscale"
-      )}>
-      <div className={classNames(app.isInstalled ? "p-4 text-sm sm:p-4" : "px-5 py-4 text-sm sm:px-5")}>
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
-          {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
-          <Link
-            href={`/apps/${app.slug}`}
-            className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
-            <img
-              className={classNames(
-                app?.logo.includes("-dark") && "dark:invert",
-                app?.isInstalled ? "min-w-[42px]" : "min-w-[40px]",
-                "w-full"
-              )}
-              src={app?.logo}
-              alt={app?.name}
-            />
-          </Link>
-          <div className="flex flex-col pe-3">
-            <div className="text-emphasis">
-              <span className={classNames(app?.isInstalled && "text-base", "font-semibold leading-4")}>
-                {app?.name}
-              </span>
+    <Section className={classNames(!app?.isInstalled && "rounded-xl")}>
+      <Section.Header
+        rawHeading={
+          <div>
+            <div className="flex w-full items-center gap-1">
+              <Section.Title>{app?.name}</Section.Title>
               {!app?.isInstalled && (
                 <span className="bg-emphasis ml-1 rounded px-1 py-0.5 text-xs font-medium leading-3 tracking-[0.01em]">
                   {app?.categories[0].charAt(0).toUpperCase() + app?.categories[0].slice(1)}
                 </span>
               )}
             </div>
-            <p title={app?.description} className="text-default line-clamp-1 pt-1 text-sm font-normal">
-              {description || app?.description}
-            </p>
+            <Section.Description>{app?.description}</Section.Description>
           </div>
-          <div className="ml-auto flex items-center space-x-2">
-            {app.credentialOwner && !isPlatform && (
+        }
+        iconSlot={
+          <Link href={`/apps/${app.slug}`} className="flex h-8 w-8 items-center justify-center">
+            <img
+              className={classNames(
+                app?.logo.includes("-dark") && "dark:invert",
+                "max-h-full max-w-full object-contain"
+              )}
+              src={app?.logo}
+              alt={app?.name}
+            />
+          </Link>
+        }>
+        <div>
+          <div>
+            {/* {app.credentialOwner && !isPlatform && (
               <div className="ml-auto">
                 <Badge variant="gray">
                   <div className="flex items-center">
@@ -95,10 +90,11 @@ export default function AppCard({
                   </div>
                 </Badge>
               </div>
-            )}
+            )} */}
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
+                  size="sm"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
@@ -118,36 +114,36 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                onAppInstallSuccess={onAppInstallSuccess}
               />
             )}
           </div>
         </div>
-      </div>
-      {hideAppCardOptions ? null : (
-        <div ref={animationRef}>
-          {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
-
-          {app?.isInstalled && switchChecked ? (
-            app.isSetupAlready === undefined || app.isSetupAlready ? (
-              <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
-                {!hideSettingsIcon && !isPlatform && (
-                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+      </Section.Header>
+      {hideAppCardOptions
+        ? null
+        : app?.isInstalled &&
+          switchChecked && (
+            <div ref={animationRef}>
+              {app.isSetupAlready === undefined || app.isSetupAlready ? (
+                <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
+                  {!hideSettingsIcon && !isPlatform && (
+                    <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  )}
+                  {children}
+                </div>
+              ) : (
+                <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+                  <p>{t("this_app_is_not_setup_already")}</p>
+                  <Link href={`/apps/${app.slug}/setup`}>
+                    <Button StartIcon="settings">{t("setup")}</Button>
                   </Link>
-                )}
-                {children}
-              </div>
-            ) : (
-              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-                <p>{t("this_app_is_not_setup_already")}</p>
-                <Link href={`/apps/${app.slug}/setup`}>
-                  <Button StartIcon="settings">{t("setup")}</Button>
-                </Link>
-              </div>
-            )
-          ) : null}
-        </div>
-      )}
-    </div>
+                </div>
+              )}
+            </div>
+          )}
+    </Section>
   );
 }

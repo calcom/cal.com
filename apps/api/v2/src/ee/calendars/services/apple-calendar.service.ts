@@ -5,8 +5,9 @@ import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
-import { symmetricEncrypt, CalendarService, symmetricDecrypt } from "@calcom/platform-libraries";
-import { Credential } from "@calcom/prisma/client";
+import { symmetricEncrypt, symmetricDecrypt } from "@calcom/platform-libraries";
+import { CalendarService } from "@calcom/platform-libraries/app-store";
+import type { Credential } from "@calcom/prisma/client";
 
 @Injectable()
 export class AppleCalendarService implements CredentialSyncCalendarApp {
@@ -29,7 +30,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const appleCalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
+    const appleCalendarCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
       APPLE_CALENDAR_TYPE,
       userId
     );
@@ -59,8 +60,9 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
   }
 
   async saveCalendarCredentials(userId: number, userEmail: string, username: string, password: string) {
-    if (username.length <= 1 || password.length <= 1)
+    if (!username || !password || username.length <= 1 || password.length <= 1) {
       throw new BadRequestException(`Username or password cannot be empty`);
+    }
 
     const existingAppleCalendarCredentials = await this.credentialRepository.getAllUserCredentialsByTypeAndId(
       APPLE_CALENDAR_TYPE,
@@ -93,7 +95,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
       }
 
       if (!!hasCalendarWithGivenCredentials && !hasMatchingUsernameAndPassword) {
-        await this.credentialRepository.upsertAppCredential(
+        await this.credentialRepository.upsertUserAppCredential(
           APPLE_CALENDAR_TYPE,
           symmetricEncrypt(JSON.stringify({ username, password }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
           userId,
@@ -117,6 +119,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         teamId: null,
         appId: APPLE_CALENDAR_ID,
         invalid: false,
+        delegationCredentialId: null,
       };
 
       const dav = new CalendarService({
@@ -125,7 +128,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.credentialRepository.upsertAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
+      await this.credentialRepository.upsertUserAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }

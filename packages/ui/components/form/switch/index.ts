@@ -1,2 +1,2 @@
-export { default as SettingsToggle } from "./SettingsToggle";
-export { default as Switch } from "./Switch";
+export { SettingsToggle } from "./SettingsToggle";
+export { Switch } from "./Switch";

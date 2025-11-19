@@ -1,6 +1,6 @@
-import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+import { getBulkUserEventTypes } from "@calcom/app-store/_utils/getBulkEventTypes";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type BulkEventFetchOptions = {
   ctx: {
@@ -9,5 +9,5 @@ type BulkEventFetchOptions = {
 };
 
 export const bulkEventFetchHandler = async ({ ctx }: BulkEventFetchOptions) => {
-  return getBulkEventTypes(ctx.user.id);
+  return getBulkUserEventTypes(ctx.user.id);
 };

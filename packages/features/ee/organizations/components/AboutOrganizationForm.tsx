@@ -1,40 +1,32 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import z from "zod";
 
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { trpc } from "@calcom/trpc/react";
-import { Alert, Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
-
-const querySchema = z.object({
-  id: z.string(),
-});
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const routerQuery = useRouterQuery();
-  const { id: orgId } = querySchema.parse(routerQuery);
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const [image, setImage] = useState("");
+
+  const { useOnboardingStore } = useOnboarding();
+  const { setLogo, setBio, bio: bioFromStore, logo: logoFromStore } = useOnboardingStore();
 
   const aboutOrganizationFormMethods = useForm<{
     logo: string;
     bio: string;
-  }>();
-
-  const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: (data) => {
-      if (data.update) {
-        router.push(`/settings/organizations/${orgId}/onboard-members`);
-      }
-    },
-    onError: (err) => {
-      setServerErrorMessage(err.message);
+  }>({
+    defaultValues: {
+      logo: logoFromStore ?? "",
+      bio: bioFromStore ?? "",
     },
   });
 
@@ -43,23 +35,16 @@ export const AboutOrganizationForm = () => {
       <Form
         form={aboutOrganizationFormMethods}
         className="space-y-5"
-        handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isPending) {
-            setServerErrorMessage(null);
-            updateOrganizationMutation.mutate({ ...v, orgId });
-          }
+        handleSubmit={(values) => {
+          setLogo(values.logo);
+          setBio(values.bio);
+          router.push(`/settings/organizations/new/add-teams`);
         }}>
-        {serverErrorMessage && (
-          <div>
-            <Alert severity="error" message={serverErrorMessage} />
-          </div>
-        )}
-
         <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="logo"
-            render={() => (
+            render={({ field: { value } }) => (
               <>
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
@@ -67,7 +52,7 @@ export const AboutOrganizationForm = () => {
                     alt=""
                     fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     className="items-center"
-                    imageSrc={image}
+                    imageSrc={value}
                     size="lg"
                   />
                   <div className="ms-4">
@@ -76,10 +61,9 @@ export const AboutOrganizationForm = () => {
                       id="avatar-upload"
                       buttonMsg={t("upload")}
                       handleAvatarChange={(newAvatar: string) => {
-                        setImage(newAvatar);
                         aboutOrganizationFormMethods.setValue("logo", newAvatar);
                       }}
-                      imageSrc={image}
+                      imageSrc={value}
                     />
                   </div>
                 </div>
@@ -109,9 +93,8 @@ export const AboutOrganizationForm = () => {
 
         <div className="flex">
           <Button
-            disabled={
-              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
-            }
+            // Form submitted means navigation is happening and new Form would render when that occurs, so keep it in loading state
+            loading={aboutOrganizationFormMethods.formState.isSubmitted}
             color="primary"
             EndIcon="arrow-right"
             type="submit"

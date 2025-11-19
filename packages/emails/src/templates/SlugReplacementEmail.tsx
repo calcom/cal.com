@@ -1,8 +1,6 @@
-"use client";
+import type { TFunction } from "i18next";
 
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
-
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
@@ -23,22 +21,14 @@ export const SlugReplacementEmail = (
       headerType="teamCircle"
       title={t("event_replaced_notice")}>
       <>
-        <Trans i18nKey="hi_user_name" name={name}>
-          <p style={{ fontWeight: 400, lineHeight: "24px", display: "inline-block" }}>Hi {name}</p>
-          <p style={{ display: "inline" }}>,</p>
-        </Trans>
-        <Trans i18nKey="email_body_slug_replacement_notice" slug={slug}>
-          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-            An administrator on the <strong>{teamName}</strong> team has replaced your event type{" "}
-            <strong>/{slug}</strong> with a managed event type that they control.
-          </p>
-        </Trans>
-        <Trans i18nKey="email_body_slug_replacement_info">
-          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-            Your link will continue to work but some settings for it may have changed. You can review it in
-            event types.
-          </p>
-        </Trans>
+        <p style={{ fontWeight: 400, lineHeight: "24px", display: "inline-block" }}>
+          <ServerTrans t={t} i18nKey="hi_user_name" values={{ name }} />
+        </p>
+        <p style={{ display: "inline" }}>,</p>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+          <ServerTrans t={t} i18nKey="email_body_slug_replacement_notice" values={{ teamName, slug }} />
+        </p>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("email_body_slug_replacement_info")}</p>
         <table
           role="presentation"
           border={0}
@@ -64,15 +54,9 @@ export const SlugReplacementEmail = (
             width: "100%",
           }}
         />
-        <Trans i18nKey="email_body_slug_replacement_suggestion">
-          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-            If you have any questions about the event type, please reach out to your administrator.
-            <br />
-            <br />
-            Happy scheduling, <br />
-            The Cal.com team
-          </p>
-        </Trans>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+          <ServerTrans i18nKey="email_body_slug_replacement_suggestion" t={t} />
+        </p>
         {/*<p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <>{t("email_body_slug_replacement_suggestion")}</>
         </p>*/}

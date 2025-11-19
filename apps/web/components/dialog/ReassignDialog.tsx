@@ -5,27 +5,24 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
-  Form,
-  Label,
-  Dialog,
-  DialogClose,
   DialogContent,
   DialogFooter,
+  DialogClose,
   ConfirmationDialogContent,
-  showToast,
-  Input,
-  Icon,
-  RadioGroup as RadioArea,
-  TextAreaField,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dialog";
+import { TextAreaField, Form, Label, Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 
 enum ReassignType {
   ROUND_ROBIN = "round_robin",
@@ -221,7 +218,7 @@ export const ReassignDialog = ({
                     placeholder={t("search")}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                  <div className="scroll-bar mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
                     {teamMemberOptions.map((member) => (
                       <label
                         key={member.value}

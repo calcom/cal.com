@@ -10,8 +10,8 @@ import type {
 import { components } from "react-select";
 import type { Props } from "react-select";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Select } from "../select";
 
@@ -126,6 +126,7 @@ export default function MultiSelectCheckboxes({
       }}
       variant="checkbox"
       options={allOptions.length > 1 ? allOptions : []}
+      innerClassNames={{ valueContainer: "font-medium", option: "font-medium" }}
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}

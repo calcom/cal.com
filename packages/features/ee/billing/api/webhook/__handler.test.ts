@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 
 import { stripeWebhookHandler, HttpCode } from "./__handler";
 
@@ -11,7 +11,7 @@ vi.mock("micro", () => ({
   buffer: vi.fn(),
 }));
 
-vi.mock("@calcom/app-store/stripepayment/lib/server", () => ({
+vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   default: {
     webhooks: {
       constructEvent: vi.fn(),
@@ -53,7 +53,7 @@ describe("stripeWebhookHandler", () => {
     await expect(handler(req)).rejects.toThrow(new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET"));
   });
 
-  it("should throw an error if event type is unhandled", async () => {
+  it("should return success false if event type is unhandled", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       headers: {
@@ -65,9 +65,11 @@ describe("stripeWebhookHandler", () => {
     (stripe.webhooks.constructEvent as any).mockReturnValueOnce({ type: "unhandled_event" });
 
     const handler = stripeWebhookHandler({});
-    await expect(handler(req)).rejects.toThrow(
-      new HttpCode(202, "Unhandled Stripe Webhook event type unhandled_event")
-    );
+    const response = await handler(req);
+    expect(response).toEqual({
+      success: false,
+      message: "Unhandled Stripe Webhook event type unhandled_event",
+    });
   });
 
   it("should call the appropriate handler for a valid event", async () => {

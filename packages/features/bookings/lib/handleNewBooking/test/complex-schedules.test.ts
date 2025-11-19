@@ -10,7 +10,6 @@ import {
   mockCalendarToHaveNoBusySlots,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
@@ -28,6 +27,8 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 export const Timezones = {
   "-05:00": "America/New_York",
@@ -49,25 +50,41 @@ describe("handleNewBooking", () => {
       async ({ emails }) => {
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const newYorkTimeZone = Timezones["-05:00"];
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        const startDateTimeOrganizerTz = dayjs(plus1DateString)
+        let startDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(23)
           .minute(0)
           .second(0);
 
-        const endDateTimeOrganizerTz = dayjs(plus1DateString)
+        let endDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .startOf("day")
           .add(1, "day");
+
+        const endUtcOffset = Math.abs(endDateTimeOrganizerTz.utcOffset());
+        const startUtcOffset = Math.abs(startDateTimeOrganizerTz.utcOffset());
+        //on DST transition day the utc offsets are unequal
+        if (startUtcOffset !== endUtcOffset) {
+          if (endUtcOffset > startUtcOffset) {
+            // -5:00 to -4:00 transition
+            endDateTimeOrganizerTz = endDateTimeOrganizerTz.subtract(
+              endUtcOffset - startUtcOffset,
+              "minutes"
+            );
+          } else {
+            // -4:00 to -5:00 transition
+            startDateTimeOrganizerTz = startDateTimeOrganizerTz.add(startUtcOffset - endUtcOffset, "minutes");
+          }
+        }
 
         const schedule = {
           name: "4:00PM to 11:59PM in New York",
@@ -120,7 +137,7 @@ describe("handleNewBooking", () => {
         });
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -141,12 +158,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
             email: booker.email,
@@ -179,7 +193,6 @@ describe("handleNewBooking", () => {
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,

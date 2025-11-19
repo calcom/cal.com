@@ -1,46 +1,57 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Steps } from "../../form/step";
+import { useWizardState } from "./useWizardState";
 
-type DefaultStep = {
+export type WizardStep = {
   title: string;
   containerClassname?: string;
   contentClassname?: string;
   description: string;
-  content?: ((setIsPending: Dispatch<SetStateAction<boolean>>) => JSX.Element) | JSX.Element;
+  content?:
+    | ((
+        setIsPending: Dispatch<SetStateAction<boolean>>,
+        nav: { onNext: () => void; onPrev: () => void; step: number; maxSteps: number }
+      ) => JSX.Element)
+    | JSX.Element;
   isEnabled?: boolean;
   isPending?: boolean;
+  customActions?: boolean;
 };
 
-function WizardForm<T extends DefaultStep>(props: {
-  href: string;
-  steps: T[];
-  disableNavigation?: boolean;
+export interface WizardFormProps {
+  steps: WizardStep[];
   containerClassname?: string;
   prevLabel?: string;
   nextLabel?: string;
   finishLabel?: string;
   stepLabel?: React.ComponentProps<typeof Steps>["stepLabel"];
-}) {
-  const searchParams = useCompatSearchParams();
-  const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
-  const router = useRouter();
-  const step = parseInt((searchParams?.get("step") as string) || "1");
-  const currentStep = steps[step - 1];
-  const setStep = (newStep: number) => {
-    router.replace(`${href}?step=${newStep || 1}`);
-  };
+  defaultStep?: number;
+  disableNavigation?: boolean;
+}
+
+export function WizardForm({
+  steps,
+  containerClassname,
+  prevLabel = "Back",
+  nextLabel = "Next",
+  finishLabel = "Finish",
+  stepLabel,
+  defaultStep = 1,
+  disableNavigation = false,
+}: WizardFormProps) {
+  const { currentStep, maxSteps, nextStep, goToStep, prevStep, isFirstStep, isLastStep } = useWizardState(
+    defaultStep,
+    steps.length
+  );
   const [currentStepisPending, setCurrentStepisPending] = useState(false);
+  const currentStepData = steps[currentStep - 1];
 
   useEffect(() => {
     setCurrentStepisPending(false);
@@ -48,39 +59,44 @@ function WizardForm<T extends DefaultStep>(props: {
 
   return (
     <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
-      <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
-        <div className="px-6 py-5 sm:px-14">
+      <div className={classNames("overflow-hidden md:mb-2 md:w-[700px]", containerClassname)}>
+        <div className="px-6 py-5">
           <h1 className="font-cal text-emphasis text-2xl" data-testid="step-title">
-            {currentStep.title}
+            {currentStepData.title}
           </h1>
           <p className="text-subtle text-sm" data-testid="step-description">
-            {currentStep.description}
+            {currentStepData.description}
           </p>
-          {!props.disableNavigation && (
+          {!disableNavigation && (
             <Steps
-              maxSteps={steps.length}
-              currentStep={step}
-              nextStep={noop}
+              maxSteps={maxSteps}
+              currentStep={currentStep}
+              navigateToStep={goToStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
             />
           )}
         </div>
       </div>
-      <div className={classNames("mb-8 overflow-hidden md:w-[700px]", props.containerClassname)}>
-        <div className={classNames("print:p-none max-w-3xl px-8 py-5 sm:p-6", currentStep.contentClassname)}>
-          {typeof currentStep.content === "function"
-            ? currentStep.content(setCurrentStepisPending)
-            : currentStep.content}
+      <div className={classNames("mb-8 overflow-hidden md:w-[700px]", containerClassname)}>
+        <div
+          className={classNames(
+            "bg-default border-subtle max-w-3xl rounded-2xl border px-4 py-3 sm:p-4 ",
+            currentStepData.contentClassname
+          )}>
+          {typeof currentStepData.content === "function"
+            ? currentStepData.content(setCurrentStepisPending, {
+                onNext: nextStep,
+                onPrev: prevStep,
+                step: currentStep,
+                maxSteps,
+              })
+            : currentStepData.content}
         </div>
-        {!props.disableNavigation && (
+        {!disableNavigation && !currentStepData.customActions && (
           <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
-            {step > 1 && (
-              <Button
-                color="secondary"
-                onClick={() => {
-                  setStep(step - 1);
-                }}>
+            {!isFirstStep && (
+              <Button color="secondary" onClick={prevStep}>
                 {prevLabel}
               </Button>
             )}
@@ -90,10 +106,10 @@ function WizardForm<T extends DefaultStep>(props: {
               loading={currentStepisPending}
               type="submit"
               color="primary"
-              form={`wizard-step-${step}`}
-              disabled={currentStep.isEnabled === false}
+              form={`wizard-step-${currentStep}`}
+              disabled={currentStepData.isEnabled === false}
               className="relative ml-2">
-              {step < steps.length ? nextLabel : finishLabel}
+              {isLastStep ? finishLabel : nextLabel}
             </Button>
           </div>
         )}
@@ -101,5 +117,3 @@ function WizardForm<T extends DefaultStep>(props: {
     </div>
   );
 }
-
-export default WizardForm;

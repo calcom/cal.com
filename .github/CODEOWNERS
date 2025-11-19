@@ -1,6 +1,14 @@
-/apps/api/**/* @calcom/Platform
+/**/package.json @calcom/Foundation
+/apps/api/**/* @calcom/API
+/apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
+/apps/web/lib/csp.ts @calcom/Foundation
+/apps/web/lib/buildNonce.ts @calcom/Foundation
+/apps/web/lib/daily-webhook/**/* @calcom/Foundation
+/apps/web/lib/core/**/* @calcom/Foundation
+/apps/web/lib/booking.ts @calcom/Foundation
+/apps/web/lib/handleOrgRedirect.ts @calcom/Foundation
+/apps/web/middleware.ts @calcom/Foundation
 /deploy/**/* @calcom/Foundation
-/infra/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
 /packages/app-store/caldavcalendar/**/* @calcom/Foundation
 /packages/app-store/exchange2013calendar/**/* @calcom/Foundation
@@ -12,12 +20,17 @@
 /packages/app-store/larkcalendar/**/* @calcom/Foundation
 /packages/app-store/office365calendar/**/* @calcom/Foundation
 /packages/app-store/zohocalendar/**/* @calcom/Foundation
-/packages/core/getAggregatedAvailability/index.ts @calcom/Foundation
-/packages/core/getAggregateWorkingHours.ts @calcom/Foundation
-/packages/core/getUserAvailability.ts @calcom/Foundation
+/packages/embeds/**/* @calcom/Foundation
+/packages/features/auth/lib/next-auth-options.ts @calcom/Foundation
 /packages/features/bookings/lib/**/* @calcom/Foundation
-/packages/lib/server/getLuckyUser.ts @calcom/Foundation
-/packages/lib/slots.ts @calcom/Foundation
-/packages/platform/**/* @calcom/Platform
+/packages/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability.ts @calcom/Foundation
+/packages/features/availability/lib/getUserAvailability.ts @calcom/Foundation
+/packages/features/bookings/lib/getLuckyUser.ts @calcom/Foundation
+/packages/features/schedules/lib/slots.ts @calcom/Foundation
+/packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
+/packages/platform/**/* @calcom/Platform @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
+/packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
+/packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation
+/packages/ui/**/* @calcom/Consumer @calcom/Foundation

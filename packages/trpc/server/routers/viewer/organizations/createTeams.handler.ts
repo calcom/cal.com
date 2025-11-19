@@ -1,26 +1,29 @@
-import type { Prisma } from "@prisma/client";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
-import inviteMemberHandler from "../teams/inviteMember/inviteMember.handler";
+import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
 const log = logger.getSubLogger({ prefix: ["viewer/organizations/createTeams.handler"] });
 type CreateTeamsOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+      organizationId: number | null;
+    };
   };
   input: TCreateTeamsSchema;
 };
@@ -30,40 +33,34 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   // Even when instance admin creates an org, then by the time he reaches team creation steps, he has impersonated the org owner.
   const organizationOwner = ctx.user;
 
-  if (!organizationOwner) {
-    throw new NoUserError();
-  }
-
   const { orgId, moveTeams, creationSource } = input;
 
   // Remove empty team names that could be there due to the default empty team name
   const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
 
   if (orgId !== organizationOwner.organizationId) {
+    log.error("User is not the owner of the organization", safeStringify({ orgId, organizationOwner }));
     throw new NotAuthorizedError();
   }
 
-  // Validate user membership role
-  const userMembershipRole = await prisma.membership.findFirst({
-    where: {
-      userId: organizationOwner.id,
-      teamId: orgId,
-      role: {
-        in: ["OWNER", "ADMIN"],
-      },
-      // @TODO: not sure if this already setup earlier
-      // accepted: true,
-    },
-    select: {
-      role: true,
-    },
+  // Validate user has permission to create teams in the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: organizationOwner.id,
+    teamId: orgId,
+    permission: "team.create",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
   });
 
-  if (!userMembershipRole) {
+  if (!hasPermission) {
+    log.error(
+      "User is not authorized to create teams in the organization",
+      safeStringify({ orgId, organizationOwner })
+    );
     throw new NotAuthorizedError();
   }
 
-  const organization = await prisma.team.findFirst({
+  const organization = await prisma.team.findUnique({
     where: { id: orgId },
     select: { slug: true, id: true, metadata: true },
   });
@@ -84,7 +81,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const [teamSlugs, userSlugs] = [
     await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
-    await UserRepository.findManyByOrganization({ organizationId: orgId }),
+    await new UserRepository(prisma).findManyByOrganization({ organizationId: orgId }),
   ];
 
   const existingSlugs = teamSlugs
@@ -95,22 +92,18 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamNames.map((item) => slugify(item)).includes(slug)
   );
 
-  await Promise.all(
-    moveTeams
-      .filter((team) => team.shouldMove)
-      .map(async ({ id: teamId, newSlug }) => {
-        await moveTeam({
-          teamId,
-          newSlug,
-          org: {
-            ...organization,
-            ownerId: organizationOwner.id,
-          },
-          ctx,
-          creationSource,
-        });
-      })
-  );
+  // Process team migrations sequentially to avoid race conditions - Moving a team invites members to the organization again and there are known unique constraints failure in membership and profile creation if done in parallel and a user happens to be part of more than one team
+  for (const team of moveTeams.filter((team) => team.shouldMove)) {
+    await moveTeam({
+      teamId: team.id,
+      newSlug: team.newSlug,
+      org: {
+        ...organization,
+        ownerId: organizationOwner.id,
+      },
+      creationSource,
+    });
+  }
 
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };
@@ -137,12 +130,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   return { duplicatedSlugs };
 };
-
-class NoUserError extends TRPCError {
-  constructor() {
-    super({ code: "BAD_REQUEST", message: "no_user" });
-  }
-}
 
 class NotAuthorizedError extends TRPCError {
   constructor() {
@@ -174,7 +161,6 @@ async function moveTeam({
   teamId,
   newSlug,
   org,
-  ctx,
   creationSource,
 }: {
   teamId: number;
@@ -185,7 +171,6 @@ async function moveTeam({
     ownerId: number;
     metadata: Prisma.JsonValue;
   };
-  ctx: CreateTeamsOptions["ctx"];
   creationSource: CreationSource;
 }) {
   const team = await prisma.team.findUnique({
@@ -193,8 +178,15 @@ async function moveTeam({
       id: teamId,
     },
     select: {
+      id: true,
       slug: true,
       metadata: true,
+      parent: {
+        select: {
+          id: true,
+          isPlatform: true,
+        },
+      },
       members: {
         select: {
           role: true,
@@ -210,42 +202,69 @@ async function moveTeam({
   });
 
   if (!team) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Team with id: ${teamId} not found`,
+    log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
+      teamId,
+      orgId: org.id,
+      orgSlug: org.slug,
     });
+    return;
   }
 
-  log.debug("Moving team", safeStringify({ teamId, newSlug, org, oldSlug: team.slug }));
+  if (team.parent?.isPlatform) {
+    log.info(
+      "Team belongs to a platform organization. Not moving to regular organization.",
+      safeStringify({ teamId, newSlug, org, oldSlug: team.slug, platformOrgId: team.parent.id })
+    );
+    return;
+  }
+  log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
 
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
-  await prisma.team.update({
-    where: {
-      id: teamId,
-    },
-    data: {
-      slug: newSlug,
-      parentId: org.id,
-    },
-  });
+  try {
+    await prisma.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        slug: newSlug,
+        parentId: org.id,
+      },
+    });
+
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
+  } catch (error) {
+    log.error(
+      "Error while moving team to organization",
+      safeStringify(error),
+      safeStringify({
+        teamId,
+        newSlug,
+        orgId: org.id,
+      })
+    );
+    throw error;
+  }
 
   // Owner is already a member of the team. Inviting an existing member can throw error
   const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({
-    email: membership.user.email,
+    usernameOrEmail: membership.user.email,
     role: membership.role,
   }));
 
   if (invitableMembers.length) {
     // Invite team members to the new org. They are already members of the team.
-    await inviteMemberHandler({
-      ctx,
-      input: {
-        teamId: org.id,
-        language: "en",
-        usernameOrEmail: invitableMembers,
-        creationSource,
-      },
+    await inviteMembersWithNoInviterPermissionCheck({
+      orgSlug: org.slug,
+      invitations: invitableMembers,
+      creationSource,
+      language: "en",
+      inviterName: null,
+      teamId: org.id,
+      // This is important so that if we re-invite existing users accidentally, we don't endup erroring out.
+      // Because this is a bulk action that could be taken from organization payment webhook, we could have cases where a user was just invited through another team migration in parallel.
+      isDirectUserAction: false,
     });
   }
 
@@ -276,7 +295,7 @@ async function tryToCancelSubscription(subscriptionId: string) {
 }
 
 function getSubscriptionId(metadata: Prisma.JsonValue) {
-  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
   if (parsedMetadata.success) {
     const subscriptionId = parsedMetadata.data?.subscriptionId;
     if (!subscriptionId) {
@@ -299,12 +318,12 @@ async function addTeamRedirect({
 }) {
   logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
   if (!oldTeamSlug) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No oldSlug for team. Not adding the redirect",
-    });
+    // This can happen for unpublished teams that don't have a slug yet
+    logger.warn(`No oldSlug for team. Not adding the redirect`);
+    return;
   }
   if (!teamSlug) {
+    // This should not happen as org onboarding ensures teams have slugs
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "No slug for team. Not adding the redirect",

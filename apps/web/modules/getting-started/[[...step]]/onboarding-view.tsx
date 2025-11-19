@@ -1,22 +1,21 @@
 "use client";
 
+import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
-import type { TFunction } from "next-i18next";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense } from "react";
-import { Toaster } from "react-hot-toast";
+import { Suspense, useTransition } from "react";
+import { Toaster } from "sonner";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, StepCard, Steps } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
-
-import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { StepCard } from "@calcom/ui/components/card";
+import { Steps } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
@@ -43,7 +42,7 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
   }[] = [
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
-      subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+      subtitle: [t("we_just_need_basic_info")],
     },
     {
       title: t("connect_your_calendar"),
@@ -58,8 +57,9 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     {
       title: t("set_availability"),
       subtitle: [
-        t("set_availability_getting_started_subtitle_1"),
-        t("set_availability_getting_started_subtitle_2"),
+        `${t("set_availability_getting_started_subtitle_1")} ${t(
+          "set_availability_getting_started_subtitle_2"
+        )}`,
       ],
     },
     {
@@ -83,14 +83,18 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = {
+  hasPendingInvites: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
+};
+
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
-
+  const user = props.user;
   const router = useRouter();
-  const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
+  const [isNextStepLoading, startTransition] = useTransition();
 
   const result = stepRouteSchema.safeParse({
     ...params,
@@ -121,10 +125,19 @@ const OnboardingPage = (props: PageProps) => {
   };
   const currentStepIndex = steps.indexOf(currentStep);
 
+  const goToStep = (step: number) => {
+    const newStep = steps[step];
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
+  };
+
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
-    router.push(`/getting-started/${stepTransform(newStep)}`);
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
   };
 
   return (
@@ -133,7 +146,8 @@ const OnboardingPage = (props: PageProps) => {
         "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
         "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
         "[--cal-brand-subtle:#9CA3AF]",
-        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]",
+        "[--cal-brand-accent:#FFFFFF] dark:[--cal-brand-accent:#000000]"
       )}
       data-testid="onboarding"
       key={pathname}>
@@ -152,21 +166,25 @@ const OnboardingPage = (props: PageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}
-                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={goToNextStep} />}
+                {currentStep === "connected-calendar" && (
+                  <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                )}
 
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={goToNextStep} />}
+                {currentStep === "connected-video" && (
+                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} user={user} />
+                )}
 
                 {currentStep === "setup-availability" && (
                   <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
                 )}
-                {currentStep === "user-profile" && <UserProfile />}
+                {currentStep === "user-profile" && <UserProfile user={user} />}
               </Suspense>
             </StepCard>
 

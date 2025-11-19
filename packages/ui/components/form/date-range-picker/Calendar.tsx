@@ -4,7 +4,7 @@ import * as React from "react";
 import { DayPicker } from "react-day-picker";
 
 import dayjs from "@calcom/dayjs";
-import { classNames as cn } from "@calcom/lib";
+import cn from "@calcom/ui/classNames";
 
 import { buttonClasses } from "../../button/Button";
 import { Icon } from "../../icon";
@@ -33,11 +33,11 @@ function Calendar({
         nav: "flex items-center",
         head: "",
         head_row: "flex w-full items-center justify-between",
-        head_cell: "w-8 md:w-11 h-8 text-sm font-medium text-default",
+        head_cell: "w-8 md:w-11 h-8 text-sm font-medium text-default text-center",
         nav_button: cn(buttonClasses({ color: "minimal", variant: "icon" })),
         table: "w-full border-collapse space-y-1",
-        row: "flex w-full mt-2 gap-0.5",
-        cell: "h-8 w-8 md:h-11 md:w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        row: "flex w-full mt-0.5 gap-0.5",
+        cell: "w-8 h-8 md:h-11 md:w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonClasses({ color: "minimal" }),
           "w-8 h-8 md:h-11 md:w-11 p-0 text-sm font-medium aria-selected:opacity-100 inline-flex items-center justify-center"

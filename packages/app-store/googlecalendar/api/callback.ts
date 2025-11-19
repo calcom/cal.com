@@ -2,8 +2,8 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -13,12 +13,13 @@ import {
 } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { updateProfilePhotoGoogle } from "../../_utils/oauth/updateProfilePhotoGoogle";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -80,6 +81,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const gCalService = new GoogleCalendarService({
       ...gcalCredential,
       user: null,
+      delegatedTo: null,
     });
 
     const calendar = new calendar_v3.Calendar({

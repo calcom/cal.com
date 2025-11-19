@@ -1,10 +1,10 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess } from "@calcom/features/ee/sso/lib/saml";
+import { canAccessOrganization } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZDeleteInputSchema } from "./delete.schema";
 
 type Options = {
@@ -18,7 +18,7 @@ type Options = {
 export const deleteHandler = async ({ ctx, input }: Options) => {
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, input.organizationId);
+  const { message, access } = await canAccessOrganization(ctx.user, input.organizationId);
 
   if (!access) {
     throw new TRPCError({

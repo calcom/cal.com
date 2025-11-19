@@ -13,19 +13,30 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
 
   const [isAnimating, setIsAnimating] = useState(false);
   const componentContainerRef = useRef<HTMLDivElement>(null);
-  const { x, y, height, isHover, updateDimensions, setContainerRef } = useStore(store, (state) => state);
+  const { x, y, height, isHover, updateDimensions, setContainerRef, browsingDate, emitCellPosition } =
+    useStore(store, (state) => state);
+  const prevBrowsingDateRef = useRef(browsingDate);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | null = null;
     if (isHover) {
       setIsAnimating(true);
     } else {
-      timeout = setTimeout(() => setIsAnimating(false), 1000);
+      timeout = setTimeout(() => setIsAnimating(false), 300);
     }
     return () => {
       timeout && clearTimeout(timeout);
     };
   }, [isHover]);
+
+  useEffect(() => {
+    if (prevBrowsingDateRef.current?.getTime() !== browsingDate.getTime()) {
+      setIsAnimating(false);
+      // Clear hover state and position when date changes
+      emitCellPosition(-1);
+      prevBrowsingDateRef.current = browsingDate;
+    }
+  }, [browsingDate, emitCellPosition]);
 
   useLayoutEffect(() => {
     const handleUpdate = () => {
@@ -50,13 +61,16 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
   return (
     <LazyMotion features={domAnimation}>
       <div
-        className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6"
+        className="relative -mx-2 w-[calc(100%+16px)] overflow-hidden overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6"
         ref={componentContainerRef}>
         {children}
 
         <m.div
-          className="border-subtle opcaity-0 pointer-events-none absolute left-0 top-0 h-full rounded-lg border-2"
-          animate={{ x: [null, x], opacity: isAnimating || isHover ? 1 : 0.1 }}
+          className="border-subtle pointer-events-none absolute left-0 top-0 h-full rounded-lg border-2 opacity-0"
+          animate={{
+            x: [null, x],
+            opacity: isAnimating || isHover ? 1 : 0,
+          }}
           style={{ y, height, width: DAY_CELL_WIDTH }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />

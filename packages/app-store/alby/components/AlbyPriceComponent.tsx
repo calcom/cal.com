@@ -1,8 +1,8 @@
 import { fiat } from "@getalby/lightning-tools";
 import React from "react";
 
-import { Tooltip } from "@calcom/ui";
-import { SatSymbol } from "@calcom/ui/components/icon/SatSymbol";
+import { SatSymbol } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type AlbyPriceComponentProps = {
   displaySymbol: boolean;

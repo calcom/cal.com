@@ -1,24 +1,40 @@
-import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLeadThreshold";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
+import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
-import type { NewBookingEventType } from "./types";
 
 type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
   createdAt?: Date;
+})[];
+
+export type UsersWithDelegationCredentials = (Omit<
+  Awaited<ReturnType<typeof loadUsers>>[number],
+  "credentials"
+> & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+  createdAt?: Date;
+  credentials: CredentialForCalendarService[];
 })[];
 
 type EventType = Pick<
@@ -33,36 +49,53 @@ type EventType = Pick<
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
+  | "isRRWeightsEnabled"
+  | "rescheduleWithSameRoundRobinHost"
+  | "teamId"
+  | "includeNoShowInRRCalculation"
 >;
 
 type InputProps = {
-  req: IncomingMessage;
   eventType: EventType;
   eventTypeId: number;
   dynamicUserList: string[];
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
-  isSameHostReschedule: boolean;
+  rescheduleUid: string | null;
+  routingFormResponse: RoutingFormResponse | null;
+  isPlatform: boolean;
+  hostname: string | undefined;
+  forcedSlug: string | undefined;
 };
 
-export async function loadAndValidateUsers({
-  req,
+const _loadAndValidateUsers = async ({
   eventType,
   eventTypeId,
   dynamicUserList,
   logger,
   routedTeamMemberIds,
   contactOwnerEmail,
-  isSameHostReschedule,
-}: InputProps): Promise<Users> {
+  rescheduleUid,
+  routingFormResponse,
+  isPlatform,
+  hostname,
+  forcedSlug,
+}: InputProps): Promise<{
+  qualifiedRRUsers: UsersWithDelegationCredentials;
+  additionalFallbackRRUsers: UsersWithDelegationCredentials;
+  fixedUsers: UsersWithDelegationCredentials;
+}> => {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
-    req,
+    hostname: hostname || "",
+    forcedSlug,
+    isPlatform,
     routedTeamMemberIds,
     contactOwnerEmail,
   });
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     logger.warn({
@@ -85,7 +118,7 @@ export async function loadAndValidateUsers({
         credentials: {
           select: credentialForCalendarServiceSelect,
         }, // Don't leak to client
-        ...userSelect.select,
+        ...userSelect,
       },
     });
     if (!eventTypeUser) {
@@ -96,6 +129,16 @@ export async function loadAndValidateUsers({
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  // Determine if users are locked
+  const containsBlockedUser = await checkIfUsersAreBlocked({
+    users,
+    organizationId: null,
+    span: sentrySpan,
+  });
+
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   // map fixed users
   users = users.map((user) => ({
     ...user,
@@ -104,21 +147,53 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
+  const qualifiedHostsService = getQualifiedHostsService();
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
+    await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: routedTeamMemberIds || [],
+      rescheduleUid,
+      contactOwnerEmail,
+      routingFormResponse,
+    });
+  const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
+    (acc, host) => {
+      if (host.user.id) {
+        return { ...acc, [host.user.id]: host };
+      }
+      return acc;
+    },
+    {} as {
+      [key: number]: Awaited<
+        ReturnType<ReturnType<typeof getQualifiedHostsService>["findQualifiedHostsWithDelegationCredentials"]>
+      >["qualifiedRRHosts"][number];
+    }
+  );
 
-  const qualifiedHosts = await filterHostsByLeadThreshold({
-    eventTypeId: eventType.id,
-    hosts: eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
-      createdAt: host.createdAt,
-      email: host.user.email,
-      user: host.user,
-    })),
-    maxLeadThreshold: isSameHostReschedule ? null : eventType.maxLeadThreshold,
-  });
-  if (qualifiedHosts.length) {
+  let qualifiedRRUsers: UsersWithDelegationCredentials = [];
+  let allFallbackRRUsers: UsersWithDelegationCredentials = [];
+  let fixedUsers: UsersWithDelegationCredentials = [];
+
+  if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
-    const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    users = users.filter((user) => qualifiedHostIds.has(user.id));
+    const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
+    qualifiedRRUsers = users
+      .filter((user) => qualifiedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
+  }
+
+  if (allFallbackRRHosts?.length) {
+    const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+    allFallbackRRUsers = users
+      .filter((user) => fallbackHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
+  }
+
+  if (fixedHosts?.length) {
+    const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
+    fixedUsers = users
+      .filter((user) => fixedHostIds.has(user.id))
+      .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
   logger.debug(
@@ -128,5 +203,32 @@ export async function loadAndValidateUsers({
     })
   );
 
-  return users;
-}
+  const additionalFallbackRRUsers = allFallbackRRUsers.filter(
+    (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
+  );
+
+  if (!qualifiedRRUsers.length && !fixedUsers.length) {
+    const firstUser = users[0];
+    const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+      memberId: firstUser.id ?? null,
+      teamId: eventType.teamId,
+    });
+    const usersEnrichedWithDelegationCredential = await enrichUsersWithDelegationCredentials({
+      orgId: firstUserOrgId ?? null,
+      users,
+    });
+    return {
+      qualifiedRRUsers,
+      additionalFallbackRRUsers, // without qualified
+      fixedUsers: usersEnrichedWithDelegationCredential,
+    };
+  }
+
+  return {
+    qualifiedRRUsers,
+    additionalFallbackRRUsers, // without qualified
+    fixedUsers,
+  };
+};
+
+export const loadAndValidateUsers = withReporting(_loadAndValidateUsers, "loadAndValidateUsers");

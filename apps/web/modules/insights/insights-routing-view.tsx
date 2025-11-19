@@ -1,26 +1,36 @@
 "use client";
 
-import { DataTableProvider } from "@calcom/features/data-table";
+import { usePathname } from "next/navigation";
+
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,
   RoutedToPerPeriod,
-} from "@calcom/features/insights/components";
+  RoutingFunnel,
+} from "@calcom/features/insights/components/routing";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsRoutingFormResponsesPage() {
+export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZone: string }) {
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  if (!pathname) return null;
 
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
 
-          <RoutedToPerPeriod />
+          <RoutingFunnel />
 
-          <FailedBookingsByField />
+          <div className="flex flex-col gap-4 md:flex-row">
+            <RoutedToPerPeriod />
+            <FailedBookingsByField />
+          </div>
 
           <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}

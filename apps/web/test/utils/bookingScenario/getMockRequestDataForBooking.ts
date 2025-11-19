@@ -1,5 +1,6 @@
 import { getDate } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import type { SchedulingType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 
@@ -14,7 +15,6 @@ export function getBasicMockRequestDataForBooking() {
     user: "teampro",
     metadata: {},
     hasHashedBookingLink: false,
-    hashedLink: null,
   };
 }
 
@@ -26,6 +26,7 @@ type CommonPropsMockRequestData = {
   rescheduledBy?: string;
   cancelledBy?: string;
   schedulingType?: SchedulingType;
+  guests?: string[];
   responses: {
     email: string;
     name: string;
@@ -33,6 +34,9 @@ type CommonPropsMockRequestData = {
     attendeePhoneNumber?: string;
     smsReminderNumber?: string;
   };
+  _isDryRun?: boolean;
+  hashedLink?: string;
+  hasHashedBookingLink?: boolean;
 };
 
 export function getMockRequestDataForBooking({
@@ -42,6 +46,7 @@ export function getMockRequestDataForBooking({
     eventTypeId: number;
     user?: string;
     creationSource?: CreationSource;
+    tracking?: Tracking;
   } & CommonPropsMockRequestData;
 }) {
   return {

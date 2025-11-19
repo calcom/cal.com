@@ -39,3 +39,6 @@ export const whatsappEventCompletedTemplate = (
 
   return null;
 };
+
+export const plainTextTemplate =
+  "Hi {ATTENDEE}, thank you for attending the event (*{EVENT_NAME}*) on {EVENT_DATE_ddd, MMM D, YYYY h:mma} at {START_TIME_h:mma} {TIMEZONE}.";

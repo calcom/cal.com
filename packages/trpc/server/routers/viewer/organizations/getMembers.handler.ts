@@ -1,6 +1,8 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetMembersInputSchema } from "./getMembers.schema";
 
 type CreateOptions = {
@@ -16,9 +18,21 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
   if (!ctx.user.organizationId) return [];
 
   const isOrgPrivate = ctx.user.organization.isPrivate;
-  const isOrgAdmin = ctx.user.organization.isOrgAdmin;
 
-  if (isOrgPrivate && !isOrgAdmin) return [];
+  const permissionCheckService = new PermissionCheckService();
+
+  const hasPermissionToViewMembers = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: ctx.user.organizationId,
+    permission: ctx.user.organization.isPrivate
+      ? "organization.listMembersPrivate"
+      : "organization.listMembers",
+    fallbackRoles: ctx.user.organization.isPrivate
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+      : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  if (!hasPermissionToViewMembers) return [];
 
   const teamQuery = await prisma.team.findUnique({
     where: {

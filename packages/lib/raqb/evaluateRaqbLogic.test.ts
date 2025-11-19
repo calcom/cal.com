@@ -7,7 +7,6 @@ import { evaluateRaqbLogic, RaqbLogicResult } from "./evaluateRaqbLogic";
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
 
 describe("evaluateRaqbLogic", () => {
   it("should return a match for multiselect_equals", () => {

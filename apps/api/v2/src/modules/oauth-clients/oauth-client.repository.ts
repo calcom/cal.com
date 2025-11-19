@@ -1,24 +1,20 @@
-import { JwtService } from "@/modules/jwt/jwt.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { PlatformOAuthClient } from "@prisma/client";
 
-import type { CreateOAuthClientInput } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthClientRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private jwtService: JwtService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createOAuthClient(organizationId: number, data: CreateOAuthClientInput) {
+  async createOAuthClient(
+    organizationId: number,
+    data: Omit<Prisma.PlatformOAuthClientCreateInput, "organization">
+  ) {
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
-        secret: this.jwtService.sign(data),
         organizationId,
       },
     });
@@ -86,7 +82,7 @@ export class OAuthClientRepository {
 
   async updateOAuthClient(
     clientId: string,
-    updateData: Partial<CreateOAuthClientInput>
+    updateData: Prisma.PlatformOAuthClientUpdateInput
   ): Promise<PlatformOAuthClient> {
     return this.dbWrite.prisma.platformOAuthClient.update({
       where: { id: clientId },
@@ -122,5 +118,29 @@ export class OAuthClientRepository {
         },
       },
     });
+  }
+
+  async getByOrgId(organizationId: number) {
+    return this.dbRead.prisma.platformOAuthClient.findMany({
+      where: {
+        organizationId,
+      },
+      select: { id: true },
+    });
+  }
+
+  async getByEventTypeHosts(eventTypeId: number) {
+    const hostWithUserPlatformClient = await this.dbRead.prisma.host.findFirst({
+      select: {
+        user: { select: { platformOAuthClients: true } },
+      },
+      where: {
+        eventTypeId: eventTypeId,
+        user: {
+          isPlatformManaged: true,
+        },
+      },
+    });
+    return hostWithUserPlatformClient?.user?.platformOAuthClients?.[0] ?? null;
   }
 }

@@ -1,17 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { useId } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import {
-  Badge,
-  Avatar,
-  Icon,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
   HoverCardPortal,
-} from "@calcom/ui";
+} from "@calcom/ui/components/hover-card";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { RoutingFormTableRow } from "../lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";

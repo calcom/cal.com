@@ -1,9 +1,9 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { z } from "zod";
 
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
@@ -86,7 +86,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     });
   }
 
-  // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
+  // Ideally we shouldn't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
     settings,

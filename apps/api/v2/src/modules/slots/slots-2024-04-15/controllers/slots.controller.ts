@@ -1,6 +1,11 @@
+import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
+import { SlotsWorkerService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-worker.service";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
+import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
@@ -12,8 +17,7 @@ import {
   VERSION_2024_06_11,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
-import { getAvailableSlots } from "@calcom/platform-libraries";
-import type { AvailableSlotsType } from "@calcom/platform-libraries";
+import { TRPCError } from "@calcom/platform-libraries";
 import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
 
@@ -25,7 +29,10 @@ import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform
 export class SlotsController_2024_04_15 {
   constructor(
     private readonly slotsService: SlotsService_2024_04_15,
-    private readonly slotsOutputService: SlotsOutputService_2024_04_15
+    private readonly config: ConfigService,
+    private readonly slotsOutputService: SlotsOutputService_2024_04_15,
+    private readonly slotsWorkerService: SlotsWorkerService_2024_04_15,
+    private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
   @Post("/reserve")
@@ -156,31 +163,64 @@ export class SlotsController_2024_04_15 {
   async getAvailableSlots(
     @Query() query: GetAvailableSlotsInput_2024_04_15,
     @Req() req: ExpressRequest
-  ): Promise<ApiResponse<AvailableSlotsType>> {
-    const isTeamEvent = await this.slotsService.checkIfIsTeamEvent(query.eventTypeId);
-    const availableSlots = await getAvailableSlots({
-      input: {
-        ...query,
-        isTeamEvent,
-      },
-      ctx: {
-        req,
-      },
-    });
+  ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
+    try {
+      const isTeamEvent =
+        query.isTeamEvent === undefined
+          ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
+          : query.isTeamEvent;
 
-    const { slots } = await this.slotsOutputService.getOutputSlots(
-      availableSlots,
-      query.duration,
-      query.eventTypeId,
-      query.slotFormat,
-      query.timeZone
-    );
+      // Do not use workers in E2E, not supported by TS-JEST
+      const availableSlotsService = this.config.get<boolean>("e2e") ? this.availableSlotsService : null;
 
-    return {
-      data: {
-        slots,
-      },
-      status: SUCCESS_STATUS,
-    };
+      const availableSlots = availableSlotsService
+        ? await availableSlotsService.getAvailableSlots({
+            input: {
+              ...query,
+              isTeamEvent,
+            },
+            ctx: {
+              req,
+            },
+          })
+        : await this.slotsWorkerService.getAvailableSlotsInWorker({
+            input: {
+              ...query,
+              isTeamEvent,
+            },
+            ctx: {
+              req,
+            },
+          });
+
+      const { slots } = await this.slotsOutputService.getOutputSlots(
+        availableSlots,
+        query.duration,
+        query.eventTypeId,
+        query.slotFormat,
+        query.timeZone
+      );
+
+      return {
+        data: {
+          slots,
+        },
+        status: SUCCESS_STATUS,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid time range given")) {
+          throw new BadRequestException(
+            "Invalid time range given - check the 'startTime' and 'endTime' query parameters."
+          );
+        }
+
+        if (TRPC_ERROR_MAP[error.message as keyof typeof TRPC_ERROR_CODE]) {
+          throw new TRPCError({ code: error.message as TRPCErrorCode });
+        }
+      }
+
+      throw error;
+    }
   }
 }

@@ -1,7 +1,7 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import type { SSOConnection } from "@calcom/features/ee/sso/lib/saml";
 import {
-  canAccess,
+  canAccessOrganization,
   oidcPath,
   samlProductID,
   samlTenantID,
@@ -10,7 +10,7 @@ import {
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
@@ -23,7 +23,7 @@ type GetOptions = {
 export const getHandler = async ({ ctx, input }: GetOptions): Promise<SSOConnection | null> => {
   const { teamId } = input;
 
-  const { message, access } = await canAccess(ctx.user, teamId);
+  const { message, access } = await canAccessOrganization(ctx.user, teamId);
 
   if (!access) {
     throw new TRPCError({

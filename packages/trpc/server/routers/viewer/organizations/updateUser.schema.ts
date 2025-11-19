@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { MembershipRole } from "@calcom/prisma/enums";
+
 import { assignUserToAttributeSchema } from "../attributes/assignUserToAttribute.schema";
 
 export const ZUpdateUserInputSchema = z.object({
@@ -9,8 +12,11 @@ export const ZUpdateUserInputSchema = z.object({
   name: z.string().optional(),
   email: z.string().optional(),
   avatar: z.string().optional(),
-  role: z.enum(["ADMIN", "MEMBER", "OWNER"]),
-  timeZone: z.string(),
+  role: z.union(
+    [z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]), z.string()],
+    z.string()
+  ),
+  timeZone: timeZoneSchema,
   attributeOptions: assignUserToAttributeSchema.optional(),
 });
 

@@ -6,14 +6,19 @@ import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
-import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, confirmReschedule, createUserWithLimits } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  confirmReschedule,
+  createUserWithLimits,
+  expectSlotNotAllowedToBook,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -23,7 +28,7 @@ test.afterEach(async ({ users }) => {
 // used as a multiplier for duration limits
 const EVENT_LENGTH = 30;
 
-// limits used when testing each limit seperately
+// limits used when testing each limit separately
 const BOOKING_LIMITS_SINGLE = {
   PER_DAY: 2,
   PER_WEEK: 2,
@@ -131,9 +136,7 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page, { expectedStatusCode: 401 });
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+        await expectSlotNotAllowedToBook(page);
       });
 
       await test.step("but can reschedule", async () => {
@@ -266,9 +269,8 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 5000 });
+        await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {
@@ -357,9 +359,7 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page, { expectedStatusCode: 401 });
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+        await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {
@@ -452,9 +452,7 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page, { expectedStatusCode: 401 });
-
-        await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
+        await expectSlotNotAllowedToBook(page);
       });
 
       await test.step(`month after booking`, async () => {

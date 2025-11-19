@@ -17,9 +17,13 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
       - uses: lingodotdev/lingo.dev@main
         env:
           GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         with:
-          api-key: ${{ secrets.CI_REPLEXICA_API_KEY }}
+          api-key: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
           pull-request: true

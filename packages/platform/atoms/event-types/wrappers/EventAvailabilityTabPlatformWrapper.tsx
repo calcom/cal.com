@@ -2,15 +2,14 @@ import { useFormContext } from "react-hook-form";
 
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { ScheduleQueryData } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
 
-import type { Availability } from "../../availability/AvailabilitySettings";
-import { transformApiScheduleForAtom } from "../../availability/atom-api-transformers/transformApiScheduleForAtom";
+import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
+import { useSchedules } from "../../hooks/schedules/useSchedules";
 import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
 import { useAtomHostSchedules } from "../hooks/useAtomHostSchedules";
-import { useSchedule } from "../hooks/useSchedule";
-import { useSchedules } from "../hooks/useSchedules";
 
 type EventAvailabilityTabPlatformWrapperProps = {
   user?: Pick<User, "id" | "defaultScheduleId" | "timeZone" | "timeFormat" | "weekStart">;
@@ -28,13 +27,10 @@ const EventAvailabilityTabPlatformWrapper = ({
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
 
-  const { isLoading: isSchedulePending, data: scheduleQueryData } = useSchedule(
-    scheduleId || user?.defaultScheduleId || undefined
-  );
+  const { isLoading: isSchedulePending, data: atomSchedule } = useAtomSchedule(scheduleId?.toString());
 
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();
 
-  const atomSchedule = transformApiScheduleForAtom(user, scheduleQueryData, schedulesQueryData?.length || 0);
   const hostSchedulesQuery = useAtomHostSchedules;
   const { data: teamMembers } = useTeamMembers({ teamId });
 
@@ -58,22 +54,21 @@ const EventAvailabilityTabPlatformWrapper = ({
       isSchedulePending={isSchedulePending}
       hostSchedulesQuery={({ userId }: { userId: number }) => hostSchedulesQuery({ userId, teamId })}
       scheduleQueryData={{
+        ...atomSchedule,
         isManaged: atomSchedule.isManaged,
         readOnly: atomSchedule.readOnly,
         id: atomSchedule.id,
         timeZone: atomSchedule.timeZone,
-        schedule:
-          atomSchedule.schedule.reduce(
-            (acc: Availability[], avail: Availability) => [
-              ...acc,
-              {
-                startTime: new Date(avail.startTime),
-                endTime: new Date(avail.endTime),
-                days: avail.days,
-              },
-            ],
-            []
-          ) || [],
+        schedule: (atomSchedule.schedule || []).map((avail: ScheduleQueryData["schedule"][number]) => ({
+          id: avail.id ?? null,
+          startTime: new Date(avail.startTime),
+          endTime: new Date(avail.endTime),
+          userId: avail.userId ?? null,
+          eventTypeId: avail.eventTypeId ?? null,
+          scheduleId: avail.scheduleId ?? null,
+          date: avail.date ? new Date(avail.date) : null,
+          days: avail.days,
+        })),
       }}
     />
   );

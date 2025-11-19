@@ -1,5 +1,4 @@
-import type { CalendarCache, Prisma } from "@prisma/client";
-
+import type { CalendarCache, Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
@@ -7,10 +6,27 @@ export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: stri
 export interface ICalendarCacheRepository {
   watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
-  upsertCachedAvailability(
-    credentialId: number,
-    args: FreeBusyArgs,
-    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue
-  ): Promise<void>;
-  getCachedAvailability(credentialId: number, args: FreeBusyArgs): Promise<CalendarCache | null>;
+  upsertCachedAvailability({
+    credentialId,
+    userId,
+    args,
+    value,
+  }: {
+    credentialId: number;
+    userId: number | null;
+    args: FreeBusyArgs;
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
+  }): Promise<void>;
+  getCachedAvailability({
+    credentialId,
+    userId,
+    args,
+  }: {
+    credentialId: number;
+    userId: number | null;
+    args: FreeBusyArgs;
+  }): Promise<CalendarCache | null>;
+  getCacheStatusByCredentialIds(
+    credentialIds: number[]
+  ): Promise<{ credentialId: number; updatedAt: Date | null }[]>;
 }

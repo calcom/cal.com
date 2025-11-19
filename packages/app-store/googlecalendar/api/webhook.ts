@@ -1,16 +1,26 @@
 import type { NextApiRequest } from "next";
 
+import { getCredentialForCalendarCache } from "@calcom/app-store/delegationCredential";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
+const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
+
 async function postHandler(req: NextApiRequest) {
-  if (req.headers["x-goog-channel-token"] !== process.env.GOOGLE_WEBHOOK_TOKEN) {
+  const channelToken = req.headers["x-goog-channel-token"];
+  const channelId = req.headers["x-goog-channel-id"];
+
+  log.debug("postHandler", safeStringify({ channelToken, channelId }));
+  if (channelToken !== process.env.GOOGLE_WEBHOOK_TOKEN) {
     throw new HttpError({ statusCode: 403, message: "Invalid API key" });
   }
-  if (typeof req.headers["x-goog-channel-id"] !== "string") {
+  if (typeof channelId !== "string") {
     throw new HttpError({ statusCode: 403, message: "Missing Channel ID" });
   }
 
@@ -18,28 +28,22 @@ async function postHandler(req: NextApiRequest) {
   // Every such record has their googleChannel related fields set which are same
   // So, it is enough to get the first selected calendar for this googleChannelId
   // Further code gets all the selected calendars for this calendar's credential
-  const selectedCalendar = await SelectedCalendarRepository.findFirstByGoogleChannelId(
-    req.headers["x-goog-channel-id"]
-  );
+  const selectedCalendar = await SelectedCalendarRepository.findFirstByGoogleChannelId(channelId);
 
   if (!selectedCalendar) {
-    throw new HttpError({
-      statusCode: 200,
-      message: `No selected calendar found for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
-    });
+    log.info("postHandler", `No selected calendar found for googleChannelId: ${channelId}`);
+    return { message: "ok" };
   }
   const { credential } = selectedCalendar;
-  if (!credential)
-    throw new HttpError({
-      statusCode: 200,
-      message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
-    });
+  if (!credential) {
+    log.info("postHandler", `No credential found for selected calendar for googleChannelId: ${channelId}`);
+    return { message: "ok" };
+  }
   const { selectedCalendars } = credential;
-  const calendar = await getCalendar(credential);
+  const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
+  const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
-  // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
-  // Necessary to do here so that it is ensure for all calendar apps
-  await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+  await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }
 

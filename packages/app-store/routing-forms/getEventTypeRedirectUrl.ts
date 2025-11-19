@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Ensure } from "@calcom/types/utils";
 
 function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
@@ -58,6 +58,15 @@ export function getAbsoluteEventTypeRedirectUrl({
      * The origin for the team the form belongs to
      */
     teamOrigin: string;
+    /**
+     * The profile user who owns the form
+     */
+    user: {
+      /**
+       * Current username on the profile
+       */
+      username: string | null;
+    };
   };
   allURLSearchParams: URLSearchParams;
   isEmbed?: boolean;
@@ -77,18 +86,25 @@ export function getAbsoluteEventTypeRedirectUrl({
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
   if (usernameInRedirectUrl && form.nonOrgUsername) {
-    const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
+    const hasSameProfileUsername = form.user?.username === form.nonOrgUsername;
+    const isEventTypeRedirectToOldUser =
+      !hasSameProfileUsername && usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
-  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
+  // We want origin to be the WEBAPP_URL as in E2E the org domain won't exist. E2E fake request from org domain using doOnOrgDomain
+  const origin = process.env.NEXT_PUBLIC_IS_E2E
+    ? WEBAPP_URL
+    : teamSlugInRedirectUrl
+    ? form.teamOrigin
+    : form.userOrigin;
 
   return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
 }

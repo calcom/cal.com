@@ -1,34 +1,33 @@
-import { Trans } from "next-i18next";
-import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   FormValues,
   Host,
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
+import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  Button,
-  Label,
-  Select,
-  TextField,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
+import WeightDescription from "./WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   option: CheckedSelectOption;
+  options: Options<CheckedSelectOption>;
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 
@@ -42,7 +41,7 @@ export const PriorityDialog = (
   }
 ) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
@@ -58,21 +57,46 @@ export const PriorityDialog = (
     if (!!newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
-      const updatedHosts = hosts
-        .filter((host) => !host.isFixed)
-        .map((host) => {
-          return {
-            ...option,
-            value: host.userId.toString(),
-            priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
-            isFixed: false,
-            weight: host.weight,
-          };
-        });
+      const hostGroups = getValues("hostGroups");
+      const rrHosts = hosts.filter((host) => !host.isFixed);
 
-      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
-      onChange(sortedHosts);
+      let sortedHostGroup: CheckedSelectOption[] = [];
+
+      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+
+      if (hostGroupToSort) {
+        sortedHostGroup = hostGroupToSort
+          .map((host) => {
+            return {
+              ...option,
+              value: host.userId.toString(),
+              priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+              isFixed: false,
+              weight: host.weight,
+              groupId: host.groupId,
+              userId: host.userId,
+            };
+          })
+          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      }
+
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+
+      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+        return {
+          ...option,
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+          userId: host.userId,
+        };
+      });
+      const updatedHosts = [...otherGroupsOptions, ...sortedHostGroup];
+      onChange(updatedHosts);
     }
     setIsOpenDialog(false);
   };
@@ -104,18 +128,6 @@ export const PriorityDialog = (
   );
 };
 
-export const weightDescription = (
-  <Trans i18nKey="weights_description">
-    Weights determine how meetings are distributed among hosts.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-      Learn more
-    </Link>
-  </Trans>
-);
-
 export function sortHosts(
   hostA: { priority: number | null; weight: number | null },
   hostB: { priority: number | null; weight: number | null },
@@ -145,34 +157,82 @@ export type WeightDialogCustomClassNames = {
 };
 export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogCustomClassNames }) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
     if (!!newWeight) {
       const hosts: Host[] = getValues("hosts");
-      const updatedHosts = hosts
-        .filter((host) => !host.isFixed)
-        .map((host) => {
-          return {
-            ...option,
-            value: host.userId.toString(),
-            priority: host.priority,
-            weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
-            isFixed: false,
-          };
-        });
+      const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
+      const hostGroups = getValues("hostGroups");
+      const rrHosts = hosts.filter((host) => !host.isFixed);
 
-      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
-      onChange(sortedHosts);
+      const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
+
+      const updateHostWeight = (host: Host) => {
+        if (host.userId === parseInt(option.value, 10)) {
+          return { ...host, weight: newWeight };
+        }
+        return host;
+      };
+
+      // Sort hosts within the group
+      let sortedHostGroup: (Host & {
+        avatar: string;
+        label: string;
+      })[] = [];
+
+      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
+
+      if (hostGroupToSort) {
+        sortedHostGroup = hostGroupToSort
+          .map((host) => {
+            const userOption = options.find((opt) => opt.value === host.userId.toString());
+            const updatedHost = updateHostWeight(host);
+            return {
+              ...updatedHost,
+              avatar: userOption?.avatar ?? "",
+              label: userOption?.label ?? host.userId.toString(),
+            };
+          })
+          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      }
+
+      const updatedOptions = sortedHostGroup.map((host) => ({
+        avatar: host.avatar,
+        label: host.label,
+        value: host.userId.toString(),
+        priority: host.priority,
+        weight: host.weight,
+        isFixed: host.isFixed,
+        groupId: host.groupId,
+      }));
+
+      // Preserve hosts from other groups
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+
+      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+      const newFullValue = [...otherGroupsOptions, ...updatedOptions];
+      onChange(newFullValue);
     }
     setIsOpenDialog(false);
   };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("set_weight")} description={weightDescription}>
+      <DialogContent title={t("set_weight")} description={<WeightDescription t={t} />}>
         <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
           <Label className={customClassNames?.label}>
             {t("weight_for_user", { userName: option.label })}

@@ -3,11 +3,17 @@ title: "Docker"
 icon: "docker"
 ---
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+### Introduction
 
-If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
+This image can be found on DockerHub at https://hub.docker.com/r/calcom/cal.com.
 
-The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+Note for ARM Users: Use the {version}-arm suffix for pulling images. Example: `docker pull calcom/cal.com:v5.6.19-arm`.
+
+### Contributing
+
+The Docker configuration for Cal.com is officially maintained in the main Cal.com repository. The Dockerfile and docker-compose.yml are located in the root of the [calcom/cal.com repository](https://github.com/calcom/cal.com).
+
+If you want to contribute to the Docker setup, please open an issue or pull request in the [main Cal.com repository](https://github.com/calcom/cal.com).
 
 ### Requirements
 
@@ -17,39 +23,72 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
 
 ### Getting Started
 
-1. Clone calcom-docker
+1. Clone the Cal.com repository
     
     ```
-    git clone --recursive https://github.com/calcom/docker.git calcom-docker
+    git clone https://github.com/calcom/cal.com.git
     ```
 
 2. Change into the directory
     
     ```
-    cd calcom-docker
+    cd cal.com
     ```
 
-3. Update the calcom submodule
+3. Prepare your configuration: Rename .env.example to .env and then update .env
+    ```
+    cp .env.example .env
+    ```
+    Most configurations can be left as-is, but for configuration options see Important Run-time variables below.
+
+    Update the appropriate values in your .env file, then proceed.
+
+4. (optional) Pre-Pull the images by running the following command
     
     ```
-    git submodule update --remote --init
+    docker compose pull
+    ```
+5. Start Cal.com via docker compose
+
+    (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+
+    ```bash
+    docker compose up -d
     ```
 
-4. Rename `.env.example` to `.env` and then update `.env`
+    To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
 
-5. Build and start Cal.com via docker compose
-    
-    ```
-    docker compose up --build
+    ```bash
+    docker compose up -d calcom studio
     ```
 
-6. (First Run) Open a browser to [http://localhost:5555](http://localhost:5555/) to look at or modify the database content.
-    
-    a. Click on the `User` model to add a new user record.
-    
-    b. Fill out the fields (remembering to encrypt your password with [BCrypt](https://bcrypt-generator.com/)) and click `Save 1 Record` to create your first user.
+    To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
 
-7. Open a browser to [http://localhost:3000](http://localhost:3000/) and login with your just created, first user.
+    ```bash
+    docker compose up -d calcom
+    ```
+
+6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+
+### Update Calcom Instance
+
+1. Stop the Cal.com stack
+
+    ```bash
+    docker compose down
+    ```
+
+2. Pull the latest changes
+
+    ```bash
+    docker compose pull
+    ```
+3. Update environment variables as necessary.
+4. Re-start the Cal.com stack
+
+    ```bash
+    docker compose up -d
+    ```
 
 ### Configuration
 
@@ -67,20 +106,37 @@ These variables must be provided at the time of the docker build, and can be pro
 
 * NEXTAUTH_SECRET
 
-### Git Submodules
+## Advanced Users - Building and Configuring
 
-This repository uses a git submodule.
+For more detailed instructions on how to build and configure your own Docker image, refer to the Dockerfile and docker-compose.yml in the root of the [Cal.com repository](https://github.com/calcom/cal.com).
 
-To update the calcom submodule, use the following command:
-
-```
-git submodule update --remote --init
-```
-
-For more advanced usage, please refer to the git documentation: [https://git-scm.com/book/en/v2/Git-Tools-Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-
-### Troubleshooting
+## Troubleshooting
 
 * SSL edge termination: If running behind a load balancer which handles SSL certificates, you will need to add the environmental variable `NODE_TLS_REJECT_UNAUTHORIZED=0` to prevent requests from being rejected. Only do this if you know what you are doing and trust the services/load-balancers directing traffic to your service.
 
 * Failed to commit changes: Invalid 'prisma.user.create()': Certain versions may have trouble creating a user if the field `metadata` is empty. Using an empty json object `{}` as the field value should resolve this issue. Also, the `id` field will autoincrement, so you may also try leaving the value of `id` as empty.
+
+### CLIENT_FETCH_ERROR
+
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+```
+docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
+docker-calcom-1  | @calcom/web:start: https://next-auth.js.org/errors#client_fetch_error request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost {
+docker-calcom-1  | @calcom/web:start:   error: {
+docker-calcom-1  | @calcom/web:start:     message: 'request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost',
+docker-calcom-1  | @calcom/web:start:     stack: 'FetchError: request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.<anonymous> (/calcom/node_modules/next/dist/compiled/node-fetch/index.js:1:65756)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.emit (node:events:513:28)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.emit (node:domain:489:12)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.socketErrorListener (node:_http_client:494:9)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.emit (node:events:513:28)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.emit (node:domain:489:12)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at emitErrorNT (node:internal/streams/destroy:157:8)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at emitErrorCloseNT (node:internal/streams/destroy:122:3)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at processTicksAndRejections (node:internal/process/task_queues:83:21)',
+docker-calcom-1  | @calcom/web:start:     name: 'FetchError'
+docker-calcom-1  | @calcom/web:start:   },
+docker-calcom-1  | @calcom/web:start:   url: 'http://testing.localhost:3000/api/auth/session',
+docker-calcom-1  | @calcom/web:start:   message: 'request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost'
+docker-calcom-1  | @calcom/web:start: }
+```

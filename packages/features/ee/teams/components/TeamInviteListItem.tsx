@@ -1,18 +1,19 @@
-import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Avatar,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 interface Props {
   team: {
@@ -43,6 +44,7 @@ export default function TeamInviteListItem(props: Props) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.organizations.listMembers.invalidate();
     },
   });

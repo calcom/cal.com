@@ -1,17 +1,29 @@
-import type { DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import EventManager from "@calcom/core/EventManager";
-import type { EventManagerInitParams } from "@calcom/core/EventManager";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import type { EventManagerInitParams } from "@calcom/features/bookings/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { prisma } from "@calcom/prisma";
+import type { DestinationCalendar } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
+
+type InitParams = {
+  user: {
+    id: number;
+    name: string | null;
+    email: string;
+    username: string | null;
+  } & EventManagerInitParams["user"];
+  eventTypeAppMetadata?: EventManagerInitParams["eventTypeAppMetadata"];
+  eventType: EventType;
+};
 
 export const handleRescheduleEventManager = async ({
   evt,
@@ -30,7 +42,7 @@ export const handleRescheduleEventManager = async ({
   newBookingId?: number;
   changedOrganizer?: boolean;
   previousHostDestinationCalendar?: DestinationCalendar[] | null;
-  initParams: EventManagerInitParams;
+  initParams: InitParams;
   bookingLocation: string | null;
   bookingId: number;
   bookingICalUID?: string | null;
@@ -40,17 +52,40 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
-  const eventManager = new EventManager(initParams.user, initParams?.eventTypeAppMetadata);
+  const skipDeleteEventsAndMeetings = changedOrganizer;
+
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
+    initParams.user,
+    initParams?.eventType
+  );
+
+  const eventManager = new EventManager(
+    { ...initParams.user, credentials: allCredentials },
+    initParams?.eventTypeAppMetadata
+  );
 
   const updateManager = await eventManager.reschedule(
     evt,
     rescheduleUid,
     newBookingId,
     changedOrganizer,
-    previousHostDestinationCalendar
+    previousHostDestinationCalendar,
+    undefined,
+    skipDeleteEventsAndMeetings
   );
 
   const results = updateManager.results ?? [];
+
+  const calVideoResult = results.find((result) => result.type === "daily_video");
+  // Check if Cal Video Creation Failed - That is the fallback for Cal.com and is expected to always work
+  if (calVideoResult && !calVideoResult.success) {
+    handleRescheduleEventManager.error("Cal Video creation failed", {
+      error: calVideoResult.error,
+      bookingLocation,
+    });
+    // This happens only when Cal Video is down
+    throw new Error("Failed to set video conferencing link, but the meeting has been rescheduled");
+  }
 
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
     results: results,
@@ -59,7 +94,6 @@ export const handleRescheduleEventManager = async ({
   let videoCallUrl = _videoCallUrl;
   let metadata: AdditionalInformation = {};
   metadata = videoMetadata;
-
   if (results.length) {
     // Handle Google Meet results
     if (bookingLocation === MeetLocationType) {
@@ -130,9 +164,10 @@ export const handleRescheduleEventManager = async ({
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-      ? calendarResult?.updatedEvent[0]?.iCalUID
-      : calendarResult?.updatedEvent?.iCalUID || undefined;
+      ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
+      : calendarResult?.updatedEvent?.iCalUID || bookingICalUID || undefined;
   }
+
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
   await BookingReferenceRepository.replaceBookingReferences({

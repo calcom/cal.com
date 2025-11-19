@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import {
@@ -80,7 +80,13 @@ export async function patchHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaEventTypeCustomInputEditBodyParams.parse(req.body);
-  const result = await prisma.eventTypeCustomInput.update({ where: { id }, data });
+  const result = await prisma.eventTypeCustomInput.update({
+    where: { id },
+    data: {
+      ...data,
+      options: data.options === null ? [] : data.options,
+    },
+  });
   return { event_type_custom_input: schemaEventTypeCustomInputPublic.parse(result) };
 }
 

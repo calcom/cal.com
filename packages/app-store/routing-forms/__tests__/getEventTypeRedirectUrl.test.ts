@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 
@@ -11,6 +11,9 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     nonOrgTeamslug: null,
     userOrigin: "https://user.cal.com",
     teamOrigin: "https://team.cal.com",
+    user: {
+      username: null,
+    },
   };
 
   const defaultParams = {
@@ -20,27 +23,39 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     isEmbed: false,
   };
 
-  it("should return CAL_URL for non-migrated user", () => {
+  it("should return WEBAPP_URL for non-migrated user", () => {
     const result = getAbsoluteEventTypeRedirectUrl({
       ...defaultParams,
-      eventTypeRedirectUrl: "user/event",
-      form: { ...defaultForm, nonOrgUsername: "user" },
+      eventTypeRedirectUrl: "old-user/event",
+      form: {
+        ...defaultForm,
+        nonOrgUsername: "old-user",
+        user: { username: "new-user" },
+      },
     });
-    expect(result).toBe(`${CAL_URL}/user/event?`);
+    expect(result).toBe(`${WEBAPP_URL}/old-user/event?`);
   });
 
   it("should return user origin for migrated user", () => {
-    const result = getAbsoluteEventTypeRedirectUrl(defaultParams);
+    const result = getAbsoluteEventTypeRedirectUrl({
+      ...defaultParams,
+      eventTypeRedirectUrl: "user/event",
+      form: {
+        ...defaultForm,
+        nonOrgUsername: "user",
+        user: { username: "user" },
+      },
+    });
     expect(result).toBe("https://user.cal.com/user/event?");
   });
 
-  it("should return CAL_URL for non-migrated team", () => {
+  it("should return WEBAPP_URL for non-migrated team", () => {
     const result = getAbsoluteEventTypeRedirectUrl({
       ...defaultParams,
       eventTypeRedirectUrl: "team/team1/event",
       form: { ...defaultForm, nonOrgTeamslug: "team1" },
     });
-    expect(result).toBe(`${CAL_URL}/team/team1/event?`);
+    expect(result).toBe(`${WEBAPP_URL}/team/team1/event?`);
   });
 
   it("should return team origin for migrated team", () => {

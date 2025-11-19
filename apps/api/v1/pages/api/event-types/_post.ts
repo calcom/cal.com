@@ -1,12 +1,13 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { eventTypeSelect } from "~/lib/selects/event-type";
+import { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
@@ -265,14 +266,17 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, body } = req;
+  const { userId: ctxUserId, isSystemWideAdmin, body } = req;
 
   const {
     hosts = [],
     bookingLimits,
     durationLimits,
+    locations,
     /** FIXME: Adding event-type children from API not supported for now  */
     children: _,
+    // if userId is not passed, we will use the userId from the context
+    userId = ctxUserId,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
 
@@ -282,6 +286,7 @@ async function postHandler(req: NextApiRequest) {
     users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    locations: locations === null ? Prisma.DbNull : locations,
   };
 
   await checkPermissions(req);
@@ -291,8 +296,8 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
-    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
+  if (isSystemWideAdmin && userId && parsedBody.teamId === undefined) {
+    data = { ...parsedBody, users: { connect: { id: userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
@@ -302,10 +307,10 @@ async function postHandler(req: NextApiRequest) {
     data.hosts = { createMany: { data: hosts } };
   }
 
-  const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
+  const eventType = await prisma.eventType.create({ data, select: eventTypeSelect });
 
   return {
-    event_type: schemaEventTypeReadPublic.parse(eventType),
+    event_type: eventType,
     message: "Event type created successfully",
   };
 }

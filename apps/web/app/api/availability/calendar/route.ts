@@ -1,15 +1,20 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -17,17 +22,21 @@ const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
   credentialId: z.coerce.number(),
+  delegationCredentialId: z.string().nullish().default(null),
   eventTypeId: z.coerce.number().nullish(),
 });
 
 async function authMiddleware() {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   }
 
-  const userWithCredentials = await UserRepository.findUserWithCredentials({ id: session.user.id });
+  const userRepo = new UserRepository(prisma);
+  const userWithCredentials = await userRepo.findUserWithCredentials({
+    id: session.user.id,
+  });
 
   if (!userWithCredentials) {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });
@@ -62,14 +71,17 @@ async function getHandler() {
 
 async function postHandler(req: NextRequest) {
   const user = await authMiddleware();
+
   const body = await req.json();
-  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(body);
+  const { integration, externalId, credentialId, eventTypeId, delegationCredentialId } =
+    selectedCalendarSelectSchema.parse(body);
 
   await SelectedCalendarRepository.upsert({
     userId: user.id,
     integration,
     externalId,
     credentialId,
+    delegationCredentialId,
     eventTypeId: eventTypeId ?? null,
   });
 
@@ -101,4 +113,6 @@ async function deleteHandler(req: NextRequest) {
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
-export { deleteHandler as DELETE, postHandler as POST, getHandler as GET };
+export const POST = defaultResponderForAppDir(postHandler);
+export const DELETE = defaultResponderForAppDir(deleteHandler);
+export const GET = defaultResponderForAppDir(getHandler);

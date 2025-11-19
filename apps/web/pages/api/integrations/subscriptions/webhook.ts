@@ -2,11 +2,11 @@ import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export const config = {
   api: {
@@ -27,7 +27,10 @@ const handleSubscriptionUpdate = async (event: Stripe.Event) => {
   });
 
   if (!app) {
-    throw new HttpCode({ statusCode: 202, message: "Received and discarded" });
+    throw new HttpCode({
+      statusCode: 202,
+      message: `No credential found with subscription ID ${subscription.id}`,
+    });
   }
 
   await prisma.credential.update({
@@ -51,7 +54,10 @@ const handleSubscriptionDeleted = async (event: Stripe.Event) => {
   });
 
   if (!app) {
-    throw new HttpCode({ statusCode: 202, message: "Received and discarded" });
+    throw new HttpCode({
+      statusCode: 202,
+      message: `No credential found with subscription ID ${subscription.id}`,
+    });
   }
 
   // should we delete the credential here rather than marking as inactive?
@@ -103,7 +109,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    console.error(`Webhook Error: ${err.message}`);
+    if (!err.message.includes("No credential found with subscription ID")) {
+      console.error(`Webhook Error: ${err.message}`);
+    }
     res.status(err.statusCode ?? 500).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,

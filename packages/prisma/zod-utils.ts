@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
@@ -12,17 +11,176 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
-import dayjs from "@calcom/dayjs";
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
-import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
-import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
-import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
-import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+
+import type { Prisma } from "./client";
+
+
+/** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
+export const emailRegex =
+  /* eslint-disable-next-line no-useless-escape */
+  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+
+/**
+ * RFC 5321 Section 4.5.3.1.3 specifies:
+ * - Maximum email address length: 254 characters
+ * - Local part (before @): max 64 characters
+ * - Domain part (after @): max 253 characters
+ */
+const MAX_EMAIL_LENGTH = 254;
+
+const emailRegexSchema = z
+  .string()
+  .max(MAX_EMAIL_LENGTH, { message: "Email address is too long" })
+  .regex(emailRegex);
+
+const slugify = (str: string, forDisplayingInput?: boolean) => {
+  if (!str) {
+    return "";
+  }
+
+  const s = str
+    .toLowerCase() // Convert to lowercase
+    .trim() // Remove whitespace from both sides
+    .normalize("NFD") // Normalize to decomposed form for handling accents
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    .replace(/[^.\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode and except "." period) with a dash
+    .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
+    .replace(/^-+/, "") // Remove dashes from start
+    .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
+    .replace(/^\.+/, "") // Remove periods from the start
+    .replace(
+      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+      ""
+    ) // Removes emojis
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
+
+  return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
+};
+
+const getValidRhfFieldName = (fieldName: string) => {
+  // Remember that any transformation that you do here would run on System Field names as well. So, be careful and avoiding doing anything here that would modify the SystemField names.
+  // e.g. SystemField name currently have uppercases in them. So, no need to lowercase unless absolutely needed.
+  return fieldName.replace(/[^a-zA-Z0-9-_]/g, "-");
+};
+
+function isPasswordValid(password: string): boolean;
+function isPasswordValid(
+  password: string,
+  breakdown: boolean,
+  strict?: boolean
+): { caplow: boolean; num: boolean; min: boolean; admin_min: boolean };
+function isPasswordValid(password: string, breakdown?: boolean, strict?: boolean) {
+  let cap = false, // Has uppercase characters
+    low = false, // Has lowercase characters
+    num = false, // At least one number
+    min = false, // Eight characters, or fifteen in strict mode.
+    admin_min = false;
+  if (password.length >= 7 && (!strict || password.length > 14)) min = true;
+  if (strict && password.length > 14) admin_min = true;
+  if (password.match(/\d/)) num = true;
+  if (password.match(/[a-z]/)) low = true;
+  if (password.match(/[A-Z]/)) cap = true;
+
+  if (!breakdown) return cap && low && num && min && (strict ? admin_min : true);
+
+  let errors: Record<string, boolean> = { caplow: cap && low, num, min };
+  // Only return the admin key if strict mode is enabled.
+  if (strict) errors = { ...errors, admin_min };
+
+  return errors;
+}
+
+export type IntervalLimitUnit = "day" | "week" | "month" | "year";
+export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type IntervalLimitKey = keyof IntervalLimit;
+
+export const intervalLimitsType: z.Schema<IntervalLimit | null> = z
+  .object({
+    PER_DAY: z.number().optional(),
+    PER_WEEK: z.number().optional(),
+    PER_MONTH: z.number().optional(),
+    PER_YEAR: z.number().optional(),
+  })
+  .nullable();
+
+const raqbChildSchema = z.object({
+  type: z.string().optional(),
+  properties: z
+    .object({
+      field: z.any().optional(),
+      operator: z.any().optional(),
+      value: z.any().optional(),
+      valueSrc: z.any().optional(),
+      valueError: z.array(z.union([z.string(), z.null()])).optional(),
+      valueType: z.any().optional(),
+    })
+    .optional(),
+});
+
+const raqbChildren1Schema = z
+  .record(raqbChildSchema)
+  .superRefine((children1, ctx) => {
+    if (!children1) return;
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+    Object.entries(children1).forEach(([, _rule]) => {
+      const rule = _rule as unknown;
+      if (!isObject(rule) || rule.type !== "rule") return;
+      if (!isObject(rule.properties)) return;
+
+      const value = rule.properties.value || [];
+      const valueSrc = rule.properties.valueSrc;
+      if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+        return;
+      }
+
+      if (!valueSrc.length) {
+        // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
+        return;
+      }
+
+      // MultiSelect array can be 2D array
+      const flattenedValues = value.flat();
+
+      const validValues = flattenedValues.filter((value: unknown) => {
+        // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+        // Also, it is possible that RAQB has some requirements to support null or empty string values.
+        if (value === undefined) return false;
+        return true;
+      });
+
+      if (!validValues.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Looks like you are trying to create a rule with no value",
+        });
+      }
+    });
+  });
+
+const raqbQueryValueSchema = z.union([
+  z.object({
+    id: z.string().optional(),
+    type: z.literal("group"),
+    children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
+  }),
+  z.object({
+    id: z.string().optional(),
+    type: z.literal("switch_group"),
+    children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
+  }),
+]);
+
+const zodAttributesQueryValue = raqbQueryValueSchema;
+
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -60,6 +218,26 @@ export const bookerLayouts = z
   })
   .nullable();
 
+export const orgOnboardingInvitedMembersSchema = z.array(
+  z.object({
+    email: z.string().email(),
+    name: z.string().optional(),
+    teamId: z.number().optional(),
+    teamName: z.string().optional(),
+    role: z.enum(["MEMBER", "ADMIN"]).optional().default("MEMBER"),
+  })
+);
+
+export const orgOnboardingTeamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    // "slug" is null for new teams
+    slug: z.string().nullable(),
+  })
+);
+
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
   // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.
@@ -69,9 +247,6 @@ export const defaultBookerLayoutSettings = {
 export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
-
-export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
-export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
@@ -117,25 +292,14 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
-    apps: z.unknown().optional(),
+    apps: z.record(z.string(), z.any()).optional(),
   })
 );
 
 export const EventTypeMetaDataSchema = eventTypeMetaDataSchemaWithUntypedApps.nullable();
 export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithoutApps.nullable();
-export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
-  .merge(
-    z.object({
-      apps: eventTypeAppMetadataOptionalSchema,
-    })
-  )
-  .nullable();
 
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
-
-export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
@@ -165,6 +329,8 @@ export const bookingResponses = z
   })
   .nullable();
 
+export type BookingResponses = z.infer<typeof bookingResponses>;
+
 export const eventTypeLocations = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
@@ -176,6 +342,7 @@ export const eventTypeLocations = z.array(
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
     teamName: z.string().optional(),
+    customLabel: z.string().optional(),
   })
 );
 
@@ -212,16 +379,15 @@ export const eventTypeColor = z
   })
   .nullable();
 
-export const intervalLimitsType = z
-  .object({
-    PER_DAY: z.number().optional(),
-    PER_WEEK: z.number().optional(),
-    PER_MONTH: z.number().optional(),
-    PER_YEAR: z.number().optional(),
-  })
-  .nullable();
+export type IntervalLimitsType = IntervalLimit | null;
 
-export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
+export const eventTypeSlug = z
+  .string()
+  .trim()
+  .transform((val) => slugify(val))
+  .refine((val) => val.length >= 1, {
+    message: "Please enter at least one character",
+  });
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
@@ -239,51 +405,6 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = (val: string) => {
-  const matches = val.match(/([+-]\d{2}:\d{2})$/);
-  const timezone = matches ? matches[1] : "+00:00";
-  return dayjs(val).utcOffset(timezone);
-};
-
-export const stringToDayjsZod = z.string().transform(stringToDayjs);
-
-export const bookingCreateBodySchema = z.object({
-  end: z.string().optional(),
-  eventTypeId: z.number(),
-  eventTypeSlug: z.string().optional(),
-  rescheduleUid: z.string().optional(),
-  recurringEventId: z.string().optional(),
-  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
-  start: z.string(),
-  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
-  user: z.union([z.string(), z.array(z.string())]).optional(),
-  language: z.string(),
-  bookingUid: z.string().optional(),
-  metadata: z.record(z.string()),
-  hasHashedBookingLink: z.boolean().optional(),
-  hashedLink: z.string().nullish(),
-  seatReferenceUid: z.string().optional(),
-  orgSlug: z.string().optional(),
-  teamMemberEmail: z.string().nullish(),
-  crmOwnerRecordType: z.string().nullish(),
-  routedTeamMemberIds: z.array(z.number()).nullish(),
-  routingFormResponseId: z.number().optional(),
-  skipContactOwner: z.boolean().optional(),
-  crmAppSlug: z.string().nullish().optional(),
-  cfToken: z.string().nullish().optional(),
-
-  /**
-   * Holds the corrected responses of the Form for a booking, provided during rerouting
-   */
-  reroutingFormResponses: routingFormResponseInDbSchema.optional(),
-  /**
-   * Used to identify if the booking is a dry run.
-   */
-  _isDryRun: z.boolean().optional(),
-  /** Whether to override the cache */
-  _shouldServeCache: z.boolean().optional(),
-});
-
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
   z.string().trim().min(1),
@@ -291,14 +412,13 @@ export const requiredCustomInputSchema = z.union([
   z.boolean().refine((v) => v === true),
 ]);
 
-export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
-
 const PlatformClientParamsSchema = z.object({
   platformClientId: z.string().optional(),
   platformRescheduleUrl: z.string().nullable().optional(),
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
   platformBookingLocation: z.string().optional(),
+  areCalendarEventsEnabled: z.boolean().optional(),
 });
 
 export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
@@ -312,54 +432,6 @@ export const bookingConfirmPatchBodySchema = z.object({
   platformClientParams: PlatformClientParamsSchema.optional(),
 });
 
-// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
-export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
-  z.object({
-    noEmail: z.boolean().optional(),
-    recurringCount: z.number().optional(),
-    allRecurringDates: z
-      .array(
-        z.object({
-          start: z.string(),
-          end: z.string(),
-        })
-      )
-      .optional(),
-    currentRecurringIndex: z.number().optional(),
-    appsStatus: z
-      .array(
-        z.object({
-          appName: z.string(),
-          success: z.number(),
-          failures: z.number(),
-          type: z.string(),
-          errors: z.string().array(),
-          warnings: z.string().array().optional(),
-        })
-      )
-      .optional(),
-    luckyUsers: z.array(z.number()).optional(),
-    customInputs: z.undefined().optional(),
-  })
-);
-
-// It has only the legacy props that are part of `responses` now. The API can still hit old props
-export const bookingCreateSchemaLegacyPropsForApi = z.object({
-  email: z.string(),
-  name: z.string(),
-  guests: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  location: z.string(),
-  smsReminderNumber: z.string().optional().nullable(),
-  rescheduleReason: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
-});
-
-// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
-export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
-  bookingCreateSchemaLegacyPropsForApi.partial()
-);
-
 export const bookingCancelSchema = z.object({
   id: z.number().optional(),
   uid: z.string().optional(),
@@ -368,6 +440,7 @@ export const bookingCancelSchema = z.object({
   // note(Lauris): cancelSubsequentBookings will cancel all bookings after one specified by id or uid.
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  skipCancellationReasonValidation: z.boolean().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
@@ -388,6 +461,12 @@ export const bookingCancelInput = bookingCancelSchema.refine(
   (data) => !!data.id || !!data.uid,
   "At least one of the following required: 'id', 'uid'."
 );
+
+export const bookingCancelWithCsrfSchema = bookingCancelSchema
+  .extend({
+    csrfToken: z.string().length(64, "Invalid CSRF token"),
+  })
+  .refine((data) => !!data.id || !!data.uid, "At least one of the following required: 'id', 'uid'.");
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
@@ -452,23 +531,41 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-export const teamMetadataSchema = z
-  .object({
-    requestedSlug: z.string().or(z.null()),
-    paymentId: z.string(),
-    subscriptionId: z.string().nullable(),
-    subscriptionItemId: z.string().nullable(),
-    orgSeats: z.number().nullable(),
-    orgPricePerSeat: z.number().nullable(),
-    migratedToOrgFrom: z
-      .object({
-        teamSlug: z.string().or(z.null()).optional(),
-        lastMigrationTime: z.string().optional(),
-        reverted: z.boolean().optional(),
-        lastRevertTime: z.string().optional(),
+const baseTeamMetadataSchema = z.object({
+  defaultConferencingApp: schemaDefaultConferencingApp.optional(),
+  requestedSlug: z.string().or(z.null()),
+  paymentId: z.string(),
+  subscriptionId: z.string().nullable(),
+  subscriptionItemId: z.string().nullable(),
+  orgSeats: z.number().nullable(),
+  orgPricePerSeat: z.number().nullable(),
+  migratedToOrgFrom: z
+    .object({
+      teamSlug: z.string().or(z.null()).optional(),
+      lastMigrationTime: z.string().optional(),
+      reverted: z.boolean().optional(),
+      lastRevertTime: z.string().optional(),
+    })
+    .optional(),
+  billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+});
+
+export const teamMetadataSchema = baseTeamMetadataSchema.partial().nullable();
+
+export const teamMetadataStrictSchema = baseTeamMetadataSchema
+  .extend({
+    subscriptionId: z
+      .string()
+      .refine((val) => val.startsWith("sub_"), {
+        message: "subscriptionId must start with 'sub_'",
       })
-      .optional(),
-    billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+      .nullable(),
+    subscriptionItemId: z
+      .string()
+      .refine((val) => val.startsWith("si_"), {
+        message: "subscriptionItemId must start with 'si_'",
+      })
+      .nullable(),
   })
   .partial()
   .nullable();
@@ -696,6 +793,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  interfaceLanguage: true,
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -713,6 +811,9 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -739,19 +840,26 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
   slotInterval: true,
   scheduleId: true,
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
@@ -768,7 +876,7 @@ export const emailSchema = emailRegexSchema;
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
-  return emailRegex.test(value);
+  return emailSchema.safeParse(value).success;
 };
 
 export const signupSchema = z.object({
@@ -809,16 +917,206 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
+// Schema for decrypted service account key
 export const serviceAccountKeySchema = z
   .object({
-    type: z.string(),
-    client_id: z.string(),
-    client_email: z.string(),
     private_key: z.string(),
+    client_email: z.string().optional(),
+    client_id: z.string(),
+    tenant_id: z.string().optional(),
   })
-  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
   .passthrough();
 
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
+
+// Routing Form Fields
+export const fieldTypeEnum = z.enum([
+  "name",
+  "text",
+  "textarea",
+  "number",
+  "email",
+  "phone",
+  "address",
+  "multiemail",
+  "select",
+  "multiselect",
+  "checkbox",
+  "radio",
+  "radioInput",
+  "boolean",
+  "url",
+]);
+
+export type FieldType = z.infer<typeof fieldTypeEnum>;
+
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
+  const allDomains = val.split(",").map((dom) => dom.trim());
+
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
+
+  /*
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+*/
+
+  const isValid = !allDomains.some((domain) => !regex.test(domain));
+
+  if (!isValid) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+  }
+});
+
+export const EditableSchema = z.enum([
+  "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
+  "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
+  "user", // Fully editable
+  "user-readonly", // All fields are readOnly.
+]);
+
+export const baseFieldSchema = z.object({
+  name: z.string().transform(getValidRhfFieldName),
+  type: fieldTypeEnum,
+  // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
+  label: z.string().optional(),
+  labelAsSafeHtml: z.string().optional(),
+
+  /**
+   * It is the default label that will be used when a new field is created.
+   * Note: It belongs in FieldsTypeConfig, so that changing defaultLabel in code can work for existing fields as well(for fields that are using the default label).
+   * Supports translation
+   */
+  defaultLabel: z.string().optional(),
+
+  placeholder: z.string().optional(),
+  /**
+   * It is the default placeholder that will be used when a new field is created.
+   * Note: Same as defaultLabel, it belongs in FieldsTypeConfig
+   * Supports translation
+   */
+  defaultPlaceholder: z.string().optional(),
+  required: z.boolean().default(false).optional(),
+  /**
+   * It is the list of options that is valid for a certain type of fields.
+   *
+   */
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        price: z.coerce.number().min(0).optional(),
+      })
+    )
+    .optional(),
+  /**
+   * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
+   * This allows keeping a single source of truth in DB.
+   */
+  getOptionsAt: z.string().optional(),
+
+  /**
+   * For `radioInput` type of questions, it stores the input that is shown based on the user option selected.
+   * e.g. If user is given a list of locations and he selects "Phone", then he will be shown a phone input
+   */
+  optionsInputs: z
+    .record(
+      z.object({
+        // Support all types as needed
+        // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
+        type: z.enum(["address", "phone", "text"]),
+        required: z.boolean().optional(),
+        placeholder: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
+  // Price associated with the field which works like addons which users can add to the booking
+  price: z.coerce.number().min(0).optional(),
+});
+
+export const variantsConfigSchema = z.object({
+  variants: z.record(
+    z.object({
+      /**
+       * Variant Fields schema for a variant of the main field.
+       * It doesn't support non text fields as of now
+       **/
+      fields: baseFieldSchema
+        .omit({
+          defaultLabel: true,
+          defaultPlaceholder: true,
+          options: true,
+          getOptionsAt: true,
+          optionsInputs: true,
+        })
+        .array(),
+    })
+  ),
+});
+
+export const fieldSchema = baseFieldSchema.merge(
+  z.object({
+    variant: z.string().optional(),
+    variantsConfig: variantsConfigSchema.optional(),
+
+    views: z
+      .object({
+        label: z.string(),
+        id: z.string(),
+        description: z.string().optional(),
+      })
+      .array()
+      .optional(),
+
+    /**
+     * It is used to hide fields such as location when there are less than two options
+     */
+    hideWhenJustOneOption: z.boolean().default(false).optional(),
+
+    hidden: z.boolean().optional(),
+    editable: EditableSchema.default("user").optional(),
+    sources: z
+      .array(
+        z.object({
+          // Unique ID for the `type`. If type is workflow, it's the workflow ID
+          id: z.string(),
+          type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+          label: z.string(),
+          editUrl: z.string().optional(),
+          // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
+          fieldRequired: z.boolean().optional(),
+        })
+      )
+      .optional(),
+    disableOnPrefill: z.boolean().default(false).optional(),
+  })
+);
+
+export const eventTypeBookingFields = z.array(fieldSchema);
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;

@@ -4,37 +4,39 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
-import classNames from "@calcom/lib/classNames";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Avatar,
-  Badge,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Tooltip,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { TeamRole } from "./TeamPill";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
+  orgId: number | null;
   key: number;
   onActionSelect: (text: string) => void;
   isPending?: boolean;
@@ -46,8 +48,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const user = trpc.viewer.me.useQuery().data;
-  const team = props.team;
+  const { team, orgId } = props;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
@@ -59,9 +60,10 @@ export default function TeamListItem(props: Props) {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
-      const userOrganizationId = user?.profile?.organization?.id;
+      const userOrganizationId = orgId ?? undefined;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
@@ -83,19 +85,19 @@ export default function TeamListItem(props: Props) {
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
+  const isAdmin = checkAdminOrOwner(props.team.role);
   const { hideDropdown, setHideDropdown } = props;
 
   const hideInvitationModal = () => {
     setOpenMemberInvitationModal(false);
   };
 
-  if (!team) return <></>;
+  if (!team) return null;
   const teamUrl = team.isOrganization
     ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
     : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
-    <div className="item-center flex px-5 py-5">
+    <div className="item-center flex truncate p-5">
       <Avatar
         size="md"
         imageSrc={getPlaceholderAvatar(team?.logoUrl || team?.parent?.logoUrl, team?.name as string)}
@@ -148,7 +150,7 @@ export default function TeamListItem(props: Props) {
         ) : (
           teamInfo
         )}
-        <div className="px-5 py-5">
+        <div className="p-5">
           {isInvitee ? (
             <>
               <div className="hidden justify-center sm:flex">
@@ -168,7 +170,13 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                    <Button
+                      className="radix-state-open:rounded-r-md"
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon="ellipsis"
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -264,6 +272,7 @@ export default function TeamListItem(props: Props) {
                               color="destructive"
                               type="button"
                               StartIcon="trash"
+                              className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>

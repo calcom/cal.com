@@ -2,8 +2,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import type { TextEditorProps } from "./Editor";
 import { Editor } from "./Editor";
+import type { TextEditorProps } from "./types";
+
+vi.mock("@calcom/lib/hooks/useMediaQuery", () => ({
+  default: (_query: string) => false,
+}));
 
 describe("Editor", () => {
   const defaultProps: TextEditorProps = {

@@ -45,14 +45,22 @@ For a demonstration of the create event type atom, please refer to the video bel
 
 ## Team event type
 
-For creating an event type for a team, you need to provide the team id of your particular team as a prop to the create event type atom. Also note that a team event type can only be created by a team admin or owner.
-
-Below code snippet can be used to render the create event type atom for a team.
+For creating an event type for a team, you need to provide the team id of your particular team as a prop to the create event type atom. Importantly, a team event type can only be created by a managed user who has an accepted admin or owner role within the team. That means
+you have to create a managed user and then add an accepted membership with an admin or owner role by making a request to the [memberships endpoint](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership). Example body:
+```js
+{
+  "userId": 1006,
+  "accepted": true,
+  "role": "OWNER"
+}
+```
+then you have to pass the access token of this managed user to the [CalProvider](https://cal.com/docs/platform/atoms/cal-provider) to then finally be able to
+use the `<CreateEventType />` component while passing `teamId={teamId}` to it to create a team event type:
 
 ```js
 import { CreateEventType } from "@calcom/atoms";
 
-export default function TeamEventType(teamId: number) {l
+export default function TeamEventType(teamId: number) {
   return (
     <>
       <CreateEventType
@@ -120,8 +128,13 @@ export function EventTypeTabs(eventTypeId: number) {
       <EventTypeSettings
         id={eventTypeId}
         allowDelete={true}
+        tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
         onSuccess={(eventType) => {
           console.log("EventType settings updated successfully", eventType);
+        }}
+        onFormStateChange={(formState) => {
+          console.log("Form state changed:", formState);
+          // Access form data: formState.isDirty, formState.dirtyFields, formState.values
         }}
         customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
       />
@@ -129,6 +142,31 @@ export function EventTypeTabs(eventTypeId: number) {
   );
 }
 ```
+
+To show only specific tabs, remove the ones you don't want from the array:
+
+```js
+// Example: Show only setup, limits, and availability tabs
+<EventTypeSettings
+  id={eventTypeId}
+  tabs={["setup", "limits", "availability"]}
+  onSuccess={(eventType) => {
+    console.log("EventType settings updated successfully", eventType);
+  }}
+/>
+```
+
+If the `eventTypeId` is of a team event type id, then only the owner or admin of the team can update the event type settings. That means
+you have to create a managed user and then add an accepted membership with an admin or owner role by making a request to the [memberships endpoint](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership). Example body:
+```js
+{
+  "userId": 1006,
+  "accepted": true,
+  "role": "OWNER"
+}
+```
+then you have to pass the access token of this managed user to the [CalProvider](https://cal.com/docs/platform/atoms/cal-provider) to then finally be able to
+use the `<EventTypeSettings />` component while passing id of a team event type enabling admin or owner to edit team event types.
 
 For a demonstration of the event type settings atom, please refer to the video below.
 
@@ -152,9 +190,10 @@ Below is a list of props that can be passed to the event type settings atom.
 | Name         | Required | Description                                                                                               |
 |:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
 | id | Yes       | The event type id obtained at the time of event type creation     
-| tabs | No       | The tabs you want the event type settings to display                                                  |  
+| tabs | No       | Array of tabs to display in the event type settings. Possible values: `["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]`. Remove any tabs you don't want to show. |  
 | onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
 | onError   | No       | Callback function to handles errors at the time of event type update |
+| onFormStateChange | No       | Callback function that triggers when the form state changes, providing access to isDirty, dirtyFields, and current form values |
 | onDeleteSuccess | No       | Callback function that triggers when the event type is successfully deleted                                                     |
 | onDeleteError | No       | Callback function that handles errors at the time of event type deletion |                                                   |
 | allowDelete | No       | Boolean value that determines whether the delete button is displayed or not                                                     |
@@ -170,6 +209,83 @@ Along with the props, event type settings atom accepts custom styles via the **c
 <Info>
   Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.
 </Info>
+
+## Programmatic Form Validation and Submission
+
+The EventTypeSettings component supports programmatic form validation and submission through a ref-based API. This allows you to validate form data and submit forms programmatically without user interaction.
+
+```js
+import { useRef } from 'react';
+import { EventTypeSettings } from "@calcom/atoms";
+import type { EventTypePlatformWrapperRef } from "@calcom/atoms";
+
+export function EventTypeWithValidation(eventTypeId: number) {
+  const eventTypeRef = useRef<EventTypePlatformWrapperRef>(null);
+
+  const handleValidate = async () => {
+    const result = await eventTypeRef.current?.validateForm();
+    if (result?.isValid) {
+      console.log("Form is valid");
+    } else {
+      console.log("Validation errors:", result?.errors);
+    }
+  };
+
+  const handleSubmit = () => {
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        // Additional success handling logic here
+        console.log('Event type updated successfully');
+      },
+      onError: (error) => {
+        // Additional error handling logic here
+        console.error('Error updating event type:', error);
+      }
+    });
+  };
+
+  return (
+    <>
+      <EventTypeSettings
+        ref={eventTypeRef}
+        id={eventTypeId}
+        onSuccess={(eventType) => {
+          console.log("EventType updated successfully", eventType);
+        }}
+      />
+      <button onClick={handleValidate}>Validate Form</button>
+      <button onClick={handleSubmit}>Submit Form</button>
+    </>
+  );
+}
+```
+
+### Ref Methods
+
+| Method | Description |
+|:-------|:------------|
+| validateForm | Validates the current event type form state and returns a promise with validation results. |
+| handleFormSubmit | Programmatically submits the event type form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
+
+### Callbacks
+
+The `handleFormSubmit` method accepts an optional callbacks object with the following properties:
+
+```typescript
+type EventTypeFormCallbacks = {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+};
+```
+
+- **onSuccess**: Called when the form submission is successful. This allows you to execute additional logic after a successful update.
+- **onError**: Called when an error occurs during form submission. The error parameter contains details about what went wrong, allowing you to handle specific error cases or display custom error messages.
+
+The `validateForm` method returns an `EventTypeFormValidationResult` object with:
+- `isValid`: Boolean indicating if the form passed validation
+- `errors`: Object containing any validation errors found
+
+**Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.
 
 Following are the tabs that are available in the event type settings atom:
 
@@ -230,7 +346,7 @@ Below video shows a demonstration of the all the options you get in the advanced
     <iframe
       height="315"
       style={{ width: "100%", maxWidth: "560px" }}
-      src="https://www.loom.com/embed/e0121b51920544eea92251dba99245fa?sid=ac627de7-5673-41b4-aa78-c6c9e439bdb5"
+      src="https://www.loom.com/embed/7a03c4a453ca401ab787b2db98728f31?sid=8cdc6398-0017-41c8-a0a1-8fa31f80616c"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen="true"

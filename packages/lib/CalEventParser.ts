@@ -1,11 +1,11 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
-import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
@@ -13,10 +13,7 @@ const translator = short();
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) => {
-  return `
-${t("what")}:
-${calEvent.title}
-  `;
+  return `${t("what")}:\n${calEvent.title}`;
 };
 
 export const getWhen = (
@@ -28,20 +25,14 @@ export const getWhen = (
   const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
 
   return calEvent.seatsPerTimeSlot
-    ? `
-${t("organizer_timezone")}:
-${organizerTimezone}
-  `
-    : `
-${t("invitee_timezone")}:
-${attendeeTimezone}
-  `;
+    ? `${t("organizer_timezone")}:\n${organizerTimezone}`
+    : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
 };
 
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team"
+    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
   >,
   t: TFunction
 ) => {
@@ -50,45 +41,40 @@ export const getWho = (
     attendeesFromCalEvent = [];
   }
   const attendees = attendeesFromCalEvent
-    .map((attendee) => {
-      return `
-${attendee?.name || t("guest")}
-${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
-`;
-    })
-    .join("");
+    .map(
+      (attendee) =>
+        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : ""
+        }`
+    )
+    .join("\n");
 
-  const organizer = `
-${calEvent.organizer.name} - ${t("organizer")}
-${calEvent.organizer.email}
-  `;
+  const organizer = calEvent.hideOrganizerEmail
+    ? `${calEvent.organizer.name} - ${t("organizer")}`
+    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
 
   const teamMembers = calEvent.team?.members
-    ? calEvent.team.members.map((member) => {
-        return `
-${member.name} - ${t("team_member")}
-${member.email}
-    `;
-      })
+    ? calEvent.team.members
+        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .join("\n")
     : [];
 
-  return `
-${t("who")}:
-${organizer + attendees + teamMembers.join("")}
-  `;
+  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
+    teamMembers.length ? `\n${teamMembers}` : ""
+  }`;
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `
-${t("additional_notes")}:
-${calEvent.additionalNotes}
-  `;
+  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
 };
 
-export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
+export const getUserFieldsResponses = (
+  calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
+  t: TFunction
+) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
   if (!labelValueMap) {
@@ -99,7 +85,7 @@ export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValue
       if (!labelValueMap) return "";
       if (labelValueMap[key] !== "") {
         return `
-${key}:
+${t(key)}:
 ${labelValueMap[key]}
   `;
       }
@@ -131,10 +117,9 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
     return "";
   }
   const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-  return `\n${t("description")}
-    ${plainText}
-    `;
+  return `${t("description")}\n${plainText}`;
 };
+
 export const getLocation = (
   calEvent: Parameters<typeof getVideoCallUrlFromCalEvent>[0] & Parameters<typeof getProviderName>[0]
 ) => {
@@ -172,11 +157,12 @@ const getSeatReferenceId = (calEvent: Pick<CalendarEvent, "attendeeSeatId">): st
 };
 
 export const getBookingUrl = (calEvent: CalendarEvent) => {
+  const seatReferenceUid = getSeatReferenceId(calEvent);
   if (calEvent.platformClientId) {
     if (!calEvent.platformBookingUrl) return "";
     return `${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
       calEvent.organizer.username
-    }&changes=true`;
+    }${seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}&changes=true`;
   }
 
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}?changes=true`;
@@ -189,6 +175,8 @@ export const getPlatformManageLink = (
   t: TFunction
 ) => {
   const shouldDisplayReschedule = !calEvent.recurringEvent && calEvent.platformRescheduleUrl;
+  const seatUid = getSeatReferenceId(calEvent);
+
   let res =
     calEvent.platformBookingUrl || shouldDisplayReschedule || calEvent.platformCancelUrl
       ? `${t("need_to_reschedule_or_cancel")} `
@@ -196,9 +184,9 @@ export const getPlatformManageLink = (
   if (calEvent.platformBookingUrl) {
     res += `Check Here: ${calEvent.platformBookingUrl}/${getUid(calEvent)}?slug=${calEvent.type}&username=${
       calEvent.organizer.username
-    }${calEvent?.team ? `&teamId=${calEvent.team.id}` : ""}&changes=true${
-      calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""
-    }`;
+    }${calEvent?.team ? `&teamId=${calEvent.team.id}` : ""}${
+      seatUid ? `&seatReferenceUid=${seatUid}` : ""
+    }&changes=true${calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""}`;
   }
   if (calEvent.platformCancelUrl) {
     res += `${t("cancel")}: ${getCancelLink(calEvent)}`;
@@ -235,8 +223,9 @@ export const getPlatformCancelLink = (
   if (calEvent.platformCancelUrl) {
     const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
     platformCancelLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
@@ -279,8 +268,9 @@ export const getPlatformRescheduleLink = (
       `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
     );
     platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformRescheduleLink.searchParams.append("reschedule", "true");
     if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
@@ -329,6 +319,64 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getManageLink>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
+export const getRichDescriptionHTML = (
+  calEvent: RichDescriptionCalEvent,
+  t_?: TFunction,
+  includeAppStatus = false
+) => {
+  const t = t_ ?? calEvent.organizer.language.translate;
+
+  // Helper function to convert plain text with newlines to HTML paragraphs
+  const textToHtml = (text: string) => {
+    if (!text) return "";
+    const lines = text.split("\n").filter(Boolean);
+    return lines
+      .map((line, index) => {
+        if (index === 0) {
+          return `<p><strong>${line}</strong></p>`;
+        }
+        return `<p>${line}</p>`;
+      })
+      .join("");
+  };
+
+  // Convert the manage link to a clickable hyperlink
+  const manageLinkText = getManageLink(calEvent, t);
+  const manageLinkHtml = manageLinkText
+    ? (() => {
+        const words = manageLinkText.split(" ");
+        const lastWord = words.pop();
+        if (lastWord && lastWord.includes("http")) {
+          const textWithoutLink = words.join(" ").trim();
+          return `<p><strong>${textWithoutLink}</strong> <a href="${lastWord}">Click here</a></p>`;
+        }
+        return `<p>${manageLinkText}</p>`;
+      })()
+    : "";
+
+  // Build the HTML content for each section
+  const parts = [
+    textToHtml(getCancellationReason(calEvent, t)),
+    textToHtml(getWhat(calEvent, t)),
+    textToHtml(getWhen(calEvent, t)),
+    textToHtml(getWho(calEvent, t)),
+    textToHtml(getDescription(calEvent, t)),
+    textToHtml(getAdditionalNotes(calEvent, t)),
+    textToHtml(getUserFieldsResponses(calEvent, t)),
+    includeAppStatus ? textToHtml(getAppsStatus(calEvent, t)) : "",
+    manageLinkHtml,
+    calEvent.paymentInfo
+      ? `<p><strong>${t("pay_now")}:</strong> <a href="${calEvent.paymentInfo.link}">${
+          calEvent.paymentInfo.link
+        }</a></p>`
+      : "",
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join("\n"); // Single newline between sections
+
+  return parts.trim();
+};
+
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
@@ -336,39 +384,36 @@ export const getRichDescription = (
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
-  return `
-${getCancellationReason(calEvent, t)}
-${getWhat(calEvent, t)}
-${getWhen(calEvent, t)}
-${getWho(calEvent, t)}
-${t("where")}:
-${getLocation(calEvent)}
-${getDescription(calEvent, t)}
-${getAdditionalNotes(calEvent, t)}
-${getUserFieldsResponses(calEvent)}
-${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
-${
-  // TODO: Only the original attendee can make changes to the event
-  // Guests cannot
-  calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t)
-}
-${
-  calEvent.paymentInfo
-    ? `
-${t("pay_now")}:
-${calEvent.paymentInfo.link}
-`
-    : ""
-}
-  `.trim();
+  // Join all parts with single newlines and remove extra whitespace
+  const parts = [
+    getCancellationReason(calEvent, t),
+    getWhat(calEvent, t),
+    getWhen(calEvent, t),
+    getWho(calEvent, t),
+    `${t("where")}:\n${getLocation(calEvent)}`,
+    getDescription(calEvent, t),
+    getAdditionalNotes(calEvent, t),
+    getUserFieldsResponses(calEvent, t),
+    includeAppStatus ? getAppsStatus(calEvent, t) : "",
+    // TODO: Only the original attendee can make changes to the event
+    // Guests cannot
+    calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
+    calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join("\n\n") // Double newline between major sections
+    .replace(/\n{3,}/g, "\n\n") // Ensure no more than double newlines
+    .trim();
+
+  return parts;
 };
 
 export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
-  return `
-${t("cancellation_reason")}:
-${calEvent.cancellationReason}
- `;
+  const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
+    ? calEvent.cancellationReason.substring(5).trim()
+    : calEvent.cancellationReason.trim();
+  return `${t("cancellation_reason")}:\n${sanitized}`;
 };
 
 export const isDailyVideoCall = (calEvent: Pick<CalendarEvent, "videoCallData">): boolean => {

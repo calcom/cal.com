@@ -1,12 +1,11 @@
-import type { Prisma } from "@prisma/client";
-
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@calcom/prisma/client";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAdminUpdate } from "./adminUpdate.schema";
 
 type AdminUpdateOptions = {
@@ -34,7 +33,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     });
   }
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata);
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataStrictSchema.unwrap(), existingOrg.metadata || {});
 
   const data: Prisma.TeamUpdateArgs["data"] = restInput;
 
@@ -74,9 +73,9 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
           isAdminReviewed: organizationSettings?.isAdminReviewed,
           orgAutoAcceptEmail:
             organizationSettings?.orgAutoAcceptEmail || existingOrg.organizationSettings?.orgAutoAcceptEmail,
-          isAdminAPIEnabled:
-            !!organizationSettings?.isAdminAPIEnabled ??
-            !!existingOrg.organizationSettings?.isAdminAPIEnabled,
+          isAdminAPIEnabled: !!(
+            organizationSettings?.isAdminAPIEnabled ?? existingOrg.organizationSettings?.isAdminAPIEnabled
+          ),
         },
       });
     }

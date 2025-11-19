@@ -5,15 +5,14 @@
 import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
-import around_config_json from "./around/config.json";
 import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
 import bolna_config_json from "./bolna/config.json";
+import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
-import campsite_config_json from "./campsite/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -23,19 +22,24 @@ import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
+import dub_config_json from "./dub/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
+import elevenlabs_config_json from "./elevenlabs/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
+import fonio_ai_config_json from "./fonio-ai/config.json";
+import framer_config_json from "./framer/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
+import greetmate_ai_config_json from "./greetmate-ai/config.json";
 import gtm_config_json from "./gtm/config.json";
 import hitpay_config_json from "./hitpay/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
@@ -47,12 +51,15 @@ import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import lindy_config_json from "./lindy/config.json";
 import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
+import millis_ai_config_json from "./millis-ai/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import mock_payment_app_config_json from "./mock-payment-app/config.json";
+import monobot_config_json from "./monobot/config.json";
 import n8n_config_json from "./n8n/config.json";
 import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
@@ -89,7 +96,6 @@ import event_type_location_video_static_config_json from "./templates/event-type
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
 import twipla_config_json from "./twipla/config.json";
-import typeform_config_json from "./typeform/config.json";
 import umami_config_json from "./umami/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
@@ -99,7 +105,7 @@ import whatsapp_config_json from "./whatsapp/config.json";
 import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
-import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import zapier_config_json from "./zapier/config.json";
 import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
@@ -109,15 +115,14 @@ export const appStoreMetadata = {
   alby: alby_config_json,
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
-  around: around_config_json,
   attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
   bolna: bolna_config_json,
+  btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
-  campsite: campsite_config_json,
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
@@ -127,19 +132,24 @@ export const appStoreMetadata = {
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,
   discord: discord_config_json,
+  dub: dub_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
+  elevenlabs: elevenlabs_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
   facetime: facetime_config_json,
   fathom: fathom_config_json,
   feishucalendar: feishucalendar__metadata_ts,
+  "fonio-ai": fonio_ai_config_json,
+  framer: framer_config_json,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
+  "greetmate-ai": greetmate_ai_config_json,
   gtm: gtm_config_json,
   hitpay: hitpay_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
@@ -151,12 +161,15 @@ export const appStoreMetadata = {
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  lindy: lindy_config_json,
   linear: linear_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
+  "millis-ai": millis_ai_config_json,
   mirotalk: mirotalk_config_json,
   "mock-payment-app": mock_payment_app_config_json,
+  monobot: monobot_config_json,
   n8n: n8n_config_json,
   nextcloudtalk: nextcloudtalk_config_json,
   office365calendar: office365calendar__metadata_ts,
@@ -193,7 +206,6 @@ export const appStoreMetadata = {
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
   twipla: twipla_config_json,
-  typeform: typeform_config_json,
   umami: umami_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
@@ -203,7 +215,7 @@ export const appStoreMetadata = {
   whereby: whereby_config_json,
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
-  zapier: zapier__metadata_ts,
+  zapier: zapier_config_json,
   "zoho-bigin": zoho_bigin_config_json,
   zohocalendar: zohocalendar_config_json,
   zohocrm: zohocrm_config_json,

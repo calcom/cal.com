@@ -1,1 +1,4 @@
-export { default as WizardForm } from "./WizardForm";
+export { WizardForm } from "./WizardForm";
+export type { WizardFormProps, WizardStep } from "./WizardForm";
+export { useWizardState } from "./useWizardState";
+export type { WizardState } from "./useWizardState";

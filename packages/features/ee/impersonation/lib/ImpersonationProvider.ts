@@ -1,15 +1,20 @@
-import type { User } from "@prisma/client";
 import type { Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import { getSession } from "@calcom/features/auth/lib/getSession";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
+
+import { Resource, CustomAction } from "../../../pbac/domain/types/permission-registry";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -49,6 +54,8 @@ const auditAndReturnNextUser = async (
     },
   });
 
+  const profileOrg = impersonatedUser.profile?.organization;
+
   const obj = {
     id: impersonatedUser.id,
     username: impersonatedUser.username,
@@ -59,6 +66,18 @@ const auditAndReturnNextUser = async (
     organizationId: impersonatedUser.organizationId,
     locale: impersonatedUser.locale,
     profile: impersonatedUser.profile,
+    // Add org object if the user belongs to an organization
+    ...(profileOrg && {
+      org: {
+        id: profileOrg.id,
+        name: profileOrg.name,
+        slug: profileOrg.slug || "",
+        logoUrl: profileOrg.logoUrl,
+        fullDomain: getOrgFullOrigin(profileOrg.slug || ""),
+        domainSuffix: subdomainSuffix(),
+        role: profileOrg.members?.[0]?.role || MembershipRole.MEMBER,
+      },
+    }),
   };
 
   if (!isReturningToSelf) {
@@ -106,10 +125,74 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 
 export function checkGlobalPermission(session: Session | null) {
   if (
-    (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
+    (session?.user.role !== UserPermissionRole.ADMIN &&
+      process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
   ) {
     throw new Error("You do not have permission to do this.");
+  }
+}
+
+/**
+ * Check PBAC permissions for impersonation
+ * This function integrates with the new PBAC system to determine impersonation permissions
+ */
+export async function checkPBACImpersonationPermission({
+  userId,
+  teamId,
+  userRole,
+  organizationId,
+}: {
+  userId: number;
+  teamId?: number;
+  userRole: MembershipRole;
+  organizationId?: number | null;
+}): Promise<boolean> {
+  try {
+    // For organization-level impersonation
+    if (organizationId) {
+      const orgPermissions = await getSpecificPermissions({
+        userId,
+        teamId: organizationId,
+        resource: Resource.Organization,
+        userRole,
+        actions: [CustomAction.Impersonate],
+        fallbackRoles: {
+          [CustomAction.Impersonate]: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+      });
+
+      if (orgPermissions[CustomAction.Impersonate]) {
+        return true;
+      }
+    }
+
+    // For team-level impersonation
+    if (teamId) {
+      const teamPermissions = await getSpecificPermissions({
+        userId,
+        teamId,
+        resource: Resource.Team,
+        userRole,
+        actions: [CustomAction.Impersonate],
+        fallbackRoles: {
+          [CustomAction.Impersonate]: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+      });
+
+      return teamPermissions[CustomAction.Impersonate] ?? false;
+    }
+
+    // Fallback to role-based check if no team/org context
+    return userRole === MembershipRole.ADMIN || userRole === MembershipRole.OWNER;
+  } catch (error) {
+    console.error("Error checking PBAC impersonation permission:", error);
+    // Fallback to role-based check on error
+    return userRole === MembershipRole.ADMIN || userRole === MembershipRole.OWNER;
   }
 }
 
@@ -132,7 +215,11 @@ async function getImpersonatedUser({
 
   // If you are an admin we dont need to follow this flow -> We can just follow the usual flow
   // If orgId and teamId are the same we can follow the same flow
-  if (session?.user.org?.id && session.user.org.id !== teamId && session?.user.role !== "ADMIN") {
+  if (
+    session?.user.org?.id &&
+    session.user.org.id !== teamId &&
+    session?.user.role !== UserPermissionRole.ADMIN
+  ) {
     TeamWhereClause = {
       disableImpersonation: false,
       accepted: true,
@@ -216,9 +303,9 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   if (returningUser) {
     // Skip for none org users
     const inOrg =
-      returningUser.organizationId || // Keep for backwards compatability
+      returningUser.organizationId || // Keep for backwards compatibility
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
-    if (returningUser.role !== "ADMIN" && !inOrg) return;
+    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg) return;
 
     const hasTeams = returningUser.teams.length >= 1;
 
@@ -271,7 +358,7 @@ const ImpersonationProvider = CredentialsProvider({
     checkGlobalPermission(session);
 
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
-    if (session?.user.role === "ADMIN") {
+    if (session?.user.role === UserPermissionRole.ADMIN) {
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
@@ -296,11 +383,6 @@ const ImpersonationProvider = CredentialsProvider({
           where: {
             AND: [
               {
-                role: {
-                  in: ["ADMIN", "OWNER"],
-                },
-              },
-              {
                 team: {
                   id: teamId,
                 },
@@ -318,8 +400,24 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("Error-UserHasNoTeams: You do not have permission to do this.");
     }
 
+    // Check PBAC permissions for impersonation
+    const hasImpersonationPermission = await checkPBACImpersonationPermission({
+      userId: session?.user.id as number,
+      teamId,
+      userRole: sessionUserFromDb?.teams[0].role as MembershipRole,
+      organizationId: session?.user.org?.id,
+    });
+
+    if (!hasImpersonationPermission) {
+      throw new Error("You do not have permission to impersonate this user.");
+    }
+
+    // Legacy role check as additional safeguard (PBAC should handle this but keeping for backwards compatibility)
     // We find team by ID so we know there is only one team in the array
-    if (sessionUserFromDb?.teams[0].role === "ADMIN" && impersonatedUser.teams[0].role === "OWNER") {
+    if (
+      sessionUserFromDb?.teams[0].role === MembershipRole.ADMIN &&
+      impersonatedUser.teams[0].role === MembershipRole.OWNER
+    ) {
       throw new Error("You do not have permission to do this.");
     }
 

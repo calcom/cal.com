@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsInt, ValidateNested, IsBoolean } from "class-validator";
+import { IsEnum, IsOptional, IsInt, ValidateNested, IsBoolean, ValidateIf } from "class-validator";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { ValidatorConstraint, registerDecorator } from "class-validator";
 
@@ -30,11 +30,12 @@ export class BaseConfirmationPolicy_2024_06_14 {
   @IsEnum(ConfirmationPolicyEnum)
   @ApiProperty({
     description: "The policy that determines when confirmation is required",
+    enum: [ConfirmationPolicyEnum.ALWAYS, ConfirmationPolicyEnum.TIME],
     example: ConfirmationPolicyEnum.ALWAYS,
   })
   type!: ConfirmationPolicyEnum;
 
-  @IsOptional()
+  @ValidateIf((o) => o.type === ConfirmationPolicyEnum.TIME || o.noticeThreshold !== undefined)
   @ValidateNested()
   @Type(() => NoticeThreshold_2024_06_14)
   @ApiPropertyOptional({
@@ -44,6 +45,10 @@ export class BaseConfirmationPolicy_2024_06_14 {
   noticeThreshold?: NoticeThreshold_2024_06_14;
 
   @IsBoolean()
+  @ApiProperty({
+    description: "Unconfirmed bookings still block calendar slots.",
+    type: Boolean,
+  })
   blockUnconfirmedBookingsInBooker!: boolean;
 
   @IsOptional()

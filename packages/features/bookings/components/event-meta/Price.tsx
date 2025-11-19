@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 
-import { formatPrice } from "@calcom/lib/price";
+import { formatPrice } from "@calcom/lib/currencyConversions";
 
 import type { EventPrice } from "../../types";
 

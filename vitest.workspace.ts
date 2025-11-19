@@ -79,8 +79,17 @@ const workspaces = packagedEmbedTestsOnly
             "apps/api/v1/**/*",
             "apps/api/v2/**/*",
           ],
-          name: "@calcom/core",
+          name: "@calcom/lib",
           setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "@lib": new URL("./apps/web/lib", import.meta.url).pathname,
+            "@server": new URL("./apps/web/server", import.meta.url).pathname,
+            "@components": new URL("./apps/web/components", import.meta.url).pathname,
+            "@pages": new URL("./apps/web/pages", import.meta.url).pathname,
+            "~": new URL("./apps/web/modules", import.meta.url).pathname,
+          },
         },
       },
       {
@@ -110,7 +119,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/features/**/*.{test,spec}.tsx"],
           exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
           environment: "jsdom",
-          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.ts"],
+          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
         },
       },
 
@@ -127,8 +136,18 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/app-store-core",
           include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          exclude: ["packages/app-store/delegationCredential.test.ts"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/app-store-delegation-credential",
+          include: ["packages/app-store/delegationCredential.test.ts"],
+          environment: "node",
+          setupFiles: ["setupVitest.ts"],
         },
       },
       {
@@ -137,7 +156,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/routing-forms",
           include: ["packages/app-store/routing-forms/**/*.test.tsx"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
         },
       },
       {
@@ -146,7 +165,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/ui",
           include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
         },
       },
       {
@@ -155,7 +174,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/features/form-builder",
           include: ["packages/features/form-builder/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
         },
       },
       {
@@ -164,7 +183,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/features/bookings",
           include: ["packages/features/bookings/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
         },
       },
       {
@@ -173,7 +192,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/web/components",
           include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
           environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.ts"],
+          setupFiles: ["packages/ui/components/test-setup.tsx"],
         },
       },
       {

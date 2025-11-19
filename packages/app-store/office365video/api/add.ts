@@ -6,20 +6,19 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
-
-let client_id = "";
+export const OFFICE365_VIDEO_SCOPES = ["OnlineMeetings.ReadWrite", "offline_access"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
+    let clientId = "";
     const appKeys = await getAppKeysFromSlug("msteams");
-    if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-    if (!client_id) return res.status(400).json({ message: "Office 365 client_id missing." });
+    if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+    if (!clientId) return res.status(400).json({ message: "Office 365 client_id missing." });
     const state = encodeOAuthState(req);
     const params = {
       response_type: "code",
-      scope: scopes.join(" "),
-      client_id,
+      scope: OFFICE365_VIDEO_SCOPES.join(" "),
+      client_id: clientId,
       redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365video/callback`,
       state,
     };

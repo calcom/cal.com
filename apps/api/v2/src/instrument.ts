@@ -6,7 +6,7 @@ if (process.env.SENTRY_DSN) {
   // Ensure to call this before requiring any other modules!
   Sentry.init({
     dsn: getEnv("SENTRY_DSN"),
-    integrations: [nodeProfilingIntegration()],
+    integrations: [nodeProfilingIntegration(), Sentry.prismaIntegration()],
     // Performance Monitoring
     tracesSampleRate: getEnv("SENTRY_TRACES_SAMPLE_RATE") ?? 1.0, //  Capture 100% of the transactions
     // Set sampling rate for profiling - this is relative to tracesSampleRate

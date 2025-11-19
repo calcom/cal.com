@@ -10,18 +10,18 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { User } from "@calcom/prisma/client";
 
 const expectedSlotsUTC = {
   slots: {
@@ -250,7 +250,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
@@ -262,7 +262,6 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let eventTypeSlug: string;
     let reservedSlotUid: string;
 
-    const seatedEventTypeSlug = "peer-coding-seated";
     let seatedEventTypeId: number;
 
     beforeAll(async () => {
@@ -288,7 +287,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
@@ -685,9 +684,95 @@ describe("Slots 2024-04-15 Endpoints", () => {
       await bookingsRepositoryFixture.deleteById(booking.id);
     });
 
+    describe("routingFormResponseId and _isDryRun validation", () => {
+      const baseUrl = "/api/v2/slots/available";
+      const baseParams = {
+        startTime: "2050-09-05",
+        endTime: "2050-09-10",
+      };
+
+      it("should allow routingFormResponseId=0 in dry-run mode", async () => {
+        return request(app.getHttpServer())
+          .get(baseUrl)
+          .query({
+            ...baseParams,
+            eventTypeId,
+            routingFormResponseId: 0,
+            _isDryRun: true,
+          })
+          .expect(200)
+          .expect((res) => {
+            expect(res.body.status).toEqual(SUCCESS_STATUS);
+          });
+      });
+
+      it("should reject routingFormResponseId=1 in dry-run mode", async () => {
+        return request(app.getHttpServer())
+          .get(baseUrl)
+          .query({
+            ...baseParams,
+            eventTypeId,
+            routingFormResponseId: 1,
+            _isDryRun: true,
+          })
+          .expect(400)
+          .expect((res) => {
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be 0 for dry run"
+            );
+          });
+      });
+
+      it("should allow routingFormResponseId=1 in non-dry-run mode", async () => {
+        return request(app.getHttpServer())
+          .get(baseUrl)
+          .query({
+            ...baseParams,
+            eventTypeId,
+            routingFormResponseId: 1,
+          })
+          .expect(200)
+          .expect((res) => {
+            expect(res.body.status).toEqual(SUCCESS_STATUS);
+          });
+      });
+
+      it("should reject routingFormResponseId=0 in non-dry-run mode", async () => {
+        return request(app.getHttpServer())
+          .get(baseUrl)
+          .query({
+            ...baseParams,
+            eventTypeId,
+            routingFormResponseId: 0,
+          })
+          .expect(400)
+          .expect((res) => {
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be a positive number"
+            );
+          });
+      });
+
+      it("should reject routingFormResponseId=-1 in non-dry-run mode", async () => {
+        return request(app.getHttpServer())
+          .get(baseUrl)
+          .query({
+            ...baseParams,
+            eventTypeId,
+            routingFormResponseId: -1,
+          })
+          .expect(400)
+          .expect((res) => {
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be a positive number"
+            );
+          });
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlotUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
 
       await app.close();

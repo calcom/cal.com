@@ -3,11 +3,9 @@ import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import type { Options } from "react-select";
 
-import {
-  useIsPlatform,
-  AddMembersWithSwitchWebWrapper,
-  AddMembersWithSwitchPlatformWrapper,
-} from "@calcom/atoms/monorepo";
+import { AddMembersWithSwitchPlatformWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchPlatformWrapper";
+import { AddMembersWithSwitchWebWrapper } from "@calcom/atoms/add-members-switch/AddMembersWithSwitchWebWrapper";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Segment } from "@calcom/features/Segment";
 import type {
   FormValues,
@@ -17,7 +15,8 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
-import { Label, SettingsToggle } from "@calcom/ui";
+import { Label } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import CheckedTeamSelect from "./CheckedTeamSelect";
@@ -62,6 +61,7 @@ const CheckedHostField = ({
   onChange,
   helperText,
   isRRWeightsEnabled,
+  groupId,
   customClassNames,
   ...rest
 }: {
@@ -73,6 +73,7 @@ const CheckedHostField = ({
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
+  groupId: string | null;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -89,6 +90,7 @@ const CheckedHostField = ({
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
+                  groupId: option.groupId,
                 }))
               );
           }}
@@ -98,7 +100,13 @@ const CheckedHostField = ({
               const option = options.find((member) => member.value === host.userId.toString());
               if (!option) return acc;
 
-              acc.push({ ...option, priority: host.priority ?? 2, isFixed, weight: host.weight ?? 100 });
+              acc.push({
+                ...option,
+                priority: host.priority ?? 2,
+                isFixed,
+                weight: host.weight ?? 100,
+                groupId: host.groupId,
+              });
 
               return acc;
             }, [] as CheckedSelectOption[])}
@@ -107,6 +115,7 @@ const CheckedHostField = ({
           placeholder={placeholder}
           isRRWeightsEnabled={isRRWeightsEnabled}
           customClassNames={customClassNames}
+          groupId={groupId}
           {...rest}
         />
       </div>
@@ -179,6 +188,7 @@ export type AddMembersWithSwitchProps = {
   isRRWeightsEnabled?: boolean;
   teamId: number;
   isSegmentApplicable?: boolean;
+  groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
 };
@@ -245,6 +255,7 @@ export function AddMembersWithSwitch({
   isRRWeightsEnabled,
   teamId,
   isSegmentApplicable,
+  groupId,
   customClassNames,
   ...rest
 }: AddMembersWithSwitchProps) {
@@ -274,7 +285,7 @@ export function AddMembersWithSwitch({
     case AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED:
       return (
         <>
-          {!isFixed && (
+          {!groupId && (
             <AssignAllTeamMembers
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -283,6 +294,7 @@ export function AddMembersWithSwitch({
               customClassNames={customClassNames?.assingAllTeamMembers}
             />
           )}
+
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
               <MembersSegmentWithToggle
@@ -302,7 +314,7 @@ export function AddMembersWithSwitch({
       return (
         <>
           <div className="mb-2">
-            {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && (
+            {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !groupId && (
               <AssignAllTeamMembers
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -319,9 +331,15 @@ export function AddMembersWithSwitch({
               onChange={onChange}
               isFixed={isFixed}
               className="mb-2"
-              options={teamMembers.sort(sortByLabel)}
+              options={teamMembers
+                .map((member) => ({
+                  ...member,
+                  groupId: groupId,
+                }))
+                .sort(sortByLabel)}
               placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
+              groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
             />
           </div>
@@ -342,7 +360,7 @@ const AddMembersWithSwitchWrapper = ({
     [isPlatform]
   );
   return (
-    <div className="rounded-md ">
+    <div className="rounded-md">
       <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
         <AddMembersWithSwitchWrapped {...props} />
       </div>

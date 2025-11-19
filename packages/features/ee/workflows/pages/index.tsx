@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { AnimatedPopover } from "@calcom/ui/components/popover";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -21,6 +22,7 @@ import { getTeamsFiltersFromQuery } from "../../../filters/lib/getTeamsFiltersFr
 import LicenseRequired from "../../common/components/LicenseRequired";
 import EmptyScreen from "../components/EmptyScreen";
 import SkeletonLoader from "../components/SkeletonLoaderList";
+import { WorkflowCreationDialog, useWorkflowCreation } from "../components/WorkflowCreationDialog";
 import WorkflowList from "../components/WorkflowListPage";
 
 type PageProps = {
@@ -33,6 +35,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
+  const { showDialog, setShowDialog, pendingTeamId, openDialog } = useWorkflowCreation();
 
   const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
     {
@@ -45,25 +48,8 @@ function WorkflowsPage({ filteredList }: PageProps) {
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
 
-  const createMutation = trpc.viewer.workflows.create.useMutation({
-    onSuccess: async ({ workflow }) => {
-      await router.replace(`/workflows/${workflow.id}`);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: ${t("error_workflow_unauthorized_create")}`;
-        showToast(message, "error");
-      }
-    },
-  });
-
   return (
-    <Shell withoutMain withoutSeo={true}>
+    <Shell withoutMain>
       <LicenseRequired>
         <ShellMain
           heading={t("workflows")}
@@ -74,13 +60,14 @@ function WorkflowsPage({ filteredList }: PageProps) {
             session.data?.hasValidLicense ? (
               <CreateButtonWithTeamsList
                 subtitle={t("new_workflow_subtitle").toUpperCase()}
-                createFunction={(teamId?: number) => {
-                  createMutation.mutate({ teamId });
-                }}
-                isPending={createMutation.isPending}
+                createFunction={openDialog}
                 disableMobileButton={true}
                 onlyShowWithNoTeams={true}
                 includeOrg={true}
+                withPermission={{
+                  permission: "workflow.create",
+                  fallbackRoles: ["ADMIN", "OWNER"],
+                }}
               />
             ) : null
           }>
@@ -91,11 +78,14 @@ function WorkflowsPage({ filteredList }: PageProps) {
                 <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isPending={createMutation.isPending}
+                    createFunction={openDialog}
                     disableMobileButton={true}
                     onlyShowWithTeams={true}
                     includeOrg={true}
+                    withPermission={{
+                      permission: "workflow.create",
+                      fallbackRoles: ["ADMIN", "OWNER"],
+                    }}
                   />
                 </div>
               </div>
@@ -109,6 +99,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
             </FilterResults>
           </>
         </ShellMain>
+        <WorkflowCreationDialog open={showDialog} onOpenChange={setShowDialog} teamId={pendingTeamId} />
       </LicenseRequired>
     </Shell>
   );

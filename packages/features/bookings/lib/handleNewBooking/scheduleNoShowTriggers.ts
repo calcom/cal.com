@@ -1,7 +1,8 @@
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
@@ -9,6 +10,7 @@ type ScheduleNoShowTriggersArgs = {
     startTime: Date;
     id: number;
     location: string | null;
+    uid: string;
   };
   triggerForUser?: number | true | null;
   organizerUser: { id: number | null };
@@ -19,7 +21,7 @@ type ScheduleNoShowTriggersArgs = {
   isDryRun?: boolean;
 };
 
-export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
+const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   const {
     booking,
     triggerForUser,
@@ -61,7 +63,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt }
+          { scheduledAt, referenceUid: booking.uid }
         );
       }
       return Promise.resolve();
@@ -92,7 +94,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt }
+          { scheduledAt, referenceUid: booking.uid }
         );
       }
 
@@ -110,3 +112,5 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
   //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   // );
 };
+
+export const scheduleNoShowTriggers = withReporting(_scheduleNoShowTriggers, "scheduleNoShowTriggers");

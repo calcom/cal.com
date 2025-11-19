@@ -4,13 +4,12 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
-import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { buildEventUrlFromBooking } from "@calcom/features/bookings/lib/buildEventUrlFromBooking";
+import { determineReschedulePreventionRedirect } from "@calcom/features/bookings/lib/reschedule/determineReschedulePreventionRedirect";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
 
 const querySchema = z.object({
   uid: z.string(),
@@ -40,7 +39,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     uid,
     seatReferenceUid: maybeSeatReferenceUid,
     bookingSeat,
-  } = await maybeGetBookingUidFromSeat(prisma, bookingUid);
+  } = await maybeGetBookingUidFromSeat(prisma, seatReferenceUid ? seatReferenceUid : bookingUid);
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -58,8 +57,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           },
           slug: true,
           allowReschedulingPastBookings: true,
+          disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
           team: {
             select: {
+              id: true,
               parentId: true,
               slug: true,
             },
@@ -95,34 +97,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as const;
   }
-
-  // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
-  // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (
-    !allowRescheduleForCancelledBooking &&
-    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
-  ) {
-    return {
-      redirect: {
-        destination: `/booking/${uid}`,
-        permanent: false,
-      },
-    };
-  }
-
-  if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
-    // TODO: Show something in UI to let user know that this booking is not rescheduleable
-    return {
-      notFound: true,
-    } as {
-      notFound: true;
-    };
-  }
-
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
+  const userRepo = new UserRepository(prisma);
   const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    ? await userRepo.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
   const eventUrl = await buildEventUrlFromBooking({
@@ -131,20 +110,36 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
-  if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
-    const destinationUrlSearchParams = new URLSearchParams();
-    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
-    const name = getSafe<string>(responses, ["name"]);
-    const email = getSafe<string>(responses, ["email"]);
+  if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
+    // TODO: Show something in UI to let user know that this booking is not rescheduleable
+    return {
+      notFound: true,
+    } as const;
+  }
 
-    if (name) destinationUrlSearchParams.set("name", name);
-    if (email) destinationUrlSearchParams.set("email", email);
+  // Check if reschedule should be prevented based on booking status and event type settings
+  const reschedulePreventionRedirectUrl = determineReschedulePreventionRedirect({
+    booking: {
+      uid,
+      status: booking.status,
+      endTime: booking.endTime,
+      responses: booking.responses,
+      eventType: {
+        disableRescheduling: !!eventType?.disableRescheduling,
+        allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
+        allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
+        teamId: eventType.team?.id ?? null,
+      },
+    },
+    eventUrl,
+    forceRescheduleForCancelledBooking: allowRescheduleForCancelledBooking,
+    bookingSeat,
+  });
 
-    const searchParamsString = destinationUrlSearchParams.toString();
+  if (reschedulePreventionRedirectUrl) {
     return {
       redirect: {
-        destination: searchParamsString ? `${eventUrl}?${searchParamsString}` : eventUrl,
+        destination: reschedulePreventionRedirectUrl,
         permanent: false,
       },
     };
@@ -180,6 +175,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const destinationUrlSearchParams = new URLSearchParams();
 
   destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
+
+  if (allowRescheduleForCancelledBooking) {
+    destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
+  }
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {

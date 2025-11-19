@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   EventTypeSetup,
   InputClassNames,
@@ -9,11 +10,14 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
@@ -46,6 +50,8 @@ export default function RecurringEventController({
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
     formMethods.getValues("recurringEvent")
   );
+  const isSeatsOffered = !!formMethods.getValues("seatsPerTimeSlot");
+  const hasBookingLimitPerBooker = !!formMethods.getValues("maxActiveBookingsPerBooker");
   /* Just yearly-0, monthly-1 and weekly-2 */
   const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) < 3)
@@ -86,9 +92,23 @@ export default function RecurringEventController({
               descriptionClassName={customClassNames?.recurringToggle?.description}
               title={t("recurring_event")}
               {...recurringLocked}
-              description={t("recurring_event_description")}
-              checked={recurringEventState !== null}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="recurring_event_description"
+                  href="https://cal.com/help/event-types/recurring-events"
+                />
+              }
+              checked={!!recurringEventState}
               data-testid="recurring-event-check"
+              disabled={(!recurringEventState && isSeatsOffered) || hasBookingLimitPerBooker}
+              tooltip={
+                isSeatsOffered
+                  ? t("seats_doesnt_support_recurring")
+                  : hasBookingLimitPerBooker
+                  ? t("booking_limit_per_booker_doesnt_support_recurring")
+                  : undefined
+              }
               onCheckedChange={(e) => {
                 if (!e) {
                   formMethods.setValue("recurringEvent", null, { shouldDirty: true });

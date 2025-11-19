@@ -1,14 +1,14 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -17,10 +17,10 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
   const { uid } = querySchema.parse(context.query);
-  const rawPayment = await prisma.payment.findFirst({
+  const session = await getServerSession({ req: context.req });
+
+  const rawPayment = await prisma.payment.findUnique({
     where: {
       uid,
     },
@@ -47,7 +47,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!eventType) return { notFound: true } as const;
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true } as const;
+  if (eventType.users.length === 0 && !eventType.team) return { notFound: true } as const;
 
   const [user] = eventType?.users.length
     ? eventType.users
@@ -55,7 +55,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const profile = {
     name: eventType.team?.name || user?.name || null,
     theme: (!eventType.team?.name && user?.theme) || null,
-    hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
+    hideBranding: await shouldHideBrandingForEvent({
+      eventTypeId: eventType.id,
+      team: eventType.team,
+      owner: eventType.users[0] ?? null,
+      organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+    }),
   };
 
   if (
@@ -79,7 +84,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       },
       booking,
-      trpcState: ssr.dehydrate(),
       payment,
       clientSecret: getClientSecretFromPayment(payment),
       profile,

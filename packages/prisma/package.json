@@ -16,33 +16,36 @@
     "dx": "yarn db-setup",
     "generate-schemas": "prisma generate && prisma format",
     "post-install": "yarn generate-schemas",
-    "seed-app-store": "ts-node --transpile-only ./seed-app-store.ts",
+    "seed-app-store": "ts-node --transpile-only ../../scripts/seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
-    "seed-insights": "ts-node --transpile-only ./seed-insights.ts"
-  },
-  "devDependencies": {
-    "@faker-js/faker": "9.2.0",
-    "npm-run-all": "^4.1.5"
+    "seed-basic": "ts-node --transpile-only ../../scripts/seed.ts",
+    "seed-insights": "ts-node --transpile-only ../../scripts/seed-insights.ts",
+    "seed-pbac": "ts-node --transpile-only ../../scripts/seed-pbac-organization.ts"
   },
   "dependencies": {
-    "@calcom/lib": "*",
-    "@prisma/client": "^5.4.2",
-    "@prisma/extension-accelerate": "^0.6.2",
-    "@prisma/generator-helper": "^5.4.2",
-    "prisma": "^5.4.2",
-    "prisma-kysely": "^1.7.1",
+    "@prisma/adapter-pg": "^6.16.0",
+    "@prisma/client": "^6.16.0",
+    "@prisma/extension-accelerate": "^1.3.0",
+    "@prisma/generator-helper": "^6.16.0",
+    "prisma": "^6.16.0",
+    "prisma-kysely": "2.2.0",
     "ts-node": "^10.9.1",
+    "uuid": "^8.3.2",
     "zod": "^3.22.4",
-    "zod-prisma": "^0.5.4"
+    "zod-prisma-types": "^3.2.4"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
   },
   "main": "index.ts",
   "types": "index.d.ts",
   "files": [
     "client",
+    "generated/prisma",
     "zod",
     "zod-utils.ts"
   ],
   "prisma": {
-    "seed": "ts-node --transpile-only ./seed.ts"
+    "seed": "yarn seed-basic"
   }
 }

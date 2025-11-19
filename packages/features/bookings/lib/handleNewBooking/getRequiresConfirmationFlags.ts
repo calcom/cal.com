@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
@@ -44,17 +45,18 @@ export async function getRequiresConfirmationFlags({
   };
 }
 
-async function determineRequiresConfirmation(
+// Define the function with underscore prefix
+const _determineRequiresConfirmation = async (
   eventType: EventType,
   bookingStartTime: string,
   bookerEmail: string
-): Promise<boolean> {
+): Promise<boolean> => {
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
   const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
 
   if (requiresConfirmationForFreeEmail) {
-    requiresConfirmation = await checkIfFreeEmailDomain(bookerEmail);
+    requiresConfirmation = await checkIfFreeEmailDomain({ email: bookerEmail });
   }
 
   if (rcThreshold) {
@@ -65,7 +67,12 @@ async function determineRequiresConfirmation(
   }
 
   return requiresConfirmation;
-}
+};
+
+export const determineRequiresConfirmation = withReporting(
+  _determineRequiresConfirmation,
+  "determineRequiresConfirmation"
+);
 
 function isUserReschedulingOwner(
   userId: number | undefined,

@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -191,8 +191,9 @@ const availabilitySchema = z
 async function handler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
+  const userAvailabilityService = getUserAvailabilityService();
   if (!teamId)
-    return getUserAvailability({
+    return userAvailabilityService.getUserAvailability({
       username,
       dateFrom,
       dateTo,
@@ -230,7 +231,7 @@ async function handler(req: NextApiRequest) {
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,
-      availability: await getUserAvailability({
+      availability: await userAvailabilityService.getUserAvailability({
         userId: user.id,
         dateFrom,
         dateTo,

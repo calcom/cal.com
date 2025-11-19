@@ -1,11 +1,29 @@
+import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
+import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
+import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
-import { userMetadata, handleDeleteCredential } from "@calcom/platform-libraries";
+import {
+  CONFERENCING_APPS,
+  CAL_VIDEO,
+  GOOGLE_MEET,
+  ZOOM,
+  OFFICE_365_VIDEO,
+} from "@calcom/platform-constants";
+import { userMetadata } from "@calcom/platform-libraries";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
+import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class ConferencingService {
@@ -13,11 +31,55 @@ export class ConferencingService {
 
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly tokensRepository: TokensRepository,
+    private readonly googleMeetService: GoogleMeetService,
+    private readonly zoomVideoService: ZoomVideoService,
+    private readonly office365VideoService: Office365VideoService
   ) {}
 
   async getConferencingApps(userId: number) {
     return this.conferencingRepository.findConferencingApps(userId);
+  }
+
+  async connectUserNonOauthApp(app: string, userId: number) {
+    switch (app) {
+      case GOOGLE_MEET:
+        const credential = await this.googleMeetService.connectGoogleMeetToUser(userId);
+        return credential;
+      default:
+        throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
+    }
+  }
+
+  async connectOauthApps(
+    app: string,
+    code: string,
+    decodedCallbackState: OAuthCallbackState,
+    teamId?: number
+  ) {
+    const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+    if (!userId) {
+      throw new UnauthorizedException("Invalid Access token.");
+    }
+    switch (app) {
+      case ZOOM:
+        return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId, teamId);
+
+      case OFFICE_365_VIDEO:
+        return await this.office365VideoService.connectOffice365App(
+          decodedCallbackState,
+          code,
+          userId,
+          teamId
+        );
+
+      default:
+        throw new BadRequestException(
+          "Invalid conferencing app, available apps are: ",
+          [ZOOM, OFFICE_365_VIDEO].join(", ")
+        );
+    }
   }
 
   async getUserDefaultConferencingApp(userId: number) {
@@ -25,20 +87,24 @@ export class ConferencingService {
     return userMetadata.parse(user?.metadata)?.defaultConferencingApp;
   }
 
-  async checkAppIsValidAndConnected(userId: number, app: string) {
-    if (!CONFERENCING_APPS.includes(app)) {
+  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
+    if (!CONFERENCING_APPS.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
-    const credential = await this.conferencingRepository.findConferencingApp(userId, app);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-    if (!credential) {
-      throw new BadRequestException(`${app} not connected.`);
+    const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
+
+    const appLocation = foundApp?.appData?.location;
+
+    if (!foundApp || !appLocation) {
+      throw new BadRequestException(`${appSlug} not connected.`);
     }
-    return credential;
+    return foundApp.credential;
   }
 
   async disconnectConferencingApp(user: UserWithProfile, app: string) {
-    const credential = await this.checkAppIsValidAndConnected(user.id, app);
+    const credential = await this.checkAppIsValidAndConnected(user, app);
     return handleDeleteCredential({
       userId: user.id,
       userMetadata: user?.metadata,
@@ -46,16 +112,32 @@ export class ConferencingService {
     });
   }
 
-  async setDefaultConferencingApp(userId: number, app: string) {
+  async setDefaultConferencingApp(user: UserWithProfile, app: string) {
     // cal-video is global, so we can skip this check
     if (app !== CAL_VIDEO) {
-      await this.checkAppIsValidAndConnected(userId, app);
+      await this.checkAppIsValidAndConnected(user, app);
     }
-    const user = await this.usersRepository.setDefaultConferencingApp(userId, app);
-    const metadata = user.metadata as { defaultConferencingApp?: { appSlug?: string } };
+    const updatedUser = await this.usersRepository.setDefaultConferencingApp(user.id, app);
+    const metadata = updatedUser.metadata as { defaultConferencingApp?: { appSlug?: string } };
     if (metadata?.defaultConferencingApp?.appSlug !== app) {
       throw new InternalServerErrorException(`Could not set ${app} as default conferencing app`);
     }
     return true;
+  }
+
+  async generateOAuthUrl(app: string, state: OAuthCallbackState) {
+    switch (app) {
+      case ZOOM:
+        return await this.zoomVideoService.generateZoomAuthUrl(JSON.stringify(state));
+
+      case OFFICE_365_VIDEO:
+        return await this.office365VideoService.generateOffice365AuthUrl(JSON.stringify(state));
+
+      default:
+        throw new BadRequestException(
+          "Invalid conferencing app, available apps are: ",
+          [ZOOM, OFFICE_365_VIDEO].join(", ")
+        );
+    }
   }
 }

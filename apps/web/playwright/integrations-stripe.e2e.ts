@@ -1,9 +1,9 @@
 import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import prisma from "@calcom/prisma";
+import type { EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
@@ -35,7 +35,7 @@ test.describe("Stripe integration skip true", () => {
 
     await user.installStripePersonal({ skip: true });
 
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.setupEventWithPrice(eventType, "stripe");
 
     // Need to wait for the DB to be updated with the metadata
@@ -102,7 +102,7 @@ test.describe("Stripe integration skip true", () => {
   });
   test("Can book a paid booking", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -115,7 +115,7 @@ test.describe("Stripe integration skip true", () => {
 
   test("Pending payment booking should not be confirmed by default", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -139,7 +139,7 @@ test.describe("Stripe integration skip true", () => {
 
   test("Paid booking should be able to be rescheduled", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -162,7 +162,7 @@ test.describe("Stripe integration skip true", () => {
 
   test("Paid booking should be able to be cancelled", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -178,11 +178,11 @@ test.describe("Stripe integration skip true", () => {
 
   test.describe("When event is paid and confirmed", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
-    let eventType: Prisma.EventType;
+    let eventType: EventType;
 
     test.beforeEach(async ({ page, users }) => {
       user = await users.create();
-      eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+      eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
       await user.apiLogin();
       await page.goto("/apps/installed");
 
@@ -217,7 +217,7 @@ test.describe("Stripe integration skip true", () => {
   test.describe("Change stripe presented currency", () => {
     test("Should be able to change currency", async ({ page, users }) => {
       const user = await users.create();
-      const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+      const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
       await user.apiLogin();
 
       await user.installStripePersonal({ skip: true });
@@ -337,7 +337,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
   });
   test("Can book a paid booking skip false", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -348,7 +348,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
   });
   test("Pending payment booking should not be confirmed by default skip false", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -371,7 +371,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
 
   test("Paid booking should be able to be rescheduled skip false", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -393,7 +393,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
 
   test("Paid booking should be able to be cancelled skip false", async ({ page, users }) => {
     const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
     await user.apiLogin();
     await page.goto("/apps/installed");
 
@@ -408,11 +408,11 @@ test.describe("Stripe integration with the new app install flow skip false", () 
 
   test.describe("When event is paid and confirmed skip false", () => {
     let user: Awaited<ReturnType<Fixtures["users"]["create"]>>;
-    let eventType: Prisma.EventType;
+    let eventType: EventType;
 
     test.beforeEach(async ({ page, users }) => {
       user = await users.create();
-      eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+      eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
       await user.apiLogin();
       await page.goto("/apps/installed");
 
@@ -449,7 +449,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
   test.describe("Change stripe presented currency skip false", () => {
     test("Should be able to change currency skip false", async ({ page, users }) => {
       const user = await users.create();
-      const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+      const eventType = user.eventTypes.find((e) => e.slug === "paid") as EventType;
       await user.apiLogin();
 
       await page.goto("/apps/stripe");

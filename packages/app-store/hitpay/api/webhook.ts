@@ -2,10 +2,10 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
@@ -44,10 +44,10 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    debugger;
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
     }
+
     const obj: WebhookReturn = req.body as WebhookReturn;
     const excluded = { ...obj } as Partial<WebhookReturn>;
     delete excluded.hmac;
@@ -62,13 +62,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         bookingId: true,
         booking: {
           select: {
-            user: {
+            userId: true,
+            eventType: {
               select: {
-                credentials: {
-                  where: {
-                    type: "hitpay_payment",
-                  },
-                },
+                teamId: true,
               },
             },
           },
@@ -79,7 +76,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!payment) {
       throw new HttpCode({ statusCode: 204, message: "Payment not found" });
     }
-    const key = payment.booking?.user?.credentials?.[0].key;
+
+    const credential = await prisma.credential.findFirst({
+      where: {
+        type: "hitpay_payment",
+        ...(payment.booking?.eventType?.teamId
+          ? { teamId: payment.booking.eventType.teamId }
+          : { userId: payment.booking?.userId }),
+      },
+    });
+
+    const key = credential?.key;
     if (!key) {
       throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
     }

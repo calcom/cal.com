@@ -1,22 +1,32 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames, validateIntervalLimitOrder } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
+import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
+import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
+import RoundRobinSettings from "../components/RoundRobinSettings";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -48,12 +58,18 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
           includeManagedEventsInLimits: res.includeManagedEventsInLimits,
         });
       }
+      if (team?.slug) {
+        // Booking limits are enforced during slot generation, which relies on the same cached team data.
+        revalidateTeamDataCache({
+          teamSlug: team.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("booking_limits_updated_successfully"), "success");
     },
   });
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
@@ -138,6 +154,38 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const PrivacySettingsView = ({ team }: ProfileViewProps) => {
+  const session = useSession();
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
+  const isInviteOpen = !team?.membership.accepted;
+
+  return (
+    <>
+      <div className="mt-6">
+        {team && session.data && (
+          <DisableTeamImpersonation
+            teamId={team.id}
+            memberId={session.data.user.id}
+            disabled={isInviteOpen}
+          />
+        )}
+
+        {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
+          <div className="mt-6">
+            <MakeTeamPrivateSwitch
+              isOrg={false}
+              teamId={team.id}
+              isPrivate={team.isPrivate ?? false}
+              disabled={isInviteOpen}
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -169,7 +217,9 @@ const TeamSettingsViewWrapper = () => {
   return (
     <>
       <BookingLimitsView team={team} />
+      <PrivacySettingsView team={team} />
       <InternalNotePresetsView team={team} />
+      <RoundRobinSettings team={team} />
     </>
   );
 };

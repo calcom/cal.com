@@ -1,21 +1,18 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { createParamDecorator, INestApplication } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -24,27 +21,27 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
-  OrganizerScheduledEmail,
-  AttendeeScheduledEmail,
-  OrganizerRescheduledEmail,
-  AttendeeRescheduledEmail,
-  OrganizerCancelledEmail,
   AttendeeCancelledEmail,
-  OrganizerReassignedEmail,
+  AttendeeRescheduledEmail,
+  AttendeeScheduledEmail,
   AttendeeUpdatedEmail,
-} from "@calcom/platform-libraries";
-import {
-  CreateBookingInput_2024_08_13,
+  OrganizerCancelledEmail,
+  OrganizerReassignedEmail,
+  OrganizerRescheduledEmail,
+  OrganizerScheduledEmail,
+} from "@calcom/platform-libraries/emails";
+import type {
   BookingOutput_2024_08_13,
+  CancelBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
+// Mock all email sending prototypes
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
@@ -70,29 +67,22 @@ jest
   .spyOn(AttendeeUpdatedEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
+// Type definitions for test setup data
 type EmailSetup = {
   team: Team;
   member1: User;
   member2: User;
-  collectiveEventType: {
-    id: number;
-    createdBookingUid: string;
-    rescheduledBookingUid: string;
-  };
-  roundRobinEventType: {
-    id: number;
-    createdBookingUid: string;
-    rescheduledBookingUid: string;
-    currentHostId: number;
-  };
+  member1ApiKey: string;
+  collectiveEventType: { id: number };
+  roundRobinEventType: { id: number };
 };
 
 describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let app: INestApplication;
   let organization: Team;
 
+  // Fixtures for database interactions
   let userRepositoryFixture: UserRepositoryFixture;
-  let bookingsRepositoryFixture: BookingsRepositoryFixture;
   let schedulesService: SchedulesService_2024_04_15;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
@@ -100,890 +90,445 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let hostsRepositoryFixture: HostsRepositoryFixture;
+  let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
+  // Setup data for tests
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = "team-emails-2024-08-13-user-admin@example.com";
+  // Utility function to check response data type
+  const responseDataIsBooking = (data: unknown): data is BookingOutput_2024_08_13 => {
+    return !Array.isArray(data) && data !== null && typeof data === "object" && data && "id" in data;
+  };
 
   beforeAll(async () => {
-    const moduleRef = await withApiAuth(
-      authEmail,
-      Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-      })
-    )
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+    })
       .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
       })
       .compile();
 
+    // Initialize fixtures and services
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+    apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
+    // Create a base organization for all tests
     organization = await teamRepositoryFixture.create({ name: `team-emails-organization-${randomString()}` });
 
-    await setupEnabledEmails();
-    await setupDisabledEmails();
-
-    await userRepositoryFixture.create({
-      email: authEmail,
-      organization: {
-        connect: {
-          id: organization.id,
-        },
-      },
-    });
+    // Set up two distinct environments: one with emails enabled, one disabled
+    emailsEnabledSetup = await setupTestEnvironment(true);
+    emailsDisabledSetup = await setupTestEnvironment(false);
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
-
     await app.init();
   });
 
-  async function setupEnabledEmails() {
-    const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
-
+  // Helper function to create a complete test environment
+  async function setupTestEnvironment(emailsEnabled: boolean): Promise<EmailSetup> {
+    const oAuthClient = await createOAuthClient(organization.id, emailsEnabled);
     const team = await teamRepositoryFixture.create({
       name: `team-emails-team-${randomString()}`,
-      isOrganization: false,
       parent: { connect: { id: organization.id } },
-      createdByOAuthClient: {
-        connect: {
-          id: oAuthClientEmailsEnabled.id,
-        },
-      },
+      createdByOAuthClient: { connect: { id: oAuthClient.id } },
     });
 
-    const member1 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
-      platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsEnabled.id,
-        },
-      },
-    });
+    const [member1, member2] = await Promise.all([
+      createTeamMember(oAuthClient.id),
+      createTeamMember(oAuthClient.id),
+    ]);
 
-    const member2 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
-      platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsEnabled.id,
-        },
-      },
-    });
+    await Promise.all([
+      membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: member1.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      }),
+      membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: member2.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      }),
+    ]);
 
-    const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `team-emails-2024-08-13-schedule-${randomString()}`,
-      timeZone: "Europe/Rome",
-      isDefault: true,
-    };
-    await schedulesService.createUserSchedule(member1.id, userSchedule);
-    await schedulesService.createUserSchedule(member2.id, userSchedule);
+    const collectiveEvent = await createEventType("COLLECTIVE", team.id, [member1.id, member2.id]);
+    const roundRobinEvent = await createEventType("ROUND_ROBIN", team.id, [member1.id, member2.id]);
 
-    await profileRepositoryFixture.create({
-      uid: `usr-${member1.id}`,
-      username: member1.email,
-      organization: {
-        connect: {
-          id: organization.id,
-        },
-      },
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
-    });
+    // Create API key for member1 to use in authorized tests
+    const { keyString } = await apiKeysRepositoryFixture.createApiKey(member1.id, null);
+    const member1ApiKey = `cal_test_${keyString}`;
 
-    await profileRepositoryFixture.create({
-      uid: `usr-${member2.id}`,
-      username: member2.email,
-      organization: {
-        connect: {
-          id: organization.id,
-        },
-      },
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "MEMBER",
-      user: { connect: { id: member1.id } },
-      team: { connect: { id: team.id } },
-      accepted: true,
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "MEMBER",
-      user: { connect: { id: member2.id } },
-      team: { connect: { id: team.id } },
-      accepted: true,
-    });
-
-    const collectiveEvent = await eventTypesRepositoryFixture.createTeamEventType({
-      schedulingType: "COLLECTIVE",
-      team: {
-        connect: { id: team.id },
-      },
-      title: `team-emails-2024-08-13-event-type-${randomString()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
-      length: 60,
-      assignAllTeamMembers: true,
-      bookingFields: [],
-      locations: [],
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: true,
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: collectiveEvent.id,
-        },
-      },
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: true,
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: collectiveEvent.id,
-        },
-      },
-    });
-
-    const roundRobinEvent = await eventTypesRepositoryFixture.createTeamEventType({
-      schedulingType: "ROUND_ROBIN",
-      team: {
-        connect: { id: team.id },
-      },
-      title: `team-emails-2024-08-13-event-type-${randomString()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
-      length: 60,
-      assignAllTeamMembers: false,
-      bookingFields: [],
-      locations: [],
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: false,
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: roundRobinEvent.id,
-        },
-      },
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: false,
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: roundRobinEvent.id,
-        },
-      },
-    });
-
-    emailsEnabledSetup = {
+    return {
       team,
-      member1: member1,
-      member2: member2,
-      collectiveEventType: {
-        id: collectiveEvent.id,
-        createdBookingUid: "",
-        rescheduledBookingUid: "",
-      },
-      roundRobinEventType: {
-        id: roundRobinEvent.id,
-        createdBookingUid: "",
-        rescheduledBookingUid: "",
-        currentHostId: 0,
-      },
+      member1,
+      member2,
+      member1ApiKey,
+      collectiveEventType: { id: collectiveEvent.id },
+      roundRobinEventType: { id: roundRobinEvent.id },
     };
   }
 
-  async function setupDisabledEmails() {
-    const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
-
-    const team = await teamRepositoryFixture.create({
-      name: `team-emails-2024-08-13-team-${randomString()}`,
-      isOrganization: false,
-      parent: { connect: { id: organization.id } },
-      createdByOAuthClient: {
-        connect: {
-          id: oAuthClientEmailsDisabled.id,
-        },
-      },
+  // Helper to create a user and their profile/schedule
+  async function createTeamMember(oauthClientId: string) {
+    const member = await userRepositoryFixture.create({
+      email: `team-emails-member-${randomString()}@api.com`,
+      platformOAuthClients: { connect: { id: oauthClientId } },
     });
-
-    const member1 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
-      platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsDisabled.id,
-        },
-      },
-    });
-
-    const member2 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
-      platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsDisabled.id,
-        },
-      },
-    });
-
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `team-emails-2024-08-13-schedule-${randomString()}`,
+      name: `schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
-    await schedulesService.createUserSchedule(member1.id, userSchedule);
-    await schedulesService.createUserSchedule(member2.id, userSchedule);
-
+    await schedulesService.createUserSchedule(member.id, userSchedule);
     await profileRepositoryFixture.create({
-      uid: `usr-${member1.id}`,
-      username: member1.email,
-      organization: {
-        connect: {
-          id: organization.id,
-        },
-      },
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
+      uid: `usr-${member.id}`,
+      username: member.email,
+      organization: { connect: { id: organization.id } },
+      user: { connect: { id: member.id } },
     });
-
-    await profileRepositoryFixture.create({
-      uid: `usr-${member2.id}`,
-      username: member2.email,
-      organization: {
-        connect: {
-          id: organization.id,
-        },
-      },
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "MEMBER",
-      user: { connect: { id: member1.id } },
-      team: { connect: { id: team.id } },
-      accepted: true,
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "MEMBER",
-      user: { connect: { id: member2.id } },
-      team: { connect: { id: team.id } },
-      accepted: true,
-    });
-
-    const collectiveEvent = await eventTypesRepositoryFixture.createTeamEventType({
-      schedulingType: "COLLECTIVE",
-      team: {
-        connect: { id: team.id },
-      },
-      title: `team-emails-2024-08-13-event-type-${randomString()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
-      length: 60,
-      assignAllTeamMembers: true,
-      bookingFields: [],
-      locations: [],
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: true,
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: collectiveEvent.id,
-        },
-      },
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: true,
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: collectiveEvent.id,
-        },
-      },
-    });
-
-    const roundRobinEvent = await eventTypesRepositoryFixture.createTeamEventType({
-      schedulingType: "ROUND_ROBIN",
-      team: {
-        connect: { id: team.id },
-      },
-      title: `team-emails-2024-08-13-event-type-${randomString()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
-      length: 60,
-      assignAllTeamMembers: false,
-      bookingFields: [],
-      locations: [],
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: false,
-      user: {
-        connect: {
-          id: member1.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: roundRobinEvent.id,
-        },
-      },
-    });
-
-    await hostsRepositoryFixture.create({
-      isFixed: false,
-      user: {
-        connect: {
-          id: member2.id,
-        },
-      },
-      eventType: {
-        connect: {
-          id: roundRobinEvent.id,
-        },
-      },
-    });
-
-    emailsDisabledSetup = {
-      team,
-      member1: member1,
-      member2: member2,
-      collectiveEventType: {
-        id: collectiveEvent.id,
-        createdBookingUid: "",
-        rescheduledBookingUid: "",
-      },
-      roundRobinEventType: {
-        id: roundRobinEvent.id,
-        createdBookingUid: "",
-        rescheduledBookingUid: "",
-        currentHostId: 0,
-      },
-    };
+    return member;
   }
 
+  // Helper to create an event type and assign hosts
+  async function createEventType(type: "COLLECTIVE" | "ROUND_ROBIN", teamId: number, hostIds: number[]) {
+    const eventType = await eventTypesRepositoryFixture.createTeamEventType({
+      schedulingType: type,
+      team: { connect: { id: teamId } },
+      title: `event-type-${randomString()}`,
+      slug: `event-type-${randomString()}`,
+      length: 60,
+      assignAllTeamMembers: type === "COLLECTIVE",
+      locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+    });
+    await Promise.all(
+      hostIds.map((userId) =>
+        hostsRepositoryFixture.create({
+          isFixed: type === "COLLECTIVE",
+          user: { connect: { id: userId } },
+          eventType: { connect: { id: eventType.id } },
+        })
+      )
+    );
+    return eventType;
+  }
+
+  // Helper to create an OAuth client
   async function createOAuthClient(organizationId: number, emailsEnabled: boolean) {
-    const data = {
-      logo: "logo-url",
-      name: "name",
-      redirectUris: ["http://localhost:5555"],
-      permissions: 32,
-      areEmailsEnabled: emailsEnabled,
-    };
-    const secret = "secret";
-
-    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
-    return client;
+    return oauthClientRepositoryFixture.create(
+      organizationId,
+      {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["http://localhost:5555"],
+        permissions: 32,
+        areEmailsEnabled: emailsEnabled,
+      },
+      "secret"
+    );
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("OAuth client team bookings - emails disabled", () => {
-    describe("book", () => {
-      it("should not send an email when booking collective event", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
-          eventTypeId: emailsDisabledSetup.collectiveEventType.id,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: "https://meet.google.com/abc-def-ghi",
-          bookingFieldsResponses: {
-            customField: "customValue",
-          },
-          metadata: {
-            userId: "100",
-          },
-        };
-
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            if (responseDataIsBooking(responseBody.data)) {
-              expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-              expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-              emailsDisabledSetup.collectiveEventType.createdBookingUid = responseBody.data.uid;
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
-              );
-            }
-          });
-      });
-
-      it("should not send an email when booking round robin event", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-          eventTypeId: emailsDisabledSetup.roundRobinEventType.id,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: "https://meet.google.com/abc-def-ghi",
-          bookingFieldsResponses: {
-            customField: "customValue",
-          },
-          metadata: {
-            userId: "100",
-          },
-        };
-
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            if (responseDataIsBooking(responseBody.data)) {
-              expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-              expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-              emailsDisabledSetup.roundRobinEventType.createdBookingUid = responseBody.data.uid;
-              emailsDisabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
-              );
-            }
-          });
-      });
-    });
-
-    describe("reschedule", () => {
-      it("should not send an email when rescheduling collective booking", async () => {
-        const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2035, 0, 8, 11, 0, 0)).toISOString(),
-          reschedulingReason: "Flying to mars that day",
-        };
-
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsDisabledSetup.collectiveEventType.createdBookingUid}/reschedule`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            emailsDisabledSetup.collectiveEventType.rescheduledBookingUid = responseBody.data.uid;
-          });
-      });
-
-      it("should not send an email when rescheduling round robin booking", async () => {
-        const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2035, 0, 8, 12, 0, 0)).toISOString(),
-          reschedulingReason: "Flying to mars that day",
-        };
-
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsDisabledSetup.roundRobinEventType.createdBookingUid}/reschedule`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;
-            emailsDisabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
-          });
-      });
-    });
-
-    describe("reassign", () => {
-      it("should not send an email when manually reassigning round robin booking", async () => {
-        const reassignToId =
-          emailsDisabledSetup.roundRobinEventType.currentHostId === emailsDisabledSetup.member1.id
-            ? emailsDisabledSetup.member2.id
-            : emailsDisabledSetup.member1.id;
-
-        return request(app.getHttpServer())
-          .post(
-            `/v2/bookings/${emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign/${reassignToId}`
-          )
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
-            emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
-          });
-      });
-
-      it("should not send an email when automatically reassigning round robin booking", async () => {
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerReassignedEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
-          });
-      });
-    });
-
-    describe("cancel", () => {
-      it("should not send an email when cancelling a collective booking", async () => {
-        const body: CancelBookingInput_2024_08_13 = {
-          cancellationReason: "Going on a vacation",
-        };
-
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsDisabledSetup.collectiveEventType.rescheduledBookingUid}/cancel`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-          });
-      });
-    });
-
-    it("should not send an email when cancelling a round robin booking", async () => {
-      const body: CancelBookingInput_2024_08_13 = {
-        cancellationReason: "Going on a vacation",
+    it("should handle the full booking lifecycle for a collective event without sending emails", async () => {
+      // --- 1. Book Event ---
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
+        eventTypeId: emailsDisabledSetup.collectiveEventType.id,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
       };
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
-      return request(app.getHttpServer())
-        .post(`/v2/bookings/${emailsDisabledSetup.roundRobinEventType.rescheduledBookingUid}/cancel`)
-        .send(body)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(200)
-        .then(async (response) => {
-          const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-          expect(OrganizerCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-        });
+      expect(createResponse.status).toBe(201);
+      const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(createResponseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+      const bookingUid = (createResponseBody.data as BookingOutput_2024_08_13).uid;
+
+      expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 2. Reschedule Event ---
+      const rescheduleBody: RescheduleBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2035, 0, 8, 11, 0, 0)).toISOString(),
+        reschedulingReason: "Flying to mars that day",
+      };
+      const rescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reschedule`)
+        .send(rescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(rescheduleResponse.status).toBe(201);
+      const rescheduleResponseBody: RescheduleBookingOutput_2024_08_13 = rescheduleResponse.body;
+      expect(rescheduleResponseBody.status).toEqual(SUCCESS_STATUS);
+      const rescheduledBookingUid = rescheduleResponseBody.data.uid;
+
+      expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 3. Cancel Event ---
+      const cancelBody: CancelBookingInput_2024_08_13 = { cancellationReason: "Going on a vacation" };
+      const cancelResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(cancelResponse.status).toBe(200);
+      expect(cancelResponse.body.status).toEqual(SUCCESS_STATUS);
+      expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+    });
+
+    it("should handle the full booking lifecycle for a round-robin event without sending emails", async () => {
+      // --- 1. Book Event ---
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
+        eventTypeId: emailsDisabledSetup.roundRobinEventType.id,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(createResponse.status).toBe(201);
+      const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+      const bookingUid = (createResponseBody.data as BookingOutput_2024_08_13).uid;
+      let currentHostId = (createResponseBody.data as BookingOutput_2024_08_13).hosts[0].id;
+      expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 2. Reschedule Event ---
+      const rescheduleBody: RescheduleBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2035, 0, 8, 12, 0, 0)).toISOString(),
+      };
+      const rescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reschedule`)
+        .send(rescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(rescheduleResponse.status).toBe(201);
+      const rescheduleResponseBody: RescheduleBookingOutput_2024_08_13 = rescheduleResponse.body;
+      const rescheduledBookingUid = rescheduleResponseBody.data.uid;
+      currentHostId = rescheduleResponseBody.data.hosts[0].id;
+      expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 3. Manual Reassign ---
+      const reassignToId =
+        currentHostId === emailsDisabledSetup.member1.id
+          ? emailsDisabledSetup.member2.id
+          : emailsDisabledSetup.member1.id;
+      const manualReassignResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/reassign/${reassignToId}`)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.member1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(manualReassignResponse.status).toBe(200);
+      expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 4. Automatic Reassign ---
+      const autoReassignResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/reassign`)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.member1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(autoReassignResponse.status).toBe(200);
+      expect(OrganizerReassignedEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+      // --- 5. Cancel Event ---
+      const cancelBody: CancelBookingInput_2024_08_13 = { cancellationReason: "Vacation" };
+      const cancelResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(cancelResponse.status).toBe(200);
+      expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      expect(OrganizerCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
     });
   });
 
   describe("OAuth client team bookings - emails enabled", () => {
-    beforeEach(async () => {
+    it("should handle the full booking lifecycle for a collective event and send emails", async () => {
+      // --- 1. Book Event ---
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
+        eventTypeId: emailsEnabledSetup.collectiveEventType.id,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(createResponse.status).toBe(201);
+      const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+      const bookingUid = (createResponseBody.data as BookingOutput_2024_08_13).uid;
+
+      expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+
+      // --- 2. Reschedule Event ---
+      const rescheduleBody: RescheduleBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2035, 0, 8, 11, 0, 0)).toISOString(),
+      };
+      const rescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reschedule`)
+        .send(rescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(rescheduleResponse.status).toBe(201);
+      const rescheduledBookingUid = (rescheduleResponse.body as RescheduleBookingOutput_2024_08_13).data.uid;
+      expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+
+      // --- 3. Cancel Event ---
+      const cancelBody: CancelBookingInput_2024_08_13 = { cancellationReason: "Vacation" };
+      const cancelResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(cancelResponse.status).toBe(200);
+      expect(AttendeeCancelledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
+    });
+
+    it("should handle the full booking lifecycle for a round-robin event and send emails", async () => {
+      // --- 1. Book Event ---
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
+        eventTypeId: emailsEnabledSetup.roundRobinEventType.id,
+        attendee: {
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+      expect(createResponse.status).toBe(201);
+      const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+      const bookingUid = (createResponseBody.data as BookingOutput_2024_08_13).uid;
+      let currentHostId = (createResponseBody.data as BookingOutput_2024_08_13).hosts[0].id;
+      expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+
+      // --- 2. Reschedule Event ---
       jest.clearAllMocks();
-    });
+      const rescheduleBody: RescheduleBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2035, 0, 8, 12, 0, 0)).toISOString(),
+      };
+      const rescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reschedule`)
+        .send(rescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
-    describe("book", () => {
-      it("should send an email when booking collective event", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
-          eventTypeId: emailsEnabledSetup.collectiveEventType.id,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: "https://meet.google.com/abc-def-ghi",
-          bookingFieldsResponses: {
-            customField: "customValue",
-          },
-          metadata: {
-            userId: "100",
-          },
-        };
+      expect(rescheduleResponse.status).toBe(201);
+      const rescheduleResponseBody: RescheduleBookingOutput_2024_08_13 = rescheduleResponse.body;
+      const rescheduledBookingUid = rescheduleResponseBody.data.uid;
+      currentHostId = rescheduleResponseBody.data.hosts[0].id;
+      expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled(); // Old host gets cancellation
+      expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled(); // New host gets scheduled
 
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            if (responseDataIsBooking(responseBody.data)) {
-              expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-              expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-              emailsEnabledSetup.collectiveEventType.createdBookingUid = responseBody.data.uid;
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
-              );
-            }
-          });
-      });
+      // --- 3. Manual Reassign ---
+      jest.clearAllMocks();
+      const originalHostId = currentHostId;
+      const reassignToId =
+        currentHostId === emailsEnabledSetup.member1.id
+          ? emailsEnabledSetup.member2.id
+          : emailsEnabledSetup.member1.id;
+      const hasOrganizerChanged = reassignToId !== originalHostId;
 
-      it("should send an email when booking round robin event", async () => {
-        const body: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-          eventTypeId: emailsEnabledSetup.roundRobinEventType.id,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: "https://meet.google.com/abc-def-ghi",
-          bookingFieldsResponses: {
-            customField: "customValue",
-          },
-          metadata: {
-            userId: "100",
-          },
-        };
+      const manualReassignResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/reassign/${reassignToId}`)
+        .set("Authorization", `Bearer ${emailsEnabledSetup.member1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
-        return request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            if (responseDataIsBooking(responseBody.data)) {
-              expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-              expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-              emailsEnabledSetup.roundRobinEventType.createdBookingUid = responseBody.data.uid;
-              emailsEnabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
-            } else {
-              throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
-              );
-            }
-          });
-      });
-    });
+      expect(manualReassignResponse.status).toBe(200);
+      expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
+      if (hasOrganizerChanged) {
+        expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
+      } else {
+        expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
+      }
 
-    describe("reschedule", () => {
-      it("should send an email when rescheduling collective booking", async () => {
-        const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2035, 0, 8, 11, 0, 0)).toISOString(),
-          reschedulingReason: "Flying to mars that day",
-        };
+      // --- 4. Automatic Reassign ---
+      jest.clearAllMocks();
+      const autoReassignResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/reassign`)
+        .set("Authorization", `Bearer ${emailsEnabledSetup.member1ApiKey}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsEnabledSetup.collectiveEventType.createdBookingUid}/reschedule`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            emailsEnabledSetup.collectiveEventType.rescheduledBookingUid = responseBody.data.uid;
-          });
-      });
+      expect(autoReassignResponse.status).toBe(200);
+      expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerReassignedEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
 
-      it("should send an email when rescheduling round robin booking", async () => {
-        const body: RescheduleBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2035, 0, 8, 12, 0, 0)).toISOString(),
-          reschedulingReason: "Flying to mars that day",
-        };
+      // --- 5. Cancel Event ---
+      jest.clearAllMocks();
+      const cancelBody: CancelBookingInput_2024_08_13 = { cancellationReason: "Vacation" };
+      const cancelResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${rescheduledBookingUid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsEnabledSetup.roundRobinEventType.createdBookingUid}/reschedule`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201)
-          .then(async (response) => {
-            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-
-            expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
-            emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;
-            emailsEnabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
-          });
-      });
-    });
-
-    describe("reassign", () => {
-      it("should send an email when manually reassigning round robin booking", async () => {
-        const reassignToId =
-          emailsEnabledSetup.roundRobinEventType.currentHostId === emailsEnabledSetup.member1.id
-            ? emailsEnabledSetup.member2.id
-            : emailsEnabledSetup.member1.id;
-
-        return request(app.getHttpServer())
-          .post(
-            `/v2/bookings/${emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign/${reassignToId}`
-          )
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
-            emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
-          });
-      });
-
-      it("should send an email when automatically reassigning round robin booking", async () => {
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid}/reassign`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerReassignedEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
-          });
-      });
-    });
-
-    describe("cancel", () => {
-      it("should send an email when cancelling a collective booking", async () => {
-        const body: CancelBookingInput_2024_08_13 = {
-          cancellationReason: "Going on a vacation",
-        };
-
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsEnabledSetup.collectiveEventType.rescheduledBookingUid}/cancel`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
-          });
-      });
-
-      it("should send an email when cancelling round robin booking", async () => {
-        const body: CancelBookingInput_2024_08_13 = {
-          cancellationReason: "Going on a vacation",
-        };
-
-        return request(app.getHttpServer())
-          .post(`/v2/bookings/${emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid}/cancel`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200)
-          .then(async (response) => {
-            const responseBody: CancelBookingOutput_2024_08_13 = response.body;
-            expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            expect(responseBody.data).toBeDefined();
-            expect(AttendeeCancelledEmail.prototype.getHtml).toHaveBeenCalled();
-            expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
-          });
-      });
+      expect(cancelResponse.status).toBe(200);
+      expect(AttendeeCancelledEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
     });
   });
 
   afterAll(async () => {
+    // Clean up database records
     await teamRepositoryFixture.delete(organization.id);
-    await userRepositoryFixture.deleteByEmail(authEmail);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member1.email);
+    await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member2.email);
+    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member1.email);
     await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member2.email);
-    await bookingsRepositoryFixture.deleteAllBookings(
-      emailsEnabledSetup.member1.id,
-      emailsEnabledSetup.member1.email
-    );
-    await bookingsRepositoryFixture.deleteAllBookings(
-      emailsDisabledSetup.member1.id,
-      emailsDisabledSetup.member2.email
-    );
     await app.close();
   });
-
-  function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
-  }
 });

@@ -9,8 +9,9 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { EventType, Webhook } from "@prisma/client";
 import { Request } from "express";
+
+import type { EventType, Webhook } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsUserEventTypeWebhookGuard implements CanActivate {
@@ -28,16 +29,18 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     const eventTypeId = request.params.eventTypeId;
 
     if (!user) {
-      return false;
+      throw new ForbiddenException("IsUserEventTypeWebhookGuard - No user associated with the request.");
     }
 
     if (eventTypeId) {
       const eventType = await this.eventtypesRepository.getEventTypeById(parseInt(eventTypeId));
       if (!eventType) {
-        throw new NotFoundException(`Event type (${eventTypeId}) not found`);
+        throw new NotFoundException(`IsUserEventTypeWebhookGuard - Event type (${eventTypeId}) not found`);
       }
       if (eventType.userId !== user.id) {
-        throw new ForbiddenException(`User (${user.id}) is not the owner of event type (${eventTypeId})`);
+        throw new ForbiddenException(
+          `IsUserEventTypeWebhookGuard - User (${user.id}) is not the owner of event type (${eventTypeId})`
+        );
       }
       request.eventType = eventType;
     }
@@ -45,11 +48,13 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     if (webhookId) {
       const webhook = await this.webhooksService.getWebhookById(webhookId);
       if (!webhook.eventTypeId) {
-        throw new BadRequestException(`Webhook (${webhookId}) is not associated with an event type`);
+        throw new BadRequestException(
+          `IsUserEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with an event type`
+        );
       }
       if (webhook.eventTypeId !== parseInt(eventTypeId)) {
         throw new ForbiddenException(
-          `Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
+          `IsUserEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
         );
       }
       request.webhook = webhook;

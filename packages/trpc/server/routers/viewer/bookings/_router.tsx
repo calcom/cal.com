@@ -8,6 +8,7 @@ import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
+import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
 
@@ -20,91 +21,50 @@ type BookingsRouterHandlerCache = {
   getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
   find?: typeof import("./find.handler").getHandler;
   getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
+  reportBooking?: typeof import("./reportBooking.handler").reportBookingHandler;
 };
-
-const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const bookingsRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
-    }
+    const { getHandler } = await import("./get.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.get({
+    return getHandler({
       ctx,
       input,
     });
   }),
 
   requestReschedule: authedProcedure.input(ZRequestRescheduleInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
-      UNSTABLE_HANDLER_CACHE.requestReschedule = await import("./requestReschedule.handler").then(
-        (mod) => mod.requestRescheduleHandler
-      );
-    }
+    const { requestRescheduleHandler } = await import("./requestReschedule.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.requestReschedule({
+    return requestRescheduleHandler({
       ctx,
       input,
     });
   }),
 
   editLocation: bookingsProcedure.input(ZEditLocationInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.editLocation) {
-      UNSTABLE_HANDLER_CACHE.editLocation = await import("./editLocation.handler").then(
-        (mod) => mod.editLocationHandler
-      );
-    }
+    const { editLocationHandler } = await import("./editLocation.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.editLocation) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.editLocation({
+    return editLocationHandler({
       ctx,
       input,
     });
   }),
+
   addGuests: authedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.addGuests) {
-      UNSTABLE_HANDLER_CACHE.addGuests = await import("./addGuests.handler").then(
-        (mod) => mod.addGuestsHandler
-      );
-    }
+    const { addGuestsHandler } = await import("./addGuests.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.addGuests) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.addGuests({
+    return addGuestsHandler({
       ctx,
       input,
     });
   }),
 
   confirm: authedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.confirm) {
-      UNSTABLE_HANDLER_CACHE.confirm = await import("./confirm.handler").then((mod) => mod.confirmHandler);
-    }
+    const { confirmHandler } = await import("./confirm.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.confirm) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.confirm({
+    return confirmHandler({
       ctx,
       input,
     });
@@ -113,34 +73,18 @@ export const bookingsRouter = router({
   getBookingAttendees: authedProcedure
     .input(ZGetBookingAttendeesInputSchema)
     .query(async ({ input, ctx }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getBookingAttendees) {
-        UNSTABLE_HANDLER_CACHE.getBookingAttendees = await import("./getBookingAttendees.handler").then(
-          (mod) => mod.getBookingAttendeesHandler
-        );
-      }
+      const { getBookingAttendeesHandler } = await import("./getBookingAttendees.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getBookingAttendees) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getBookingAttendees({
+      return getBookingAttendeesHandler({
         ctx,
         input,
       });
     }),
 
   find: publicProcedure.input(ZFindInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.find) {
-      UNSTABLE_HANDLER_CACHE.find = await import("./find.handler").then((mod) => mod.getHandler);
-    }
+    const { getHandler } = await import("./find.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.find) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.find({
+    return getHandler({
       ctx,
       input,
     });
@@ -149,20 +93,20 @@ export const bookingsRouter = router({
   getInstantBookingLocation: publicProcedure
     .input(ZInstantBookingInputSchema)
     .query(async ({ input, ctx }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getInstantBookingLocation) {
-        UNSTABLE_HANDLER_CACHE.getInstantBookingLocation = await import(
-          "./getInstantBookingLocation.handler"
-        ).then((mod) => mod.getHandler);
-      }
+      const { getHandler } = await import("./getInstantBookingLocation.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getInstantBookingLocation) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getInstantBookingLocation({
+      return getHandler({
         ctx,
         input,
       });
     }),
+
+  reportBooking: authedProcedure.input(ZReportBookingInputSchema).mutation(async ({ input, ctx }) => {
+    const { reportBookingHandler } = await import("./reportBooking.handler");
+
+    return reportBookingHandler({
+      ctx,
+      input,
+    });
+  }),
 });

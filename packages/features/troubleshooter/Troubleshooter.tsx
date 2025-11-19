@@ -1,5 +1,6 @@
-import classNames from "@calcom/lib/classNames";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import classNames from "@calcom/ui/classNames";
 
 import { LargeCalendar } from "./components/LargeCalendar";
 import { TroubleshooterHeader } from "./components/TroubleshooterHeader";
@@ -63,5 +64,9 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
 };
 
 export const Troubleshooter = ({ month }: TroubleshooterProps) => {
-  return <TroubleshooterComponent month={month} />;
+  return (
+    <BookerStoreProvider>
+      <TroubleshooterComponent month={month} />
+    </BookerStoreProvider>
+  );
 };

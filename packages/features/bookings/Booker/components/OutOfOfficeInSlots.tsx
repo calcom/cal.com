@@ -1,11 +1,11 @@
-import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
-import { classNames } from "@calcom/lib";
+import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 
 interface IOutOfOfficeInSlotsProps {
   date: string;
@@ -42,10 +42,10 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
           {fromUser?.displayName && toUser?.displayName && (
             <p className="text-center text-sm">
-              <Trans
+              <ServerTrans
+                t={t}
                 i18nKey="ooo_slots_returning"
                 values={{ displayName: toUser.displayName }}
-                default="<1>{{ displayName }}</1> can take their meetings while they are away."
                 components={[<strong key="username">username</strong>]}
               />
             </p>

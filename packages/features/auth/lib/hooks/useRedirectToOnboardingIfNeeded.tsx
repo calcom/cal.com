@@ -1,12 +1,11 @@
 "use client";
 
-import type { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { useEmailVerifyCheck } from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
+import type { User } from "@calcom/prisma/client";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const shouldShowOnboarding = (
@@ -32,24 +31,28 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
-  const query = useMeQuery();
-  const user = query.data;
+  const pathname = usePathname();
+  const { data: user, isLoading } = useMeQuery();
   const flags = useFlagMap();
 
-  const { data: email } = useEmailVerifyCheck();
+  const needsEmailVerification =
+    !user?.emailVerified && user?.identityProvider === "CAL" && flags["email-verification"];
 
-  const needsEmailVerification = !email?.isVerified && flags["email-verification"];
-
-  const isRedirectingToOnboarding = user && shouldShowOnboarding(user);
+  const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
+  // Don't redirect if already on an onboarding page (works for both old [[...step]] and v3 flows)
+  const isOnOnboardingPage = pathname?.startsWith("/onboarding/") || pathname?.startsWith("/getting-started");
+  const canRedirect =
+    !isLoading && shouldRedirectToOnboarding && !needsEmailVerification && !isOnOnboardingPage;
 
   useEffect(() => {
-    if (isRedirectingToOnboarding && !needsEmailVerification) {
-      router.replace("/getting-started");
+    if (canRedirect) {
+      const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
+      router.replace(gettingStartedPath);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRedirectingToOnboarding, needsEmailVerification]);
+  }, [canRedirect, router, flags, pathname]);
 
   return {
-    isRedirectingToOnboarding,
+    isLoading,
+    shouldRedirectToOnboarding,
   };
 }

@@ -8,7 +8,6 @@ import {
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
 
 const assertCommonStructure = (config: any) => {
   expect(config).toHaveProperty("conjunctions");
@@ -119,6 +118,42 @@ describe("Query Builder Config", () => {
 
     it("should have maxNesting set to 1 in settings", () => {
       assertMaxNesting(AttributesBaseConfig, 1);
+    });
+
+    it("should provide jsonlogic for between operator", () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const jsonLogic = AttributesBaseConfig.operators.between.jsonLogic(
+        { var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" },
+        "between",
+        ["1", "5"]
+      );
+
+      // Verifies that it is using >= and <= in implementation and integer parsed
+      expect(jsonLogic).toEqual({
+        and: [
+          { ">=": [{ var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" }, 1] },
+          { "<=": [{ var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" }, 5] },
+        ],
+      });
+    });
+
+    it("should provide jsonlogic for not_between operator", () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const jsonLogic = AttributesBaseConfig.operators.not_between.jsonLogic(
+        { var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" },
+        "not_between",
+        ["1", "5"]
+      );
+
+      // Verifies that it is using < and > in implementation and integer parsed
+      expect(jsonLogic).toEqual({
+        or: [
+          { "<": [{ var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" }, 1] },
+          { ">": [{ var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" }, 5] },
+        ],
+      });
     });
   });
 });

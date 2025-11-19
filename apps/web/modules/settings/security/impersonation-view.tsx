@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { showToast, SettingsToggle, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 const SkeletonLoader = () => {
   return (
@@ -17,14 +19,14 @@ const SkeletonLoader = () => {
   );
 };
 
-const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
+const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
     user?.disableImpersonation
   );
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },
@@ -32,8 +34,8 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
       utils.viewer.me.invalidate();
     },
     onMutate: async ({ disableImpersonation }) => {
-      await utils.viewer.me.cancel();
-      const previousValue = utils.viewer.me.getData();
+      await utils.viewer.me.get.cancel();
+      const previousValue = utils.viewer.me.get.getData();
 
       setDisableImpersonation(disableImpersonation);
 
@@ -41,7 +43,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
     },
     onError: (error, variables, context) => {
       if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
+        utils.viewer.me.get.setData(undefined, context.previousValue);
         setDisableImpersonation(context.previousValue?.disableImpersonation);
       }
       showToast(`${t("error")}, ${error.message}`, "error");
@@ -68,7 +70,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
   if (isPending || !user) return <SkeletonLoader />;
 
   return <ProfileImpersonationView user={user} />;

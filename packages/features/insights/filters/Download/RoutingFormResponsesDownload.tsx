@@ -2,14 +2,19 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { SortingState } from "@calcom/features/data-table";
+import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
-
-import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
 type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForDownload"]["data"][number];
 
@@ -17,59 +22,55 @@ type Props = {
   sorting: SortingState;
 };
 
-type Batch = {
-  data: RoutingData[];
-  nextCursor: number | undefined;
-};
+const BATCH_SIZE = 100; // Increased batch size for downloads
 
 export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
-  const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
-    useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
+  const insightsRoutingParameters = useInsightsRoutingParameters();
+  const { startDate, endDate } = insightsRoutingParameters;
 
   const utils = trpc.useUtils();
 
   const fetchBatch = async (
-    cursor: number | undefined = undefined
+    offset: number
   ): Promise<{
     data: RoutingData[];
-    nextCursor: number | undefined;
+    total: number;
   }> => {
-    const { data, nextCursor } = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
-      teamId,
-      startDate,
-      endDate,
-      userId,
-      memberUserIds,
-      isAll: isAll,
-      routingFormId,
-      columnFilters,
+    const result = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
+      ...insightsRoutingParameters,
       sorting,
-      cursor,
+      limit: BATCH_SIZE,
+      offset,
     });
-    return {
-      data,
-      nextCursor,
-    };
+    return result;
   };
 
   const handleDownloadClick = async () => {
     try {
       setIsDownloading(true);
+      showProgressToast(0); // Reset progress
       let allData: RoutingData[] = [];
-      let hasMore = true;
-      let cursor: number | undefined = undefined;
+      let offset = 0;
 
-      // Fetch data in batches until there's no more data
-      while (hasMore) {
-        const result: Batch = await fetchBatch(cursor);
+      // Get first batch to get total count
+      const firstBatch = await fetchBatch(0);
+      allData = [...firstBatch.data];
+      const totalRecords = firstBatch.total;
+
+      // Continue fetching remaining batches
+      while (totalRecords > 0 && allData.length < totalRecords) {
+        offset += BATCH_SIZE;
+        const result = await fetchBatch(offset);
         allData = [...allData, ...result.data];
-        hasMore = result.nextCursor !== undefined;
-        cursor = result.nextCursor;
+
+        const currentProgress = Math.min(Math.round((allData.length / totalRecords) * 100), 99);
+        showProgressToast(currentProgress);
       }
 
-      if (allData.length > 0) {
+      if (allData.length >= totalRecords) {
+        showProgressToast(100); // Set to 100% before actual download
         const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
           endDate
         ).format("YYYY-MM-DD")}.csv`;
@@ -79,6 +80,7 @@ export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
       showToast(t("error_downloading_data"), "error");
     } finally {
       setIsDownloading(false);
+      hideProgressToast(); // Reset progress
     }
   };
 

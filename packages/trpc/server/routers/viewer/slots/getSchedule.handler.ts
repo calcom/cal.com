@@ -1,17 +1,8 @@
-import type { IncomingMessage } from "http";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 
-import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import { getAvailableSlots } from "./util";
-
-export type GetScheduleOptions = {
-  ctx?: ContextForGetSchedule;
-  input: TGetScheduleInputSchema;
-};
-
-interface ContextForGetSchedule extends Record<string, unknown> {
-  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
-}
+import type { GetScheduleOptions } from "./types";
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
-  return await getAvailableSlots({ ctx, input });
+  const availableSlotsService = getAvailableSlotsService();
+  return await availableSlotsService.getAvailableSlots({ ctx, input });
 };

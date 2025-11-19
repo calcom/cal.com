@@ -1,4 +1,8 @@
 import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
+import {
+  KeysDto,
+  KeysResponseDto,
+} from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -103,7 +107,7 @@ export class OAuthFlowService {
     tokenId: string,
     clientId: string,
     clientSecret: string
-  ): Promise<{ accessToken: string; refreshToken: string; accessTokenExpiresAt: Date }> {
+  ): Promise<KeysDto> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
       tokenId,
       clientId,
@@ -120,21 +124,20 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
-      clientId,
-      authorizationToken.owner.id
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.createOAuthTokens(clientId, authorizationToken.owner.id);
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
     void this.propagateAccessToken(accessToken); // void result, ignored.
 
     return {
       accessToken,
-      accessTokenExpiresAt,
+      accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
       refreshToken,
+      refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
     };
   }
 
-  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string) {
+  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string): Promise<KeysDto> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithRefreshSecret(
       clientId,
       clientSecret,
@@ -159,8 +162,9 @@ export class OAuthFlowService {
 
     return {
       accessToken: accessToken.secret,
-      accessTokenExpiresAt: accessToken.expiresAt,
+      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
       refreshToken: refreshToken.secret,
+      refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
     };
   }
 

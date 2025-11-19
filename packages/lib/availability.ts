@@ -1,7 +1,6 @@
-import type { Availability } from "@prisma/client";
-
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";
 
 import { nameOfDay } from "./weekday";
@@ -138,7 +137,7 @@ export function availabilityAsString(
           // append if the range is not complete (but the next day needs adding)
           days[days.length - 1].push(day);
         } else if (days[days.length - 1][days[days.length - 1].length - 1] === day - 1) {
-          // range complete, overwrite if the last day directly preceeds the current day
+          // range complete, overwrite if the last day directly precedes the current day
           days[days.length - 1] = [days[days.length - 1][0], day];
         } else {
           // new range

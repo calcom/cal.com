@@ -1,5 +1,4 @@
-import type { Credential, SelectedCalendar, DestinationCalendar } from "@prisma/client";
-
+import type { Credential, SelectedCalendar, DestinationCalendar } from "@calcom/prisma/client";
 import type { EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -58,13 +57,17 @@ export function getPiiFreeBooking(booking: {
   };
 }
 
-export function getPiiFreeCredential(credential: Partial<Credential>) {
+export function getPiiFreeCredential(credential: Partial<Credential> & { delegatedTo?: unknown }) {
   /**
    * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
    */
   const booleanKeyStatus = getBooleanStatus(credential?.key);
 
-  return { ...credential, key: booleanKeyStatus };
+  return {
+    ...credential,
+    key: booleanKeyStatus,
+    delegatedTo: !!credential.delegatedTo,
+  };
 }
 
 export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCalendar>) {

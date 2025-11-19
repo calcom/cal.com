@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -20,16 +20,24 @@ type UseSlotsCallbacks = {
   onReserveSlotError?: (err: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (err: ApiErrorResponse) => void;
+  handleSlotReservation?: (timeslot: string) => void;
 };
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (
   event: { data?: Pick<BookerEvent, "id" | "length"> | null },
-  { onReserveSlotSuccess, onReserveSlotError, onDeleteSlotSuccess, onDeleteSlotError }: UseSlotsCallbacks = {}
+  {
+    onReserveSlotSuccess,
+    onReserveSlotError,
+    onDeleteSlotSuccess,
+    onDeleteSlotError,
+    isBookingDryRun,
+    handleSlotReservation,
+  }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const [selectedTimeslot, setSelectedTimeslot] = useBookerStoreContext(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
   );
@@ -44,6 +52,8 @@ export const useSlots = (
     onError: onReserveSlotError,
   });
 
+  const seatedEventData = useBookerStoreContext((state) => state.seatedEventData);
+
   const removeSelectedSlot = useDeleteSelectedSlot({
     onSuccess: onDeleteSlotSuccess,
     onError: onDeleteSlotError,
@@ -57,6 +67,11 @@ export const useSlots = (
 
   const handleReserveSlot = () => {
     if (event?.data?.id && selectedTimeslot && (selectedDuration || event?.data?.length)) {
+      if (handleSlotReservation) {
+        handleSlotReservation(selectedTimeslot);
+        return;
+      }
+
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(selectedTimeslot).utc().format(),
         eventTypeId: event.data.id,
@@ -64,11 +79,13 @@ export const useSlots = (
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
+        _isDryRun: isBookingDryRun,
+        bookingUid: seatedEventData.bookingUid || undefined,
       });
     }
   };
 
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
 
   useEffect(() => {
     handleReserveSlot();
@@ -91,5 +108,7 @@ export const useSlots = (
     slotReservationId,
     handleReserveSlot,
     handleRemoveSlot,
+    // TODO: implement slot no longer available feature
+    allSelectedTimeslots: [],
   };
 };

@@ -1,4 +1,4 @@
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
 import { addMembersToTeams } from "./utils";
 

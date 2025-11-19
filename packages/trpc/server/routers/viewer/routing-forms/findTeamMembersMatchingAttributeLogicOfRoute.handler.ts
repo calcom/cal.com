@@ -1,27 +1,30 @@
 /**
- * This route is used only by "Test Preview" button
+ * This route is used only by "Test Preview" button and Virtual Queues
+ * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
-import { TRPCError } from "@calcom/trpc/server";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
@@ -48,10 +51,10 @@ async function getEnrichedSerializableForm<
       metadata: unknown;
     } | null;
   }
->(form: TForm) {
+>({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -67,7 +70,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 }: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
   );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
@@ -122,7 +125,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const beforeEnrichedForm = performance.now();
-  const serializableForm = await getEnrichedSerializableForm(form);
+  const serializableForm = await getEnrichedSerializableForm({ form, prisma });
   const afterEnrichedForm = performance.now();
   const timeTakenToEnrichForm = afterEnrichedForm - beforeEnrichedForm;
 
@@ -173,7 +176,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({
@@ -203,7 +207,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     },
     {
       enablePerf: _enablePerf,
-      // Reuse same flag for enabling troubleshooter. We would normall use them together
+      // Reuse same flag for enabling troubleshooter. We would normally use them together
       enableTroubleshooter: _enablePerf,
       concurrency: _concurrency,
     }
@@ -252,23 +256,26 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
-  const matchingHosts = eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id));
+  const matchingHosts = await enrichHostsWithDelegationCredentials({
+    orgId: formOrgId,
+    hosts: eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id)),
+  });
 
-  if (matchingTeamMembers.length !== matchingHosts.length) {
+  if (!matchingHosts.length) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Looks like not all matching team members are assigned to the event",
+      message: "No matching team members found",
     });
   }
 
   const timeBeforeGetOrderedLuckyUsers = performance.now();
+  const luckyUserService = getLuckyUserService();
   const {
     users: orderedLuckyUsers,
     perUserData,
     isUsingAttributeWeights,
-  } = matchingTeamMembers.length
-    ? await getOrderedListOfLuckyUsers({
+  } = matchingHosts.length
+    ? await luckyUserService.getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [
           {
@@ -289,6 +296,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
           form,
           chosenRouteId: route.id,
         },
+        // During Preview testing we could consider the current time itself as the meeting start time
+        meetingStartTime: new Date(),
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
   const timeAfterGetOrderedLuckyUsers = performance.now();

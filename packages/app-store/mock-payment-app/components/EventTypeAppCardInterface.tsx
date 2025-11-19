@@ -11,14 +11,16 @@ import {
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Alert } from "@calcom/ui/components/alert";
 
 import type { appDataSchema } from "../zod";
 import { paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const searchParams = useSearchParams();
   /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
   const pathname = usePathname();
@@ -49,6 +51,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={WEBAPP_URL + asPath}
       app={app}
       switchChecked={requirePayment}

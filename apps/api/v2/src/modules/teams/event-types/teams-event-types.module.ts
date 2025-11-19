@@ -1,9 +1,11 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
-import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
+import { OrganizationsConferencingModule } from "@/modules/organizations/conferencing/organizations-conferencing.module";
+import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
+import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesController } from "@/modules/teams/event-types/controllers/teams-event-types.controller";
@@ -21,6 +23,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     UsersModule,
     TeamsModule,
+    OrganizationsConferencingModule,
   ],
   providers: [
     TeamsEventTypesRepository,
@@ -29,6 +32,7 @@ import { Module } from "@nestjs/common";
     OrganizationsTeamsRepository,
     OutputTeamEventTypesResponsePipe,
     OutputOrganizationsEventTypesService,
+    ConferencingRepository,
   ],
   exports: [TeamsEventTypesRepository, TeamsEventTypesService],
   controllers: [TeamsEventTypesController],

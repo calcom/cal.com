@@ -1,10 +1,10 @@
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 
@@ -54,7 +54,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
+  const matchingTeamMembers = await new UserRepository(ctx.prisma).findByIds({ ids: matchingTeamMembersIds });
 
   return {
     mainWarnings,

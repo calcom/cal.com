@@ -1,42 +1,43 @@
+import { EmbedElement } from "../EmbedElement";
+import { getErrorString } from "../lib/utils";
 import loaderCss from "../loader.css?inline";
-import { getErrorString } from "../utils";
-import inlineHtml from "./inlineHtml";
+import inlineHtml, { getSkeletonData } from "./inlineHtml";
 
-export class Inline extends HTMLElement {
+export class Inline extends EmbedElement {
   static get observedAttributes() {
     return ["loading"];
   }
 
-  assertHasShadowRoot(): asserts this is HTMLElement & { shadowRoot: ShadowRoot } {
-    if (!this.shadowRoot) {
-      throw new Error("No shadow root");
-    }
-  }
-
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     this.assertHasShadowRoot();
-    const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
     const errorEl = this.shadowRoot.querySelector<HTMLElement>("#error");
     const slotEl = this.shadowRoot.querySelector<HTMLElement>("slot");
-    if (!loaderEl || !slotEl || !errorEl) {
+    if (!slotEl || !errorEl) {
       throw new Error("One of loaderEl, slotEl or errorEl is missing");
     }
     if (name === "loading") {
       if (newValue == "done") {
-        loaderEl.style.display = "none";
+        this.toggleLoader(false);
       } else if (newValue === "failed") {
-        loaderEl.style.display = "none";
+        this.toggleLoader(false);
         slotEl.style.visibility = "hidden";
         errorEl.style.display = "block";
-        const errorString = getErrorString(this.dataset.errorCode);
+        const errorString = getErrorString({
+          errorCode: this.dataset.errorCode,
+          errorMessage: this.dataset.message,
+        });
         errorEl.innerText = errorString;
       }
     }
   }
+
   constructor() {
-    super();
+    super({ isModal: false, getSkeletonData });
     this.attachShadow({ mode: "open" });
     this.assertHasShadowRoot();
-    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml}`;
+    this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml({
+      layout: this.layout,
+      pageType: this.getPageType() ?? null,
+    })}`;
   }
 }

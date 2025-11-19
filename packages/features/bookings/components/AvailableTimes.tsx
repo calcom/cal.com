@@ -1,26 +1,28 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
+import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slots } from "@calcom/features/schedules";
-import { classNames } from "@calcom/lib";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
-import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
+import type { Slots } from "../types";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
 type TOnTimeSelect = (
@@ -30,28 +32,50 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
+type TOnTentativeTimeSelect = ({
+  time,
+  attendees,
+  seatsPerTimeSlot,
+  bookingUid,
+}: {
+  time: string;
+  attendees: number;
+  seatsPerTimeSlot?: number | null;
+  bookingUid?: string;
+}) => void;
+
 export type AvailableTimesProps = {
-  slots: IGetAvailableSlots["slots"][string];
+  slots: Slots[string];
   showTimeFormatToggle?: boolean;
   className?: string;
+  // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
+  onTentativeTimeSelect?: TOnTentativeTimeSelect;
+  unavailableTimeSlots?: string[];
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
-  slot: Slots[string][number];
+  slot: Slot;
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
-  onTimeSelect: TOnTimeSelect;
+  onTimeSelect?: TOnTimeSelect;
+  onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
+  confirmStepClassNames?: {
+    confirmButton?: string;
+  };
   loadingStates?: IUseBookingLoadingStates;
   isVerificationCodeSending?: boolean;
   renderConfirmNotVerifyEmailButtonCond?: boolean;
   skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
+  unavailableTimeSlots?: string[];
+  confirmButtonDisabled?: boolean;
+  handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
 const SlotItem = ({
@@ -68,6 +92,11 @@ const SlotItem = ({
   skipConfirmStep,
   shouldRenderCaptcha,
   watchedCfToken,
+  handleSlotClick,
+  onTentativeTimeSelect,
+  unavailableTimeSlots = [],
+  confirmButtonDisabled,
+  confirmStepClassNames,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -83,8 +112,8 @@ const SlotItem = ({
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
   const { timeFormat, timezone } = useBookerTime();
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const layout = useBookerStore((state) => state.layout);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const layout = useBookerStoreContext((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -98,7 +127,7 @@ const SlotItem = ({
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
-  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
+  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
@@ -106,26 +135,20 @@ const SlotItem = ({
     offset,
   });
 
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const onButtonClick = useCallback(() => {
-    if (!showConfirm && ((overlayCalendarToggled && isOverlapping) || skipConfirmStep)) {
-      setShowConfirm(true);
-      return;
+  const onButtonClick = () => {
+    if (handleSlotClick) {
+      handleSlotClick(slot, isOverlapping);
     }
-    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-  }, [
-    overlayCalendarToggled,
-    isOverlapping,
-    showConfirm,
-    onTimeSelect,
-    slot.time,
-    slot?.attendees,
-    slot.bookingUid,
-    seatsPerTimeSlot,
-    skipConfirmStep,
-  ]);
+    if (onTentativeTimeSelect) {
+      onTentativeTimeSelect({
+        time: slot.time,
+        attendees: slot.attendees || 0,
+        seatsPerTimeSlot,
+      });
+    }
+  };
 
+  const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -138,7 +161,8 @@ const SlotItem = ({
             loadingStates?.creatingRecurringBooking ||
             isVerificationCodeSending ||
             loadingStates?.creatingInstantBooking ||
-            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
+            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken) ||
+            isTimeslotUnavailable
           }
           data-testid="time"
           data-disabled={bookingFull}
@@ -176,47 +200,43 @@ const SlotItem = ({
             </p>
           )}
         </Button>
-        {showConfirm && (
+        {!!slot.showConfirmButton && (
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
-              <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
-                {skipConfirmStep ? (
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-                    }
-                    data-testid="skip-confirm-book-button"
-                    disabled={
-                      (!!shouldRenderCaptcha && !watchedCfToken) ||
-                      loadingStates?.creatingBooking ||
-                      loadingStates?.creatingRecurringBooking ||
-                      isVerificationCodeSending ||
-                      loadingStates?.creatingInstantBooking
-                    }
-                    color="primary"
-                    loading={
-                      (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
-                      loadingStates?.creatingRecurringBooking ||
-                      isVerificationCodeSending ||
-                      loadingStates?.creatingInstantBooking
-                    }>
-                    {renderConfirmNotVerifyEmailButtonCond
-                      ? isPaidEvent
-                        ? t("pay_and_book")
-                        : t("confirm")
-                      : t("verify_email_email_button")}
-                  </Button>
-                ) : (
-                  <Button
-                    variant={layout === "column_view" ? "icon" : "button"}
-                    StartIcon={layout === "column_view" ? "chevron-right" : undefined}
-                    onClick={() =>
-                      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-                    }>
-                    {layout !== "column_view" && t("confirm")}
-                  </Button>
-                )}
+              <m.div key={slot.time} initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+                <Button
+                  variant={layout === "column_view" ? "icon" : "button"}
+                  StartIcon={layout === "column_view" ? "chevron-right" : undefined}
+                  type="button"
+                  className={confirmStepClassNames?.confirmButton}
+                  onClick={() =>
+                    onTimeSelect &&
+                    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                  }
+                  data-testid="skip-confirm-book-button"
+                  disabled={
+                    isTimeslotUnavailable ||
+                    (!!shouldRenderCaptcha && !watchedCfToken) ||
+                    loadingStates?.creatingBooking ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking ||
+                    confirmButtonDisabled
+                  }
+                  color="primary"
+                  loading={
+                    (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking
+                  }>
+                  {(() => {
+                    if (layout === "column_view") return "";
+                    if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
+                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_button");
+                    return isPaidEvent ? t("pay_and_book") : t("confirm");
+                  })()}
+                </Button>
               </m.div>
             </HoverCard.Trigger>
             {isOverlapping && (

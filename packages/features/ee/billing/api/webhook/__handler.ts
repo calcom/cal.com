@@ -3,7 +3,7 @@ import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 
 /** Stripe Webhook Handler Mappings */
@@ -54,10 +54,22 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
     STRIPE_WEBHOOK_SECRET
   ) as Stripe.DiscriminatedEvent;
   const handlerGetter = handlers[event.type];
-  if (!handlerGetter) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
+  if (!handlerGetter) {
+    console.log("Unhandled Stripe Webhook event type", event.type);
+    return {
+      success: false,
+      message: `Unhandled Stripe Webhook event type ${event.type}`,
+    };
+  }
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe events.
-  if (!handler) throw new HttpCode(202, `Unhandled Stripe Webhook event type ${event.type}`);
-  // @ts-expect-error - we know the handler is defined and accpets the data type
+  if (!handler) {
+    console.log("Unhandled Stripe Webhook event type", event.type);
+    return {
+      success: false,
+      message: `Unhandled Stripe Webhook event type ${event.type}`,
+    };
+  }
+  // @ts-expect-error - we know the handler is defined and accepts the data type
   return await handler(event.data);
 };

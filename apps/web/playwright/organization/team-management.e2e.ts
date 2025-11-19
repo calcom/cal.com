@@ -45,7 +45,7 @@ test.describe("Teams", () => {
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       await page.getByTestId("invite-new-member-button").click();
-      await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
+      await expect(page.getByTestId("pending-member-item").filter({ hasText: inviteeEmail })).toBeVisible();
 
       // locator.count() does not await for the expected number of elements
       // https://github.com/microsoft/playwright/issues/14278
@@ -69,8 +69,9 @@ test.describe("Teams", () => {
     });
 
     await test.step("Can finish team creation", async () => {
-      await expect(page.locator('button[value="ROUND_ROBIN"]')).toBeVisible();
-      await page.click('button[value="ROUND_ROBIN"]');
+      const locator = page.locator('div:has(input[value="ROUND_ROBIN"]) > button');
+      await expect(locator).toBeVisible();
+      await locator.click();
       await page.fill("[name=title]", "roundRobin");
       await page.getByTestId("finish-button").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);

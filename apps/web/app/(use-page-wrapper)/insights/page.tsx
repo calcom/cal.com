@@ -1,23 +1,31 @@
 import { _generateMetadata } from "app/_utils";
-import { notFound } from "next/navigation";
 
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import prisma from "@calcom/prisma";
 
 import InsightsPage from "~/insights/insights-view";
+
+import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("insights"),
-    (t) => t("insights_subtitle")
+    (t) => t("insights_subtitle"),
+    undefined,
+    undefined,
+    "/insights"
   );
 
-export default async function Page() {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const insightsEnabled = await getFeatureFlag(prisma, "insights");
+const ServerPage = async () => {
+  const session = await checkInsightsPagePermission();
 
-  if (!insightsEnabled) {
-    return notFound();
-  }
+  const { timeZone } = await prisma.user.findUniqueOrThrow({
+    where: { id: session?.user.id ?? -1 },
+    select: {
+      timeZone: true,
+    },
+  });
 
-  return <InsightsPage />;
-}
+  return <InsightsPage timeZone={timeZone} />;
+};
+
+export default ServerPage;

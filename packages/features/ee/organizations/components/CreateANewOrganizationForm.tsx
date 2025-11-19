@@ -1,89 +1,103 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import classNames from "@calcom/lib/classNames";
-import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
+import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+
+import { useOnboarding } from "../lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
   let out = "";
   try {
-    const match = email.match(/^(?:.*?:\/\/)?.*?(?<root>[\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
-    out = (match && match.groups?.root) ?? "";
+    const match = email.match(/^(?:.*?:\/\/)?.*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
+    out = (match && match[1]) ?? "";
   } catch (ignore) {}
   return out.split(".")[0];
 }
 
 export const CreateANewOrganizationForm = () => {
   const session = useSession();
-  if (!session.data) {
+
+  const { isLoadingOrgOnboarding } = useOnboarding();
+  if (!session.data || isLoadingOrgOnboarding) {
     return null;
   }
+
   return <CreateANewOrganizationFormChild session={session} />;
 };
 
-enum BillingPeriod {
-  MONTHLY = "MONTHLY",
-  ANNUALLY = "ANNUALLY",
-}
-
-const CreateANewOrganizationFormChild = ({
-  session,
-}: {
-  session: Ensure<SessionContextValue, "data">;
-  isPlatformOrg?: boolean;
-}) => {
+const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
+  // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
+  const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
+  const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
+    useOnboardingStore();
+
   const newOrganizationFormMethods = useForm<{
     name: string;
-    seats: number;
+    seats: number | null;
     billingPeriod: BillingPeriod;
-    pricePerSeat: number;
+    pricePerSeat: number | null;
     slug: string;
     orgOwnerEmail: string;
   }>({
     defaultValues: {
-      billingPeriod: BillingPeriod.MONTHLY,
-      slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
-      orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
-      name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
+      billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
+      slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
+      orgOwnerEmail: orgOwnerEmail || defaultOrgOwnerEmail,
+      name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
+      seats: seats ?? null,
+      pricePerSeat: pricePerSeat ?? null,
     },
   });
 
-  const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
+  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      telemetry.event(telemetryEventTypes.org_created);
-      // This is necessary so that server token has the updated upId
-      await session.update({
-        upId: data.upId,
+      reset({
+        onboardingId: data.organizationOnboardingId,
+        billingPeriod: data.billingPeriod,
+        pricePerSeat: data.pricePerSeat ?? null,
+        seats: data.seats ?? null,
+        orgOwnerEmail: data.orgOwnerEmail,
+        name: data.name,
+        slug: data.slug,
       });
-      if (isAdmin && data.userId !== session.data?.user.id) {
-        // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
-        // He won't need to have access to the org directly in this way.
-        signIn("impersonation-auth", {
-          username: data.email,
-          callbackUrl: `/settings/organizations/${data.organizationId}/about`,
-        });
+
+      // Small delay to ensure Zustand persist middleware has time to write to localStorage
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      if (data.handoverUrl) {
+        // Admin handover flow - redirect to handover page
+        router.push("/settings/organizations/new/handover");
+      } else if (data.organizationId) {
+        // Self-hosted flow - org already created, redirect to organizations list
+        router.push("/settings/organizations");
+      } else {
+        // Regular flow - continue to next step
+        router.push("/settings/organizations/new/about");
       }
-      router.push(`/settings/organizations/${data.organizationId}/about`);
     },
     onError: (err) => {
       if (err.message === "organization_url_taken") {
@@ -94,21 +108,44 @@ const CreateANewOrganizationFormChild = ({
           message: t("problem_registering_domain"),
         });
       } else {
-        setServerErrorMessage(err.message);
+        setServerErrorMessage(t(err.message));
       }
     },
   });
 
+  const needToCreateOnboarding = !onboardingId;
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
         className="space-y-5"
         id="createOrg"
-        handleSubmit={(v) => {
-          if (!createOrganizationMutation.isPending) {
-            setServerErrorMessage(null);
-            createOrganizationMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+        handleSubmit={async (v) => {
+          if (!needToCreateOnboarding) {
+            // Resuming existing onboarding - just navigate to next step
+            router.push("/settings/organizations/new/about");
+          } else {
+            // Check if this is admin handover flow based on the submitted form value
+            const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
+
+            if (isAdminHandoverFlow) {
+              // Admin creating for someone else - submit immediately with just Step 1 data
+              if (!intentToCreateOrgMutation.isPending) {
+                setServerErrorMessage(null);
+                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+              }
+            } else {
+              // Regular user or admin creating for self - store locally and continue
+              reset({
+                billingPeriod: v.billingPeriod,
+                pricePerSeat: v.pricePerSeat,
+                seats: v.seats,
+                orgOwnerEmail: v.orgOwnerEmail,
+                name: v.name,
+                slug: v.slug,
+              });
+              router.push("/settings/organizations/new/about");
+            }
           }
         }}>
         <div>
@@ -117,7 +154,7 @@ const CreateANewOrganizationFormChild = ({
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-          {isAdmin && (
+          {isBillingEnabled && isAdmin && (
             <div className="mb-5">
               <Controller
                 name="billingPeriod"
@@ -167,12 +204,13 @@ const CreateANewOrganizationFormChild = ({
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
-                    const slug = deriveSlugFromEmail(email);
                     newOrganizationFormMethods.setValue("orgOwnerEmail", email.trim());
                     if (newOrganizationFormMethods.getValues("slug") === "") {
+                      const slug = deriveSlugFromEmail(email);
                       newOrganizationFormMethods.setValue("slug", slug);
                     }
-                    newOrganizationFormMethods.setValue("name", deriveOrgNameFromEmail(email));
+                    const name = deriveOrgNameFromEmail(email);
+                    newOrganizationFormMethods.setValue("name", name);
                   }}
                   autoComplete="off"
                 />
@@ -218,7 +256,6 @@ const CreateANewOrganizationFormChild = ({
             }}
             render={({ field: { value } }) => (
               <TextField
-                className="mt-2"
                 name="slug"
                 label={t("organization_url")}
                 placeholder="acme"
@@ -235,7 +272,7 @@ const CreateANewOrganizationFormChild = ({
           />
         </div>
 
-        {isAdmin && (
+        {isBillingEnabled && isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -274,7 +311,7 @@ const CreateANewOrganizationFormChild = ({
                         type="number"
                         addOnSuffix="$"
                         label="Price per seat (optional)"
-                        defaultValue={value}
+                        defaultValue={value ?? ""}
                         onChange={(e) => {
                           onChange(+e.target.value);
                         }}
@@ -288,8 +325,8 @@ const CreateANewOrganizationFormChild = ({
           </>
         )}
 
-        {/* This radio group does nothing - its just for visuall purposes */}
-        {!isAdmin && (
+        {/* This radio group does nothing - its just for visual purposes */}
+        {isBillingEnabled && !isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
@@ -305,7 +342,13 @@ const CreateANewOrganizationFormChild = ({
                 </RadioArea.Item>
                 <RadioArea.Item className={classNames("bg-default w-full text-sm")} value="ORGANIZATION">
                   <strong className="mb-1 block">{t("organization")}</strong>
-                  <p>{t("organization_price_per_user_month")}</p>
+                  {pricePerSeat && seats ? (
+                    <p>{`$${pricePerSeat} per user per month ${
+                      billingPeriod === BillingPeriod.ANNUALLY ? "(billed annually)" : ""
+                    }`}</p>
+                  ) : (
+                    <p>{t("organization_price_per_user_month")}</p>
+                  )}
                 </RadioArea.Item>
               </RadioArea.Group>
             </div>
@@ -314,9 +357,7 @@ const CreateANewOrganizationFormChild = ({
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            disabled={
-              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
-            }
+            loading={newOrganizationFormMethods.formState.isSubmitting || intentToCreateOrgMutation.isPending}
             color="primary"
             EndIcon="arrow-right"
             type="submit"

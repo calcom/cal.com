@@ -1,10 +1,10 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
-import { importHandler } from "../../../../trpc";
+import "../../../../trpc";
 
 const NAMESPACE = "teams";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const hasTeamPlan = authedProcedure.query(async (opts) => {
-  const handler = await importHandler(namespaced("hasTeamPlan"), () => import("../hasTeamPlan.handler"));
+  const { default: handler } = await import("../hasTeamPlan.handler");
   return handler(opts);
 });

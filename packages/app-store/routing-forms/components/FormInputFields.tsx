@@ -1,7 +1,9 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
+"use client";
+
 import type { Dispatch, SetStateAction } from "react";
 
-import { SkeletonText } from "@calcom/ui";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
@@ -37,7 +39,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
           // @ts-expect-error FIXME @hariombalhara
-          field = field.routerField;
+          const routerField = field.routerField;
+          // A field that has been deleted from the main form would still be there in the duplicate form but disconnected
+          // In that case, it could mistakenly be categorized as RouterLinkedField, so if routerField is nullish, we use the field itself
+          field = routerField ?? field;
         }
         const widget = formFieldsQueryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
@@ -48,7 +53,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const options = getUIOptionsForSelect(field);
         const fieldIdentifier = getFieldIdentifier(field);
         return (
-          <div key={field.id} className="mb-4 block flex-col sm:flex ">
+          <div key={field.id} className="block flex-col sm:flex ">
             <div className="min-w-48 mb-2 flex-grow">
               <label id="slug-label" htmlFor="slug" className="text-default flex text-sm font-medium">
                 {field.label}

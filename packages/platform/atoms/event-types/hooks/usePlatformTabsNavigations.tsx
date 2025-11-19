@@ -2,17 +2,17 @@
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { VerticalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
-import type { PlatformTabs } from "../wrappers/EventTypePlatformWrapper";
+import type { PlatformTabs } from "../../event-types/wrappers/types";
 
 type Props = {
   formMethods: UseFormReturn<FormValues>;
@@ -85,15 +85,15 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
         info:
           isManagedEventType || isChildrenManagedEventType
             ? formMethods.getValues("schedule") === null
-              ? "members_default_schedule"
+              ? t("members_default_schedule")
               : isChildrenManagedEventType
               ? `${
                   formMethods.getValues("scheduleName")
                     ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                    : `default_schedule_name`
+                    : t("default_schedule_name")
                 }`
-              : formMethods.getValues("scheduleName") ?? `default_schedule_name`
-            : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
+              : formMethods.getValues("scheduleName") ?? t("default_schedule_name")
+            : formMethods.getValues("scheduleName") ?? t("default_schedule_name"),
         "data-testid": "availability",
       });
 
@@ -149,13 +149,13 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
-      name: t("event_setup_tab_title"),
+      name: t("basics"),
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `event_setup_tab_title`,
+      "data-testid": `basics`,
     });
   tabs.includes("limits") &&
     tabsNavigation.push({
@@ -180,13 +180,13 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
-      name: t("event_payments_tab_title"),
+      name: t("payments"),
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
       info: t(`event_payments_tab_description`),
-      "data-testid": "event_payments_tab_title",
+      "data-testid": "payments",
     });
 
   return tabsNavigation;

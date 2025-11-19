@@ -3,13 +3,15 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 
-import { Badge, Button } from "@calcom/ui";
-
+import { Badge } from "../../badge/Badge";
+import { Button } from "../../button/Button";
 import { inputStyles, TextField } from "../inputs/TextField";
-import { Slider } from "./index";
+import { RangeSlider } from "./RangeSlider";
 
 interface RangeSliderPopoverProps {
   triggerText: string;
+  resetBtnText?: string;
+  applyBtnText?: string;
   value: number[];
   onChange: (value: number[]) => void;
   min: number;
@@ -22,6 +24,8 @@ interface RangeSliderPopoverProps {
 }
 
 export const RangeSliderPopover = ({
+  resetBtnText = "Reset",
+  applyBtnText = "Apply",
   triggerText,
   value,
   onChange,
@@ -62,7 +66,13 @@ export const RangeSliderPopover = ({
           align="start"
           className="border-subtle shadow-dropdown bg-default z-50 mt-2 w-72 rounded-lg border-[1px] px-4 pb-3 pt-4 font-[family-name:var(--font-inter)]">
           <div className="mb-4">
-            <Slider min={min} max={max} step={step} value={internalValue} onValueChange={setInternalValue} />
+            <RangeSlider
+              min={min}
+              max={max}
+              step={step}
+              value={internalValue}
+              onValueChange={setInternalValue}
+            />
           </div>
           <div className="mb-4 flex items-center justify-between gap-2">
             <TextField
@@ -105,10 +115,10 @@ export const RangeSliderPopover = ({
             <hr className="border-subtle" />
             <div className="mt-3 flex items-center justify-end gap-2 px-4">
               <Button color="minimal" size="sm" onClick={handleReset}>
-                Reset
+                {resetBtnText}
               </Button>
               <Button color="secondary" size="sm" onClick={handleApply}>
-                Apply
+                {applyBtnText}
               </Button>
             </div>
           </div>

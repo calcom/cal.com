@@ -21,9 +21,9 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
-import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
 describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
@@ -47,7 +47,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
   let webhook: OAuthClientWebhookOutputResponseDto["data"];
 
   beforeAll(async () => {
-    const moduleRef = await withNextAuth(
+    const moduleRef = await withApiAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -274,7 +274,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
       .expect(403);
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${oAuthClient.id}/webhooks/1234453`)
       .expect(404);

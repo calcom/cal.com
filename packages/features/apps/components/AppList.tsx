@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
-import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
-import type { CredentialOwner } from "@calcom/app-store/types";
+import type { AppCardApp } from "@calcom/app-store/types";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
@@ -12,30 +12,31 @@ import type {
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Alert,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  List,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { List } from "@calcom/ui/components/list";
+import { showToast } from "@calcom/ui/components/toast";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["integrations"];
+  data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
-  defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
+  defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
@@ -68,13 +69,7 @@ export const AppList = ({
     showToast("Default app updated successfully", "success");
   }, []);
 
-  const ChildAppCard = ({
-    item,
-  }: {
-    item: RouterOutputs["viewer"]["integrations"]["items"][number] & {
-      credentialOwner?: CredentialOwner;
-    };
-  }) => {
+  const ChildAppCard = ({ item }: { item: AppCardApp }) => {
     const appSlug = item?.slug;
     const appIsDefault =
       appSlug === defaultConferencingApp?.appSlug ||
@@ -98,7 +93,7 @@ export const AppList = ({
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
+                  {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
@@ -229,7 +224,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
         <DropdownItem
           color="destructive"
           onClick={() => handleDisconnect(credentialId, app, teamId)}
-          disabled={isGlobal}
+          disabled={isGlobal || isDelegationCredential({ credentialId })}
           StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>

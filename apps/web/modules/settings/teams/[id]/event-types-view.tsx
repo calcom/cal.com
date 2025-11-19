@@ -4,14 +4,19 @@ import { useRouter } from "next/navigation";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { WizardLayout } from "@calcom/ui";
-import { Button, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { WizardLayout } from "@calcom/ui/components/layout";
+import { showToast } from "@calcom/ui/components/toast";
 
-export const CreateTeamEventType = () => {
+type CreateTeamEventTypeProps = {
+  permissions: { canCreateEventType: boolean };
+};
+
+export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -52,7 +57,7 @@ export const CreateTeamEventType = () => {
     <TeamEventTypeForm
       teamSlug={team?.slug}
       teamId={teamId}
-      isTeamAdminOrOwner={true}
+      permissions={permissions}
       urlPrefix={urlPrefix}
       isPending={createMutation.isPending}
       form={form}
@@ -65,7 +70,7 @@ export const CreateTeamEventType = () => {
   );
 };
 
-export const GetLayout = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
@@ -77,9 +82,7 @@ export const GetLayout = (page: React.ReactElement) => {
       isOptionalCallback={() => {
         router.push(`/settings/teams/${teamId}/profile`);
       }}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };
-
-export default CreateTeamEventType;
