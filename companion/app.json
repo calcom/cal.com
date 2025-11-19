@@ -15,14 +15,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "deploymentTarget": "18.0"
+      "deploymentTarget": "18.0",
+      "bundleIdentifier": "com.calcom.companion"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.calcom.companion"
     },
     "web": {
       "favicon": "./assets/favicon.png",
