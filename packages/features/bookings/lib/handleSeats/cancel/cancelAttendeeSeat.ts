@@ -61,6 +61,13 @@ async function cancelAttendeeSeat(
     (uid) => uid && uid !== INVALID_SEAT_REFERENCE_ALL && typeof uid === "string"
   );
 
+  if (filteredSeatReferenceUids.length === 0) {
+    if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) {
+      return;
+    }
+    return;
+  }
+
   const inputDto: SeatCancellationInput = {
     seatReferenceUids: filteredSeatReferenceUids,
     userId: data.userId,
@@ -77,11 +84,6 @@ async function cancelAttendeeSeat(
 
   const { seatReferenceUids } = validatedInput.data;
   const { userId } = validatedInput.data;
-
-  const hasNoSeatsToCancel = seatReferenceUids.length === 0;
-  if (hasNoSeatsToCancel) {
-    throw new HttpError({ statusCode: 400, message: "No valid seats selected for removal" });
-  }
 
   const validatedOptions: SeatCancellationOptions = SeatCancellationOptionsSchema.parse(
     options || { isCancelledByHost: false }
@@ -275,6 +277,11 @@ async function cancelAttendeeSeat(
   );
 
   await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
+
+  const allAttendeesRemoved = attendees.length === bookingToDelete.attendees.length;
+  if (allAttendeesRemoved) {
+    return;
+  }
 
   return { success: true };
 }
