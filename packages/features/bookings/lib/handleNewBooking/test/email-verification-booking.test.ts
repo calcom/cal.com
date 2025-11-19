@@ -341,5 +341,81 @@ describe("handleNewBooking - Email Verification", () => {
       },
       timeout
     );
+
+    test(
+      "should allow rescheduling without email verification even when requiresBookerEmailVerification is true",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const scenarioData = getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 15,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+              requiresBookerEmailVerification: true,
+            },
+          ],
+          organizer,
+          bookings: [
+            {
+              uid: "existing-booking-uid",
+              eventTypeId: 1,
+              userId: 101,
+              status: "ACCEPTED",
+              startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // tomorrow
+              endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(), // tomorrow + 30 min
+              attendees: [
+                {
+                  email: booker.email,
+                  name: booker.name,
+                  timeZone: "Asia/Kolkata",
+                },
+              ],
+            },
+          ],
+        });
+
+        await createBookingScenario(scenarioData);
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            rescheduleUid: "existing-booking-uid",
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const result = await handleNewBooking({ bookingData: mockBookingData });
+
+        expect(result).toBeDefined();
+        expect(result.uid).toBeDefined();
+
+        expect(verifyCodeUnAuthenticated).not.toHaveBeenCalled();
+      },
+      timeout
+    );
   });
 });

@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
+import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {

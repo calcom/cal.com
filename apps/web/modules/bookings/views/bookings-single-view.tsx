@@ -26,7 +26,7 @@ import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/li
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -776,15 +776,9 @@ export default function Success(props: PageProps) {
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
 
-                          const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
-                          if (
-                            isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                            field.name !== TITLE_FIELD
-                          )
+                          if (!shouldShowFieldInCustomResponses(field.name)) {
                             return null;
+                          }
 
                           const label = field.label || t(field.defaultLabel);
 
@@ -1213,7 +1207,7 @@ function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
               <br />
               {formatToLocalizedTime({
                 date: dayjs(dateStr),
@@ -1231,7 +1225,7 @@ function RecurringBookings({
                 timeZone: tz,
               })}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -1246,7 +1240,7 @@ function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
                     <br />
                     {formatToLocalizedTime({
                       date: dayjs(dateStr),
@@ -1262,7 +1256,7 @@ function RecurringBookings({
                       timeZone: tz,
                     })}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}

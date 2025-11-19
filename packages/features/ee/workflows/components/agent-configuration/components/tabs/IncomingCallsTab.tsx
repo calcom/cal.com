@@ -86,14 +86,14 @@ export function IncomingCallsTab({
 
   if (!hasActivePhoneNumbers) {
     return (
-      <div className="border-subtle rounded-xl border p-8">
+      <div className="p-8 rounded-xl border border-subtle">
         <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Icon name="info" className="text-subtle h-8 w-8" />
+          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-muted">
+            <Icon name="info" className="w-8 h-8 text-subtle" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-emphasis text-lg font-semibold">{t("setup_incoming_agent")}</h3>
-            <p className="text-subtle text-sm">{t("connect_a_phone_number_first")}</p>
+            <h3 className="text-lg font-semibold text-emphasis">{t("setup_incoming_agent")}</h3>
+            <p className="text-sm text-subtle">{t("connect_a_phone_number_first")}</p>
           </div>
         </div>
       </div>
@@ -102,14 +102,14 @@ export function IncomingCallsTab({
 
   if (!inboundAgentId) {
     return (
-      <div className="border-subtle rounded-xl border p-8">
+      <div className="p-8 rounded-xl border border-subtle">
         <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Icon name="phone-incoming" className="text-subtle h-8 w-8" />
+          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-muted">
+            <Icon name="phone-incoming" className="w-8 h-8 text-subtle" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-emphasis text-lg font-semibold">{t("setup_inbound_agent")}</h3>
-            <p className="text-subtle text-sm">{t("setup_inbound_agent_for_incoming_calls")}</p>
+            <h3 className="text-lg font-semibold text-emphasis">{t("setup_inbound_agent")}</h3>
+            <p className="text-sm text-subtle">{t("setup_inbound_agent_for_incoming_calls")}</p>
           </div>
           <Button
             onClick={() => {
@@ -147,7 +147,7 @@ export function IncomingCallsTab({
   return (
     <div className="space-y-4">
       <div>
-        <Label className="text-emphasis mb-1 block text-sm font-medium">{t("event_type")}</Label>
+        <Label className="block mb-1 text-sm font-medium text-emphasis">{t("event_type")}</Label>
         <p className="text-subtle mb-1.5 text-xs">{t("select_event_type_for_inbound_calls")}</p>
         <Select
           isSearchable={false}
