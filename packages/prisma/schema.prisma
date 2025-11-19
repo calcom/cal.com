@@ -1,4 +1,4 @@
-// This is your Prisma Schema file
+// This is your Prisma Schema file 
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -686,6 +686,8 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  disableAutofillOnBookingPage        Boolean    @default(false)
+  orgAutoJoinOnSignup                 Boolean    @default(true)
 }
 
 enum MembershipRole {

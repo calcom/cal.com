@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -26,6 +27,7 @@ import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
 import type { FormSubmissionData } from "./reminderScheduler";
+import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -318,7 +320,18 @@ const scheduleSMSReminderForForm = async (
 ) => {
   const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
 
-  const smsMessage = message;
+  let smsMessage = message;
+
+  if (smsMessage && formData.responses) {
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+
+    const variables = {
+      responses: transformRoutingFormResponsesToVariableFormat(formData.responses),
+    };
+
+    const processedMessage = customTemplate(smsMessage, variables, formData.user.locale, timeFormat);
+    smsMessage = processedMessage.text;
+  }
 
   if (smsMessage.trim().length > 0) {
     const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
