@@ -9903,7 +9903,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the `booking.readRecordings` permission for team bookings with PBAC enabled.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
+        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9952,7 +9952,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
         "summary": "Get all the transcripts download links for the booking",
-        "description": "Fetches all the transcripts download links for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the `booking.readRecordings` permission for team bookings with PBAC enabled.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
+        "description": "Fetches all the transcripts download links for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10570,7 +10570,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getVideoSessions",
         "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
-        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the `booking.readRecordings` permission for team bookings with PBAC enabled.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
+        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
