@@ -61,7 +61,7 @@ import type { EventNameObjectType } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, CaptchaType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -830,7 +830,6 @@ export const EventAdvanced = ({
   const [customReplyToEmailVisible, setCustomReplyToEmailVisible] = useState(
     !!formMethods.getValues("customReplyToEmail")
   );
-
   // Watch form values for reactive UI updates
   const requiresConfirmation = formMethods.watch("requiresConfirmation") || false;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
@@ -1091,6 +1090,54 @@ export const EventAdvanced = ({
               />
             }
           />
+        )}
+      />
+
+      <Controller
+        name="captchaType"
+        render={({ field: { value, onChange } }) => (
+          <>
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                formMethods.getValues("captchaType") !== CaptchaType.OFF && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              title={t("enable_captcha")}
+              data-testid="enable-captcha"
+              description={t("enable_captcha_description")}
+              checked={formMethods.getValues("captchaType") !== CaptchaType.OFF}
+              onCheckedChange={(e) => {
+                onChange(e ? CaptchaType.MEDIUM : CaptchaType.OFF);
+              }}
+              fieldPermissions={fieldPermissions}
+              fieldName="captchaType"
+              lockedIcon={
+                <FieldPermissionIndicator fieldName="captchaType" fieldPermissions={fieldPermissions} t={t} />
+              }>
+              <CardContent className="border-subtle rounded-b-lg border border-t-0">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="captchaTypeDropdown" className="text-sm font-medium">
+                    {t("select_captcha_strength")}
+                  </Label>
+                  <Select
+                    value={{ value, label: value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() }}
+                    onChange={(option) => {
+                      if (option) {
+                        onChange(option.value);
+                      }
+                    }}
+                    options={[
+                      { value: CaptchaType.LOW, label: "Low" },
+                      { value: CaptchaType.MEDIUM, label: "Medium" },
+                      { value: CaptchaType.HIGH, label: "High" },
+                    ]}
+                    className="w-full"
+                  />
+                </div>
+              </CardContent>
+            </SettingsToggle>
+          </>
         )}
       />
 

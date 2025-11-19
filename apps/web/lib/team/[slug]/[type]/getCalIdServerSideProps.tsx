@@ -199,7 +199,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
           darkBrandColor: user.darkBrandColor,
           theme: user.theme,
           metadata: user.metadata,
-          organization: user.organization,
+          organization: undefined,
           defaultScheduleId: user.defaultScheduleId,
         },
       })),
@@ -217,6 +217,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       hidden: eventData.hidden,
       assignAllTeamMembers: eventData.assignAllTeamMembers,
       rescheduleWithSameRoundRobinHost: eventData.rescheduleWithSameRoundRobinHost,
+      captchaType: eventData.captchaType,
     };
 
     // Process the eventData using the same function as getPublicEvent
@@ -346,6 +347,7 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
               select: {
                 user: {
                   select: {
+                    id: true,
                     name: true,
                     username: true,
                     email: true,
@@ -361,6 +363,13 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
                 },
               },
             },
+            captchaType: true,
+            periodDays: true,
+            periodEndDate: true,
+            periodStartDate: true,
+            periodCountCalendarDays: true,
+            assignAllTeamMembers: true,
+            rescheduleWithSameRoundRobinHost: true,
           },
         },
       },
@@ -390,16 +399,35 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
 const getUsersData = async (
   isPrivateTeam: boolean,
   eventTypeId: number,
-  users: Pick<User, "username" | "name" | "avatarUrl" | "weekStart">[]
+  users: Pick<
+    User,
+    | "id"
+    | "username"
+    | "name"
+    | "avatarUrl"
+    | "weekStart"
+    | "brandColor"
+    | "darkBrandColor"
+    | "theme"
+    | "metadata"
+    | "defaultScheduleId"
+  >[]
 ) => {
   if (!isPrivateTeam && users.length > 0) {
     return users
       .filter((user) => user.username)
       .map((user) => ({
+        id: user.id,
         username: user.username ?? "",
         name: user.name ?? "",
         avatarUrl: user.avatarUrl ?? "",
         weekStart: user.weekStart,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+        theme: user.theme,
+        metadata: user.metadata,
+        organization: undefined,
+        defaultScheduleId: user.defaultScheduleId,
       }));
   }
   if (!isPrivateTeam && users.length === 0) {
@@ -409,6 +437,7 @@ const getUsersData = async (
         users: {
           take: 1,
           select: {
+            id: true,
             username: true,
             name: true,
             avatarUrl: true,
@@ -427,12 +456,17 @@ const getUsersData = async (
     return data.length > 0
       ? [
           {
+            id: data[0].id,
             username: data[0].username ?? "",
             name: data[0].name ?? "",
             weekStart: data[0].weekStart,
             avatarUrl: data[0].avatarUrl,
-            // profile:data[0].profile,
-            // bookerUrl:
+            brandColor: data[0].brandColor,
+            darkBrandColor: data[0].darkBrandColor,
+            theme: data[0].theme,
+            metadata: data[0].metadata,
+            organization: undefined,
+            defaultScheduleId: data[0].defaultScheduleId,
           },
         ]
       : [];
