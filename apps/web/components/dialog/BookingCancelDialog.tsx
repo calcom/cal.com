@@ -290,7 +290,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
               />
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-subtle text-sm">{t("autorefund_description")}</span>
+              <span className="text-subtle text-sm">{t("autorefund_info")}</span>
             </div>
           </div>
         )}

@@ -1548,7 +1548,6 @@ export const EventAdvanced = ({
                         : null
                     }
                     onChange={(option) => {
-                      console.log("Option: ", option);
                       onChange(option?.value || null);
                     }}
                     options={
