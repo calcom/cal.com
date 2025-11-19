@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
+  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition cursor-pointer disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
