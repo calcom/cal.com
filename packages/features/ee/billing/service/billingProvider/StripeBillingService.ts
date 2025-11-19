@@ -1,18 +1,14 @@
 import type Stripe from "stripe";
 
-import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 
-import type { BillingService } from "./billing-service";
-import { SubscriptionStatus } from "./repository/IBillingRepository";
+import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type { IBillingProviderService } from "./IBillingProviderService";
 
-export class StripeBillingService implements BillingService {
-  private stripe: Stripe;
-  constructor() {
-    this.stripe = stripe;
-  }
+export class StripeBillingService implements IBillingProviderService {
+  constructor(private stripe: Stripe) {}
 
-  async createCustomer(args: Parameters<BillingService["createCustomer"]>[0]) {
+  async createCustomer(args: Parameters<IBillingProviderService["createCustomer"]>[0]) {
     const { email, metadata } = args;
     const customer = await this.stripe.customers.create({
       email,
@@ -24,7 +20,7 @@ export class StripeBillingService implements BillingService {
     return { stripeCustomerId: customer.id };
   }
 
-  async createPaymentIntent(args: Parameters<BillingService["createPaymentIntent"]>[0]) {
+  async createPaymentIntent(args: Parameters<IBillingProviderService["createPaymentIntent"]>[0]) {
     const { customerId, amount, metadata } = args;
     const paymentIntent = await this.stripe.paymentIntents.create({
       customer: customerId,
@@ -69,7 +65,9 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
+  async createSubscriptionCheckout(
+    args: Parameters<IBillingProviderService["createSubscriptionCheckout"]>[0]
+  ) {
     const {
       customerId,
       successUrl,
@@ -110,7 +108,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async createPrice(args: Parameters<BillingService["createPrice"]>[0]) {
+  async createPrice(args: Parameters<IBillingProviderService["createPrice"]>[0]) {
     const { amount, currency, interval, productId, nickname, metadata } = args;
 
     const price = await this.stripe.prices.create({
@@ -137,7 +135,7 @@ export class StripeBillingService implements BillingService {
     await this.stripe.subscriptions.cancel(subscriptionId);
   }
 
-  async handleSubscriptionUpdate(args: Parameters<BillingService["handleSubscriptionUpdate"]>[0]) {
+  async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
     const { subscriptionId, subscriptionItemId, membershipCount } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
@@ -169,7 +167,10 @@ export class StripeBillingService implements BillingService {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription || !subscription.status) return null;
 
-    return subscription.status;
+    return this.mapStripeStatusToCalStatus({
+      stripeStatus: subscription.status,
+      subscriptionId,
+    });
   }
 
   async getCheckoutSession(checkoutSessionId: string) {
@@ -187,7 +188,7 @@ export class StripeBillingService implements BillingService {
     return subscriptions.data;
   }
 
-  async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
+  async updateCustomer(args: Parameters<IBillingProviderService["updateCustomer"]>[0]) {
     const { customerId, email, userId } = args;
     const metadata: { email?: string; userId?: number } = {};
     if (email) metadata.email = email;
@@ -200,7 +201,7 @@ export class StripeBillingService implements BillingService {
     return price;
   }
 
-  static extractSubscriptionDates(subscription: {
+  extractSubscriptionDates(subscription: {
     start_date: number;
     trial_end?: number | null;
     cancel_at?: number | null;
@@ -213,13 +214,13 @@ export class StripeBillingService implements BillingService {
     return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
   }
 
-  static mapStripeStatusToCalStatus = ({
+  mapStripeStatusToCalStatus({
     stripeStatus,
     subscriptionId,
   }: {
     stripeStatus: string;
     subscriptionId: string;
-  }) => {
+  }) {
     const log = logger.getSubLogger({ prefix: ["mapStripeStatusToCalStatus"] });
     const statusMap: Record<string, SubscriptionStatus> = {
       active: SubscriptionStatus.ACTIVE,
@@ -239,5 +240,5 @@ export class StripeBillingService implements BillingService {
     }
 
     return status || SubscriptionStatus.ACTIVE;
-  };
+  }
 }

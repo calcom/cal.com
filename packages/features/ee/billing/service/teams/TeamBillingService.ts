@@ -11,25 +11,46 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/IBillingRepository";
-import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
-import { StripeBillingService } from "../stripe-billing-service";
-import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
+// import billing from "../..";
+import type {
+  IBillingRepository,
+  IBillingRepositoryCreateArgs,
+} from "../../repository/billing/IBillingRepository";
+import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import {
+  TeamBillingPublishResponseStatus,
+  type ITeamBillingService,
+  type TeamBillingInput,
+} from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
 const teamPaymentMetadataSchema = teamMetadataStrictSchema.unwrap();
 
-export class InternalTeamBilling implements TeamBilling {
+export class TeamBillingService implements ITeamBillingService {
   private _team!: Omit<TeamBillingInput, "metadata"> & {
     metadata: NonNullable<z.infer<typeof teamPaymentMetadataSchema>>;
   };
+  private billingProviderService: IBillingProviderService;
   private billingRepository: IBillingRepository;
-  private billingService: StripeBillingService;
-  constructor(team: TeamBillingInput) {
+  private teamBillingDataRepository: ITeamBillingDataRepository;
+
+  constructor({
+    team,
+    billingProviderService,
+    teamBillingDataRepository,
+    billingRepository,
+  }: {
+    team: TeamBillingInput;
+    billingProviderService: IBillingProviderService;
+    teamBillingDataRepository: ITeamBillingDataRepository;
+    billingRepository: IBillingRepository;
+  }) {
     this.team = team;
-    this.billingRepository = BillingRepositoryFactory.getRepository(team.isOrganization);
-    this.billingService = new StripeBillingService();
+    this.billingProviderService = billingProviderService;
+    this.teamBillingDataRepository = teamBillingDataRepository;
+    this.billingRepository = billingRepository;
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -40,10 +61,7 @@ export class InternalTeamBilling implements TeamBilling {
   }
   private async getOrgIfNeeded() {
     if (!this.team.parentId) return;
-    const parentTeam = await prisma.team.findUniqueOrThrow({
-      where: { id: this.team.parentId },
-      select: { metadata: true, id: true, parentId: true, isOrganization: true },
-    });
+    const parentTeam = await this.teamBillingDataRepository.find(this.team.parentId);
     this.team = parentTeam;
   }
   private logErrorFromUnknown(error: unknown) {
@@ -56,7 +74,7 @@ export class InternalTeamBilling implements TeamBilling {
       const { subscriptionId } = this.team.metadata;
       log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`);
       if (!subscriptionId) throw Error("missing subscriptionId");
-      await this.billingService.handleSubscriptionCancel(subscriptionId);
+      await this.billingProviderService.handleSubscriptionCancel(subscriptionId);
       await this.downgrade();
       log.info(`Cancelled subscription ${subscriptionId} for team ${this.team.id}`);
     } catch (error) {
@@ -156,7 +174,7 @@ export class InternalTeamBilling implements TeamBilling {
       }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      await this.billingService.handleSubscriptionUpdate({
+      await this.billingProviderService.handleSubscriptionUpdate({
         subscriptionId,
         subscriptionItemId,
         membershipCount,
@@ -172,7 +190,7 @@ export class InternalTeamBilling implements TeamBilling {
     /** If there's no paymentId, we need to pay this team */
     if (!paymentId) return { url: null, paymentId: null, paymentRequired: true };
     /** If there's a pending session but it isn't paid, we need to pay this team */
-    const checkoutSessionIsPaid = await this.billingService.checkoutSessionIsPaid(paymentId);
+    const checkoutSessionIsPaid = await this.billingProviderService.checkoutSessionIsPaid(paymentId);
     if (!checkoutSessionIsPaid) return { url: null, paymentId, paymentRequired: true };
     /** If the session is already paid we return the upgrade URL so team is updated. */
     return {
@@ -185,7 +203,7 @@ export class InternalTeamBilling implements TeamBilling {
   async getSubscriptionStatus() {
     const { subscriptionId } = this.team.metadata;
     if (!subscriptionId) return null;
-    return await this.billingService.getSubscriptionStatus(subscriptionId);
+    return this.billingProviderService.getSubscriptionStatus(subscriptionId);
   }
 
   /**
@@ -203,7 +221,7 @@ export class InternalTeamBilling implements TeamBilling {
       }
 
       // End the trial by converting to regular subscription
-      await this.billingService.handleEndTrial(subscriptionId);
+      await this.billingProviderService.handleEndTrial(subscriptionId);
       log.info(`Successfully ended trial for team ${this.team.id}`);
       return true;
     } catch (error) {
@@ -212,6 +230,6 @@ export class InternalTeamBilling implements TeamBilling {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-    await this.billingRepository.create(args);
+await this.billingRepository.create(args);
   }
 }

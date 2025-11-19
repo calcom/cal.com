@@ -5,14 +5,15 @@ export const teamBillingSelect = {
   metadata: true,
   isOrganization: true,
   parentId: true,
+  name: true,
 } satisfies Prisma.TeamSelect;
 
 export type TeamBillingType = Prisma.TeamGetPayload<{
   select: typeof teamBillingSelect;
 }>;
 
-export interface ITeamBillingRepository {
+export interface ITeamBillingDataRepository {
   find(teamId: number): Promise<TeamBillingType>;
-  findBySubscriptionId(subscriptionId: string): Promise<TeamBillingType>;
+  findBySubscriptionId(subscriptionId: string): Promise<TeamBillingType | null>;
   findMany(teamIds: number[]): Promise<TeamBillingType[]>;
 }

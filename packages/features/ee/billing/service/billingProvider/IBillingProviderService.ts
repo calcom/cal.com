@@ -1,6 +1,8 @@
 import type Stripe from "stripe";
 
-export interface BillingService {
+import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+
+export interface IBillingProviderService {
   checkoutSessionIsPaid(paymentId: string): Promise<boolean>;
   handleSubscriptionCancel(subscriptionId: string): Promise<void>;
   handleSubscriptionCreation(subscriptionId: string): Promise<void>;
@@ -57,7 +59,7 @@ export interface BillingService {
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
   getPrice(priceId: string): Promise<Stripe.Price | null>;
-  getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
+  getSubscriptionStatus(subscriptionId: string): Promise<SubscriptionStatus | null>;
 
   getCheckoutSession(checkoutSessionId: string): Promise<Stripe.Checkout.Session | null>;
   getCustomer(customerId: string): Promise<Stripe.Customer | Stripe.DeletedCustomer | null>;
