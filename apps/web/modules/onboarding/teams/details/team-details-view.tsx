@@ -84,7 +84,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   return (
     <>
       <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={3}>
         {/* Left column - Main content */}
         <OnboardingCard
           title={t("create_your_team")}
@@ -106,7 +106,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
               </Button>
             </div>
           }>
-          <div className="flex w-full flex-col gap-4 px-5">
+          <div className="flex w-full flex-col gap-4">
             {/* Team Profile Picture */}
             <div className="flex w-full flex-col gap-2">
               <Label className="text-emphasis text-sm font-medium leading-4">{t("team_logo")}</Label>

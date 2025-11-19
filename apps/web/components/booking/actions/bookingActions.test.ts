@@ -54,7 +54,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
           locale: "en",
           bookingId: 1,
           noShow: false,
-        } as any,
+        },
       ],
       user: {
         id: 1,

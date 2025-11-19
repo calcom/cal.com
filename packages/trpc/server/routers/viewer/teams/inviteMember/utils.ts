@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";

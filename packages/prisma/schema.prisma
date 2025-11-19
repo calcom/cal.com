@@ -1,4 +1,4 @@
-// This is your Prisma Schema file
+// This is your Prisma Schema file 
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -686,6 +686,8 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  disableAutofillOnBookingPage        Boolean    @default(false)
+  orgAutoJoinOnSignup                 Boolean    @default(true)
 }
 
 enum MembershipRole {
@@ -1089,6 +1091,7 @@ enum WebhookTriggerEvents {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
+  DELEGATION_CREDENTIAL_ERROR
 }
 
 model Webhook {
@@ -2651,6 +2654,9 @@ model Agent {
   // Event type association for inbound agents
   inboundEventTypeId Int?
 
+  // Event type association for outbound agents
+  outboundEventTypeId Int?
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2663,6 +2669,7 @@ model Agent {
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {
