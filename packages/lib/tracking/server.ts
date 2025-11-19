@@ -15,7 +15,7 @@ export function getTrackingFromCookies(cookies?: NextApiRequest["cookies"]): Tra
 
   if (!cookies) return tracking;
 
-  if (process.env.GOOGLE_ADS_ENABLED && cookies.gclid) {
+  if (process.env.GOOGLE_ADS_ENABLED === "1" && cookies.gclid) {
     tracking.googleAds = {
       gclid: cookies.gclid,
       ...(cookies.gad_campaignid && { campaignId: cookies.gad_campaignid }),
