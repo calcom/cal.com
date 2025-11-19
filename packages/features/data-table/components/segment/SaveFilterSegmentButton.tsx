@@ -216,7 +216,7 @@ export function SaveFilterSegmentButton() {
                 </div>
 
                 {isTeamSegment && teams && teams.length > 0 && (
-                  <div>
+                  <div className="mt-1.5">
                     <Select<{ value: string; label: string }>
                       options={teams.map((team) => ({
                         value: team.id.toString(),
