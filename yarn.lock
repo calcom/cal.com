@@ -4318,6 +4318,7 @@ __metadata:
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     "@calcom/ui": "workspace:*"
+    "@coss/ui": "workspace:*"
     "@daily-co/daily-js": ^0.83.1
     "@daily-co/daily-react": ^0.23.2
     "@dub/analytics": ^0.0.27
@@ -4860,7 +4861,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coss/ui@workspace:packages/coss-ui":
+"@coss/ui@workspace:*, @coss/ui@workspace:packages/coss-ui":
   version: 0.0.0-use.local
   resolution: "@coss/ui@workspace:packages/coss-ui"
   dependencies:

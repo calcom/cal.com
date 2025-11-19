@@ -7,7 +7,7 @@ import classNames from "@calcom/ui/classNames";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
-export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
+export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded-[4px] gap-x-1", {
   variants: {
     variant: {
       default: "bg-attention text-attention",
