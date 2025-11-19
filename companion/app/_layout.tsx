@@ -2,6 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Platform, View, StatusBar, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { AuthProvider } from '../contexts/AuthContext';
 import { useEffect } from 'react';
 import * as ExpoLinking from 'expo-linking';
 import '../global.css';
@@ -63,20 +64,22 @@ export default function RootLayout() {
   );
 
   return (
-    <ErrorBoundary>
-      {Platform.OS === 'web' ? (
-        <View style={{ width: 400, height: "100vh", display: 'flex', flexDirection: 'column' }} className="bg-white">
-          <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-          {stackContent}
-        </View>
-      ) : (
-        <SafeAreaProvider>
-          <View style={{ flex: 1 }} className="bg-white">
+    <AuthProvider>
+      <ErrorBoundary>
+        {Platform.OS === 'web' ? (
+          <View style={{ width: 400, height: "100vh", display: 'flex', flexDirection: 'column' }} className="bg-white">
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
             {stackContent}
           </View>
-        </SafeAreaProvider>
-      )}
-    </ErrorBoundary>
+        ) : (
+          <SafeAreaProvider>
+            <View style={{ flex: 1 }} className="bg-white">
+              <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+              {stackContent}
+            </View>
+          </SafeAreaProvider>
+        )}
+      </ErrorBoundary>
+    </AuthProvider>
   );
 }
