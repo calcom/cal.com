@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import { ensureReservedSlotIsEarliest } from "../reservations/validateReservedSlot";
 import { createBooking } from "./createBooking";
@@ -12,10 +12,11 @@ type ReservedSlot = {
 };
 
 export async function createBookingWithReservedSlot(
+  prismaClient: PrismaClient,
   args: CreateBookingParams & { rescheduledBy: string | undefined },
   reservedSlot: ReservedSlot
 ) {
-  return prisma.$transaction(async (tx) => {
+  return prismaClient.$transaction(async (tx) => {
     await ensureReservedSlotIsEarliest(tx, reservedSlot);
     const booking = await createBooking(args, { tx });
 

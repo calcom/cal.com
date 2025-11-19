@@ -1734,7 +1734,7 @@ async function handler(
 
       const isTeamEvent = eventType.schedulingType;
       if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
-        booking = await createBookingWithReservedSlot(createArgs, {
+        booking = await createBookingWithReservedSlot(deps.prismaClient, createArgs, {
           eventTypeId,
           slotUtcStart: bookingStartUtc,
           slotUtcEnd: bookingEndUtc,
