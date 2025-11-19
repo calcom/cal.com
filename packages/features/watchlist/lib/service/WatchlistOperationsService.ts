@@ -4,6 +4,7 @@ import type { WatchlistEntry } from "@calcom/lib/server/repository/watchlist.int
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
+import { WatchlistErrors } from "../errors/WatchlistErrors";
 import { extractDomainFromEmail, normalizeEmail } from "../utils/normalization";
 
 export interface AddReportsToWatchlistInput {
@@ -66,11 +67,11 @@ export abstract class WatchlistOperationsService {
 
   validateEmailOrDomain(type: WatchlistType, value: string): void {
     if (type === WatchlistType.EMAIL && !emailRegex.test(value)) {
-      throw new Error("Invalid email address format");
+      throw WatchlistErrors.invalidEmail("Invalid email address format");
     }
 
     if (type === WatchlistType.DOMAIN && !domainRegex.test(value)) {
-      throw new Error("Invalid domain format (e.g., example.com)");
+      throw WatchlistErrors.invalidDomain("Invalid domain format (e.g., example.com)");
     }
   }
 
@@ -82,13 +83,13 @@ export abstract class WatchlistOperationsService {
     if (validReports.length !== input.reportIds.length) {
       const foundIds = validReports.map((r) => r.id);
       const missingIds = input.reportIds.filter((id) => !foundIds.includes(id));
-      throw new Error(`Report(s) not found: ${missingIds.join(", ")}`);
+      throw WatchlistErrors.notFound(`Report(s) not found: ${missingIds.join(", ")}`);
     }
 
     const reportsToAdd = validReports.filter((report) => !report.watchlistId);
 
     if (reportsToAdd.length === 0) {
-      throw new Error("All selected reports are already in the watchlist");
+      throw WatchlistErrors.alreadyInWatchlist("All selected reports are already in the watchlist");
     }
 
     const normalizedValues = new Map<string, string>();
@@ -101,7 +102,7 @@ export abstract class WatchlistOperationsService {
         normalizedValues.set(report.id, value);
       }
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Invalid email format");
+      throw WatchlistErrors.invalidEmail(error instanceof Error ? error.message : "Invalid email format");
     }
 
     const result = await this.deps.watchlistRepo.addReportsToWatchlist({

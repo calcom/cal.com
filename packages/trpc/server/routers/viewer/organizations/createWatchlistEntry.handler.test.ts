@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistType } from "@calcom/prisma/enums";
 
 import { createWatchlistEntryHandler } from "./createWatchlistEntry.handler";
@@ -46,8 +47,10 @@ describe("createWatchlistEntryHandler", () => {
   });
 
   describe("error mapping", () => {
-    it("should map service error containing 'Invalid email' to BAD_REQUEST", async () => {
-      mockService.createWatchlistEntry.mockRejectedValue(new Error("Invalid email address format"));
+    it("should map INVALID_EMAIL error to BAD_REQUEST", async () => {
+      mockService.createWatchlistEntry.mockRejectedValue(
+        WatchlistErrors.invalidEmail("Invalid email address format")
+      );
 
       await expect(
         createWatchlistEntryHandler({
@@ -63,8 +66,10 @@ describe("createWatchlistEntryHandler", () => {
       });
     });
 
-    it("should map service error containing 'Invalid domain' to BAD_REQUEST", async () => {
-      mockService.createWatchlistEntry.mockRejectedValue(new Error("Invalid domain format (e.g., example.com)"));
+    it("should map INVALID_DOMAIN error to BAD_REQUEST", async () => {
+      mockService.createWatchlistEntry.mockRejectedValue(
+        WatchlistErrors.invalidDomain("Invalid domain format (e.g., example.com)")
+      );
 
       await expect(
         createWatchlistEntryHandler({
@@ -80,9 +85,9 @@ describe("createWatchlistEntryHandler", () => {
       });
     });
 
-    it("should map service error containing 'not authorized' to UNAUTHORIZED", async () => {
+    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
       mockService.createWatchlistEntry.mockRejectedValue(
-        new Error("You are not authorized to create blocklist entries")
+        WatchlistErrors.permissionDenied("You are not authorized to create blocklist entries")
       );
 
       await expect(

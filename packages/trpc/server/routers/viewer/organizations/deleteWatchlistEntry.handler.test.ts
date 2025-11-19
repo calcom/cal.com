@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 
 import { deleteWatchlistEntryHandler } from "./deleteWatchlistEntry.handler";
@@ -104,13 +105,13 @@ describe("deleteWatchlistEntryHandler", () => {
   });
 
   describe("error mapping from service", () => {
-    it("should map service error containing 'not authorized' to UNAUTHORIZED", async () => {
+    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
       mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
       mockService.deleteWatchlistEntry.mockRejectedValue(
-        new Error("You are not authorized to delete blocklist entries")
+        WatchlistErrors.permissionDenied("You are not authorized to delete blocklist entries")
       );
 
       await expect(

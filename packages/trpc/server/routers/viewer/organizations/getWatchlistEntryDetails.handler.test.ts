@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 
 import { getWatchlistEntryDetailsHandler } from "./getWatchlistEntryDetails.handler";
@@ -69,8 +70,10 @@ describe("getWatchlistEntryDetailsHandler", () => {
   });
 
   describe("error mapping", () => {
-    it("should map service error containing 'not found' to NOT_FOUND", async () => {
-      mockService.getWatchlistEntryDetails.mockRejectedValue(new Error("Blocklist entry not found"));
+    it("should map NOT_FOUND error to NOT_FOUND", async () => {
+      mockService.getWatchlistEntryDetails.mockRejectedValue(
+        WatchlistErrors.notFound("Blocklist entry not found")
+      );
 
       await expect(
         getWatchlistEntryDetailsHandler({
@@ -85,9 +88,9 @@ describe("getWatchlistEntryDetailsHandler", () => {
       });
     });
 
-    it("should map service error containing 'not authorized' to UNAUTHORIZED", async () => {
+    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
       mockService.getWatchlistEntryDetails.mockRejectedValue(
-        new Error("You are not authorized to view blocklist entries")
+        WatchlistErrors.permissionDenied("You are not authorized to view blocklist entries")
       );
 
       await expect(
@@ -100,24 +103,6 @@ describe("getWatchlistEntryDetailsHandler", () => {
       ).rejects.toMatchObject({
         code: "UNAUTHORIZED",
         message: "You are not authorized to view blocklist entries",
-      });
-    });
-
-    it("should map service error containing 'only view blocklist entries from your organization' to FORBIDDEN", async () => {
-      mockService.getWatchlistEntryDetails.mockRejectedValue(
-        new Error("You can only view blocklist entries from your organization")
-      );
-
-      await expect(
-        getWatchlistEntryDetailsHandler({
-          ctx: { user: mockUser },
-          input: {
-            id: "entry-123",
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "FORBIDDEN",
-        message: "You can only view blocklist entries from your organization",
       });
     });
 

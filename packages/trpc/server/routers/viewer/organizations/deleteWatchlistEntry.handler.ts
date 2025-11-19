@@ -1,4 +1,5 @@
 import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
 
@@ -51,13 +52,20 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
       organizationId,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An error occurred";
-
-    if (message.includes("not authorized")) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message,
-      });
+    if (error instanceof WatchlistError) {
+      switch (error.code) {
+        case WatchlistErrorCode.UNAUTHORIZED:
+        case WatchlistErrorCode.PERMISSION_DENIED:
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: error.message,
+          });
+        default:
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message,
+          });
+      }
     }
 
     throw new TRPCError({

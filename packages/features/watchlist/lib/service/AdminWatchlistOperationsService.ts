@@ -2,6 +2,7 @@ import type { PrismaBookingReportRepository } from "@calcom/lib/server/repositor
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { BookingReportStatus } from "@calcom/prisma/enums";
 
+import { WatchlistErrors } from "../errors/WatchlistErrors";
 import type {
   AddReportsToWatchlistInput,
   CreateWatchlistEntryInput,
@@ -103,7 +104,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
-      throw new Error(`Failed to delete all entries: ${failed[0].reason}`);
+      throw WatchlistErrors.bulkDeletePartialFailure(`Failed to delete all entries: ${failed[0].reason}`);
     }
 
     return {
@@ -122,13 +123,13 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     });
 
     if (reports.length === 0) {
-      throw new Error("Report not found");
+      throw WatchlistErrors.notFound("Report not found");
     }
 
     const report = reports[0];
 
     if (report.watchlistId) {
-      throw new Error("Cannot dismiss a report that has already been added to the blocklist");
+      throw WatchlistErrors.validationError("Cannot dismiss a report that has already been added to the blocklist");
     }
 
     await this.deps.bookingReportRepo.updateReportStatus({
@@ -174,7 +175,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     if (successCount === 0 && failed.length > 0) {
-      throw new Error(`Failed to dismiss all reports: ${failed[0].reason}`);
+      throw WatchlistErrors.bulkDeletePartialFailure(`Failed to dismiss all reports: ${failed[0].reason}`);
     }
 
     return {

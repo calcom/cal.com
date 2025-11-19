@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistType } from "@calcom/prisma/enums";
 
 import { addToWatchlistHandler } from "./addToWatchlist.handler";
@@ -46,8 +47,10 @@ describe("addToWatchlistHandler (Organization)", () => {
   });
 
   describe("error mapping", () => {
-    it("should map service error containing 'not found' to NOT_FOUND", async () => {
-      mockService.addReportsToWatchlistInternal.mockRejectedValue(new Error("Booking report(s) not found: report-1"));
+    it("should map NOT_FOUND error to NOT_FOUND", async () => {
+      mockService.addReportsToWatchlistInternal.mockRejectedValue(
+        WatchlistErrors.notFound("Booking report(s) not found: report-1")
+      );
 
       await expect(
         addToWatchlistHandler({
@@ -63,9 +66,9 @@ describe("addToWatchlistHandler (Organization)", () => {
       });
     });
 
-    it("should map service error containing 'not authorized' to UNAUTHORIZED", async () => {
+    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
       mockService.addReportsToWatchlistInternal.mockRejectedValue(
-        new Error("You are not authorized to add entries to the watchlist")
+        WatchlistErrors.permissionDenied("You are not authorized to add entries to the watchlist")
       );
 
       await expect(
@@ -82,9 +85,9 @@ describe("addToWatchlistHandler (Organization)", () => {
       });
     });
 
-    it("should map service error containing 'already in the watchlist' to BAD_REQUEST", async () => {
+    it("should map ALREADY_IN_WATCHLIST error to BAD_REQUEST", async () => {
       mockService.addReportsToWatchlistInternal.mockRejectedValue(
-        new Error("All selected bookers are already in the watchlist")
+        WatchlistErrors.alreadyInWatchlist("All selected bookers are already in the watchlist")
       );
 
       await expect(

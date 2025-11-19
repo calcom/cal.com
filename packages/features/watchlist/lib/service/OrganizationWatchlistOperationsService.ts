@@ -4,6 +4,7 @@ import type { PrismaBookingReportRepository } from "@calcom/lib/server/repositor
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { WatchlistErrors } from "../errors/WatchlistErrors";
 import type {
   AddReportsToWatchlistInput,
   AddReportsToWatchlistResult,
@@ -61,7 +62,7 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     input: AddReportsToWatchlistInput | CreateWatchlistEntryInput | DeleteWatchlistEntryInput
   ): WatchlistOperationsScope {
     if (!isOrganizationInput(input)) {
-      throw new Error("You must be part of an organization to manage watchlist");
+      throw WatchlistErrors.unauthorized("You must be part of an organization to manage watchlist");
     }
 
     this.currentOrganizationId = input.organizationId;
@@ -76,7 +77,7 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     reportIds: string[]
   ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
     if (!this.currentOrganizationId) {
-      throw new Error("Organization ID must be set before calling validateReports");
+      throw WatchlistErrors.validationError("Organization ID must be set before calling validateReports");
     }
 
     const reports = await this.deps.bookingReportRepo.findReportsByIds({
@@ -96,7 +97,7 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     });
 
     if (!hasPermission) {
-      throw new Error(`You are not authorized to ${permission.split(".")[1]} watchlist entries`);
+      throw WatchlistErrors.permissionDenied(`You are not authorized to ${permission.split(".")[1]} watchlist entries`);
     }
   }
 
