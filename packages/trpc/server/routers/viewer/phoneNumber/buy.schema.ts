@@ -4,12 +4,6 @@ export const ZBuyInputSchema = z.object({
   teamId: z.number().optional(),
   agentId: z.string(),
   workflowId: z.string(),
-  googleAds: z
-    .object({
-      gclid: z.string().optional(),
-      campaignId: z.string().optional(),
-    })
-    .nullish(),
 });
 
 export type TBuyInputSchema = z.infer<typeof ZBuyInputSchema>;

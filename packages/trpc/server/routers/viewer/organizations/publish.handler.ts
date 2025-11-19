@@ -1,7 +1,10 @@
+import type { NextApiRequest } from "next";
+
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -9,16 +12,15 @@ import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TPublishInputSchema } from "./publish.schema";
 
 type PublishOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    req?: NextApiRequest;
   };
-  input: TPublishInputSchema;
 };
 
-export const publishHandler = async ({ ctx, input }: PublishOptions) => {
+export const publishHandler = async ({ ctx }: PublishOptions) => {
   const orgId = ctx.user.organizationId;
   if (!orgId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have an organization to upgrade" });
@@ -53,6 +55,8 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
 
   // Since this is an ORG we need to make sure ORG members are scyned with the team. Every time a user is added to the TEAM, we need to add them to the ORG
   if (IS_TEAM_BILLING_ENABLED) {
+    const tracking = getTrackingFromCookies(ctx.req?.cookies);
+
     const checkoutSession = await purchaseTeamOrOrgSubscription({
       teamId: prevTeam.id,
       seatsUsed: prevTeam.members.length,
@@ -63,8 +67,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
       billingPeriod: metadata.data?.billingPeriod ?? undefined,
-      gclid: input.googleAds?.gclid,
-      campaignId: input.googleAds?.campaignId,
+      tracking,
     });
 
     if (!checkoutSession.url)

@@ -16,6 +16,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { TrackingData } from "@calcom/lib/tracking";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -50,15 +51,13 @@ export const generateTeamCheckoutSession = async ({
   teamSlug,
   userId,
   isOnboarding,
-  gclid,
-  campaignId,
+  tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
-  gclid?: string;
-  campaignId?: string;
+  tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -105,8 +104,7 @@ export const generateTeamCheckoutSession = async ({
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
-      ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
-      ...(campaignId && { campaignId }), // Add Google Ads Campaign ID for conversion tracking
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
     },
   });
   return session;
@@ -132,8 +130,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   isOrg?: boolean;
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
-  gclid?: string;
-  campaignId?: string;
+  tracking?: TrackingData;
 }) => {
   const {
     teamId,
@@ -143,8 +140,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg,
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
-    gclid,
-    campaignId,
+    tracking,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
@@ -202,8 +198,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
-      ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
-      ...(campaignId && { campaignId }), // Add Google Ads Campaign ID for conversion tracking
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
     },
     subscription_data: {
       metadata: {

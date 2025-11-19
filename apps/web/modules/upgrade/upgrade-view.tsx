@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
-import { getGoogleAdsData } from "@calcom/lib/analytics/googleads";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -41,10 +40,7 @@ export default function UpgradePage() {
             buttonRaw={
               <Button
                 onClick={() => {
-                  const adsData = getGoogleAdsData();
-                  publishOrgMutation.mutate({
-                    googleAds: adsData,
-                  });
+                  publishOrgMutation.mutate({});
                 }}>
                 {t("upgrade")}
               </Button>

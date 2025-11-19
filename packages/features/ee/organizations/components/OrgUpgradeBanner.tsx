@@ -1,7 +1,6 @@
 import { useRouter } from "next/navigation";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { getGoogleAdsData } from "@calcom/lib/analytics/googleads";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -42,10 +41,7 @@ export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
           data-testid="upgrade_org_banner_button"
           className="border-b border-b-black"
           onClick={() => {
-            const adsData = getGoogleAdsData();
-            publishOrgMutation.mutate({
-              googleAds: adsData,
-            });
+            publishOrgMutation.mutate({});
           }}>
           {t("upgrade_banner_action")}
         </button>
