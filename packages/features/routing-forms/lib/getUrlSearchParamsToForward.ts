@@ -124,7 +124,7 @@ export function getUrlSearchParamsToForward({
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
-    ...(teamMembersMatchingAttributeLogic && teamMembersMatchingAttributeLogic.length > 0
+    ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
     ...(typeof formResponseId === "number"

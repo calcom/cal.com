@@ -151,7 +151,7 @@ const _loadAndValidateUsers = async ({
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
     await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
       eventType,
-      routedTeamMemberIds: routedTeamMemberIds || [],
+      routedTeamMemberIds,
       rescheduleUid,
       contactOwnerEmail,
       routingFormResponse,
