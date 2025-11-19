@@ -78,6 +78,25 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   };
 }
 
+export function getRemoveSeatsAction(context: BookingActionContext): ActionType | null {
+  const { booking, isUpcoming, isCancelled, t } = context;
+
+  const isNotSeatedEvent = !booking.eventType?.seatsPerTimeSlot;
+  const hasNoSeatsToRemove = booking.seatsReferences.length === 0;
+  const shouldHideRemoveSeatsAction = isNotSeatedEvent || hasNoSeatsToRemove || !isUpcoming || isCancelled;
+
+  if (shouldHideRemoveSeatsAction) {
+    return null;
+  }
+
+  return {
+    id: "remove_seats",
+    label: t("remove_seats"),
+    icon: "user-x",
+    disabled: isActionDisabled("remove_seats", context),
+  };
+}
+
 export function getVideoOptionsActions(context: BookingActionContext): ActionType[] {
   const { booking, isBookingInPast, isConfirmed, isCalVideoLocation, t } = context;
 
@@ -236,6 +255,8 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
       return isDisabledCancelling || isBookingInPast;
+    case "remove_seats":
+      return isBookingInPast || booking.seatsReferences.length === 0;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":

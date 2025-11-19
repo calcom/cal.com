@@ -1,7 +1,20 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
-import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
+import {
+  sendCancelledSeatEmailsAndSMS,
+  sendCancelledSeatsEmailToHost,
+  eventTypeDisableAttendeeEmail,
+  eventTypeDisableHostEmail,
+} from "@calcom/emails/email-manager";
+import {
+  SeatCancellationInputSchema,
+  SeatCancellationOptionsSchema,
+  type SeatCancellationInput,
+  type SeatCancellationOptions,
+} from "@calcom/features/bookings/lib/dto/SeatCancellation";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -13,7 +26,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -21,8 +33,9 @@ import type { BookingToDelete } from "../../handleCancelBooking";
 
 async function cancelAttendeeSeat(
   data: {
-    seatReferenceUid?: string;
+    seatReferenceUids: string[];
     bookingToDelete: BookingToDelete;
+    userId?: number;
   },
   dataForWebhooks: {
     webhooks: {
@@ -35,56 +48,122 @@ async function cancelAttendeeSeat(
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
   },
-  eventTypeMetadata: EventTypeMetadata
+  eventTypeMetadata: EventTypeMetadata,
+  options?: { isCancelledByHost?: boolean }
 ) {
-  const input = bookingCancelAttendeeSeatSchema.safeParse({
-    seatReferenceUid: data.seatReferenceUid,
-  });
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
-  if (!input.success) return;
-  const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
-  if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
-  if (!bookingToDelete.userId) {
+  const INVALID_SEAT_REFERENCE_ALL = "all";
+  const DEFAULT_LOCALE = "en";
+
+  const filteredSeatReferenceUids = data.seatReferenceUids.filter(
+    (uid) => uid && uid !== INVALID_SEAT_REFERENCE_ALL && typeof uid === "string"
+  );
+
+  if (filteredSeatReferenceUids.length === 0) {
+    if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) {
+      return;
+    }
+    return;
+  }
+
+  const inputDto: SeatCancellationInput = {
+    seatReferenceUids: filteredSeatReferenceUids,
+    userId: data.userId,
+    bookingUid: bookingToDelete.uid,
+  };
+
+  const validatedInput = SeatCancellationInputSchema.safeParse(inputDto);
+  if (!validatedInput.success) {
+    throw new HttpError({
+      statusCode: 400,
+      message: validatedInput.error.errors[0]?.message || "Invalid seat cancellation input",
+    });
+  }
+
+  const { seatReferenceUids } = validatedInput.data;
+  const { userId } = validatedInput.data;
+
+  const validatedOptions: SeatCancellationOptions = SeatCancellationOptionsSchema.parse(
+    options || { isCancelledByHost: false }
+  );
+
+  const hasNoAttendees = !bookingToDelete?.attendees.length;
+  if (hasNoAttendees) {
+    throw new HttpError({ statusCode: 400, message: "No attendees found in this booking" });
+  }
+
+  const isBookingUserMissing = !bookingToDelete.userId;
+  if (isBookingUserMissing) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  const seatReference = bookingToDelete.seatsReferences.find(
-    (reference) => reference.referenceUid === seatReferenceUid
+  const seatReferences = bookingToDelete.seatsReferences.filter((reference) =>
+    seatReferenceUids.includes(reference.referenceUid)
   );
 
-  if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+  const areSomeSeatsNotFound = seatReferences.length !== seatReferenceUids.length;
+  if (areSomeSeatsNotFound) {
+    throw new HttpError({ statusCode: 400, message: "One or more seats not found in this booking" });
+  }
 
+  const bookingRepository = new BookingRepository(prisma);
+
+  if (userId) {
+    const bookingAccessService = new BookingAccessService(prisma);
+    const hasFullAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
+      userId,
+      bookingUid: bookingToDelete.uid,
+    });
+
+    if (!hasFullAccess) {
+      const userEmail = await bookingRepository.getUserEmailById(userId);
+
+      const userSeats = seatReferences.filter((ref) => {
+        const attendee = bookingToDelete.attendees.find((a) => a.id === ref.attendeeId);
+        return attendee?.email === userEmail;
+      });
+
+      const areNotAllUserSeats = userSeats.length !== seatReferences.length;
+      if (areNotAllUserSeats) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You can only cancel your own seats",
+        });
+      }
+    }
+  }
+
+  const attendeeIds = seatReferences.map((ref) => ref.attendeeId);
   await Promise.all([
-    prisma.bookingSeat.delete({
-      where: {
-        referenceUid: seatReferenceUid,
-      },
-    }),
-    prisma.attendee.delete({
-      where: {
-        id: seatReference.attendeeId,
-      },
-    }),
+    bookingRepository.deleteBookingSeatsByReferenceUids(seatReferenceUids),
+    bookingRepository.deleteAttendeesByIds(attendeeIds),
   ]);
 
-  const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+  const attendees = bookingToDelete.attendees.filter((attendee) =>
+    seatReferences.some((ref) => ref.attendeeId === attendee.id)
+  );
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
-    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
-      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+    ? await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
         user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
       })
     : [];
 
-  if (attendee) {
-    /* If there are references then we should update them as well */
-
+  const hasAttendeesToNotify = attendees.length > 0;
+  if (hasAttendeesToNotify) {
     const integrationsToUpdate = [];
 
+    const updatedEvt = {
+      ...evt,
+      attendees: evt.attendees.filter((evtAttendee) => !attendees.some((a) => a.email === evtAttendee.email)),
+      calendarDescription: getRichDescription(evt),
+    };
+
     for (const reference of bookingToDelete.references) {
-      if (reference.credentialId || reference.delegationCredentialId) {
+      const hasCredential = reference.credentialId || reference.delegationCredentialId;
+      if (hasCredential) {
         const credential = await getDelegationCredentialOrFindRegularCredential({
           id: {
             credentialId: reference.credentialId,
@@ -94,19 +173,16 @@ async function cancelAttendeeSeat(
         });
 
         if (credential) {
-          const updatedEvt = {
-            ...evt,
-            attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
-            calendarDescription: getRichDescription(evt),
-          };
-          if (reference.type.includes("_video")) {
+          const isVideoReference = reference.type.includes("_video");
+          if (isVideoReference) {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
-          if (reference.type.includes("_calendar")) {
+          const isCalendarReference = reference.type.includes("_calendar");
+          if (isCalendarReference) {
             const calendar = await getCalendar(credential);
             if (calendar) {
               integrationsToUpdate.push(
-                calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
+                calendar.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
               );
             }
           }
@@ -116,34 +192,62 @@ async function cancelAttendeeSeat(
 
     try {
       await Promise.all(integrationsToUpdate);
-    } catch {
-      // Shouldn't stop code execution if integrations fail
-      // as integrations was already updated
+    } catch (error) {
+      logger.error("Failed to update some calendar integrations", error);
     }
 
-    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
+    // Send emails to each canceled attendee with their own locale
+    const shouldSendAttendeeEmails = !eventTypeDisableAttendeeEmail(eventTypeMetadata);
+    if (shouldSendAttendeeEmails) {
+      for (const attendee of attendees) {
+        const attendeeLocale = attendee.locale ?? DEFAULT_LOCALE;
+        const tAttendee = await getTranslation(attendeeLocale, "common");
+        await sendCancelledSeatEmailsAndSMS(
+          evt,
+          {
+            ...attendee,
+            language: { translate: tAttendee, locale: attendeeLocale },
+          },
+          eventTypeMetadata,
+          { isCancelledByHost: validatedOptions.isCancelledByHost, sendToHost: false }
+        );
+      }
+    }
 
-    await sendCancelledSeatEmailsAndSMS(
-      evt,
-      {
-        ...attendee,
-        language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-      },
-      eventTypeMetadata
-    );
+    // Send ONE email to host with info about ALL cancelled/removed attendees
+    const shouldSendHostEmail = !eventTypeDisableHostEmail(eventTypeMetadata);
+    if (shouldSendHostEmail) {
+      const hostLocale = evt.organizer.language.locale ?? DEFAULT_LOCALE;
+      const tHost = await getTranslation(hostLocale, "common");
+
+      const attendeesWithLanguage = await Promise.all(
+        attendees.map(async (attendee) => ({
+          ...attendee,
+          language: { translate: tHost, locale: hostLocale },
+        }))
+      );
+
+      await sendCancelledSeatsEmailToHost(
+        { ...evt, attendees: attendeesWithLanguage },
+        attendeesWithLanguage,
+        eventTypeMetadata,
+        { isCancelledByHost: validatedOptions.isCancelledByHost }
+      );
+    }
   }
 
-  evt.attendees = attendee
-    ? [
-        {
-          ...attendee,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
+  evt.attendees = await Promise.all(
+    attendees.map(async (attendee) => {
+      const attendeeLocale = attendee.locale ?? DEFAULT_LOCALE;
+      return {
+        ...attendee,
+        language: {
+          translate: await getTranslation(attendeeLocale, "common"),
+          locale: attendeeLocale,
         },
-      ]
-    : [];
+      };
+    })
+  );
 
   const payload: EventPayloadType = {
     ...evt,
@@ -168,11 +272,16 @@ async function cancelAttendeeSeat(
   );
   await Promise.all(promises);
 
-  const workflowRemindersForAttendee =
-    bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
-    null;
+  const workflowRemindersToDelete = bookingToDelete.workflowReminders.filter((reminder) =>
+    seatReferenceUids.includes(reminder.seatReferenceId || "")
+  );
 
-  await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersForAttendee);
+  await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
+
+  const allAttendeesRemoved = attendees.length === bookingToDelete.attendees.length;
+  if (allAttendeesRemoved) {
+    return;
+  }
 
   return { success: true };
 }
