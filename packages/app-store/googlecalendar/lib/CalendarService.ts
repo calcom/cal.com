@@ -5,7 +5,6 @@ import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/constants";
-import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
@@ -26,6 +25,8 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
+
+type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
@@ -608,7 +609,6 @@ export default class GoogleCalendarService implements Calendar {
     calendarIds: string[],
     dateFrom: string,
     dateTo: string,
-    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
     // More efficient date difference calculation using native Date objects
     // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
@@ -624,8 +624,7 @@ export default class GoogleCalendarService implements Calendar {
           timeMin: dateFrom,
           timeMax: dateTo,
           items: calendarIds.map((id) => ({ id })),
-        },
-        shouldServeCache
+        }
       );
 
       if (!freeBusyData) throw new Error("No response from google calendar");
@@ -653,8 +652,7 @@ export default class GoogleCalendarService implements Calendar {
           timeMin: new Date(currentStartTime).toISOString(),
           timeMax: new Date(currentEndTime).toISOString(),
           items: calendarIds.map((id) => ({ id })),
-        },
-        shouldServeCache
+        }
       );
 
       if (chunkData) {
@@ -671,7 +669,6 @@ export default class GoogleCalendarService implements Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
     /**
      * If true, we will fallback to the primary calendar if no valid selected calendars are found
      */
@@ -690,7 +687,7 @@ export default class GoogleCalendarService implements Calendar {
 
     try {
       const calendarIds = await this.getCalendarIds(selectedCalendarIds, fallbackToPrimary);
-      return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo, shouldServeCache);
+      return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo);
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",
