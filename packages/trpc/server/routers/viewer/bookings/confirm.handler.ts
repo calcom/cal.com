@@ -261,6 +261,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
+    additionalNotes: booking.description,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);

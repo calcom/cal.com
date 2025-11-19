@@ -1,13 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
-import { useQueryState } from "nuqs";
+import { createParser, useQueryState } from "nuqs";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
   DataTableProvider,
+  DataTableFilters,
+  DataTableSegment,
   type SystemFilterSegment,
   useDataTable,
   ColumnFilterType,
@@ -25,19 +27,16 @@ import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
+import BookingListItem from "@components/booking/BookingListItem";
+
+import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
-import { viewParser } from "~/bookings/lib/viewParser";
 
+import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
+import { BookingsCalendar } from "../components/BookingsCalendar";
+import { BookingsList } from "../components/BookingsList";
+import { useBookingCursor } from "../hooks/useBookingCursor";
 import type { RowData, BookingOutput } from "../types";
-
-const BookingsListContainer = dynamic(() =>
-  import("../components/BookingsListContainer").then((mod) => ({ default: mod.BookingsListContainer }))
-);
-const BookingsCalendarContainer = dynamic(() =>
-  import("../components/BookingsCalendarContainer").then((mod) => ({
-    default: mod.BookingsCalendarContainer,
-  }))
-);
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
@@ -45,6 +44,7 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  isCalendarViewEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -86,12 +86,27 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-function BookingsContent({ status, permissions }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+const viewParser = createParser({
+  parse: (value: string) => {
+    if (value === "calendar") return "calendar";
+    return "list";
+  },
+  serialize: (value: "list" | "calendar") => value,
+});
+
+function BookingsContent({ status, permissions, isCalendarViewEnabled }: BookingsProps) {
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
   // Force view to be "list" if calendar view is disabled
+  const view = isCalendarViewEnabled ? _view : "list";
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
+  const [selectedBookingId, setSelectedBookingId] = useQueryState("selectedId", {
+    defaultValue: null,
+    parse: (value) => (value ? parseInt(value, 10) : null),
+    serialize: (value) => (value ? String(value) : ""),
+    clearOnDefault: true,
+  });
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -141,47 +156,161 @@ function BookingsContent({ status, permissions }: BookingsProps) {
 
   const { limit, offset } = useDataTable();
 
-  // Only apply pagination for list view, calendar view needs all bookings
-  const shouldPaginate = view === "list";
-  const queryLimit = shouldPaginate ? limit : 100; // Use max limit for calendar view
-  const queryOffset = shouldPaginate ? offset : 0; // Reset offset for calendar view
-
-  const query = trpc.viewer.bookings.get.useQuery(
-    {
-      limit: queryLimit,
-      offset: queryOffset,
-      filters: {
-        status,
-        eventTypeIds,
-        teamIds,
-        userIds,
-        attendeeName,
-        attendeeEmail,
-        bookingUid,
-        afterStartDate: dateRange?.startDate
-          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-          : undefined,
-        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
-      },
+  const query = trpc.viewer.bookings.get.useQuery({
+    limit,
+    offset,
+    filters: {
+      status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      bookingUid,
+      afterStartDate: dateRange?.startDate
+        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+        : undefined,
+      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
     },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
-      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
-    }
-  );
+  });
+
+  const columns = useMemo(() => {
+    const columnHelper = createColumnHelper<RowData>();
+
+    return [
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+        id: "eventTypeId",
+        header: t("event_type"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+        id: "teamId",
+        header: t("team"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+        id: "userId",
+        header: t("member"),
+        enableColumnFilter: permissions.canReadOthersBookings,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeName",
+        header: t("attendee_name"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "dateRange",
+        header: t("date_range"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              range: status === "past" ? "past" : "custom",
+            },
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
+      }),
+      columnHelper.display({
+        id: "customView",
+        cell: (props) => {
+          if (props.row.original.type === "data") {
+            const { booking, recurringInfo, isToday } = props.row.original;
+            return (
+              <BookingListItem
+                key={booking.id}
+                isToday={isToday}
+                loggedInUser={{
+                  userId: user?.id,
+                  userTimeZone: user?.timeZone,
+                  userTimeFormat: user?.timeFormat,
+                  userEmail: user?.email,
+                }}
+                listingStatus={status}
+                recurringInfo={recurringInfo}
+                // uncomment this line to enable BookingDetailsSheet
+                // onClick={() => setSelectedBookingId(booking.id)}
+                {...booking}
+              />
+            );
+          } else if (props.row.original.type === "today") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("today")}
+              </p>
+            );
+          } else if (props.row.original.type === "next") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("next")}
+              </p>
+            );
+          }
+        },
+      }),
+    ];
+  }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
-  const groupedBookings = useMemo(() => {
-    if (!query.data?.bookings) {
-      return { today: [], currentMonth: [], monthBuckets: {} };
-    }
-
-    const now = dayjs().tz(user?.timeZone);
-    const today = now.format("YYYY-MM-DD");
-    const currentMonthStart = now.startOf("month");
-    const currentMonthEnd = now.endOf("month");
-
+  const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
     const filterBookings = (booking: BookingOutput) => {
       if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
@@ -196,86 +325,95 @@ function BookingsContent({ status, permissions }: BookingsProps) {
           return false;
         }
         shownBookings[booking.recurringEventId] = [booking];
+      } else if (status === "upcoming") {
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
       }
       return true;
     };
 
-    const todayBookings: RowData[] = [];
-    const currentMonthBookings: RowData[] = [];
-    const monthBuckets: Record<string, RowData[]> = {}; // Key format: "YYYY-MM"
-
-    query.data.bookings.filter(filterBookings).forEach((booking) => {
-      const bookingDate = dayjs(booking.startTime).tz(user?.timeZone);
-      const bookingDateStr = bookingDate.format("YYYY-MM-DD");
-      const monthKey = bookingDate.format("YYYY-MM");
-
-      const rowData: RowData = {
+    return (
+      query.data?.bookings.filter(filterBookings).map((booking) => ({
         type: "data",
         booking,
-        isToday: bookingDateStr === today,
         recurringInfo: query.data?.recurringInfo.find(
           (info) => info.recurringEventId === booking.recurringEventId
         ),
-      };
-
-      if (bookingDateStr === today) {
-        todayBookings.push(rowData);
-      } else if (bookingDate.isAfter(currentMonthStart) && bookingDate.isBefore(currentMonthEnd)) {
-        currentMonthBookings.push(rowData);
-      } else if (bookingDate.isAfter(currentMonthEnd)) {
-        if (!monthBuckets[monthKey]) {
-          monthBuckets[monthKey] = [];
-        }
-        monthBuckets[monthKey].push(rowData);
-      } else if (bookingDate.isBefore(currentMonthStart)) {
-        // Handle bookings from months before the current month
-        if (!monthBuckets[monthKey]) {
-          monthBuckets[monthKey] = [];
-        }
-        monthBuckets[monthKey].push(rowData);
-      }
-    });
-
-    return { today: todayBookings, currentMonth: currentMonthBookings, monthBuckets };
+        isToday: false,
+      })) || []
+    );
   }, [query.data, status, user?.timeZone]);
 
-  const flatData = useMemo<RowData[]>(() => {
-    return [...groupedBookings.today, ...groupedBookings.currentMonth, ...Object.values(groupedBookings.monthBuckets).flat()];
-  }, [groupedBookings]);
-
   const bookingsToday = useMemo<RowData[]>(() => {
-    return groupedBookings.today;
-  }, [groupedBookings]);
+    return (
+      query.data?.bookings
+        .filter(
+          (booking: BookingOutput) =>
+            dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        )
+        .map((booking) => ({
+          type: "data" as const,
+          booking,
+          recurringInfo: query.data?.recurringInfo.find(
+            (info) => info.recurringEventId === booking.recurringEventId
+          ),
+          isToday: true,
+        })) ?? []
+    );
+  }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {
       return flatData;
     }
-
     const merged: RowData[] = [];
-
-    // Add Today section
-    if (groupedBookings.today.length > 0) {
-      merged.push({ type: "separator", label: t("today") }, ...groupedBookings.today);
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
     }
-
-    // Add Current Month section (rest of this month, excluding today)
-    if (groupedBookings.currentMonth.length > 0) {
-      merged.push({ type: "separator", label: t("this_month") }, ...groupedBookings.currentMonth);
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
     }
-
-    // Add individual month sections
-    const sortedMonthKeys = Object.keys(groupedBookings.monthBuckets).sort();
-    sortedMonthKeys.forEach((monthKey) => {
-      const bookings = groupedBookings.monthBuckets[monthKey];
-      if (bookings.length > 0) {
-        const monthLabel = dayjs(monthKey, "YYYY-MM").format("MMMM YYYY");
-        merged.push({ type: "separator", label: monthLabel }, ...bookings);
-      }
-    });
-
     return merged;
-  }, [groupedBookings, status, t, flatData]);
+  }, [bookingsToday, flatData, status]);
+
+  const selectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    const dataRow = finalData.find(
+      (row): row is Extract<RowData, { type: "data" }> =>
+        row.type === "data" && row.booking.id === selectedBookingId
+    );
+    return dataRow?.booking ?? null;
+  }, [selectedBookingId, finalData]);
+
+  const bookingNavigation = useBookingCursor({
+    bookings: finalData,
+    selectedBookingId,
+    setSelectedBookingId,
+  });
+
+  const getFacetedUniqueValues = useFacetedUniqueValues();
+
+  const table = useReactTable<RowData>({
+    data: finalData,
+    columns,
+    initialState: {
+      columnVisibility: {
+        eventTypeId: false,
+        teamId: false,
+        userId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        dateRange: false,
+        bookingUid: false,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues,
+  });
 
   const isPending = query.isPending;
   const totalRowCount = query.data?.totalCount;
@@ -293,32 +431,55 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.status === "error" ? (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            <>
+              <div className="grid w-full items-center gap-2 pb-4">
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex w-full flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.FilterBar table={table} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.ClearFiltersButton />
+                      <DataTableSegment.SaveButton />
+                      <DataTableSegment.Select />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            </>
           ) : (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               {view === "list" ? (
-                <BookingsListContainer
+                <BookingsList
                   status={status}
-                  permissions={permissions}
-                  data={finalData}
+                  table={table}
                   isPending={isPending}
                   totalRowCount={totalRowCount}
                 />
               ) : (
-                <BookingsCalendarContainer
-                  status={status}
-                  permissions={permissions}
-                  data={finalData}
-                  isPending={isPending}
-                />
+                <BookingsCalendar status={status} table={table} />
               )}
             </>
           )}
         </div>
       </main>
+      <BookingDetailsSheet
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBookingId(null)}
+        userTimeZone={user?.timeZone}
+        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+        userId={user?.id}
+        userEmail={user?.email}
+        onPrevious={bookingNavigation.onPrevious}
+        hasPrevious={bookingNavigation.hasPrevious}
+        onNext={bookingNavigation.onNext}
+        hasNext={bookingNavigation.hasNext}
+      />
     </div>
   );
 }
