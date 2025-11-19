@@ -56,7 +56,7 @@ const createMeeting = async (
     createdEvent: VideoCallData | undefined;
     credentialId: number;
   } = {
-    appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     uid,
     originalEvent: calEvent,
@@ -125,7 +125,7 @@ const updateMeeting = async (
       safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
-      appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
+      appName: credential.appName || credential.appId || "",
       type: credential.type,
       success,
       uid,
@@ -134,7 +134,7 @@ const updateMeeting = async (
   }
 
   return {
-    appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
