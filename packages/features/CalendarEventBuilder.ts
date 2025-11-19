@@ -495,8 +495,7 @@ export class CalendarEventBuilder {
       !this.event.endTime ||
       !this.event.type ||
       !this.event.bookerUrl ||
-      !this.event.title ||
-      this.event.organizationId === undefined
+      !this.event.title
     ) {
       return null;
     }
