@@ -14,6 +14,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -676,15 +677,16 @@ export class UserRepository {
 
   async create(
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
+      skipDefaultSchedule?: boolean;
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, skipDefaultSchedule, ...rest } = data;
 
     logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
@@ -695,24 +697,26 @@ export class UserRepository {
         username,
         email: email,
         ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
-        // Default schedule
-        schedules: {
-          create: {
-            name: t("default_schedule_name"),
-            availability: {
-              createMany: {
-                data: availability.map((schedule) => ({
-                  days: schedule.days,
-                  startTime: schedule.startTime,
-                  endTime: schedule.endTime,
-                })),
+        // Create default schedule if not explicitly skipped
+        ...(!skipDefaultSchedule && {
+          schedules: {
+            create: {
+              name: t("default_schedule_name"),
+              availability: {
+                createMany: {
+                  data: availability.map((schedule) => ({
+                    days: schedule.days,
+                    startTime: schedule.startTime,
+                    endTime: schedule.endTime,
+                  })),
+                },
               },
             },
           },
-        },
+        }),
         creationSource,
         locked,
-        ...(organizationIdValue
+        ...(organizationIdValue && username
           ? {
               organizationId: organizationIdValue,
               profiles: {
@@ -730,6 +734,42 @@ export class UserRepository {
 
     return user;
   }
+
+  async upsert(data: {
+    email: string;
+    username: string | null;
+    hashedPassword: string;
+    emailVerified?: Date;
+    identityProvider?: IdentityProvider;
+  }) {
+    const { email, username, hashedPassword, emailVerified, identityProvider } = data;
+
+    logger.info("upsert user");
+
+    const user = await this.prismaClient.user.upsert({
+      where: { email },
+      update: {
+        username,
+        ...(emailVerified !== undefined && { emailVerified }),
+        ...(identityProvider !== undefined && { identityProvider }),
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
+      },
+      create: {
+        username,
+        email,
+        identityProvider: identityProvider ?? IdentityProvider.CAL,
+        password: { create: { hash: hashedPassword } },
+      },
+    });
+
+    return user;
+  }
+
   async getUserAdminTeams({ userId }: { userId: number }) {
     return await this.prismaClient.user.findUnique({
       where: {
