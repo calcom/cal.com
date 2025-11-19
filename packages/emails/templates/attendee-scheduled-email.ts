@@ -18,7 +18,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
-    if (!showAttendees && calEvent.seatsPerTimeSlot) {
+    if (showAttendees === false && calEvent.seatsPerTimeSlot) {
       this.calEvent = cloneDeep(calEvent);
       this.calEvent.attendees = [attendee];
     } else {
