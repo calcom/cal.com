@@ -2,6 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
@@ -105,8 +106,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "privacy_and_security",
           href: "/settings/organizations/privacy",
         },
-
-        { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
           href: "/settings/organizations/sso",
@@ -177,7 +176,6 @@ const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
   "privacy",
   "privacy_and_security",
-  "OAuth Clients",
   "SSO",
   "directory_sync",
   "delegation_credential",
@@ -362,11 +360,12 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const searchParams = useCompatSearchParams();
+  const searchParamsId = searchParams?.get("id");
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === searchParamsId,
       }));
       setTeamMenuState(teamStates);
       setTimeout(() => {
@@ -376,7 +375,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), teams]);
+  }, [searchParamsId, teams]);
 
   return (
     <>
@@ -435,9 +434,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       )}
                     </div>
                     {!team.parentId && (
-                      <img
+                      <Image
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        width={16}
+                        height={16}
+                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -558,12 +559,13 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
 
+  const searchParamsId = searchParams?.get("id");
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
       const otherTeamStates = otherTeams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === searchParamsId,
       }));
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
@@ -574,7 +576,7 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), otherTeams]);
+  }, [searchParamsId, otherTeams]);
 
   return (
     <nav
@@ -603,8 +605,10 @@ const SettingsSidebarContainer = ({
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
-                        <img
-                          className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
+                        <Image
+                          width={16}
+                          height={16}
+                          className="rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
                           alt="Organization Logo"
                         />
@@ -754,9 +758,11 @@ const SettingsSidebarContainer = ({
                                     )}
                                   </div>
                                   {!otherTeam.parentId && (
-                                    <img
+                                    <Image
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      width={16}
+                                      height={16}
+                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
@@ -856,13 +862,11 @@ export default function SettingsLayoutAppDirClient({
     return () => {
       window.removeEventListener("resize", closeSideContainer);
     };
-  }, []);
+  }, [setSideContainerOpen]);
 
   useEffect(() => {
-    if (sideContainerOpen) {
-      setSideContainerOpen(!sideContainerOpen);
-    }
-  }, [pathname]);
+    setSideContainerOpen((prev) => (prev ? false : prev));
+  }, [pathname, setSideContainerOpen]);
 
   return (
     <Shell

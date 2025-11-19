@@ -223,6 +223,7 @@ export interface CalendarEvent {
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
   organizationId?: number | null;
+  hasOrganizerChanged?: boolean;
 }
 
 export interface EntryPoint {

@@ -1885,6 +1885,7 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
+      evt.hasOrganizerChanged = true;
     }
 
     if (changedOrganizer && originalRescheduledBooking?.user) {
