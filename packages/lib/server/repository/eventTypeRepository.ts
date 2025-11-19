@@ -1828,7 +1828,7 @@ export class EventTypeRepository {
 
     const userCalIdTeamIds = await MembershipRepository.findUserCalIdTeamIds({ userId });
 
-    const val = await this.prismaClient.eventType.findFirst({
+    return await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -1855,6 +1855,5 @@ export class EventTypeRepository {
       },
       select: CompleteEventTypeSelect,
     });
-    return val;
   }
 }
