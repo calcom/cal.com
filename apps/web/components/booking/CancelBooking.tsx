@@ -42,7 +42,7 @@ const InternalNotePresetsSelect = ({
       setCancellationReason("");
     } else {
       setShowOtherInput(false);
-      onPresetSelect && onPresetSelect(option);
+      if (onPresetSelect) onPresetSelect(option);
     }
   };
 
@@ -52,7 +52,7 @@ const InternalNotePresetsSelect = ({
       <Select
         className="mb-2"
         options={[
-          ...internalNotePresets?.map((preset) => ({
+          ...(internalNotePresets || []).map((preset) => ({
             label: preset.name,
             value: preset.id,
           })),
@@ -167,11 +167,10 @@ export default function CancelBooking(props: Props) {
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return (
@@ -228,7 +227,7 @@ export default function CancelBooking(props: Props) {
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-default text-subtle text-sm leading-none">
+              <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
             </div>

@@ -25,23 +25,6 @@ vi.mock("@calcom/trpc", () => ({
   },
 }));
 
-vi.mock("next-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "cancellation_fee_warning_cancel") {
-        const opts = options as {
-          time?: string;
-          unit?: string;
-          amount?: number;
-          formatParams?: { amount?: { currency?: string } };
-        };
-        return `Cancelling within ${opts?.time} ${opts?.unit} will result in a ${opts?.amount} ${opts?.formatParams?.amount?.currency} cancellation fee being charged to your card.`;
-      }
-      return key;
-    },
-  }),
-}));
-
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({
     t: (key: string, options?: Record<string, unknown>) => {
