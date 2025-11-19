@@ -7,16 +7,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
 } from "@calcom/ee/workflows/lib/allowDisablingStandardEmails";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
-import {
-  sendRoundRobinRescheduledEmailsAndSMS,
-  sendRoundRobinScheduledEmailsAndSMS,
-  sendRoundRobinCancelledEmailsAndSMS,
-  sendRescheduledEmailsAndSMS,
-  sendScheduledEmailsAndSMS,
-  sendOrganizerRequestEmail,
-  sendAttendeeRequestEmailAndSMS,
-  sendAddGuestsEmailsAndSMS,
-} from "@calcom/emails/email-manager";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
@@ -134,6 +124,7 @@ export class BookingEmailSmsHandler {
       additionalInformation,
     } = data;
 
+    const { sendRescheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
     await sendRescheduledEmailsAndSMS(
       {
         ...evt,
@@ -233,19 +224,21 @@ export class BookingEmailSmsHandler {
       (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
     );
 
+    const emailManager = await import("@calcom/emails/email-manager");
+
     try {
       await Promise.all([
-        sendRoundRobinRescheduledEmailsAndSMS(
+        emailManager.sendRoundRobinRescheduledEmailsAndSMS(
           { ...copyEventAdditionalInfo, iCalUID },
           rescheduledMembers,
           metadata
         ),
-        sendRoundRobinScheduledEmailsAndSMS({
+        emailManager.sendRoundRobinScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
-        sendRoundRobinCancelledEmailsAndSMS(
+        emailManager.sendRoundRobinCancelledEmailsAndSMS(
           cancelledRRHostEvt,
           cancelledMembers,
           metadata,
@@ -288,6 +281,8 @@ export class BookingEmailSmsHandler {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
 
+    const { sendScheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
+
     try {
       await sendScheduledEmailsAndSMS(
         { ...evt, additionalInformation, additionalNotes, customInputs },
@@ -322,6 +317,10 @@ export class BookingEmailSmsHandler {
 
     const eventWithNotes = { ...evt, additionalNotes };
 
+    const { sendOrganizerRequestEmail, sendAttendeeRequestEmailAndSMS } = await import(
+      "@calcom/emails/email-manager"
+    );
+
     try {
       await Promise.all([
         sendOrganizerRequestEmail(eventWithNotes, metadata),
@@ -346,6 +345,8 @@ export class BookingEmailSmsHandler {
       "Action: ADD_GUESTS. Sending add guests emails and SMS.",
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
+
+    const { sendAddGuestsEmailsAndSMS } = await import("@calcom/emails/email-manager");
 
     try {
       await sendAddGuestsEmailsAndSMS({
