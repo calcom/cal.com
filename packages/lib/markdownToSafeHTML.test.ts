@@ -1123,6 +1123,11 @@ describe("markdownToSafeHTMLClient (Client-side)", () => {
     markdownToSafeHTMLClient = module.markdownToSafeHTMLClient;
   });
 
+  afterEach(() => {
+    // Clean up window mock to prevent affecting other tests
+    delete (global as { window?: unknown }).window;
+  });
+
   describe("XSS Prevention", () => {
     it("should remove script tags", () => {
       const malicious = "Hello <script>alert('XSS')</script> world";
