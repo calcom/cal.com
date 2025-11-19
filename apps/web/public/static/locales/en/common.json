@@ -1076,6 +1076,8 @@
   "warning_instant_meeting_experimental": "Experimental: Instant Meeting Events are currently experimental.",
   "starting": "Starting",
   "disable_guests": "Disable Guests",
+  "disable_autofill_on_booking_page": "Disable autofill on booking pages",
+  "disable_autofill_on_booking_page_description": "Prevent booking forms from being automatically filled with URL parameters or session-based prefill for all users in this organization",
   "disable_guests_description": "Disable adding additional guests while booking.",
   "private_link": "Generate private link",
   "enable_private_url": "Enable Private URL",
