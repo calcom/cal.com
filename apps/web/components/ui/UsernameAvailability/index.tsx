@@ -1,11 +1,11 @@
 import { useSearchParams } from "next/navigation";
+import slugify from "@calcom/lib/slugify";
 import { useState, useEffect, useRef, forwardRef } from "react";
 import type { RefCallback, ReactNode } from "react";
 import { Controller, useForm, type Control } from "react-hook-form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { slugify } from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
@@ -113,7 +113,9 @@ export const UsernameAvailabilityField = ({
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={value}
           usernameRef={ref}
-          setInputUsernameValue={onChange}
+          setInputUsernameValue={(e) => {
+            onChange(slugify(e, true));
+          }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
           disabled={!!user.organization?.id}

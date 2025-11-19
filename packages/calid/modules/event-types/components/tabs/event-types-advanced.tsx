@@ -830,6 +830,9 @@ export const EventAdvanced = ({
   const [customReplyToEmailVisible, setCustomReplyToEmailVisible] = useState(
     !!formMethods.getValues("customReplyToEmail")
   );
+
+  const customReplyToEmailValue = formMethods.watch("customReplyToEmail");
+
   // Watch form values for reactive UI updates
   const requiresConfirmation = formMethods.watch("requiresConfirmation") || false;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
@@ -1584,8 +1587,17 @@ export const EventAdvanced = ({
               ) : (
                 <CardContent className="border-subtle rounded-b-lg border border-t-0">
                   <Select
-                    value={verifiedEmails?.find((email) => email === value)}
-                    onChange={(option) => onChange(option?.value || null)}
+                    value={
+                      value
+                        ? {
+                            value: value,
+                            label: value,
+                          }
+                        : null
+                    }
+                    onChange={(option) => {
+                      onChange(option?.value || null);
+                    }}
                     options={
                       verifiedEmails?.map((email) => ({
                         value: email,

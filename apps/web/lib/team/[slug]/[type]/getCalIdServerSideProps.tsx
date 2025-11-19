@@ -151,6 +151,15 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
     );
     const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
+    if (eventData.schedulingType === "MANAGED") {
+      return {
+        redirect: {
+          destination: `/team/${params?.slug}?members=1`,
+          permanent: false,
+        },
+      } as const;
+    }
+
     // Create a proper eventData object that matches getPublicEventSelect structure
     const eventDataForProcessing = {
       id: eventTypeId,
