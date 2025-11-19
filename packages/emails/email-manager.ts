@@ -58,7 +58,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-export const fetchOrganizationEmailSettings = async (organizationId?: number | null) => {
+export const fetchOrganizationEmailSettings = async (organizationId?: number | null | undefined) => {
   if (!organizationId) return null;
   const repo = new OrganizationSettingsRepository(prisma);
   return await repo.getEmailSettings(organizationId);
@@ -66,7 +66,7 @@ export const fetchOrganizationEmailSettings = async (organizationId?: number | n
 
 export const shouldSkipAttendeeEmail = async (
   metadata: EventTypeMetadata | undefined,
-  organizationId: number | null,
+  organizationId: number | null | undefined,
   emailType?:
     | "confirmation"
     | "cancellation"
