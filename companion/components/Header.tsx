@@ -80,38 +80,40 @@ export function Header() {
   };
 
   return (
-    <View
-      className="bg-white border-b border-[#E5E5EA] flex-row items-center justify-between px-4"
-      style={{ paddingTop: insets.top , paddingBottom: 6 }}
-    >
-      {/* Left: Cal.com Logo */}
-      <View className="ms-1">
-        <CalComLogo width={101} height={22} color="#333" />
-      </View>
+    <>
+      <View
+        className="bg-white border-b border-[#E5E5EA] flex-row items-center justify-between px-4"
+        style={{ paddingTop: insets.top , paddingBottom: 6 }}
+      >
+        {/* Left: Cal.com Logo */}
+        <View className="ms-1">
+          <CalComLogo width={101} height={22} color="#333" />
+        </View>
 
-      {/* Right: Icons */}
-      <View className="flex-row items-center gap-4">
-        {/* Search Icon */}
-        <TouchableOpacity onPress={handleSearch} className="p-2">
-          <Ionicons name="search-outline" size={24} color="#333" />
-        </TouchableOpacity>
+        {/* Right: Icons */}
+        <View className="flex-row items-center gap-4">
+          {/* Search Icon */}
+          <TouchableOpacity onPress={handleSearch} className="p-2">
+            <Ionicons name="search-outline" size={24} color="#333" />
+          </TouchableOpacity>
 
-        {/* Profile Picture */}
-        <TouchableOpacity onPress={handleProfile} className="p-1">
-          {loading ? (
-            <ActivityIndicator size="small" color="#666" />
-          ) : userProfile?.avatarUrl ? (
-            <Image
-              source={{ uri: userProfile.avatarUrl }}
-              className="w-8 h-8 rounded-full"
-              style={{ width: 32, height: 32, borderRadius: 16 }}
-            />
-          ) : (
-            <View className="bg-[#E5E5EA] rounded-full items-center justify-center" style={{ width: 32, height: 32 }}>
-              <Ionicons name="person-outline" size={20} color="#666" />
-            </View>
-          )}
-        </TouchableOpacity>
+          {/* Profile Picture */}
+          <TouchableOpacity onPress={handleProfile} className="p-1">
+            {loading ? (
+              <ActivityIndicator size="small" color="#666" />
+            ) : userProfile?.avatarUrl ? (
+              <Image
+                source={{ uri: userProfile.avatarUrl }}
+                className="w-8 h-8 rounded-full"
+                style={{ width: 32, height: 32, borderRadius: 16 }}
+              />
+            ) : (
+              <View className="bg-[#E5E5EA] rounded-full items-center justify-center" style={{ width: 32, height: 32 }}>
+                <Ionicons name="person-outline" size={20} color="#666" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Profile Menu Modal */}
@@ -188,7 +190,7 @@ export function Header() {
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
 

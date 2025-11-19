@@ -1,10 +1,19 @@
 import { Stack } from 'expo-router';
+import { Platform, View } from 'react-native';
 import '../global.css';
 
 export default function RootLayout() {
-  return (
+  const stackContent = (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
+  );
+
+  return Platform.OS === 'web' ? (
+    <View style={{ width: 400, height: 600, display: 'flex', flexDirection: 'column' }}>
+      {stackContent}
+    </View>
+  ) : (
+    stackContent
   );
 }
