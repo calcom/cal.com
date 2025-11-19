@@ -617,7 +617,7 @@ export const InfiniteEventTypeList = ({
                                   color="secondary"
                                   StartIcon="ellipsis"
                                   // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
-                                  className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
+                                  className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                                 />
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
