@@ -62,7 +62,6 @@ function BasePhoneInput({
         name,
         required: rest.required,
         placeholder: rest.placeholder,
-        autoComplete: "tel",
       }}
       onChange={(val: string) => {
         onChange(`+${val}`);
@@ -93,8 +92,7 @@ function BasePhoneInput({
 }
 
 const useDefaultCountry = () => {
-  const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
-  const [defaultCountry, setDefaultCountry] = useState<CountryCode>(defaultPhoneCountryFromStore || "us");
+  const [defaultCountry, setDefaultCountry] = useState("us");
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -103,28 +101,16 @@ const useDefaultCountry = () => {
 
   useEffect(
     function refactorMeWithoutEffect() {
-      if (defaultPhoneCountryFromStore) {
-        setDefaultCountry(defaultPhoneCountryFromStore);
-        return;
-      }
-
       const data = query.data;
       if (!data?.countryCode) {
         return;
       }
 
-      if (isSupportedCountry(data?.countryCode)) {
-        setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
-      } else {
-        const navCountry = navigator.language.split("-")[1]?.toUpperCase();
-        if (navCountry && isSupportedCountry(navCountry)) {
-          setDefaultCountry(navCountry.toLowerCase() as CountryCode);
-        } else {
-          setDefaultCountry("us");
-        }
-      }
+      isSupportedCountry(data?.countryCode)
+        ? setDefaultCountry(data.countryCode.toLowerCase())
+        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
     },
-    [query.data, defaultPhoneCountryFromStore]
+    [query.data]
   );
 
   return defaultCountry;
