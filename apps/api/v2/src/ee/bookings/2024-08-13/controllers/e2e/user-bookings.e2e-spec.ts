@@ -1570,6 +1570,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(oldNormalBooking).toBeDefined();
             expect(oldNormalBooking.uid).toBeDefined();
             console.log(`asap 1 oldNormalBooking scheduled uid: ${oldNormalBooking.uid}`);
+            const inDatabase = await bookingsRepositoryFixture.getByUid(oldNormalBooking.uid);
+            console.log(`wiz 1 oldNormalBooking in database: ${JSON.stringify(inDatabase, null, 2)}`);
           } else {
             throw new Error("should create a booking to be rescheduled - Invalid response data");
           }
@@ -1582,6 +1584,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             rescheduledBy: RESCHEDULED_BY,
           };
 
+          const inDatabase = await bookingsRepositoryFixture.getByUid(oldNormalBooking.uid);
+          console.log(`wiz 2 oldNormalBooking in database: ${JSON.stringify(inDatabase, null, 2)}`);
           const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post(`/v2/bookings/${oldNormalBooking.uid}/reschedule`)
@@ -1590,6 +1594,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201)
             .then(async (response) => {
               console.log(`asap 2 oldNormalBooking rescheduled uid: ${oldNormalBooking.uid}`);
+              const inDatabase = await bookingsRepositoryFixture.getByUid(oldNormalBooking.uid);
+              console.log(`wiz 3 oldNormalBooking in database: ${JSON.stringify(inDatabase, null, 2)}`);
               const afterCreate = new Date();
               const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
