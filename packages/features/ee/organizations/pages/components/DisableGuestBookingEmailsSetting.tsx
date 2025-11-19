@@ -81,6 +81,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   const { t } = useLocale();
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [dialogAction, setDialogAction] = useState<"enable" | "disable">("disable");
 
   const [disableConfirmation, setDisableConfirmation] = useState(
     props.settings.disableAttendeeConfirmationEmail
@@ -212,14 +213,24 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
     <div className="space-y-6">
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <ConfirmationDialogContent
-          variety="warning"
-          title={t("disable_all_guest_booking_emails_confirm_title")}
-          confirmBtnText={t("disable_all")}
+          variety={dialogAction === "disable" ? "danger" : "warning"}
+          title={t(
+            dialogAction === "disable"
+              ? "disable_all_guest_booking_emails_confirm_title"
+              : "enable_all_guest_booking_emails_confirm_title"
+          )}
+          confirmBtnText={t(dialogAction === "disable" ? "disable_all" : "enable_all")}
           onConfirm={() => {
-            handleDisableAll(true);
+            handleDisableAll(dialogAction === "disable");
             setShowConfirmDialog(false);
           }}>
-          <p className="mt-2">{t("disable_all_guest_booking_emails_confirm_description")}</p>
+          <p className="mt-2">
+            {t(
+              dialogAction === "disable"
+                ? "disable_all_guest_booking_emails_confirm_description"
+                : "enable_all_guest_booking_emails_confirm_description"
+            )}
+          </p>
         </ConfirmationDialogContent>
       </Dialog>
 
@@ -236,9 +247,11 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
         disabled={readOnly}
         onCheckedChange={(checked) => {
           if (checked) {
+            setDialogAction("disable");
             setShowConfirmDialog(true);
           } else {
-            handleDisableAll(false);
+            setDialogAction("enable");
+            setShowConfirmDialog(true);
           }
         }}
       />
