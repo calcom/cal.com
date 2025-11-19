@@ -226,7 +226,7 @@ export default defineContentScript({
             width: 32px;
             height: 32px;
             margin: 2px 4px;
-            border-radius: 6px;
+            border-radius: 50%;
             background-color: #000000;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -253,11 +253,64 @@ export default defineContentScript({
             calButton.style.transform = 'scale(1)';
           });
           
-          // Add click handler to open Cal.com scheduling
+          // Add click handler to show Cal.com menu
           calButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
+            // Remove any existing menus
+            const existingMenu = document.querySelector('.cal-companion-gmail-menu');
+            if (existingMenu) {
+              existingMenu.remove();
+              return;
+            }
+            
+            // Create menu
+            const menu = document.createElement('div');
+            menu.className = 'cal-companion-gmail-menu';
+            menu.style.cssText = `
+              position: absolute;
+              bottom: 100%;
+              left: 0;
+              min-width: 250px;
+              max-width: 350px;
+              max-height: 300px;
+              background: white;
+              border-radius: 4px;
+              box-shadow: 0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
+              font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+              font-size: 14px;
+              z-index: 9999;
+              overflow-y: auto;
+              margin-bottom: 4px;
+            `;
+            
+            // Show loading state
+            menu.innerHTML = `
+              <div style="padding: 16px; text-align: center; color: #5f6368;">
+                Loading event types...
+              </div>
+            `;
+            
+            // Fetch event types from Cal.com API
+            fetchEventTypes(menu);
+            
+            // Position menu relative to button
+            calButtonCell.style.position = 'relative';
+            calButtonCell.appendChild(menu);
+            
+            // Close menu when clicking outside
+            setTimeout(() => {
+              document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target)) {
+                  menu.remove();
+                  document.removeEventListener('click', closeMenu);
+                }
+              });
+            }, 0);
+          });
+          
+          function openCalSidebar() {
             // Open Cal.com sidebar or quick schedule flow
             if (isClosed) {
               // Trigger sidebar open
@@ -271,7 +324,198 @@ export default defineContentScript({
                 sidebarContainer.style.transform = 'translateX(100%)';
               }
             }
-          });
+          }
+          
+          async function fetchEventTypes(menu) {
+            try {
+              // Use chrome.runtime.sendMessage to make API call through background script
+              const response = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage(
+                  { action: 'fetch-event-types' },
+                  (response) => {
+                    console.log('Raw response from background:', response);
+                    if (chrome.runtime.lastError) {
+                      console.log('Chrome runtime error:', chrome.runtime.lastError);
+                      reject(new Error(chrome.runtime.lastError.message));
+                    } else if (response && response.error) {
+                      console.log('Response has error:', response.error);
+                      reject(new Error(response.error));
+                    } else {
+                      console.log('Resolving with response:', response);
+                      resolve(response);
+                    }
+                  }
+                );
+              });
+              
+              console.log('Final response from background script:', response);
+              
+              let eventTypes = [];
+              if (response && response.data) {
+                eventTypes = response.data;
+              } else if (Array.isArray(response)) {
+                eventTypes = response;
+              } else {
+                console.log('Unexpected response format:', response);
+                eventTypes = [];
+              }
+              
+              // Ensure eventTypes is an array
+              if (!Array.isArray(eventTypes)) {
+                console.log('EventTypes is not an array:', typeof eventTypes, eventTypes);
+                eventTypes = [];
+              }
+              
+              console.log('Final eventTypes array:', eventTypes, 'Length:', eventTypes.length);
+              
+              // Clear loading state
+              menu.innerHTML = '';
+              
+              if (eventTypes.length === 0) {
+                menu.innerHTML = `
+                  <div style="padding: 16px; text-align: center; color: #5f6368;">
+                    No event types found
+                  </div>
+                `;
+                return;
+              }
+              
+              // Add header
+              const header = document.createElement('div');
+              header.style.cssText = `
+                padding: 12px 16px;
+                border-bottom: 1px solid #e8eaed;
+                background-color: #f8f9fa;
+                font-weight: 500;
+                color: #3c4043;
+                font-size: 13px;
+              `;
+              header.textContent = 'Select an event type to share';
+              menu.appendChild(header);
+              
+              // Add event types - with additional safety checks
+              try {
+                eventTypes.forEach((eventType, index) => {
+                  // Validate eventType object
+                  if (!eventType || typeof eventType !== 'object') {
+                    console.warn('Invalid event type object:', eventType);
+                    return;
+                  }
+                  
+                  const title = eventType.title || 'Untitled Event';
+                  const length = eventType.length || eventType.duration || 30;
+                  const description = eventType.description || 'No description';
+                  
+                  const menuItem = document.createElement('div');
+                  menuItem.style.cssText = `
+                    padding: 12px 16px;
+                    display: flex;
+                    flex-direction: column;
+                    cursor: pointer;
+                    transition: background-color 0.1s ease;
+                    border-bottom: ${index < eventTypes.length - 1 ? '1px solid #e8eaed' : 'none'};
+                  `;
+                  
+                  menuItem.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                      <span style="margin-right: 8px; font-size: 14px;">📅</span>
+                      <span style="color: #3c4043; font-weight: 500;">${title}</span>
+                    </div>
+                    <div style="color: #5f6368; font-size: 12px; margin-left: 22px;">
+                      ${length}min • ${description}
+                    </div>
+                  `;
+                  
+                  // Hover effect
+                  menuItem.addEventListener('mouseenter', () => {
+                    menuItem.style.backgroundColor = '#f8f9fa';
+                  });
+                  
+                  menuItem.addEventListener('mouseleave', () => {
+                    menuItem.style.backgroundColor = 'transparent';
+                  });
+                  
+                  menuItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    menu.remove();
+                    // Copy scheduling link to clipboard and show confirmation
+                    copyEventTypeLink(eventType);
+                  });
+                  
+                  menu.appendChild(menuItem);
+                });
+              } catch (forEachError) {
+                console.error('Error in forEach loop:', forEachError);
+                menu.innerHTML = `
+                  <div style="padding: 16px; text-align: center; color: #ea4335;">
+                    Error displaying event types
+                  </div>
+                `;
+              }
+              
+            } catch (error) {
+              console.error('Failed to fetch event types:', error);
+              console.log('Error details:', error.message, error.stack);
+              menu.innerHTML = `
+                <div style="padding: 16px; text-align: center; color: #ea4335;">
+                  Failed to load event types
+                </div>
+                <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
+                  Error: ${error.message}
+                </div>
+                <div style="padding: 16px 16px; text-align: center;">
+                  <button onclick="this.parentElement.parentElement.remove()" style="
+                    background: #1a73e8;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    cursor: pointer;
+                  ">Close</button>
+                </div>
+              `;
+            }
+          }
+          
+          function copyEventTypeLink(eventType) {
+            // Construct the Cal.com booking link
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(bookingUrl).then(() => {
+              // Show success notification
+              showNotification('Link copied to clipboard!', 'success');
+            }).catch(err => {
+              console.error('Failed to copy link:', err);
+              showNotification('Failed to copy link', 'error');
+            });
+          }
+          
+          function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              padding: 12px 16px;
+              background: ${type === 'success' ? '#137333' : '#d93025'};
+              color: white;
+              border-radius: 4px;
+              font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+              font-size: 14px;
+              z-index: 10000;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+              notification.remove();
+            }, 3000);
+          }
           
           // Add tooltip
           calButton.title = 'Schedule with Cal.com';

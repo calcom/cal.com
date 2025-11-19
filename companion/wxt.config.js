@@ -9,7 +9,7 @@ export default defineConfig({
     name: 'Cal.com Companion',
     version: '1.7.0',
     description: 'Your calendar companion for quick booking and scheduling',
-    permissions: ['activeTab', 'http://localhost:8081/*'],
+    permissions: ['activeTab', 'http://localhost:8081/*', 'https://api.cal.com/*'],
     content_security_policy: {
       extension_pages: "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
     },
