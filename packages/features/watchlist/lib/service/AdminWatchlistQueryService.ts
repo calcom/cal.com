@@ -1,4 +1,5 @@
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { ListBookingReportsFilters } from "@calcom/lib/server/repository/bookingReport.interface";
 import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import type { PrismaClient } from "@calcom/prisma";
@@ -22,9 +23,7 @@ export interface ListBookingReportsInput {
   limit: number;
   offset: number;
   searchTerm?: string;
-  filters?: {
-    status?: string;
-  };
+  filters?: ListBookingReportsFilters;
 }
 
 type Deps = {

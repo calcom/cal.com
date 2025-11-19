@@ -1,3 +1,4 @@
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
@@ -86,7 +87,7 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     return reports;
   }
 
-  private async checkPermission(userId: number, organizationId: number, permission: string): Promise<void> {
+  private async checkPermission(userId: number, organizationId: number, permission: PermissionString): Promise<void> {
     const hasPermission = await this.permissionCheckService.checkPermission({
       userId,
       teamId: organizationId,

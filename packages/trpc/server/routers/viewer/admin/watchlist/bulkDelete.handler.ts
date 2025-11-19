@@ -21,7 +21,7 @@ export const bulkDeleteWatchlistEntriesHandler = async ({
 
   try {
     return await service.bulkDeleteWatchlistEntries({
-      ids: input.ids,
+      entryIds: input.ids,
       userId: user.id,
     });
   } catch (error) {
