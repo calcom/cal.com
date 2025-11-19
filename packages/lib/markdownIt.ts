@@ -30,12 +30,12 @@ export const md = new MarkdownIt({ html: true, breaks: true, linkify: true });
  * Inline styles are required because many email clients don't support external CSS
  */
 const STYLES = {
-  text: "color: #101010; font-weight: 400; line-height: 24px; margin: 8px 0;",
-  list: "list-style-type: disc; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; color: #101010; line-height: 24px;",
+  text: "font-weight: 400; line-height: 24px; margin: 8px 0;",
+  list: "list-style-type: disc; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; line-height: 24px;",
   orderedList:
-    "list-style-type: decimal; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; color: #101010; line-height: 24px;",
-  listItem: "color: #101010; font-weight: 400; line-height: 24px; margin: 4px 0;",
-  header: "color: #101010; font-weight: 600; line-height: 1.4; margin: 16px 0 8px 0;",
+    "list-style-type: decimal; list-style-position: outside; padding-left: 20px; margin-left: 1.5em; line-height: 24px;",
+  listItem: "font-weight: 400; line-height: 24px; margin: 4px 0;",
+  header: "font-weight: 600; line-height: 1.4; margin: 16px 0 8px 0;",
   h1: "font-size: 2em;",
   h2: "font-size: 1.5em;",
   h3: "font-size: 1.25em;",
