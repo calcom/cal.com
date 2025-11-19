@@ -36,6 +36,7 @@ import {
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
+import { ValidateBookingFieldsResponses } from "./validators/validate-booking-fields-responses";
 
 export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
   "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
@@ -239,6 +240,9 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsObject()
   @IsOptional()
+  @ValidateBookingFieldsResponses({
+    message: "All values in bookingFieldsResponses must be non-null strings.",
+  })
   bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
