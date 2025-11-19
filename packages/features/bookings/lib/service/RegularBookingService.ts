@@ -2258,10 +2258,7 @@ async function handler(
   // Add more fields here when needed
   const bookingRescheduledPayload = bookingCreatedPayload;
 
-  const bookingEventHandler = new BookingEventHandlerService({
-    log: tracingLogger,
-    hashedLinkService: deps.hashedLinkService,
-  });
+  const bookingEventHandler = deps.bookingEventHandler;
 
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {
