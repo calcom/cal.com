@@ -281,9 +281,7 @@ export default function BookingDetail() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: () => (
-            <Text style={{ fontSize: 20, fontWeight: "700" }}>Booking Details</Text>
-          ),
+          headerTitle: "Booking Details",
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()} 
@@ -454,16 +452,24 @@ export default function BookingDetail() {
       </View>
 
       {/* Booking Actions Modal */}
-      <Modal visible={showActionsModal} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/50">
+      <Modal visible={showActionsModal} transparent animationType="fade">
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowActionsModal(false)}>
           <TouchableOpacity
+            className="bg-white rounded-2xl w-full max-w-sm mx-4"
             activeOpacity={1}
-            onPress={() => setShowActionsModal(false)}
-            className="absolute inset-0"
-          />
-          <View className="bg-white rounded-t-3xl">
+            onPress={(e) => e.stopPropagation()}>
+            
+            {/* Header */}
+            <View className="p-6 border-b border-gray-200">
+              <Text className="text-xl font-semibold text-gray-900 text-center">
+                Booking Actions
+              </Text>
+            </View>
             {/* Actions List */}
-            <View style={{ paddingBottom: 10 }}>
+            <View className="p-2">
               {/* View Booking */}
               <TouchableOpacity
                 onPress={() => {
@@ -471,18 +477,18 @@ export default function BookingDetail() {
                   // TODO: Navigate to booking view page
                   console.log("View booking");
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="eye-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">View Booking</Text>
+                <Ionicons name="eye-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">View Booking</Text>
               </TouchableOpacity>
 
               {/* Separator */}
-              <View className="h-px bg-[#E5E5EA] mx-6 my-1" />
+              <View className="h-px bg-gray-200 mx-4 my-2" />
               
               {/* Edit event label */}
-              <View className="pl-8 pr-6 py-0.5">
-                <Text className="text-xs text-[#999]">Edit event</Text>
+              <View className="px-4 py-1">
+                <Text className="text-xs text-gray-500 font-medium">Edit event</Text>
               </View>
 
               {/* Request Reschedule */}
@@ -491,10 +497,10 @@ export default function BookingDetail() {
                   setShowActionsModal(false);
                   setShowRescheduleModal(true);
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="send-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Send Reschedule Request</Text>
+                <Ionicons name="send-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">Send Reschedule Request</Text>
               </TouchableOpacity>
 
               {/* Edit Location */}
@@ -504,10 +510,10 @@ export default function BookingDetail() {
                   // TODO: Open edit location dialog
                   console.log("Edit location");
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="location-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Edit Location</Text>
+                <Ionicons name="location-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">Edit Location</Text>
               </TouchableOpacity>
 
               {/* Add Guests */}
@@ -517,18 +523,18 @@ export default function BookingDetail() {
                   // TODO: Open add guests dialog
                   console.log("Add guests");
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="person-add-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Add Guests</Text>
+                <Ionicons name="person-add-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">Add Guests</Text>
               </TouchableOpacity>
 
               {/* Separator */}
-              <View className="h-px bg-[#E5E5EA] mx-6 my-1" />
+              <View className="h-px bg-gray-200 mx-4 my-2" />
               
               {/* After event label */}
-              <View className="pl-8 pr-6 py-0.5">
-                <Text className="text-xs text-[#999]">After event</Text>
+              <View className="px-4 py-1">
+                <Text className="text-xs text-gray-500 font-medium">After event</Text>
               </View>
 
               {/* View Recordings */}
@@ -539,10 +545,10 @@ export default function BookingDetail() {
                     // TODO: Open view recordings dialog
                     console.log("View recordings");
                   }}
-                  className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                  className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
                 >
-                  <Ionicons name="videocam-outline" size={20} color="#333" />
-                  <Text className="text-sm text-[#333] ml-3">View Recordings</Text>
+                  <Ionicons name="videocam-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">View Recordings</Text>
                 </TouchableOpacity>
               )}
 
@@ -554,10 +560,10 @@ export default function BookingDetail() {
                     // TODO: Open session details dialog
                     console.log("Meeting session details");
                   }}
-                  className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                  className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
                 >
-                  <Ionicons name="information-circle-outline" size={20} color="#333" />
-                  <Text className="text-sm text-[#333] ml-3">Meeting Session Details</Text>
+                  <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Meeting Session Details</Text>
                 </TouchableOpacity>
               )}
 
@@ -568,14 +574,14 @@ export default function BookingDetail() {
                   // TODO: Mark as no-show
                   console.log("Mark as no-show");
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="eye-off-outline" size={20} color="#333" />
-                <Text className="text-sm text-[#333] ml-3">Mark as No-Show</Text>
+                <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">Mark as No-Show</Text>
               </TouchableOpacity>
 
               {/* Separator */}
-              <View className="h-px bg-[#E5E5EA] mx-6 my-1" />
+              <View className="h-px bg-gray-200 mx-4 my-2" />
 
               {/* Report Booking */}
               <TouchableOpacity
@@ -584,14 +590,14 @@ export default function BookingDetail() {
                   // TODO: Open report booking dialog
                   console.log("Report booking");
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="flag-outline" size={20} color="#FF3B30" />
-                <Text className="text-sm text-[#FF3B30] ml-3">Report Booking</Text>
+                <Ionicons name="flag-outline" size={20} color="#EF4444" />
+                <Text className="ml-3 text-base text-red-500">Report Booking</Text>
               </TouchableOpacity>
 
               {/* Separator */}
-              <View className="h-px bg-[#E5E5EA] mx-6 my-1" />
+              <View className="h-px bg-gray-200 mx-4 my-2" />
 
               {/* Cancel Booking */}
               <TouchableOpacity
@@ -613,14 +619,25 @@ export default function BookingDetail() {
                     ]
                   );
                 }}
-                className="flex-row items-center pl-8 pr-6 py-2 active:bg-[#F8F9FA]"
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
               >
-                <Ionicons name="close-circle-outline" size={20} color="#FF3B30" />
-                <Text className="text-sm text-[#FF3B30] ml-3">Cancel Booking</Text>
+                <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
+                <Text className="ml-3 text-base text-red-500">Cancel Booking</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+            
+            {/* Cancel button */}
+            <View className="p-2 md:p-4 border-t border-gray-200">
+              <TouchableOpacity
+                className="w-full p-3 bg-gray-100 rounded-lg"
+                onPress={() => setShowActionsModal(false)}>
+                <Text className="text-center text-base font-medium text-gray-700">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       {/* Reschedule Modal */}

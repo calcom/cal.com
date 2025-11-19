@@ -3,6 +3,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: 'extension',
   entrypointsDir: 'entrypoints',
+  publicDir: 'extension/public',
   outDir: '.output',
   manifest: {
     name: 'Cal.com Companion',
@@ -13,7 +14,17 @@ export default defineConfig({
       extension_pages: "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
     },
     action: {
-      default_title: 'Cal.com Companion'
+      default_title: 'Cal.com Companion',
+      default_icon: {
+        '16': 'icon-16.png',
+        '48': 'icon-48.png',
+        '128': 'icon-128.png'
+      }
+    },
+    icons: {
+      '16': 'icon-16.png',
+      '48': 'icon-48.png',
+      '128': 'icon-128.png'
     }
   },
   vite: () => ({
