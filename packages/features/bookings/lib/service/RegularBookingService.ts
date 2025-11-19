@@ -1,6 +1,8 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+
+
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -115,6 +117,7 @@ import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
+import { loadAndProcessUsersWithSeats } from "../handleNewBooking/loadAndProcessUsersWithSeats";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
@@ -126,7 +129,7 @@ import type { IBookingService } from "../interfaces/IBookingService";
 
 const translator = short();
 
-type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
+export type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
 
@@ -627,14 +630,20 @@ async function handler(
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
-    eventType,
-    bookingStartTime: reqBody.start,
-    userId,
-    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
-    paymentAppData,
-    bookerEmail,
-  });
+  const { userReschedulingIsOwner, isConfirmedByDefault: baseIsConfirmedByDefault } =
+    await getRequiresConfirmationFlags({
+      eventType,
+      bookingStartTime: reqBody.start,
+      userId,
+      originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+      paymentAppData,
+      bookerEmail,
+    });
+
+  // Override isConfirmedByDefault if availability check from parent indicates slot is not available
+  // This forces the booking to be created as PENDING instead of ACCEPTED
+  const isConfirmedByDefault =
+    input.bookingData._availabilityOverride?.isAvailable === false ? false : baseIsConfirmedByDefault;
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
   if (
@@ -784,8 +793,17 @@ async function handler(
     routingFormResponse,
   });
 
-  // We filter out users but ensure allHostUsers remain same.
-  let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
+  const processedUsersResult = await loadAndProcessUsersWithSeats({
+    qualifiedRRUsers,
+    additionalFallbackRRUsers,
+    fixedUsers,
+    eventType,
+    reqBodyStart: reqBody.start,
+    prismaClient: deps.prismaClient,
+  });
+  
+  let users = processedUsersResult.users;
+  const isFirstSeat = processedUsersResult.isFirstSeat;
 
   const firstUser = users[0];
 
@@ -804,42 +822,7 @@ async function handler(
   }
 
   let luckyUserResponse;
-  let isFirstSeat = true;
   let availableUsers: IsFixedAwareUser[] = [];
-
-  if (eventType.seatsPerTimeSlot) {
-    const booking = await deps.prismaClient.booking.findFirst({
-      where: {
-        eventTypeId: eventType.id,
-        startTime: new Date(dayjs(reqBody.start).utc().format()),
-        status: BookingStatus.ACCEPTED,
-      },
-      select: {
-        userId: true,
-        attendees: { select: { email: true } },
-      },
-    });
-
-    if (booking) {
-      isFirstSeat = false;
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        const fixedHosts = users.filter((user) => user.isFixed);
-        const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
-
-        if (originalNonFixedHost) {
-          users = [...fixedHosts, originalNonFixedHost];
-        } else {
-          const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
-
-          // In this case, the first booking user is a fixed host, so the chosen non-fixed host is added as an attendee of the booking
-          const nonFixedAttendeeHost = users.find(
-            (user) => !user.isFixed && attendeeEmailSet.has(user.email)
-          );
-          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
-        }
-      }
-    }
-  }
 
   //checks what users are available
   if (isFirstSeat) {
@@ -855,10 +838,14 @@ async function handler(
         },
       }),
     };
+    // Skip this availability check if we have an override from parent recurring booking
+    const hasAvailabilityOverride = !!input.bookingData._availabilityOverride;
+
     if (
       input.bookingData.allRecurringDates &&
       input.bookingData.isFirstRecurringSlot &&
-      input.bookingData.numSlotsToCheckForAvailability
+      input.bookingData.numSlotsToCheckForAvailability &&
+      !hasAvailabilityOverride // Skip if parent already checked
     ) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
@@ -911,7 +898,7 @@ async function handler(
       }
     }
 
-    if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+    if (!input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
       try {
         if (!skipAvailabilityCheck) {
           availableUsers = await ensureAvailableUsers(

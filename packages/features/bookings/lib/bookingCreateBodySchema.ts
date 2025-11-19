@@ -91,6 +91,16 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         .optional(),
       luckyUsers: z.array(z.number()).optional(),
       customInputs: z.undefined().optional(),
+      /**
+       * Override availability check for this specific booking slot.
+       * When set to false, the booking will be created as PENDING regardless of requiresConfirmation setting.
+       * Used by recurring bookings to pass pre-checked availability from parent to child bookings.
+       */
+      _availabilityOverride: z
+        .object({
+          isAvailable: z.boolean(),
+        })
+        .optional(),
     })
     .merge(recurringBookingCreateBodyPartialSchema)
 );
