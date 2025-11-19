@@ -96,32 +96,46 @@ export class CalComOAuthService {
    */
   static async exchangeCodeForTokens(code: string): Promise<OAuthTokenResponse> {
     try {
+      // Cal.com expects application/x-www-form-urlencoded
+      const params = new URLSearchParams({
+        code,
+        client_id: OAUTH_CONFIG.clientId,
+        client_secret: OAUTH_CONFIG.clientSecret,
+        grant_type: 'authorization_code',
+        redirect_uri: OAUTH_CONFIG.redirectUri,
+      });
+
+      console.log('Token exchange request:', {
+        endpoint: OAUTH_CONFIG.tokenEndpoint,
+        client_id: OAUTH_CONFIG.clientId,
+        redirect_uri: OAUTH_CONFIG.redirectUri,
+        code_length: code.length,
+      });
+
       const response = await fetch(OAUTH_CONFIG.tokenEndpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          code,
-          client_id: OAUTH_CONFIG.clientId,
-          client_secret: OAUTH_CONFIG.clientSecret,
-          grant_type: 'authorization_code',
-          redirect_uri: OAUTH_CONFIG.redirectUri,
-        }),
+        body: params.toString(),
       });
 
+      const responseText = await response.text();
+      console.log('Token exchange response status:', response.status);
+      console.log('Token exchange response:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Token exchange failed:', errorText);
-        throw new Error(`Token exchange failed: ${response.status}`);
+        console.error('Token exchange failed:', responseText);
+        throw new Error(`Token exchange failed: ${response.status} - ${responseText}`);
       }
 
-      const data = await response.json();
+      const data = JSON.parse(responseText);
       
       if (!data.access_token || !data.refresh_token) {
         throw new Error('Invalid token response: missing tokens');
       }
 
+      console.log('Token exchange successful!');
       return data;
     } catch (error) {
       console.error('Error exchanging code for tokens:', error);
