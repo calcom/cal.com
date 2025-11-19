@@ -4,14 +4,12 @@
   - The primary key for the `AuditActor` table will be changed. If it partially fails, the table could be left without primary key constraint.
   - Changed the type of `id` on the `AuditActor` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
   - Changed the type of `actorId` on the `BookingAudit` table to UUID.
-  - Changed the type of `bookingUid` on the `BookingAudit` table to UUID.
 
 */
 
 ALTER TABLE "public"."BookingAudit" DROP CONSTRAINT "BookingAudit_actorId_fkey";
 
 ALTER TABLE "public"."BookingAudit" ALTER COLUMN "actorId" TYPE UUID USING "actorId"::UUID;
-ALTER TABLE "public"."BookingAudit" ALTER COLUMN "bookingUid" TYPE UUID USING "bookingUid"::UUID;
 
 ALTER TABLE "public"."AuditActor" DROP CONSTRAINT "AuditActor_pkey";
 
