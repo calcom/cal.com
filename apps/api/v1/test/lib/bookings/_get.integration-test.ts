@@ -16,14 +16,33 @@ const DefaultPagination = {
   skip: 0,
 };
 
-describe("GET /api/bookings", () => {
-  let proUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
-  let proUserBooking: Awaited<ReturnType<typeof prisma.booking.findFirstOrThrow>>;
-
+describe("GET /api/bookings", async () => {
   beforeAll(async () => {
-    proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-    proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
+    const acmeOrg = await prisma.team.findFirst({
+      where: {
+        slug: "acme",
+        isOrganization: true,
+      },
+    });
+
+    if (acmeOrg) {
+      await prisma.organizationSettings.upsert({
+        where: {
+          organizationId: acmeOrg.id,
+        },
+        update: {
+          isAdminAPIEnabled: true,
+        },
+        create: {
+          organizationId: acmeOrg.id,
+          orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
+        },
+      });
+    }
   });
+  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
+  const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
   it("Does not return bookings of other users when user has no permission", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
