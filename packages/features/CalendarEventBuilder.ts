@@ -1,8 +1,8 @@
+import type { TFunction } from "i18next";
+import { ALL_APPS } from "@calcom/app-store/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import type { TFunction } from "i18next";
-
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
@@ -11,6 +11,8 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
 type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
@@ -189,6 +191,8 @@ export class CalendarEventBuilder {
 
     // Video
     if (videoCallData && videoCallData.id && videoCallData.password && videoCallData.url) {
+      const appName = APP_TYPE_TO_NAME_MAP.get(videoCallData.type) || videoCallData.type;
+
       builder
         .withVideoCallData({
           ...videoCallData,
@@ -196,9 +200,7 @@ export class CalendarEventBuilder {
           password: videoCallData.password,
           url: videoCallData.url,
         })
-        .withAppsStatus([
-          { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
-        ]);
+        .withAppsStatus([{ appName, type: videoCallData.type, success: 1, failures: 0, errors: [] }]);
     } else {
       builder.withAppsStatus([]);
     }
