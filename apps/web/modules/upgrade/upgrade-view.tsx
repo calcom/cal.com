@@ -40,7 +40,7 @@ export default function UpgradePage() {
             buttonRaw={
               <Button
                 onClick={() => {
-                  publishOrgMutation.mutate({});
+                  publishOrgMutation.mutate();
                 }}>
                 {t("upgrade")}
               </Button>

@@ -58,16 +58,6 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
     },
   });
 
-  const handleFormSubmit = async (v: NewTeamFormValues) => {
-    if (!createTeamMutation.isPending) {
-      setServerErrorMessage(null);
-
-      createTeamMutation.mutate({
-        ...v,
-      });
-    }
-  };
-
   const FormButtons = () => (
     <>
       <Button
@@ -91,7 +81,14 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
 
   return (
     <>
-      <Form form={newTeamFormMethods} handleSubmit={handleFormSubmit}>
+      <Form
+        form={newTeamFormMethods}
+        handleSubmit={(v) => {
+          if (!createTeamMutation.isPending) {
+            setServerErrorMessage(null);
+            createTeamMutation.mutate(v);
+          }
+        }}>
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">
