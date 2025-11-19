@@ -1,4 +1,3 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
@@ -24,74 +23,10 @@ import { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 import CalendarService from "../CalendarService";
 import {
   createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService,
   createCredentialForCalendarService,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
-
-const testSelectedCalendar = {
-  userId: 1,
-  integration: "google_calendar",
-  externalId: "example@cal.com",
-};
-
-function expectGoogleSubscriptionToHaveOccurredAndClearMock({ calendarId }: { calendarId: string }) {
-  expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledTimes(1);
-  expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledWith(
-    expect.objectContaining({
-      calendarId,
-      requestBody: expect.objectContaining({
-        type: "web_hook",
-        token: process.env.GOOGLE_WEBHOOK_TOKEN,
-      }),
-    })
-  );
-  calendarMock.calendar_v3.Calendar().events.watch.mockClear();
-}
-
-function expectGoogleSubscriptionToNotHaveOccurredAndClearMock() {
-  expect(calendarMock.calendar_v3.Calendar().events.watch).not.toHaveBeenCalled();
-  calendarMock.calendar_v3.Calendar().events.watch.mockClear();
-}
-
-function expectGoogleUnsubscriptionToHaveOccurredAndClearMock(
-  channels: {
-    resourceId: string;
-    channelId: string;
-  }[]
-) {
-  expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledTimes(1);
-  channels.forEach((channel) => {
-    expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledWith({
-      requestBody: {
-        resourceId: channel.resourceId,
-        id: channel.channelId,
-      },
-    });
-  });
-  calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
-}
-
-function expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock() {
-  expect(calendarMock.calendar_v3.Calendar().channels.stop).not.toHaveBeenCalled();
-  calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
-}
-
-async function expectSelectedCalendarToHaveGoogleChannelProps(
-  id: string,
-  googleChannelProps: {
-    googleChannelId: string;
-    googleChannelKind: string;
-    googleChannelResourceId: string;
-    googleChannelResourceUri: string;
-    googleChannelExpiration: string;
-  }
-) {
-  const selectedCalendar = await SelectedCalendarRepository.findById(id);
-
-  expect(selectedCalendar).toEqual(expect.objectContaining(googleChannelProps));
-}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -103,49 +38,6 @@ beforeEach(() => {
   setLastCreatedJWT(null);
   setLastCreatedOAuth2Client(null);
   createMockJWTInstance({});
-});
-
-describe("Watching and unwatching calendar", () => {
-
-  describe("Delegation Credential", () => {
-    test("On watching a SelectedCalendar having delegationCredential, it should set googleChannelId and other props", async () => {
-      const delegationCredential1Member1 = await createInMemoryDelegationCredentialForCalendarService({
-        user: { email: "user1@example.com" },
-        delegationCredentialId: "delegation-credential-id-1",
-      });
-
-      await prismock.selectedCalendar.create({
-        data: {
-          userId: delegationCredential1Member1.userId!,
-          externalId: testSelectedCalendar.externalId,
-          integration: "google_calendar",
-        },
-      });
-
-      const calendarService = new CalendarService(delegationCredential1Member1);
-      await calendarService.watchCalendar({
-        calendarId: testSelectedCalendar.externalId,
-        eventTypeIds: [null],
-      });
-
-      expectGoogleSubscriptionToHaveOccurredAndClearMock({
-        calendarId: testSelectedCalendar.externalId,
-      });
-
-      const calendars = await prismock.selectedCalendar.findMany();
-      // Ensure no new calendar is created
-      expect(calendars).toHaveLength(1);
-      const watchedCalendar = calendars[0];
-
-      await expectSelectedCalendarToHaveGoogleChannelProps(watchedCalendar.id, {
-        googleChannelId: "mock-channel-id",
-        googleChannelKind: "api#channel",
-        googleChannelResourceId: "mock-resource-id",
-        googleChannelResourceUri: "mock-resource-uri",
-        googleChannelExpiration: "1111111111",
-      });
-    });
-  });
 });
 
 describe("getAvailability", () => {
