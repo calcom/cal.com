@@ -2366,7 +2366,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: overrideName ?? foundApp.slug,
+    appName: overrideName ?? foundApp.name,
     type: foundApp.type,
     failures,
     success,

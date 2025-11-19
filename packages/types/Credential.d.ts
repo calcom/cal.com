@@ -20,6 +20,7 @@ export type CredentialForCalendarService = CredentialPayload & {
       private_key: string;
     };
   } | null;
+  appName?: string;
 };
 
 export type CredentialForCalendarServiceWithEmail = CredentialPayload & {

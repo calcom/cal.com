@@ -12,7 +12,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -25,7 +25,10 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
+const createMeeting = async (
+  credential: CredentialPayload | CredentialForCalendarService,
+  calEvent: CalendarEvent
+) => {
   const uid: string = getUid(calEvent);
   log.debug(
     "createMeeting",
@@ -53,7 +56,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     createdEvent: VideoCallData | undefined;
     credentialId: number;
   } = {
-    appName: credential.appId || "",
+    appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
     type: credential.type,
     uid,
     originalEvent: calEvent,
@@ -99,7 +102,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
 };
 
 const updateMeeting = async (
-  credential: CredentialPayload,
+  credential: CredentialPayload | CredentialForCalendarService,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -122,7 +125,7 @@ const updateMeeting = async (
       safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
-      appName: credential.appId || "",
+      appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
       type: credential.type,
       success,
       uid,
@@ -131,7 +134,7 @@ const updateMeeting = async (
   }
 
   return {
-    appName: credential.appId || "",
+    appName: ("appName" in credential ? credential.appName : undefined) || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -140,7 +143,10 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
+const deleteMeeting = async (
+  credential: CredentialPayload | CredentialForCalendarService | null,
+  uid: string
+): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
     log.debug(
