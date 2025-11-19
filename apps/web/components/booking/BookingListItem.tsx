@@ -820,11 +820,7 @@ type GroupedAttendeeProps = {
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
-  const { bookingUid } = groupedAttendeeProps;
-  const attendees = groupedAttendeeProps.attendees.map((attendee) => ({
-    ...attendee,
-    noShow: attendee.noShow || false,
-  }));
+  const { bookingUid, attendees } = groupedAttendeeProps;
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
@@ -871,30 +867,46 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="min-w-[300px]">
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {fields.slice(1).map((field, index) => (
-            <Controller
-              key={field.id}
-              name={`attendees.${index + 1}.noShow`}
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <DropdownMenuCheckboxItem
-                  checked={value || false}
-                  onCheckedChange={onChange}
-                  className="pr-8 focus:outline-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onChange(!value);
-                  }}>
-                  <span className={value ? "line-through" : ""}>{field.email}</span>
-                </DropdownMenuCheckboxItem>
-              )}
-            />
-          ))}
+          {fields.slice(1).map((field, index) => {
+            const attendee = attendees[index + 1];
+            const displayName =
+              attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+            const hasName = attendee.name || attendee.user?.name;
+
+            return (
+              <Controller
+                key={field.id}
+                name={`attendees.${index + 1}.noShow`}
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <DropdownMenuCheckboxItem
+                    checked={value || false}
+                    onCheckedChange={onChange}
+                    className="focus:outline-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(!value);
+                    }}>
+                    <div className={`w-full ${value ? "line-through" : ""}`}>
+                      {hasName ? (
+                        <>
+                          <div>{displayName}</div>
+                          <div className="text-subtle text-xs">{field.email}</div>
+                        </>
+                      ) : (
+                        <div>{field.email}</div>
+                      )}
+                    </div>
+                  </DropdownMenuCheckboxItem>
+                )}
+              />
+            );
+          })}
           <DropdownMenuSeparator />
           <div className="flex justify-end p-2">
             <Button
@@ -933,21 +945,35 @@ const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="min-w-[300px]">
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
-        {guests.slice(1).map((guest) => (
-          <DropdownMenuItem key={guest.id}>
-            <DropdownItem
-              className="pr-6 focus:outline-none"
-              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedEmail(guest.email);
-              }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
-            </DropdownItem>
-          </DropdownMenuItem>
-        ))}
+        {guests.slice(1).map((guest) => {
+          const displayName = guest.user?.name || guest.name || guest.user?.email || guest.email;
+          const hasName = guest.name || guest.user?.name;
+
+          return (
+            <DropdownMenuItem key={guest.id}>
+              <DropdownItem
+                className="pr-6 focus:outline-none"
+                StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedEmail(guest.email);
+                }}>
+                <div className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>
+                  {hasName ? (
+                    <>
+                      <div>{displayName}</div>
+                      <div className="text-subtle text-xs">{guest.email}</div>
+                    </>
+                  ) : (
+                    <div>{guest.email}</div>
+                  )}
+                </div>
+              </DropdownItem>
+            </DropdownMenuItem>
+          );
+        })}
         <DropdownMenuSeparator />
         <div className="flex justify-end space-x-2 p-2">
           <Link href={`mailto:${selectedEmail}`}>
