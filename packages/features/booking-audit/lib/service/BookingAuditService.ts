@@ -1,5 +1,4 @@
 import type { JsonValue } from "@calcom/types/Json";
-import type { TFunction } from "next-i18next";
 
 import logger from "@calcom/lib/logger";
 
@@ -47,7 +46,7 @@ type BookingAudit = {
 };
 
 /**
- * BookingAuditService - Central service for all booking audit operations
+ * BookingAuditService - Central service for booking audit write operations
  * Handles audit creation (write operations only)
  * Read/display operations are handled by BookingAuditViewerService
  * Each action service manages its own schema versioning
@@ -347,133 +346,5 @@ export class BookingAuditService {
             data: parsedData,
             timestamp: new Date(),
         });
-    }
-
-    // ============== READ OPERATIONS (Display) ==============
-
-    /**
-     * Get human-readable display summary for audit entry (i18n-aware)
-     */
-    getDisplaySummary(audit: BookingAudit, t: TFunction): string {
-        switch (audit.action) {
-            case "CREATED": {
-                const data = this.createdActionService.parseStored(audit.data);
-                return this.createdActionService.getDisplaySummary(data, t);
-            }
-            case "ACCEPTED": {
-                const data = this.acceptedActionService.parseStored(audit.data);
-                return this.acceptedActionService.getDisplaySummary(data, t);
-            }
-            case "CANCELLED": {
-                const data = this.cancelledActionService.parseStored(audit.data);
-                return this.cancelledActionService.getDisplaySummary(data, t);
-            }
-            case "REJECTED": {
-                const data = this.rejectedActionService.parseStored(audit.data);
-                return this.rejectedActionService.getDisplaySummary(data, t);
-            }
-            case "RESCHEDULED": {
-                const data = this.rescheduledActionService.parseStored(audit.data);
-                return this.rescheduledActionService.getDisplaySummary(data, t);
-            }
-            case "RESCHEDULE_REQUESTED": {
-                const data = this.rescheduleRequestedActionService.parseStored(audit.data);
-                return this.rescheduleRequestedActionService.getDisplaySummary(data, t);
-            }
-            case "ATTENDEE_ADDED": {
-                const data = this.attendeeAddedActionService.parseStored(audit.data);
-                return this.attendeeAddedActionService.getDisplaySummary(data, t);
-            }
-            case "ATTENDEE_REMOVED": {
-                const data = this.attendeeRemovedActionService.parseStored(audit.data);
-                return this.attendeeRemovedActionService.getDisplaySummary(data, t);
-            }
-            case "REASSIGNMENT": {
-                const data = this.reassignmentActionService.parseStored(audit.data);
-                return this.reassignmentActionService.getDisplaySummary(data, t);
-            }
-            case "LOCATION_CHANGED": {
-                const data = this.locationChangedActionService.parseStored(audit.data);
-                return this.locationChangedActionService.getDisplaySummary(data, t);
-            }
-            case "HOST_NO_SHOW_UPDATED": {
-                const data = this.hostNoShowUpdatedActionService.parseStored(audit.data);
-                return this.hostNoShowUpdatedActionService.getDisplaySummary(data, t);
-            }
-            case "ATTENDEE_NO_SHOW_UPDATED": {
-                const data = this.attendeeNoShowUpdatedActionService.parseStored(audit.data);
-                return this.attendeeNoShowUpdatedActionService.getDisplaySummary(data, t);
-            }
-            default: {
-                if (audit.type === "RECORD_CREATED") {
-                    const data = this.createdActionService.parseStored(audit.data);
-                    return this.createdActionService.getDisplaySummary(data, t);
-                }
-                return t("audit.action_performed");
-            }
-        }
-    }
-
-    /**
-     * Get detailed key-value pairs for audit entry display
-     */
-    getDisplayDetails(audit: BookingAudit, t: TFunction): Record<string, string> {
-        switch (audit.action) {
-            case "CREATED": {
-                const data = this.createdActionService.parseStored(audit.data);
-                return this.createdActionService.getDisplayDetails(data, t);
-            }
-            case "ACCEPTED": {
-                const data = this.acceptedActionService.parseStored(audit.data);
-                return this.acceptedActionService.getDisplayDetails(data, t);
-            }
-            case "CANCELLED": {
-                const data = this.cancelledActionService.parseStored(audit.data);
-                return this.cancelledActionService.getDisplayDetails(data, t);
-            }
-            case "REJECTED": {
-                const data = this.rejectedActionService.parseStored(audit.data);
-                return this.rejectedActionService.getDisplayDetails(data, t);
-            }
-            case "RESCHEDULED": {
-                const data = this.rescheduledActionService.parseStored(audit.data);
-                return this.rescheduledActionService.getDisplayDetails(data, t);
-            }
-            case "RESCHEDULE_REQUESTED": {
-                const data = this.rescheduleRequestedActionService.parseStored(audit.data);
-                return this.rescheduleRequestedActionService.getDisplayDetails(data, t);
-            }
-            case "ATTENDEE_ADDED": {
-                const data = this.attendeeAddedActionService.parseStored(audit.data);
-                return this.attendeeAddedActionService.getDisplayDetails(data, t);
-            }
-            case "ATTENDEE_REMOVED": {
-                const data = this.attendeeRemovedActionService.parseStored(audit.data);
-                return this.attendeeRemovedActionService.getDisplayDetails(data, t);
-            }
-            case "REASSIGNMENT": {
-                const data = this.reassignmentActionService.parseStored(audit.data);
-                return this.reassignmentActionService.getDisplayDetails(data, t);
-            }
-            case "LOCATION_CHANGED": {
-                const data = this.locationChangedActionService.parseStored(audit.data);
-                return this.locationChangedActionService.getDisplayDetails(data, t);
-            }
-            case "HOST_NO_SHOW_UPDATED": {
-                const data = this.hostNoShowUpdatedActionService.parseStored(audit.data);
-                return this.hostNoShowUpdatedActionService.getDisplayDetails(data, t);
-            }
-            case "ATTENDEE_NO_SHOW_UPDATED": {
-                const data = this.attendeeNoShowUpdatedActionService.parseStored(audit.data);
-                return this.attendeeNoShowUpdatedActionService.getDisplayDetails(data, t);
-            }
-            default: {
-                if (audit.type === "RECORD_CREATED") {
-                    const data = this.createdActionService.parseStored(audit.data);
-                    return this.createdActionService.getDisplayDetails(data, t);
-                }
-                return {};
-            }
-        }
     }
 }
