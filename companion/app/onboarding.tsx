@@ -12,12 +12,34 @@ export default function Onboarding() {
     try {
       setLoading(true);
       
-      // Start OAuth flow
-      await CalComOAuthService.authorize();
-      
-      // Note: User will be redirected to Cal.com authorization page
-      // After authorization, they'll be redirected back to /oauth/callback
-      // which will handle the token exchange and navigate to main app
+      if (Platform.OS === 'ios') {
+        // For iOS, open OAuth in WebView instead of external browser
+        const state = Math.random().toString(36).substring(2, 15) + 
+                     Math.random().toString(36).substring(2, 15);
+        
+        // TEMPORARY: Use http://localhost:8081/oauth/callback for testing
+        // This should already be registered with Cal.com
+        // Once Cal.com adds expo-wxt-app://oauth/callback, switch back to it
+        const redirectUri = 'http://localhost:8081/oauth/callback';
+        const authUrl = `https://app.cal.com/auth/oauth2/authorize?` +
+          `client_id=${encodeURIComponent(process.env.EXPO_PUBLIC_CAL_CLIENT_ID || '')}&` +
+          `state=${encodeURIComponent(state)}&` +
+          `redirect_uri=${encodeURIComponent(redirectUri)}`;
+        
+        // Navigate to WebView screen with the auth URL
+        router.push({
+          pathname: '/oauth/webview',
+          params: { authUrl },
+        });
+        setLoading(false);
+      } else {
+        // For web and Android, use the original flow (external browser)
+        await CalComOAuthService.authorize();
+        
+        // Note: User will be redirected to Cal.com authorization page
+        // After authorization, they'll be redirected back to /oauth/callback
+        // which will handle the token exchange and navigate to main app
+      }
       
     } catch (error) {
       console.error('OAuth flow error:', error);

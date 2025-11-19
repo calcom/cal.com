@@ -22,6 +22,7 @@ export default function RootLayout() {
 
     // Listen for deep link events while app is running
     const subscription = Linking.addEventListener('url', (event) => {
+      console.log('RAW URL EVENT:', event.url);
       handleDeepLink(event.url);
     });
 
@@ -34,6 +35,18 @@ export default function RootLayout() {
 
   const handleDeepLink = (url: string) => {
     console.log('Deep link received:', url);
+    
+    // Ignore if URL is from Cal.com (these are WebView navigations, not deep links)
+    if (url.includes('app.cal.com') || url.includes('cal.com')) {
+      console.log('Ignoring Cal.com URL - this is a WebView navigation');
+      return;
+    }
+    
+    // Only process our app's custom scheme deep links
+    if (!url.startsWith('expo-wxt-app://')) {
+      console.log('Ignoring non-app deep link:', url);
+      return;
+    }
     
     // Parse the URL
     const { hostname, path, queryParams } = ExpoLinking.parse(url);
@@ -58,6 +71,7 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="oauth/callback" options={{ headerShown: false }} />
+      <Stack.Screen name="oauth/webview" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="oauth-helper" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
