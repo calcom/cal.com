@@ -64,15 +64,10 @@ export default class OrganizerMultipleAttendeesCancelledSeatEmail extends Organi
   }
 
   protected getTextBody(): string {
-    const attendeeNames = this.getFormattedAttendeeName();
-    const action = this.isCancelledByHost ? "were_removed" : "have_cancelled";
+    const textBodyKey = this.isCancelledByHost
+      ? "event_request_cancelled_by_host"
+      : "event_request_cancelled";
 
-    return this.t("attendees_cancelled_seats_text", {
-      attendees: attendeeNames,
-      action: this.t(action),
-      eventType: this.calEvent.type,
-      name: this.calEvent.attendees[0]?.name || this.t("guest"),
-      date: this.getFormattedDate(),
-    });
+    return super.getTextBody(textBodyKey);
   }
 }

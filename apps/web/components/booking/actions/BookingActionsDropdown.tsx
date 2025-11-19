@@ -421,8 +421,6 @@ export function BookingActionsDropdown({ booking, context, size = "base" }: Book
         isOpen={isRemoveSeatsDialogOpen}
         onClose={() => setIsRemoveSeatsDialogOpen(false)}
         onSuccess={() => {
-          utils.viewer.bookings.invalidate();
-          showToast(t("seats_removed_successfully"), "success");
         }}
       />
       {booking.paid && booking.payment[0] && (

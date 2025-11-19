@@ -329,6 +329,13 @@ async function handler(input: CancelBookingInput) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
+  if (!isCancelledByHostOrAdmin && seatReferenceUids.length === 0) {
+    throw new HttpError({
+      statusCode: 403,
+      message: "You are not authorized to cancel this booking",
+    });
+  }
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
