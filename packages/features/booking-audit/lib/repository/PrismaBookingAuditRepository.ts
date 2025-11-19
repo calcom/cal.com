@@ -12,6 +12,7 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
         return this.deps.prismaClient.bookingAudit.create({
             data: {
                 bookingUid: bookingAudit.bookingUid,
+                linkedBookingUid: bookingAudit.linkedBookingUid ?? null,
                 actorId: bookingAudit.actorId,
                 action: bookingAudit.action,
                 type: bookingAudit.type,

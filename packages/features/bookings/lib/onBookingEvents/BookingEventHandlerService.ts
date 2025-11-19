@@ -61,12 +61,8 @@ export class BookingEventHandlerService {
     }
   }
 
-  // TODO: actor to be made required in followup PR
   async onBookingRescheduled(payload: BookingRescheduledPayload, actor?: Actor) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (payload.config.isDryRun) {
-      return;
-    }
     await this.onBookingCreatedOrRescheduled(payload);
 
     if (!actor) {
@@ -76,11 +72,11 @@ export class BookingEventHandlerService {
     try {
       const auditData = {
         startTime: {
-          old: payload.oldBooking?.startTime.toISOString() ?? null,
+          old: payload.oldBooking.startTime.toISOString(),
           new: payload.booking.startTime.toISOString(),
         },
         endTime: {
-          old: payload.oldBooking?.endTime.toISOString() ?? null,
+          old: payload.oldBooking.endTime.toISOString(),
           new: payload.booking.endTime.toISOString(),
         },
         rescheduledToUid: {
@@ -88,7 +84,9 @@ export class BookingEventHandlerService {
           new: payload.booking.uid,
         },
       };
+      // Store audit against the ORIGINAL booking, with link to NEW booking
       await this.bookingAuditService.onBookingRescheduled(
+        payload.oldBooking.uid,
         payload.booking.uid,
         actor,
         auditData
