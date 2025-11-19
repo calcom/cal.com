@@ -200,6 +200,18 @@ export class StripeBillingService implements BillingService {
     return price;
   }
 
+  async getInvoices(customerId: string, limit: number = 10) {
+    const invoices = await this.stripe.invoices.list({
+      customer: customerId,
+      limit,
+    });
+    return invoices.data;
+  }
+
+  async getSubscription(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    return subscription;
+  }
   static extractSubscriptionDates(subscription: {
     start_date: number;
     trial_end?: number | null;
