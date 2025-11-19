@@ -106,7 +106,7 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
-            "flex items-start! justify-center mt-0.5 h-full",
+            "flex items-start! justify-center mt-1 h-full",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
@@ -219,7 +219,6 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}
