@@ -40,15 +40,7 @@ const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NE
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
-  typeof error === "object" && !!error && error.hasOwnProperty("config");
-
-type GoogleChannelProps = {
-  kind?: string | null;
-  id?: string | null;
-  resourceId?: string | null;
-  resourceUri?: string | null;
-  expiration?: string | null;
-};
+  typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -478,11 +470,10 @@ export default class GoogleCalendarService implements Calendar {
     return validCals[0];
   }
 
-  async getCacheOrFetchAvailability(
+  async getFreeBusyData(
     args: FreeBusyArgs,
-    shouldServeCache?: boolean
   ): Promise<(EventBusyDate & { id: string })[] | null> {
-    const freeBusyResult = await this.getFreeBusyResult(args, shouldServeCache);
+    const freeBusyResult = await this.getFreeBusyResult(args);
     if (!freeBusyResult.calendars) return null;
 
     const result = Object.entries(freeBusyResult.calendars).reduce((c, [id, i]) => {
@@ -545,7 +536,7 @@ export default class GoogleCalendarService implements Calendar {
     try {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
       const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
-      const freeBusyData = await this.getCacheOrFetchAvailability({
+      const freeBusyData = await this.getFreeBusyData({
         timeMin: dateFrom,
         timeMax: dateTo,
         items: calIds,
@@ -628,7 +619,7 @@ export default class GoogleCalendarService implements Calendar {
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
-      const freeBusyData = await this.getCacheOrFetchAvailability(
+      const freeBusyData = await this.getFreeBusyData(
         {
           timeMin: dateFrom,
           timeMax: dateTo,
@@ -657,7 +648,7 @@ export default class GoogleCalendarService implements Calendar {
         currentEndTime = originalEndTime;
       }
 
-      const chunkData = await this.getCacheOrFetchAvailability(
+      const chunkData = await this.getFreeBusyData(
         {
           timeMin: new Date(currentStartTime).toISOString(),
           timeMax: new Date(currentEndTime).toISOString(),
