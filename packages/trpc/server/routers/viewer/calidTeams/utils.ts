@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { CalIdMembershipRole } from "@calcom/prisma/enums";
@@ -151,10 +152,19 @@ async function createCalIdMembershipForExistingUser(
 
 export async function createUserForInvitation(email: string, calIdTeamId: number, role: CalIdMembershipRole) {
   // Create a new user for the invitation
+
+  const prefixUsername = email.split("@")[0];
+
+  const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+    username: prefixUsername,
+  });
+
+  const username = existingUserWithUsername ? usernameSlugRandom(prefixUsername) : prefixUsername;
+
   const newUser = await prisma.user.create({
     data: {
       email,
-      username: email.split("@")[0], // Use email prefix as username
+      username: username, // Use email prefix as username
       verified: false, // User needs to verify their email
       invitedTo: calIdTeamId,
     },
