@@ -7,7 +7,8 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -439,10 +440,7 @@ export class WorkflowRepository {
     });
 
     if (!workflow) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Workflow not found",
-      });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Workflow not found");
     }
 
     return workflow.activeOn.map((active) => active.eventTypeId);

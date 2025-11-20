@@ -1,4 +1,5 @@
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 
 import type { BookingToDelete } from "./getBookingToDelete";
@@ -27,10 +28,10 @@ export async function handleInternalNote({
   const userIsOwnerOfEventType = booking?.eventType?.owner?.id === userId;
 
   if (!userIsHost && !userIsOwnerOfEventType) {
-    throw new HttpError({
-      statusCode: 403,
-      message: "You do not have permission to add an internal note to this booking.",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.Forbidden,
+      "You do not have permission to add an internal note to this booking."
+    );
   }
 
   // "Other"

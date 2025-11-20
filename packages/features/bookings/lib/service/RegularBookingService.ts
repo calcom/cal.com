@@ -65,7 +65,6 @@ import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { HttpError } from "@calcom/lib/http-error";
 import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -324,10 +323,10 @@ export const buildEventForTeamEventType = async ({
     .build();
 
   if (!updatedEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build event with destination calendar due to missing required fields",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.RequestBodyInvalid,
+      "Failed to build event with destination calendar due to missing required fields"
+    );
   }
 
   evt = updatedEvt;
@@ -341,10 +340,10 @@ export const buildEventForTeamEventType = async ({
     .build();
 
   if (!teamEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build team event due to missing required fields",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.RequestBodyInvalid,
+      "Failed to build team event due to missing required fields"
+    );
   }
 
   return teamEvt;
@@ -546,7 +545,7 @@ async function handler(
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
-      throw new HttpError({ statusCode: 403, message: error.message });
+      throw new ErrorWithCode(ErrorCode.Forbidden, error.message);
     }
     throw error;
   }
@@ -570,20 +569,16 @@ async function handler(
   if (eventType.requiresBookerEmailVerification && !rawBookingData.rescheduleUid) {
     const verificationCode = reqBody.verificationCode;
     if (!verificationCode) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "email_verification_required",
-        data: { traceId: traceContext.traceId },
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "email_verification_required", {
+        traceId: traceContext.traceId,
       });
     }
 
     try {
       await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
     } catch {
-      throw new HttpError({
-        statusCode: 400,
-        message: "invalid_verification_code",
-        data: { traceId: traceContext.traceId },
+      throw new ErrorWithCode(ErrorCode.InvalidVerificationCode, "invalid_verification_code", {
+        traceId: traceContext.traceId,
       });
     }
   }
@@ -598,17 +593,13 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType)
-    throw new HttpError({
-      statusCode: 404,
-      message: "event_type_not_found",
-      data: { traceId: traceContext.traceId },
+    throw new ErrorWithCode(ErrorCode.EventTypeNotFound, "event_type_not_found", {
+      traceId: traceContext.traceId,
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "recurring_event_seats_error",
-      data: { traceId: traceContext.traceId },
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "recurring_event_seats_error", {
+      traceId: traceContext.traceId,
     });
   }
 
@@ -747,10 +738,8 @@ async function handler(
   if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Missing routingFormResponseId",
-        data: { traceId: traceContext.traceId },
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Missing routingFormResponseId", {
+        traceId: traceContext.traceId,
       });
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
@@ -1263,9 +1252,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1311,8 +1300,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1391,10 +1380,10 @@ async function handler(
     .build();
 
   if (!builtEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build calendar event due to missing required fields",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.RequestBodyInvalid,
+      "Failed to build calendar event due to missing required fields"
+    );
   }
 
   let evt: CalendarEvent = builtEvt;
@@ -1405,10 +1394,10 @@ async function handler(
       .build();
 
     if (!updatedEvt) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Failed to build event with recurring event ID due to missing required fields",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.RequestBodyInvalid,
+        "Failed to build event with recurring event ID due to missing required fields"
+      );
     }
 
     evt = updatedEvt;
@@ -1424,7 +1413,7 @@ async function handler(
     });
 
     if (!teamEvt) {
-      throw new HttpError({ statusCode: 400, message: "Failed to build team event" });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to build team event");
     }
 
     evt = teamEvt;
@@ -1636,10 +1625,10 @@ async function handler(
         .build();
 
       if (!updatedEvt) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with new identifiers due to missing required fields",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.RequestBodyInvalid,
+          "Failed to build event with new identifiers due to missing required fields"
+        );
       }
 
       evt = updatedEvt;
@@ -1771,10 +1760,10 @@ async function handler(
         .build();
 
       if (!updatedEvtWithUid) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with UID due to missing required fields",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.RequestBodyInvalid,
+          "Failed to build event with UID due to missing required fields"
+        );
       }
 
       evt = updatedEvtWithUid;
@@ -1784,10 +1773,10 @@ async function handler(
         .build();
 
       if (!updatedEvtWithPassword) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with one-time password due to missing required fields",
-        });
+        throw new ErrorWithCode(
+          ErrorCode.RequestBodyInvalid,
+          "Failed to build event with one-time password due to missing required fields"
+        );
       }
 
       evt = updatedEvtWithPassword;
@@ -1847,10 +1836,8 @@ async function handler(
     const err = getErrorFromUnknown(_err);
     tracingLogger.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {
-      throw new HttpError({
-        statusCode: 409,
-        message: ErrorCode.BookingConflict,
-        data: { traceId: traceContext.traceId },
+      throw new ErrorWithCode(ErrorCode.BookingConflict, ErrorCode.BookingConflict, {
+        traceId: traceContext.traceId,
       });
     }
     throw err;
@@ -1933,14 +1920,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2239,8 +2226,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingFlowConfig = {
@@ -2318,10 +2305,8 @@ async function handler(
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Missing payment credentials",
-        data: { traceId: traceContext.traceId },
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Missing payment credentials", {
+        traceId: traceContext.traceId,
       });
     }
 
@@ -2333,9 +2318,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2511,7 +2496,7 @@ async function handler(
     });
   }
 
-  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+  if (!booking) throw new ErrorWithCode(ErrorCode.InternalServerError, "Booking failed");
 
   try {
     if (!isDryRun) {
@@ -2632,7 +2617,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

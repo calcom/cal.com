@@ -1,18 +1,17 @@
- 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -53,7 +52,7 @@ const createNewSeat = async (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
   ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+    throw new ErrorWithCode(ErrorCode.BookingSeatsFull, ErrorCode.BookingSeatsFull);
   }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
@@ -185,10 +184,10 @@ const createNewSeat = async (
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentCredential });
+      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, ErrorCode.MissingPaymentCredential);
     }
     if (!eventTypePaymentAppCredential?.appId) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
+      throw new ErrorWithCode(ErrorCode.MissingPaymentAppId, ErrorCode.MissingPaymentAppId);
     }
 
     const payment = await handlePayment({

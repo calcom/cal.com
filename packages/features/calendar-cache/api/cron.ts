@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -15,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
-    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Unauthorized");
   }
 };
 

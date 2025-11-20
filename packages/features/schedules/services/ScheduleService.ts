@@ -1,6 +1,7 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
@@ -41,10 +42,7 @@ export class ScheduleService {
     });
 
     if (!userSchedule) {
-      throw new HttpError({
-        statusCode: 401,
-        message: "Unauthorized",
-      });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "Unauthorized");
     }
 
     if (userSchedule?.userId !== user.id) {
@@ -55,10 +53,7 @@ export class ScheduleService {
         input: { memberId: userSchedule.userId },
       });
       if (!hasEditPermission) {
-        throw new HttpError({
-          statusCode: 401,
-          message: "Unauthorized",
-        });
+        throw new ErrorWithCode(ErrorCode.Unauthorized, "Unauthorized");
       }
     }
 
