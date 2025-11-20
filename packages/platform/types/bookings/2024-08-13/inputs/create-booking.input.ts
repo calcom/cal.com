@@ -1,5 +1,5 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
   IsInt,
@@ -36,7 +36,6 @@ import {
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
-import { ValidateBookingFieldsResponses } from "./validators/validate-booking-fields-responses";
 
 export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
   "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
@@ -240,8 +239,13 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsObject()
   @IsOptional()
-  @ValidateBookingFieldsResponses({
-    message: "All values in bookingFieldsResponses must be non-null strings.",
+  @Transform(({ value }) => {
+    if (!value || typeof value !== "object") return value;
+    const transformed: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      transformed[key] = val === null ? "" : val;
+    }
+    return transformed;
   })
   bookingFieldsResponses?: Record<string, unknown>;
 
