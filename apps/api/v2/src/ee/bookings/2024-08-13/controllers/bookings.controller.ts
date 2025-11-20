@@ -218,7 +218,7 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
-    description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
+    description: `Fetches all the recordings for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
 
     <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
@@ -239,7 +239,7 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the transcripts download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
 
     <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
     `,
@@ -560,7 +560,7 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get Video Meeting Sessions. Only supported for Cal Video",
-    description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, event host, team admin, or have the \`booking.readRecordings\` permission for team bookings with PBAC enabled.
+    description: `Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
 
     <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>`,
   })
