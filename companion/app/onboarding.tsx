@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CalComLogo } from '../components/CalComLogo';
-import { CalComOAuthService } from '../services/oauth';
+import { CalComOAuthService, OAUTH_CONFIG } from '../services/oauth';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -17,10 +17,9 @@ export default function Onboarding() {
         const state = Math.random().toString(36).substring(2, 15) + 
                      Math.random().toString(36).substring(2, 15);
         
-        // TEMPORARY: Use http://localhost:8081/oauth/callback for testing
-        // This should already be registered with Cal.com
-        // Once Cal.com adds expo-wxt-app://oauth/callback, switch back to it
-        const redirectUri = 'http://localhost:8081/oauth/callback';
+        // Use the same redirect URI that will be used during token exchange
+        // to avoid redirect_uri mismatch errors from Cal.com
+        const redirectUri = OAUTH_CONFIG.redirectUri;
         const authUrl = `https://app.cal.com/auth/oauth2/authorize?` +
           `client_id=${encodeURIComponent(process.env.EXPO_PUBLIC_CAL_CLIENT_ID || '')}&` +
           `state=${encodeURIComponent(state)}&` +
