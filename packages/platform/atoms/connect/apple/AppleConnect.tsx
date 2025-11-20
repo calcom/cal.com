@@ -147,7 +147,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
               }
             }}>
             <fieldset
-              className="space-y-4"
+              className="stack-y-4"
               disabled={form.formState.isSubmitting}
               data-testid="apple-calendar-form">
               <TextField

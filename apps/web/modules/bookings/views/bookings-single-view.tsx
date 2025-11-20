@@ -738,7 +738,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -1053,7 +1053,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 space-y-1 text-center">
+                      <div className="my-4 stack-y-1 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>

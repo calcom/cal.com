@@ -199,7 +199,7 @@ export default function FileUploader({
 
   return (
     <div>
-      <div className="space-y-3">
+      <div className="stack-y-3">
         <div className="flex items-center gap-2">
           <Label
             htmlFor={id}
@@ -229,7 +229,7 @@ export default function FileUploader({
         </div>
       </div>
       {showFilesList && files.length > 0 && (
-        <div className="mt-2 space-y-1 transition">
+        <div className="mt-2 stack-y-1 transition">
           {files.map((fileData) => (
             <div key={fileData.id} className="flex items-center justify-between rounded-md border">
               <div className="flex min-w-0 items-center gap-2 pl-2">

@@ -43,7 +43,7 @@ function SkeletonItem() {
       </div>
 
       {/* Right side - Event details */}
-      <div className="flex min-w-0 flex-1 flex-col space-y-2">
+      <div className="flex min-w-0 flex-1 flex-col stack-y-2">
         {/* Event title */}
         <SkeletonText className="h-5 w-36" />
         {/* Event description */}

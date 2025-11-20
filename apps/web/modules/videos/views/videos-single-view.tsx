@@ -447,7 +447,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
         className="bg-black/80 p-6 sm:max-w-lg">
         <div className="mt-2 pb-4">
-          <div className="space-y-4">
+          <div className="stack-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
               <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
@@ -516,7 +516,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           {/* Divider */}
           <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
 
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 stack-y-4">
             <div>
               <h4 className="text-base font-semibold text-black dark:text-white">
                 {t("sign_in_to_cal_com")}

@@ -66,7 +66,7 @@ const ResumeOnboardingView = () => {
 
   if (isLoadingOrgOnboarding) {
     return (
-      <SkeletonContainer className="space-y-4">
+      <SkeletonContainer className="stack-y-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-4 w-3/4" />
         <SkeletonText className="h-4 w-1/2" />
@@ -104,7 +104,7 @@ const ResumeOnboardingView = () => {
 
   // Loading state while redirecting
   return (
-    <SkeletonContainer className="space-y-4">
+    <SkeletonContainer className="stack-y-4">
       <SkeletonText className="h-8 w-full" />
       <SkeletonText className="h-4 w-3/4" />
     </SkeletonContainer>

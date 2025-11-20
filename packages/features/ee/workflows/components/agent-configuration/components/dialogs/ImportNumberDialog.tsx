@@ -73,7 +73,7 @@ export function ImportNumberDialog({
         <DialogHeader title={t("import_phone_number")} subtitle={t("import_phone_number_description")} />
 
         <Form form={phoneNumberForm} handleSubmit={(values) => handleImportPhoneNumber(values)}>
-          <div className="space-y-6">
+          <div className="stack-y-6">
             <Controller
               name="phoneNumber"
               control={phoneNumberForm.control}
@@ -131,7 +131,7 @@ export function ImportNumberDialog({
               </div>
 
               {showAdvancedFields && (
-                <div className="bg-default space-y-5 rounded-lg p-4">
+                <div className="bg-default stack-y-5 rounded-lg p-4">
                   <Controller
                     name="sipTrunkAuthUsername"
                     control={phoneNumberForm.control}

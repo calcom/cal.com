@@ -101,7 +101,7 @@ export const Select = <
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
         menuList: () =>
           cx(
-            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-px",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col stack-y-px",
             innerClassNames?.menuList
           ),
         indicatorsContainer: (state) =>

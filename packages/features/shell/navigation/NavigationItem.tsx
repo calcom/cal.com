@@ -118,7 +118,7 @@ export const NavigationItem: React.FC<{
           open={isTooltipOpen}
           content={
             hasChildren ? (
-              <div className="pointer-events-auto flex flex-col space-y-1 p-1">
+              <div className="pointer-events-auto flex flex-col stack-y-1 p-1">
                 <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">
                   {t(item.name)}
                 </span>

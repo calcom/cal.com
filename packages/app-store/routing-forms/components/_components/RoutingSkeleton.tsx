@@ -32,7 +32,7 @@ export function RoutingSkeleton() {
                     <div className="bg-subtle h-4 w-16 animate-pulse rounded" />
                   </div>
                   <div className="bg-default rounded-[10px] px-3 py-2 ">
-                    <div className="space-y-3">
+                    <div className="stack-y-3">
                       {/* Label Field */}
                       <div className="flex items-center justify-between gap-[10px]">
                         <div className="bg-subtle h-4 w-full animate-pulse rounded" />

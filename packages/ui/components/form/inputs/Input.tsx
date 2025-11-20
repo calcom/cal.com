@@ -165,7 +165,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
+      className={classNames("bg-default border-default stack-y-2 rounded-sm border p-2", props.className)}>
       {props.children}
     </div>
   );

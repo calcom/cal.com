@@ -59,7 +59,7 @@ export function BulkEditDefaultForEventsModal({
               callback: () => props.setOpen(false),
             });
           }}>
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col stack-y-2">
             {eventTypes.length > 0 && (
               <div className="flex items-center space-x-2 rounded-md px-3 pb-2.5 pt-1">
                 <CheckboxField

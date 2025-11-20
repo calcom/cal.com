@@ -541,7 +541,7 @@ const WebhookForm = (props: {
                 />
               </div>
               {useCustomTemplate && (
-                <div className="space-y-3">
+                <div className="stack-y-3">
                   <TextArea
                     name="customPayloadTemplate"
                     rows={8}
@@ -561,7 +561,7 @@ const WebhookForm = (props: {
                       {webhookVariables.map(({ category, variables }) => (
                         <div key={category} className="mb-4">
                           <h4 className="mb-2 text-sm font-medium">{category}</h4>
-                          <div className="space-y-2">
+                          <div className="stack-y-2">
                             {variables.map(({ name, variable, description }) => (
                               <div
                                 key={name}

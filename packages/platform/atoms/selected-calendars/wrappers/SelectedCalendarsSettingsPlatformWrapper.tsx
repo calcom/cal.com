@@ -161,7 +161,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                               )}>
                               {t("toggle_calendars_conflict")}
                             </p>
-                            <ul className="space-y-4 px-5 py-4">
+                            <ul className="stack-y-4 px-5 py-4">
                               {connectedCalendar.calendars?.map((cal) => {
                                 return (
                                   <PlatformCalendarSwitch

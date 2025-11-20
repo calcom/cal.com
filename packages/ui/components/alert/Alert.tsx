@@ -83,7 +83,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           </div>
         )}
         <div className="flex grow flex-col sm:flex-row">
-          <div className="space-y-1 ltr:ml-3 rtl:mr-3">
+          <div className="stack-y-1 ltr:ml-3 rtl:mr-3">
             {props.title && <h3 className="text-sm font-medium leading-none">{props.title}</h3>}
             {props.message && <div className="text-sm leading-5">{props.message}</div>}
           </div>

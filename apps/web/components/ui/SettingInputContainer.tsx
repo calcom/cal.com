@@ -10,7 +10,7 @@ export default function SettingInputContainer({
   htmlFor?: string;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="stack-y-3">
       <div className="block sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor={htmlFor} className="text-default mt-1 flex text-sm font-medium">

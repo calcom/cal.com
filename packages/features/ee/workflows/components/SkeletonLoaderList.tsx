@@ -18,7 +18,7 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="grow truncate text-sm">
         <div className="flex">
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col stack-y-2">
             <SkeletonText className="h-4 w-16 sm:w-24" />
             <div className="flex">
               <Icon name="bell" className="mr-1.5 mt-0.5 inline h-4 w-4 text-gray-200" />

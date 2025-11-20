@@ -497,7 +497,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 stack-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
             <BookingActionsDropdown booking={booking} context="list" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}

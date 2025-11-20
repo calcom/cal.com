@@ -28,7 +28,7 @@ interface IOverlayCalendarSettingsModalProps {
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle mt-3 space-y-4 rounded-xl border px-4 py-4 ">
+      <div className="border-subtle mt-3 stack-y-4 rounded-xl border px-4 py-4 ">
         <SkeletonText className="h-4 w-full" />
         <SkeletonText className="h-4 w-full" />
         <SkeletonText className="h-4 w-full" />
@@ -109,7 +109,7 @@ export function OverlayCalendarSettingsModal({
                               </div>
                             </div>
                             <div className="border-subtle w-full border-t pt-4">
-                              <ul className="space-y-4">
+                              <ul className="stack-y-4">
                                 {item.calendars.map((cal, index) => {
                                   const id = cal.integrationTitle ?? `calendar-switch-${index}`;
                                   return (

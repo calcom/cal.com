@@ -241,7 +241,7 @@ export default function RequiresConfirmationController({
                           id="notice"
                           value="notice"
                         />
-                        <div className="-ml-1 space-y-2">
+                        <div className="-ml-1 stack-y-2">
                           <CheckboxField
                             checked={requiresConfirmationWillBlockSlot}
                             descriptionAsLabel

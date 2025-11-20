@@ -176,7 +176,7 @@ const BookerLayoutFields = ({
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
   return (
-    <div className={classNames("space-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
+    <div className={classNames("stack-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
       <div
         className={classNames(
           "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",

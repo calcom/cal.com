@@ -129,7 +129,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         })}
       </ul>
     ) : (
-      <div className="space-y-6" data-testid="event-types">
+      <div className="stack-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
             <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
