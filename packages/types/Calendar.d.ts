@@ -163,6 +163,7 @@ export interface CalendarEvent {
   // Instead of sending this per event.
   // TODO: Links sent in email should be validated and automatically redirected to org domain or regular app. It would be a much cleaner way. Maybe use existing /api/link endpoint
   bookerUrl?: string;
+  hashedLink?: string | null;
   type: string;
   title: string;
   startTime: string;
