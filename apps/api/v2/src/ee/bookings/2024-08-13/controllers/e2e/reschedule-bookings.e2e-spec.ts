@@ -44,11 +44,9 @@ describe("Reschedule bookings 2024-08-13", () => {
   const RESCHEDULE_REASON = "Flying to venus that day";
   const RESCHEDULED_BY = `user-venus-bookings-rescheduler-${randomString(5)}@api.com`;
 
-  const userEmail = `reschedule-bookings-user-${randomString()}@api.com`;
-
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
-      userEmail,
+      normalBookingUserEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
       })
