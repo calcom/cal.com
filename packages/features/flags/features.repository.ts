@@ -342,6 +342,53 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Disables a feature for a specific team.
+   * @param teamId - The ID of the team to disable the feature for
+   * @param featureId - The feature identifier to disable
+   * @returns Promise<void>
+   * @throws Error if the feature disabling fails
+   */
+  async disableFeatureForTeam(teamId: number, featureId: string): Promise<void> {
+    try {
+      await this.prismaClient.teamFeatures.delete({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
+        },
+      });
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Toggles a feature for a specific team (enable if disabled, disable if enabled).
+   * @param teamId - The ID of the team to toggle the feature for
+   * @param featureId - The feature identifier to toggle
+   * @param enabled - Whether to enable or disable the feature
+   * @param assignedBy - The user or what assigned the feature (required when enabling)
+   * @returns Promise<void>
+   * @throws Error if the feature toggling fails
+   */
+  async toggleFeatureForTeam(
+    teamId: number,
+    featureId: string,
+    enabled: boolean,
+    assignedBy: string
+  ): Promise<void> {
+    if (enabled) {
+      await this.enableFeatureForTeam(teamId, featureId as keyof AppFlags, assignedBy);
+    } else {
+      await this.disableFeatureForTeam(teamId, featureId);
+    }
+  }
+
+  /**
    * Checks if a team or any of its ancestors has access to a specific feature.
    * Uses a recursive CTE raw SQL query for performance.
    * @param teamId - The ID of the team to start the check from
