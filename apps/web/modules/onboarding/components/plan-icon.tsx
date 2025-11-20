@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
@@ -26,31 +26,11 @@ export function PlanIcon({
   variant?: "single" | "organization" | "team";
   animationDirection?: "up" | "down";
 }) {
-  const renderIconContainer = (index: number) => {
+  const renderIconContainer = () => {
     return (
-      <motion.div
-        key={`main-icon-${variant}-${icon}`}
-        initial={{
-          opacity: 0,
-          y: (animationDirection === "down" ? -20 : 20) - 40, // -40 is half of 80px for centering
-        }}
-        animate={{
-          opacity: 1,
-          y: -40, // Centered position (half of 80px)
-        }}
-        exit={{
-          opacity: 0,
-          y: (animationDirection === "down" ? 20 : -20) - 40,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: "easeInOut",
-        }}
-        className="bg-default absolute flex h-[80px] w-[80px] items-center justify-center overflow-clip rounded-full"
+      <div
+        className="bg-default absolute left-1/2 top-1/2 flex h-[80px] w-[80px] -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-clip rounded-full"
         style={{
-          x: "-50%",
-          left: "50%",
-          top: "50%",
           background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
           boxShadow:
             "0px 2.818px 5.635px 0px var(--cal-border-subtle), 0px 0px 0px 0.704px var(--cal-border), 0px 0.704px 3.522px -2.818px rgba(0, 0, 0, 0.3)",
@@ -73,7 +53,7 @@ export function PlanIcon({
             opacity: 0.15,
           }}
         />
-      </motion.div>
+      </div>
     );
   };
 
@@ -89,7 +69,7 @@ export function PlanIcon({
 
     return (
       <motion.div
-        key={`small-icon-${variant}-${ringIndex}-${angle}`}
+        key={`small-icon-${ringIndex}-${angle}`}
         initial={{
           opacity: 0,
           y: y - iconHalfSize + (animationDirection === "down" ? -20 : 20),
@@ -104,7 +84,7 @@ export function PlanIcon({
         }}
         transition={{
           duration: 0.5,
-          ease: "easeInOut",
+          ease: [0.34, 1.56, 0.64, 1],
           delay: index * 0.05, // Stagger animation for small icons
         }}
         className="bg-default absolute flex h-[40.5px] w-[40.5px] items-center justify-center overflow-clip rounded-full shadow-[0px_2.075px_4.15px_0px_rgba(34,42,53,0.05),0px_0px_0px_0.519px_rgba(34,42,53,0.08),0px_0.519px_2.594px_-2.075px_rgba(19,19,22,0.7)]"
@@ -149,12 +129,15 @@ export function PlanIcon({
       })}
 
       {/* Small user icons on rings (for team variant) */}
-      {(variant === "team" || variant === "organization") &&
-        TEAM_ICON_POSITIONS.map(({ ringIndex, angle }, index) =>
-          renderSmallUserIcon(ringIndex, angle, index)
-        )}
+      <AnimatePresence mode="wait">
+        {variant === "team" || variant === "organization"
+          ? TEAM_ICON_POSITIONS.map(({ ringIndex, angle }, index) =>
+              renderSmallUserIcon(ringIndex, angle, index)
+            )
+          : null}
+      </AnimatePresence>
 
-      {renderIconContainer(0)}
+      {renderIconContainer()}
     </div>
   );
 }
