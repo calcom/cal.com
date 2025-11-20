@@ -448,20 +448,24 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeamEvent?.hosts).toHaveLength(2);
           expect(responseTeamEvent?.hosts).toEqual(
             expect.arrayContaining([
-              {
+              expect.objectContaining({
                 userId: teamMember1.id,
                 name: teamMember1.name,
                 username: teamMember1.username,
                 avatarUrl: teamMember1.avatarUrl,
-              },
-              {
+              }),
+              expect.objectContaining({
                 userId: teamMember2.id,
                 name: teamMember2.name,
                 username: teamMember2.username,
                 avatarUrl: teamMember2.avatarUrl,
-              },
+              }),
             ])
           );
+          responseTeamEvent?.hosts?.forEach((h) => {
+            expect(h).toHaveProperty("scheduleId");
+            expect(h.scheduleId).toBeDefined();
+          });
 
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
