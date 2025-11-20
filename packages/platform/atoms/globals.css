@@ -11848,3 +11848,43 @@ html[dir="rtl"] .react-tel-input .flag-dropdown {
   white-space: nowrap;
 }
 
+.stack-y-0 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 0);
+  }
+}
+.stack-y-1 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 1);
+  }
+}
+.stack-y-2 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 2);
+  }
+}
+.stack-y-3 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 3);
+  }
+}
+.stack-y-4 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 4);
+  }
+}
+.stack-y-5 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 5);
+  }
+}
+.stack-y-6 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 6);
+  }
+}
+.stack-y-8 {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(var(--spacing) * 8);
+  }
+}
