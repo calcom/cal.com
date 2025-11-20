@@ -86,9 +86,7 @@ function InsightsPageContent() {
         className="flex flex-wrap items-center gap-2"
         data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
         <OrgTeamsFilter />
-        <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-        <DataTableFilters.ActiveFilters table={table} />
-        <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+        <DataTableFilters.FilterBar table={table} />
         <DataTableFilters.ClearFiltersButton exclude={["startTime", "createdAt"]} />
         <div className="grow" />
         <Download />

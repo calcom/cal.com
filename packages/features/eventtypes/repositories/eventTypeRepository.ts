@@ -770,6 +770,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -1067,6 +1068,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -1155,6 +1157,44 @@ export class EventTypeRepository {
       ...eventType,
       hosts: hostsWithSelectedCalendars(eventType.hosts),
     };
+  }
+
+  async findByIdIncludeHostsAndTeamMembers({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        bookingRequiresAuthentication: true,
+        userId: true,
+        teamId: true,
+        hosts: {
+          select: {
+            userId: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+            isOrganization: true,
+            members: {
+              where: {
+                accepted: true,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
+              select: {
+                userId: true,
+                role: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {

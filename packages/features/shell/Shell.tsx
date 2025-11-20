@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
 import { Toaster } from "sonner";
@@ -17,7 +17,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { CalAiBanner } from "./CalAiBanner";
+import { DynamicModals } from "./DynamicModals";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -27,7 +27,6 @@ import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
-  const pathname = usePathname();
 
   useFormbricks();
 
@@ -38,6 +37,7 @@ const Layout = (props: LayoutProps) => {
       </div>
 
       <TimezoneChangeDialog />
+      <DynamicModals />
 
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
@@ -206,7 +206,6 @@ function MainContainer({
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">
-        <CalAiBanner />
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

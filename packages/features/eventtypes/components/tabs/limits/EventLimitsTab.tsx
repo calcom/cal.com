@@ -7,6 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -594,7 +595,13 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
               title={t("limit_booking_frequency")}
               {...bookingLimitsLocked}
-              description={t("limit_booking_frequency_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="limit_booking_frequency_description"
+                  href="https://cal.com/help/event-types/booking-frequency"
+                />
+              }
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
@@ -725,7 +732,13 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               childrenClassName={classNames("lg:ml-0", customClassNames?.futureBookingLimit?.children)}
               descriptionClassName={customClassNames?.futureBookingLimit?.description}
               title={t("limit_future_bookings")}
-              description={t("limit_future_bookings_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="limit_future_bookings_description"
+                  href="https://cal.com/help/event-types/limit-future-bookings"
+                />
+              }
               {...periodTypeLocked}
               checked={isChecked}
               onCheckedChange={(isEnabled) => {

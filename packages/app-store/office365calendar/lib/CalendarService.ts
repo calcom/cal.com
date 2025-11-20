@@ -4,6 +4,7 @@ import { findIana } from "windows-iana";
 
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -82,7 +83,7 @@ export default class Office365CalendarService implements Calendar {
 
         const { client_id, client_secret } = await this.getAuthCredentials(isDelegated);
 
-        const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+        const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
         const bodyParams = {
           scope: isDelegated
@@ -113,7 +114,7 @@ export default class Office365CalendarService implements Calendar {
       invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
       expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
       updateTokenObject: (tokenObject) => {
-        if (!Boolean(credential.delegatedTo)) {
+        if (!credential.delegatedTo) {
           return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
         }
         return Promise.resolve();
@@ -123,12 +124,39 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
+  private async triggerDelegationCredentialError(error: Error): Promise<void> {
+    if (
+      this.credential.userId &&
+      this.credential.user &&
+      this.credential.appId &&
+      this.credential.delegatedToId
+    ) {
+      await triggerDelegationCredentialErrorWebhook({
+        error,
+        credential: {
+          id: this.credential.id,
+          type: this.credential.type,
+          appId: this.credential.appId,
+        },
+        user: {
+          id: this.credential.userId,
+          email: this.credential.user.email,
+        },
+        delegationCredentialId: this.credential.delegatedToId,
+      });
+    }
+  }
+
+  private async getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
     if (delegatedTo) {
       if (!tenantId) {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
     }
@@ -142,9 +170,13 @@ export default class Office365CalendarService implements Calendar {
       const client_secret = this.credential?.delegatedTo?.serviceAccountKey?.private_key;
 
       if (!client_id || !client_secret) {
-        throw new CalendarAppDelegationCredentialConfigurationError(
+        const error = new CalendarAppDelegationCredentialConfigurationError(
           "Delegation credential without clientId or Secret"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
 
       return { client_id, client_secret };
@@ -160,15 +192,19 @@ export default class Office365CalendarService implements Calendar {
 
     if (!isDelegated) return;
 
-    const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
     const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
 
     if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
-      throw new CalendarAppDelegationCredentialConfigurationError(
+      const error = new CalendarAppDelegationCredentialConfigurationError(
         "Delegation credential without clientId or Secret"
       );
+
+      await this.triggerDelegationCredentialError(error);
+
+      throw error;
     }
     const loginResponse = await fetch(url, {
       method: "POST",
@@ -201,9 +237,13 @@ export default class Office365CalendarService implements Calendar {
       const parsedBody = await response.json();
 
       if (!parsedBody?.value?.[0]?.id) {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "User might not exist in Microsoft Azure Active Directory"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
       this.azureUserId = parsedBody.value[0].id;
     }
@@ -214,7 +254,7 @@ export default class Office365CalendarService implements Calendar {
   async testDelegationCredentialSetup(): Promise<boolean> {
     const delegationCredentialClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
-    const url = this.getAuthUrl(
+    const url = await this.getAuthUrl(
       Boolean(this.credential?.delegatedTo),
       this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
     );
@@ -375,7 +415,7 @@ export default class Office365CalendarService implements Calendar {
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
       return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-    } catch (err) {
+    } catch {
       return Promise.reject([]);
     }
   }
@@ -477,7 +517,7 @@ export default class Office365CalendarService implements Calendar {
           type: "required" as const,
         })),
         ...(event.team?.members
-          ? event.team?.members
+          ? event.team.members
               .filter((member) => member.email !== this.credential.user?.email)
               .map((member) => {
                 const destinationCalendar =
@@ -627,7 +667,7 @@ export default class Office365CalendarService implements Calendar {
     try {
       const parsedJson = JSON.parse(response);
       return parsedJson;
-    } catch (error) {
+    } catch {
       // Looking for html in body
       const openTag = '"body":<';
       const closeTag = "</html>";
@@ -677,7 +717,7 @@ export default class Office365CalendarService implements Calendar {
       let errorBody: string | object;
       try {
         errorBody = await response.json();
-      } catch (e) {
+      } catch {
         errorBody = await response.text();
       }
       this.log.error(
