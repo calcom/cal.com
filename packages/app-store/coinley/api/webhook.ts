@@ -97,7 +97,11 @@ async function handlePaymentPending(event: any) {
   // Find payment in database
   const payment = await prisma.payment.findUnique({
     where: { externalId: paymentId },
-    include: { booking: true },
+    select: {
+      id: true,
+      data: true,
+      bookingId: true,
+    },
   });
 
   if (!payment) {
@@ -135,14 +139,26 @@ async function handlePaymentConfirmed(event: any) {
   // Find payment in database by externalId OR by bookingId from metadata
   let payment = await prisma.payment.findUnique({
     where: { externalId: paymentId },
-    include: { booking: true },
+    select: {
+      id: true,
+      data: true,
+      bookingId: true,
+    },
   });
 
   // If payment not found by externalId, try finding by booking metadata
   if (!payment && metadata?.bookingId) {
     const booking = await prisma.booking.findUnique({
       where: { id: parseInt(metadata.bookingId) },
-      include: { payment: true },
+      select: {
+        payment: {
+          select: {
+            id: true,
+            data: true,
+            bookingId: true,
+          },
+        },
+      },
     });
 
     if (booking?.payment?.[0]) {
@@ -200,7 +216,11 @@ async function handlePaymentFailed(event: any) {
 
   const payment = await prisma.payment.findUnique({
     where: { externalId: paymentId },
-    include: { booking: true },
+    select: {
+      id: true,
+      data: true,
+      bookingId: true,
+    },
   });
 
   if (!payment) {

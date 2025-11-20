@@ -2,7 +2,7 @@ import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prism
 import type { IAbstractPaymentService } from "@calcom/app-store/_utils/payments/IAbstractPaymentService";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "@calcom/prisma";
-import type { AppKeysSchema, SupportedNetwork, SupportedCurrency } from "../zod";
+import type { AppKeysSchema } from "../zod";
 import { appKeysSchema } from "../zod";
 import axios, { type AxiosInstance } from "axios";
 
@@ -75,7 +75,7 @@ export class PaymentService implements IAbstractPaymentService {
       // Don't throw - just set credentials to null so isSetupAlready() returns false
       // Throwing here breaks getConnectedApps() and causes the apps tab to hang
       this.client = axios.create({
-        baseURL: "https://talented-mercy-production.up.railway.app/api",
+        baseURL: process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app/api",
         timeout: 30000,
       });
     }
@@ -183,7 +183,7 @@ export class PaymentService implements IAbstractPaymentService {
   /**
    * Charge a previously authorized payment
    */
-  async chargeCard(payment: Payment, bookingId?: Booking["id"]): Promise<Payment> {
+  async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
     if (!this.credentials) {
       throw new Error("Coinley credentials not configured");
     }
