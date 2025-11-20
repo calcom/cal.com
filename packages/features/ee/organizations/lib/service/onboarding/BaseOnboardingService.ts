@@ -143,15 +143,23 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return organizationOnboarding;
   }
 
-  protected filterTeamsAndInvites(teams: TeamInput[] = [], invitedMembers: InvitedMemberInput[] = []) {
+  protected filterTeamsAndInvites(teams: TeamInput[] = [], invitedMembers: InvitedMemberInput[] = [], orgSlug?: string) {
     const teamsData = teams
-      .filter((team) => team.name.trim().length > 0)
-      .map((team) => ({
-        id: team.id === -1 ? -1 : team.id,
-        name: team.name,
-        isBeingMigrated: team.isBeingMigrated,
-        slug: team.slug,
-      }));
+      .filter((team) => {
+        if (team.name.trim().length === 0) {
+          return team.id !== -1;
+        }
+        return true;
+      })
+      .map((team) => {
+        const slugConflictsWithOrg = orgSlug && team.slug === orgSlug;
+        return {
+          id: team.id === -1 ? -1 : team.id,
+          name: team.name,
+          isBeingMigrated: slugConflictsWithOrg || team.isBeingMigrated,
+          slug: team.slug,
+        };
+      });
 
     const invitedMembersData = invitedMembers
       .filter((invite) => invite.email.trim().length > 0)

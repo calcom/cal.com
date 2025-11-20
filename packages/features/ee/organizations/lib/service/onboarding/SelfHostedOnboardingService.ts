@@ -47,7 +47,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
     );
 
     // Step 1: Filter and normalize teams/invites
-    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
+    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers, input.slug);
 
     // Step 2: Create onboarding record with ALL data at once
     const organizationOnboarding = await this.createOnboardingRecord({

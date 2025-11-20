@@ -43,7 +43,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
       })
     );
 
-    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
+    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers, input.slug);
 
     log.debug(
       "BillingEnabledOrgOnboardingService - After filterTeamsAndInvites",
