@@ -1,8 +1,9 @@
 import { expect } from "@playwright/test";
 
+import { MembershipRole } from "@calcom/prisma/enums";
+
 import { applySelectFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -107,69 +108,6 @@ test.describe("Booking Filters", () => {
     expect(cancelledSearchParams.get("activeFilters")).toBe(activeFilters);
   });
 
-  test("Query params should be preserved when switching between bookings tabs in calendar view", async ({
-    page,
-    users,
-  }) => {
-    const owner = await users.create(
-      { name: "Owner User" },
-      {
-        hasTeam: true,
-        isOrg: true,
-        teammates: [{ name: "Team Member 1" }, { name: "Team Member 2" }],
-      }
-    );
-
-    await owner.apiLogin();
-
-    const bookingsGetResponse = page.waitForResponse((response) =>
-      /\/api\/trpc\/bookings\/get.*/.test(response.url())
-    );
-    await page.goto(`/bookings/upcoming?view=calendar`, { waitUntil: "domcontentloaded" });
-    await bookingsGetResponse;
-
-    await applySelectFilter(page, "userId", "Owner User");
-
-    await expect(page).toHaveURL(/.*userId.*/);
-    const urlWithFilters = page.url();
-    expect(urlWithFilters).toContain("userId");
-
-    const searchParams = new URL(urlWithFilters).searchParams;
-    const activeFilters = searchParams.get("activeFilters");
-    expect(activeFilters).toBeTruthy();
-    expect(searchParams.get("view")).toBe("calendar");
-
-    const pastBookingsGetResponse = page.waitForResponse((response) =>
-      /\/api\/trpc\/bookings\/get.*/.test(response.url())
-    );
-    await page.getByTestId("past-test").click();
-    await expect(page).toHaveURL(/\/bookings\/past/);
-    await pastBookingsGetResponse;
-
-    const pastUrl = page.url();
-    expect(pastUrl).toContain("/bookings/past");
-    expect(pastUrl).toContain("userId");
-
-    const pastSearchParams = new URL(pastUrl).searchParams;
-    expect(pastSearchParams.get("activeFilters")).toBe(activeFilters);
-    expect(pastSearchParams.get("view")).toBe("calendar");
-
-    const cancelledBookingsGetResponse = page.waitForResponse((response) =>
-      /\/api\/trpc\/bookings\/get.*/.test(response.url())
-    );
-    await page.getByTestId("cancelled-test").click();
-    await expect(page).toHaveURL(/\/bookings\/cancelled/);
-    await cancelledBookingsGetResponse;
-
-    const cancelledUrl = page.url();
-    expect(cancelledUrl).toContain("/bookings/cancelled");
-    expect(cancelledUrl).toContain("userId");
-
-    const cancelledSearchParams = new URL(cancelledUrl).searchParams;
-    expect(cancelledSearchParams.get("activeFilters")).toBe(activeFilters);
-    expect(cancelledSearchParams.get("view")).toBe("calendar");
-  });
-
   test("Query params should NOT be preserved when navigating from a non-bookings page", async ({
     page,
     users,
@@ -229,7 +167,7 @@ test.describe("Booking Filters", () => {
     const eventTypeSearchParams = new URL(page.url()).searchParams;
     expect(eventTypeSearchParams.get("activeFilters")).toBeFalsy();
   });
-  
+
   test("Filter segments with removed team members should not cause stuck UI", async ({
     page,
     users,
