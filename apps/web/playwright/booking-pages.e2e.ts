@@ -114,7 +114,6 @@ test.describe("free user", () => {
     };
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
-
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     await bookTimeSlot(page, bookerObj);
@@ -806,18 +805,39 @@ test.describe("reservedSlotUid in request body", () => {
     await page.goto(`/${pro.username}`);
   });
 
-  test("web app booker sends reservedSlotUid in request body", async ({ page }) => {
+  test("web app booker sends reservedSlotUid in request body", async ({ page, prisma }) => {
     let bookingRequestBody: { reservedSlotUid: string | null } = { reservedSlotUid: null };
+    let reservedSlotUidFromReserve: string | null = null;
+    let reservedSlotUidFromBooking: string | null = null;
 
     page.on("request", (request) => {
       if (request.url().includes("/api/book/event") && request.method() === "POST") {
-        bookingRequestBody = request.postDataJSON();
+        const body = request.postDataJSON();
+        bookingRequestBody = body;
+        reservedSlotUidFromBooking = body?.reservedSlotUid ?? null;
       }
     });
 
     await page.click('[data-testid="event-type-link"]');
 
+    const reserveRespPromise = page.waitForResponse(
+      (response) => response.url().includes("slots/reserveSlot") && response.request().method() === "POST"
+    );
+
     await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const reserveResp = await reserveRespPromise;
+    const reserveJson = await reserveResp.json();
+    const uidFromReserve =
+      reserveJson?.result?.data?.json?.uid ??
+      (Array.isArray(reserveJson) ? reserveJson[0]?.result?.data?.json?.uid : undefined);
+    if (!uidFromReserve) {
+      throw new Error("reserveSlot response did not contain a uid");
+    }
+    reservedSlotUidFromReserve = uidFromReserve;
+
+    const preSelectedSlot = await prisma.selectedSlots.findFirst({ where: { uid: uidFromReserve } });
+    expect(preSelectedSlot).not.toBeNull();
 
     await page.fill('[name="name"]', testName);
     await page.fill('[name="email"]', testEmail);
@@ -837,6 +857,11 @@ test.describe("reservedSlotUid in request body", () => {
     expect(typeof bookingRequestBody.reservedSlotUid).toBe("string");
     if (bookingRequestBody.reservedSlotUid) {
       expect(bookingRequestBody.reservedSlotUid.length).toBeGreaterThan(0);
+      expect(reservedSlotUidFromBooking).toEqual(reservedSlotUidFromReserve);
+      const selectedSlot = await prisma.selectedSlots.findFirst({
+        where: { uid: bookingRequestBody.reservedSlotUid as string },
+      });
+      expect(selectedSlot).toBeNull();
     } else {
       throw new Error("reservedSlotUid is not set");
     }

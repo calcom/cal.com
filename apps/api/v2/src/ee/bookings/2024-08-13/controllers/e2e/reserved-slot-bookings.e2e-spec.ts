@@ -151,8 +151,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
         it("should create booking with reservedSlotUid from request body and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-21T11:30:00.000Z");
-          const endTime = new Date("2040-05-21T12:30:00.000Z");
+          const startTime = new Date("2040-05-22T11:30:00.000Z");
+          const endTime = new Date("2040-05-22T12:30:00.000Z");
 
           await createReservedSlot(user.id, eventTypeId, reservedSlotUid, startTime, endTime);
 
