@@ -50,14 +50,31 @@ export const BookingFields = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   // Identify all phone fields (except location field)
-  const allPhoneFields = useMemo(() => fields.filter((f) => f.type === "phone"), [fields]);
-  const otherPhoneFieldNames = useMemo(() => allPhoneFields.map((f) => f.name), [allPhoneFields]);
+  const allPhoneFields = useMemo(() => {
+    const phoneFields = fields.filter((f) => f.type === "phone");
+    console.log(
+      "📱 [SETUP] All phone fields found:",
+      phoneFields.map((f) => ({ name: f.name, hidden: f.hidden }))
+    );
+    return phoneFields;
+  }, [fields]);
+
+  const otherPhoneFieldNames = useMemo(() => {
+    const names = allPhoneFields.map((f) => f.name);
+    console.log("📱 [SETUP] Phone field names:", names);
+    return names;
+  }, [allPhoneFields]);
 
   // Determine if event has Location: Phone option configured
-  const hasLocationPhoneOption = useMemo(
-    () => locations?.some((l) => l?.type === DefaultEventLocationTypeEnum.Phone) ?? false,
-    [locations]
-  );
+  const hasLocationPhoneOption = useMemo(() => {
+    const hasPhone = locations?.some((l) => l?.type === DefaultEventLocationTypeEnum.Phone) ?? false;
+    console.log("📱 [SETUP] Has Location Phone option configured:", hasPhone);
+    console.log(
+      "📱 [SETUP] Available locations:",
+      locations?.map((l) => l.type)
+    );
+    return hasPhone;
+  }, [locations]);
 
   // Decide the primary phone source shown by default:
   // 1) Location phone when configured
@@ -65,12 +82,28 @@ export const BookingFields = ({
   // 3) attendeePhoneNumber
   // 4) first custom phone
   const primaryPhoneSource = useMemo<{ kind: "location" } | { kind: "field"; name: string } | null>(() => {
-    if (hasLocationPhoneOption) return { kind: "location" } as const;
+    if (hasLocationPhoneOption) {
+      console.log("📱 [SETUP] Primary phone source: LOCATION (phone location configured)");
+      return { kind: "location" } as const;
+    }
     const hasDefaultWorkflow = allPhoneFields.find((f) => f.name === DEFAULT_WORKFLOW_PHONE_FIELD);
-    if (hasDefaultWorkflow) return { kind: "field", name: hasDefaultWorkflow.name } as const;
+    if (hasDefaultWorkflow) {
+      console.log(
+        "📱 [SETUP] Primary phone source: DEFAULT_WORKFLOW_PHONE_FIELD:",
+        DEFAULT_WORKFLOW_PHONE_FIELD
+      );
+      return { kind: "field", name: hasDefaultWorkflow.name } as const;
+    }
     const attendeePhone = allPhoneFields.find((f) => f.name === SystemField.Enum.attendeePhoneNumber);
-    if (attendeePhone) return { kind: "field", name: attendeePhone.name } as const;
-    if (allPhoneFields.length > 0) return { kind: "field", name: allPhoneFields[0].name } as const;
+    if (attendeePhone) {
+      console.log("📱 [SETUP] Primary phone source: attendeePhoneNumber");
+      return { kind: "field", name: attendeePhone.name } as const;
+    }
+    if (allPhoneFields.length > 0) {
+      console.log("📱 [SETUP] Primary phone source: First custom phone field:", allPhoneFields[0].name);
+      return { kind: "field", name: allPhoneFields[0].name } as const;
+    }
+    console.log("📱 [SETUP] Primary phone source: NONE (no phone fields found)");
     return null;
   }, [hasLocationPhoneOption, allPhoneFields]);
 
@@ -94,27 +127,46 @@ export const BookingFields = ({
 
   // Event-driven sync function
   const syncPhoneFields = (locationValue: unknown) => {
+    console.log("🟢 [MECHANISM #1] syncPhoneFields called with:", locationValue);
+
     const parsed = PhoneLocationSchema.safeParse(locationValue);
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      console.log("🟢 [MECHANISM #1] ❌ Schema validation failed, not a Phone location");
+      return;
+    }
+
     const { optionValue } = parsed.data;
     const phone = (optionValue ?? "").trim();
+    console.log("🟢 [MECHANISM #1] Extracted phone value:", phone);
+    console.log("🟢 [MECHANISM #1] Last synced value:", lastSyncedPhoneRef.current);
 
     // Skip if empty or same as last sync (avoid redundant updates during typing)
-    if (!phone || phone === lastSyncedPhoneRef.current) return;
+    if (!phone || phone === lastSyncedPhoneRef.current) {
+      console.log("🟢 [MECHANISM #1] ⏭️ Skipping (empty or same as last sync)");
+      return;
+    }
+
+    console.log("🟢 [MECHANISM #1] 🎯 Starting sync to other phone fields...");
+    console.log("🟢 [MECHANISM #1] Target fields:", otherPhoneFieldNames);
 
     // Copy phone to other phone fields (only if user hasn't manually touched them)
     otherPhoneFieldNames.forEach((name) => {
       const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+      console.log(`🟢 [MECHANISM #1] Field "${name}": touched=${targetTouched}`);
 
       if (!targetTouched) {
+        console.log(`🟢 [MECHANISM #1] ✅ Syncing to "${name}": "${phone}"`);
         setValue(`responses.${name}`, phone, {
           shouldDirty: false,
           shouldValidate: false,
         });
+      } else {
+        console.log(`🟢 [MECHANISM #1] ⏭️ Skipping "${name}" (already touched by user)`);
       }
     });
 
     lastSyncedPhoneRef.current = phone;
+    console.log("🟢 [MECHANISM #1] ✅ Sync complete, updated lastSyncedPhoneRef");
   };
 
   // First-fill wins: propagate the first non-empty phone value once to all other phone fields that are empty/untouched.
@@ -123,57 +175,170 @@ export const BookingFields = ({
   const phoneWatchKeys = useMemo(() => allPhoneFieldNames.map((n) => `responses.${n}`), [allPhoneFieldNames]);
   const phoneValues = watch(phoneWatchKeys as any) as (string | undefined)[];
   useEffect(() => {
-    if (firstPropagationDoneRef.current) return;
+    console.log("🔵 [MECHANISM #2] ========================================");
+    console.log("🔵 [MECHANISM #2] First-fill-wins effect triggered");
+    console.log("🔵 [MECHANISM #2] firstPropagationDoneRef.current:", firstPropagationDoneRef.current);
+
+    if (firstPropagationDoneRef.current) {
+      console.log("🔵 [MECHANISM #2] ❌ Already done, skipping (propagation completed in a previous run)");
+      return;
+    }
+
+    console.log("🔵 [MECHANISM #2] All phone field names:", allPhoneFieldNames);
+    console.log("🔵 [MECHANISM #2] Phone values:", phoneValues);
+    console.log("🔵 [MECHANISM #2] Location response:", locationResponse);
+    console.log("🔵 [MECHANISM #2] Touched fields:", formState.touchedFields);
+
     let sourceValue = "";
     let sourceName: string | null = null;
+
     // If location is Phone and has a value, consider it a source
     if (locationResponse && (locationResponse as any)?.value === DefaultEventLocationTypeEnum.Phone) {
       const locVal = String((locationResponse as any)?.optionValue ?? "").trim();
+      console.log("🔵 [MECHANISM #2] Location is Phone type, optionValue:", locVal);
       if (locVal) {
         sourceValue = locVal;
         sourceName = "location";
+        console.log("🔵 [MECHANISM #2] ✅ Using location as source:", sourceValue);
       }
+    } else {
+      console.log("🔵 [MECHANISM #2] Location is NOT Phone type or has no value");
     }
-    // Otherwise pick the first touched non-empty phone field
+
+    // Otherwise pick the first non-empty phone field (value alone is sufficient proof of user input)
     if (!sourceValue) {
+      console.log("🔵 [MECHANISM #2] No location source, checking phone fields...");
       for (let i = 0; i < allPhoneFieldNames.length; i++) {
         const name = allPhoneFieldNames[i];
         const val = String(phoneValues?.[i] ?? "").trim();
         const touched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
-        if (val && touched) {
+        console.log(`🔵 [MECHANISM #2] Field "${name}": value="${val}", touched=${touched}`);
+        // FIX: Just check for value, not touched status. If field has a value, user must have entered it.
+        if (val) {
           sourceValue = val;
           sourceName = name;
+          console.log(
+            `🔵 [MECHANISM #2] ✅ Using phone field "${name}" as source: "${sourceValue}" (touched=${touched})`
+          );
           break;
         }
       }
     }
-    if (!sourceValue) return;
-    // Propagate to other phone fields that are empty and untouched
+
+    if (!sourceValue) {
+      console.log("🔵 [MECHANISM #2] ❌ No source value found, will try again on next update");
+      // DON'T mark as done - we want to try again when user enters a value
+      return;
+    }
+
+    console.log(`🔵 [MECHANISM #2] 🎯 Source determined: "${sourceName}" with value: "${sourceValue}"`);
+    console.log("🔵 [MECHANISM #2] Starting propagation to other fields...");
+
+    // Propagate to other phone fields that are empty (don't overwrite existing values)
     allPhoneFieldNames.forEach((name, idx) => {
-      if (name === sourceName) return;
+      if (name === sourceName) {
+        console.log(`🔵 [MECHANISM #2] Skipping "${name}" (is source)`);
+        return;
+      }
       const current = String(phoneValues?.[idx] ?? "").trim();
       const touched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
-      if (!touched && !current) {
+      console.log(`🔵 [MECHANISM #2] Target "${name}": current="${current}", touched=${touched}`);
+
+      // Only propagate if field is empty (respect any existing value regardless of touched status)
+      if (!current) {
+        console.log(`🔵 [MECHANISM #2] ✅ Propagating to "${name}": "${sourceValue}"`);
         setValue(`responses.${name}`, sourceValue, { shouldDirty: false, shouldValidate: false });
+        // Immediately verify it was set
+        const verifyValue = watch(`responses.${name}`);
+        console.log(`🔵 [MECHANISM #2]    ↳ Immediate verification: "${name}" = "${verifyValue}"`);
+      } else {
+        console.log(
+          `🔵 [MECHANISM #2] ⏭️ Skipping "${name}" (already has value: "${current}", touched=${touched})`
+        );
       }
     });
+
     // If location is Phone already, set its optionValue as well; do not change location type
     if (locationResponse && (locationResponse as any)?.value === DefaultEventLocationTypeEnum.Phone) {
       const currentLoc = String((locationResponse as any)?.optionValue ?? "").trim();
+      console.log("🔵 [MECHANISM #2] Location is Phone, currentLoc:", currentLoc);
       if (!currentLoc) {
+        console.log("🔵 [MECHANISM #2] ✅ Setting location optionValue:", sourceValue);
         setValue(
           "responses.location",
           { ...(locationResponse as any), optionValue: sourceValue },
           { shouldDirty: false, shouldValidate: false }
         );
+      } else {
+        console.log("🔵 [MECHANISM #2] ⏭️ Location already has value, skipping");
       }
     }
+
+    // IMPORTANT: Only mark as done AFTER successful propagation
     firstPropagationDoneRef.current = true;
-  }, [locationResponse, allPhoneFieldNames, phoneValues, formState.touchedFields, setValue]);
+    console.log("🔵 [MECHANISM #2] ✅✅✅ First-fill propagation COMPLETE, marking as done");
 
-  // Note: Removed primary-phone continuous syncing in favor of first-fill-only propagation.
+    // Verify the values were actually set - check after a small delay to let setValue complete
+    setTimeout(() => {
+      console.log("🔵 [MECHANISM #2] 🔍 Verification - Reading back phone field values:");
+      allPhoneFieldNames.forEach((name) => {
+        const value = watch(`responses.${name}`);
+        console.log(`🔵 [MECHANISM #2]   "${name}": "${value}"`);
+      });
+    }, 100);
+  }, [locationResponse, allPhoneFieldNames, phoneValues, formState.touchedFields, setValue, watch]);
 
-  // Note: Removed multi-visible bidirectional sync in favor of first-fill-only propagation.
+  // CONTINUOUS SYNC: If primary phone field has a value, continuously sync to other visible untouched fields
+  const primaryPhoneFieldName = primaryPhoneSource?.kind === "field" ? primaryPhoneSource.name : null;
+  const primaryPhoneValue = primaryPhoneFieldName ? watch(`responses.${primaryPhoneFieldName}`) : undefined;
+
+  useEffect(() => {
+    if (!primaryPhoneFieldName || !primaryPhoneValue) {
+      console.log("🟡 [CONTINUOUS SYNC] No primary field or value, skipping");
+      return;
+    }
+
+    const phone = String(primaryPhoneValue ?? "").trim();
+    if (!phone) {
+      console.log("🟡 [CONTINUOUS SYNC] Primary field is empty, skipping");
+      return;
+    }
+
+    console.log(`🟡 [CONTINUOUS SYNC] Primary field "${primaryPhoneFieldName}" has value: "${phone}"`);
+    console.log("🟡 [CONTINUOUS SYNC] Syncing to other phone fields...");
+
+    // Sync to other phone fields that are untouched
+    otherPhoneFieldNames.forEach((name) => {
+      if (name === primaryPhoneFieldName) {
+        console.log(`🟡 [CONTINUOUS SYNC] Skipping "${name}" (is primary source)`);
+        return;
+      }
+
+      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+      const currentValue = String(watch(`responses.${name}`) ?? "").trim();
+
+      console.log(
+        `🟡 [CONTINUOUS SYNC] Target "${name}": current="${currentValue}", touched=${targetTouched}`
+      );
+
+      if (!targetTouched) {
+        console.log(`🟡 [CONTINUOUS SYNC] ✅ Syncing to "${name}": "${phone}"`);
+        setValue(`responses.${name}`, phone, {
+          shouldDirty: false,
+          shouldValidate: false,
+        });
+      } else {
+        console.log(`🟡 [CONTINUOUS SYNC] ⏭️ Skipping "${name}" (user has touched it)`);
+      }
+    });
+  }, [
+    primaryPhoneFieldName,
+    primaryPhoneValue,
+    otherPhoneFieldNames,
+    formState.touchedFields,
+    setValue,
+    watch,
+  ]);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
