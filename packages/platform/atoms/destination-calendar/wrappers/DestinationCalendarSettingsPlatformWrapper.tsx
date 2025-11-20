@@ -54,6 +54,7 @@ export const DestinationCalendarSettingsPlatformWrapper = ({
           }
         }}
         isPending={isUpdatingCalendar}
+        onReminderChange={null}
       />
     </AtomsWrapper>
   );
