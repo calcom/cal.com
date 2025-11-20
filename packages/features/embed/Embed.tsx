@@ -205,7 +205,7 @@ const ChooseEmbedTypesDialogContent = ({
           <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
-      <div className="items-start stack-y-2 md:flex md:space-y-0">
+      <div className="items-start stack-y-2 md:flex md:stack-y-0">
         {types.map((embed, index) => (
           <button
             className="hover:bg-subtle bg-cal-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"

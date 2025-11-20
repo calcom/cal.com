@@ -459,7 +459,7 @@ const WebhookForm = (props: {
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>
-                  <div className="bg-default space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
+                  <div className="bg-default stack-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
                     <div className="text-emphasis rounded-sm border-b p-2 text-sm">
                       {t("forgotten_secret_description")}
                     </div>
