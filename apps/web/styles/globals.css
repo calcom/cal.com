@@ -94,7 +94,7 @@ html.todesktop.dark {
     scrollbar-width: none; /* Firefox */
   }
 
-  /* Custom space-y-* utilities post tailwinf v4 upgrade */
+  /* Custom space-y-* utilities post tailwind v4 upgrade */
   .stack-y-0\.5 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 0.125rem;
   }
