@@ -1,6 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
+import { EventCollectionProvider } from "next-collect/client";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
@@ -112,25 +113,27 @@ const AppProviders = (props: PageWrapperProps) => {
 
   const RemainingProviders = (
     <>
-      <TooltipProvider>
-        {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-        <CalcomThemeProvider
-          nonce={props.nonce}
-          isThemeSupported={isThemeSupported}
-          isBookingPage={props.isBookingPage || isBookingPage}>
-          <NuqsAdapter>
-            <FeatureFlagsProvider>
-              {props.isBookingPage || isBookingPage ? (
-                <OrgBrandProvider>{props.children}</OrgBrandProvider>
-              ) : (
-                <DynamicIntercomProvider>
+      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+        <TooltipProvider>
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <CalcomThemeProvider
+            nonce={props.nonce}
+            isThemeSupported={isThemeSupported}
+            isBookingPage={props.isBookingPage || isBookingPage}>
+            <NuqsAdapter>
+              <FeatureFlagsProvider>
+                {props.isBookingPage || isBookingPage ? (
                   <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                </DynamicIntercomProvider>
-              )}
-            </FeatureFlagsProvider>
-          </NuqsAdapter>
-        </CalcomThemeProvider>
-      </TooltipProvider>
+                ) : (
+                  <DynamicIntercomProvider>
+                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                  </DynamicIntercomProvider>
+                )}
+              </FeatureFlagsProvider>
+            </NuqsAdapter>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </EventCollectionProvider>
     </>
   );
 

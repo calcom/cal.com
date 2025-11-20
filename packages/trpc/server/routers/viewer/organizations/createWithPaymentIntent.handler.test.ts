@@ -45,60 +45,9 @@ const mockSharedStripe = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
-  type FakeBillingProvider = {
-    createCustomer(args: { email: string; metadata?: Record<string, unknown> }): Promise<{ stripeCustomerId: string }>;
-    createPrice(args: {
-      amount: number;
-      productId: string;
-      currency: string;
-      interval: "month" | "year";
-      nickname?: string;
-      metadata?: Record<string, unknown>;
-    }): Promise<{ priceId: string }>;
-    createSubscriptionCheckout(args: {
-      customerId: string;
-      successUrl: string;
-      cancelUrl: string;
-      priceId: string;
-      quantity: number;
-      metadata?: Record<string, unknown>;
-    }): Promise<{ checkoutUrl: string; sessionId: string }>;
-  };
-
-  const fake: FakeBillingProvider = {
-    async createCustomer({ email, metadata }) {
-      const res = await mockSharedStripe.customers.create({ email, metadata });
-      return { stripeCustomerId: res.id };
-    },
-    async createPrice({ amount, productId, currency, interval, nickname, metadata }) {
-      const res = await mockSharedStripe.prices.create({
-        unit_amount: amount,
-        currency,
-        product: productId,
-        recurring: { interval },
-        nickname,
-        metadata,
-      });
-      return { priceId: res.id };
-    },
-    async createSubscriptionCheckout({ customerId, successUrl, cancelUrl, priceId, quantity, metadata }) {
-      const res = await mockSharedStripe.checkout.sessions.create({
-        customer: customerId,
-        line_items: [{ price: priceId, quantity }],
-        mode: "subscription",
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        metadata,
-      });
-      return { checkoutUrl: res.url, sessionId: res.id };
-    },
-  };
-
-  return {
-    getBillingProviderService: () => fake as unknown as import("@calcom/features/ee/billing/service/billingProvider/StripeBillingService").StripeBillingService,
-  };
-});
+vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
+  default: mockSharedStripe,
+}));
 
 const mockInput = {
   onboardingId: "test-onboarding-id",
@@ -227,7 +176,7 @@ function expectStripeSubscriptionCreated({
 
 let lastCreatedCustomerId = "null";
 let lastCreatedPriceId = "null";
-let _lastCreatedSessionId = "null";
+let lastCreatedSessionId = "null";
 const STRIPE_CHECKOUT_URL = `https://stripe.com/checkout`;
 
 describe("createWithPaymentIntent handler", () => {
@@ -240,7 +189,7 @@ describe("createWithPaymentIntent handler", () => {
       // Set up the shared Stripe instance mock implementations
       mockSharedStripe.checkout.sessions.create.mockImplementation(() => {
         const sessionId = `test-session-id-${uuidv4()}`;
-        _lastCreatedSessionId = sessionId;
+        lastCreatedSessionId = sessionId;
         return {
           url: STRIPE_CHECKOUT_URL,
           id: sessionId,

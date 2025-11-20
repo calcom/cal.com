@@ -4,11 +4,9 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import {
-  getBillingProviderService,
-  getTeamBillingServiceFactory,
-} from "@calcom/features/ee/billing/di/containers/Billing";
-import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -93,11 +91,9 @@ async function getHandler(req: NextRequest) {
   });
 
   if (checkoutSession && subscription) {
-    const billingProviderService = getBillingProviderService();
-    const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = teamBillingServiceFactory.init(team);
-    await teamBillingService.saveTeamBilling({
+    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(subscription);
+    const internalBillingService = new InternalTeamBilling(team);
+    await internalBillingService.saveTeamBilling({
       teamId: team.id,
       subscriptionId: subscription.id,
       subscriptionItemId: subscription.items.data[0].id,

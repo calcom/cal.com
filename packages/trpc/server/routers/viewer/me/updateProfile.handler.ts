@@ -1,9 +1,10 @@
+ 
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
@@ -36,7 +37,7 @@ type UpdateProfileOptions = {
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
-  const billingService = getBillingProviderService();
+  const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const featuresRepository = new FeaturesRepository(prisma);
@@ -311,7 +312,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           username: updatedUser.username ?? "Nameless User",
           emailFrom: user.email,
           // We know email has been changed here so we can use input
-
+           
           emailTo: input.email!,
         },
       });

@@ -9,7 +9,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
 type UseInitialFormValuesProps = {
-  eventType?: Pick<BookerEvent, "bookingFields" | "team" | "owner"> | null;
+  eventType?: Pick<BookerEvent, "bookingFields"> | null;
   rescheduleUid: string | null;
   isRescheduling: boolean;
   email?: string | null;
@@ -78,12 +78,6 @@ export function useInitialFormValues({
   });
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
-
-  // Check if organization has disabled autofill from URL parameters
-  const isAutofillDisabledByOrg =
-    eventType?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
-    eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
-    false;
   useEffect(() => {
     (async function () {
       if (Object.keys(formValues).length) {
@@ -102,41 +96,28 @@ export function useInitialFormValues({
         view: rescheduleUid ? "reschedule" : "booking",
       });
 
-      // If organization has disabled autofill, don't use URL parameters for prefill
-      const urlParamsToUse = isAutofillDisabledByOrg
-        ? {}
-        : {
-            ...extraOptions,
-            name: prefillFormParams.name,
-            // `guest` because we need to support legacy URL with `guest` query param support
-            // `guests` because the `name` of the corresponding bookingField is `guests`
-            guests: prefillFormParams.guests,
-          };
+      const parsedQuery = await querySchema.parseAsync({
+        ...extraOptions,
+        name: prefillFormParams.name,
+        // `guest` because we need to support legacy URL with `guest` query param support
+        // `guests` because the `name` of the corresponding bookingField is `guests`
+        guests: prefillFormParams.guests,
+      });
 
-      const parsedQuery = await querySchema.parseAsync(urlParamsToUse);
-
-      const defaultUserValues = (() => {
-        const rescheduledEmail =
+      const defaultUserValues = {
+        email:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].email ?? ""
-            : "";
-        const rescheduledName =
+            ? bookingData?.attendees[0].email
+            : !!parsedQuery["email"]
+            ? parsedQuery["email"]
+            : email ?? "",
+        name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].name ?? ""
-            : "";
-
-        if (isAutofillDisabledByOrg) {
-          return {
-            email: rescheduledEmail,
-            name: rescheduledName,
-          };
-        }
-
-        return {
-          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : email ?? ""),
-          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : name ?? username ?? ""),
-        };
-      })();
+            ? bookingData?.attendees[0].name
+            : !!parsedQuery["name"]
+            ? parsedQuery["name"]
+            : name ?? username ?? "",
+      };
 
       if (clientId) {
         defaultUserValues.email = defaultUserValues.email.replace(`+${clientId}`, "");
@@ -208,7 +189,6 @@ export function useInitialFormValues({
     prefillFormParams,
     // We need to have extraOptions as a dep so that any change in query params can update the form values, but extraOptions itself isn't stable and changes reference on every render
     stableHashExtraOptions,
-    isAutofillDisabledByOrg,
   ]);
 
   return initialValuesState;

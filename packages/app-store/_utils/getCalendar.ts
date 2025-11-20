@@ -50,7 +50,7 @@ export const getCalendar = async (
         featuresRepository.checkIfFeatureIsEnabledGlobally(
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
-        featuresRepository.checkIfUserHasFeatureNonHierarchical(
+        featuresRepository.checkIfUserHasFeature(
           credential.userId as number,
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),

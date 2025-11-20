@@ -40,7 +40,6 @@ const log = logger.getSubLogger({ prefix: ["repository/profile"] });
 const organizationSettingsSelect = {
   allowSEOIndexing: true,
   orgProfileRedirectsToVerifiedDomain: true,
-  disableAutofillOnBookingPage: true,
 } satisfies Prisma.OrganizationSettingsSelect;
 const organizationSelect = {
   id: true,
@@ -71,6 +70,7 @@ const profileSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
 
 export enum LookupTarget {
   User,
@@ -583,7 +583,7 @@ export class ProfileRepository {
       },
       include: {
         organization: {
-          select: organizationWithSettingsSelect,
+          select: organizationSelect,
         },
       },
     });
@@ -615,7 +615,7 @@ export class ProfileRepository {
         },
         include: {
           organization: {
-            select: organizationWithSettingsSelect,
+            select: organizationSelect,
           },
         },
       })

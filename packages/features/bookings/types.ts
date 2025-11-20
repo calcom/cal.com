@@ -64,8 +64,6 @@ export type BookerEvent = Pick<
   | "disableCancelling"
   | "disableRescheduling"
   | "interfaceLanguage"
-  | "team"
-  | "owner"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

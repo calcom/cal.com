@@ -2,8 +2,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-export type BookingsGetOutput = RouterOutputs["viewer"]["bookings"]["get"];
-
 export type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 export type RecurringInfo = {

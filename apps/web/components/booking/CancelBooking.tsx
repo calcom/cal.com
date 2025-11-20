@@ -6,6 +6,8 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
@@ -121,6 +123,7 @@ export default function CancelBooking(props: Props) {
     eventTypeMetadata,
   } = props;
   const [loading, setLoading] = useState(false);
+  const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [acknowledgeCancellationNoShowFee, setAcknowledgeCancellationNoShowFee] = useState(false);
@@ -168,7 +171,7 @@ export default function CancelBooking(props: Props) {
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -261,7 +264,7 @@ export default function CancelBooking(props: Props) {
                 onClick={async () => {
                   setLoading(true);
 
-                  // telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+                  telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                   const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
                   const { csrfToken } = await response.json();

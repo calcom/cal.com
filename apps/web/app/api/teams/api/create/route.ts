@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
-import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
@@ -58,12 +58,11 @@ async function handler(request: NextRequest) {
     });
 
     if (checkoutSessionSubscription) {
-      const billingService = getBillingProviderService();
-      const { subscriptionStart } = billingService.extractSubscriptionDates(checkoutSessionSubscription);
+      const { subscriptionStart } =
+        StripeBillingService.extractSubscriptionDates(checkoutSessionSubscription);
 
-      const teamBillingServiceFactory = getTeamBillingServiceFactory();
-      const teamBillingService = teamBillingServiceFactory.init(finalizedTeam);
-      await teamBillingService.saveTeamBilling({
+      const internalBillingService = new InternalTeamBilling(finalizedTeam);
+      await internalBillingService.saveTeamBilling({
         teamId: finalizedTeam.id,
         subscriptionId: checkoutSessionSubscription.id,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id,

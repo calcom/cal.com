@@ -16,6 +16,16 @@ vi.mock("@vercel/edge-config", () => ({
   get: vi.fn(),
 }));
 
+vi.mock("next-collect/server", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  collectEvents: vi.fn((config: any) => config.middleware),
+}));
+
+vi.mock("@calcom/lib/telemetry", () => ({
+  extendEventData: vi.fn(),
+  nextCollectBasicSettings: {},
+}));
+
 // Mock NextResponse.json since it's not available in test environment
 vi.mock("next/server", async () => {
   const actual = await vi.importActual<typeof import("next/server")>("next/server");

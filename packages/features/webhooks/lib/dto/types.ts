@@ -498,12 +498,10 @@ export type DelegationCredentialErrorPayloadType = {
     id: number;
     type: string;
     appId: string;
-    delegationCredentialId?: string;
   };
   user: {
     id: number;
     email: string;
-    organizationId?: number;
   };
 };
 

@@ -16,7 +16,7 @@ jobs:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
         with:
-          repository: calcom/test-results-2
+          repository: calcom/test-results
           ref: gh-pages
           token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Set Git User
@@ -67,7 +67,7 @@ jobs:
       - name: Output Report URL as Workflow Annotation
         id: url
         run: |
-          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results-2/$HTML_REPORT_URL_PATH
+          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results/$HTML_REPORT_URL_PATH
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
           echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
       - name: Find Comment

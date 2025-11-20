@@ -81,7 +81,6 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               e.preventDefault();
             }
           }}
-          onClick={(e) => e.stopPropagation()}
           className={classNames(
             dialogClasses({ size: props.size }),
             "max-h-[95vh]",

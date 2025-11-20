@@ -279,6 +279,14 @@ export default function Success(props: PageProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
+  // const telemetry = useTelemetry();
+  /*  useEffect(() => {
+    if (top !== window) {
+      //page_view will be collected automatically by _middleware.ts
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
+    }
+  }, [telemetry]); */
+
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
@@ -1199,7 +1207,7 @@ function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
+              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
               {formatToLocalizedTime({
                 date: dayjs(dateStr),
@@ -1217,7 +1225,7 @@ function RecurringBookings({
                 timeZone: tz,
               })}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -1232,7 +1240,7 @@ function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
                     <br />
                     {formatToLocalizedTime({
                       date: dayjs(dateStr),
@@ -1248,7 +1256,7 @@ function RecurringBookings({
                       timeZone: tz,
                     })}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}

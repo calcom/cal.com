@@ -137,16 +137,16 @@ describe("Booking Actions", () => {
 
       expect(actions).toHaveLength(2);
       expect(actions[0]).toEqual({
+        id: "reject",
+        label: "reject",
+        icon: "ban",
+        disabled: false,
+      });
+      expect(actions[1]).toEqual({
         id: "confirm",
         bookingId: 1,
         label: "confirm",
         icon: "check",
-        disabled: false,
-      });
-      expect(actions[1]).toEqual({
-        id: "reject",
-        label: "reject",
-        icon: "ban",
         disabled: false,
       });
     });
@@ -167,8 +167,8 @@ describe("Booking Actions", () => {
       });
       const actions = getPendingActions(context);
 
-      expect(actions[0].label).toBe("confirm_all");
-      expect(actions[1].label).toBe("reject_all");
+      expect(actions[0].label).toBe("reject_all");
+      expect(actions[1].label).toBe("confirm_all");
     });
   });
 

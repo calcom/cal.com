@@ -25,7 +25,7 @@ jobs:
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v2
         with:
-          repository: calcom/test-results-2
+          repository: calcom/test-results
           ref: gh-pages
           token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Set Git User

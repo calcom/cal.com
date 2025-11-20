@@ -5,7 +5,9 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
@@ -37,6 +39,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
   const utils = trpc.useUtils();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
+  const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
   // Create a separate mutation for avatar updates
@@ -78,7 +81,7 @@ const UserProfile = ({ user }: UserProfileProps) => {
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
-    // telemetry.event(telemetryEventTypes.onboardingFinished);
+    telemetry.event(telemetryEventTypes.onboardingFinished);
 
     mutation.mutate({
       bio,

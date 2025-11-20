@@ -1,4 +1,5 @@
 import { get } from "@vercel/edge-config";
+import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -6,6 +7,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
+import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
@@ -269,4 +271,9 @@ export const config = {
   matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
 };
 
-export default middleware;
+export default collectEvents({
+  middleware,
+  ...nextCollectBasicSettings,
+  cookieName: "__clnds",
+  extend: extendEventData,
+});

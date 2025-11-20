@@ -683,7 +683,7 @@
   "booking_reschedule_confirmation": "Planen Sie Ihr {{eventTypeTitle}} mit {{profileName}} um",
   "in_person_meeting": "Vor-Ort-Termin",
   "in_person": "Vor Ort (Organisator-Adresse)",
-  "link_meeting": "Online Termin",
+  "link_meeting": "Termin verknüpfen",
   "phone_number": "Telefonnummer",
   "attendee_phone_number": "Telefonnummer",
   "organizer_phone_number": "Telefonnummer des Organisators",

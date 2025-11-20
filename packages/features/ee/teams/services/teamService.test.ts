@@ -2,6 +2,7 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -14,7 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import { TeamService } from "./teamService";
 
-vi.mock("@calcom/ee/billing/di/containers/Billing");
+vi.mock("@calcom/features/ee/billing/teams");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
@@ -29,19 +30,12 @@ const mockTeamBilling = {
   downgrade: vi.fn(),
 };
 
-const mockTeamBillingFactory = {
-  findAndInit: vi.fn().mockResolvedValue(mockTeamBilling),
-  findAndInitMany: vi.fn().mockResolvedValue([mockTeamBilling]),
-};
+vi.mocked(TeamBilling.findAndInit).mockResolvedValue(mockTeamBilling);
 
 describe("TeamService", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.resetAllMocks();
-    mockTeamBillingFactory.findAndInit.mockResolvedValue(mockTeamBilling);
-    mockTeamBillingFactory.findAndInitMany.mockResolvedValue([mockTeamBilling]);
-    
-    const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-    vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory);
+    vi.mocked(TeamBilling.findAndInit).mockResolvedValue(mockTeamBilling);
   });
 
   afterEach(() => {
@@ -65,7 +59,7 @@ describe("TeamService", () => {
 
       const result = await TeamService.delete({ id: 1 });
 
-      expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
+      expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
       expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
@@ -399,7 +393,7 @@ describe("TeamService", () => {
     it("should call publish on TeamBilling", async () => {
       await TeamService.publish(1);
 
-      expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
+      expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.publish).toHaveBeenCalled();
     });
   });

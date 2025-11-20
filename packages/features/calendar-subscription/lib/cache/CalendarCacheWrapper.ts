@@ -50,115 +50,54 @@ export class CalendarCacheWrapper implements Calendar {
   }
 
   /**
-   * Retrieves availability combining cache and live sources.
+   * Override this method to use cache
    *
-   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
-   * - Calendars **without** one of them → fetched directly from the original calendar.
-   * - Results are merged into a single array.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of busy date ranges
+   * @param dateFrom
+   * @param dateTo
+   * @param selectedCalendars
+   * @param shouldServeCache
    */
   async getAvailability(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
+    // _shouldServeCache?: boolean
+    // _fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
-    log.debug("getAvailability (mixed cache + original)", {
-      dateFrom,
-      dateTo,
-      calendarIds: selectedCalendars.map((c) => c.id),
-      calendarCount: selectedCalendars.length,
-    });
-
-    if (!selectedCalendars?.length) return [];
-
-    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
-
-    const results: EventBusyDate[] = [];
-
-    // Fetch from cache for synced calendars
-    if (withSync.length) {
-      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
-      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-        ids,
-        new Date(dateFrom),
-        new Date(dateTo)
-      );
-      results.push(...cached);
+    log.debug("getAvailability from cache", { dateFrom, dateTo, selectedCalendars });
+    const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
+    if (!selectedCalendarIds.length) {
+      return Promise.resolve([]);
     }
-
-    // Fetch from original calendar for unsynced ones
-    if (withoutSync.length) {
-      const original = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, withoutSync);
-      results.push(...original);
-    }
-
-    return results;
+    return this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+      selectedCalendarIds,
+      new Date(dateFrom),
+      new Date(dateTo)
+    );
   }
 
   /**
-   * Retrieves availability with time zones, combining cache and live data.
+   * Override this method to use cache
    *
-   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
-   * - Calendars **without** one of them → fetched directly from the original calendar.
-   * - Results are merged into a single array with `{ start, end, timeZone }` format.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of time-zone-aware availability ranges
+   * @param dateFrom
+   * @param dateTo
+   * @param selectedCalendars
+   * @returns
    */
-  async getAvailabilityWithTimeZones(
+  async getAvailabilityWithTimeZones?(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
+    // _fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
-    log.debug("getAvailabilityWithTimeZones (mixed cache + original)", {
-      dateFrom,
-      dateTo,
-      calendarIds: selectedCalendars.map((c) => c.id),
-      calendarCount: selectedCalendars.length,
-    });
-
-    if (!selectedCalendars?.length) return [];
-
-    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
-
-    const results: { start: Date | string; end: Date | string; timeZone: string }[] = [];
-
-    // Fetch from cache for synced calendars
-    if (withSync.length) {
-      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
-      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-        ids,
-        new Date(dateFrom),
-        new Date(dateTo)
-      );
-      results.push(
-        ...cached.map(({ start, end, timeZone }) => ({
-          start,
-          end,
-          timeZone: timeZone || "UTC",
-        }))
-      );
-    }
-
-    // Fetch from original calendar for unsynced ones
-    if (withoutSync.length) {
-      const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(
-        dateFrom,
-        dateTo,
-        withoutSync
-      );
-      if (original?.length) results.push(...original);
-    }
-
-    return results;
+    log.debug("getAvailabilityWithTimeZones from cache", { dateFrom, dateTo, selectedCalendars });
+    const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
+    const result = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+      selectedCalendarIds,
+      new Date(dateFrom),
+      new Date(dateTo)
+    );
+    return result.map(({ start, end, timeZone }) => ({ start, end, timeZone: timeZone || "UTC" }));
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {

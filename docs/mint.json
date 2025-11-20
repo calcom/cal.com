@@ -226,8 +226,7 @@
             "platform/atoms/google-calendar-connect",
             "platform/atoms/list-schedules",
             "platform/atoms/outlook-calendar-connect",
-            "platform/atoms/payment-form",
-            "platform/atoms/stripe-connect"
+            "platform/atoms/payment-form"
           ]
         },
         {

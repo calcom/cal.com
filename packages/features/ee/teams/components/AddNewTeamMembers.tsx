@@ -3,7 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -12,6 +12,8 @@ import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/c
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -27,12 +29,20 @@ type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][num
 const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
+  const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
     { teamId, isOrg },
     { enabled: session.status === "authenticated" }
   );
+
+  useEffect(() => {
+    const event = searchParams?.get("event");
+    if (event === "team_created") {
+      telemetry.event(telemetryEventTypes.team_created);
+    }
+  }, []);
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 

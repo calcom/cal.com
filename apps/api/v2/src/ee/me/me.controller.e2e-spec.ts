@@ -95,8 +95,6 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
           expect(responseBody.data.name).toEqual(user.name);
-          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
-          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -119,8 +117,6 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
-          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
-          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -155,13 +151,13 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat = { timeFormat: 100 };
+      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 as any };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart = { weekStart: "waba luba dub dub" };
+      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" as any };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });

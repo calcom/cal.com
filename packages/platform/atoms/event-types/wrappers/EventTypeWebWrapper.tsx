@@ -13,8 +13,10 @@ import { EventPermissionProvider } from "@calcom/features/pbac/client/context/Ev
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -163,6 +165,7 @@ const EventTypeWeb = ({
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
+  const telemetry = useTelemetry();
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
@@ -442,7 +445,7 @@ const EventTypeWeb = ({
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
               handleSubmit(form.getValues());
-              // telemetry.event(telemetryEventTypes.slugReplacementAction);
+              telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
           />

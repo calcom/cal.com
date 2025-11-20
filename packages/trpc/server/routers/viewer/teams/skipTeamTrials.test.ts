@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 
@@ -52,11 +52,11 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => (
 
 const mockGetSubscriptionStatus = vi.fn();
 const mockEndTrial = vi.fn().mockResolvedValue(true);
-const mockInit = vi.fn();
 
-vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
-  getTeamBillingServiceFactory: vi.fn(() => ({
-    init: mockInit,
+vi.mock("@calcom/ee/billing/teams/internal-team-billing", () => ({
+  InternalTeamBilling: vi.fn().mockImplementation(() => ({
+    getSubscriptionStatus: mockGetSubscriptionStatus,
+    endTrial: mockEndTrial,
   })),
 }));
 
@@ -70,10 +70,6 @@ describe("skipTeamTrialsHandler", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockInit.mockReturnValue({
-      getSubscriptionStatus: mockGetSubscriptionStatus,
-      endTrial: mockEndTrial,
-    });
   });
 
   it("should set user's trialEndsAt to null", async () => {
@@ -95,15 +91,15 @@ describe("skipTeamTrialsHandler", () => {
   it("should end trials for all teams where user is OWNER", async () => {
     // Mock teams where user is owner
     const mockTeams = [
-      { id: 101, name: "Team 1", isOrganization: false, parentId: null, metadata: null },
-      { id: 102, name: "Team 2", isOrganization: false, parentId: null, metadata: null },
-    ];
+      { id: 101, name: "Team 1" },
+      { id: 102, name: "Team 2" },
+    ] as any;
 
     vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
-      .mockResolvedValueOnce(SubscriptionStatus.TRIALING) // First team is in trial
-      .mockResolvedValueOnce(SubscriptionStatus.ACTIVE); // Second team is active
+      .mockResolvedValueOnce("trialing") // First team is in trial
+      .mockResolvedValueOnce("active"); // Second team is active
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -114,9 +110,9 @@ describe("skipTeamTrialsHandler", () => {
       role: "OWNER",
     });
 
-    expect(mockInit).toHaveBeenCalledTimes(2);
-    expect(mockInit).toHaveBeenNthCalledWith(1, mockTeams[0]);
-    expect(mockInit).toHaveBeenNthCalledWith(2, mockTeams[1]);
+    expect(InternalTeamBilling).toHaveBeenCalledTimes(2);
+    expect(InternalTeamBilling).toHaveBeenNthCalledWith(1, mockTeams[0]);
+    expect(InternalTeamBilling).toHaveBeenNthCalledWith(2, mockTeams[1]);
 
     expect(mockGetSubscriptionStatus).toHaveBeenCalledTimes(2);
     expect(mockEndTrial).toHaveBeenCalledTimes(1);

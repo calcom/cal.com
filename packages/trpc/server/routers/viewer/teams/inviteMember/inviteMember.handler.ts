@@ -1,6 +1,6 @@
 import { type TFunction } from "i18next";
 
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -228,9 +228,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  const teamBillingServiceFactory = getTeamBillingServiceFactory();
-  const teamBillingService = teamBillingServiceFactory.init(team);
-  await teamBillingService.updateQuantity();
+  const teamBilling = TeamBilling.init(team);
+  await teamBilling.updateQuantity();
 
   return {
     // TODO: Better rename it to invitations only maybe?

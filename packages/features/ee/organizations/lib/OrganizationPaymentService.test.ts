@@ -42,19 +42,15 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-const mockBillingService = {
-  createCustomer: vi.fn().mockResolvedValue({ id: "mock_customer_id" }),
-  createPrice: vi.fn().mockResolvedValue({ id: "mock_price_id", isCustom: false }),
-  createSubscription: vi.fn().mockResolvedValue({ id: "mock_subscription_id" }),
-  createSubscriptionCheckout: vi.fn().mockResolvedValue({
-    checkoutUrl: "https://checkout.stripe.com/mock-checkout-url",
-  }),
-};
-
-vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
-  getBillingProviderService: vi.fn(() => mockBillingService),
-  getTeamBillingServiceFactory: vi.fn(),
-  getTeamBillingDataRepository: vi.fn(),
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
+  StripeBillingService: vi.fn().mockImplementation(() => ({
+    createCustomer: vi.fn().mockResolvedValue({ id: "mock_customer_id" }),
+    createPrice: vi.fn().mockResolvedValue({ id: "mock_price_id", isCustom: false }),
+    createSubscription: vi.fn().mockResolvedValue({ id: "mock_subscription_id" }),
+    createSubscriptionCheckout: vi.fn().mockResolvedValue({
+      checkoutUrl: "https://checkout.stripe.com/mock-checkout-url",
+    }),
+  })),
 }));
 
 describe("OrganizationPaymentService", () => {
@@ -77,8 +73,9 @@ describe("OrganizationPaymentService", () => {
       validatePermissions: vi.fn().mockResolvedValue(true),
     };
     service = new OrganizationPaymentService(mockUser, mockPermissionService);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ metadata: {} });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ metadata: {} } as any);
 
+    // Mock successful organization onboarding creation
     vi.mocked(prisma.organizationOnboarding.create).mockResolvedValue({
       id: 1,
       name: "Test Org",
@@ -89,7 +86,7 @@ describe("OrganizationPaymentService", () => {
       pricePerSeat: 20,
       stripeCustomerId: "mock_customer_id",
       isComplete: false,
-    });
+    } as any);
   });
 
   describe("createPaymentIntent", () => {
@@ -134,7 +131,7 @@ describe("OrganizationPaymentService", () => {
       expect(result).toBeDefined();
       const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-      const { updatedAt: _updatedAt, ...data } = updateCall.data;
+      const { updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
@@ -184,7 +181,7 @@ describe("OrganizationPaymentService", () => {
       expect(result).toBeDefined();
       const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-      const { updatedAt: _updatedAt, ...data } = updateCall.data;
+      const { updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
@@ -235,7 +232,7 @@ describe("OrganizationPaymentService", () => {
         expect(vi.mocked(prisma.organizationOnboarding.update)).toHaveBeenCalled();
         const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-        const { updatedAt: _updatedAt, ...data } = updateCall.data;
+        const { updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
@@ -267,7 +264,7 @@ describe("OrganizationPaymentService", () => {
         expect(result).toBeDefined();
         const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-        const { updatedAt: _updatedAt, ...data } = updateCall.data;
+        const { updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",

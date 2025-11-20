@@ -23,7 +23,7 @@ const useRoutingFormNavigation = (
 ) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { isDirty } = useFormContext<RoutingFormWithResponseCount>().formState;
+  const formContext = useFormContext<RoutingFormWithResponseCount>();
 
   // Get the current page based on the pathname since we use a custom routing system
   const getCurrentPage = () => {
@@ -39,7 +39,7 @@ const useRoutingFormNavigation = (
 
     const baseUrl = `${appUrl}/${value}/${form.id}`;
 
-    if (value === "route-builder" && isDirty) {
+    if (value === "route-builder" && formContext.formState.isDirty) {
       setShowInfoLostDialog(true);
     } else {
       router.push(baseUrl);

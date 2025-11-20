@@ -23,18 +23,9 @@ type BookingsListViewProps = {
   table: ReactTable<RowData>;
   isPending: boolean;
   totalRowCount?: number;
-  ErrorView?: React.ReactNode;
-  hasError?: boolean;
 };
 
-export function BookingsList({
-  status,
-  table,
-  isPending,
-  totalRowCount,
-  ErrorView,
-  hasError,
-}: BookingsListViewProps) {
+export function BookingsList({ status, table, isPending, totalRowCount }: BookingsListViewProps) {
   const { t } = useLocale();
 
   return (
@@ -73,8 +64,6 @@ export function BookingsList({
           />
         </div>
       }
-      ErrorView={ErrorView}
-      hasError={hasError}
     />
   );
 }

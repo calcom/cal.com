@@ -11,9 +11,6 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     nonOrgTeamslug: null,
     userOrigin: "https://user.cal.com",
     teamOrigin: "https://team.cal.com",
-    user: {
-      username: null,
-    },
   };
 
   const defaultParams = {
@@ -26,26 +23,14 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
   it("should return WEBAPP_URL for non-migrated user", () => {
     const result = getAbsoluteEventTypeRedirectUrl({
       ...defaultParams,
-      eventTypeRedirectUrl: "old-user/event",
-      form: {
-        ...defaultForm,
-        nonOrgUsername: "old-user",
-        user: { username: "new-user" },
-      },
+      eventTypeRedirectUrl: "user/event",
+      form: { ...defaultForm, nonOrgUsername: "user" },
     });
-    expect(result).toBe(`${WEBAPP_URL}/old-user/event?`);
+    expect(result).toBe(`${WEBAPP_URL}/user/event?`);
   });
 
   it("should return user origin for migrated user", () => {
-    const result = getAbsoluteEventTypeRedirectUrl({
-      ...defaultParams,
-      eventTypeRedirectUrl: "user/event",
-      form: {
-        ...defaultForm,
-        nonOrgUsername: "user",
-        user: { username: "user" },
-      },
-    });
+    const result = getAbsoluteEventTypeRedirectUrl(defaultParams);
     expect(result).toBe("https://user.cal.com/user/event?");
   });
 

@@ -57,11 +57,11 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
-        <div className="flex flex-row md:space-x-3">
-          <div className="bg-subtle hidden h-10 w-10 flex-shrink-0 justify-center rounded-full md:flex">
+        <div className="flex flex-row space-x-3">
+          <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full">
             <Icon name="user-plus" className="m-auto h-6 w-6" />
           </div>
-          <div className="w-full md:pt-1">
+          <div className="w-full pt-1">
             <DialogHeader title={t("additional_guests")} />
             <div className="bg-default">
               <MultiEmail

@@ -70,7 +70,6 @@ const BookerPlatformWrapperComponent = (
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
-    defaultPhoneCountry,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -186,7 +185,6 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
-    defaultPhoneCountry,
   });
   useInitializeBookerStoreContext({
     ...props,
@@ -203,7 +201,6 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
-    defaultPhoneCountry,
   });
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -303,7 +300,7 @@ const BookerPlatformWrapperComponent = (
       Boolean(month) &&
       Boolean(timezone) &&
       !event?.isPending &&
-      event?.data?.id != null,
+      Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,

@@ -22,40 +22,17 @@ You can listen to an action that occurs in embedded cal link as follows. You can
 
 ## Following are the list of supported actions.
 
-<Info>Event payloads may evolve over time. For the most reliable integration, you can listen to `action: "*"` to receive all events and inspect `e.detail.type` and `e.detail.data` at runtime.</Info>
-
-### Public Events
-
-These events are intended for external use and provide information about user interactions and booking lifecycle.
-
-| Action                     | Description                                                                                           | Properties                                                                                                                       |
-|----------------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| eventTypeSelected          | When user chooses an event-type from the listing.                                                     | `eventType: object` // Event Type that has been selected                                                                         |
-| bookingSuccessfulV2        | When a booking is successfully created. It might not be confirmed.                                    | `uid: string` // Booking unique identifier <br /> `title: string` // Booking title <br /> `startTime: string` // Booking start time <br /> `endTime: string` // Booking end time <br /> `eventTypeId: number` // Event type ID <br /> `status: string` // Booking status <br /> `paymentRequired: boolean` // Whether payment is required <br /> `isRecurring: boolean` // Whether this is a recurring booking <br /> `allBookings: array` // For recurring bookings, array of all booking times <br /> `videoCallUrl: string` // Video call URL if available |
-| rescheduleBookingSuccessfulV2 | When a booking is successfully rescheduled.                                                           | Same properties as `bookingSuccessfulV2`                                                                                           |
-| dryRunBookingSuccessfulV2    | When a dry run booking is successfully created (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
-| dryRunRescheduleBookingSuccessfulV2 | When a dry run reschedule is successful (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
-| bookingCancelled           | When a booking is cancelled.                                                                          | `booking: object` // Booking details including cancellationReason <br /> `organizer: object` // Organizer details (name, email, timeZone) <br /> `eventType: object` // Event type details |
-| availabilityLoaded         | When availability slots are successfully loaded.                                                      | `eventId: number` // Event type ID <br /> `eventSlug: string` // Event type slug                                                |
-| routed                     | When a routing form routes to an action (event type, external URL, or custom page).                  | `actionType: string` // Type of action: "customPageMessage", "externalRedirectUrl", or "eventTypeRedirectUrl" <br /> `actionValue: string` // The value/URL of the action |
-| navigatedToBooker          | When user navigates to the booker interface.                                                          | None                                                                                                                             |
-| linkReady                  | Tells that the link is ready to be shown now.                                                         | None                                                                                                                             |
-| linkFailed                 | Fired if link fails to load.                                                                          | `code: string` // Error Code <br /> `msg: string` // Human Readable message <br /> `data: object` // More details to debug the error (includes url) |
-
-### Internal Events
-
-These events are used internally by the embed system for communication between the iframe and parent window. They are prefixed with `__` and are not intended for external use.
 | Action               | Description                                                                                           | Properties                                                                                                                       |
 |----------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| __iframeReady        | Fired when the embedded iframe is ready to communicate with parent snippet.                           | `isPrerendering: boolean` // Whether the iframe is in prerender mode                                                             |
+| eventTypeSelected    | When user chooses an event-type from the listing.                                                     | `eventType: object` // Event Type that has been selected                                                                         |
+| bookingSuccessful    | When the booking is successfully done. It might not be confirmed.                                     | `confirmed: boolean` // Whether confirmation from organizer is pending or not <br /> `eventType: object` // Event Type that has been booked <br /> `date: string` // Date of Event <br /> `duration: number` // Duration of booked Event <br /> `organizer: object` // Organizer details like name, timezone, email |
+| linkReady            | Tells that the link is ready to be shown now.                                                         | None                                                                                                                             |
+| linkFailed           | Fired if link fails to load.                                                                          | `code: number` // Error Code <br /> `msg: string` // Human Readable message <br /> `data: object` // More details to debug the error |
+| __iframeReady        | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet. | None                                                                                                                             |
 | __windowLoadComplete | Tells that window load for iframe is complete.                                                        | None                                                                                                                             |
-| __dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                       | `iframeWidth: number` <br /> `iframeHeight: number` <br /> `isFirstTime: boolean` // Whether this is the first dimension change |
-| __routeChanged       | Fired when the route changes within the iframe.                                                       | None                                                                                                                             |
-| __closeIframe        | Fired when the iframe should be closed.                                                               | None                                                                                                                             |
-| __connectInitiated   | Fired when connection to a prerendered iframe is initiated.                                           | None                                                                                                                             |
-| __connectCompleted   | Fired when connection to a prerendered iframe is completed.                                           | None                                                                                                                             |
-| __scrollByDistance   | Instructs the parent to scroll by a specific distance.                                                | `distance: number` // Distance in pixels to scroll by                                                                            |
+| __dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                       | `iframeWidth: number` <br /> `iframeHeight: number`                                                                           |
 
-<Info>Events that start with `__` are internal and should not be relied upon for external integrations as they may change without notice.</Info>
+
+<Info>Actions that start with __ are internal.</Info>
 
 To get more details on how Embed actually works, you can refer to this [Embed Flowchart](https://www.figma.com/file/zZ5oaUpg12Fuu5mGZrPlP5/Embed-Flowchart).

@@ -124,29 +124,6 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private async triggerDelegationCredentialError(error: Error): Promise<void> {
-    if (
-      this.credential.userId &&
-      this.credential.user &&
-      this.credential.appId &&
-      this.credential.delegatedToId
-    ) {
-      await triggerDelegationCredentialErrorWebhook({
-        error,
-        credential: {
-          id: this.credential.id,
-          type: this.credential.type,
-          appId: this.credential.appId,
-        },
-        user: {
-          id: this.credential.userId,
-          email: this.credential.user.email,
-        },
-        delegationCredentialId: this.credential.delegatedToId,
-      });
-    }
-  }
-
   private async getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
     if (delegatedTo) {
       if (!tenantId) {
@@ -154,7 +131,21 @@ export default class Office365CalendarService implements Calendar {
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
 
-        await this.triggerDelegationCredentialError(error);
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
+          await triggerDelegationCredentialErrorWebhook({
+            error,
+            credential: {
+              id: this.credential.id,
+              type: this.credential.type,
+              appId: this.credential.appId,
+            },
+            user: {
+              id: this.credential.userId,
+              email: this.credential.user.email,
+            },
+            orgId: this.credential.teamId,
+          });
+        }
 
         throw error;
       }
@@ -174,7 +165,21 @@ export default class Office365CalendarService implements Calendar {
           "Delegation credential without clientId or Secret"
         );
 
-        await this.triggerDelegationCredentialError(error);
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
+          await triggerDelegationCredentialErrorWebhook({
+            error,
+            credential: {
+              id: this.credential.id,
+              type: this.credential.type,
+              appId: this.credential.appId,
+            },
+            user: {
+              id: this.credential.userId,
+              email: this.credential.user.email,
+            },
+            orgId: this.credential.teamId,
+          });
+        }
 
         throw error;
       }
@@ -202,7 +207,21 @@ export default class Office365CalendarService implements Calendar {
         "Delegation credential without clientId or Secret"
       );
 
-      await this.triggerDelegationCredentialError(error);
+      if (this.credential.userId && this.credential.user && this.credential.appId) {
+        await triggerDelegationCredentialErrorWebhook({
+          error,
+          credential: {
+            id: this.credential.id,
+            type: this.credential.type,
+            appId: this.credential.appId,
+          },
+          user: {
+            id: this.credential.userId,
+            email: this.credential.user.email,
+          },
+          orgId: this.credential.teamId,
+        });
+      }
 
       throw error;
     }
@@ -241,7 +260,21 @@ export default class Office365CalendarService implements Calendar {
           "User might not exist in Microsoft Azure Active Directory"
         );
 
-        await this.triggerDelegationCredentialError(error);
+        if (this.credential.userId && this.credential.user && this.credential.appId) {
+          await triggerDelegationCredentialErrorWebhook({
+            error,
+            credential: {
+              id: this.credential.id,
+              type: this.credential.type,
+              appId: this.credential.appId,
+            },
+            user: {
+              id: this.credential.userId ?? 0,
+              email: this.credential.user.email,
+            },
+            orgId: this.credential.teamId,
+          });
+        }
 
         throw error;
       }

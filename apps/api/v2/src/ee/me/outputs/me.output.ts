@@ -27,14 +27,6 @@ export class MeOutput {
   @DocsProperty({ type: String, nullable: true })
   name!: string | null;
 
-  @IsString()
-  @DocsProperty({ type: String, nullable: true })
-  avatarUrl!: string | null;
-
-  @IsString()
-  @DocsProperty({ type: String, nullable: true })
-  bio!: string | null;
-
   @IsInt()
   @DocsProperty()
   timeFormat!: number;

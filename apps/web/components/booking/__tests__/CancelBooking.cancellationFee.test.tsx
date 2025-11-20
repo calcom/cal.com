@@ -59,6 +59,12 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   }),
 }));
 
+vi.mock("@calcom/lib/hooks/useTelemetry", () => ({
+  useTelemetry: () => ({
+    event: vi.fn(),
+  }),
+}));
+
 vi.mock("@calcom/lib/hooks/useRefreshData", () => ({
   useRefreshData: () => vi.fn(),
 }));
