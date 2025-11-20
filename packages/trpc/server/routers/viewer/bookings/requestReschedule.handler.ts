@@ -27,6 +27,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
@@ -49,11 +50,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
   const bookingRepository = new BookingRepository(prisma);
-  const bookingToReschedule = await bookingRepository.findBookingForRequestReschedule({ bookingUid });
+  const bookingToReschedule = await bookingRepository.findByUidIncludeEventTypeAndReferences({ bookingUid });
 
-  if (!bookingToReschedule) return;
+  if (
+    bookingToReschedule.status === BookingStatus.CANCELLED ||
+    bookingToReschedule.status === BookingStatus.REJECTED
+  ) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Cannot request reschedule for cancelled or rejected booking",
+    });
+  }
 
-  if (!bookingToReschedule.userId || !bookingToReschedule.user) {
+  if (!bookingToReschedule.userId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
@@ -94,8 +103,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   if (bookingToReschedule.eventType) {
     event = bookingToReschedule.eventType;
   }
-  await bookingRepository.markBookingAsRescheduled({
+  await bookingRepository.updateBookingStatus({
     bookingId: bookingToReschedule.id,
+    status: BookingStatus.CANCELLED,
+    rescheduled: true,
     cancellationReason,
     cancelledBy: user.email,
   });
