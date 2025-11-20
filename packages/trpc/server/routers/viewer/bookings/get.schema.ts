@@ -20,6 +20,8 @@ export const ZGetInputSchema = z.object({
   }),
   limit: z.number().min(1).max(100),
   offset: z.number().default(0),
+  // Cursor for infinite query support (calendar view)
+  cursor: z.string().optional(),
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;

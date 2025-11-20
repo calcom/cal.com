@@ -39,7 +39,11 @@ interface BookingsCalendarContainerProps {
 }
 
 interface BookingsCalendarInnerProps extends BookingsCalendarContainerProps {
-  data?: BookingsGetOutput;
+  data?: {
+    bookings: BookingsGetOutput["bookings"];
+    recurringInfo: BookingsGetOutput["recurringInfo"];
+    totalCount: BookingsGetOutput["totalCount"];
+  };
   isPending: boolean;
   hasError: boolean;
   errorMessage?: string;
@@ -190,10 +194,9 @@ export function BookingsCalendarContainer(props: BookingsCalendarContainerProps)
     }
   }, [dateRange, setActiveFilters]);
 
-  const query = trpc.viewer.bookings.get.useQuery(
+  const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 100, // Use max limit for calendar view
-      offset: 0, // Reset offset for calendar view
       filters: {
         statuses: STATUSES,
         eventTypeIds,
@@ -208,18 +211,43 @@ export function BookingsCalendarContainer(props: BookingsCalendarContainerProps)
       },
     },
     {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
       staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
       gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
     }
   );
 
-  const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
+  // Automatically fetch all pages until no more data
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten all pages into a single data object
+  const data = useMemo(() => {
+    if (!query.data?.pages) return undefined;
+
+    // Combine all bookings from all pages
+    const allBookings = query.data.pages.flatMap((page) => page.bookings);
+
+    // recurringInfo is the same across all pages (queried globally by user, not per page)
+    const recurringInfo = query.data.pages[0]?.recurringInfo ?? [];
+
+    // totalCount is the same across all pages
+    const totalCount = query.data.pages[0]?.totalCount ?? 0;
+
+    return { bookings: allBookings, recurringInfo, totalCount };
+  }, [query.data?.pages]);
+
+  const bookings = useMemo(() => data?.bookings ?? [], [data?.bookings]);
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingsCalendarInner
         {...props}
-        data={query.data}
+        data={data}
         isPending={query.isPending}
         hasError={!!query.error}
         errorMessage={query.error?.message}

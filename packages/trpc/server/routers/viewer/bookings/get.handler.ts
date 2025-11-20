@@ -35,10 +35,19 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  // using offset actually because cursor pagination requires a unique column
-  // for orderBy, but we don't use a unique column in our orderBy
+  // Support both offset-based and cursor-based pagination
+  // Cursor is just the offset as a string (fake cursor pagination)
   const take = input.limit;
-  const skip = input.offset;
+  let skip = input.offset;
+
+  // If cursor is provided, parse it to get the offset
+  if (input.cursor) {
+    const parsedCursor = parseInt(input.cursor, 10);
+    if (!isNaN(parsedCursor)) {
+      skip = parsedCursor;
+    }
+  }
+
   const { prisma, user } = ctx;
   const bookingListingByStatus = input.filters.statuses;
 
@@ -54,10 +63,16 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     filters: input.filters,
   });
 
+  // Generate next cursor for infinite query support
+  const nextOffset = skip + take;
+  const hasMore = nextOffset < totalCount;
+  const nextCursor = hasMore ? nextOffset.toString() : undefined;
+
   return {
     bookings,
     recurringInfo,
     totalCount,
+    nextCursor,
   };
 };
 
