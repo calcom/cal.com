@@ -125,16 +125,35 @@ function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloa
   return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-async function getBookingTracking(data: EventPayloadType): Promise<Tracking | undefined> {
-  const repo = new BookingRepository(prisma);
-  if (data.bookingId) {
-    const booking = await repo.findByIdIncludeTracking(data.bookingId);
-    return (booking as unknown as { tracking?: Tracking })?.tracking ?? undefined;
+async function getBookingTracking(
+  data: EventPayloadType & { tracking?: Tracking }
+): Promise<Tracking | undefined> {
+  // If tracking data is already provided in the payload, use it (avoids extra DB query)
+  if (data.tracking) {
+    return data.tracking;
   }
-  if (data.uid) {
-    const booking = await repo.findByUidIncludeTracking(data.uid);
-    return (booking as unknown as { tracking?: Tracking })?.tracking ?? undefined;
+
+  // Fallback: fetch from database if not provided
+  if (data.bookingId || data.uid) {
+    const repo = new BookingRepository(prisma);
+    const booking = await repo.findBookingTracking({
+      id: data.bookingId,
+      uid: data.uid ?? undefined,
+    });
+
+    // Convert null to undefined to match Tracking type
+    const tracking = booking?.tracking;
+    if (!tracking) return undefined;
+
+    return {
+      utm_source: tracking.utm_source ?? undefined,
+      utm_medium: tracking.utm_medium ?? undefined,
+      utm_campaign: tracking.utm_campaign ?? undefined,
+      utm_term: tracking.utm_term ?? undefined,
+      utm_content: tracking.utm_content ?? undefined,
+    };
   }
+
   return undefined;
 }
 

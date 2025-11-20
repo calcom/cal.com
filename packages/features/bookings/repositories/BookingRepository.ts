@@ -1357,55 +1357,16 @@ export class BookingRepository {
     });
   }
 
-  async findByIdIncludeTracking(bookingId: number) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        cancellationReason: true,
-        customInputs: true,
-        userPrimaryEmail: true,
-        metadata: true,
-        attendees: true,
-        tracking: {
-          select: {
-            utm_source: true,
-            utm_medium: true,
-            utm_campaign: true,
-            utm_term: true,
-            utm_content: true,
-          },
-        },
-      },
-    });
-  }
+  async findBookingTracking(identifier: { id?: number; uid?: string }) {
+    if (!identifier.id && !identifier.uid) {
+      throw new Error("Either booking id or uid must be provided");
+    }
 
-  async findByUidIncludeTracking(uid: string) {
+    const where = identifier.id ? { id: identifier.id } : { uid: identifier.uid! };
+
     return await this.prismaClient.booking.findUnique({
-      where: {
-        uid,
-      },
+      where,
       select: {
-        id: true,
-        uid: true,
-        title: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        cancellationReason: true,
-        customInputs: true,
-        userPrimaryEmail: true,
-        metadata: true,
-        attendees: true,
         tracking: {
           select: {
             utm_source: true,
