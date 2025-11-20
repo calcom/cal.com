@@ -90,6 +90,57 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Gets all team features for an organization, including which teams have which features enabled.
+   * @param orgId - The ID of the organization
+   * @returns Promise with all features and their team assignments
+   */
+  public async getOrganizationTeamFeatures(orgId: number) {
+    const allFeatures = await this.getAllFeatures();
+    
+    const teamFeatures = await this.prismaClient.teamFeatures.findMany({
+      where: {
+        team: {
+          parentId: orgId,
+        },
+      },
+      include: {
+        feature: {
+          select: {
+            slug: true,
+            type: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    const featureMap = new Map<string, { teams: Array<{ id: number; name: string }> }>();
+    
+    teamFeatures.forEach((tf) => {
+      if (!featureMap.has(tf.feature.slug)) {
+        featureMap.set(tf.feature.slug, { teams: [] });
+      }
+      featureMap.get(tf.feature.slug)?.teams.push({
+        id: tf.team.id,
+        name: tf.team.name,
+      });
+    });
+
+    return allFeatures.map((feature) => ({
+      slug: feature.slug,
+      description: feature.description,
+      type: feature.type,
+      enabled: feature.enabled,
+      teams: featureMap.get(feature.slug)?.teams || [],
+    }));
+  }
+
+  /**
    * Checks if a feature is enabled globally in the application.
    * @param slug - The feature flag identifier to check
    * @returns Promise<boolean> - True if the feature is enabled globally, false otherwise
