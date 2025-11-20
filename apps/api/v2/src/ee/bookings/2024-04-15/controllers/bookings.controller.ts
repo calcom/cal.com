@@ -652,17 +652,19 @@ export class BookingsController_2024_04_15 {
         : `Error while creating ${type ? type + " " : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
+      if (httpError.message === "reserved_slot_not_first_in_line") {
+        const errorData =
+          "data" in httpError
+            ? (httpError.data as { secondsUntilRelease: number })
+            : { secondsUntilRelease: 300 };
+        const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
+        throw new HttpException(message, 409);
+      }
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
     }
 
     if (err instanceof Error) {
       const error = err as Error;
-      if (error.message === "reserved_slot_not_first_in_line") {
-        const errorData =
-          "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
-        const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
-        throw new HttpException(message, 409);
-      }
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }
