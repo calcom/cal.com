@@ -62,6 +62,7 @@ const EventTypeActions = ({
             variant="icon"
             color="secondary"
             StartIcon="ellipsis"
+            aria-label={t("options")}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
