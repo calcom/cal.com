@@ -7,4 +7,6 @@ export const BOOKING_DI_TOKENS = {
   INSTANT_BOOKING_CREATE_SERVICE_MODULE: Symbol("InstantBookingCreateServiceModule"),
   BOOKING_CANCEL_SERVICE: Symbol("BookingCancelService"),
   BOOKING_CANCEL_SERVICE_MODULE: Symbol("BookingCancelServiceModule"),
+  BOOKING_EVENT_HANDLER_SERVICE: Symbol("BookingEventHandlerService"),
+  BOOKING_EVENT_HANDLER_SERVICE_MODULE: Symbol("BookingEventHandlerServiceModule"),
 };
