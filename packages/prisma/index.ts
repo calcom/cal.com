@@ -8,7 +8,6 @@ import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-pa
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const isIntegrationTest = process.env.INTEGRATION_TESTS === "true" || process.env.INTEGRATION_TEST_MODE === "true";
 const pool =
   process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
     ? new Pool({
