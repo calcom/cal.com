@@ -792,7 +792,7 @@ async function enrichAttendeesWithUserData<
       ? await kysely
           .selectFrom("Attendee")
           .leftJoin("users", "users.email", "Attendee.email")
-          .select(["Attendee.id", "users.name", "users.email", "users.avatarUrl", "users.username"])
+          .select(["Attendee.id", "users.name", "Attendee.email", "users.avatarUrl", "users.username"])
           .where("Attendee.email", "in", uniqueAttendeeEmails)
           .execute()
       : [];
