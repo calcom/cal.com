@@ -37,6 +37,7 @@ import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 import { ZListTeamFeaturesSchema } from "./listTeamFeatures.schema";
+import { ZToggleTeamFeatureSchema } from "./toggleTeamFeature.schema";
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -219,6 +220,10 @@ export const viewerOrganizationsRouter = router({
   }),
   listTeamFeatures: authedOrgAdminProcedure.input(ZListTeamFeaturesSchema).query(async (opts) => {
     const { default: handler } = await import("./listTeamFeatures.handler");
+    return handler(opts);
+  }),
+  toggleTeamFeature: authedOrgAdminProcedure.input(ZToggleTeamFeatureSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./toggleTeamFeature.handler");
     return handler(opts);
   }),
 
