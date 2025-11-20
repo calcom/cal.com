@@ -1387,6 +1387,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
   if (!builtEvt) {
