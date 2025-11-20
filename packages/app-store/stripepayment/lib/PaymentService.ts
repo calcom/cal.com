@@ -2,7 +2,8 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -45,8 +46,14 @@ export class PaymentService implements IAbstractPaymentService {
 
   private async getPayment(where: Prisma.PaymentWhereInput) {
     const payment = await prisma.payment.findFirst({ where });
-    if (!payment) throw new Error("Payment not found");
-    if (!payment.externalId) throw new Error("Payment externalId not found");
+    // if payment isn't found, return null.
+    if (!payment) {
+      return null;
+    }
+    // if it is found, but there's no externalId - it indicates invalid state and an error should be thrown.
+    if (!payment.externalId) {
+      throw new Error("Payment externalId not found");
+    }
     return { ...payment, externalId: payment.externalId };
   }
 
@@ -86,17 +93,16 @@ export class PaymentService implements IAbstractPaymentService {
         automatic_payment_methods: {
           enabled: true,
         },
-        metadata: {
-          identifier: "cal.com",
+        metadata: this.generateMetadata({
           bookingId,
-          calAccountId: userId,
-          calUsername: username,
+          userId,
+          username,
           bookerName,
           bookerEmail: bookerEmail,
           bookerPhoneNumber: bookerPhoneNumber ?? null,
           eventTitle: eventTitle || "",
           bookingTitle: bookingTitle || "",
-        },
+        }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -217,20 +223,18 @@ export class PaymentService implements IAbstractPaymentService {
     }
   }
 
-  async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
+  async chargeCard(payment: Payment, bookingId: Booking["id"]): Promise<Payment> {
     try {
       if (!this.credentials) {
         throw new Error("Stripe credentials not found");
       }
 
-      const stripeAppKeys = await prisma.app.findFirst({
-        select: {
-          keys: true,
-        },
-        where: {
-          slug: "stripe",
-        },
-      });
+      const bookingRepository = new BookingRepository(prisma);
+      const booking = await bookingRepository.findByIdIncludeUserAndAttendees(bookingId);
+
+      if (!booking) {
+        throw new Error(`Booking ${bookingId} not found`);
+      }
 
       const paymentObject = payment.data as unknown as StripeSetupIntentData;
 
@@ -252,6 +256,10 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
       }
 
+      if (!booking.attendees[0]) {
+        throw new Error(`Booking attendees are empty for setupIntent ${setupIntent.id}`);
+      }
+
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
@@ -259,6 +267,16 @@ export class PaymentService implements IAbstractPaymentService {
         payment_method: setupIntent.payment_method as string,
         off_session: true,
         confirm: true,
+        metadata: this.generateMetadata({
+          bookingId,
+          userId: booking.user?.id,
+          username: booking.user?.username,
+          bookerName: booking.attendees[0].name,
+          bookerEmail: booking.attendees[0].email,
+          bookerPhoneNumber: booking.attendees[0].phoneNumber ?? null,
+          eventTitle: booking.eventType?.title || null,
+          bookingTitle: booking.title,
+        }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -284,7 +302,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
+      log.error("Stripe: Could not charge card for payment", bookingId, safeStringify(error));
 
       const errorMappings = {
         "your card was declined": "your_card_was_declined",
@@ -314,13 +332,21 @@ export class PaymentService implements IAbstractPaymentService {
     throw new Error("Method not implemented.");
   }
 
-  async refund(paymentId: Payment["id"]): Promise<Payment> {
+  async refund(paymentId: Payment["id"]): Promise<Payment | null> {
+    const payment = await this.getPayment({
+      id: paymentId,
+    });
+    if (!payment) {
+      return null;
+    }
+    if (!payment.success) {
+      throw new Error("Unable to refund failed payment");
+    }
+    if (payment.refunded) {
+      // refunded already, bail early as success without throwing an error.
+      return payment;
+    }
     try {
-      const payment = await this.getPayment({
-        id: paymentId,
-        success: true,
-        refunded: false,
-      });
       const refund = await this.stripe.refunds.create(
         {
           payment_intent: payment.externalId,
@@ -387,8 +413,12 @@ export class PaymentService implements IAbstractPaymentService {
       const payment = await this.getPayment({
         id: paymentId,
       });
-      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
+      // no payment found, return false.
+      if (!payment) {
+        return false;
+      }
 
+      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
       if (!stripeAccount) {
         throw new Error("Stripe account not found");
       }
@@ -421,5 +451,37 @@ export class PaymentService implements IAbstractPaymentService {
 
   isSetupAlready(): boolean {
     return !!this.credentials;
+  }
+
+  private generateMetadata({
+    bookingId,
+    userId,
+    username,
+    bookerName,
+    bookerEmail,
+    bookerPhoneNumber,
+    eventTitle,
+    bookingTitle,
+  }: {
+    bookingId: number;
+    userId: number | null | undefined;
+    username: string | null | undefined;
+    bookerName: string;
+    bookerEmail: string;
+    bookerPhoneNumber: string | null;
+    eventTitle: string | null;
+    bookingTitle: string;
+  }) {
+    return {
+      identifier: "cal.com",
+      bookingId,
+      calAccountId: userId ?? null,
+      calUsername: username ?? null,
+      bookerName,
+      bookerEmail: bookerEmail,
+      bookerPhoneNumber: bookerPhoneNumber ?? null,
+      eventTitle: eventTitle || "",
+      bookingTitle: bookingTitle || "",
+    };
   }
 }

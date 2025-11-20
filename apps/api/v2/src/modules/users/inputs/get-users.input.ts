@@ -28,6 +28,7 @@ export class GetUsersInput {
   @ApiPropertyOptional({
     type: [String],
     description: "The email address or an array of email addresses to filter by",
+    example: ["user1@example.com", "user2@example.com"],
   })
   emails?: string[];
 }

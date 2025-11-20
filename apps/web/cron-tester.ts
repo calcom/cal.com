@@ -23,9 +23,9 @@ try {
     "*/5 * * * * *",
     async function () {
       await Promise.allSettled([
-        fetchCron("/calendar-cache/cron"),
+        fetchCron("/cron/calendar-subscriptions"),
+        // fetchCron("/calendar-cache/cron"),
         // fetchCron("/cron/calVideoNoShowWebhookTriggers"),
-        //
         fetchCron("/tasks/cron"),
       ]);
     },

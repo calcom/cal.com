@@ -82,6 +82,13 @@ export class RoleRepository {
     ]);
   }
 
+  async reassignUsersToRole(fromRoleId: string, toRoleId: string): Promise<void> {
+    await this.client.membership.updateMany({
+      where: { customRoleId: fromRoleId },
+      data: { customRoleId: toRoleId },
+    });
+  }
+
   async update(
     roleId: string,
     permissionChanges: {

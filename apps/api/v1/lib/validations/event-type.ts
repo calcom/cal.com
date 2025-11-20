@@ -6,13 +6,12 @@ import {
   MIN_EVENT_DURATION_MINUTES,
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
-import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import { HostSchema } from "@calcom/prisma/zod/modelSchema/HostSchema";
 
 import { Frequency } from "~/lib/types";
 
-import { jsonSchema } from "./shared/jsonSchema";
 import { schemaQueryUserId } from "./shared/queryUserId";
 import { timeZone } from "./shared/timeZone";
 
@@ -118,67 +117,3 @@ const schemaEventTypeEditParams = z
   .strict();
 
 export const schemaEventTypeEditBodyParams = schemaEventTypeBaseBodyParams.merge(schemaEventTypeEditParams);
-export const schemaEventTypeReadPublic = EventTypeSchema.pick({
-  id: true,
-  title: true,
-  slug: true,
-  length: true,
-  hidden: true,
-  position: true,
-  userId: true,
-  teamId: true,
-  scheduleId: true,
-  eventName: true,
-  timeZone: true,
-  periodType: true,
-  periodStartDate: true,
-  periodEndDate: true,
-  periodDays: true,
-  periodCountCalendarDays: true,
-  requiresConfirmation: true,
-  recurringEvent: true,
-  disableGuests: true,
-  hideCalendarNotes: true,
-  minimumBookingNotice: true,
-  beforeEventBuffer: true,
-  afterEventBuffer: true,
-  schedulingType: true,
-  price: true,
-  currency: true,
-  slotInterval: true,
-  parentId: true,
-  successRedirectUrl: true,
-  description: true,
-  locations: true,
-  metadata: true,
-  seatsPerTimeSlot: true,
-  seatsShowAttendees: true,
-  seatsShowAvailabilityCount: true,
-  bookingFields: true,
-  bookingLimits: true,
-  onlyShowFirstAvailableSlot: true,
-  durationLimits: true,
-}).merge(
-  z.object({
-    children: z.array(childrenSchema).optional().default([]),
-    hosts: z.array(hostSchema).optional().default([]),
-    locations: z
-      .array(
-        z.object({
-          link: z.string().optional(),
-          address: z.string().optional(),
-          hostPhoneNumber: z.string().optional(),
-          type: z.any().optional(),
-        })
-      )
-      .nullable(),
-    metadata: jsonSchema.nullable(),
-    customInputs: customInputSchema.array().optional(),
-    link: z.string().optional(),
-    hashedLink: z
-      .array(z.object({ link: z.string() }))
-      .optional()
-      .default([]),
-    bookingFields: eventTypeBookingFields.optional().nullable(),
-  })
-);

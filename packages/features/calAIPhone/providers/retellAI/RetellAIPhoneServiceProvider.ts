@@ -22,7 +22,7 @@ import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInte
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository } from "./types";
+import type { RetellAIRepository, Language } from "./types";
 
 export class RetellAIPhoneServiceProvider
   implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>
@@ -210,7 +210,7 @@ export class RetellAIPhoneServiceProvider
     return await this.service.getAgentWithDetails(params);
   }
 
-  async createAgent(params: {
+  async createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -225,7 +225,27 @@ export class RetellAIPhoneServiceProvider
     providerAgentId: string;
     message: string;
   }> {
-    const result = await this.service.createAgent(params);
+    const result = await this.service.createOutboundAgent(params);
+    return {
+      id: result.id,
+      providerAgentId: result.providerAgentId,
+      message: result.message,
+    };
+  }
+
+  async createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }> {
+    const result = await this.service.createInboundAgent(params);
     return {
       id: result.id,
       providerAgentId: result.providerAgentId,
@@ -243,6 +263,9 @@ export class RetellAIPhoneServiceProvider
     beginMessage?: string | null;
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
+    language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }
@@ -289,5 +312,21 @@ export class RetellAIPhoneServiceProvider
 
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]): Promise<void> {
     return await this.service.removeToolsForEventTypes(agentId, eventTypeIds);
+  }
+
+  async listCalls(params: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }) {
+    return await this.service.listCalls(params);
+  }
+
+  async listVoices() {
+    return await this.service.listVoices();
   }
 }

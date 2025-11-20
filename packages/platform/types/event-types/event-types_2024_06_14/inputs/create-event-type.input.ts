@@ -21,6 +21,8 @@ import {
 
 import { SchedulingType } from "@calcom/platform-enums";
 
+import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
+import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import {
   AddressFieldInput_2024_06_14,
@@ -63,6 +65,7 @@ import type { ConfirmationPolicy_2024_06_14 } from "./confirmation-policy.input"
 import { BaseConfirmationPolicy_2024_06_14, ValidateConfirmationPolicy } from "./confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
+import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   InputAddressLocation_2024_06_14,
@@ -79,6 +82,7 @@ import {
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";
@@ -107,6 +111,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
   BaseBookingLimitsCount_2024_06_14,
+  BookerActiveBookingsLimit_2024_06_14,
   Disabled_2024_06_14,
   BaseBookingLimitsDuration_2024_06_14,
   Recurrence_2024_06_14,
@@ -122,7 +127,8 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
-  InputOrganizersDefaultApp_2024_06_14
+  InputOrganizersDefaultApp_2024_06_14,
+  EmailSettings_2024_06_14
 )
 export class CalVideoSettings {
   @IsOptional()
@@ -152,9 +158,31 @@ export class CalVideoSettings {
     description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
   enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event whenever someone joins the call",
+  })
+  enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForGuests?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to receive transcription of the meeting",
+  })
+  disableTranscriptionForOrganizer?: boolean;
 }
 
-class BaseCreateEventTypeInput {
+@CantHaveRecurrenceAndBookerActiveBookingsLimit()
+export class BaseCreateEventTypeInput {
   @IsInt()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
@@ -274,6 +302,29 @@ class BaseCreateEventTypeInput {
   })
   @Type(() => Object)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @RequiresAtLeastOnePropertyWhenNotDisabled()
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("disabled" in value && value.disabled) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      } else {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Limit the number of active bookings a booker can make for this event type.",
+    oneOf: [
+      { $ref: getSchemaPath(BookerActiveBookingsLimit_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
+  @Type(() => Object)
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -442,7 +493,8 @@ class BaseCreateEventTypeInput {
   @ValidateNested()
   @Type(() => CalVideoSettings)
   @DocsPropertyOptional({
-    description: "Cal video settings for the event type",
+    description:
+      "Cal video settings for the event type. Platform customers can't manage this property because currently we have no way of determining if managed user is a host or an attendee.",
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
@@ -457,7 +509,7 @@ class BaseCreateEventTypeInput {
   @DocsPropertyOptional({
     default: false,
     description:
-      "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type.",
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
 }
@@ -539,14 +591,15 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @DocsPropertyOptional({
     type: [Host],
     description:
-      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
   })
   hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 
@@ -569,4 +622,20 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   })
   @Type(() => Object)
   locations?: InputTeamLocation_2024_06_14[];
+
+  @IsOptional()
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Email settings for this event type - only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  @Type(() => EmailSettings_2024_06_14)
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

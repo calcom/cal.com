@@ -8,6 +8,7 @@ import { listMembersHandler } from "./listMembers.handler";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
+  default: prisma, // Add default export for db
 }));
 
 // Mock FeaturesRepository
@@ -22,11 +23,20 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
 vi.mock("@calcom/features/pbac/lib/resource-permissions", () => ({
   getSpecificPermissions: vi.fn().mockResolvedValue({
     listMembers: true,
+    listMembersPrivate: true,
   }),
 }));
 
+// Mock PermissionCheckService
+const mockCheckPermission = vi.fn().mockResolvedValue(true);
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
+  PermissionCheckService: vi.fn().mockImplementation(() => ({
+    checkPermission: mockCheckPermission,
+  })),
+}));
+
 // Mock UserRepository
-vi.mock("@calcom/lib/server/repository/user", () => ({
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: vi.fn().mockImplementation(() => ({
     enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
   })),
@@ -65,6 +75,8 @@ describe("listMembersHandler", () => {
     prisma.membership.findMany.mockResolvedValue([]);
     prisma.membership.count.mockResolvedValue(0);
     prisma.membership.findFirst.mockResolvedValue({ role: "ADMIN" });
+    // Mock team.findUnique to return only isPrivate field since that's what the handler selects
+    prisma.team.findUnique.mockResolvedValue({ isPrivate: false } as any);
   });
 
   it("should filter by customRoleId when PBAC is enabled", async () => {
@@ -231,6 +243,74 @@ describe("listMembersHandler", () => {
             },
           ],
         }),
+      })
+    );
+  });
+
+  it("should check listMembersPrivate permission for private organizations", async () => {
+    // Clear previous calls
+    mockCheckPermission.mockClear();
+    mockCheckPermission.mockResolvedValue(true);
+
+    // Mock private organization
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    prisma.team.findUnique.mockResolvedValue({ isPrivate: true } as any);
+
+    const privateOrgUser = {
+      ...mockUser,
+      organization: {
+        ...mockUser.organization,
+        isPrivate: true,
+      },
+    };
+
+    await listMembersHandler({
+      ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        user: privateOrgUser as any,
+      },
+      input: {
+        limit: 25,
+        offset: 0,
+        filters: [],
+      },
+    });
+
+    // Verify that checkPermission was called with listMembersPrivate
+    expect(mockCheckPermission).toHaveBeenCalledWith(
+      expect.objectContaining({
+        permission: "organization.listMembersPrivate",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      })
+    );
+  });
+
+  it("should check listMembers permission for public organizations", async () => {
+    // Clear previous calls
+    mockCheckPermission.mockClear();
+    mockCheckPermission.mockResolvedValue(true);
+
+    // Mock public organization (default)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    prisma.team.findUnique.mockResolvedValue({ isPrivate: false } as any);
+
+    await listMembersHandler({
+      ctx: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        user: mockUser as any,
+      },
+      input: {
+        limit: 25,
+        offset: 0,
+        filters: [],
+      },
+    });
+
+    // Verify that checkPermission was called with listMembers
+    expect(mockCheckPermission).toHaveBeenCalledWith(
+      expect.objectContaining({
+        permission: "organization.listMembers",
+        fallbackRoles: ["MEMBER", "ADMIN", "OWNER"],
       })
     );
   });

@@ -2,8 +2,8 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
-import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
@@ -48,22 +48,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     .add(extraDays - 1, "day")
     .toDate();
 
-  const availableSlots = useMemo(() => {
-    const availableTimeslots: CalendarAvailableTimeslots = {};
-    if (!schedule) return availableTimeslots;
-    if (!schedule?.slots) return availableTimeslots;
-
-    for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => ({
-        start: dayjs(slot.time).toDate(),
-        end: dayjs(slot.time)
-          .add(event?.duration ?? 30, "minutes")
-          .toDate(),
-      }));
-    }
-
-    return availableTimeslots;
-  }, [schedule, event]);
+  const availableSlots = useAvailableTimeSlots({ schedule, eventDuration: event?.duration ?? 30 });
 
   const events = useMemo(() => {
     if (!busyEvents?.busy) return [];
@@ -83,8 +68,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
-          borderColor:
-            event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
+          color:
+            event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : undefined,
           status: BookingStatus.ACCEPTED,
           "data-test-id": "troubleshooter-busy-event",
         },
@@ -114,7 +99,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
           end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
           options: {
-            borderColor: "black",
+            color: "black",
             status: BookingStatus.ACCEPTED,
             "data-test-id": "troubleshooter-busy-time",
           },
@@ -137,6 +122,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         gridCellsPerHour={60 / (event?.duration || 15)}
         hoverEventDuration={30}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );

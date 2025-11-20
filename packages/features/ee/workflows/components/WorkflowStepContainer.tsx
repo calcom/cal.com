@@ -1,17 +1,17 @@
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
-import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -43,6 +43,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -59,6 +60,8 @@ import {
   shouldScheduleEmailReminder,
   isSMSOrWhatsappAction,
   isCalAIAction,
+  isFormTrigger,
+  hasCalAIAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -66,10 +69,10 @@ import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate"
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import "../style/styles.css";
-import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
+import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -86,11 +89,25 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
   agentData?: RetellAgentWithDetails;
   isAgentLoading?: boolean;
+  actionOptions: {
+    label: string;
+    value: WorkflowActions;
+    needsCredits: boolean;
+    creditsTeamId?: number;
+    isOrganization: boolean;
+    isCalAi: boolean;
+    needsTeamsUpgrade?: boolean;
+  }[];
+  updateTemplate: boolean;
+  setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
+  inboundAgentData?: RetellAgentWithDetails;
+  isInboundAgentLoading?: boolean;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -99,10 +116,9 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
     [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
     [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
     [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
+    [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "how_long_after_form_submitted_no_event",
   };
-  if (!triggerMap[trigger]) return null;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return t(triggerMap[trigger]!);
+  return triggerMap[trigger] ? t(triggerMap[trigger]) : null;
 };
 
 const CalAIAgentDataSkeleton = () => {
@@ -156,9 +172,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     allOptions,
     agentData,
     isAgentLoading,
+    inboundAgentData,
+    isInboundAgentLoading: _isInboundAgentLoading,
     isDeleteStepDialogOpen,
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
+    actionOptions,
+    updateTemplate,
+    setUpdateTemplate,
   } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -170,10 +191,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
   const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
     open: boolean;
-    activeTab?: "prompt" | "phoneNumber";
+    activeTab?: "outgoingCalls" | "phoneNumber" | "incomingCalls";
   }>({
     open: false,
-    activeTab: "prompt",
+    activeTab: "outgoingCalls",
   });
 
   const creditsTeamId = userTeams?.find(
@@ -190,6 +211,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
+      const url = new URL(window.location.href);
+      url.searchParams.delete("autoCreateAgent");
+      url.searchParams.delete("templateWorkflowId");
+      router.replace(url.pathname + url.search);
+
       if (step) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
@@ -204,12 +230,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
+  const stepInboundAgentId =
+    step?.inboundAgentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.inboundAgentId`) || null;
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       showToast(t("agent_updated_successfully"), "success");
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -221,8 +250,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async () => {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -244,13 +274,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
-  const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [_isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -264,101 +293,102 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
-  const [autoAgentCreationAttempted, setAutoAgentCreationAttempted] = useState(false);
+  const trigger = useWatch({
+    control: form.control,
+    name: "trigger",
+  });
+
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
+  const isCreatingAgent = useRef(false);
+  const hasAutoCreated = useRef(false);
+
+  const handleCreateAgent = useCallback(
+    async (templateWorkflowId?: string) => {
+      if (isCreatingAgent.current || createAgentMutation.isPending) {
+        return;
+      }
+
+      isCreatingAgent.current = true;
+
+      try {
+        // Save workflow first to ensure we have step ID
+        if (onSaveWorkflow) {
+          await onSaveWorkflow();
+        }
+
+        const updatedSteps = form.getValues("steps");
+        const currentStepIndex = step ? step.stepNumber - 1 : 0;
+        const updatedStep = updatedSteps[currentStepIndex];
+
+        if (updatedStep?.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
+          form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
+        }
+
+        if (updatedStep?.id) {
+          createAgentMutation.mutate({
+            teamId,
+            workflowStepId: updatedStep.id,
+            ...(templateWorkflowId && { templateWorkflowId }),
+          });
+        } else {
+          showToast(t("failed_to_get_workflow_step_id"), "error");
+        }
+      } catch (error) {
+        console.error("Failed to create agent:", error);
+        showToast(t("failed_to_create_agent"), "error");
+      } finally {
+        isCreatingAgent.current = false;
+      }
+    },
+    [createAgentMutation, onSaveWorkflow, form, step, teamId, t]
+  );
+
+  const autoCreateAgent = searchParams?.get("autoCreateAgent");
+  const templateWorkflowId = searchParams?.get("templateWorkflowId");
 
   useEffect(() => {
-    const autoCreateAgent = searchParams?.get("autoCreateAgent");
-    const templateWorkflowId = searchParams?.get("templateWorkflowId");
-
-    if (
+    const shouldAutoCreate =
       autoCreateAgent === "true" &&
-      !autoAgentCreationAttempted &&
       templateWorkflowId &&
-      step &&
+      step?.id &&
       step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
       !stepAgentId &&
-      step.id &&
-      onSaveWorkflow
-    ) {
-      setAutoAgentCreationAttempted(true);
+      !hasAutoCreated.current &&
+      !createAgentMutation.isPending &&
+      !createAgentMutation.isSuccess;
 
-      const createAgent = async () => {
-        try {
-          await onSaveWorkflow?.();
-
-          const updatedSteps = form.getValues("steps");
-          const currentStepIndex = step.stepNumber - 1;
-          const updatedStep = updatedSteps[currentStepIndex];
-
-          if (updatedStep?.id) {
-            createAgentMutation.mutate({
-              teamId,
-              workflowStepId: updatedStep.id,
-              templateWorkflowId,
-            });
-
-            const url = new URL(window.location.href);
-            url.searchParams.delete("autoCreateAgent");
-            url.searchParams.delete("templateWorkflowId");
-            router.replace(url.pathname + url.search);
-          } else {
-            showToast(t("failed_to_get_workflow_step_id"), "error");
-          }
-        } catch (error) {
-          console.error("Failed to auto-create agent:", error);
-          showToast(t("failed_to_create_agent"), "error");
-        }
-      };
-
-      createAgent();
+    if (shouldAutoCreate && onSaveWorkflow) {
+      hasAutoCreated.current = true;
+      handleCreateAgent(templateWorkflowId);
     }
   }, [
-    searchParams,
-    autoAgentCreationAttempted,
-    step,
+    autoCreateAgent,
+    templateWorkflowId,
+    step?.id,
+    step?.action,
     stepAgentId,
-    teamId,
+    createAgentMutation.isPending,
+    createAgentMutation.isSuccess,
     onSaveWorkflow,
-    createAgentMutation,
-    form,
-    t,
-    router,
+    handleCreateAgent,
   ]);
 
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
-  const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+  const triggerOptions = getWorkflowTriggerOptions(t, hasActiveTeamPlan);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
-    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
-    if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
-        action,
-        locale: i18n.language,
-        t,
-        template: step.template ?? WorkflowTemplates.REMINDER,
-        timeFormat,
-      });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-    }
-  }
+  const steps = useWatch({
+    control: form.control,
+    name: "steps",
+  });
 
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
-    if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        t,
-        action: action,
-        timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  }
+  const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
+
+  const disallowFormTriggers = hasEmailToHostAction || hasWhatsappAction;
+
+  const filteredTriggerOptions = triggerOptions.filter(
+    (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
+  );
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
@@ -379,9 +409,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -437,11 +465,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const hasCalAIAction = () => {
-    const steps = form.getValues("steps") || [];
-    return steps.some((step) => isCalAIAction(step.action));
-  };
-
   const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
@@ -485,7 +508,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   //trigger
   if (!step) {
-    const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
 
     const selectedTrigger = {
@@ -510,13 +532,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   isDisabled={props.readOnly}
                   onChange={(val) => {
                     if (val) {
-                      form.setValue("trigger", val.value);
-                      const newTimeSectionText = getTimeSectionText(val.value, t);
+                      const triggerValue = val.value as WorkflowTriggerEvents;
+                      const currentTrigger = form.getValues("trigger") as WorkflowTriggerEvents;
+                      const isCurrentFormTrigger = isFormTrigger(currentTrigger);
+                      const isNewFormTrigger = isFormTrigger(triggerValue);
+
+                      form.setValue("trigger", triggerValue);
+
+                      // Reset activeOn when switching between form and non-form triggers
+                      if (isCurrentFormTrigger !== isNewFormTrigger) {
+                        form.setValue("activeOn", []);
+                        if (setSelectedOptions) {
+                          setSelectedOptions([]);
+                        }
+                        form.setValue("selectAll", false);
+                      }
+
+                      const newTimeSectionText = getTimeSectionText(triggerValue, t);
                       if (newTimeSectionText) {
                         setTimeSectionText(newTimeSectionText);
                         if (
-                          val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                          val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                          triggerValue === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                          triggerValue === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
                           form.setValue("time", 5);
                           form.setValue("timeUnit", TimeUnit.MINUTE);
@@ -529,10 +566,34 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.unregister("time");
                         form.unregister("timeUnit");
                       }
+                      if (isFormTrigger(triggerValue)) {
+                        const steps = form.getValues("steps");
+                        if (steps?.length) {
+                          const updatedSteps = steps.map((step) =>
+                            step.template === WorkflowTemplates.CUSTOM
+                              ? step
+                              : {
+                                  ...step,
+                                  reminderBody: " ",
+                                  emailSubject: " ",
+                                  template: WorkflowTemplates.CUSTOM,
+                                }
+                          );
+                          form.setValue("steps", updatedSteps);
+                          setUpdateTemplate(!updateTemplate);
+                        }
+                      }
                     }
                   }}
                   defaultValue={selectedTrigger}
-                  options={triggerOptions}
+                  options={filteredTriggerOptions.map((option) => ({
+                    label: option.label,
+                    value: option.value,
+                    needsTeamsUpgrade: option.needsTeamsUpgrade,
+                  }))}
+                  isOptionDisabled={(option: { label: string; value: string; needsTeamsUpgrade?: boolean }) =>
+                    !!option.needsTeamsUpgrade
+                  }
                 />
               );
             }}
@@ -556,7 +617,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
               ) : (
-                <Label className="text-default mb-2 block">{t("which_event_type_apply")}</Label>
+                <Label>
+                  {isFormTrigger(trigger) ? t("which_routing_form_apply") : t("which_event_type_apply")}
+                </Label>
               )}
               <Controller
                 name="activeOn"
@@ -572,18 +635,30 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       setValue={(s: Option[]) => {
                         form.setValue("activeOn", s);
                       }}
-                      countText={isOrganization ? "count_team" : "nr_event_type"}
+                      countText={
+                        isOrganization
+                          ? "count_team"
+                          : isFormTrigger(form.getValues("trigger"))
+                          ? "nr_routing_form"
+                          : "nr_event_type"
+                      }
                     />
                   );
                 }}
               />
-              {!hasCalAIAction() && (
+              {!hasCalAIAction(steps) && (
                 <div className="mt-1">
                   <Controller
                     name="selectAll"
                     render={({ field: { value, onChange } }) => (
                       <CheckboxField
-                        description={isOrganization ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                        description={
+                          isOrganization
+                            ? t("apply_to_all_teams")
+                            : isFormTrigger(form.getValues("trigger"))
+                            ? t("apply_to_all_routing_forms")
+                            : t("apply_to_all_event_types")
+                        }
                         disabled={props.readOnly}
                         descriptionClassName="ml-0"
                         onChange={(e) => {
@@ -619,6 +694,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsCredits: isSMSOrWhatsappAction(step.action),
+      isCalAi: isCalAIAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
       isOrganization: props.isOrganization,
     };
@@ -721,29 +797,59 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                     }}
                     defaultValue={selectedAction}
-                    options={actionOptions
-                      ?.filter((option) => {
-                        if (
-                          (isCalAIAction(option.value) && form.watch("selectAll")) ||
-                          (isCalAIAction(option.value) && props.isOrganization)
-                        ) {
-                          return false;
-                        }
-                        return true;
-                      })
-                      ?.map((option) => ({
-                        ...option,
-                        creditsTeamId: teamId ?? creditsTeamId,
-                        isOrganization: props.isOrganization,
-                      }))}
+                    options={actionOptions.map((option) => ({
+                      ...option,
+                      creditsTeamId: teamId ?? creditsTeamId,
+                    }))}
                   />
                 );
               }}
             />
           </div>
+          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+              <div>
+                {_isSenderIsNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <div className="flex items-center">
+                        <Label>{t("sender_id")}</Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        disabled={props.readOnly}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
+                      </div>
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        disabled={props.readOnly}
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
                     {t("cal_ai_agent")}
@@ -757,34 +863,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <Button
                   color="primary"
-                  disabled={props.readOnly}
-                  onClick={async () => {
-                    // save the workflow first to get the step id
-                    if (onSaveWorkflow) {
-                      await onSaveWorkflow();
-
-                      // After saving, get the updated step ID from the form
-                      const updatedSteps = form.getValues("steps");
-                      const currentStepIndex = step.stepNumber - 1;
-                      const updatedStep = updatedSteps[currentStepIndex];
-
-                      // Ensure the action is still set correctly after save
-                      if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
-                        form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
-                      }
-
-                      if (updatedStep && updatedStep.id) {
-                        // Create agent with the workflow step ID
-                        createAgentMutation.mutate({
-                          teamId,
-                          workflowStepId: updatedStep.id,
-                        });
-                      } else {
-                        showToast(t("failed_to_get_workflow_step_id"), "error");
-                      }
-                    }
-                  }}
-                  loading={createAgentMutation.isPending}>
+                  disabled={props.readOnly || isCreatingAgent.current || hasAutoCreated.current}
+                  className="flex items-center justify-center"
+                  onClick={() => handleCreateAgent()}
+                  loading={createAgentMutation.isPending || isCreatingAgent.current}>
                   {t("set_up_agent")}
                 </Button>
               </div>
@@ -806,7 +888,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return;
                   }
                   if (!props.readOnly) {
-                    setAgentConfigurationSheet({ open: true, activeTab: "prompt" });
+                    setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" });
                   }
                 }}>
                 <div>
@@ -924,7 +1006,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownItem
                           type="button"
                           StartIcon="pencil"
-                          onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
+                          onClick={() =>
+                            setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })
+                          }>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -1157,19 +1241,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       onChange={(val) => {
                         if (val) {
                           const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+                          const value = val.value as WorkflowTemplates;
 
                           const template = getTemplateBodyForAction({
                             action,
                             locale: i18n.language,
                             t,
-                            template: val.value ?? WorkflowTemplates.REMINDER,
+                            template: value ?? WorkflowTemplates.REMINDER,
                             timeFormat,
                           });
 
                           form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
 
                           if (shouldScheduleEmailReminder(action)) {
-                            if (val.value === WorkflowTemplates.REMINDER) {
+                            if (value === WorkflowTemplates.REMINDER) {
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,
                                 emailReminderTemplate({
@@ -1180,7 +1265,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   timeFormat,
                                 }).emailSubject
                               );
-                            } else if (val.value === WorkflowTemplates.RATING) {
+                            } else if (value === WorkflowTemplates.RATING) {
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,
                                 emailRatingTemplate({
@@ -1193,8 +1278,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               );
                             }
                           }
-                          field.onChange(val.value);
-                          form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
+                          field.onChange(value);
+                          form.setValue(`steps.${step.stepNumber - 1}.template`, value);
                           setUpdateTemplate(!updateTemplate);
                         }
                       }}
@@ -1207,10 +1292,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      isOptionDisabled={(option: { label: string; value: any; needsTeamsUpgrade: boolean }) =>
-                        option.needsTeamsUpgrade
-                      }
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: string;
+                        needsTeamsUpgrade: boolean;
+                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}
@@ -1222,10 +1308,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
-                    <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
+                    <Label
+                      className={classNames(
+                        "flex-none",
+                        props.readOnly || isFormTrigger(trigger) ? "mb-2" : "mb-0"
+                      )}>
                       {t("email_subject")}
                     </Label>
-                    {!props.readOnly && (
+                    {!props.readOnly && !isFormTrigger(trigger) && (
                       <div className="flex-grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
@@ -1259,14 +1349,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Label>
               </div>
               <Editor
-                getText={() => {
-                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                }}
+                getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();
                 }}
-                variables={DYNAMIC_TEXT_VARIABLES}
+                variables={!isFormTrigger(trigger) ? DYNAMIC_TEXT_VARIABLES : undefined}
                 addVariableButtonTop={isSMSAction(step.action)}
                 height="200px"
                 updateTemplate={updateTemplate}
@@ -1315,7 +1403,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
                       <Icon name="circle-help" className="h-3 w-3" />
-                      <p className="text-left text-xs">{t("using_booking_questions_as_variables")}</p>
+                      <p className="text-left text-xs">
+                        {isFormTrigger(trigger)
+                          ? t("using_form_responses_as_variables")
+                          : t("using_booking_questions_as_variables")}
+                      </p>
                     </div>
                   </button>
                 </div>
@@ -1423,19 +1515,27 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
-              <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
+              <h1 className="w-full text-xl font-semibold">
+                {isFormTrigger(trigger)
+                  ? t("how_form_responses_as_variables")
+                  : t("how_booking_questions_as_variables")}
+              </h1>
               <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ignore_special_characters_booking_questions")}</li>
+                  <li>
+                    {isFormTrigger(trigger)
+                      ? t("ignore_special_characters_form_responses")
+                      : t("ignore_special_characters_booking_questions")}
+                  </li>
                 </ul>
                 <div className="mt-4">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
@@ -1454,7 +1554,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
                     <div className="test-sm text-default col-span-5 ltr:mr-2 rtl:ml-2">
-                      {t("booking_question_identifier")}
+                      {isFormTrigger(trigger) ? t("form_field_identifier") : t("booking_question_identifier")}
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
@@ -1481,11 +1581,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             activeTab={agentConfigurationSheet.activeTab}
             onOpenChange={(val) => setAgentConfigurationSheet((prev) => ({ ...prev, open: val }))}
             agentId={stepAgentId}
+            inboundAgentId={stepInboundAgentId}
             agentData={agentData}
+            inboundAgentData={inboundAgentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                id: stepAgentId!,
+                id: data.id,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
                 beginMessage: data.beginMessage,
@@ -1498,6 +1599,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1505,9 +1607,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 
@@ -1515,10 +1619,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <WebCallDialog
             open={isWebCallDialogOpen}
             onOpenChange={setIsWebCallDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10)) || []}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 

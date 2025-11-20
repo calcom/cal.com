@@ -48,7 +48,10 @@ describe("BillingService", () => {
     });
     stripe.subscriptions.cancel.mockResolvedValue({});
 
-    service = new BillingService(mocks.mockPhoneNumberRepository, mocks.mockRetellRepository);
+    service = new BillingService({
+      phoneNumberRepository: mocks.mockPhoneNumberRepository,
+      retellRepository: mocks.mockRetellRepository,
+    });
   });
 
   afterEach(() => {
@@ -162,10 +165,16 @@ describe("BillingService", () => {
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
-      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: true,
       });
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -253,6 +262,83 @@ describe("BillingService", () => {
       await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
         "Failed to cancel subscription"
       );
+    });
+
+    it("should handle subscription not found (404) gracefully", async () => {
+      const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
+        stripeSubscriptionId: "sub_123",
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
+
+      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
+      mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
+
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      stripe.subscriptions.cancel.mockRejectedValue({
+        type: "StripeInvalidRequestError",
+        raw: {
+          code: "resource_missing",
+          doc_url: "https://stripe.com/docs/error-codes/resource-missing",
+          message: "No such subscription: 'sub_123'",
+          param: "id",
+          type: "invalid_request_error",
+        },
+        code: "resource_missing",
+      });
+
+      const result = await service.cancelPhoneNumberSubscription(validCancelData);
+
+      expect(result).toEqual({
+        success: true,
+        message: "Phone number subscription cancelled successfully.",
+      });
+
+      // Should attempt to cancel
+      expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
+      // Should update database twice: first CANCELLED (disconnectAgents: false), then final CANCELLED (disconnectAgents: true)
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: true,
+      });
+    });
+
+    it("should throw error on Stripe API failure that is not resource_missing", async () => {
+      const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
+        stripeSubscriptionId: "sub_123",
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
+
+      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+
+      const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
+      stripe.subscriptions.cancel.mockRejectedValue(new TestError("API Error"));
+
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Failed to cancel subscription"
+      );
+
+      // Should attempt to cancel
+      expect(stripe.subscriptions.cancel).toHaveBeenCalledWith("sub_123");
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledTimes(2);
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(1, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: false,
+      });
+      expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenNthCalledWith(2, {
+        id: 1,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+      });
     });
   });
 });

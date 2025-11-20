@@ -1,8 +1,11 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -27,9 +30,17 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
   const { quantity, teamId } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const team = await TeamService.fetchTeamOrThrow(teamId);
 
-    if (!adminMembership) {
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });
@@ -59,7 +70,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const billingService = new StripeBillingService();
+  const billingService = getBillingProviderService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,

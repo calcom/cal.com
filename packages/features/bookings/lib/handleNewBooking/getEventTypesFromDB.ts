@@ -1,10 +1,10 @@
 import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import type { DefaultEvent } from "@calcom/lib/defaultEvents";
+import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -97,6 +97,7 @@ const getEventTypesFromDBSelect = {
       team: {
         select: {
           id: true,
+          parentId: true,
           bookingLimits: true,
           includeManagedEventsInLimits: true,
         },

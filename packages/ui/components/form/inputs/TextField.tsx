@@ -69,12 +69,19 @@ type AddonProps = {
   children: React.ReactNode;
   className?: string;
   error?: boolean;
-  onClickAddon?: () => void;
+  onClickAddon?: (e: React.MouseEvent<HTMLDivElement>) => void;
   size?: "sm" | "md";
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({
+  children,
+  className,
+  error,
+  onClickAddon,
+  size: _size = "md",
+  position: _position = "start",
+}: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
@@ -118,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     t: __t,
     dataTestid,
     size,
@@ -126,6 +133,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   } = props;
 
   const [inputValue, setInputValue] = useState<string>("");
+
+  const handleFocusInput = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.parentElement?.querySelector("input")?.focus();
+  };
 
   return (
     <div className={classNames(containerClassName)}>
@@ -152,7 +163,11 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             inputIsFullWidth && "w-full"
           )}>
           {addOnLeading && (
-            <Addon size={size ?? "md"} position="start" className={classNames(addOnClassname)}>
+            <Addon
+              size={size ?? "md"}
+              position="start"
+              className={classNames(addOnClassname)}
+              onClickAddon={handleFocusInput}>
               {addOnLeading}
             </Addon>
           )}
@@ -173,7 +188,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...(type == "search" && {
               onChange: (e) => {
                 setInputValue(e.target.value);
-                props.onChange && props.onChange(e);
+                props.onChange?.(e);
               },
               value: inputValue,
             })}
@@ -184,7 +199,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             <Addon
               size={size ?? "md"}
               position="end"
-              onClickAddon={onClickAddon}
+              onClickAddon={(e) => {
+                handleFocusInput(e);
+                onClickAddon?.(e);
+              }}
               className={classNames(addOnClassname)}>
               {addOnSuffix}
             </Addon>
@@ -195,7 +213,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
-                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                props.onChange?.(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }}
             />
           )}
@@ -208,6 +226,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={classNames(
             className,
+            type === "email" && "focus:border-subtle focus:ring-brand-default focus:ring-2",
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}

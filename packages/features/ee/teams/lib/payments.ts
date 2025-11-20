@@ -49,10 +49,12 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  isOnboarding,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  isOnboarding?: boolean;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -98,6 +100,7 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
     },
   });
   return session;

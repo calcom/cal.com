@@ -16917,6 +16917,10 @@ select:focus {
   background-color: var(--cal-bg-emphasis);
 }
 
+.aria-checked\:bg-default[aria-checked=true] {
+  background-color: var(--cal-bg, white);
+}
+
 .aria-selected\:bg-emphasis[aria-selected="true"] {
   background-color: var(--cal-bg-emphasis);
 }

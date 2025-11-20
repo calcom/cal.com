@@ -5,11 +5,15 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -30,7 +34,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
+import type { fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -79,6 +83,8 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
@@ -97,6 +103,8 @@ export const FormBuilder = function FormBuilder({
    * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
    */
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency?: string;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -373,6 +381,12 @@ export const FormBuilder = function FormBuilder({
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
+
+            if (data.name === "guests" && type !== "multiemail") {
+              showToast(t("guests_field_must_be_multiemail"), "error");
+              return;
+            }
+
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
@@ -402,6 +416,8 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
+          showPriceField={showPriceField}
+          paymentCurrency={paymentCurrency}
         />
       )}
     </div>
@@ -411,17 +427,23 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
+  showPrice = false,
+  paymentCurrency,
 }: {
   label?: string;
-  value: { label: string; value: string }[];
-  onChange?: (value: { label: string; value: string }[]) => void;
+  value: { label: string; value: string; price?: number }[];
+  onChange?: (value: { label: string; value: string; price?: number }[]) => void;
   className?: string;
   readOnly?: boolean;
+  showPrice?: boolean;
+  paymentCurrency: string;
 }) {
+  const { t } = useLocale();
+
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   if (!value) {
     onChange([
@@ -438,42 +460,67 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4">
-        <ul ref={animationRef} className="flex flex-col gap-1">
+      <div className="bg-muted rounded-md p-4" data-testid="options-container">
+        <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>
-              <div className="flex items-center">
-                <Input
-                  required
-                  value={option.label}
-                  onChange={(e) => {
-                    // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
-                    // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                    value.splice(index, 1, {
-                      label: e.target.value,
-                      value: e.target.value.trim(),
-                    });
-                    onChange(value);
-                  }}
-                  readOnly={readOnly}
-                  placeholder={`Enter Option ${index + 1}`}
-                />
-                {value.length > 2 && !readOnly && (
-                  <Button
-                    type="button"
-                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                    size="sm"
-                    color="minimal"
-                    StartIcon="x"
-                    onClick={() => {
-                      if (!value) {
-                        return;
-                      }
-                      const newOptions = [...value];
-                      newOptions.splice(index, 1);
+              <div className="flex items-center gap-2">
+                <div className="relative flex-grow">
+                  <Input
+                    required
+                    value={option.label}
+                    onChange={(e) => {
+                      // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
+                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                      const newOptions = [...(value || [])];
+                      newOptions.splice(index, 1, {
+                        label: e.target.value,
+                        value: e.target.value.trim(),
+                      });
                       onChange(newOptions);
                     }}
+                    readOnly={readOnly}
+                    placeholder={t("enter_option", { index: index + 1 })}
+                    className={value.length > 2 && !readOnly ? "pr-8" : ""}
                   />
+                  {value.length > 2 && !readOnly && (
+                    <Button
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      size="sm"
+                      color="minimal"
+                      StartIcon="x"
+                      onClick={() => {
+                        if (!value) return;
+                        const newOptions = [...(value || [])];
+                        newOptions.splice(index, 1);
+                        onChange(newOptions);
+                      }}
+                    />
+                  )}
+                </div>
+                {showPrice && (
+                  <div className="w-24">
+                    <InputField
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={option.price}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numValue = val === "" ? undefined : Number(val);
+                        const updatedOptions = [...(value || [])];
+                        updatedOptions[index] = {
+                          ...option,
+                          price: numValue,
+                        };
+                        onChange(updatedOptions);
+                      }}
+                      readOnly={readOnly}
+                      placeholder="0"
+                      addOnLeading={getCurrencySymbol(paymentCurrency)}
+                    />
+                  </div>
                 )}
               </div>
             </li>
@@ -482,9 +529,12 @@ function Options({
         {!readOnly && (
           <Button
             color="minimal"
+            data-testid="add-option"
+            className="mt-3"
             onClick={() => {
-              value.push({ label: "", value: "" });
-              onChange(value);
+              const newOptions = [...(value || [])];
+              newOptions.push({ label: "", value: "", price: 0 });
+              onChange(newOptions);
             }}
             StartIcon="plus">
             Add an Option
@@ -521,13 +571,18 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
+  showPriceField,
+  paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
+  showPriceField?: boolean;
+  paymentCurrency: string;
 }) {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
@@ -554,14 +609,22 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto">
-            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
+            <DialogHeader
+              title={t("add_a_booking_question")}
+              subtitle={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="booking_questions_description"
+                  href="https://cal.com/help/event-types/booking-questions"
+                />
+              }
+            />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
@@ -605,7 +668,7 @@ function FieldEditDialog({
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <div>
-                      {formFieldType === "boolean" ? (
+                      {formFieldType === "boolean" && !isPlatform ? (
                         <CheckboxFieldLabel fieldForm={fieldForm} />
                       ) : (
                         <InputField
@@ -633,12 +696,20 @@ function FieldEditDialog({
                       <Controller
                         name="options"
                         render={({ field: { value, onChange } }) => {
-                          return <Options onChange={onChange} value={value} className="mt-6" />;
+                          return (
+                            <Options
+                              onChange={onChange}
+                              value={value}
+                              className="mt-6"
+                              showPrice={showPriceField && fieldType.optionsSupportPricing}
+                              paymentCurrency={paymentCurrency}
+                            />
+                          );
                         }}
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -681,6 +752,19 @@ function FieldEditDialog({
                         }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {/* Add price field only for fields that support pricing */}
+                    {showPriceField && fieldType.supportsPricing && (
+                      <InputField
+                        {...fieldForm.register("price")}
+                        containerClassName="mt-6"
+                        label={t("price")}
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        addOnLeading={getCurrencySymbol(paymentCurrency)}
                       />
                     )}
 
@@ -808,7 +892,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
@@ -874,13 +957,13 @@ function VariantFields({
     <>
       {supportsVariantToggle ? (
         <Switch
+          classNames={{ container: "mt-1" }}
           checked={!isDefaultVariant}
           label={variantToggleLabel}
           data-testid="variant-toggle"
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

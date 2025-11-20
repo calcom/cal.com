@@ -1,3 +1,4 @@
+import { optionToValueSchema } from "@calcom/prisma/zod-utils";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 
 export const userBodySchema = UserSchema.pick({
@@ -15,4 +16,10 @@ export const userBodySchema = UserSchema.pick({
   locale: true,
   timeFormat: true,
   allowDynamicBooking: true,
+}).extend({
+  role: optionToValueSchema(UserSchema.shape.role),
+  identityProvider: optionToValueSchema(UserSchema.shape.identityProvider),
+  weekStart: optionToValueSchema(UserSchema.shape.weekStart),
+  locale: optionToValueSchema(UserSchema.shape.locale),
+  timeFormat: optionToValueSchema(UserSchema.shape.timeFormat),
 });

@@ -1,4 +1,4 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   defaultBookingMetadata,
   defaultBookingResponses,
@@ -229,7 +229,8 @@ export class OutputBookingsService_2024_08_13 {
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
         databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancellationReason : undefined,
-      cancelledByEmail: databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancelledBy : undefined,
+      cancelledByEmail:
+        databaseBooking.status === BookingStatus.CANCELLED ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
@@ -269,12 +270,11 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputCreateSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    userIsEventTypeAdminOrOwner: boolean
   ): Promise<CreateSeatedBookingOutput_2024_08_13> {
-    const getSeatedBookingOutput = await this.getOutputSeatedBooking(
-      databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
-    );
+    const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees);
     return { ...getSeatedBookingOutput, seatUid };
   }
 
@@ -377,7 +377,10 @@ export class OutputBookingsService_2024_08_13 {
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  async getOutputCreateRecurringSeatedBookings(bookings: { uid: string; seatUid: string }[]) {
+  async getOutputCreateRecurringSeatedBookings(
+    bookings: { uid: string; seatUid: string }[],
+    userIsEventTypeAdminOrOwner: boolean
+  ) {
     const transformed = [];
 
     for (const booking of bookings) {
@@ -386,7 +389,13 @@ export class OutputBookingsService_2024_08_13 {
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
-      transformed.push(this.getOutputCreateRecurringSeatedBooking(databaseBooking, booking.seatUid));
+      transformed.push(
+        this.getOutputCreateRecurringSeatedBooking(
+          databaseBooking,
+          booking.seatUid,
+          userIsEventTypeAdminOrOwner
+        )
+      );
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -394,11 +403,13 @@ export class OutputBookingsService_2024_08_13 {
 
   getOutputCreateRecurringSeatedBooking(
     databaseBooking: DatabaseBooking,
-    seatUid: string
+    seatUid: string,
+    userIsEventTypeAdminOrOwner: boolean
   ): CreateRecurringSeatedBookingOutput_2024_08_13 {
+    const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
-      !!databaseBooking.eventType?.seatsShowAttendees
+      showAttendees
     );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }

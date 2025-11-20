@@ -9,7 +9,7 @@ export default function Calendars(props: { calUsername: string; calEmail: string
   return (
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
-      <div>
+      <div data-testid="calendars-settings-atom">
         <CalendarSettings
           allowDelete={true}
           classNames={{

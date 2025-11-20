@@ -7,7 +7,7 @@ import type {
   AIPhoneServiceCall,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
-import type { RetellAIRepository, RetellDynamicVariables } from "../types";
+import type { RetellAIRepository, RetellDynamicVariables, RetellCallListResponse } from "../types";
 
 interface RetellAIServiceInterface {
   updateToolsFromAgentId(
@@ -16,14 +16,16 @@ interface RetellAIServiceInterface {
   ): Promise<void>;
 }
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+  agentRepository: AgentRepositoryInterface;
+};
+
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
   private retellAIService?: RetellAIServiceInterface;
 
-  constructor(
-    private retellRepository: RetellAIRepository,
-    private agentRepository: AgentRepositoryInterface
-  ) {}
+  constructor(private deps: Dependencies) {}
 
   setRetellAIService(service: RetellAIServiceInterface): void {
     this.retellAIService = service;
@@ -51,7 +53,7 @@ export class CallService {
     const { fromNumber, toNumber, dynamicVariables } = data;
 
     try {
-      return await this.retellRepository.createPhoneCall({
+      return await this.deps.retellRepository.createPhoneCall({
         fromNumber,
         toNumber,
         dynamicVariables,
@@ -106,7 +108,7 @@ export class CallService {
       });
     }
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
@@ -193,7 +195,7 @@ export class CallService {
       identifier: `web-call:${userId}`,
     });
 
-    const agent = await this.agentRepository.findByIdWithCallAccess({
+    const agent = await this.deps.agentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });
@@ -233,7 +235,7 @@ export class CallService {
     };
 
     try {
-      const webCall = await this.retellRepository.createWebCall({
+      const webCall = await this.deps.retellRepository.createWebCall({
         agentId: agent.providerAgentId,
         dynamicVariables,
       });
@@ -283,6 +285,57 @@ export class CallService {
       throw new HttpError({
         statusCode: 500,
         message: "Unable to validate credits. Please try again.",
+      });
+    }
+  }
+
+  async listCalls({
+    limit = 50,
+    offset: _offset = 0,
+    filters,
+  }: {
+    limit?: number;
+    offset?: number;
+    filters: {
+      fromNumber: string[];
+      toNumber?: string[];
+      startTimestamp?: { lower_threshold?: number; upper_threshold?: number };
+    };
+  }): Promise<RetellCallListResponse> {
+    try {
+      if (filters.fromNumber.length === 0) {
+        this.logger.info("No phone numbers provided");
+        return [];
+      }
+
+      const callsResponse = await this.deps.retellRepository.listCalls({
+        filter_criteria: {
+          from_number: filters.fromNumber,
+          ...(filters?.toNumber && { to_number: filters.toNumber }),
+          ...(filters?.startTimestamp && { start_timestamp: filters.startTimestamp }),
+        },
+        limit,
+        sort_order: "descending",
+      });
+
+      return callsResponse.map((call) => {
+        const { transcript_object: _transcript_object, call_cost: _call_cost, ...filteredCall } = call;
+        return {
+          ...filteredCall,
+          sessionOutcome:
+            call.call_status === "ended" && !call.disconnection_reason?.includes("error")
+              ? "successful"
+              : "unsuccessful",
+        };
+      }) as RetellCallListResponse;
+    } catch (error) {
+      this.logger.error("Failed to list calls", {
+        phoneNumbers: filters?.fromNumber,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to retrieve call history",
       });
     }
   }

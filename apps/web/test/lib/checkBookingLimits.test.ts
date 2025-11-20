@@ -1,11 +1,16 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import { getCheckBookingLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+
+const mockCountBookingsByEventTypeAndDateRange = vi.fn();
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
+  BookingRepository: vi.fn().mockImplementation(() => ({
+    countBookingsByEventTypeAndDateRange: mockCountBookingsByEventTypeAndDateRange,
+  })),
+}));
 
 type Mockdata = {
   id: number;
@@ -25,21 +30,20 @@ const checkBookingLimitsService = getCheckBookingLimitsService();
 
 describe("Check Booking Limits Tests", () => {
   it("Should return no errors", async () => {
-    prismaMock.booking.count.mockResolvedValue(0);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(0);
     expect(
       checkBookingLimitsService.checkBookingLimits(MOCK_DATA.bookingLimits, MOCK_DATA.startDate, MOCK_DATA.id)
     ).resolves.toBeTruthy();
   });
   it("Should throw an error", async () => {
-    // Mock there being two a day
-    prismaMock.booking.count.mockResolvedValue(2);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(2);
     expect(
       checkBookingLimitsService.checkBookingLimits(MOCK_DATA.bookingLimits, MOCK_DATA.startDate, MOCK_DATA.id)
     ).rejects.toThrowError();
   });
 
   it("Should pass with multiple booking limits", async () => {
-    prismaMock.booking.count.mockResolvedValue(0);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(0);
     expect(
       checkBookingLimitsService.checkBookingLimits(
         {
@@ -52,7 +56,7 @@ describe("Check Booking Limits Tests", () => {
     ).resolves.toBeTruthy();
   });
   it("Should pass with multiple booking limits with one undefined", async () => {
-    prismaMock.booking.count.mockResolvedValue(0);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(0);
 
     expect(
       checkBookingLimitsService.checkBookingLimits(
@@ -66,7 +70,7 @@ describe("Check Booking Limits Tests", () => {
     ).resolves.toBeTruthy();
   });
   it("Should handle multiple limits correctly", async () => {
-    prismaMock.booking.count.mockResolvedValue(1);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(1);
     expect(
       checkBookingLimitsService.checkBookingLimit({
         key: "PER_DAY",
@@ -75,7 +79,7 @@ describe("Check Booking Limits Tests", () => {
         eventId: MOCK_DATA.id,
       })
     ).resolves.not.toThrow();
-    prismaMock.booking.count.mockResolvedValue(3);
+    mockCountBookingsByEventTypeAndDateRange.mockResolvedValue(3);
     expect(
       checkBookingLimitsService.checkBookingLimit({
         key: "PER_WEEK",

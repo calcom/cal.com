@@ -35,6 +35,49 @@ export class PrismaRoutingFormRepository {
     })) as SelectedFields<T> | null;
   }
 
+  static async findActiveFormsForUserOrTeam({ userId, teamId }: { userId?: number; teamId?: number }) {
+    if (!userId && !teamId) return [];
+
+    const routingFormQuery = {
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: [
+        {
+          name: "asc" as const,
+        },
+      ],
+    };
+
+    if (teamId) {
+      return await prisma.app_RoutingForms_Form.findMany({
+        where: {
+          teamId: teamId,
+          disabled: false,
+          team: {
+            members: {
+              some: {
+                userId: userId,
+                accepted: true,
+              },
+            },
+          },
+        },
+        ...routingFormQuery,
+      });
+    }
+
+    return await prisma.app_RoutingForms_Form.findMany({
+      where: {
+        userId: userId,
+        teamId: null, // Only personal forms, not team forms
+        disabled: false,
+      },
+      ...routingFormQuery,
+    });
+  }
+
   static async findFormByIdIncludeUserTeamAndOrg(
     formId: string
   ): Promise<RoutingFormWithUserTeamAndOrg | null> {
@@ -50,6 +93,8 @@ export class PrismaRoutingFormRepository {
             email: true,
             movedToProfileId: true,
             metadata: true,
+            timeFormat: true,
+            locale: true,
             organization: {
               select: {
                 slug: true,

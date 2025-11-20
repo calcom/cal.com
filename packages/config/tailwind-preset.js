@@ -148,6 +148,9 @@ module.exports = {
         error: "var(--cal-bg-error)",
         darkerror: "var(--cal-bg-dark-error)",
 
+        // Launch colors
+        "launch-dark": "var(--cal-bg-launch-dark)",
+
         // Base colors
         black: "#111111",
         gray: colors.gray,
@@ -217,6 +220,8 @@ module.exports = {
       },
       screens: {
         pwa: { raw: "(display-mode: standalone)" },
+        "3xl": "1920px",
+        "4xl": "2560px",
       },
       keyframes: {
         "fade-in-up": {

@@ -30,6 +30,7 @@ const mockProps = {
   setAppData: setAppDataMock,
   LockedIcon: <div>MockedIcon</div>,
   disabled: false,
+  onAppInstallSuccess: vi.fn(),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 

@@ -6,8 +6,13 @@ export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
 export type RetellCall = Retell.PhoneCallResponse;
 export type RetellDynamicVariables = { [key: string]: unknown };
+export type RetellVoice = Retell.VoiceResponse;
 
 export type RetellAgent = Retell.AgentResponse;
+
+// Call list types
+export type RetellCallListParams = Retell.CallListParams;
+export type RetellCallListResponse = Retell.CallListResponse;
 
 export type RetellAgentWithRetellLm = Retell.AgentResponse & {
   response_engine: Retell.AgentResponse.ResponseEngineRetellLm;
@@ -98,7 +103,7 @@ export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
 export type Agent = NonNullable<
-  Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>
+  Awaited<ReturnType<PrismaAgentRepository["findByIdWithUserAccessAndDetails"]>>
 >;
 
 export type RetellAgentWithDetails = {
@@ -108,6 +113,8 @@ export type RetellAgentWithDetails = {
   enabled: boolean;
   userId: number | null;
   teamId: number | null;
+  inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;
@@ -162,7 +169,7 @@ export interface RetellAIRepository {
   deleteLLM(llmId: string): Promise<void>;
 
   // Agent operations
-  createAgent(data: CreateAgentRequest): Promise<RetellAgent>;
+  createOutboundAgent(data: CreateAgentRequest): Promise<RetellAgent>;
   getAgent(agentId: string): Promise<RetellAgent>;
   updateAgent(agentId: string, data: UpdateAgentRequest): Promise<RetellAgent>;
   deleteAgent(agentId: string): Promise<void>;
@@ -176,7 +183,13 @@ export interface RetellAIRepository {
 
   // Call operations
   createPhoneCall(data: CreatePhoneCallParams): Promise<RetellCall>;
+
+  listCalls(params: RetellCallListParams): Promise<RetellCallListResponse>;
+
   createWebCall(
     data: CreateWebCallParams
   ): Promise<{ call_id: string; access_token: string; agent_id: string }>;
+
+  // Voice operations
+  listVoices(): Promise<RetellVoice[]>;
 }

@@ -18,11 +18,11 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { describe, vi, expect } from "vitest";
 
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock("@calcom/lib/EventManager");
+vi.mock("@calcom/features/bookings/lib/EventManager");
 vi.mock("@calcom/app-store/utils", () => ({
   getAppFromSlug: vi.fn(),
 }));
@@ -177,7 +177,7 @@ type ConferenceResult = {
 };
 
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
-  const EventManager = (await import("@calcom/lib/EventManager")).default;
+  const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
@@ -466,7 +466,7 @@ describe("roundRobinManualReassignment test", () => {
     await mockEventManagerReschedule();
 
     const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
-      await import("@calcom/emails"),
+      await import("@calcom/emails/email-manager"),
       "sendRoundRobinReassignedEmailsAndSMS"
     );
 
