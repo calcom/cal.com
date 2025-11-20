@@ -85,7 +85,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
       {!stripeCheckoutUrl ? (
         <Form
           form={newLicenseKeyFormMethods}
-          className="space-y-5"
+          className="stack-y-5"
           id="createOrg"
           handleSubmit={(values) => {
             mutation.mutate(values);

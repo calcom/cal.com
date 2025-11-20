@@ -280,7 +280,7 @@ export const EditWeightsForAllTeamMembers = ({
               </div>
             </SheetHeader>
 
-            <SheetBody className="mt-4 flex h-full flex-col space-y-6 p-1">
+            <SheetBody className="mt-4 flex h-full flex-col stack-y-6 p-1">
               <div className="flex justify-start gap-2">
                 <label className={buttonClasses({ color: "secondary" })}>
                   <Icon name="upload" className="mr-2 h-4 w-4" />
@@ -321,7 +321,7 @@ export const EditWeightsForAllTeamMembers = ({
                     <Icon name="chevron-down" className="h-4 w-4" />
                   </button>
                   {isErrorsExpanded && (
-                    <div className="mt-2 space-y-2">
+                    <div className="mt-2 stack-y-2">
                       {uploadErrors.map((error, index) => (
                         <div
                           key={index}

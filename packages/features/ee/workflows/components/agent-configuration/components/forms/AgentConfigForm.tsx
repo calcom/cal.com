@@ -51,7 +51,7 @@ export function AgentConfigForm({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <LanguageSelector control={form.control} name="language" disabled={readOnly} />
 
       <VoiceSelector
@@ -118,7 +118,7 @@ export function AgentConfigForm({
             {t("Add Function")}
           </Button>
         </div>
-        <div className="space-y-3">
+        <div className="stack-y-3">
           {toolFields.map((tool, idx) => (
             <div
               key={tool.id}

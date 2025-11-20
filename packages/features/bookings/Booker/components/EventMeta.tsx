@@ -187,7 +187,7 @@ export const EventMeta = ({
               />
             </EventMetaBlock>
           )}
-          <div className="space-y-4 font-medium rtl:-mr-2">
+          <div className="stack-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon="calendar">
                 {t("former_time")}

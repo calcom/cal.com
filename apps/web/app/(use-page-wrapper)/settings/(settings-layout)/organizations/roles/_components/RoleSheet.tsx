@@ -183,7 +183,7 @@ export function RoleSheet({
           </SheetTitle>
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
-          <div className="space-y-4 py-5">
+          <div className="stack-y-4 py-5">
             <div className="flex items-end justify-end gap-2">
               <div className="flex-1">
                 <TextField
@@ -203,7 +203,7 @@ export function RoleSheet({
 
             <div className="">
               {isAdvancedMode ? (
-                <div className="space-y-4">
+                <div className="stack-y-4">
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <Label className="mb-0">{t("permissions")}</Label>

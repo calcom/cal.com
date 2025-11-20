@@ -1631,7 +1631,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         {/* Unsubscribe Confirmation Dialog */}
         <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
-            <div className="space-y-4">
+            <div className="stack-y-4">
               <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
               {getActivePhoneNumbers(
                 agentData?.outboundPhoneNumbers?.map((phone) => ({
@@ -1689,7 +1689,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         {/* Delete Step Confirmation Dialog */}
         <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
           <DialogContent type="confirmation" title={t("delete_workflow_step")}>
-            <div className="space-y-4">
+            <div className="stack-y-4">
               <p className="text-default text-sm">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
               {(() => {
                 const relevantPhoneNumbers =
@@ -1703,9 +1703,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
                           <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
-                          <div className="space-y-2">
+                          <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
-                            <ul className="text-attention list-inside list-disc space-y-1 text-sm">
+                            <ul className="text-attention list-inside list-disc stack-y-1 text-sm">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("cancel_your_phone_number_subscription")}</li>}

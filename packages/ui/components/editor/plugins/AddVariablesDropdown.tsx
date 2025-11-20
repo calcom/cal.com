@@ -65,7 +65,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-52">
-        <div className="space-y-2 p-1">
+        <div className="stack-y-2 p-1">
           <div className="text-muted ml-1 text-left text-xs font-medium tracking-wide">
             {t("add_dynamic_variables")}
           </div>

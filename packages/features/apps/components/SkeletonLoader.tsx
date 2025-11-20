@@ -20,7 +20,7 @@ function SkeletonItem() {
       <div className="grow truncate text-sm">
         <div className="flex justify-start space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-10 w-10" />
-          <div className="space-y-1">
+          <div className="stack-y-1">
             <div>
               <SkeletonText className="h-4 w-16" />
             </div>

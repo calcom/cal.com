@@ -193,7 +193,7 @@ export default function Login({
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-3">
+              <div className="stack-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
                     color="primary"
@@ -239,8 +239,8 @@ export default function Login({
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+            <div className="stack-y-6">
+              <div className={classNames("stack-y-6", { hidden: twoFactorRequired })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}

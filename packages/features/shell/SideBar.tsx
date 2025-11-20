@@ -166,7 +166,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                       name={item.isLoading ? "rotate-cw" : item.icon}
                       className={classNames(
                         "h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit",
-                        "me-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
+                        "ml-3 md:mx-auto lg:ltr:mr-2 lg:rtl:ml-2",
                         item.isLoading && "animate-spin"
                       )}
                       aria-hidden="true"

@@ -202,7 +202,7 @@ const EventTypeScheduleDetails = memo(
 
     return (
       <div>
-        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
+        <div className={classNames("border-subtle stack-y-4 border-x p-6", customClassNames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -224,7 +224,7 @@ const EventTypeScheduleDetails = memo(
                   {isSchedulePending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
-                    <div className="space-y-3 text-right">
+                    <div className="stack-y-3 text-right">
                       {filterDays(index).map((dayRange, i) => (
                         <div
                           key={i}
@@ -328,7 +328,7 @@ const EventTypeRestrictionScheduleDetails = memo(
 
     return (
       <div>
-        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
+        <div className={classNames("border-subtle stack-y-4 border-x p-6", customClassNames?.tableContainer)}>
           <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
             {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -350,7 +350,7 @@ const EventTypeRestrictionScheduleDetails = memo(
                   {isSchedulePending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
-                    <div className="space-y-3 text-right">
+                    <div className="stack-y-3 text-right">
                       {filterDays(index).map((dayRange, i) => (
                         <div
                           key={i}
@@ -821,8 +821,8 @@ const UseTeamEventScheduleSettingsToggle = ({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
+    <div className="stack-y-4">
+      <div className="border-subtle stack-y-6 rounded-lg border p-6">
         <SettingsToggle
           checked={!useHostSchedulesForTeamEvent}
           onCheckedChange={toggleScheduleState}
@@ -846,7 +846,7 @@ const UseTeamEventScheduleSettingsToggle = ({
         )}
       </div>
       {!isPlatform && isRestrictionScheduleEnabled ? (
-        <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <div className="border-subtle stack-y-6 rounded-lg border p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}

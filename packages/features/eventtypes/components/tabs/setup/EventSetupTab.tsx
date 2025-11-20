@@ -106,10 +106,10 @@ export const EventSetupTab = (
 
   return (
     <div>
-      <div className={classNames("space-y-4", customClassNames?.wrapper)}>
+      <div className={classNames("stack-y-4", customClassNames?.wrapper)}>
         <div
           className={classNames(
-            "border-subtle space-y-6 rounded-lg border p-6",
+            "border-subtle stack-y-6 rounded-lg border p-6",
             customClassNames?.titleSection?.container
           )}>
           <TextField
@@ -193,7 +193,7 @@ export const EventSetupTab = (
           {multipleDuration ? (
             <div
               className={classNames(
-                "space-y-6",
+                "stack-y-6",
                 customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.container
               )}>
               <div>

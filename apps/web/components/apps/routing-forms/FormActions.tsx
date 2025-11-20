@@ -115,7 +115,7 @@ function NewFormDialog({
               duplicateFrom: formToDuplicate,
             });
           }}>
-          <div className="mt-3 space-y-5">
+          <div className="mt-3 stack-y-5">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField

@@ -15,7 +15,7 @@
 @variant linux (html.todesktop-platform-linux &);
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-sans);
   --font-cal: var(--font-cal);
 
   /* Resets the preference from coss-ui which was to "use single --radius variable for all radius values" */

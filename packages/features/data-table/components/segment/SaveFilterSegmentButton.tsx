@@ -184,7 +184,7 @@ export function SaveFilterSegmentButton() {
               <RadioGroup
                 defaultValue="update"
                 onValueChange={(value: string) => setSaveMode(value as "create" | "update")}
-                className="space-y-2">
+                className="stack-y-2">
                 <RadioField
                   id="update_segment"
                   label={t("override_segment", { name: selectedSegment.name })}

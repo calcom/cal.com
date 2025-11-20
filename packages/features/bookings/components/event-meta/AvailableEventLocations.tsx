@@ -35,7 +35,7 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
   const { t } = useLocale();
 
   return (
-    <div className="my-2 me-2 flex w-full flex-col space-y-3 wrap-break-word">
+    <div className="my-2 me-2 flex w-full flex-col stack-y-3 wrap-break-word">
       <p>{t("select_on_next_step")}</p>
       {locations.map(
         (
@@ -115,7 +115,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       </Tooltip>
     </div>
   ) : filteredLocations.length === 1 ? (
-    <div className="text-default mr-6 flex w-full flex-col space-y-4 wrap-break-word text-sm rtl:mr-2">
+    <div className="text-default mr-6 flex w-full flex-col stack-y-4 wrap-break-word text-sm rtl:mr-2">
       {filteredLocations}
     </div>
   ) : null;

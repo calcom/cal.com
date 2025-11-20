@@ -419,7 +419,7 @@ function AttributesList(props: { selectedUserId: number }) {
                         }}
                       />
                       {attr.isWeightsEnabled && fieldValue?.options && (
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 stack-y-2">
                           <Label>Weights</Label>
                           <div className="">
                             {fieldValue.options.map((option, idx) => {

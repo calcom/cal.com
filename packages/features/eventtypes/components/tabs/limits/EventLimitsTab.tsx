@@ -420,10 +420,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     <div>
       <div
         className={classNames(
-          "border-subtle space-y-6 rounded-lg border p-6",
+          "border-subtle stack-y-6 rounded-lg border p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-col space-y-4  lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="flex flex-col stack-y-4  lg:flex-row lg:space-x-4 lg:space-y-0">
           <div
             className={classNames(
               "w-full",
@@ -517,7 +517,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div
             className={classNames(
               "w-full",

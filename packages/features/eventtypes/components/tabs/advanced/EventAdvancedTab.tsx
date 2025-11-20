@@ -176,8 +176,8 @@ const destinationCalendarComponents = {
     );
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <div className="border-subtle stack-y-6 rounded-lg border p-6">
+        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -230,7 +230,7 @@ const destinationCalendarComponents = {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="stack-y-2">
           {showConnectedCalendarSettings && (
             <div className={classNames("w-full", customClassNames?.addToCalendarEmailOrganizer?.container)}>
               <Switch
@@ -300,8 +300,8 @@ const destinationCalendarComponents = {
   },
   DestinationCalendarSettingsSkeleton() {
     return (
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+      <div className="border-subtle stack-y-6 rounded-lg border p-6">
+        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -312,7 +312,7 @@ const destinationCalendarComponents = {
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="stack-y-2">
           <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
           <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
           <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
@@ -614,7 +614,7 @@ export const EventAdvancedTab = ({
   }, [isPlatform]);
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col stack-y-4">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}

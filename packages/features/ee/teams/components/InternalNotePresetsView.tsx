@@ -119,9 +119,9 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                 isChecked && "rounded-b-none"
               )}>
               <div className="border-subtle border border-y-0 p-6">
-                <div className="flex flex-col space-y-4" ref={animateRef}>
+                <div className="flex flex-col stack-y-4" ref={animateRef}>
                   {fields.map((field, index) => (
-                    <div key={field.id} className="space-y-2">
+                    <div key={field.id} className="stack-y-2">
                       <div className="flex items-center space-x-2">
                         <Controller
                           name={`presets.${index}.name`}

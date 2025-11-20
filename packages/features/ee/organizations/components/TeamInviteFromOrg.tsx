@@ -34,7 +34,7 @@ export default function TeamInviteFromOrg({
         <TextField placeholder="Search..." onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
       <hr className="border-subtle -mx-4 mt-2" />
-      <div className="scrollbar min-h-48 flex max-h-48 flex-col space-y-0.5 overflow-y-scroll pt-2">
+      <div className="scrollbar min-h-48 flex max-h-48 flex-col stack-y-0.5 overflow-y-scroll pt-2">
         <>
           {filteredMembers &&
             filteredMembers.map((member) => {

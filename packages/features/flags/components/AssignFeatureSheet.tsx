@@ -112,7 +112,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
           </div>
           {isPending ? (
             <SkeletonContainer>
-              <div className="space-y-3">
+              <div className="stack-y-3">
                 {[...Array(5)].map((_, i) => (
                   <SkeletonText key={i} className="h-16 w-full" />
                 ))}
@@ -120,7 +120,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
             </SkeletonContainer>
           ) : teams && teams.length > 0 ? (
             <>
-              <div className="space-y-2">
+              <div className="stack-y-2">
                 {teams.map((team) => (
                   <button
                     key={team.id}

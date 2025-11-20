@@ -96,7 +96,7 @@ const ChildrenEventTypesList = ({
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
-    <div className={classNames("flex flex-col space-y-5", customClassNames?.assignToSelect?.container)}>
+    <div className={classNames("flex flex-col stack-y-5", customClassNames?.assignToSelect?.container)}>
       <div>
         <Label className={customClassNames?.assignToSelect?.label}>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
@@ -578,7 +578,7 @@ const ChildrenEventTypes = ({
   return (
     <div
       className={classNames(
-        "border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6",
+        "border-subtle mt-6 stack-y-5 rounded-lg border px-4 py-6 sm:px-6",
         customClassNames?.container
       )}>
       <div className="flex flex-col gap-4">
