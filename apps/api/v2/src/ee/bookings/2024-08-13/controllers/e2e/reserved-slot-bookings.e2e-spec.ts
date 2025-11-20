@@ -256,8 +256,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
         it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-21T09:30:00.000Z");
-          const endTime = new Date("2040-05-21T10:30:00.000Z");
+          const startTime = new Date("2040-05-23T09:30:00.000Z");
+          const endTime = new Date("2040-05-23T10:30:00.000Z");
 
           await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
 
