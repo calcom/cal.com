@@ -12,6 +12,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 
 type BookingsCalendarViewProps = {
@@ -19,7 +20,6 @@ type BookingsCalendarViewProps = {
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
   isPending?: boolean;
-  onOpenDetails: (bookingId: number) => void;
 };
 
 export function BookingsCalendarView({
@@ -27,8 +27,8 @@ export function BookingsCalendarView({
   currentWeekStart,
   onWeekStartChange,
   isPending = false,
-  onOpenDetails,
 }: BookingsCalendarViewProps) {
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
@@ -152,7 +152,7 @@ export function BookingsCalendarView({
           onEventClick={(event) => {
             const bookingId = event.options?.bookingId;
             if (bookingId) {
-              onOpenDetails(bookingId);
+              setSelectedBookingId(bookingId);
             }
           }}
           hideHeader

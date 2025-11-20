@@ -65,24 +65,38 @@ const updateOrganizationSettings = async ({
 }) => {
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
+  // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
+  }
+
+  if (input.hasOwnProperty("disableAutofillOnBookingPage")) {
+    data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
+  }
+  
+  // eslint-disable-next-line no-prototype-builtins
+  if (input.hasOwnProperty("orgAutoJoinOnSignup")) {
+    data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
   }
 
   // If no settings values have changed lets skip this update

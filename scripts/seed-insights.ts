@@ -391,7 +391,7 @@ async function main() {
     });
   }
 
-  const insightsTeamMembers = await prisma.membership.findMany({
+  let insightsTeamMembers = await prisma.membership.findMany({
     where: {
       teamId: insightsTeam.id,
     },
@@ -399,6 +399,30 @@ async function main() {
       user: true,
     },
   });
+
+  // If the team exists but has no members, add org members to it
+  if (insightsTeamMembers.length === 0) {
+    await prisma.membership.createMany({
+      data: orgMembers.map((member) => ({
+        teamId: insightsTeam!.id,
+        userId: member.user.id,
+        role: member.role,
+        accepted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+    });
+
+    // Refetch the members
+    insightsTeamMembers = await prisma.membership.findMany({
+      where: {
+        teamId: insightsTeam.id,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
 
   // Create event types for the team
   let teamEvents = await prisma.eventType.findMany({
