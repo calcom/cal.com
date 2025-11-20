@@ -3,7 +3,6 @@ import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { RedisService } from "@/modules/redis/redis.service";
 import {
   Injectable,
   CanActivate,
@@ -23,8 +22,7 @@ export class BookingPbacGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
-    private prismaReadService: PrismaReadService,
-    private readonly redisService: RedisService,
+    private readonly prismaReadService: PrismaReadService,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly pbacGuard: PbacGuard
   ) {
@@ -49,30 +47,22 @@ export class BookingPbacGuard implements CanActivate {
       );
     }
 
-    if (!requiredPermissions || requiredPermissions.length === 0) {
-      const hasAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
-        userId: user.id,
-        bookingUid,
-      });
-
-      if (!hasAccess) {
-        throw new ForbiddenException(
-          `BookingPbacGuard - user with id=${user.id} does not have access to booking with uid=${bookingUid}`
-        );
-      }
-
-      request.pbacAuthorizedRequest = false;
-      return true;
-    }
-
-    const hasAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
+    // Step 1: Check resource-specific access (owner/host/admin)
+    const hasDirectAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
       userId: user.id,
       bookingUid,
     });
 
-    if (hasAccess) {
+    if (hasDirectAccess) {
       request.pbacAuthorizedRequest = false;
       return true;
+    }
+
+    // Step 2: User is not owner/host/admin - check if PBAC grants access
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      throw new ForbiddenException(
+        `BookingPbacGuard - user with id=${user.id} does not have access to booking with uid=${bookingUid}`
+      );
     }
 
     const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
@@ -81,13 +71,15 @@ export class BookingPbacGuard implements CanActivate {
       throw new BadRequestException(`BookingPbacGuard - booking with uid=${bookingUid} not found`);
     }
 
-    if (!booking.eventType?.teamId) {
+    const teamId = booking.eventType?.teamId;
+
+    if (!teamId) {
       throw new ForbiddenException(
         `BookingPbacGuard - user with id=${user.id} does not have access to booking with uid=${bookingUid}`
       );
     }
 
-    const teamId = booking.eventType.teamId;
+    // Check if PBAC is enabled for this team
     const hasPbacEnabled = await this.pbacGuard.hasPbacEnabled(teamId);
 
     if (!hasPbacEnabled) {
@@ -96,15 +88,18 @@ export class BookingPbacGuard implements CanActivate {
       );
     }
 
-    const hasRequiredPermissions = await this.pbacGuard.checkUserHasRequiredPermissions(
+    // Check PBAC permissions
+    const hasPbacPermissions = await this.pbacGuard.checkUserHasRequiredPermissions(
       user.id,
       teamId,
       requiredPermissions
     );
 
-    if (!hasRequiredPermissions) {
+    if (!hasPbacPermissions) {
       throw new ForbiddenException(
-        `BookingPbacGuard - user with id=${user.id} does not have the required permissions=${requiredPermissions.join(",")} for team with id=${teamId}`
+        `BookingPbacGuard - user with id=${
+          user.id
+        } does not have the required permissions=${requiredPermissions.join(",")} for team with id=${teamId}`
       );
     }
 
