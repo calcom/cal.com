@@ -282,7 +282,8 @@
     "PLATFORM_ENTERPRISE_SLUGS",
     "USE_POOL",
     "STRIPE_ORG_PRODUCT_ID",
-    "GOOGLE_ADS_ENABLED"
+    "GOOGLE_ADS_ENABLED",
+    "LINKEDIN_ADS_ENABLED"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {

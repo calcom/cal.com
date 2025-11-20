@@ -105,6 +105,7 @@ export const generateTeamCheckoutSession = async ({
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
       ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
   });
   return session;
@@ -199,6 +200,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     metadata: {
       teamId,
       ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
     subscription_data: {
       metadata: {

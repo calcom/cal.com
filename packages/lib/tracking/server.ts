@@ -5,8 +5,14 @@ export type GoogleAdsTrackingData = {
   campaignId?: string;
 };
 
+export type LinkedInAdsTrackingData = {
+  liFatId: string;
+  campaignId?: string;
+};
+
 export type TrackingData = {
   googleAds?: GoogleAdsTrackingData;
+  linkedInAds?: LinkedInAdsTrackingData;
 };
 
 
@@ -19,6 +25,13 @@ export function getTrackingFromCookies(cookies?: NextApiRequest["cookies"]): Tra
     tracking.googleAds = {
       gclid: cookies.gclid,
       ...(cookies.gad_campaignid && { campaignId: cookies.gad_campaignid }),
+    };
+  }
+
+  if (process.env.LINKEDIN_ADS_ENABLED === "1" && cookies.li_fat_id) {
+    tracking.linkedInAds = {
+      liFatId: cookies.li_fat_id,
+      ...(cookies.li_campaignid && { campaignId: cookies.li_campaignid }),
     };
   }
 

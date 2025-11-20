@@ -84,6 +84,7 @@ export class BillingService {
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
         ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
+        ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
       },
       subscription_data: {
         metadata: {
