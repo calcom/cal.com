@@ -1165,6 +1165,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           eventTypeId: eventTypeWithBookingFields.id,
           bookingFieldsResponses: {
             "favorite-movie": "The Matrix",
+            rescheduleReason: null,
             notes: null,
           },
         };
@@ -1178,6 +1179,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         if (responseDataIsBooking(response.body.data)) {
           const data: BookingOutput_2024_08_13 = response.body.data;
           expect(data.bookingFieldsResponses.notes).toBe("");
+          expect(data.bookingFieldsResponses.rescheduleReason).toBe("");
           expect(data.bookingFieldsResponses["favorite-movie"]).toBe("The Matrix");
         }
       });
