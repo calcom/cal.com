@@ -24,6 +24,7 @@ import {
   createMockJWTInstance,
   createCredentialForCalendarService,
 } from "./utils";
+import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -39,10 +40,27 @@ beforeEach(() => {
   createMockJWTInstance({});
 });
 
+const mockCredential: CredentialForCalendarServiceWithEmail = {
+  id: 1,
+  userId: 1,
+  appId: "google-calendar",
+  type: "google_calendar",
+  key: {
+    access_token: "<INVALID_TOKEN>"
+  },
+  user: {
+    email: "user@example.com",
+  },
+  delegationCredentialId: null,
+  delegatedTo: null,
+  invalid: false,
+  teamId: null,
+};
+
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-    const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+
+    const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -91,7 +109,7 @@ describe("getAvailability", () => {
       "2024-01-01",
       "2024-01-02",
       [],
-      false
+      true
     );
 
     expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
@@ -109,8 +127,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -312,8 +329,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -322,8 +338,8 @@ describe("Date Optimization Benchmarks", () => {
     ];
 
     // Mock the getCacheOrFetchAvailability method to return consistent data
-    const getCacheOrFetchAvailabilitySpy = vi
-      .spyOn(calendarService as any, "getCacheOrFetchAvailability")
+    const getFreeBusyDataSpy = vi
+      .spyOn(calendarService as any, "getFreeBusyData")
       .mockResolvedValue(mockBusyData.map((item) => ({ ...item, id: "test@calendar.com" })));
 
     // Test single API call scenario (≤ 90 days)
@@ -335,9 +351,9 @@ describe("Date Optimization Benchmarks", () => {
     );
 
     expect(shortRangeResult).toEqual(mockBusyData);
-    expect(getCacheOrFetchAvailabilitySpy).toHaveBeenCalledTimes(1);
+    expect(getFreeBusyDataSpy).toHaveBeenCalledTimes(1);
 
-    getCacheOrFetchAvailabilitySpy.mockClear();
+    getFreeBusyDataSpy.mockClear();
 
     // Test chunked scenario (> 90 days)
     const longRangeResult = await (calendarService as any).fetchAvailabilityData(
@@ -349,16 +365,15 @@ describe("Date Optimization Benchmarks", () => {
 
     // Should return concatenated results from multiple chunks
     expect(longRangeResult.length).toBeGreaterThan(0);
-    expect(getCacheOrFetchAvailabilitySpy).toHaveBeenCalledTimes(3); // 182 days / 90 = ~2.02 -> 3 chunks
+    expect(getFreeBusyDataSpy).toHaveBeenCalledTimes(3); // 182 days / 90 = ~2.02 -> 3 chunks
 
-    getCacheOrFetchAvailabilitySpy.mockRestore();
+    getFreeBusyDataSpy.mockRestore();
   });
 });
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -436,9 +451,9 @@ describe("createEvent", () => {
           integration: "google_calendar",
           externalId: "primary",
           primaryEmail: null,
-          userId: credential.userId,
+          userId: mockCredential.userId,
           eventTypeId: null,
-          credentialId: credential.id,
+          credentialId: mockCredential.id,
           delegationCredentialId: null,
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
@@ -453,7 +468,7 @@ describe("createEvent", () => {
     };
 
     // Call createEvent and verify result using inline snapshot
-    const result = await calendarService.createEvent(testCalEvent, credential.id);
+    const result = await calendarService.createEvent(testCalEvent, mockCredential.id);
 
     // Verify input processing - check that Google API was called with correct payload
     expect(eventsInsertMock).toHaveBeenCalledTimes(1);
@@ -556,8 +571,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const credential = await createCredentialForCalendarService();
-    const calendarService = new CalendarService(credential);
+    const calendarService = new CalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
@@ -611,9 +625,9 @@ describe("createEvent", () => {
           integration: "google_calendar",
           externalId: "primary",
           primaryEmail: null,
-          userId: credential.userId,
+          userId: mockCredential.userId,
           eventTypeId: null,
-          credentialId: credential.id,
+          credentialId: mockCredential.id,
           delegationCredentialId: null,
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
@@ -623,7 +637,7 @@ describe("createEvent", () => {
       calendarDescription: "Weekly team meeting",
     };
 
-    const result = await calendarService.createEvent(recurringCalEvent, credential.id);
+    const result = await calendarService.createEvent(recurringCalEvent, mockCredential.id);
 
     // Use inline snapshot for recurring event result
     expect(result).toMatchInlineSnapshot(`
