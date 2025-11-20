@@ -16,7 +16,7 @@ import { InviteOptions } from "../../../components/InviteOptions";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
-import { OnboardingOrganizationBrowserView } from "../../../components/onboarding-organization-browser-view";
+import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "../csv-upload-modal";
@@ -53,11 +53,19 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
+  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
+  const teams =
+    filteredTeams.length > 0
+      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
+      : [];
+  const hasTeams = teams.length > 0;
+
+  // Conditional form schema - team is optional when there are no teams
   const formSchema = z.object({
     invites: z.array(
       z.object({
         email: z.string().email(t("invalid_email_address")),
-        team: z.string().min(1, t("onboarding_team_required")),
+        team: hasTeams ? z.string().min(1, t("onboarding_team_required")) : z.string().optional(),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -94,7 +102,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   };
 
   const handleBack = () => {
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/teams");
+  };
+
+  const handleSkip = async () => {
+    setInvites([]);
+    await submitOnboarding(store, userEmail, []);
   };
 
   const handleGoogleWorkspaceConnect = () => {
@@ -116,14 +129,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const hasValidInvites = fields.some((_, index) => {
     const email = form.watch(`invites.${index}.email`);
     const team = form.watch(`invites.${index}.team`);
+    // If there are no teams, only validate email. Otherwise, validate both email and team.
+    if (!hasTeams) {
+      return email && email.trim().length > 0;
+    }
     return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
-
-  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
-  const teams =
-    filteredTeams.length > 0
-      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
-      : [];
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={4} totalSteps={4}>
@@ -132,19 +143,28 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
           title={t("onboarding_org_invite_title")}
           subtitle={t("onboarding_org_invite_subtitle_email")}
           footer={
-            <div className="flex w-full items-center justify-end gap-4">
+            <div className="flex w-full items-center justify-between gap-4">
               <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
                 {t("back")}
               </Button>
-              <Button
-                type="submit"
-                color="primary"
-                className="rounded-[10px]"
-                disabled={!hasValidInvites || isSubmitting}
-                loading={isSubmitting}
-                onClick={form.handleSubmit(handleContinue)}>
-                {t("continue")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={handleSkip}
+                  disabled={isSubmitting}>
+                  {t("onboarding_skip_for_now")}
+                </Button>
+                <Button
+                  type="submit"
+                  color="primary"
+                  className="rounded-[10px]"
+                  disabled={!hasValidInvites || isSubmitting}
+                  loading={isSubmitting}
+                  onClick={form.handleSubmit(handleContinue)}>
+                  {t("continue")}
+                </Button>
+              </div>
             </div>
           }>
           <div className="flex h-full w-full flex-col gap-4">
@@ -155,7 +175,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
                   append={append}
                   remove={remove}
                   defaultRole={inviteRole}
-                  showTeamSelect
+                  showTeamSelect={hasTeams}
                   teams={teams}
                   emailPlaceholder={`dave@${usersEmailDomain}`}
                 />
@@ -176,13 +196,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
         </OnboardingCard>
       </div>
 
-      <OnboardingOrganizationBrowserView
-        avatar={organizationBrand.logo}
-        name={organizationDetails.name}
-        bio={organizationDetails.bio}
-        slug={organizationDetails.link}
-        bannerUrl={organizationBrand.banner}
-      />
+      <OnboardingInviteBrowserView useOrganizationInvites={true} watchedInvites={form.watch("invites")} />
       <OrganizationCSVUploadModal isOpen={isCSVModalOpen} onClose={() => setIsCSVModalOpen(false)} />
     </OnboardingLayout>
   );

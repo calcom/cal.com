@@ -26,6 +26,10 @@ const ServerPage = async () => {
     return redirect("/auth/login");
   }
 
+  if (session.user.role !== "ADMIN") {
+    return redirect("/onboarding/teams/invite/email");
+  }
+
   const userEmail = session.user.email || "";
 
   return <TeamInviteView userEmail={userEmail} />;

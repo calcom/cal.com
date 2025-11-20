@@ -51,12 +51,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   const handleContinue = (data: FormValues) => {
     // Save teams to store
     setTeams(data.teams);
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/invite/email");
   };
 
   const handleSkip = () => {
     // Skip teams and go to invite
-    router.push("/onboarding/organization/invite");
+    router.push("/onboarding/organization/invite/email");
   };
 
   const hasValidTeams = fields.some((_, index) => {

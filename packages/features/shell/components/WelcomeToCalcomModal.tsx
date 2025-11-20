@@ -9,7 +9,7 @@ import { Logo } from "@calcom/ui/components/logo";
 
 import { useWelcomeToCalcomModal } from "../hooks/useWelcomeToCalcomModal";
 
-const features = ["1_user", "unlimited_calendars", "accept_payments_via_stripe"];
+const features = ["unlimited_event_types", "workflows_feature", "and_more"];
 
 export function WelcomeToCalcomModal() {
   const { t } = useLocale();
