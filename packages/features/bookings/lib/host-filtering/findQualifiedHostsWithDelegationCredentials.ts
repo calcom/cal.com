@@ -82,7 +82,7 @@ export class QualifiedHostsService {
       includeNoShowInRRCalculation: boolean;
     } & EventType;
     rescheduleUid: string | null;
-    routedTeamMemberIds: number[];
+    routedTeamMemberIds: number[] | null;
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
   }): Promise<{
@@ -122,6 +122,10 @@ export class QualifiedHostsService {
 
     const fixedHosts = normalizedHosts.filter(isFixedHost);
     const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
+
+    if (routingFormResponse && routedTeamMemberIds && routedTeamMemberIds.length === 0) {
+      return { qualifiedRRHosts: [], fixedHosts: [] };
+    }
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
@@ -168,7 +172,7 @@ export class QualifiedHostsService {
 
     const hostsAfterRoutedTeamMemberIdsMatching = applyFilterWithFallback(
       officalRRHosts,
-      officalRRHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
+      officalRRHosts.filter((host) => routedTeamMemberIds?.includes(host.user.id))
     );
 
     if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
