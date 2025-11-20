@@ -1,9 +1,9 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import type { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";

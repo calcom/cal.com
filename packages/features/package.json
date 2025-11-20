@@ -20,7 +20,7 @@
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
-    "@trigger.dev/sdk": "4.1.0",
+    "@trigger.dev/sdk": "4.1.1",
     "@vercel/functions": "^1.4.0",
     "akismet-api": "^6.0.0",
     "class-variance-authority": "^0.7.1",

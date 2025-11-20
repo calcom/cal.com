@@ -224,21 +224,25 @@ export class BookingEmailSmsHandler {
       (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
     );
 
-    const emailManager = await import("@calcom/emails/email-manager");
+    const {
+      sendRoundRobinRescheduledEmailsAndSMS,
+      sendRoundRobinScheduledEmailsAndSMS,
+      sendRoundRobinCancelledEmailsAndSMS,
+    } = await import("@calcom/emails/email-manager");
 
     try {
       await Promise.all([
-        emailManager.sendRoundRobinRescheduledEmailsAndSMS(
+        sendRoundRobinRescheduledEmailsAndSMS(
           { ...copyEventAdditionalInfo, iCalUID },
           rescheduledMembers,
           metadata
         ),
-        emailManager.sendRoundRobinScheduledEmailsAndSMS({
+        sendRoundRobinScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
-        emailManager.sendRoundRobinCancelledEmailsAndSMS(
+        sendRoundRobinCancelledEmailsAndSMS(
           cancelledRRHostEvt,
           cancelledMembers,
           metadata,

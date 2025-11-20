@@ -8,11 +8,13 @@ import {
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
-import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
+import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -159,10 +161,6 @@ const processWorkflowStep = async (
           const limitGuestsDate = new Date("2025-01-13");
 
           if (workflow.userId) {
-            const [{ prisma }, { UserRepository }] = await Promise.all([
-              import("@calcom/prisma"),
-              import("@calcom/features/users/repositories/UserRepository"),
-            ]);
             const userRepository = new UserRepository(prisma);
             const user = await userRepository.findById({ id: workflow.userId });
             if (user?.createdDate && user.createdDate > limitGuestsDate) {
@@ -294,10 +292,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId?: number | null;
   userId?: number | null;
 }) => {
-  const [{ CreditService }, { prisma }] = await Promise.all([
-    import("@calcom/features/ee/billing/credit-service"),
-    import("@calcom/prisma"),
-  ]);
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
   let userIdsWithNoCredits: number[] = userId ? [userId] : [];
 
