@@ -31,6 +31,7 @@ export interface Invite {
 export interface TeamDetails {
   name: string;
   slug: string;
+  bio: string;
 }
 
 export interface TeamBrand {
@@ -104,6 +105,7 @@ const initialState = {
   teamDetails: {
     name: "",
     slug: "",
+    bio: "",
   },
   teamBrand: {
     color: "#000000",
