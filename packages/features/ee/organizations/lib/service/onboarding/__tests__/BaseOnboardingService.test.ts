@@ -127,13 +127,13 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should filter out teams with empty names", () => {
+    it("should filter out teams with empty names only if they are new teams (id === -1)", () => {
       const service = new TestableBaseOnboardingService(mockUser);
 
       const teams = [
         { id: 1, name: "Marketing", isBeingMigrated: false, slug: null },
-        { id: 2, name: "", isBeingMigrated: false, slug: null },
-        { id: 3, name: "   ", isBeingMigrated: false, slug: null },
+        { id: -1, name: "", isBeingMigrated: false, slug: null },
+        { id: -1, name: "   ", isBeingMigrated: false, slug: null },
         { id: 4, name: "Engineering", isBeingMigrated: true, slug: "eng" },
       ];
 
@@ -331,6 +331,38 @@ describe("BaseOnboardingService", () => {
       });
       expect(teamsData[1]).toEqual({
         id: 43,
+        name: "Marketing",
+        isBeingMigrated: false,
+        slug: "marketing",
+      });
+    });
+
+    it("should NOT auto-enable migration for new teams (id === -1) with matching org slug", () => {
+      const service = new TestableBaseOnboardingService(mockUser);
+
+      const teams = [
+        { id: -1, name: "Acme Corp", isBeingMigrated: false, slug: "acme" },
+        { id: 42, name: "Existing Team", isBeingMigrated: false, slug: "acme-existing" },
+        { id: -1, name: "Marketing", isBeingMigrated: false, slug: "marketing" },
+      ];
+
+      const { teamsData } = service.testFilterTeamsAndInvites(teams, [], "acme");
+
+      expect(teamsData).toHaveLength(3);
+      expect(teamsData[0]).toEqual({
+        id: -1,
+        name: "Acme Corp",
+        isBeingMigrated: false,
+        slug: "acme",
+      });
+      expect(teamsData[1]).toEqual({
+        id: 42,
+        name: "Existing Team",
+        isBeingMigrated: false,
+        slug: "acme-existing",
+      });
+      expect(teamsData[2]).toEqual({
+        id: -1,
         name: "Marketing",
         isBeingMigrated: false,
         slug: "marketing",

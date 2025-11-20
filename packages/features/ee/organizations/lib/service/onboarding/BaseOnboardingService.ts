@@ -152,7 +152,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
         return true;
       })
       .map((team) => {
-        const slugConflictsWithOrg = orgSlug && team.slug === orgSlug;
+        const slugConflictsWithOrg = orgSlug && team.slug === orgSlug && team.id !== -1;
         return {
           id: team.id === -1 ? -1 : team.id,
           name: team.name,
@@ -484,7 +484,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     const teamsToCreate = teams.filter((team) => !team.isBeingMigrated).map((team) => team.name);
     const teamsToMove = teams
-      .filter((team) => team.isBeingMigrated)
+      .filter((team) => team.isBeingMigrated && team.id !== -1)
       .map((team) => ({
         id: team.id,
         newSlug: team.slug ? slugify(team.slug) : team.slug,
