@@ -5,27 +5,13 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 
-import dayjs from "@calcom/dayjs";
-import {
-  DataTableProvider,
-  type SystemFilterSegment,
-  useDataTable,
-  ColumnFilterType,
-  useFilterValue,
-  ZMultiSelectFilterValue,
-  ZDateRangeFilterValue,
-  ZTextFilterValue,
-} from "@calcom/features/data-table";
+import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/components/alert";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import { BookingsListContainer } from "../components/BookingsListContainer";
 import { ViewToggleButton } from "../components/ViewToggleButton";
-import type { BookingListingStatus } from "../lib/validStatuses";
 import type { validStatuses } from "../lib/validStatuses";
 import { viewParser } from "../lib/viewParser";
 
@@ -141,61 +127,6 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
     return pathMatch?.[1] || "upcoming";
   }, [pathname]);
 
-  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
-  const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
-  const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
-  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
-
-  const { limit, offset } = useDataTable();
-
-  // Only apply pagination for list view, calendar view needs all bookings
-  const shouldPaginate = view === "list";
-  const queryLimit = shouldPaginate ? limit : 100; // Use max limit for calendar view
-  const queryOffset = shouldPaginate ? offset : 0; // Reset offset for calendar view
-
-  // For calendar view, fetch all statuses except cancelled
-  // For list view, use the current tab's status
-  const finalStatuses: BookingListingStatus[] = useMemo(
-    () => (view === "calendar" ? ["upcoming", "unconfirmed", "recurring", "past"] : [status]),
-    [view, status]
-  );
-
-  const query = trpc.viewer.bookings.get.useQuery(
-    {
-      limit: queryLimit,
-      offset: queryOffset,
-      filters: {
-        statuses: finalStatuses,
-        eventTypeIds,
-        teamIds,
-        userIds,
-        attendeeName,
-        attendeeEmail,
-        bookingUid,
-        afterStartDate: dateRange?.startDate
-          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-          : undefined,
-        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
-      },
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
-      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
-    }
-  );
-
-  const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
-  const isPending = query.isPending;
-  const totalRowCount = query.data?.totalCount;
-  const hasError = !!query.error;
-
-  const errorView = query.error ? (
-    <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-  ) : undefined;
-
   return (
     <div className="flex flex-col">
       {view === "list" && (
@@ -216,30 +147,15 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
       )}
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {status === "upcoming" && !isEmpty && (
-            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-          )}
           {view === "list" && (
             <BookingsListContainer
               status={status}
               permissions={permissions}
-              data={query.data}
-              isPending={isPending}
-              totalRowCount={totalRowCount}
               enableDetailsSheet={bookingsV3Enabled}
-              ErrorView={errorView}
-              hasError={hasError}
             />
           )}
           {bookingsV3Enabled && view === "calendar" && (
-            <BookingsCalendarContainer
-              status={status}
-              permissions={permissions}
-              data={query.data}
-              isPending={isPending}
-              ErrorView={errorView}
-              hasError={hasError}
-            />
+            <BookingsCalendarContainer status={status} permissions={permissions} />
           )}
         </div>
       </main>

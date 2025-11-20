@@ -2,19 +2,26 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Alert } from "@calcom/ui/components/alert";
 
+import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput, BookingOutput } from "../types";
+import type { RowData, BookingListingStatus, BookingOutput, BookingsGetOutput } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsCalendar } from "./BookingsCalendar";
+
+// For calendar view, fetch all statuses except cancelled
+const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
 
 const weekStartParser = createParser({
   parse: (value: string) => {
@@ -29,20 +36,23 @@ interface BookingsCalendarContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
-  data?: BookingsGetOutput;
-  isPending?: boolean;
-  ErrorView?: React.ReactNode;
-  hasError?: boolean;
 }
 
-export function BookingsCalendarContainer({
+interface BookingsCalendarInnerProps extends BookingsCalendarContainerProps {
+  data?: BookingsGetOutput;
+  isPending: boolean;
+  hasError: boolean;
+  errorMessage?: string;
+}
+
+function BookingsCalendarInner({
   status,
   permissions,
   data,
-  isPending = false,
-  ErrorView,
+  isPending,
   hasError,
-}: BookingsCalendarContainerProps) {
+  errorMessage,
+}: BookingsCalendarInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
 
@@ -50,6 +60,10 @@ export function BookingsCalendarContainer({
     "weekStart",
     weekStartParser.withDefault(dayjs().startOf("week"))
   );
+
+  const ErrorView = errorMessage ? (
+    <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
+  ) : undefined;
 
   const columns = useMemo(() => {
     return buildFilterColumns({ t, permissions, status });
@@ -139,7 +153,7 @@ export function BookingsCalendarContainer({
   }, [rowData, currentWeekStart]);
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings}>
+    <>
       <BookingsCalendar
         status={status}
         table={table}
@@ -156,6 +170,59 @@ export function BookingsCalendarContainer({
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         userId={user?.id}
         userEmail={user?.email}
+      />
+    </>
+  );
+}
+
+export function BookingsCalendarContainer(props: BookingsCalendarContainerProps) {
+  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
+    useBookingFilters();
+
+  const [currentWeekStart] = useQueryState("weekStart", weekStartParser.withDefault(dayjs().startOf("week")));
+  const [, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
+
+  // Clear dateRange filter whenever it exists in calendar view
+  // Calendar view uses currentWeekStart for date navigation instead of dateRange filter
+  useEffect(() => {
+    if (dateRange) {
+      setActiveFilters((prev) => prev?.filter((filter) => filter.f !== "dateRange") ?? []);
+    }
+  }, [dateRange, setActiveFilters]);
+
+  const query = trpc.viewer.bookings.get.useQuery(
+    {
+      limit: 100, // Use max limit for calendar view
+      offset: 0, // Reset offset for calendar view
+      filters: {
+        statuses: STATUSES,
+        eventTypeIds,
+        teamIds,
+        userIds,
+        attendeeName,
+        attendeeEmail,
+        bookingUid,
+        // Always fetch only the current week for calendar view
+        afterStartDate: currentWeekStart.startOf("day").toISOString(),
+        beforeEndDate: currentWeekStart.add(6, "day").endOf("day").toISOString(),
+      },
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    }
+  );
+
+  const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
+
+  return (
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
+      <BookingsCalendarInner
+        {...props}
+        data={query.data}
+        isPending={query.isPending}
+        hasError={!!query.error}
+        errorMessage={query.error?.message}
       />
     </BookingDetailsSheetStoreProvider>
   );

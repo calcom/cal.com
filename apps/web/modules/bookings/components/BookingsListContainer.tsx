@@ -1,15 +1,19 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { ColumnFilterType } from "@calcom/features/data-table";
+import { ColumnFilterType, useDataTable } from "@calcom/features/data-table";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Alert } from "@calcom/ui/components/alert";
+import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 
+import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import {
@@ -20,8 +24,8 @@ import type {
   RowData,
   BookingRowData,
   BookingListingStatus,
-  BookingsGetOutput,
   BookingOutput,
+  BookingsGetOutput,
 } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
@@ -31,27 +35,34 @@ interface BookingsListContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  enableDetailsSheet: boolean;
+}
+
+interface BookingsListInnerProps extends BookingsListContainerProps {
   data?: BookingsGetOutput;
   isPending: boolean;
-  enableDetailsSheet: boolean;
+  hasError: boolean;
+  errorMessage?: string;
   totalRowCount?: number;
-  ErrorView?: React.ReactNode;
-  hasError?: boolean;
 }
 
 function BookingsListInner({
   status,
   permissions,
+  enableDetailsSheet,
   data,
   isPending,
-  enableDetailsSheet,
-  totalRowCount,
-  ErrorView,
   hasError,
-}: BookingsListContainerProps) {
+  errorMessage,
+  totalRowCount,
+}: BookingsListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+
+  const ErrorView = errorMessage ? (
+    <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
+  ) : undefined;
 
   const handleBookingClick = useCallback(
     (bookingUid: string) => {
@@ -293,8 +304,13 @@ function BookingsListInner({
     getFacetedUniqueValues,
   });
 
+  const isEmpty = !data?.bookings || data.bookings.length === 0;
+
   return (
     <>
+      {status === "upcoming" && !isEmpty && (
+        <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+      )}
       <BookingsList
         status={status}
         table={table}
@@ -316,30 +332,46 @@ function BookingsListInner({
   );
 }
 
-export function BookingsListContainer({
-  status,
-  permissions,
-  data,
-  isPending,
-  enableDetailsSheet,
-  totalRowCount,
-  ErrorView,
-  hasError,
-}: BookingsListContainerProps) {
-  // Extract bookings from data for BookingDetailsSheet
-  const bookings = useMemo(() => data?.bookings ?? [], [data]);
+export function BookingsListContainer(props: BookingsListContainerProps) {
+  const { limit, offset } = useDataTable();
+  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
+    useBookingFilters();
+
+  const query = trpc.viewer.bookings.get.useQuery(
+    {
+      limit,
+      offset,
+      filters: {
+        statuses: [props.status],
+        eventTypeIds,
+        teamIds,
+        userIds,
+        attendeeName,
+        attendeeEmail,
+        bookingUid,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+      },
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    }
+  );
+
+  const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingsListInner
-        status={status}
-        permissions={permissions}
-        data={data}
-        isPending={isPending}
-        enableDetailsSheet={enableDetailsSheet}
-        totalRowCount={totalRowCount}
-        ErrorView={ErrorView}
-        hasError={hasError}
+        {...props}
+        data={query.data}
+        isPending={query.isPending}
+        hasError={!!query.error}
+        errorMessage={query.error?.message}
+        totalRowCount={query.data?.totalCount}
       />
     </BookingDetailsSheetStoreProvider>
   );
