@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 
 import { CreateBookingInput } from "@calcom/platform-types";
@@ -65,7 +65,7 @@ export class ErrorsBookingsService_2024_08_13 {
         const errorData =
           "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
         const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
-        throw new BadRequestException(message);
+        throw new ConflictException(message);
       }
     }
     throw error;

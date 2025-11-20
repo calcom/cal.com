@@ -667,7 +667,7 @@ export class BookingsController_2024_04_15 {
         const errorData =
           "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
         const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
-        throw new HttpException(message, 400);
+        throw new HttpException(message, 409);
       }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }

@@ -219,7 +219,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
             .post("/v2/bookings")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
-            .expect(400);
+            .expect(409);
 
           const message: string = response.body.error.message;
           const match = message.match(/(\d+) seconds\.$/);
@@ -370,7 +370,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
             .post("/v2/bookings")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
-            .expect(400);
+            .expect(409);
 
           const message: string = response.body.error.message;
           const match = message.match(/(\d+) seconds\.$/);
