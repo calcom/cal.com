@@ -28,12 +28,6 @@ export function OAuthLogin({ onSuccess, onError }: OAuthLoginProps) {
       } else {
         tokens = await oauthService.initiateMobileOAuth();
       }
-
-      // Verify the token and get user info
-      const user = await oauthService.verifyTokenAndGetUser(tokens.accessToken);
-
-      console.log('OAuth login successful for user:', user.email);
-      console.log('OAuthLogin: Calling onSuccess with tokens...');
       onSuccess(tokens.accessToken, tokens.refreshToken);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'OAuth login failed';
