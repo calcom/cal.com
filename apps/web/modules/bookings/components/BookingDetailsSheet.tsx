@@ -204,9 +204,9 @@ function BookingDetailsSheetInner({
           </div>
         </SheetHeader>
 
-        <SheetBody className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-1">
+        <SheetBody className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
               <SheetTitle className="text-2xl font-semibold">{booking.title}</SheetTitle>
               <p className="text-subtle text-sm">
                 {startTime.format("dddd, MMMM D, YYYY h:mma")} - {endTime.format("h:mma")} (
@@ -287,7 +287,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
@@ -419,13 +419,13 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("assignment_reason")}>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {booking.assignmentReason.map((reason, index) => {
           const reasonTitle = assignmentReasonBadgeTitleMap(reason.reasonEnum);
           return (
-            <div key={index} className="text-default flex items-center text-sm">
-              <span>{t(reasonTitle)}</span>
-              {reason.reasonString && <span>: {reason.reasonString}</span>}
+            <div key={index} className="text-default text-sm">
+              <Badge variant="gray">{t(reasonTitle)}</Badge>
+              {reason.reasonString && <span className="ml-1">{reason.reasonString}</span>}
             </div>
           );
         })}
@@ -553,7 +553,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={classNames("space-y-1", className)}>
+    <div className={classNames("flex flex-col gap-1", className)}>
       <h3 className="text-subtle text-xs font-semibold">{title}</h3>
       {children}
     </div>

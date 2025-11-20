@@ -493,7 +493,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
             {isCancelled && booking.rescheduled && (
@@ -502,7 +502,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             )}
             {shouldShowIndividualReportButton(actionContext) && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   variant="icon"
@@ -978,7 +978,7 @@ const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
           );
         })}
         <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2">
+        <div className="flex justify-end gap-2 p-2">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"
