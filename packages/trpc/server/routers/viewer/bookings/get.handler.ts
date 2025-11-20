@@ -35,7 +35,7 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  // Support both offset-based and cursor-based pagination
+  // Support both offset-based (list) and cursor-based pagination (calendar)
   // Cursor is just the offset as a string (fake cursor pagination)
   const take = input.limit;
   let skip = input.offset;
@@ -49,7 +49,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   }
 
   const { prisma, user } = ctx;
-  const bookingListingByStatus = input.filters.statuses;
+  const defaultStatus = "upcoming";
+
+  const bookingListingByStatus = input.filters.statuses?.length
+    ? input.filters.statuses
+    : [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: {
