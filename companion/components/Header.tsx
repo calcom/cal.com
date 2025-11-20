@@ -42,7 +42,6 @@ export function Header() {
         'My Profile',
         'My Settings', 
         'Out of Office',
-        'Roadmap',
         'Help',
         'Sign Out'
       ];
@@ -65,13 +64,10 @@ export function Header() {
             case 3: // Out of Office
               handleMenuOption('outOfOffice');
               break;
-            case 4: // Roadmap
-              handleMenuOption('roadmap');
-              break;
-            case 5: // Help
+            case 4: // Support
               handleMenuOption('help');
               break;
-            case 6: // Sign Out
+            case 5: // Sign Out
               handleMenuOption('signOut');
               break;
           }

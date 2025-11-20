@@ -4,7 +4,7 @@
   "description": "Your calendar companion for quick booking and scheduling",
   "version": "1.7.0",
   "icons": { "16": "icon-16.png", "48": "icon-48.png", "128": "icon-128.png" },
-  "permissions": ["activeTab", "http://localhost:8081/*"],
+  "permissions": ["activeTab", "http://localhost:8081/*", "https://api.cal.com/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
   },
