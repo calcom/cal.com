@@ -52,7 +52,7 @@ export const getTeamsForFeatureHandler = async (opts: GetTeamsForFeatureOptions)
           logoUrl: true,
         },
       },
-      teamFeatures: {
+      features: {
         where: {
           featureId,
         },
@@ -76,7 +76,7 @@ export const getTeamsForFeatureHandler = async (opts: GetTeamsForFeatureOptions)
     logoUrl: team.logoUrl,
     isOrganization: team.isOrganization,
     parent: team.parent,
-    hasFeature: team.teamFeatures.length > 0,
+    hasFeature: team.features.length > 0,
   }));
 
   return {
