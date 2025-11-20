@@ -443,9 +443,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
       try {
-        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
-        const roomId = res.id;
-        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+        const allTranscripts = await fetcher(`/transcript?room_name=${roomName}`).then(getTranscripts.parse);
 
         if (!allTranscripts.data.length) return [];
 

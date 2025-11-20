@@ -78,7 +78,7 @@ function ColumnVisibilityButtonComponent<TData>(
           <CommandGroup>
             <CommandItem
               onSelect={() => {
-                allColumns.forEach((column) => column.toggleVisibility(true));
+                table.toggleAllColumnsVisible(true);
               }}
               className={classNames(
                 buttonClasses({ color: "secondary" }),

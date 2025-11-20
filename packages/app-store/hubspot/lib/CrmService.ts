@@ -123,6 +123,10 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
+  private hubspotArchiveMeeting = async (uid: string) => {
+    return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
+  };
+
   private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
@@ -212,9 +216,14 @@ export default class HubspotCalendarService implements CRM {
     return await this.hubspotUpdateMeeting(uid, event);
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
     const auth = await this.auth;
     await auth.getToken();
+
+    if (event?.hasOrganizerChanged) {
+      await this.hubspotArchiveMeeting(uid);
+      return;
+    }
     await this.hubspotCancelMeeting(uid);
   }
 

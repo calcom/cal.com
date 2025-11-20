@@ -261,6 +261,36 @@ export class WebhookRepository implements IWebhookRepository {
     });
   }
 
+  async findByOrgIdAndTrigger({
+    orgId,
+    triggerEvent,
+  }: {
+    orgId: number;
+    triggerEvent: WebhookTriggerEvents;
+  }): Promise<WebhookSubscriber[]> {
+    return await this.prisma.webhook.findMany({
+      where: {
+        teamId: orgId,
+        platform: false,
+        eventTriggers: { has: triggerEvent },
+      },
+      select: {
+        id: true,
+        subscriberUrl: true,
+        payloadTemplate: true,
+        active: true,
+        eventTriggers: true,
+        secret: true,
+        teamId: true,
+        userId: true,
+        platform: true,
+        time: true,
+        timeUnit: true,
+        appId: true,
+      },
+    });
+  }
+
   async getFilteredWebhooksForUser({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

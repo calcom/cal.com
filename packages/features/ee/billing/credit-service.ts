@@ -10,6 +10,9 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
+import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
+import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
+
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
 type LowCreditBalanceResultBase = {
@@ -466,10 +469,9 @@ export class CreditService {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
       warningLimit = totalMonthlyCredits * 0.2;
     } else if (userId) {
-      const { StripeBillingService } = await import("./stripe-billing-service");
-      const billing = new StripeBillingService();
-      const teamMonthlyPrice = await billing.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
-      const pricePerSeat = teamMonthlyPrice?.unit_amount ?? 0;
+      const billingService = getBillingProviderService();
+      const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
+      const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
       warningLimit = (pricePerSeat / 2) * 0.2;
     }
 
@@ -586,9 +588,7 @@ export class CreditService {
 
     try {
       if (result.type === "LIMIT_REACHED") {
-        const { sendCreditBalanceLimitReachedEmails } = await import(
-          "@calcom/emails/billing-email-service"
-        );
+        const { sendCreditBalanceLimitReachedEmails } = await import("@calcom/emails/billing-email-service");
 
         const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
@@ -656,11 +656,14 @@ export class CreditService {
 
     if (!team) return 0;
 
-    const { InternalTeamBilling } = await import("@calcom/features/ee/billing/teams/internal-team-billing");
-    const teamBillingService = new InternalTeamBilling(team);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+    if (
+      subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      subscriptionStatus !== SubscriptionStatus.PAST_DUE
+    ) {
       return 0;
     }
 
@@ -672,8 +675,7 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
-    const { StripeBillingService } = await import("./stripe-billing-service");
-    const billing = new StripeBillingService();
+    const billingService = getBillingProviderService();
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
@@ -681,7 +683,7 @@ export class CreditService {
       return 0;
     }
 
-    const monthlyPrice = await billing.getPrice(priceId);
+    const monthlyPrice = await billingService.getPrice(priceId);
     if (!monthlyPrice) {
       log.warn("Failed to retrieve monthly price", { teamId, priceId });
       return 0;
