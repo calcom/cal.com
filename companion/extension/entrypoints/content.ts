@@ -1,3 +1,4 @@
+
 export default defineContentScript({
   matches: ['<all_urls>'],
   main() {
@@ -115,7 +116,7 @@ export default defineContentScript({
     // Toggle functionality
     toggleButton.addEventListener('click', () => {
       if (isClosed) return;
-      
+
       isVisible = !isVisible;
       if (isVisible) {
         sidebarContainer.style.transform = 'translateX(0)';
@@ -194,25 +195,25 @@ export default defineContentScript({
         // Look specifically for Gmail compose Send buttons - they have specific attributes
         // Gmail Send button usually has div[role="button"] with specific data attributes inside a td
         const sendButtons = document.querySelectorAll('div[role="button"][data-tooltip="Send ‪(Ctrl-Enter)‬"], div[role="button"][data-tooltip*="Send"], div[role="button"][aria-label*="Send"]');
-        
+
         sendButtons.forEach((sendButton) => {
           // Find the parent td cell that contains the send button
           const sendButtonCell = sendButton.closest('td');
           if (!sendButtonCell) return;
-          
+
           // Find the parent table row
           const tableRow = sendButtonCell.closest('tr');
           if (!tableRow) return;
-          
+
           // Check if we already injected our button for this specific send button
           const existingCalButton = sendButtonCell.parentElement?.querySelector('.cal-companion-gmail-button');
           if (existingCalButton) return;
-          
+
           // Additional check: make sure this is actually in a compose window
           // Gmail compose windows have specific containers
           const composeWindow = sendButton.closest('[role="dialog"]') || sendButton.closest('.nH');
           if (!composeWindow) return;
-          
+
           // Create new table cell for Cal.com button
           const calButtonCell = document.createElement('td');
           calButtonCell.className = 'cal-companion-gmail-button';
@@ -222,7 +223,7 @@ export default defineContentScript({
             vertical-align: middle;
             border: none;
           `;
-          
+
           // Create Cal.com button
           const calButton = document.createElement('div');
           calButton.style.cssText = `
@@ -238,7 +239,7 @@ export default defineContentScript({
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           `;
-          
+
           // Add Cal.com icon (official logo)
           calButton.innerHTML = `
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -247,30 +248,30 @@ export default defineContentScript({
               <path d="M4.68078 13.919C3.86478 13.919 3.12078 13.727 2.44878 13.343C1.78478 12.951 1.26078 12.423 0.876781 11.759C0.492781 11.095 0.300781 10.367 0.300781 9.57503C0.300781 8.77503 0.484781 8.04303 0.852781 7.37903C1.22878 6.70703 1.74878 6.17903 2.41278 5.79503C3.07678 5.40303 3.83278 5.20703 4.68078 5.20703C5.36078 5.20703 5.94478 5.31503 6.43278 5.53103C6.92878 5.73903 7.36878 6.07103 7.75278 6.52703L6.56478 7.55903C6.06078 7.03103 5.43278 6.76703 4.68078 6.76703C4.15278 6.76703 3.68878 6.89503 3.28878 7.15103C2.88878 7.39903 2.58078 7.73903 2.36478 8.17103C2.14878 8.59503 2.04078 9.06303 2.04078 9.57503C2.04078 10.087 2.14878 10.555 2.36478 10.979C2.58878 11.403 2.90078 11.739 3.30078 11.987C3.70878 12.235 4.18078 12.359 4.71678 12.359C5.50078 12.359 6.14078 12.087 6.63678 11.543L7.86078 12.587C7.52478 12.995 7.08478 13.319 6.54078 13.559C6.00478 13.799 5.38478 13.919 4.68078 13.919Z" fill="white"/>
             </svg>
           `;
-          
+
           // Add hover effect
           calButton.addEventListener('mouseenter', () => {
             calButton.style.backgroundColor = '#333333';
             calButton.style.transform = 'scale(1.05)';
           });
-          
+
           calButton.addEventListener('mouseleave', () => {
             calButton.style.backgroundColor = '#000000';
             calButton.style.transform = 'scale(1)';
           });
-          
+
           // Add click handler to show Cal.com menu
           calButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Remove any existing menus
             const existingMenu = document.querySelector('.cal-companion-gmail-menu');
             if (existingMenu) {
               existingMenu.remove();
               return;
             }
-            
+
             // Create menu
             const menu = document.createElement('div');
             menu.className = 'cal-companion-gmail-menu';
@@ -290,21 +291,21 @@ export default defineContentScript({
               overflow-y: auto;
               margin-bottom: 4px;
             `;
-            
+
             // Show loading state
             menu.innerHTML = `
               <div style="padding: 16px; text-align: center; color: #5f6368;">
                 Loading event types...
               </div>
             `;
-            
+
             // Fetch event types from Cal.com API
             fetchEventTypes(menu);
-            
+
             // Position menu relative to button
             calButtonCell.style.position = 'relative';
             calButtonCell.appendChild(menu);
-            
+
             // Close menu when clicking outside
             setTimeout(() => {
               document.addEventListener('click', function closeMenu(e) {
@@ -315,7 +316,7 @@ export default defineContentScript({
               });
             }, 0);
           });
-          
+
           function openCalSidebar() {
             // Open Cal.com sidebar or quick schedule flow
             if (isClosed) {
@@ -331,7 +332,7 @@ export default defineContentScript({
               }
             }
           }
-          
+
           async function fetchEventTypes(menu) {
             try {
               // Use chrome.runtime.sendMessage to make API call through background script
@@ -353,9 +354,9 @@ export default defineContentScript({
                   }
                 );
               });
-              
+
               console.log('Final response from background script:', response);
-              
+
               let eventTypes = [];
               if (response && response.data) {
                 eventTypes = response.data;
@@ -365,18 +366,18 @@ export default defineContentScript({
                 console.log('Unexpected response format:', response);
                 eventTypes = [];
               }
-              
+
               // Ensure eventTypes is an array
               if (!Array.isArray(eventTypes)) {
                 console.log('EventTypes is not an array:', typeof eventTypes, eventTypes);
                 eventTypes = [];
               }
-              
+
               console.log('Final eventTypes array:', eventTypes, 'Length:', eventTypes.length);
-              
+
               // Clear loading state
               menu.innerHTML = '';
-              
+
               if (eventTypes.length === 0) {
                 menu.innerHTML = `
                   <div style="padding: 16px; text-align: center; color: #5f6368;">
@@ -385,7 +386,7 @@ export default defineContentScript({
                 `;
                 return;
               }
-              
+
               // Add header
               const header = document.createElement('div');
               header.style.cssText = `
@@ -398,7 +399,7 @@ export default defineContentScript({
               `;
               header.textContent = 'Select an event type to share';
               menu.appendChild(header);
-              
+
               // Add event types - with additional safety checks
               try {
                 eventTypes.forEach((eventType, index) => {
@@ -407,11 +408,11 @@ export default defineContentScript({
                     console.warn('Invalid event type object:', eventType);
                     return;
                   }
-                  
+
                   const title = eventType.title || 'Untitled Event';
                   const length = eventType.length || eventType.duration || 30;
                   const description = eventType.description || 'No description';
-                  
+
                   const menuItem = document.createElement('div');
                   menuItem.style.cssText = `
                     padding: 12px 16px;
@@ -421,7 +422,7 @@ export default defineContentScript({
                     transition: background-color 0.1s ease;
                     border-bottom: ${index < eventTypes.length - 1 ? '1px solid #e8eaed' : 'none'};
                   `;
-                  
+
                   menuItem.innerHTML = `
                     <div style="display: flex; align-items: center; margin-bottom: 4px;">
                       <span style="margin-right: 8px; font-size: 14px;">📅</span>
@@ -431,23 +432,23 @@ export default defineContentScript({
                       ${length}min • ${description}
                     </div>
                   `;
-                  
+
                   // Hover effect
                   menuItem.addEventListener('mouseenter', () => {
                     menuItem.style.backgroundColor = '#f8f9fa';
                   });
-                  
+
                   menuItem.addEventListener('mouseleave', () => {
                     menuItem.style.backgroundColor = 'transparent';
                   });
-                  
+
                   menuItem.addEventListener('click', (e) => {
                     e.stopPropagation();
                     menu.remove();
                     // Copy scheduling link to clipboard and show confirmation
                     copyEventTypeLink(eventType);
                   });
-                  
+
                   menu.appendChild(menuItem);
                 });
               } catch (forEachError) {
@@ -458,7 +459,7 @@ export default defineContentScript({
                   </div>
                 `;
               }
-              
+
             } catch (error) {
               console.error('Failed to fetch event types:', error);
               console.log('Error details:', error.message, error.stack);
@@ -483,11 +484,11 @@ export default defineContentScript({
               `;
             }
           }
-          
+
           function copyEventTypeLink(eventType) {
             // Construct the Cal.com booking link
             const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
-            
+
             // Copy to clipboard
             navigator.clipboard.writeText(bookingUrl).then(() => {
               // Show success notification
@@ -497,7 +498,7 @@ export default defineContentScript({
               showNotification('Failed to copy link', 'error');
             });
           }
-          
+
           function showNotification(message, type) {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -514,21 +515,21 @@ export default defineContentScript({
               box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             `;
             notification.textContent = message;
-            
+
             document.body.appendChild(notification);
-            
+
             // Remove after 3 seconds
             setTimeout(() => {
               notification.remove();
             }, 3000);
           }
-          
+
           // Add tooltip
           calButton.title = 'Schedule with Cal.com';
-          
+
           // Add button to cell
           calButtonCell.appendChild(calButton);
-          
+
           // Insert the new cell after the send button cell
           if (sendButtonCell.nextSibling) {
             tableRow.insertBefore(calButtonCell, sendButtonCell.nextSibling);
@@ -537,20 +538,20 @@ export default defineContentScript({
           }
         });
       }
-      
+
       // Initial injection
       setTimeout(injectCalButton, 1000);
-      
+
       // Watch for DOM changes (Gmail is a SPA)
       const observer = new MutationObserver(() => {
         injectCalButton();
       });
-      
+
       observer.observe(document.body, {
         childList: true,
         subtree: true
       });
-      
+
       // Also inject on URL changes (Gmail navigation)
       let currentUrl = window.location.href;
       setInterval(() => {
