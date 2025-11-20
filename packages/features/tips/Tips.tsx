@@ -19,6 +19,14 @@ type Tip = {
 
 export const tips: Tip[] = [
   {
+    id: 18,
+    thumbnailUrl: "https://img.youtube.com/vi/J8HsK-8W39U/0.jpg",
+    mediaLink: "https://go.cal.com/rbac-video",
+    title: "Roles & Permissions",
+    description: "Manage team access with roles & permissions",
+    href: "https://go.cal.com/rbac",
+  },
+  {
     id: 17,
     thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
     mediaLink: "https://go.cal.com/embed-video",

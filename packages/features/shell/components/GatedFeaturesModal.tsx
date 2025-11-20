@@ -1,30 +1,52 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { useGatedFeaturesModal } from "../hooks/useGatedFeaturesModal";
 import { Button } from "@calcom/ui/components/button";
 
-const features = [
-  "1_parent_team_unlimited_subteams",
-  "organization_workflows",
-  "custom_subdomain",
-  "instant_meetings",
-  "collective_round_robin_events",
-  "routing_forms",
-  "team_workflows",
-];
+import { useGatedFeaturesStore, GatedFeatures } from "../stores/gatedFeaturesStore";
+
+type FeatureContent = {
+  badgeText: string;
+  title: string;
+  image: string;
+  description: string;
+  features: string[];
+  learnMoreUrl: string;
+  ctaUrl: string;
+};
+
+const content: Record<GatedFeatures, FeatureContent> = {
+  roles_and_permissions: {
+    badgeText: "roles_and_permissions",
+    title: "only_available_on_orgs_plan",
+    image: "/gated-features/roles_and_permissions.svg",
+    description: "upgrade_team_to_orgs_with_price",
+    features: [
+      "1_parent_team_unlimited_subteams",
+      "attribute_based_routing",
+      "compliance_check",
+      "and_more",
+    ],
+    learnMoreUrl: "https://go.cal.com/rbac",
+    ctaUrl: "/settings/organizations/new",
+  },
+};
 
 export function GatedFeaturesModal() {
   const { t } = useLocale();
-  const { closeModal, isOpen, data } = useGatedFeaturesModal();
+  const isOpen = useGatedFeaturesStore((state) => state.isOpen);
+  const activeFeature = useGatedFeaturesStore((state) => state.activeFeature);
+  const close = useGatedFeaturesStore((state) => state.close);
+
+  const data = activeFeature ? content[activeFeature] : null;
 
   if (!data) {
     return null;
   }
 
-  const { badgeText, description, image, title } = data;
+  const { badgeText, description, image, title, features, learnMoreUrl, ctaUrl } = data;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
       <DialogContent className="!p-0" style={{ maxWidth: "400px" }}>
         <div className="p-6">
           <img src={image} alt={title} className="w-full h-36 mb-5" />
@@ -35,19 +57,19 @@ export function GatedFeaturesModal() {
             <div className="text-xs text-default">{t(description)}</div>
           </div>
           <div className="flex flex-col gap-1 ml-6 text-sm text-default font-semibold">
-            {features.map((feature) => (
-              <ul key={feature} className="list-disc">
-                <li>{t(feature)}</li>
-              </ul>
-            ))}
+            <ul className="list-disc">
+              {features.map((feature) => (
+                <li key={feature}>{t(feature)}</li>
+              ))}
+            </ul>
           </div>
         </div>
         <div className="w-full bg-muted border-subtle flex items-center justify-end rounded-b-2xl border-t px-6 py-5 gap-2">
-          <Button color="minimal">{t("dismiss")}</Button>
-          <Button color="secondary">{t("learn_more")}</Button>
-          <Button color="primary">{t("upgrade")}</Button>
+          <Button color="minimal" onClick={close}>{t("dismiss")}</Button>
+          <Button color="secondary" target="_blank" href={learnMoreUrl}>{t("learn_more")}</Button>
+          <Button color="primary" href={ctaUrl}>{t("upgrade")}</Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
