@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -388,7 +389,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   color="minimal"
                   className="me-2 ms-2"
                   onClick={() => {
-                    props.onSettingsOpen && props.onSettingsOpen();
+                    if (props.onSettingsOpen) {
+                      props.onSettingsOpen();
+                    }
                     newMemberFormMethods.reset();
                   }}
                   data-testid="edit-invite-link-button">
