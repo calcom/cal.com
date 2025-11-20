@@ -121,6 +121,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
@@ -158,6 +159,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
@@ -200,6 +202,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
@@ -269,6 +272,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId: recurringEventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
@@ -306,6 +310,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId: recurringEventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
@@ -348,6 +353,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
             start: startTime.toISOString(),
+            end: endTime.toISOString(),
             eventTypeId: recurringEventTypeId,
             timeZone: "Europe/Rome",
             language: "en",
