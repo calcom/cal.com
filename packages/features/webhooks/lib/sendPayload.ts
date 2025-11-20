@@ -127,7 +127,7 @@ export type TrackingData = {
   utm_content?: string | null;
 };
 
-async function hydrateTrackingForZapier(data: EventPayloadType): Promise<TrackingData | undefined> {
+async function hydrateTracking(data: EventPayloadType): Promise<TrackingData | undefined> {
   const repo = new BookingRepository(prisma);
   if (data.bookingId) {
     const booking = await repo.findByIdIncludeTracking(data.bookingId);
@@ -190,7 +190,7 @@ function getZapierPayload(
       videoCallUrl: data.metadata?.videoCallUrl,
     },
     ...(data.tracking && {
-      tracking: {
+      utm: {
         utm_source: data.tracking.utm_source,
         utm_medium: data.tracking.utm_medium,
         utm_campaign: data.tracking.utm_campaign,
@@ -246,24 +246,34 @@ const sendPayload = async (
 
   data = addUTCOffset(data);
 
+  // Hydrate tracking data for all event payloads
+  let tracking: TrackingData | undefined;
+  if (isEventPayload(data)) {
+    tracking = await hydrateTracking(data);
+  }
+
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (isEventPayload(data)) {
     data.description = data.description || data.additionalNotes;
     if (appId === "zapier") {
-      const tracking = await hydrateTrackingForZapier(data);
       body = getZapierPayload({ ...data, createdAt, tracking });
     }
   }
 
   if (body === undefined) {
     if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+      body = applyTemplate(
+        template,
+        { ...data, triggerEvent, createdAt, ...(tracking && { utm: tracking }) },
+        contentType
+      );
     } else {
       body = JSON.stringify({
         triggerEvent: triggerEvent,
         createdAt: createdAt,
         payload: data,
+        ...(tracking && { utm: tracking }),
       });
     }
   }
