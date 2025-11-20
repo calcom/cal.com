@@ -2,7 +2,7 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { createParser, useQueryState } from "nuqs";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,9 +11,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
-import { useBookingCursor } from "../hooks/useBookingCursor";
-import { useSelectedBookingId } from "../hooks/useSelectedBookingId";
-import type { RowData, BookingListingStatus } from "../types";
+import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
+import type { RowData, BookingListingStatus, BookingsGetOutput, BookingOutput } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsCalendar } from "./BookingsCalendar";
 
@@ -30,8 +29,10 @@ interface BookingsCalendarContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
-  data: RowData[];
+  data?: BookingsGetOutput;
   isPending?: boolean;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 }
 
 export function BookingsCalendarContainer({
@@ -39,21 +40,15 @@ export function BookingsCalendarContainer({
   permissions,
   data,
   isPending = false,
+  ErrorView,
+  hasError,
 }: BookingsCalendarContainerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
 
-  const [selectedBookingId, setSelectedBookingId] = useSelectedBookingId();
   const [currentWeekStart, setCurrentWeekStart] = useQueryState(
     "weekStart",
     weekStartParser.withDefault(dayjs().startOf("week"))
-  );
-
-  const onOpenDetails = useCallback(
-    (bookingId: number) => {
-      setSelectedBookingId(bookingId);
-    },
-    [setSelectedBookingId]
   );
 
   const columns = useMemo(() => {
@@ -62,8 +57,61 @@ export function BookingsCalendarContainer({
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
+  /**
+   * Transform raw booking data into RowData format for the calendar view
+   * - Deduplicates recurring bookings for recurring/unconfirmed/cancelled tabs
+   * - Attaches recurring info and isToday flag to each booking
+   */
+  const rowData = useMemo<RowData[]>(() => {
+    if (!data?.bookings) {
+      return [];
+    }
+
+    // For recurring/unconfirmed/cancelled tabs: track recurring series to show only one representative booking per series
+    // Key: recurringEventId, Value: array of all bookings in that series
+    const shownBookings: Record<string, BookingOutput[]> = {};
+
+    const filterBookings = (booking: BookingOutput) => {
+      // Deduplicate recurring bookings for specific status tabs
+      // This ensures we show only ONE booking per recurring series instead of all occurrences
+      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+        // Non-recurring bookings are always shown
+        if (!booking.recurringEventId) {
+          return true;
+        }
+
+        // If we've already encountered this recurring series
+        if (
+          shownBookings[booking.recurringEventId] !== undefined &&
+          shownBookings[booking.recurringEventId].length > 0
+        ) {
+          // Store this occurrence but DON'T display it (return false to filter out)
+          shownBookings[booking.recurringEventId].push(booking);
+          return false;
+        }
+
+        // First occurrence of this recurring series - show it and start tracking
+        shownBookings[booking.recurringEventId] = [booking];
+      }
+      return true;
+    };
+
+    return data.bookings.filter(filterBookings).map((booking) => {
+      const bookingDate = dayjs(booking.startTime).tz(user?.timeZone);
+      const today = dayjs().tz(user?.timeZone).format("YYYY-MM-DD");
+      const bookingDateStr = bookingDate.format("YYYY-MM-DD");
+
+      return {
+        type: "data" as const,
+        booking,
+        isToday: bookingDateStr === today,
+        recurringInfo: data.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+      };
+    });
+  }, [data, status, user?.timeZone]);
+
   const table = useReactTable<RowData>({
-    data,
+    data: rowData,
     columns,
     initialState: {
       columnVisibility: getFilterColumnVisibility(),
@@ -78,7 +126,7 @@ export function BookingsCalendarContainer({
     const weekStart = currentWeekStart;
     const weekEnd = currentWeekStart.add(6, "day");
 
-    return data
+    return rowData
       .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
       .map((row) => row.booking)
       .filter((booking) => {
@@ -88,44 +136,27 @@ export function BookingsCalendarContainer({
           bookingStart.isBefore(weekEnd.endOf("day"))
         );
       });
-  }, [data, currentWeekStart]);
-
-  const selectedBooking = useMemo(() => {
-    if (!selectedBookingId) return null;
-    return bookings.find((booking) => booking.id === selectedBookingId) ?? null;
-  }, [selectedBookingId, bookings]);
-
-  const bookingNavigation = useBookingCursor({
-    bookings,
-    selectedBookingId,
-    setSelectedBookingId,
-  });
+  }, [rowData, currentWeekStart]);
 
   return (
-    <>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingsCalendar
         status={status}
         table={table}
         isPending={isPending}
-        onOpenDetails={onOpenDetails}
         currentWeekStart={currentWeekStart}
         setCurrentWeekStart={setCurrentWeekStart}
         bookings={bookings}
+        ErrorView={ErrorView}
+        hasError={hasError}
       />
 
       <BookingDetailsSheet
-        booking={selectedBooking}
-        isOpen={!!selectedBooking}
-        onClose={() => setSelectedBookingId(null)}
         userTimeZone={user?.timeZone}
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         userId={user?.id}
         userEmail={user?.email}
-        onPrevious={bookingNavigation.onPrevious}
-        hasPrevious={bookingNavigation.hasPrevious}
-        onNext={bookingNavigation.onNext}
-        hasNext={bookingNavigation.hasNext}
       />
-    </>
+    </BookingDetailsSheetStoreProvider>
   );
 }

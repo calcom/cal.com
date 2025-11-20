@@ -1,24 +1,21 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { useCallback, useMemo, useState } from "react";
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
+import { useMemo, useCallback } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import dayjs from "@calcom/dayjs";
+import { ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
-import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
-import { buildListDisplayColumns } from "../columns/listColumns";
-import { useBookingCursor } from "../hooks/useBookingCursor";
-import { useSelectedBookingId } from "../hooks/useSelectedBookingId";
-import type { RowData, BookingListingStatus } from "../types";
+import {
+  BookingDetailsSheetStoreProvider,
+  useBookingDetailsSheetStore,
+} from "../store/bookingDetailsSheetStore";
+import type { RowData, BookingListingStatus, BookingsGetOutput, BookingOutput } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
 
@@ -27,126 +24,268 @@ interface BookingsListContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
-  data: RowData[];
+  data?: BookingsGetOutput;
   isPending: boolean;
+  enableDetailsSheet: boolean;
   totalRowCount?: number;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 }
 
-export function BookingsListContainer({
+function BookingsListInner({
   status,
   permissions,
   data,
   isPending,
+  enableDetailsSheet,
   totalRowCount,
+  ErrorView,
+  hasError,
 }: BookingsListContainerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const utils = trpc.useUtils();
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
 
-  const [selectedBookingId, setSelectedBookingId] = useSelectedBookingId();
-
-  // Filter out separator rows and extract bookings
-  const bookings = useMemo(() => {
-    return data
-      .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
-      .map((row) => row.booking);
-  }, [data]);
-
-  const selectedBooking = useMemo(() => {
-    if (!selectedBookingId) return null;
-    return bookings.find((booking) => booking.id === selectedBookingId) ?? null;
-  }, [selectedBookingId, bookings]);
-
-  const bookingNavigation = useBookingCursor({
-    bookings,
-    selectedBookingId,
-    setSelectedBookingId,
-  });
-
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [pendingRejection, setPendingRejection] = useState<{
-    bookingId: number;
-    recurringEventId?: string | null;
-  } | null>(null);
-
-  const confirmMutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === "REJECTED") {
-        setRejectionDialogIsOpen(false);
-        setRejectionReason("");
-        setPendingRejection(null);
-        showToast(t("booking_rejection_success"), "success");
-      } else {
-        showToast(t("booking_confirmation_success"), "success");
-      }
-      utils.viewer.bookings.invalidate();
-      utils.viewer.me.bookingUnconfirmedCount.invalidate();
-    },
-    onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
-      utils.viewer.bookings.invalidate();
-    },
-  });
-
-  const handleAccept = useCallback(
-    (bookingId: number, recurringEventId?: string | null) => {
-      confirmMutation.mutate({
-        bookingId,
-        confirmed: true,
-        reason: "",
-        ...(recurringEventId && { recurringEventId }),
-      });
-    },
-    [confirmMutation]
-  );
-
-  const handleReject = useCallback((bookingId: number, recurringEventId?: string | null) => {
-    setPendingRejection({ bookingId, recurringEventId });
-    setRejectionDialogIsOpen(true);
-  }, []);
-
-  const handleConfirmRejection = useCallback(() => {
-    if (!pendingRejection) return;
-
-    confirmMutation.mutate({
-      bookingId: pendingRejection.bookingId,
-      confirmed: false,
-      reason: rejectionReason,
-      ...(pendingRejection.recurringEventId && { recurringEventId: pendingRejection.recurringEventId }),
-    });
-  }, [pendingRejection, rejectionReason, confirmMutation]);
-
-  const onOpenDetails = useCallback(
+  const handleBookingClick = useCallback(
     (bookingId: number) => {
       setSelectedBookingId(bookingId);
     },
     [setSelectedBookingId]
   );
 
+  // Define table columns for filtering (hidden columns used for filter UI)
   const columns = useMemo(() => {
-    const filterCols = buildFilterColumns({ t, permissions, status });
-    const listCols = buildListDisplayColumns({
-      t,
-      user,
-      pendingActionHandlers: {
-        onAccept: handleAccept,
-        onReject: handleReject,
-        isLoading: confirmMutation.isPending,
-      },
-    });
-    return [...filterCols, ...listCols];
-  }, [t, permissions, status, user, handleAccept, handleReject, confirmMutation.isPending]);
+    const columnHelper = createColumnHelper<RowData>();
+
+    return [
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+        id: "eventTypeId",
+        header: t("event_type"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+        id: "teamId",
+        header: t("team"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+        id: "userId",
+        header: t("member"),
+        enableColumnFilter: permissions.canReadOthersBookings,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeName",
+        header: t("attendee_name"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "dateRange",
+        header: t("date_range"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              range: status === "past" ? "past" : "custom",
+            },
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
+      }),
+      columnHelper.display({
+        id: "customView",
+        cell: (props) => {
+          if (props.row.original.type === "data") {
+            const { booking, recurringInfo, isToday } = props.row.original;
+            return (
+              <BookingListItem
+                key={booking.id}
+                isToday={isToday}
+                loggedInUser={{
+                  userId: user?.id,
+                  userTimeZone: user?.timeZone,
+                  userTimeFormat: user?.timeFormat,
+                  userEmail: user?.email,
+                }}
+                listingStatus={status}
+                recurringInfo={recurringInfo}
+                {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.id) })}
+                {...booking}
+              />
+            );
+          } else if (props.row.original.type === "today") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("today")}
+              </p>
+            );
+          } else if (props.row.original.type === "next") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("next")}
+              </p>
+            );
+          }
+        },
+      }),
+    ];
+  }, [user, status, t, permissions.canReadOthersBookings, enableDetailsSheet, handleBookingClick]);
+
+  /**
+   * Transform raw bookings into flat list (excluding today's bookings for "upcoming" status)
+   * - Deduplicates recurring bookings for recurring/unconfirmed/cancelled tabs
+   * - For "upcoming" status, filters out today's bookings (they're shown in separate "Today" section)
+   */
+  const flatData = useMemo<RowData[]>(() => {
+    // For recurring/unconfirmed/cancelled tabs: track recurring series to show only one representative booking per series
+    // Key: recurringEventId, Value: array of all bookings in that series
+    const shownBookings: Record<string, BookingOutput[]> = {};
+
+    const filterBookings = (booking: BookingOutput) => {
+      // Deduplicate recurring bookings for specific status tabs
+      // This ensures we show only ONE booking per recurring series instead of all occurrences
+      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+        // Non-recurring bookings are always shown
+        if (!booking.recurringEventId) {
+          return true;
+        }
+
+        // If we've already encountered this recurring series
+        if (
+          shownBookings[booking.recurringEventId] !== undefined &&
+          shownBookings[booking.recurringEventId].length > 0
+        ) {
+          // Store this occurrence but DON'T display it (return false to filter out)
+          shownBookings[booking.recurringEventId].push(booking);
+          return false;
+        }
+
+        // First occurrence of this recurring series - show it and start tracking
+        shownBookings[booking.recurringEventId] = [booking];
+      } else if (status === "upcoming") {
+        // For "upcoming" tab, exclude today's bookings (they're shown separately in the "Today" section)
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
+      }
+      return true;
+    };
+
+    return (
+      data?.bookings.filter(filterBookings).map((booking) => ({
+        type: "data",
+        booking,
+        recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+        isToday: false,
+      })) || []
+    );
+  }, [data, status, user?.timeZone]);
+
+  // Extract today's bookings for the "Today" section (only used in "upcoming" status)
+  const bookingsToday = useMemo<RowData[]>(() => {
+    return (data?.bookings ?? [])
+      .filter(
+        (booking: BookingOutput) =>
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+      )
+      .map((booking) => ({
+        type: "data" as const,
+        booking,
+        recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
+        isToday: true,
+      }));
+  }, [data, user?.timeZone]);
+
+  // Combine data with section separators for "upcoming" tab
+  const finalData = useMemo<RowData[]>(() => {
+    // For other statuses, just return the flat list
+    if (status !== "upcoming") {
+      return flatData;
+    }
+
+    // For "upcoming" status, organize into "Today" and "Next" sections
+    const merged: RowData[] = [];
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
+    }
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
+    }
+    return merged;
+  }, [bookingsToday, flatData, status]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
   const table = useReactTable<RowData>({
-    data,
+    data: finalData,
     columns,
     initialState: {
-      columnVisibility: getFilterColumnVisibility(),
-      columnPinning: {
-        right: ["actions"],
+      columnVisibility: {
+        eventTypeId: false,
+        teamId: false,
+        userId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        dateRange: false,
+        bookingUid: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -154,65 +293,54 @@ export function BookingsListContainer({
     getFacetedUniqueValues,
   });
 
-  const handleRejectionDialogChange = useCallback((open: boolean) => {
-    setRejectionDialogIsOpen(open);
-    if (!open) {
-      setRejectionReason("");
-      setPendingRejection(null);
-    }
-  }, []);
-
   return (
     <>
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={handleRejectionDialogChange}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={confirmMutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={handleConfirmRejection}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <BookingsList
         status={status}
         table={table}
         isPending={isPending}
         totalRowCount={totalRowCount}
-        onOpenDetails={onOpenDetails}
+        ErrorView={ErrorView}
+        hasError={hasError}
       />
 
-      <BookingDetailsSheet
-        booking={selectedBooking}
-        isOpen={!!selectedBooking}
-        onClose={() => setSelectedBookingId(null)}
-        userTimeZone={user?.timeZone}
-        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
-        userId={user?.id}
-        userEmail={user?.email}
-        onPrevious={bookingNavigation.onPrevious}
-        hasPrevious={bookingNavigation.hasPrevious}
-        onNext={bookingNavigation.onNext}
-        hasNext={bookingNavigation.hasNext}
-      />
+      {enableDetailsSheet && (
+        <BookingDetailsSheet
+          userTimeZone={user?.timeZone}
+          userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+          userId={user?.id}
+          userEmail={user?.email}
+        />
+      )}
     </>
+  );
+}
+
+export function BookingsListContainer({
+  status,
+  permissions,
+  data,
+  isPending,
+  enableDetailsSheet,
+  totalRowCount,
+  ErrorView,
+  hasError,
+}: BookingsListContainerProps) {
+  // Extract bookings from data for BookingDetailsSheet
+  const bookings = useMemo(() => data?.bookings ?? [], [data]);
+
+  return (
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
+      <BookingsListInner
+        status={status}
+        permissions={permissions}
+        data={data}
+        isPending={isPending}
+        enableDetailsSheet={enableDetailsSheet}
+        totalRowCount={totalRowCount}
+        ErrorView={ErrorView}
+        hasError={hasError}
+      />
+    </BookingDetailsSheetStoreProvider>
   );
 }
