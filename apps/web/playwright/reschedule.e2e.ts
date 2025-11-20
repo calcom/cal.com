@@ -25,7 +25,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Reschedule Tests", async () => {
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
     });
@@ -41,9 +41,7 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
-    await expect(page.locator('[data-testid="reschedule-dialog"]')).toBeHidden();
-
-    await page.waitForTimeout(2000);
+    await expect(page.locator('[id="modal-title"]')).toBeHidden();
 
     const updatedBooking = await booking.self();
 
@@ -59,8 +57,8 @@ test.describe("Reschedule Tests", async () => {
     bookings,
   }) => {
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const _booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
+     
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
       startTime: dayjs().subtract(2, "day").toDate(),
       endTime: dayjs().subtract(2, "day").add(30, "minutes").toDate(),
@@ -107,7 +105,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
       rescheduled: true,
@@ -132,9 +130,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/cancelled");
 
-    await page.locator('[data-testid="booking-item"]').nth(0).click();
-
-    await expect(page.locator('[data-testid="request_reschedule_sent"]')).toBeVisible();
+    const requestRescheduleSentElement = page.locator('[data-testid="request_reschedule_sent"]').nth(1);
+    await expect(requestRescheduleSentElement).toBeVisible();
     await booking.delete();
   });
 
@@ -176,7 +173,7 @@ test.describe("Reschedule Tests", async () => {
     const user = await users.create();
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -199,7 +196,7 @@ test.describe("Reschedule Tests", async () => {
         },
       },
     });
-    const _payment = await payments.create(booking.id);
+    const payment = await payments.create(booking.id);
     await page.goto(`/reschedule/${booking.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -221,7 +218,7 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await user.installStripePersonal({ skip: true });
     await users.logout();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -229,7 +226,7 @@ test.describe("Reschedule Tests", async () => {
       paid: true,
     });
 
-    const _payment = await payments.create(booking.id);
+    const payment = await payments.create(booking.id);
     await page.goto(`/reschedule/${booking?.uid}`);
 
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -241,7 +238,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be PENDING when rescheduled by USER", async ({ page, users, bookings }) => {
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -262,7 +259,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be ACCEPTED when rescheduled by OWNER", async ({ page, users, bookings }) => {
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -333,21 +330,20 @@ test.describe("Reschedule Tests", async () => {
   test("Should load Valid Cal video url after rescheduling Opt in events", async ({
     page,
     users,
+    bookings,
     browser,
   }) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!process.env.DAILY_API_KEY, "DAILY_API_KEY is needed for this test");
     const user = await users.create();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
-    const confirmBooking = async (_bookingId: number) => {
+    const confirmBooking = async (bookingId: number) => {
       const [authedContext, authedPage] = await user.apiLoginOnNewBrowser(browser);
       await authedPage.goto("/bookings/upcoming");
       await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
-        action: async () => {
-          await authedPage.locator('[data-testid="booking-item"] [data-testid="confirm"]').nth(0).click();
-        },
+        action: () => authedPage.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`).click(),
       });
       await authedContext.close();
     };
@@ -473,7 +469,7 @@ test.describe("Reschedule Tests", async () => {
       });
       const profileUsername = (await orgMember.getFirstProfile()).username;
       const eventType = orgMember.eventTypes[0];
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const orgSlug = org.slug!;
       const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 
@@ -514,7 +510,7 @@ test.describe("Reschedule Tests", async () => {
         roleInOrganization: MembershipRole.MEMBER,
       });
       const eventType = orgMember.eventTypes[0];
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const orgSlug = org.slug!;
       const booking = await bookings.create(orgMember.id, orgMember.username, eventType.id);
 

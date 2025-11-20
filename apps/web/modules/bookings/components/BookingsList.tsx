@@ -1,10 +1,8 @@
 "use client";
 
-import type { Row, Table as ReactTable } from "@tanstack/react-table";
-import { useCallback } from "react";
+import type { Table as ReactTable } from "@tanstack/react-table";
 
 import { DataTableWrapper, DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
-import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
@@ -25,7 +23,8 @@ type BookingsListViewProps = {
   table: ReactTable<RowData>;
   isPending: boolean;
   totalRowCount?: number;
-  onOpenDetails: (bookingId: number) => void;
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 };
 
 export function BookingsList({
@@ -33,18 +32,10 @@ export function BookingsList({
   table,
   isPending,
   totalRowCount,
-  onOpenDetails,
+  ErrorView,
+  hasError,
 }: BookingsListViewProps) {
   const { t } = useLocale();
-
-  const handleRowClick = useCallback(
-    (row: Row<RowData>) => {
-      if (!isSeparatorRow(row.original)) {
-        onOpenDetails(row.original.booking.id);
-      }
-    },
-    [onOpenDetails]
-  );
 
   return (
     <DataTableWrapper
@@ -52,22 +43,11 @@ export function BookingsList({
       table={table}
       testId={`${status}-bookings`}
       bodyTestId="bookings"
-      rowTestId={(row) => {
-        if (isSeparatorRow(row.original)) return undefined;
-        return "booking-item";
-      }}
-      rowDataAttributes={(row) => {
-        if (isSeparatorRow(row.original)) return undefined;
-        return {
-          "data-today": String(row.original.isToday),
-        };
-      }}
+      headerClassName="hidden"
       isPending={isPending}
       totalRowCount={totalRowCount}
-      variant="default"
+      variant="compact"
       paginationMode="standard"
-      onRowMouseclick={handleRowClick}
-      hideSeparatorsOnSort={true}
       ToolbarLeft={
         <>
           <DataTableFilters.FilterBar table={table} />
@@ -93,6 +73,8 @@ export function BookingsList({
           />
         </div>
       }
+      ErrorView={ErrorView}
+      hasError={hasError}
     />
   );
 }

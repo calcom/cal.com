@@ -35,8 +35,6 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -194,7 +192,6 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
-  const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
@@ -271,7 +268,7 @@ export default function Signup({
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
-        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
         const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
         const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;

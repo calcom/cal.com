@@ -287,6 +287,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: true,
         orgAutoAcceptEmail: true,
         disablePhoneOnlySMSNotifications: true,
+        disableAutofillOnBookingPage: true,
         orgAutoJoinOnSignup: true,
       },
     });
@@ -306,6 +307,7 @@ export class OrganizationRepository {
         orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
         orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
         disablePhoneOnlySMSNotifications: organizationSettings?.disablePhoneOnlySMSNotifications,
+        disableAutofillOnBookingPage: organizationSettings?.disableAutofillOnBookingPage,
         orgAutoJoinOnSignup: organizationSettings?.orgAutoJoinOnSignup,
       },
       user: {
