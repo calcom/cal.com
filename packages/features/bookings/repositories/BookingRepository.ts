@@ -1384,20 +1384,16 @@ export class BookingRepository {
     });
   }
 
-  findBookingForRequestReschedule({ bookingUid }: { bookingUid: string }) {
+  findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
     return this.prismaClient.booking.findUniqueOrThrow({
       where: {
         uid: bookingUid,
-        NOT: {
-          status: {
-            in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
-          },
-        },
       },
       select: {
         id: true,
         uid: true,
         userId: true,
+        status: true,
         user: {
           select: {
             id: true,
@@ -1443,25 +1439,32 @@ export class BookingRepository {
     });
   }
 
-  async markBookingAsRescheduled({
+  async updateBookingStatus({
     bookingId,
+    status,
     cancellationReason,
     cancelledBy,
+    rescheduledBy,
+    rescheduled,
   }: {
     bookingId: number;
+    status?: BookingStatus;
     cancellationReason?: string;
-    cancelledBy: string;
+    cancelledBy?: string;
+    rescheduledBy?: string;
+    rescheduled?: boolean;
   }) {
     return await this.prismaClient.booking.update({
       where: {
         id: bookingId,
       },
       data: {
-        rescheduled: true,
-        cancellationReason,
-        status: BookingStatus.CANCELLED,
+        ...(status !== undefined && { status }),
+        ...(rescheduled !== undefined && { rescheduled }),
+        ...(cancellationReason !== undefined && { cancellationReason }),
+        ...(cancelledBy !== undefined && { cancelledBy }),
+        ...(rescheduledBy !== undefined && { rescheduledBy }),
         updatedAt: new Date().toISOString(),
-        cancelledBy,
       },
     });
   }
