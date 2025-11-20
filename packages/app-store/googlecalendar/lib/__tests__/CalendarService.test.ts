@@ -18,7 +18,6 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import logger from "@calcom/lib/logger";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import CalendarService from "../CalendarService";
 import {
@@ -92,8 +91,7 @@ describe("getAvailability", () => {
       "2024-01-01",
       "2024-01-02",
       [],
-      false,
-      true
+      false
     );
 
     expect(availabilityWithPrimaryAsFallback).toEqual(mockedBusyTimes1);
@@ -102,7 +100,6 @@ describe("getAvailability", () => {
       "2024-01-01",
       "2024-01-02",
       [],
-      false,
       false
     );
 
