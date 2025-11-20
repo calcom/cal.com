@@ -688,4 +688,169 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       fixedHosts: [],
     });
   });
+
+  it("should return empty hosts when routingFormResponse is present and routedTeamMemberIds is empty array", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: true,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    // Call the function under test with empty routedTeamMemberIds array and a routing form response
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [], // Empty array means routing found no matches
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: {} as unknown as ReturnType<
+        typeof import("@calcom/features/bookings/lib/getLuckyUser").getRoutingFormResponseForRRHosts
+      >, // Truthy value to indicate routing form was used
+    });
+
+    // Verify the result - should return empty arrays for both qualified and fixed hosts
+    expect(result).toEqual({
+      qualifiedRRHosts: [],
+      fixedHosts: [],
+    });
+
+    // Verify that filterHostsByLeadThreshold was not called (early return short-circuited)
+    expect(filterHostsByLeadThreshold).not.toHaveBeenCalled();
+  });
+
+  it("should return all hosts when routingFormResponse is present but routedTeamMemberIds is null", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: true,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    const rrHosts = hosts.filter((host) => !host.isFixed);
+    const fixedHosts = hosts.filter((host) => host.isFixed);
+
+    // Configure the mock return value
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(rrHosts);
+
+    // Call the function under test with null routedTeamMemberIds and a routing form response
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: null, // null means no routing was used
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: {} as unknown as ReturnType<
+        typeof import("@calcom/features/bookings/lib/getLuckyUser").getRoutingFormResponseForRRHosts
+      >, // Truthy value to indicate routing form was used
+    });
+
+    // Verify the result - should return all hosts since null means no routing
+    expect(result.qualifiedRRHosts.length).toBeGreaterThan(0);
+    expect(result.fixedHosts).toEqual(fixedHosts);
+  });
 });
