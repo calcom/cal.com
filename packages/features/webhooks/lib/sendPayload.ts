@@ -3,6 +3,7 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
@@ -124,29 +125,21 @@ function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloa
   return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-export type TrackingData = {
-  utm_source?: string | null;
-  utm_medium?: string | null;
-  utm_campaign?: string | null;
-  utm_term?: string | null;
-  utm_content?: string | null;
-};
-
-async function hydrateTracking(data: EventPayloadType): Promise<TrackingData | undefined> {
+async function getBookingTracking(data: EventPayloadType): Promise<Tracking | undefined> {
   const repo = new BookingRepository(prisma);
   if (data.bookingId) {
     const booking = await repo.findByIdIncludeTracking(data.bookingId);
-    return (booking as unknown as { tracking?: TrackingData })?.tracking ?? undefined;
+    return (booking as unknown as { tracking?: Tracking })?.tracking ?? undefined;
   }
   if (data.uid) {
     const booking = await repo.findByUidIncludeTracking(data.uid);
-    return (booking as unknown as { tracking?: TrackingData })?.tracking ?? undefined;
+    return (booking as unknown as { tracking?: Tracking })?.tracking ?? undefined;
   }
   return undefined;
 }
 
 function getZapierPayload(
-  data: WithUTCOffsetType<EventPayloadType & { createdAt: string; tracking?: TrackingData }>
+  data: WithUTCOffsetType<EventPayloadType & { createdAt: string; tracking?: Tracking }>
 ): string {
   const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
@@ -257,10 +250,10 @@ const sendPayload = async (
 
   data = addUTCOffset(data);
 
-  // Hydrate tracking data for all event payloads
-  let tracking: TrackingData | undefined;
+  // Get tracking data for all event payloads
+  let tracking: Tracking | undefined;
   if (isEventPayload(data)) {
-    tracking = await hydrateTracking(data);
+    tracking = await getBookingTracking(data);
   }
 
   let body;
