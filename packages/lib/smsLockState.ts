@@ -1,5 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
+
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
 
@@ -10,11 +11,10 @@ export async function checkSMSRateLimit({
   opts,
 }: RateLimitHelper) {
   const response = await rateLimiter()({ rateLimitingType, identifier, opts });
-  const { success } = response;
 
   if (onRateLimiterResponse) onRateLimiterResponse(response);
 
-  if (!success) {
+  if (!response.passed) {
     await changeSMSLockState(
       identifier,
       rateLimitingType === "sms" ? SMSLockState.LOCKED : SMSLockState.REVIEW_NEEDED
