@@ -28,7 +28,7 @@ const generateEventMetaSkeleton = () => {
             <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-4">
               <div class="animate-pulse bg-emphasis h-6 w-20 rounded-sm"></div>
             </h1>
-            <div class="space-y-3 font-medium">
+            <div class="stack-y-3 font-medium">
               ${eventMetaOptions}
             </div>
           </div>
