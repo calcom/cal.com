@@ -1388,6 +1388,7 @@ async function handler(
       platformBookingUrl,
     })
     .withOrganization(organizerOrganizationId)
+    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
   if (!builtEvt) {
