@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
+import { shouldSkipAttendeeEmailWithSettings, fetchOrganizationEmailSettings } from "./email-manager";
+
 const mockGetEmailSettings = vi.fn();
 
 vi.mock("@calcom/features/organizations/repositories/OrganizationSettingsRepository", () => ({
@@ -14,9 +16,7 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
-const { shouldSkipAttendeeEmail } = await import("./email-manager");
-
-describe("shouldSkipAttendeeEmail", () => {
+describe("shouldSkipAttendeeEmailWithSettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -33,7 +33,7 @@ describe("shouldSkipAttendeeEmail", () => {
     ["new_event", "disableAttendeeNewEventEmail"],
   ] as const)("Email type: %s", (emailType, settingKey) => {
     it(`should skip email when organization has ${settingKey} enabled`, async () => {
-      mockGetEmailSettings.mockResolvedValue({
+      const orgSettings = {
         disableAttendeeConfirmationEmail: settingKey === "disableAttendeeConfirmationEmail",
         disableAttendeeCancellationEmail: settingKey === "disableAttendeeCancellationEmail",
         disableAttendeeRescheduledEmail: settingKey === "disableAttendeeRescheduledEmail",
@@ -43,14 +43,14 @@ describe("shouldSkipAttendeeEmail", () => {
         disableAttendeeRescheduleRequestEmail: settingKey === "disableAttendeeRescheduleRequestEmail",
         disableAttendeeLocationChangeEmail: settingKey === "disableAttendeeLocationChangeEmail",
         disableAttendeeNewEventEmail: settingKey === "disableAttendeeNewEventEmail",
-      });
+      };
 
-      const result = await shouldSkipAttendeeEmail(undefined, 123, emailType);
+      const result = shouldSkipAttendeeEmailWithSettings(undefined, orgSettings, emailType);
       expect(result).toBe(true);
     });
 
     it(`should send email when organization has ${settingKey} disabled`, async () => {
-      mockGetEmailSettings.mockResolvedValue({
+      const orgSettings = {
         disableAttendeeConfirmationEmail: false,
         disableAttendeeCancellationEmail: false,
         disableAttendeeRescheduledEmail: false,
@@ -60,15 +60,15 @@ describe("shouldSkipAttendeeEmail", () => {
         disableAttendeeRescheduleRequestEmail: false,
         disableAttendeeLocationChangeEmail: false,
         disableAttendeeNewEventEmail: false,
-      });
+      };
 
-      const result = await shouldSkipAttendeeEmail(undefined, 123, emailType);
+      const result = shouldSkipAttendeeEmailWithSettings(undefined, orgSettings, emailType);
       expect(result).toBe(false);
     });
   });
 
   describe("Metadata fallback", () => {
-    it("should skip email when metadata has disableStandardEmails.all.attendee enabled", async () => {
+    it("should skip email when metadata has disableStandardEmails.all.attendee enabled", () => {
       const metadata: EventTypeMetadata = {
         disableStandardEmails: {
           all: {
@@ -77,14 +77,14 @@ describe("shouldSkipAttendeeEmail", () => {
         },
       };
 
-      const result = await shouldSkipAttendeeEmail(metadata, 123, "confirmation");
+      const result = shouldSkipAttendeeEmailWithSettings(metadata, null, "confirmation");
       expect(result).toBe(true);
     });
   });
 
   describe("Priority: organization settings override metadata", () => {
-    it("should skip email when org setting is enabled even if metadata allows", async () => {
-      mockGetEmailSettings.mockResolvedValue({
+    it("should skip email when org setting is enabled even if metadata allows", () => {
+      const orgSettings = {
         disableAttendeeConfirmationEmail: true,
         disableAttendeeCancellationEmail: false,
         disableAttendeeRescheduledEmail: false,
@@ -94,7 +94,7 @@ describe("shouldSkipAttendeeEmail", () => {
         disableAttendeeRescheduleRequestEmail: false,
         disableAttendeeLocationChangeEmail: false,
         disableAttendeeNewEventEmail: false,
-      });
+      };
 
       const metadata: EventTypeMetadata = {
         disableStandardEmails: {
@@ -104,19 +104,19 @@ describe("shouldSkipAttendeeEmail", () => {
         },
       };
 
-      const result = await shouldSkipAttendeeEmail(metadata, 123, "confirmation");
+      const result = shouldSkipAttendeeEmailWithSettings(metadata, orgSettings, "confirmation");
       expect(result).toBe(true);
     });
   });
 
   describe("Edge cases", () => {
-    it("should send email when organizationId is null", async () => {
-      const result = await shouldSkipAttendeeEmail(undefined, null, "confirmation");
+    it("should send email when organizationSettings is null", () => {
+      const result = shouldSkipAttendeeEmailWithSettings(undefined, null, "confirmation");
       expect(result).toBe(false);
     });
 
-    it("should send email when emailType is undefined", async () => {
-      mockGetEmailSettings.mockResolvedValue({
+    it("should send email when emailType is undefined", () => {
+      const orgSettings = {
         disableAttendeeConfirmationEmail: true,
         disableAttendeeCancellationEmail: false,
         disableAttendeeRescheduledEmail: false,
@@ -126,14 +126,14 @@ describe("shouldSkipAttendeeEmail", () => {
         disableAttendeeRescheduleRequestEmail: false,
         disableAttendeeLocationChangeEmail: false,
         disableAttendeeNewEventEmail: false,
-      });
+      };
 
-      const result = await shouldSkipAttendeeEmail(undefined, 123, undefined);
+      const result = shouldSkipAttendeeEmailWithSettings(undefined, orgSettings, undefined);
       expect(result).toBe(false);
     });
 
-    it("should send email when metadata is undefined and org settings are disabled", async () => {
-      mockGetEmailSettings.mockResolvedValue({
+    it("should send email when metadata is undefined and org settings are disabled", () => {
+      const orgSettings = {
         disableAttendeeConfirmationEmail: false,
         disableAttendeeCancellationEmail: false,
         disableAttendeeRescheduledEmail: false,
@@ -143,9 +143,9 @@ describe("shouldSkipAttendeeEmail", () => {
         disableAttendeeRescheduleRequestEmail: false,
         disableAttendeeLocationChangeEmail: false,
         disableAttendeeNewEventEmail: false,
-      });
+      };
 
-      const result = await shouldSkipAttendeeEmail(undefined, 123, "confirmation");
+      const result = shouldSkipAttendeeEmailWithSettings(undefined, orgSettings, "confirmation");
       expect(result).toBe(false);
     });
   });
