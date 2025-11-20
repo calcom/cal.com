@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
 import { BookingsListContainer } from "../components/BookingsListContainer";
@@ -128,7 +129,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
   }, [pathname]);
 
   return (
-    <div className="flex flex-col">
+    <div className={classNames("flex flex-col", view === "calendar" && "-mb-8")}>
       {view === "list" && (
         <div className="mb-4 flex flex-row flex-wrap justify-between lg:mb-5">
           <ToggleGroup
@@ -145,20 +146,18 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
           {bookingsV3Enabled && <ViewToggleButton />}
         </div>
       )}
-      <main className="w-full">
-        <div className="flex w-full flex-col">
-          {view === "list" && (
-            <BookingsListContainer
-              status={status}
-              permissions={permissions}
-              enableDetailsSheet={bookingsV3Enabled}
-            />
-          )}
-          {bookingsV3Enabled && view === "calendar" && (
-            <BookingsCalendarContainer status={status} permissions={permissions} />
-          )}
-        </div>
-      </main>
+      <div className="flex w-full flex-col">
+        {view === "list" && (
+          <BookingsListContainer
+            status={status}
+            permissions={permissions}
+            enableDetailsSheet={bookingsV3Enabled}
+          />
+        )}
+        {bookingsV3Enabled && view === "calendar" && (
+          <BookingsCalendarContainer status={status} permissions={permissions} />
+        )}
+      </div>
     </div>
   );
 }
