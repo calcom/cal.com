@@ -17,8 +17,6 @@ import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -81,8 +79,6 @@ export default function Login({
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
-
-  const telemetry = useTelemetry();
 
   let callbackUrl = searchParams?.get("callbackUrl") || "";
 
@@ -147,7 +143,7 @@ export default function Login({
 
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
-    telemetry.event(telemetryEventTypes.login, collectPageParameters());
+    // telemetry.event(telemetryEventTypes.login, collectPageParameters());
     const res = await signIn<"credentials">("credentials", {
       ...values,
       callbackUrl,

@@ -42,14 +42,6 @@ export function UserPage(props: PageProps) {
     ...query
   } = useRouterQuery();
 
-  /*
-   const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
-    }
-  }, [telemetry, router.asPath]); */
   if (entity.considerUnpublished) {
     return (
       <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
@@ -99,7 +91,6 @@ export function UserPage(props: PageProps) {
               <>
                 <div
                   className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>

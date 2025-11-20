@@ -3681,7 +3681,6 @@ __metadata:
     ics: ^2.37.0
     jimp: ^0.16.1
     lingo.dev: ^0.111.1
-    next-collect: ^0.2.1
     rrule: ^2.7.1
     sharp: 0.33.5
     sonner: ^1.7.4
@@ -4419,7 +4418,6 @@ __metadata:
     next: 15.5.4
     next-auth: ^4.22.1
     next-axiom: ^0.17.0
-    next-collect: ^0.2.1
     next-i18next: ^15.4.2
     next-seo: ^6.0.0
     next-themes: ^0.2.0
@@ -37593,19 +37591,6 @@ __metadata:
   peerDependencies:
     next: ^12.1.4 || ^13
   checksum: fce4193be1ce49a704b80b12ae85b1e5c5a574eede1cd363c4f1ed7b704192a4ad90e99f7d1e90ae92fdd923f7e7a4a61c15b6a58dc86ede4f472ee456b92029
-  languageName: node
-  linkType: hard
-
-"next-collect@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "next-collect@npm:0.2.1"
-  dependencies:
-    cookie: ^0.5.0
-  peerDependencies:
-    next: ^12.2.0
-    react: ^17.0.2 || ^18
-    react-dom: ^17.0.2 || ^18
-  checksum: f03d9807d0a939f383d83765c72a171c7b678e98014185e4ad8093af86233dc7e6a320c2ebba97e3ef54568d31a84a06db29c0dd70434f18e196433af14b8128
   languageName: node
   linkType: hard
 

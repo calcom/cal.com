@@ -8,17 +8,13 @@
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -35,23 +31,14 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
-  const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
-  const telemetry = useTelemetry();
   const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
   const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
-
-  useEffect(() => {
-    telemetry.event(
-      telemetryEventTypes.pageView,
-      collectPageParameters("/team/[slug]", { isTeamBooking: true })
-    );
-  }, [telemetry, pathname]);
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
@@ -101,12 +88,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
+                <UserAvatarGroup truncateAfter={4} className="flex shrink-0" size="sm" users={type.users} />
               </div>
             </Link>
           </div>
@@ -174,7 +156,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             <>
               <div
                 className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
