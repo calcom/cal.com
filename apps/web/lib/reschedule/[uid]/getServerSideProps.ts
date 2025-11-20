@@ -97,7 +97,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as const;
   }
+
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+  const duration = dayjs(booking.endTime).diff(dayjs(booking.startTime), "minute");
 
   const userRepo = new UserRepository(prisma);
   const enrichedBookingUser = booking.user
@@ -189,6 +191,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (currentUserEmail) {
     destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  }
+
+  if (dynamicEventSlugRef) {
+    destinationUrlSearchParams.set("duration", duration.toString());
   }
 
   return {
