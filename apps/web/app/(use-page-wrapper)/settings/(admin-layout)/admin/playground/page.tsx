@@ -1,7 +1,7 @@
-import Link from "next/link";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { Table } from "@calcom/ui/components/table";
+import Link from "next/link";
+
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 const LINKS = [
   {
@@ -18,8 +18,6 @@ const LINKS = [
   },
 ];
 
-const { Cell, Header, Row, ColumnTitle } = Table;
-
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("playground"),
@@ -32,27 +30,20 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader
-      title={t("playground")}
-      description={t("admin_playground_description")}
-    >
-      <Table>
-        <Header>
-          <ColumnTitle widthClassNames="w-auto">{t("feature")}</ColumnTitle>
-        </Header>
-        {LINKS.map((link) => (
-          <Row key={link.title}>
-            <Cell widthClassNames="w-auto">
-              <Link href={link.href} className="font-medium">
-              {link.title}
-            </Link>
-            </Cell>
-          </Row>
-        ))}
-      </Table>
-        
+    <SettingsHeader title={t("playground")} description={t("admin_playground_description")}>
+      <div>
+        <ul className="mt-8">
+          {LINKS.map((link) => (
+            <li key={link.title}>
+              <Link href={link.href} className="list-item list-disc font-medium underline">
+                {link.title} →
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </SettingsHeader>
   );
-}
+};
 
 export default Page;
