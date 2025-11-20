@@ -221,7 +221,7 @@
 
 :root,
 :host {
-  --radius: 0.625rem;
+  --radius: 0.375rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
