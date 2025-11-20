@@ -8,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
