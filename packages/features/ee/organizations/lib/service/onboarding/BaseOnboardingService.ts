@@ -9,6 +9,7 @@ import {
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -143,8 +144,115 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return organizationOnboarding;
   }
 
-  protected filterTeamsAndInvites(teams: TeamInput[] = [], invitedMembers: InvitedMemberInput[] = []) {
-    const teamsData = teams
+  /**
+   * Ensures that teams with slugs conflicting with the organization slug
+   * are automatically added to the migration list.
+   * 
+   * This enforces that if a user owns a team with the same slug as the org they're creating,
+   * that team MUST be migrated to avoid slug conflicts.
+   */
+  private async ensureConflictingSlugTeamIsMigrated(
+    orgSlug: string,
+    teams: TeamInput[] = []
+  ): Promise<TeamInput[]> {
+    log.debug(
+      "Checking for teams with conflicting slugs",
+      safeStringify({ orgSlug, teamsCount: teams.length })
+    );
+
+    // Query user's owned teams using TeamRepository
+    const teamRepository = new TeamRepository(prisma);
+    const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId: this.user.id });
+
+    log.debug(
+      "Found owned teams",
+      safeStringify({
+        count: ownedTeams.length,
+        teams: ownedTeams.map((t) => ({ id: t.id, slug: t.slug })),
+      })
+    );
+
+    // Find team with conflicting slug
+    const conflictingTeam = ownedTeams.find((team) => team.slug === orgSlug);
+
+    if (!conflictingTeam) {
+      log.debug("No conflicting team found", safeStringify({ orgSlug }));
+      return teams;
+    }
+
+    log.info(
+      "Found team with conflicting slug - ensuring it's marked for migration",
+      safeStringify({
+        teamId: conflictingTeam.id,
+        teamName: conflictingTeam.name,
+        slug: conflictingTeam.slug,
+      })
+    );
+
+    // Check if the conflicting team is already in the teams array
+    const existingTeamIndex = teams.findIndex((t) => t.id === conflictingTeam.id);
+
+    if (existingTeamIndex !== -1) {
+      // Team exists in array - ensure it's marked for migration
+      const existingTeam = teams[existingTeamIndex];
+      if (!existingTeam.isBeingMigrated) {
+        log.info(
+          "Updating existing team to be migrated",
+          safeStringify({ teamId: existingTeam.id })
+        );
+        // Create new array with updated team
+        const updatedTeams = [...teams];
+        updatedTeams[existingTeamIndex] = {
+          ...existingTeam,
+          isBeingMigrated: true,
+        };
+        return updatedTeams;
+      }
+      // Already marked for migration
+      log.debug("Team already marked for migration", safeStringify({ teamId: existingTeam.id }));
+      return teams;
+    }
+
+    // Team not in array - add it with migration flag
+    log.info(
+      "Adding conflicting team to migration list",
+      safeStringify({
+        teamId: conflictingTeam.id,
+        teamName: conflictingTeam.name,
+      })
+    );
+
+    return [
+      ...teams,
+      {
+        id: conflictingTeam.id,
+        name: conflictingTeam.name,
+        isBeingMigrated: true,
+        slug: conflictingTeam.slug,
+      },
+    ];
+  }
+
+  /**
+   * Builds and validates teams and invited members data for organization onboarding.
+   * 
+   * This method:
+   * 1. Ensures teams with conflicting slugs are automatically migrated
+   * 2. Filters out empty team names and invite emails
+   * 3. Normalizes the data structure
+   * 
+   * Any class inheriting from BaseOnboardingService automatically gets these validations.
+   */
+  protected async buildTeamsAndInvites(
+    orgSlug: string,
+    teams: TeamInput[] = [],
+    invitedMembers: InvitedMemberInput[] = []
+  ) {
+    // Step 1: Ensure teams with conflicting slugs are migrated
+    const enrichedTeams = await this.ensureConflictingSlugTeamIsMigrated(orgSlug, teams);
+
+    // Step 2: Filter and normalize teams
+    const teamsData = enrichedTeams
       .filter((team) => team.name.trim().length > 0)
       .map((team) => ({
         id: team.id === -1 ? -1 : team.id,
@@ -153,6 +261,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
         slug: team.slug,
       }));
 
+    // Step 3: Filter and normalize invited members
     const invitedMembersData = invitedMembers
       .filter((invite) => invite.email.trim().length > 0)
       .map((invite) => ({
