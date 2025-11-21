@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { ContextMenu, Host, Button } from "@expo/ui/swift-ui";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
@@ -50,6 +51,30 @@ export default function EventTypes() {
   
   // Modal state for New button menu
   const [showNewModal, setShowNewModal] = useState(false);
+  
+  // Modal state for one-off meeting
+  const [showOneOffModal, setShowOneOffModal] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectionRanges, setSelectionRanges] = useState<Array<{
+    id: string;
+    startDay: number;
+    endDay: number;
+    startHour: number;
+    endHour: number;
+    startMinute: number;
+    endMinute: number;
+  }>>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [currentDragRange, setCurrentDragRange] = useState<{
+    startDay: number;
+    endDay: number;
+    startHour: number;
+    endHour: number;
+    startMinute: number;
+    endMinute: number;
+  } | null>(null);
+  const [dragStart, setDragStart] = useState<{day: number, hour: number, minute: number} | null>(null);
+  const [calendarLayout, setCalendarLayout] = useState<{x: number, y: number, width: number, height: number} | null>(null);
   
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
@@ -371,8 +396,228 @@ export default function EventTypes() {
   };
 
   const handleOneOffMeeting = () => {
-    // TODO: Implement one-off meeting creation
-    Alert.alert("One-off meeting", "This feature will be implemented soon");
+    setShowOneOffModal(true);
+  };
+
+  // Calendar helper functions
+  const formatTime24 = (hour: number, minute: number = 0) => {
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  };
+
+  const getWeekDays = (date: Date) => {
+    const week = [];
+    const startOfWeek = new Date(date);
+    const dayOfWeek = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      week.push(day);
+    }
+    return week;
+  };
+
+  const minuteToY = (minute: number, hourHeight: number) => {
+    return (minute / 60) * hourHeight;
+  };
+
+  const yToMinute = (y: number, hourHeight: number) => {
+    const rawMinute = (y / hourHeight) * 60;
+    return Math.round(rawMinute / 15) * 15; // Round to nearest 15 minutes
+  };
+
+  const generateRangeId = () => `range-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  const normalizeRange = (startDay: number, startHour: number, startMinute: number, endDay: number, endHour: number, endMinute: number) => {
+    // Ensure start is always before end
+    const start = { day: startDay, hour: startHour, minute: startMinute };
+    const end = { day: endDay, hour: endHour, minute: endMinute };
+    
+    if (start.day > end.day || 
+        (start.day === end.day && start.hour > end.hour) ||
+        (start.day === end.day && start.hour === end.hour && start.minute > end.minute)) {
+      return {
+        startDay: end.day,
+        startHour: end.hour,
+        startMinute: end.minute,
+        endDay: start.day,
+        endHour: start.hour,
+        endMinute: start.minute
+      };
+    }
+    
+    return {
+      startDay: start.day,
+      startHour: start.hour,
+      startMinute: start.minute,
+      endDay: end.day,
+      endHour: end.hour,
+      endMinute: end.minute
+    };
+  };
+
+  const handleDragStart = (day: number, hour: number, minute: number) => {
+    setIsDragging(true);
+    setDragStart({ day, hour, minute });
+    setCurrentDragRange({
+      startDay: day,
+      endDay: day,
+      startHour: hour,
+      endHour: hour,
+      startMinute: minute,
+      endMinute: minute
+    });
+  };
+
+  const handleDragMove = (day: number, hour: number, minute: number) => {
+    if (!isDragging || !dragStart) return;
+    
+    const normalized = normalizeRange(
+      dragStart.day, dragStart.hour, dragStart.minute,
+      day, hour, minute
+    );
+    
+    setCurrentDragRange(normalized);
+  };
+
+  const handleDragEnd = () => {
+    if (currentDragRange && isDragging) {
+      // Add the completed range to selection ranges
+      setSelectionRanges(prev => [...prev, {
+        id: generateRangeId(),
+        ...currentDragRange
+      }]);
+    }
+    
+    setIsDragging(false);
+    setDragStart(null);
+    setCurrentDragRange(null);
+  };
+
+  const removeRange = (rangeId: string) => {
+    setSelectionRanges(prev => prev.filter(range => range.id !== rangeId));
+  };
+
+  const isPointInRange = (day: number, hour: number, minute: number, range: any) => {
+    return day >= range.startDay && day <= range.endDay &&
+           hour >= range.startHour && hour <= range.endHour &&
+           minute >= range.startMinute && minute <= range.endMinute;
+  };
+
+  const getRangeAtPosition = (day: number, hour: number, minute: number) => {
+    return selectionRanges.find(range => isPointInRange(day, hour, minute, range));
+  };
+
+  const handleCellClick = (day: number, hour: number, minute: number) => {
+    const existingRange = getRangeAtPosition(day, hour, minute);
+    if (existingRange) {
+      removeRange(existingRange.id);
+    }
+  };
+
+  const handleScheduleOneOff = () => {
+    if (selectionRanges.length === 0) {
+      Alert.alert("Error", "Please select at least one time slot");
+      return;
+    }
+    
+    const totalSlots = selectionRanges.reduce((total, range) => {
+      const startTime = range.startDay * 1440 + range.startHour * 60 + range.startMinute;
+      const endTime = range.endDay * 1440 + range.endHour * 60 + range.endMinute;
+      return total + Math.ceil((endTime - startTime) / 15);
+    }, 0);
+    
+    const weekDays = getWeekDays(selectedWeek);
+    const rangeDescriptions = selectionRanges.map(range => {
+      const startDay = weekDays[range.startDay];
+      const endDay = weekDays[range.endDay];
+      const startTime = formatTime24(range.startHour, range.startMinute);
+      const endTime = formatTime24(range.endHour, range.endMinute);
+      
+      if (range.startDay === range.endDay) {
+        return `${startDay.toLocaleDateString()} ${startTime} - ${endTime}`;
+      } else {
+        return `${startDay.toLocaleDateString()} ${startTime} - ${endDay.toLocaleDateString()} ${endTime}`;
+      }
+    }).join('\n');
+    
+    Alert.alert(
+      "One-off Meeting Scheduled", 
+      `Selected time ranges:\n${rangeDescriptions}\n\n${totalSlots} time slots total`,
+      [
+        { text: "OK", onPress: () => {
+          setShowOneOffModal(false);
+          setSelectionRanges([]);
+        }}
+      ]
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectionRanges([]);
+  };
+
+  // Convert screen coordinates to calendar position
+  const screenToCalendarPosition = (x: number, y: number) => {
+    if (!calendarLayout) return { day: 0, hour: 0, minute: 0 };
+    
+    const timeColumnWidth = 80;
+    const headerHeight = 60;
+    const dayWidth = (calendarLayout.width - timeColumnWidth) / 7;
+    const hourHeight = 60;
+    
+    const relativeX = x - calendarLayout.x;
+    const relativeY = y - calendarLayout.y;
+    
+    const dayColumnX = relativeX - timeColumnWidth;
+    const dayIndex = Math.max(0, Math.min(6, Math.floor(dayColumnX / dayWidth)));
+    
+    const gridY = relativeY - headerHeight;
+    const hour = Math.max(0, Math.min(23, Math.floor(gridY / hourHeight)));
+    
+    const minuteWithinHour = gridY % hourHeight;
+    const minute = Math.floor((minuteWithinHour / hourHeight) * 4) * 15;
+    
+    return { day: dayIndex, hour, minute: Math.max(0, Math.min(45, minute)) };
+  };
+
+  const isSlotSelected = (day: number, hour: number, minute: number) => {
+    return selectionRanges.some(range => isPointInRange(day, hour, minute, range)) ||
+           (currentDragRange && isPointInRange(day, hour, minute, currentDragRange));
+  };
+
+  const getHourSelectionStyle = (day: number, hour: number) => {
+    const hasSelection = Array.from({ length: 4 }, (_, i) => i * 15)
+      .some(minute => isSlotSelected(day, hour, minute));
+    return hasSelection ? '#EBF4FF' : 'transparent';
+  };
+
+  const handleHourPress = (day: number, hour: number) => {
+    const existingRange = getRangeAtPosition(day, hour, 0);
+    if (existingRange) {
+      removeRange(existingRange.id);
+    } else {
+      handleDragStart(day, hour, 0);
+      handleDragMove(day, hour, 45);
+      handleDragEnd();
+    }
+  };
+
+  const handleGlobalDragStart = (x: number, y: number) => {
+    const position = screenToCalendarPosition(x, y);
+    handleDragStart(position.day, position.hour, position.minute);
+  };
+
+  const handleGlobalDragMove = (x: number, y: number) => {
+    if (!isDragging) return;
+    
+    const currentPosition = screenToCalendarPosition(x, y);
+    handleDragMove(currentPosition.day, currentPosition.hour, currentPosition.minute);
+  };
+
+  const handleGlobalDragEnd = () => {
+    handleDragEnd();
   };
 
   const handleCreateEventType = async () => {
@@ -907,6 +1152,446 @@ export default function EventTypes() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* One-off Meeting Modal */}
+      <Modal
+        visible={showOneOffModal}
+        transparent={Platform.OS !== "web"}
+        animationType="fade"
+        onRequestClose={() => setShowOneOffModal(false)}>
+        <View 
+          className={Platform.OS === "web" ? "fixed inset-0 z-50 bg-white" : "flex-1 bg-black/50"}
+          style={Platform.OS === "web" ? { 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            zIndex: 50 
+          } : {}}
+        >
+          {Platform.OS === "web" ? (() => {
+            const weekDays = getWeekDays(selectedWeek);
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const timeSlots = Array.from({ length: 288 }, (_, i) => i); // 24 hours * 12 (5-min slots)
+
+            return (
+              <View className="h-full flex flex-col">
+                {/* Web Header */}
+                <View className="bg-white border-b border-gray-200 px-6 py-4 flex-row items-center justify-between">
+                  <View>
+                    <Text className="text-2xl font-semibold text-gray-900">Schedule One-off Meeting</Text>
+                    <Text className="text-sm text-gray-500 mt-1">
+                      Week of {weekDays[0].toLocaleDateString()} - {selectionRanges.length} ranges selected
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center gap-2">
+                    <TouchableOpacity
+                      onPress={clearSelection}
+                      className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    >
+                      <Text className="text-sm text-gray-600">Clear</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setShowOneOffModal(false)}
+                      className="p-2 rounded-full hover:bg-gray-100"
+                    >
+                      <Ionicons name="close" size={24} color="#6B7280" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                
+                {/* Main Content Area with Calendar and Sidebar */}
+                <View className="flex-1 flex-row">
+                  {/* Calendar Grid */}
+                  <View className="flex-1">
+                    <ScrollView className="flex-1">
+                    <PanGestureHandler
+                      onHandlerStateChange={(event) => {
+                        const { state, x, y } = event.nativeEvent;
+                        
+                        if (state === State.BEGAN) {
+                          handleGlobalDragStart(x, y);
+                        } else if (state === State.END || state === State.CANCELLED) {
+                          handleGlobalDragEnd();
+                        }
+                      }}
+                      onGestureEvent={(event) => {
+                        if (isDragging) {
+                          const { x, y } = event.nativeEvent;
+                          handleGlobalDragMove(x, y);
+                        }
+                      }}
+                    >
+                      <View 
+                        style={{ minWidth: 800 }}
+                        onLayout={(event) => {
+                          const { x, y, width, height } = event.nativeEvent.layout;
+                          setCalendarLayout({ x, y, width, height });
+                        }}
+                      >
+                      {/* Day Headers */}
+                      <View className="flex-row border-b border-gray-300 bg-gray-50">
+                        <View style={{ width: 80 }} className="p-2 border-r border-gray-300">
+                          <Text className="text-xs font-medium text-gray-500">Time</Text>
+                        </View>
+                        {weekDays.map((day, dayIndex) => (
+                          <View key={dayIndex} style={{ flex: 1, minWidth: 100 }} className="p-2 border-r border-gray-300">
+                            <Text className="text-xs font-medium text-gray-900 text-center">
+                              {dayNames[day.getDay()]}
+                            </Text>
+                            <Text className="text-xs text-gray-500 text-center">
+                              {day.getDate()}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* Time Grid - One block per hour */}
+                      {Array.from({ length: 24 }, (_, hour) => (
+                        <View key={hour} className="flex-row border-b border-gray-200">
+                          {/* Time Label */}
+                          <View 
+                            style={{ width: 80, height: 60 }} 
+                            className="border-r border-gray-300 flex justify-center px-2"
+                          >
+                            <Text className="text-sm font-medium text-gray-600">
+                              {formatTime24(hour)}
+                            </Text>
+                          </View>
+                          
+                          {/* Day Hour Blocks */}
+                          {weekDays.map((day, dayIndex) => {
+                            const hourHeight = 60;
+                            
+                            return (
+                              <View 
+                                key={`${dayIndex}-${hour}`}
+                                style={{ 
+                                  flex: 1, 
+                                  minWidth: 100, 
+                                  height: hourHeight,
+                                  position: 'relative',
+                                  backgroundColor: getHourSelectionStyle(dayIndex, hour)
+                                }}
+                                className="border-r border-gray-100"
+                              >
+                                <TouchableOpacity
+                                  style={{ 
+                                    width: '100%',
+                                    height: hourHeight,
+                                  }}
+                                  onPress={() => handleHourPress(dayIndex, hour)}
+                                  activeOpacity={0.7}
+                                >
+                                  {/* 15-minute indicators */}
+                                  {Array.from({ length: 4 }, (_, quarterIndex) => {
+                                    const minute = quarterIndex * 15;
+                                    
+                                    return (
+                                      <View
+                                        key={minute}
+                                        style={{
+                                          position: 'absolute',
+                                          top: minuteToY(minute, hourHeight),
+                                          left: 0,
+                                          right: 0,
+                                          height: hourHeight / 4,
+                                          borderTopWidth: 1,
+                                          borderTopColor: '#E5E7EB',
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                  
+                                  {/* Selection rectangles overlay */}
+                                  {[...selectionRanges, ...(currentDragRange ? [{ id: 'current', ...currentDragRange }] : [])].map((range, index) => {
+                                    // Check if this hour block intersects with the range
+                                    if (dayIndex >= range.startDay && dayIndex <= range.endDay &&
+                                        hour >= range.startHour && hour <= range.endHour) {
+                                      
+                                      // Calculate the actual start and end positions within this hour block
+                                      const blockStartMinute = (dayIndex === range.startDay && hour === range.startHour) 
+                                        ? range.startMinute : 0;
+                                      const blockEndMinute = (dayIndex === range.endDay && hour === range.endHour) 
+                                        ? range.endMinute : 60;
+                                      
+                                      const topOffset = minuteToY(blockStartMinute, hourHeight);
+                                      const height = minuteToY(blockEndMinute - blockStartMinute, hourHeight);
+                                      
+                                      return (
+                                        <TouchableOpacity
+                                          key={`${range.id}-${dayIndex}-${hour}`}
+                                          style={{
+                                            position: 'absolute',
+                                            top: topOffset,
+                                            left: 2,
+                                            right: 2,
+                                            height: height,
+                                            backgroundColor: range.id === 'current' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(34, 197, 94, 0.5)',
+                                            borderWidth: 1,
+                                            borderColor: range.id === 'current' ? '#3B82F6' : '#22C55E',
+                                            borderRadius: 4,
+                                            zIndex: 1
+                                          }}
+                                          onPress={() => {
+                                            if (range.id !== 'current') {
+                                              handleCellClick(dayIndex, hour, blockStartMinute);
+                                            }
+                                          }}
+                                          activeOpacity={0.8}
+                                        />
+                                      );
+                                    }
+                                    return null;
+                                  })}
+                                </TouchableOpacity>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      ))}
+                      </View>
+                    </PanGestureHandler>
+                    </ScrollView>
+                  </View>
+                  
+                  {/* Right Sidebar */}
+                  <View className="w-80 border-l border-gray-200 bg-gray-50">
+                    <View className="px-4 py-3 border-b border-gray-200 bg-white">
+                      <Text className="text-lg font-semibold text-gray-900">Selected Ranges</Text>
+                      <Text className="text-sm text-gray-500">{selectionRanges.length} range{selectionRanges.length !== 1 ? 's' : ''} selected</Text>
+                    </View>
+                    
+                    <ScrollView className="flex-1 px-4 py-2">
+                      {selectionRanges.length === 0 ? (
+                        <View className="flex-1 justify-center items-center py-8">
+                          <Ionicons name="time-outline" size={48} color="#9CA3AF" />
+                          <Text className="text-gray-500 text-center mt-3 text-sm">
+                            Drag on the calendar to select time ranges
+                          </Text>
+                        </View>
+                      ) : (
+                        <View className="space-y-2">
+                          {selectionRanges.map((range, index) => {
+                            const startDay = weekDays[range.startDay];
+                            const endDay = weekDays[range.endDay];
+                            const startTime = formatTime24(range.startHour, range.startMinute);
+                            const endTime = formatTime24(range.endHour, range.endMinute);
+                            
+                            const isSameDay = range.startDay === range.endDay;
+                            const duration = Math.ceil(((range.endDay * 1440 + range.endHour * 60 + range.endMinute) - 
+                                                       (range.startDay * 1440 + range.startHour * 60 + range.startMinute)) / 15) * 15;
+                            const durationHours = Math.floor(duration / 60);
+                            const durationMins = duration % 60;
+                            const durationText = durationHours > 0 ? 
+                              (durationMins > 0 ? `${durationHours}h ${durationMins}m` : `${durationHours}h`) : 
+                              `${durationMins}m`;
+                            
+                            return (
+                              <TouchableOpacity
+                                key={range.id}
+                                className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 mb-2"
+                                onPress={() => removeRange(range.id)}
+                              >
+                                <View className="flex-row items-center justify-between mb-2">
+                                  <Text className="text-sm font-medium text-gray-900">Range {index + 1}</Text>
+                                  <TouchableOpacity onPress={() => removeRange(range.id)}>
+                                    <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                                  </TouchableOpacity>
+                                </View>
+                                
+                                {isSameDay ? (
+                                  <View>
+                                    <Text className="text-sm text-gray-700 font-medium">
+                                      {startDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                    </Text>
+                                    <Text className="text-sm text-gray-600">
+                                      {startTime} - {endTime}
+                                    </Text>
+                                  </View>
+                                ) : (
+                                  <View>
+                                    <Text className="text-sm text-gray-700">
+                                      <Text className="font-medium">
+                                        {startDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                      </Text>
+                                      {' '}{startTime}
+                                    </Text>
+                                    <Text className="text-xs text-gray-500">to</Text>
+                                    <Text className="text-sm text-gray-700">
+                                      <Text className="font-medium">
+                                        {endDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                      </Text>
+                                      {' '}{endTime}
+                                    </Text>
+                                  </View>
+                                )}
+                                
+                                <View className="mt-2 flex-row items-center">
+                                  <View className="bg-green-100 px-2 py-1 rounded-full">
+                                    <Text className="text-xs font-medium text-green-800">{durationText}</Text>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      )}
+                    </ScrollView>
+                  </View>
+                </View>
+
+                {/* Footer */}
+                <View className="border-t border-gray-200 p-4 bg-white">
+                  <View className="flex-row justify-end gap-3">
+                    <TouchableOpacity
+                      className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
+                      onPress={() => setShowOneOffModal(false)}
+                    >
+                      <Text className="text-gray-700 font-medium">Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="px-6 py-2 rounded bg-blue-600 hover:bg-blue-700"
+                      onPress={handleScheduleOneOff}
+                      disabled={selectionRanges.length === 0}
+                      style={{ opacity: selectionRanges.length === 0 ? 0.5 : 1 }}
+                    >
+                      <Text className="text-white font-medium">
+                        Schedule Meeting ({selectionRanges.length} ranges)
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })() : (() => {
+              const weekDays = getWeekDays(selectedWeek);
+              const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+              return (
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  className="flex-1 justify-center items-center p-2"
+                >
+                  <View className="bg-white rounded-2xl w-full max-w-md h-[90%]">
+                    {/* Mobile Header */}
+                    <View className="px-4 pt-4 pb-3 border-b border-gray-200">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-lg font-semibold text-gray-900">Schedule Meeting</Text>
+                        <TouchableOpacity onPress={() => setShowOneOffModal(false)}>
+                          <Ionicons name="close" size={24} color="#6B7280" />
+                        </TouchableOpacity>
+                      </View>
+                      <Text className="text-xs text-gray-500 mt-1">
+                        {selectionRanges.length} ranges selected
+                      </Text>
+                    </View>
+
+                    {/* Mobile Calendar Grid */}
+                    <View className="flex-1">
+                      <ScrollView className="flex-1">
+                        {/* Day Headers */}
+                        <View className="flex-row border-b border-gray-300 bg-gray-50">
+                          <View style={{ width: 40 }} className="p-1">
+                            <Text className="text-xs text-gray-500">Time</Text>
+                          </View>
+                          {weekDays.map((day, dayIndex) => (
+                            <View key={dayIndex} style={{ flex: 1 }} className="p-1 border-r border-gray-200">
+                              <Text className="text-xs font-medium text-gray-900 text-center">
+                                {dayNames[day.getDay()]}
+                              </Text>
+                              <Text className="text-xs text-gray-500 text-center">
+                                {day.getDate()}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+
+                        {/* Time Grid - Simplified for mobile (hour blocks) */}
+                        {Array.from({ length: 24 }, (_, hour) => (
+                          <View key={hour} className="flex-row border-b border-gray-100">
+                            {/* Time Label */}
+                            <View style={{ width: 40, height: 40 }} className="border-r border-gray-200 justify-center px-1">
+                              <Text className="text-xs text-gray-600">
+                                {formatTime24(hour)}
+                              </Text>
+                            </View>
+                            
+                            {/* Day Hour Blocks */}
+                            {weekDays.map((day, dayIndex) => {
+                              return (
+                                <View key={`${dayIndex}-${hour}`} style={{ flex: 1, height: 40, position: 'relative' }} className="border-r border-gray-100">
+                                  <TouchableOpacity
+                                    style={{ 
+                                      flex: 1,
+                                      backgroundColor: getHourSelectionStyle(dayIndex, hour)
+                                    }}
+                                    onPress={() => handleHourPress(dayIndex, hour)}
+                                  />
+                                  
+                                  {/* Selection rectangles overlay for mobile */}
+                                  {[...selectionRanges, ...(currentDragRange ? [{ id: 'current', ...currentDragRange }] : [])].map((range, index) => {
+                                    if (dayIndex >= range.startDay && dayIndex <= range.endDay &&
+                                        hour >= range.startHour && hour <= range.endHour) {
+                                      
+                                      return (
+                                        <TouchableOpacity
+                                          key={`${range.id}-${dayIndex}-${hour}`}
+                                          style={{
+                                            position: 'absolute',
+                                            top: 2,
+                                            left: 2,
+                                            right: 2,
+                                            bottom: 2,
+                                            backgroundColor: range.id === 'current' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(34, 197, 94, 0.5)',
+                                            borderWidth: 1,
+                                            borderColor: range.id === 'current' ? '#3B82F6' : '#22C55E',
+                                            borderRadius: 2,
+                                            zIndex: 1
+                                          }}
+                                          onPress={() => {
+                                            if (range.id !== 'current') {
+                                              handleCellClick(dayIndex, hour, 0);
+                                            }
+                                          }}
+                                          activeOpacity={0.8}
+                                        />
+                                      );
+                                    }
+                                    return null;
+                                  })}
+                                </View>
+                              );
+                            })}
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
+
+                    {/* Mobile Footer */}
+                    <View className="px-4 py-3 border-t border-gray-200">
+                      <TouchableOpacity
+                        className="bg-blue-600 py-3 px-4 rounded-lg mb-2"
+                        onPress={handleScheduleOneOff}
+                      >
+                        <Text className="text-white text-sm font-semibold text-center">
+                          Schedule Meeting ({selectionRanges.length})
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="py-2 px-4"
+                        onPress={clearSelection}
+                      >
+                        <Text className="text-gray-600 text-sm text-center">Clear Selection</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </KeyboardAvoidingView>
+              );
+            })()}
+          </View>
+        </Modal>
 
       {/* Toast for Web Platform */}
       {showToast && (
