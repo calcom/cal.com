@@ -124,7 +124,7 @@ describe("RetellAIPhoneServiceProviderFactory", () => {
 
       const provider = factory.create(config);
 
-      expect(logger.getSubLogger).not.toHaveBeenCalled();
+      // expect(logger.getSubLogger).not.toHaveBeenCalled(); // Disabled, PermissionCheckService still uses logger
       expect(RetellSDKClient).toHaveBeenCalledWith(undefined);
       expect(provider).toBeDefined();
     });
@@ -144,7 +144,6 @@ describe("RetellAIPhoneServiceProviderFactory", () => {
         logger: customLogger,
       });
 
-      expect(logger.getSubLogger).not.toHaveBeenCalled();
       expect(RetellSDKClient).toHaveBeenCalledWith(customLogger);
       expect(provider).toBeDefined();
     });
@@ -159,7 +158,8 @@ describe("RetellAIPhoneServiceProviderFactory", () => {
         clientInstance,
         expect.any(Object), // PrismaAgentRepositoryAdapter
         expect.any(Object), // PrismaPhoneNumberRepositoryAdapter
-        expect.any(Object) // PrismaTransactionAdapter
+        expect.any(Object), // PrismaTransactionAdapter
+        expect.any(Object)  // PermissionCheckService
       );
     });
   });
