@@ -173,13 +173,16 @@ export function calculateEventLayouts(
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
     
-    const dynamicWidth = calculateDynamicWidth(groupSize, baseWidthPercent);
-    const allowedOffsetSpace = Math.max(0, 100 - dynamicWidth - safetyMarginPercent);
+    const useCustomWidth = config.baseWidthPercent !== undefined;
+    const useCustomOffset = config.offsetStepPercent !== undefined;
     
-    const dynamicOffsetStep = calculateDynamicOffsetStep(groupSize, offsetStepPercent);
+    const finalWidth = useCustomWidth ? baseWidthPercent : calculateDynamicWidth(groupSize, baseWidthPercent);
+    const allowedOffsetSpace = Math.max(0, 100 - finalWidth - safetyMarginPercent);
+    
+    const finalOffsetStep = useCustomOffset ? offsetStepPercent : calculateDynamicOffsetStep(groupSize, offsetStepPercent);
     
     const stepUsed = Math.min(
-      dynamicOffsetStep,
+      finalOffsetStep,
       allowedOffsetSpace / Math.max(1, groupSize - 1)
     );
 
@@ -188,7 +191,7 @@ export function calculateEventLayouts(
       const left = round3(leftRaw);
       
       const maxWidthCap = 100 - left - safetyMarginPercent;
-      const widthCap = Math.min(dynamicWidth, maxWidthCap);
+      const widthCap = Math.min(finalWidth, maxWidthCap);
       
       const width = floor3(Math.max(0, widthCap));
 
