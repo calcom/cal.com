@@ -5,13 +5,13 @@ import { useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
+import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
 
 const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
 };
 
-const getBaseProps = (events: CalendarEvent[], startHour: number = 6): CalendarComponentProps => ({
+const getBaseProps = (events: CalendarEvent[], startHour: Hours = 6): CalendarComponentProps => ({
   startDate: dayjs("2025-01-06").toDate(), // Monday
   endDate: dayjs("2025-01-12").toDate(), // Sunday
   events,
@@ -32,7 +32,7 @@ type Scenario = {
   description: string;
   expected: string;
   events: CalendarEvent[];
-  startHour: number;
+  startHour: Hours;
 };
 
 const scenarios: Scenario[] = [
