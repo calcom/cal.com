@@ -236,43 +236,6 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async findByPhoneNumberAndTeamId({
-    phoneNumber,
-    teamId,
-    userId,
-  }: {
-    phoneNumber: string;
-    teamId: number;
-    userId: number;
-  }) {
-    const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
-
-    if (!accessibleTeamIds.includes(teamId)) {
-      return null;
-    }
-
-    return await this.prismaClient.calAiPhoneNumber.findFirst({
-      where: {
-        phoneNumber,
-        teamId,
-      },
-      select: {
-        id: true,
-        phoneNumber: true,
-        userId: true,
-        teamId: true,
-        subscriptionStatus: true,
-        stripeSubscriptionId: true,
-        stripeCustomerId: true,
-        provider: true,
-        inboundAgentId: true,
-        outboundAgentId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
   async findManyWithUserAccess({
     userId,
     teamId,

@@ -522,6 +522,14 @@ export class AgentService {
       setupInboundAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
     };
   }) {
+    const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
+    if (!isPhoneNumberValid) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid phone number",
+      });
+    }
+
     if (teamId) {
       const canManage = await this.deps.agentRepository.canManageTeamResources({
         userId,
@@ -535,32 +543,17 @@ export class AgentService {
       }
     }
 
-    const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
-    if (!isPhoneNumberValid) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Invalid phone number",
-      });
-    }
-
-    let phoneNumberRecord;
-    if (teamId) {
-      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndTeamId({
-        phoneNumber,
-        teamId,
-        userId,
-      });
-    } else {
-      phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumberAndUserId({
-        phoneNumber,
-        userId,
-      });
-    }
-
+    const phoneNumberRecord = await this.deps.phoneNumberRepository.findByPhoneNumber(phoneNumber);
     if (!phoneNumberRecord) {
       throw new HttpError({
         statusCode: 404,
-        message: "Phone number not found or you don't have access to it",
+      });
+    }
+
+    if (!teamId && phoneNumberRecord.userId !== userId) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "You don't have permission to use this phone number.",
       });
     }
 

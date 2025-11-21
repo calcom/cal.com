@@ -1,4 +1,4 @@
-import { PermissionCheckService } from "pbac/services/permission-check.service";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
