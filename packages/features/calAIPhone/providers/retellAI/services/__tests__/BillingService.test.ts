@@ -51,6 +51,7 @@ describe("BillingService", () => {
     service = new BillingService({
       phoneNumberRepository: mocks.mockPhoneNumberRepository,
       retellRepository: mocks.mockRetellRepository,
+      permissionService: mocks.mockPermissionService,
     });
   });
 
@@ -152,7 +153,7 @@ describe("BillingService", () => {
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
       mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
       mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
@@ -199,7 +200,7 @@ describe("BillingService", () => {
     });
 
     it("should throw error if phone number not found", async () => {
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(null);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(null);
 
       await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
         "Phone number not found or you don't have permission to cancel it"
@@ -211,7 +212,7 @@ describe("BillingService", () => {
         stripeSubscriptionId: null,
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
 
       await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
         "Phone number doesn't have an active subscription"
@@ -223,7 +224,7 @@ describe("BillingService", () => {
         stripeSubscriptionId: "sub_123",
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.subscriptions.cancel.mockRejectedValue(new TestError("Stripe API error"));
 
@@ -237,7 +238,7 @@ describe("BillingService", () => {
         stripeSubscriptionId: "sub_123",
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
       mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
       mocks.mockRetellRepository.deletePhoneNumber.mockRejectedValue(new TestError("Retell API error"));
 
@@ -254,7 +255,7 @@ describe("BillingService", () => {
         stripeSubscriptionId: "sub_123",
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
       mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockRejectedValue(
         new TestError("Database error")
       );
@@ -271,7 +272,7 @@ describe("BillingService", () => {
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
       mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
       mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
@@ -318,7 +319,7 @@ describe("BillingService", () => {
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
 
-      mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
 
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.subscriptions.cancel.mockRejectedValue(new TestError("API Error"));

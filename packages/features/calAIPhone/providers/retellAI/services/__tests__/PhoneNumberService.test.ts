@@ -25,6 +25,7 @@ describe("PhoneNumberService", () => {
       agentRepository: mocks.mockAgentRepository,
       phoneNumberRepository: mocks.mockPhoneNumberRepository,
       transactionManager: mocks.mockTransactionManager,
+      permissionService: mocks.mockPermissionService,
     });
   });
 
