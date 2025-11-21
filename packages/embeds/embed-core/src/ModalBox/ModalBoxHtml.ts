@@ -90,7 +90,7 @@ ${getStyle()}
     <div id="message"></div>
   </div>
   <div class="modal-box">
-    <div class="body" id="skeleton-container" ${themeClass ? `class="${themeClass}"` : ""} style="${skeletonContainerStyle}">
+    <div class="body${themeClass ? " " + themeClass : ""}" id="skeleton-container" style="${skeletonContainerStyle}">
       <div id="wrapper" class="z-999999999999 absolute flex w-full items-center">
         <div class="loader modal-loader border-brand-default dark:border-darkmodebrand">
           <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
