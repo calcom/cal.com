@@ -1,4 +1,4 @@
-// This is your Prisma Schema file
+// This is your Prisma Schema file 
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -107,8 +107,23 @@ model CalVideoSettings {
   redirectUrlOnExit                    String?
   disableTranscriptionForGuests        Boolean  @default(false)
   disableTranscriptionForOrganizer     Boolean  @default(false)
+  requireEmailForGuests                Boolean  @default(false)
   createdAt                            DateTime @default(now())
   updatedAt                            DateTime @updatedAt
+}
+
+model VideoCallGuest {
+  id         String    @id @default(uuid())
+  bookingUid String
+  email      String
+  name       String
+  joinedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([bookingUid, email])
+  @@index([bookingUid])
+  @@index([email])
 }
 
 model EventType {
@@ -671,6 +686,8 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  disableAutofillOnBookingPage        Boolean    @default(false)
+  orgAutoJoinOnSignup                 Boolean    @default(true)
 }
 
 enum MembershipRole {
@@ -1074,6 +1091,7 @@ enum WebhookTriggerEvents {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
+  DELEGATION_CREDENTIAL_ERROR
 }
 
 model Webhook {
@@ -2609,6 +2627,113 @@ model RolePermission {
   @@index([action])
 }
 
+enum BookingAuditType {
+  RECORD_CREATED @map("record_created")
+  RECORD_UPDATED @map("record_updated")
+  RECORD_DELETED @map("record_deleted")
+}
+
+enum BookingAuditAction {
+  // Booking lifecycle
+  CREATED @map("created")
+
+  // Status changes
+  CANCELLED     @map("cancelled")
+  ACCEPTED      @map("accepted")
+  REJECTED      @map("rejected")
+  PENDING       @map("pending")
+  AWAITING_HOST @map("awaiting_host")
+  RESCHEDULED   @map("rescheduled")
+
+  // Attendee management
+  ATTENDEE_ADDED   @map("attendee_added")
+  ATTENDEE_REMOVED @map("attendee_removed")
+
+  // Assignment/Reassignment (keep integration version - simpler)
+  REASSIGNMENT @map("reassignment")
+
+  // Meeting details
+  LOCATION_CHANGED @map("location_changed")
+
+  // No-show tracking
+  HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
+  ATTENDEE_NO_SHOW_UPDATED @map("attendee_no_show_updated")
+
+  // Rescheduling
+  RESCHEDULE_REQUESTED @map("reschedule_requested")
+}
+
+enum AuditActorType {
+  USER     @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
+  GUEST    @map("guest") // Non-registered user
+  ATTENDEE @map("attendee") // Has Attendee record with us
+  SYSTEM   @map("system") // Automated actions
+}
+
+model AuditActor {
+  id   String         @id @default(uuid(7)) @db.Uuid
+  type AuditActorType
+
+  // References for different actor types (soft references, no FK constraints)
+  // These fields intentionally do NOT have foreign key constraints to preserve audit trail integrity:
+  // - When a User or Attendee is deleted, their AuditActor record persists with these IDs intact
+  // - This maintains immutable audit history even after source records are removed
+  userUuid   String? @db.Uuid // For USER type - references User.uuid without FK constraint
+  attendeeId Int? // For ATTENDEE type - references Attendee.id without FK constraint
+
+  // Identity fields - only for GUEST/SYSTEM(System too might not have all) type. Attendee and User maintain their own identity fields.
+  // They could be set as anonymized for User/Attendee record as well when they are deleted to preserve the audit trail.
+  email String?
+  phone String?
+  name  String?
+
+  createdAt     DateTime       @default(now())
+  bookingAudits BookingAudit[]
+
+  // TODO: Add pseudonymizedAt and related fields when we anonymize the data on deletion
+  @@unique([userUuid])
+  @@unique([attendeeId])
+  @@unique([email]) // Prevent duplicate email actors
+  @@unique([phone]) // Prevent duplicate phone actors
+  @@index([email])
+  @@index([userUuid])
+  @@index([attendeeId])
+}
+
+model BookingAudit {
+  id         String @id @default(uuid(7)) @db.Uuid
+  // bookingUid is stored as a plain string (not a foreign key relation) to preserve the audit trail
+  // even after the booking is deleted. This is intentional for audit log integrity:
+  // - Audit logs are immutable historical records that should persist independently
+  // - When a booking is deleted, we still need to know which booking the audit log belonged to
+  // - Using a plain string instead of a relation prevents bookingUid from becoming NULL on booking deletion
+  // - This allows users to view complete audit history for deleted bookings
+  bookingUid String
+
+  // Actor who performed the action (USER, GUEST, or SYSTEM)
+  // Stored in AuditActor table to maintain audit trail even after user deletion
+  actorId String     @db.Uuid
+  // Restrict onDelete to prevent deletion of audit actor if there are any booking audits associated with it
+  actor   AuditActor @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  type   BookingAuditType
+  action BookingAuditAction
+
+  // Timestamp of the actual booking change (business event time)
+  // Important: May differ from createdAt if audit is processed asynchronously
+  timestamp DateTime
+
+  // Database record timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  data Json?
+
+  @@index([actorId])
+  @@index([bookingUid])
+  @@index([timestamp])
+}
+
 enum PhoneNumberSubscriptionStatus {
   ACTIVE
   PAST_DUE
@@ -2636,6 +2761,9 @@ model Agent {
   // Event type association for inbound agents
   inboundEventTypeId Int?
 
+  // Event type association for outbound agents
+  outboundEventTypeId Int?
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2648,6 +2776,7 @@ model Agent {
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {

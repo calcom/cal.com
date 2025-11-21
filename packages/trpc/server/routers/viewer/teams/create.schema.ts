@@ -10,6 +10,7 @@ export const ZCreateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
+  bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
 });
 

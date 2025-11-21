@@ -63,6 +63,8 @@ const RetellWebhookSchema = z.object({
     .passthrough(),
 });
 
+type RetellCallData = z.infer<typeof RetellWebhookSchema>["call"];
+
 async function chargeCreditsForCall({
   userId,
   teamId,
@@ -120,7 +122,7 @@ async function chargeCreditsForCall({
   }
 }
 
-async function handleCallAnalyzed(callData: any) {
+async function handleCallAnalyzed(callData: RetellCallData) {
   const { from_number, call_id, call_cost, call_type, agent_id } = callData;
 
   if (
@@ -165,7 +167,7 @@ async function handleCallAnalyzed(callData: any) {
     }
 
     userId = agent.userId ?? undefined;
-    teamId = agent.teamId ?? undefined;
+    teamId = agent.team?.parentId ?? agent.teamId ?? undefined;
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
@@ -181,7 +183,7 @@ async function handleCallAnalyzed(callData: any) {
     }
 
     userId = phoneNumber.userId ?? undefined;
-    teamId = phoneNumber.teamId ?? undefined;
+    teamId = phoneNumber.team?.parentId ?? phoneNumber.teamId ?? undefined;
 
     log.info(`Processing phone call ${call_id} from ${from_number}, user ${userId}, team ${teamId}`);
   }
