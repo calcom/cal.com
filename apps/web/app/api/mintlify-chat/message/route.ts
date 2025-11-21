@@ -61,7 +61,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Make request to Mintlify
-    const queryResponse = await fetch(`${apiBaseUrl}/message`, {
+    const messageUrl = `${apiBaseUrl}/message`;
+    console.log("[Mintlify Chat Message] Fetching message endpoint", { messageUrl, topicId });
+
+    const queryResponse = await fetch(messageUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

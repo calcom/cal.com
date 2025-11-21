@@ -113,7 +113,8 @@ export function validateMintlifyConfig(): {
   apiBaseUrl: string;
 } {
   const apiKey = process.env.MINTLIFY_CHAT_API_KEY;
-  const apiBaseUrl = process.env.NEXT_PUBLIC_CHAT_API_URL;
+  const rawApiBaseUrl = process.env.NEXT_PUBLIC_CHAT_API_URL;
+  const apiBaseUrl = rawApiBaseUrl?.replace(/\/+$/, "");
 
   if (!apiKey) {
     throw new Error("MINTLIFY_CHAT_API_KEY is not configured");
