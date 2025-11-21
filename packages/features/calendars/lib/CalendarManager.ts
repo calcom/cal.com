@@ -1,4 +1,3 @@
- 
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -122,7 +121,7 @@ export const getConnectedCalendars = async (
           calendars,
         };
       } catch (error) {
-        let errorMessage = "Could not get connected calendars";
+        let errorMessage = error;
 
         // Here you can expect for specific errors
         if (error instanceof Error) {
@@ -135,7 +134,11 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error("getConnectedCalendars failed", errorMessage, safeStringify({ item }));
+        log.error(
+          "getConnectedCalendars failed",
+          errorMessage,
+          safeStringify({ credentialId: item.credential.id })
+        );
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -517,7 +520,7 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarEvent.attendees = [];
   }
 
-  if (calEvent.seatsPerTimeSlot){
+  if (calEvent.seatsPerTimeSlot) {
     calendarEvent.responses = null;
     calendarEvent.userFieldsResponses = null;
   }
