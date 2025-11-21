@@ -29,6 +29,11 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     return await phoneNumberRepo.findByPhoneNumberAndTeamId(params);
   }
 
+    async findById(id: number): Promise<PhoneNumberData | null> {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findById(id);
+  }
+
   async createPhoneNumber(params: {
     phoneNumber: string;
     provider: string;
