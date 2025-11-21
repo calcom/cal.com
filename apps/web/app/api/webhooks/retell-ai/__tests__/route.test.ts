@@ -88,12 +88,12 @@ vi.mock("@calcom/emails/email-manager", () => ({
   sendCreditBalanceLowWarningEmails: (...args: unknown[]) => mockSendCreditBalanceLowWarningEmails(...args),
 }));
 
-const mockFindByPhoneNumber = vi.fn();
+const mockFindByPhoneNumberForCallAnalyze = vi.fn();
 const mockFindByProviderAgentId = vi.fn();
 
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
   PrismaPhoneNumberRepository: vi.fn().mockImplementation(() => ({
-    findByPhoneNumber: mockFindByPhoneNumber,
+    findByPhoneNumberForCallAnalyze: mockFindByPhoneNumberForCallAnalyze,
   })),
 }));
 
@@ -206,7 +206,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -266,7 +266,7 @@ describe("Retell AI Webhook Handler", () => {
       user: null,
     };
 
-    mockFindByPhoneNumber.mockResolvedValue(mockTeamPhoneNumber);
+    mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockTeamPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -326,12 +326,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(request);
 
     expect(response.status).toBe(200);
-    expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
+    expect(mockFindByPhoneNumberForCallAnalyze).not.toHaveBeenCalled();
   });
 
   it("should handle phone number not found", async () => {
     vi.mocked(Retell.verify).mockReturnValue(true);
-    mockFindByPhoneNumber.mockResolvedValue(null);
+    mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(null);
 
     const body: RetellWebhookBody = {
       event: "call_analyzed",
@@ -377,7 +377,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(false);
 
@@ -452,7 +452,7 @@ describe("Retell AI Webhook Handler", () => {
         team: null,
       };
 
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
       mockHasAvailableCredits.mockResolvedValue(true);
       mockChargeCredits.mockResolvedValue(undefined);
 
@@ -507,7 +507,7 @@ describe("Retell AI Webhook Handler", () => {
       user: { id: 42, email: "u@example.com", name: "U" },
       team: null,
     };
-    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
 
@@ -562,7 +562,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue({ userId: 1 });
 
       const body: RetellWebhookBody = {
@@ -615,7 +615,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
 
       const body: RetellWebhookBody = {
         event: "call_analyzed",
@@ -680,7 +680,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumberForCallAnalyze.mockResolvedValue(mockPhoneNumber);
 
       // Mock chargeCredits to throw an error
       mockChargeCredits.mockRejectedValue(new Error("Credit service error"));
@@ -841,7 +841,7 @@ describe("Retell AI Webhook Handler", () => {
 
       expect(response.status).toBe(200);
       expect(mockFindByProviderAgentId).toHaveBeenCalled();
-      expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
+      expect(mockFindByPhoneNumberForCallAnalyze).not.toHaveBeenCalled();
       expect(mockChargeCredits).toHaveBeenCalled();
     });
 
