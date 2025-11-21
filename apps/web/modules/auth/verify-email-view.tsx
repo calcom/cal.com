@@ -25,7 +25,6 @@ function VerifyEmailPage() {
   useEffect(() => {
     if (data?.isVerified) {
       posthog.capture("verify_email_already_verified", {
-        user_email: session?.user?.email,
         onboarding_v3_enabled: flags["onboarding-v3"],
       });
       const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
@@ -53,9 +52,7 @@ function VerifyEmailPage() {
                 className="underline"
                 loading={mutation.isPending}
                 onClick={() => {
-                  posthog.capture("verify_email_resend_clicked", {
-                    user_email: session?.user?.email,
-                  });
+                  posthog.capture("verify_email_resend_clicked");
                   showToast(t("send_email"), "success");
                   mutation.mutate();
                 }}>

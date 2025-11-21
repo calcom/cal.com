@@ -10,7 +10,7 @@ const TRACKED_ROUTES = [
   "/getting-started",
   "/onboarding/getting-started",
   "/settings/teams/new",
-  "/settings/teams/",
+  "/settings/teams",
 ];
 
 export default function PostHogPageView() {

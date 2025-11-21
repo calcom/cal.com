@@ -508,7 +508,6 @@ export default function Signup({
                           is_org_invite: isOrgInviteByLink,
                           org_slug: orgSlug,
                           username: username,
-                          email: formMethods.getValues("email"),
                         });
 
                         // eslint-disable-next-line @calcom/eslint/avoid-web-storage
@@ -564,11 +563,14 @@ export default function Signup({
                       color="primary"
                       loading={isGoogleLoading}
                       CustomStartIcon={
-                        <img
-                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
-                          src="/google-icon-colored.svg"
-                          alt="Continue with Google Icon"
-                        />
+                        <>
+                          {/* eslint-disable @next/next/no-img-element */}
+                          <img
+                            className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
+                            src="/google-icon-colored.svg"
+                            alt="Continue with Google Icon"
+                          />
+                        </>
                       }
                       className={classNames("w-full justify-center rounded-md text-center")}
                       data-testid="continue-with-google-button"
