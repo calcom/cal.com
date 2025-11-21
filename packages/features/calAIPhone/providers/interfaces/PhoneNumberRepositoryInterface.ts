@@ -7,26 +7,14 @@ import type { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
  */
 export interface PhoneNumberRepositoryInterface {
   /**
-   * Find phone number by phone number and user ID
-   */
-  findByPhoneNumberAndUserId(params: {
-    phoneNumber: string;
-    userId: number;
-  }): Promise<PhoneNumberData | null>;
-
-  /**
-   * Find phone number by phone number and team ID with user access validation
-   */
-  findByPhoneNumberAndTeamId(params: {
-    phoneNumber: string;
-    teamId: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null>;
-
-  /**
    * Find phone number by ID
    */
   findById(id: number): Promise<PhoneNumberData | null>;
+
+  /**
+   * Find phone number by number
+   */
+  findByPhoneNumber(phoneNumber: string): Promise<PhoneNumberData | null>;
 
   /**
    * Create a new phone number record
