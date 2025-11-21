@@ -1,12 +1,13 @@
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { prisma } from "@calcom/prisma";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/EventTypeRepository";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 interface FindTargetChildEventTypeParams {
   bookingId: number;
   newUserId: number;
+  bookingRepository: BookingRepository;
+  eventTypeRepository: EventTypeRepository;
 }
 
 interface FindTargetChildEventTypeResult {
@@ -29,8 +30,12 @@ interface FindTargetChildEventTypeResult {
 }
 
 /**
- * Finds and validates the target child event type for managed event reassignment
+ * Pure function that finds and validates the target child event type for managed event reassignment
  * 
+ * Dependencies are injected via parameters - no direct instantiation of repositories
+ * 
+ * @param bookingRepository - Injected booking repository
+ * @param eventTypeRepository - Injected event type repository
  * @throws Error if booking is not on a managed event type
  * @throws Error if parent is not MANAGED type
  * @throws Error if target user doesn't have a child event type
@@ -39,10 +44,9 @@ interface FindTargetChildEventTypeResult {
 export async function findTargetChildEventType({
   bookingId,
   newUserId,
+  bookingRepository,
+  eventTypeRepository,
 }: FindTargetChildEventTypeParams): Promise<FindTargetChildEventTypeResult> {
-
-  const bookingRepository = new BookingRepository(prisma);
-  const eventTypeRepository = new EventTypeRepository(prisma);
   const booking = await bookingRepository.findByIdForWithUserIdAndEventTypeId(bookingId);
 
   if (!booking) {

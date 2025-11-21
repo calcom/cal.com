@@ -1,20 +1,17 @@
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 
-import {
-  ManagedEventManualReassignmentService,
-  type ManagedEventManualReassignmentParams,
-} from "./services/ManagedEventManualReassignmentService";
+import type { ManagedEventManualReassignmentParams } from "./services/ManagedEventManualReassignmentService";
+import { createManagedEventManualReassignmentService } from "./services/container";
 
-const managedEventManualReassignmentService = new ManagedEventManualReassignmentService({
-  prisma,
-  bookingRepository: new BookingRepository(prisma),
-  userRepository: new UserRepository(prisma),
-});
-
+/**
+ * Entry point for manual managed event reassignment
+ * 
+ * This delegates to the service layer without direct repository knowledge.
+ * The container handles all dependency injection.
+ */
 export async function managedEventManualReassignment(params: ManagedEventManualReassignmentParams) {
-  return managedEventManualReassignmentService.execute(params);
+  const service = createManagedEventManualReassignmentService(prisma);
+  return service.execute(params);
 }
 
 export default managedEventManualReassignment;

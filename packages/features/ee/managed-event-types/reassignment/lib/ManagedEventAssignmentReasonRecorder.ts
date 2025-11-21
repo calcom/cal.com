@@ -1,15 +1,31 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { prisma } from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 
 export enum ManagedEventReassignmentType {
   MANUAL = "manual",
   AUTO = "auto",
 }
 
-export default class ManagedEventAssignmentReasonRecorder {
+interface ManagedEventAssignmentReasonServiceDeps {
+  userRepository: UserRepository;
+  assignmentReasonRepository: AssignmentReasonRepository;
+}
+
+/**
+ * Service for recording managed event assignment reasons
+ * Uses constructor injection for dependencies (no direct repository instantiation)
+ */
+export class ManagedEventAssignmentReasonService {
+  private readonly userRepository: UserRepository;
+  private readonly assignmentReasonRepository: AssignmentReasonRepository;
+
+  constructor(deps: ManagedEventAssignmentReasonServiceDeps) {
+    this.userRepository = deps.userRepository;
+    this.assignmentReasonRepository = deps.assignmentReasonRepository;
+  }
+
   /**
    * Record a managed event reassignment reason
    * 
@@ -18,12 +34,12 @@ export default class ManagedEventAssignmentReasonRecorder {
    * @param reassignReason - Optional reason for the reassignment
    * @param reassignmentType - Whether this was manual or automatic reassignment
    */
-  static managedEventReassignment = withReporting(
-    ManagedEventAssignmentReasonRecorder._managedEventReassignment,
-    "ManagedEventAssignmentReasonRecorder.managedEventReassignment"
+  recordReassignment = withReporting(
+    this._recordReassignment.bind(this),
+    "ManagedEventAssignmentReasonService.recordReassignment"
   );
 
-  static async _managedEventReassignment({
+  private async _recordReassignment({
     newBookingId,
     reassignById,
     reassignReason,
@@ -34,9 +50,7 @@ export default class ManagedEventAssignmentReasonRecorder {
     reassignReason?: string;
     reassignmentType: ManagedEventReassignmentType;
   }) {
-    const userRepository = new UserRepository(prisma);
-    const assignmentReasonRepository = new AssignmentReasonRepository(prisma);
-    const reassignedBy = await userRepository.findByIdWithUsername(reassignById);
+    const reassignedBy = await this.userRepository.findByIdWithUsername(reassignById);
 
     const reasonEnum = AssignmentReasonEnum.REASSIGNED;
 
@@ -47,7 +61,7 @@ export default class ManagedEventAssignmentReasonRecorder {
       reassignReason ? `. Reason: ${reassignReason}` : ""
     }`;
 
-    await assignmentReasonRepository.createAssignmentReason({
+    await this.assignmentReasonRepository.createAssignmentReason({
       bookingId: newBookingId,
       reasonEnum,
       reasonString,
@@ -60,3 +74,8 @@ export default class ManagedEventAssignmentReasonRecorder {
   }
 }
 
+/**
+ * @deprecated Use ManagedEventAssignmentReasonService instead
+ * Kept for backward compatibility
+ */
+export default class ManagedEventAssignmentReasonRecorder extends ManagedEventAssignmentReasonService {}
