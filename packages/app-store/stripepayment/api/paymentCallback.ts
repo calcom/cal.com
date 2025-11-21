@@ -1,4 +1,3 @@
-import { randomBytes, createHash } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
@@ -9,6 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { VerificationTokenService } from "@calcom/lib/server/service/VerificationTokenService";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -73,6 +73,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     log.error("Could not find user");
     throw new HttpError({ statusCode: 404, message: "User not found", url: req.url, method: req.method });
   }
+
   const username = stripeCustomer.metadata.username;
   const email = user.email || stripeCustomer.email;
 
@@ -111,19 +112,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  // Generate a verification token for NextAuth
-  const token = randomBytes(32).toString("hex");
-  const ONE_DAY_IN_SECONDS = 86400;
-  const expires = new Date(Date.now() + ONE_DAY_IN_SECONDS * 1000);
+  const expires = new Date(Date.now() + 86400 * 1000); // 1 day
 
-  // Create verification token in database
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token: createHash("sha256").update(`${token}${process.env.NEXTAUTH_SECRET}`).digest("hex"),
-      expires,
-    },
-  });
+  const token = await VerificationTokenService.create({ identifier: email, expires });
 
   // Generate the callback URL with token
   const params = new URLSearchParams({
