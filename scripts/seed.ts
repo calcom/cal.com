@@ -184,17 +184,22 @@ async function createPlatformAndSetupUser({
       },
     });
 
-    await prisma.platformOAuthClient.create({
-      data: {
-        name: "Acme",
-        redirectUris: ["http://localhost:4321"],
-        permissions: 1023,
-        areEmailsEnabled: true,
-        organizationId: team.id,
-        id: process.env.SEED_PLATFORM_OAUTH_CLIENT_ID || "",
-        secret: process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET || "",
-      },
-    });
+    const clientId = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID;
+    const secret = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET;
+
+    if (clientId && secret) {
+      await prisma.platformOAuthClient.create({
+        data: {
+          name: "Acme",
+          redirectUris: ["http://localhost:4321"],
+          permissions: 1023,
+          areEmailsEnabled: true,
+          organizationId: team.id,
+          id: clientId,
+          secret,
+        },
+      });
+    }
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
   }
 }
