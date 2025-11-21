@@ -21,6 +21,7 @@ export const telemetryEventTypes = {
   slugReplacementAction: "slug_replacement_action",
   org_created: "org_created",
   license_key_created: "license_key_created",
+  calendar_cache_events: "calendar_cache_events",
 };
 
 export function collectPageParameters(
@@ -85,7 +86,7 @@ export const nextCollectBasicSettings: CollectOpts = {
 
 export const extendEventData = (
   req: NextRequest | NextApiRequest,
-  res: NextResponse | NextApiResponse,
+  _res: NextResponse | NextApiResponse,
   original: { page_url: string; isTeamBooking: boolean }
 ) => {
   const onVercel =
