@@ -6,7 +6,7 @@ export const OrganizerReassignedEmail = (props: React.ComponentProps<typeof Orga
   const t = props.teamMember?.language.translate || props.calEvent.organizer.language.translate;
   const isRoundRobin = props.calEvent.schedulingType === SchedulingType.ROUND_ROBIN;
   const subtitle = isRoundRobin ? t("event_reassigned_subtitle") : t("event_reassigned_subtitle_generic");
-  
+
   return (
     <OrganizerScheduledEmail
       title="event_request_reassigned"

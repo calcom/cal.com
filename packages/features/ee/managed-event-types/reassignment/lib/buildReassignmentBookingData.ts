@@ -3,21 +3,11 @@ import { v5 as uuidv5 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { APP_NAME } from "@calcom/lib/constants";
 import type { Booking, EventType, User, Attendee, Payment, Prisma } from "@calcom/prisma/client";
 
 const translator = short();
-
-const CANCELLATION_SELECT = {
-  id: true,
-  uid: true,
-  metadata: true,
-  status: true,
-} as const satisfies Prisma.BookingSelect;
-
-export type CancelledBookingResult = Prisma.BookingGetPayload<{ select: typeof CANCELLATION_SELECT }>;
 
 interface BuildReassignmentBookingDataParams {
   originalBooking: Pick<
@@ -52,12 +42,12 @@ interface BuildReassignmentBookingDataParams {
   reassignedById: number;
 }
 
-export async function buildReassignmentBookingData({
+export async function buildNewBookingData({
   originalBooking,
   targetEventType,
   newUser,
   reassignedById,
-}: BuildReassignmentBookingDataParams) {
+}: BuildReassignmentBookingDataParams): Promise<Prisma.BookingCreateInput> {
   const bookerName = originalBooking.attendees[0]?.name || "Nameless";
   const newUserT = await getTranslation(newUser.locale || "en", "common");
 
@@ -72,7 +62,7 @@ export async function buildReassignmentBookingData({
       typeof originalBooking.responses === "object" &&
       originalBooking.responses !== null &&
       !Array.isArray(originalBooking.responses)
-        ? (originalBooking.responses as unknown as Prisma.JsonObject)
+        ? (originalBooking.responses as Prisma.JsonObject)
         : null,
     eventDuration: dayjs(originalBooking.endTime).diff(originalBooking.startTime, "minutes"),
     t: newUserT,
@@ -81,7 +71,7 @@ export async function buildReassignmentBookingData({
   const seed = `${newUser.username}:${dayjs(originalBooking.startTime).utc().format()}:${Date.now()}:reassignment`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const newBookingData: Prisma.BookingCreateInput = {
+  return {
     uid,
     userPrimaryEmail: newUser.email,
     responses: originalBooking.responses === null ? undefined : originalBooking.responses,
@@ -89,7 +79,12 @@ export async function buildReassignmentBookingData({
     startTime: originalBooking.startTime,
     endTime: originalBooking.endTime,
     description: originalBooking.description,
-    customInputs: isPrismaObjOrUndefined(originalBooking.customInputs),
+    customInputs:
+      typeof originalBooking.customInputs === "object" && 
+      originalBooking.customInputs !== null &&
+      !Array.isArray(originalBooking.customInputs)
+        ? originalBooking.customInputs
+        : undefined,
     status: originalBooking.status,
     location: originalBooking.location,
     eventType: { connect: { id: targetEventType.id } },
@@ -123,8 +118,19 @@ export async function buildReassignmentBookingData({
       reassignedById,
     }),
   };
+}
 
-  const originalBookingCancellationData = {
+export function buildCancellationData({
+  originalBooking,
+  newUser,
+}: {
+  originalBooking: Pick<Booking, "id" | "metadata">;
+  newUser: Pick<User, "name" | "email">;
+}): {
+  where: Prisma.BookingWhereUniqueInput;
+  data: Omit<Prisma.BookingUpdateInput, "status">;
+} {
+  return {
     where: { id: originalBooking.id },
     data: {
       cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
@@ -132,9 +138,6 @@ export async function buildReassignmentBookingData({
         typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
           ? originalBooking.metadata
           : undefined,
-    } as Omit<Prisma.BookingUpdateInput, "status">,
-    select: CANCELLATION_SELECT,
+    },
   };
-
-  return { newBookingData, originalBookingCancellationData };
 }
