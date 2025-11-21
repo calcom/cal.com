@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { CredentialNotFoundError, CredentialAccessDeniedError } from "@calcom/features/credentials/errors";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
 
 import { CredentialAccessService } from "./CredentialAccessService";
@@ -57,7 +58,7 @@ describe("CredentialAccessService", () => {
       delegationCredentialId: null,
     } as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,
@@ -86,7 +87,7 @@ describe("CredentialAccessService", () => {
       delegationCredentialId: null,
     } as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,
@@ -125,7 +126,7 @@ describe("CredentialAccessService", () => {
 
     vi.mocked(UserRepository).mockImplementation(() => mockUserRepo as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,
@@ -170,7 +171,7 @@ describe("CredentialAccessService", () => {
 
     vi.mocked(UserRepository).mockImplementation(() => mockUserRepo as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,
@@ -209,7 +210,7 @@ describe("CredentialAccessService", () => {
 
     vi.mocked(UserRepository).mockImplementation(() => mockUserRepo as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,
@@ -226,7 +227,7 @@ describe("CredentialAccessService", () => {
 
     vi.mocked(CredentialRepository.findFirstByIdWithKeyAndUser).mockResolvedValue(null);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     const error = await service
       .ensureAccessible({
         credentialId,
@@ -235,8 +236,7 @@ describe("CredentialAccessService", () => {
       })
       .catch((e) => e);
 
-    expect(error).toBeInstanceOf(HttpError);
-    expect(error.statusCode).toBe(404);
+    expect(error).toBeInstanceOf(CredentialNotFoundError);
     expect(error.message).toBe("Credential not found");
   });
 
@@ -275,7 +275,7 @@ describe("CredentialAccessService", () => {
 
     vi.mocked(UserRepository).mockImplementation(() => mockUserRepo as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     const error = await service
       .ensureAccessible({
         credentialId,
@@ -284,8 +284,7 @@ describe("CredentialAccessService", () => {
       })
       .catch((e) => e);
 
-    expect(error).toBeInstanceOf(HttpError);
-    expect(error.statusCode).toBe(403);
+    expect(error).toBeInstanceOf(CredentialAccessDeniedError);
     expect(error.message).toBe("You do not have access to this credential");
   });
 
@@ -308,7 +307,7 @@ describe("CredentialAccessService", () => {
       delegationCredentialId: null,
     } as any);
 
-    const service = new CredentialAccessService();
+    const service = new CredentialAccessService(prisma as any);
     await expect(
       service.ensureAccessible({
         credentialId,

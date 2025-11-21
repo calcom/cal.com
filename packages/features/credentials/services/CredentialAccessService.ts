@@ -1,8 +1,7 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { CredentialNotFoundError, CredentialAccessDeniedError } from "@calcom/features/credentials/errors";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HttpError } from "@calcom/lib/http-error";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
 
 type CredentialAccessInput = {
   credentialId: number;
@@ -18,7 +17,7 @@ type UserTeamsData = {
 export class CredentialAccessService {
   private readonly userRepository: UserRepository;
 
-  constructor(private readonly prismaClient: PrismaClient = prisma) {
+  constructor(private readonly prismaClient: PrismaClient) {
     this.userRepository = new UserRepository(this.prismaClient);
   }
 
@@ -45,10 +44,7 @@ export class CredentialAccessService {
     });
 
     if (!credential) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Credential not found",
-      });
+      throw new CredentialNotFoundError("Credential not found");
     }
 
     return credential;
@@ -122,9 +118,6 @@ export class CredentialAccessService {
   }
 
   private throwForbiddenError(): never {
-    throw new HttpError({
-      statusCode: 403,
-      message: "You do not have access to this credential",
-    });
+    throw new CredentialAccessDeniedError("You do not have access to this credential");
   }
 }
