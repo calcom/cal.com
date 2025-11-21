@@ -1,0 +1,53 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { validateMintlifyConfig } from "@calcom/lib/server/mintlifyChatValidation";
+
+/**
+ * POST /api/mintlify-chat/topic
+ * 
+ * Creates a new Mintlify chat topic.
+ * This endpoint proxies requests to Mintlify's API while keeping
+ * the API key secure on the server side.
+ */
+export async function POST(_req: NextRequest) {
+  try {
+    // Validate configuration
+    const { apiKey, apiBaseUrl } = validateMintlifyConfig();
+
+    // Make request to Mintlify
+    const topicResponse = await fetch(`${apiBaseUrl}/topic`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!topicResponse.ok) {
+      return NextResponse.json(
+        { error: "Failed to create topic" },
+        { status: topicResponse.status }
+      );
+    }
+
+    const topic = await topicResponse.json();
+
+    return NextResponse.json(topic);
+  } catch (error) {
+    console.error("[Mintlify Chat Topic]", error);
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+

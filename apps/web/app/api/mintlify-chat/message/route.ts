@@ -1,0 +1,118 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import {
+  validateChatMessage,
+  validateMintlifyConfig,
+  sanitizeResponseHeaders,
+} from "@calcom/lib/server/mintlifyChatValidation";
+
+/**
+ * POST /api/mintlify-chat/message
+ * 
+ * Sends a message to a Mintlify chat topic and streams the response.
+ * This endpoint proxies requests to Mintlify's API while:
+ * - Keeping the API key secure on the server side
+ * - Validating and sanitizing user input
+ * - Preventing malicious payloads
+ * 
+ * Expected body:
+ * {
+ *   message: string,
+ *   topicId: string
+ * }
+ */
+export async function POST(req: NextRequest) {
+  try {
+    // Validate configuration
+    const { apiKey, apiBaseUrl } = validateMintlifyConfig();
+
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON payload" },
+        { status: 400 }
+      );
+    }
+
+    // Validate and sanitize the message payload
+    const { message, topicId } = validateChatMessage(body);
+
+    // Make request to Mintlify
+    const queryResponse = await fetch(`${apiBaseUrl}/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ message, topicId }),
+    });
+
+    if (!queryResponse.ok) {
+      return NextResponse.json(
+        { error: "Failed to send message" },
+        { status: queryResponse.status }
+      );
+    }
+
+    if (!queryResponse.body) {
+      return NextResponse.json(
+        { error: "No response body from Mintlify" },
+        { status: 500 }
+      );
+    }
+
+    // Sanitize response headers before forwarding
+    const sanitizedHeaders = sanitizeResponseHeaders(queryResponse.headers);
+
+    // Stream the response back to the client
+    // We need to pipe the ReadableStream from Mintlify directly to the client
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = queryResponse.body!.getReader();
+        
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            
+            if (done) {
+              controller.close();
+              break;
+            }
+            
+            controller.enqueue(value);
+          }
+        } catch (error) {
+          console.error("[Mintlify Chat Message Stream]", error);
+          controller.error(error);
+        }
+      },
+    });
+
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        ...sanitizedHeaders,
+      },
+    });
+  } catch (error) {
+    console.error("[Mintlify Chat Message]", error);
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+

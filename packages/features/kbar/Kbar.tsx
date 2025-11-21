@@ -17,7 +17,6 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -26,9 +25,6 @@ import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
 type shortcutArrayType = {
   shortcuts?: string[];
 };
-
-type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
-type EventTypeGroup = EventTypeGroups[number];
 
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
   id: slug,
@@ -242,7 +238,6 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       },
       ...appStoreActions,
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
@@ -253,7 +248,7 @@ export const KBarContent = () => {
   useEventTypesAction();
   const [inputText, setInputText] = useState("");
   const [aiResponse, setAiResponse] = useState("");
-  const showAiChat = process.env.NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY && process.env.NEXT_PUBLIC_CHAT_API_URL;
+  const showAiChat = process.env.NEXT_PUBLIC_CHAT_API_URL;
 
   return (
     <KBarPortal>
