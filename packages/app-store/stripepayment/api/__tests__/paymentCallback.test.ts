@@ -25,7 +25,14 @@ vi.mock("@calcom/lib/server/service/VerificationTokenService");
 const mockGetCustomerAndCheckoutSession = vi.mocked(getCustomerAndCheckoutSession);
 const mockSendVerificationRequest = vi.mocked(sendVerificationRequest);
 const mockVerificationTokenService = vi.mocked(VerificationTokenService);
-const mockPrisma = vi.mocked(prisma);
+
+// Type the mocked prisma properly
+const mockPrisma = prisma as unknown as {
+  user: {
+    findFirst: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+  };
+};
 
 describe("paymentCallback", () => {
   let mockReq: Partial<NextApiRequest>;
