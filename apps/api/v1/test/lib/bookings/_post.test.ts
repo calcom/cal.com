@@ -731,4 +731,119 @@ describe("POST /api/bookings", () => {
       expect(data.bookings.length).toEqual(12);
     });
   });
+
+  describe("Email Validation for Legacy customInputs Path", () => {
+    describe("Invalid primary email", () => {
+      test("should return 400 with ZodError message for invalid primary email", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "Test User",
+            start: dayjs().add(1, "day").format(),
+            end: dayjs().add(1, "day").add(15, "minutes").format(),
+            eventTypeId: 1,
+            email: "rua juranda 172", // Invalid email (street address)
+            guests: [],
+            notes: "",
+            location: "Cal.com Video",
+            smsReminderNumber: null,
+            rescheduleReason: "",
+            timeZone: "America/Sao_Paulo",
+            language: "pt-BR",
+            customInputs: [],
+            metadata: {},
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
+          ...buildEventType({ profileId: null, length: 15 }),
+          profile: { organizationId: null },
+          hosts: [],
+          users: [buildUser()],
+        });
+
+        await handler(req, res);
+
+        expect(res._getStatusCode()).toBe(400);
+        const responseData = JSON.parse(res._getData());
+        expect(responseData.message).toContain("Invalid email");
+      });
+    });
+
+    describe("Invalid guest email", () => {
+      test("should return 400 with ZodError message for invalid guest email", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "Test User",
+            start: dayjs().add(1, "day").format(),
+            end: dayjs().add(1, "day").add(15, "minutes").format(),
+            eventTypeId: 1,
+            email: "valid@example.com",
+            guests: ["claudovinorosaNúmero 530 novo SãoGeraldo"], // Invalid guest email (street address)
+            notes: "",
+            location: "Cal.com Video",
+            smsReminderNumber: null,
+            rescheduleReason: "",
+            timeZone: "America/Sao_Paulo",
+            language: "pt-BR",
+            customInputs: [],
+            metadata: {},
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
+          ...buildEventType({ profileId: null, length: 15 }),
+          profile: { organizationId: null },
+          hosts: [],
+          users: [buildUser()],
+        });
+
+        await handler(req, res);
+
+        expect(res._getStatusCode()).toBe(400);
+        const responseData = JSON.parse(res._getData());
+        expect(responseData.message).toContain("Invalid guest email");
+      });
+    });
+
+    describe("Valid emails succeed", () => {
+      test("should succeed with valid primary and guest emails", async () => {
+        const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+          method: "POST",
+          body: {
+            name: "Test User",
+            start: dayjs().add(1, "day").format(),
+            end: dayjs().add(1, "day").add(15, "minutes").format(),
+            eventTypeId: 1,
+            email: "valid@example.com",
+            guests: ["guest1@example.com", "guest2@example.com"],
+            notes: "",
+            location: "Cal.com Video",
+            smsReminderNumber: null,
+            rescheduleReason: "",
+            timeZone: "America/Sao_Paulo",
+            language: "pt-BR",
+            customInputs: [],
+            metadata: {},
+          },
+          prisma,
+        });
+
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
+          ...buildEventType({ profileId: null, length: 15 }),
+          profile: { organizationId: null },
+          hosts: [],
+          users: [buildUser()],
+        });
+
+        await handler(req, res);
+
+        const statusCode = res._getStatusCode();
+        expect(statusCode).not.toBe(400);
+      });
+    });
+  });
 });
