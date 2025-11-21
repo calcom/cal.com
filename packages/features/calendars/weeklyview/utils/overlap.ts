@@ -74,7 +74,7 @@ function calculateVariableWidths(
   curveExponent: number
 ): number[] {
   if (groupSize <= 1) {
-    return [80]; // Single event gets full width
+    return [100]; // Single event gets full width (100%)
   }
   
   // Define anchor points for first and last widths based on group size

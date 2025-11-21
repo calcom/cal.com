@@ -163,7 +163,7 @@ describe("overlap utility", () => {
       expect(layouts).toHaveLength(1);
       expect(layouts[0].event.id).toBe(1);
       expect(layouts[0].leftOffsetPercent).toBe(0);
-      expect(layouts[0].widthPercent).toBe(80);
+      expect(layouts[0].widthPercent).toBe(99.5);
       expect(layouts[0].baseZIndex).toBe(60);
       expect(layouts[0].groupIndex).toBe(0);
       expect(layouts[0].indexInGroup).toBe(0);

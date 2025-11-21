@@ -11,11 +11,11 @@ const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
 };
 
-const getBaseProps = (events: CalendarEvent[]): CalendarComponentProps => ({
+const getBaseProps = (events: CalendarEvent[], startHour: number = 6): CalendarComponentProps => ({
   startDate: dayjs("2025-01-06").toDate(), // Monday
   endDate: dayjs("2025-01-12").toDate(), // Sunday
   events,
-  startHour: 6,
+  startHour,
   endHour: 18,
   gridCellsPerHour: 4,
   timezone: "UTC",
@@ -32,6 +32,7 @@ type Scenario = {
   description: string;
   expected: string;
   events: CalendarEvent[];
+  startHour: number;
 };
 
 const scenarios: Scenario[] = [
@@ -41,6 +42,7 @@ const scenarios: Scenario[] = [
     description: "Two events with overlapping time ranges on the same day",
     expected:
       "First event 80% width at left edge (0%), second event 50% width aligned to right edge (49.5% offset). Events spread across full width for maximum visual distinction. Hover should bring event to front.",
+    startHour: 9,
     events: [
       {
         id: 1,
@@ -64,6 +66,7 @@ const scenarios: Scenario[] = [
     description: "Three events that overlap, creating a cascading effect",
     expected:
       "Events spread across full width with variable widths (55%, ~42%, 33%). Offsets: 0%, ~35%, 66.5% (last event aligned to right edge). Right edges evenly distributed for maximum scatter. Z-index should increment. Hover brings any to top.",
+    startHour: 9,
     events: [
       {
         id: 3,
@@ -92,7 +95,8 @@ const scenarios: Scenario[] = [
     id: "non-overlapping",
     title: "Non-Overlapping Events",
     description: "Events that don't overlap should not cascade",
-    expected: "Both events at 0% offset (separate groups), no cascade. Both should be 80% width.",
+    expected: "Both events at 0% offset (separate groups), no cascade. Both should be 100% width.",
+    startHour: 9,
     events: [
       {
         id: 6,
@@ -115,6 +119,7 @@ const scenarios: Scenario[] = [
     title: "Same Start Time, Different Durations",
     description: "Multiple events starting at the same time with varying lengths",
     expected: "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
+    startHour: 9,
     events: [
       {
         id: 8,
@@ -144,6 +149,7 @@ const scenarios: Scenario[] = [
     title: "Four Overlapping Events",
     description: "Four events that overlap simultaneously",
     expected: "Events spread across full width with variable widths (40%, ~33%, ~28%, 25%). Last event aligned to right edge. Right edges evenly distributed for maximum scatter.",
+    startHour: 9,
     events: [
       {
         id: 11,
@@ -181,6 +187,7 @@ const scenarios: Scenario[] = [
     description: "A very busy day with many overlapping events",
     expected:
       "Visually tight stack with multiple cascading levels. Right edge should not overflow. Hover should still work.",
+    startHour: 8,
     events: [
       {
         id: 14,
@@ -335,7 +342,8 @@ const scenarios: Scenario[] = [
     id: "touching-events",
     title: "Touching Events (Edge Case)",
     description: "Events that touch exactly at boundaries",
-    expected: "Separate groups; no cascade; both at 0% offset. Events touching at 11:00 should not overlap.",
+    expected: "Separate groups; no cascade; both at 0% offset. Both should be 100% width. Events touching at 11:00 should not overlap.",
+    startHour: 9,
     events: [
       {
         id: 25,
@@ -359,6 +367,7 @@ const scenarios: Scenario[] = [
     description: "Events with different booking statuses",
     expected:
       "Visual styling should differ by status (ACCEPTED, PENDING, CANCELLED). Cascade should still work.",
+    startHour: 13,
     events: [
       {
         id: 27,
@@ -389,6 +398,7 @@ const scenarios: Scenario[] = [
     description: "Events with different durations to test layout logic (eventDuration > 30 changes flex-col)",
     expected:
       "Events ≤30min show horizontal layout (title and time inline). Events >30min show vertical layout (title and time stacked).",
+    startHour: 8,
     events: [
       {
         id: 40,
@@ -473,7 +483,7 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
       </div>
 
       <div className="h-[600px] overflow-hidden rounded border">
-        <Calendar {...getBaseProps(scenario.events)} />
+        <Calendar {...getBaseProps(scenario.events, scenario.startHour)} />
       </div>
 
       <button
