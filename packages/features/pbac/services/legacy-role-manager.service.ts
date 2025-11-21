@@ -1,5 +1,5 @@
 import { isTeamOwner } from "@calcom/features/ee/teams/lib/queries";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -84,7 +84,10 @@ export class LegacyRoleManager implements IRoleManager {
       });
       hasPermission = !!team;
     } else {
-      hasPermission = !!(await isOrganisationAdmin(userId, targetId));
+      hasPermission =
+        newRole === MembershipRole.OWNER
+          ? !!(await isOrganisationOwner(userId, targetId))
+          : !!(await isOrganisationAdmin(userId, targetId));
     }
 
     // Only OWNER/ADMIN can update role
@@ -112,7 +115,7 @@ export class LegacyRoleManager implements IRoleManager {
     organizationId: number,
     role: MembershipRole | string,
     // Used in other implementation
-     
+
     _membershipId: number
   ): Promise<void> {
     await prisma.membership.update({
@@ -129,7 +132,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-   
+
   async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
@@ -139,7 +142,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-   
+
   async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
