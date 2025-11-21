@@ -1,5 +1,3 @@
-import { createId } from "@paralleldrive/cuid2";
-import jwt from "jsonwebtoken";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -49,20 +47,6 @@ const checkUnpublishedTeam = async (slug: string) => {
       },
     },
   });
-};
-
-const generatePlatformOAuthClientSecret = (data: Record<string, unknown>) => {
-  const jwtSecret = process.env.CALENDSO_ENCRYPTION_KEY || "secret";
-  const issuedAtTime = Math.floor(Date.now() / 1000);
-
-  return jwt.sign(
-    {
-      ...data,
-      iat: issuedAtTime,
-    },
-    jwtSecret,
-    { algorithm: "HS256" }
-  );
 };
 
 const setupPlatformUser = async (user: PlatformUser) => {
@@ -200,16 +184,6 @@ async function createPlatformAndSetupUser({
       },
     });
 
-    const secret = generatePlatformOAuthClientSecret({
-      name: "Acme",
-      redirectUris: ["http://localhost:4321"],
-      permissions: 1023,
-      areEmailsEnabled: true,
-      bookingRedirectUri: "",
-      bookingCancelRedirectUri: "",
-      bookingRescheduleRedirectUri: "",
-    });
-
     await prisma.platformOAuthClient.create({
       data: {
         name: "Acme",
@@ -217,8 +191,9 @@ async function createPlatformAndSetupUser({
         permissions: 1023,
         areEmailsEnabled: true,
         organizationId: team.id,
-        id: createId(),
-        secret,
+        id: "clxyyy21o0003sbk7yw5z6tzg",
+        secret:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
@@ -1560,7 +1535,7 @@ async function main() {
 
 async function runSeed() {
   await prisma.$connect();
-
+  
   await mainAppStore();
   await main();
   await mainHugeEventTypesSeed();
