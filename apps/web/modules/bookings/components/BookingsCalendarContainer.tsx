@@ -31,6 +31,43 @@ const weekStartParser = createParser({
   serialize: (value: dayjs.Dayjs) => value.format("YYYY-MM-DD"),
 });
 
+/**
+ * Custom hook to manage allowed filters for calendar view
+ * - Auto-selects first allowed filter when no filters are active
+ * - Removes disallowed filters when transitioning from list view
+ */
+function useAllowedFilters({
+  canReadOthersBookings,
+  activeFilters,
+  setActiveFilters,
+}: {
+  canReadOthersBookings: boolean;
+  activeFilters: Array<{ f: string }>;
+  setActiveFilters: (filters: Array<{ f: string }>) => void;
+}) {
+  const allowedFilterIds = useMemo(() => (canReadOthersBookings ? ["userId"] : []), [canReadOthersBookings]);
+
+  useEffect(() => {
+    // Auto-select first allowed filter when no filters are active and filters are available
+    // Actually this is to show "Member" filter automatically for owner / admin users,
+    // because we only support that filter on the calendar view.
+    if (activeFilters.length === 0 && allowedFilterIds.length > 0) {
+      setActiveFilters([{ f: allowedFilterIds[0] }]);
+      return;
+    }
+
+    // Clear all the non-allowed filters (in case coming from list view)
+    const filteredActiveFilters = activeFilters.filter((filter) => allowedFilterIds.includes(filter.f));
+    const hasDisallowedFilters = filteredActiveFilters.length !== activeFilters.length;
+
+    if (hasDisallowedFilters) {
+      setActiveFilters(filteredActiveFilters);
+    }
+  }, [allowedFilterIds, activeFilters, setActiveFilters]);
+
+  return allowedFilterIds;
+}
+
 interface BookingsCalendarContainerProps {
   status: BookingListingStatus;
   permissions: {
@@ -44,6 +81,7 @@ interface BookingsCalendarInnerProps extends BookingsCalendarContainerProps {
     recurringInfo: BookingsGetOutput["recurringInfo"];
     totalCount: BookingsGetOutput["totalCount"];
   };
+  allowedFilterIds: string[];
   isPending: boolean;
   hasError: boolean;
   errorMessage?: string;
@@ -53,6 +91,7 @@ function BookingsCalendarInner({
   status,
   permissions,
   data,
+  allowedFilterIds,
   isPending,
   hasError,
   errorMessage,
@@ -70,8 +109,10 @@ function BookingsCalendarInner({
   ) : undefined;
 
   const columns = useMemo(() => {
-    return buildFilterColumns({ t, permissions, status });
-  }, [t, permissions, status]);
+    return buildFilterColumns({ t, permissions, status }).filter((column) =>
+      allowedFilterIds.includes(column.id || "")
+    );
+  }, [allowedFilterIds, t, permissions, status]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
@@ -161,6 +202,7 @@ function BookingsCalendarInner({
       <BookingsCalendar
         status={status}
         table={table}
+        showFilterBar={allowedFilterIds.length > 0}
         isPending={isPending}
         currentWeekStart={currentWeekStart}
         setCurrentWeekStart={setCurrentWeekStart}
@@ -180,31 +222,20 @@ function BookingsCalendarInner({
 }
 
 export function BookingsCalendarContainer(props: BookingsCalendarContainerProps) {
-  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
-    useBookingFilters();
+  const { canReadOthersBookings } = props.permissions;
+  const { userIds } = useBookingFilters();
 
   const [currentWeekStart] = useQueryState("weekStart", weekStartParser.withDefault(dayjs().startOf("week")));
-  const [, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
+  const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
 
-  // Clear dateRange filter whenever it exists in calendar view
-  // Calendar view uses currentWeekStart for date navigation instead of dateRange filter
-  useEffect(() => {
-    if (dateRange) {
-      setActiveFilters((prev) => prev?.filter((filter) => filter.f !== "dateRange") ?? []);
-    }
-  }, [dateRange, setActiveFilters]);
+  const allowedFilterIds = useAllowedFilters({ canReadOthersBookings, activeFilters, setActiveFilters });
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 100, // Use max limit for calendar view
       filters: {
         statuses: STATUSES,
-        eventTypeIds,
-        teamIds,
         userIds,
-        attendeeName,
-        attendeeEmail,
-        bookingUid,
         // Always fetch only the current week for calendar view
         afterStartDate: currentWeekStart.startOf("day").toISOString(),
         beforeEndDate: currentWeekStart.add(6, "day").endOf("day").toISOString(),
@@ -248,6 +279,7 @@ export function BookingsCalendarContainer(props: BookingsCalendarContainerProps)
       <BookingsCalendarInner
         {...props}
         data={data}
+        allowedFilterIds={allowedFilterIds}
         isPending={query.isPending}
         hasError={!!query.error}
         errorMessage={query.error?.message}
