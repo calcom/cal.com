@@ -161,7 +161,6 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ profileId: null, length: 15 }),
-        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
@@ -200,7 +199,6 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ profileId: null, length: 15 }),
-        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
@@ -239,7 +237,6 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
 
       prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
         ...buildEventType({ profileId: null, length: 15 }),
-        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
         profile: { organizationId: null },
         hosts: [],
         users: [buildUser()],
