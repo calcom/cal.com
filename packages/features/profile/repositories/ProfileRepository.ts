@@ -62,6 +62,23 @@ const organizationWithSettingsSelect = {
   },
 };
 
+const organizationWithSettingsAndMembersSelect = {
+  ...organizationSelect,
+  isPrivate: true,
+  organizationSettings: {
+    select: {
+      lockEventTypeCreationForUsers: true,
+      allowSEOIndexing: true,
+    },
+  },
+  members: {
+    select: membershipSelect,
+    where: {
+      accepted: true,
+    },
+  },
+};
+
 const profileSelect = {
   id: true,
   uid: true,
@@ -462,33 +479,7 @@ export class ProfileRepository {
           },
         },
         organization: {
-          select: {
-            id: true,
-            logoUrl: true,
-            name: true,
-            slug: true,
-            metadata: true,
-            bannerUrl: true,
-            isPrivate: true,
-            isPlatform: true,
-            hideBranding: true,
-            brandColor: true,
-            darkBrandColor: true,
-            theme: true,
-            organizationSettings: {
-              select: {
-                lockEventTypeCreationForUsers: true,
-                allowSEOIndexing: true,
-              },
-            },
-            members: {
-              distinct: ["role"],
-              select: membershipSelect,
-              where: {
-                accepted: true,
-              },
-            },
-          },
+          select: organizationWithSettingsAndMembersSelect,
         },
       },
     });
@@ -538,31 +529,7 @@ export class ProfileRepository {
         include: {
           user: { select: userSelect },
           organization: {
-            select: {
-              id: true,
-              logoUrl: true,
-              name: true,
-              slug: true,
-              metadata: true,
-              bannerUrl: true,
-              isPrivate: true,
-              isPlatform: true,
-              hideBranding: true,
-              brandColor: true,
-              darkBrandColor: true,
-              theme: true,
-              organizationSettings: {
-                select: {
-                  lockEventTypeCreationForUsers: true,
-                  allowSEOIndexing: true,
-                },
-              },
-              members: {
-                distinct: ["role"],
-                select: membershipSelect,
-                where: { accepted: true },
-              },
-            },
+            select: organizationWithSettingsAndMembersSelect,
           },
         },
       });
@@ -594,7 +561,6 @@ export class ProfileRepository {
                 },
               },
               members: {
-                distinct: ["role"],
                 select: membershipSelect,
                 where: {
                   accepted: true,
@@ -726,7 +692,6 @@ export class ProfileRepository {
               },
             },
             members: {
-              distinct: ["role"],
               select: membershipSelect,
               where: {
                 accepted: true,
