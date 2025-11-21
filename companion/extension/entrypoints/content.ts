@@ -188,10 +188,15 @@ export default defineContentScript({
       }
     });
 
-    // Gmail integration function
-    function initGmailIntegration() {
-      // Function to inject Cal.com button as a new table cell after Send button
-      function injectCalButton() {
+        // Gmail integration function
+        function initGmailIntegration() {
+          // Cache for event types (refreshed on page reload)
+          let eventTypesCache: any[] | null = null;
+          let cacheTimestamp: number | null = null;
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+          // Function to inject Cal.com button as a new table cell after Send button
+          function injectCalButton() {
         // Look specifically for Gmail compose Send buttons - they have specific attributes
         // Gmail Send button usually has div[role="button"] with specific data attributes inside a td
         const sendButtons = document.querySelectorAll('div[role="button"][data-tooltip="Send ‪(Ctrl-Enter)‬"], div[role="button"][data-tooltip*="Send"], div[role="button"][aria-label*="Send"]');
@@ -335,43 +340,57 @@ export default defineContentScript({
           
           async function fetchEventTypes(menu) {
             try {
-              // Check if extension context is valid
-              if (!chrome.runtime?.id) {
-                throw new Error('Extension context invalidated. Please reload the page.');
-              }
-
-              // Use chrome.runtime.sendMessage to make API call through background script
-              const response = await new Promise((resolve, reject) => {
-                try {
-                  chrome.runtime.sendMessage(
-                    { action: 'fetch-event-types' },
-                    (response) => {
-                      if (chrome.runtime.lastError) {
-                        reject(new Error(chrome.runtime.lastError.message));
-                      } else if (response && response.error) {
-                        reject(new Error(response.error));
-                      } else {
-                        resolve(response);
-                      }
-                    }
-                  );
-                } catch (err) {
-                  reject(err);
-                }
-              });
+              // Check cache first
+              const now = Date.now();
+              const isCacheValid = eventTypesCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION;
               
               let eventTypes: any[] = [];
-              if (response && (response as any).data) {
-                eventTypes = (response as any).data;
-              } else if (Array.isArray(response)) {
-                eventTypes = response;
-              } else {
-                eventTypes = [];
-              }
               
-              // Ensure eventTypes is an array
-              if (!Array.isArray(eventTypes)) {
-                eventTypes = [];
+              if (isCacheValid) {
+                // Use cached data
+                eventTypes = eventTypesCache!;
+              } else {
+                // Check if extension context is valid
+                if (!chrome.runtime?.id) {
+                  throw new Error('Extension context invalidated. Please reload the page.');
+                }
+
+                // Fetch fresh data from background script
+                const response = await new Promise((resolve, reject) => {
+                  try {
+                    chrome.runtime.sendMessage(
+                      { action: 'fetch-event-types' },
+                      (response) => {
+                        if (chrome.runtime.lastError) {
+                          reject(new Error(chrome.runtime.lastError.message));
+                        } else if (response && response.error) {
+                          reject(new Error(response.error));
+                        } else {
+                          resolve(response);
+                        }
+                      }
+                    );
+                  } catch (err) {
+                    reject(err);
+                  }
+                });
+                
+                if (response && (response as any).data) {
+                  eventTypes = (response as any).data;
+                } else if (Array.isArray(response)) {
+                  eventTypes = response;
+                } else {
+                  eventTypes = [];
+                }
+                
+                // Ensure eventTypes is an array
+                if (!Array.isArray(eventTypes)) {
+                  eventTypes = [];
+                }
+                
+                // Update cache
+                eventTypesCache = eventTypes;
+                cacheTimestamp = now;
               }
               
               // Clear loading state
@@ -488,7 +507,7 @@ export default defineContentScript({
             const inserted = insertTextAtCursor(bookingUrl);
             
             if (inserted) {
-              showNotification('Link inserted into email!', 'success');
+              showNotification('Link inserted', 'success');
             } else {
               // Fallback: copy to clipboard if insertion fails
               navigator.clipboard.writeText(bookingUrl).then(() => {
@@ -511,7 +530,7 @@ export default defineContentScript({
             }
             
             // Focus the compose field
-            composeBody.focus();
+            (composeBody as HTMLElement).focus();
             
             // Get the current selection
             const selection = window.getSelection();
@@ -555,24 +574,62 @@ export default defineContentScript({
             const notification = document.createElement('div');
             notification.style.cssText = `
               position: fixed;
-              top: 20px;
-              right: 20px;
-              padding: 12px 16px;
-              background: ${type === 'success' ? '#137333' : '#d93025'};
+              bottom: 80px;
+              right: 80px;
+              padding: 10px 12px;
+              background: ${type === 'success' ? '#111827' : '#752522'};
               color: white;
-              border-radius: 4px;
+              border-radius: 8px;
               font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
               font-size: 14px;
+              font-weight: 600;
               z-index: 10000;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              opacity: 0;
+              transform: translateY(10px);
+              transition: opacity 0.2s ease, transform 0.2s ease;
             `;
-            notification.textContent = message;
+            
+            // Add check icon for success
+            if (type === 'success') {
+              const checkIcon = document.createElement('span');
+              checkIcon.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              `;
+              checkIcon.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+              `;
+              notification.appendChild(checkIcon);
+            }
+            
+            // Add message text
+            const messageText = document.createElement('span');
+            messageText.textContent = message;
+            notification.appendChild(messageText);
             
             document.body.appendChild(notification);
             
-            // Remove after 3 seconds
+            // Trigger fade-in animation
+            requestAnimationFrame(() => {
+              notification.style.opacity = '1';
+              notification.style.transform = 'translateY(0)';
+            });
+            
+            // Fade out and remove after 3 seconds
             setTimeout(() => {
-              notification.remove();
+              notification.style.opacity = '0';
+              notification.style.transform = 'translateY(10px)';
+              setTimeout(() => {
+                notification.remove();
+              }, 200);
             }, 3000);
           }
           
