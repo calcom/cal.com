@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "ext:build": "wxt build",
-    "ext:dev": "wxt dev",
+    "ext": "wxt",
     "ext:zip": "wxt zip"
   },
   "dependencies": {
@@ -39,6 +39,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/chrome": "^0.1.31",
     "babel-preset-expo": "^54.0.7",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.17",
