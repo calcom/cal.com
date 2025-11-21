@@ -227,6 +227,65 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
           await selectedSlotRepositoryFixture.deleteByUId(firstReservedSlotUid);
           await selectedSlotRepositoryFixture.deleteByUId(secondReservedSlotUid);
         });
+
+        it("should allow booking with second reservedSlotUid when the first reservation has expired", async () => {
+          const firstReservedSlotUid = `reserved-slot-first-expired-${randomString()}`;
+          const secondReservedSlotUid = `reserved-slot-second-active-${randomString()}`;
+
+          const startTime = new Date("2040-05-24T09:30:00.000Z");
+          const endTime = new Date("2040-05-24T10:30:00.000Z");
+
+          await selectedSlotRepositoryFixture.create({
+            userId: user.id,
+            eventTypeId,
+            uid: firstReservedSlotUid,
+            slotUtcStartDate: startTime,
+            slotUtcEndDate: endTime,
+            releaseAt: DateTime.utc().minus({ minutes: 1 }).toJSDate(),
+            isSeat: false,
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          await selectedSlotRepositoryFixture.create({
+            userId: user.id,
+            eventTypeId,
+            uid: secondReservedSlotUid,
+            slotUtcStartDate: startTime,
+            slotUtcEndDate: endTime,
+            releaseAt: DateTime.utc().plus({ minutes: 15 }).toJSDate(),
+            isSeat: false,
+          });
+
+          const bookingData: CreateBookingInput_2024_08_13 & { reservedSlotUid: string } = {
+            start: startTime.toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Test Attendee",
+              email: `reserved-slot-test-${randomString()}@example.com`,
+              timeZone: "Europe/Rome",
+            },
+            reservedSlotUid: secondReservedSlotUid,
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingData)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect((responseBody.data as BookingOutput_2024_08_13).id).toBeDefined();
+
+          const firstSlotStillExists = await selectedSlotRepositoryFixture.getByUid(firstReservedSlotUid);
+          const secondSlotRemoved = await selectedSlotRepositoryFixture.getByUid(secondReservedSlotUid);
+          expect(firstSlotStillExists).toBeTruthy();
+          expect(secondSlotRemoved).toBeNull();
+
+          await selectedSlotRepositoryFixture.deleteByUId(firstReservedSlotUid);
+        });
       });
 
       describe("recurring event type", () => {
