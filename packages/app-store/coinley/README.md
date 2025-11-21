@@ -1,12 +1,12 @@
 # Coinley Payment Integration
 
-Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support for USDT, USDC, DAI, and other major stablecoins across 8+ blockchains.
+Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support for USDT and USDC stablecoins across 9+ blockchains.
 
 ## Features
 
 - 🔐 **Direct to Wallet** - Payments go directly to your wallet, no intermediaries
-- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
-- 💰 **Multiple Currencies** - USDT, USDC, DAI, ETH, BNB, MATIC
+- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base, Solana
+- 💰 **Multiple Currencies** - USDT, USDC
 - 🚀 **Instant Settlement** - No waiting for payouts
 - 💵 **Low Fees** - 0.5% + $0.10 per transaction
 - 🔄 **Automatic Refunds** - Blockchain-based refund processing
