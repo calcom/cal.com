@@ -39,7 +39,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate and sanitize the message payload
-    const { message, topicId } = validateChatMessage(body);
+    let message: string;
+    let topicId: string;
+    
+    try {
+      const validated = validateChatMessage(body);
+      message = validated.message;
+      topicId = validated.topicId;
+    } catch (validationError) {
+      // For validation errors, return detailed message with 400
+      if (validationError instanceof Error) {
+        return NextResponse.json(
+          { error: validationError.message },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        { error: "Invalid request" },
+        { status: 400 }
+      );
+    }
 
     // Make request to Mintlify
     const queryResponse = await fetch(`${apiBaseUrl}/message`, {
@@ -102,15 +121,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[Mintlify Chat Message]", error);
     
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
+    // Return generic error message to avoid leaking internal details
+    // Validation errors are already handled above with specific messages
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to send message. Please try again later." },
       { status: 500 }
     );
   }

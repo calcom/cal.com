@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import * as mintlifyChatValidation from "@calcom/lib/server/mintlifyChatValidation";
@@ -8,6 +9,19 @@ import { POST as messagePOST } from "../message/route";
 
 // Mock fetch
 global.fetch = vi.fn();
+
+// Polyfill Response.json for test environment
+if (!Response.json) {
+  Response.json = function (data: unknown, init?: ResponseInit) {
+    return new Response(JSON.stringify(data), {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+    });
+  };
+}
 
 describe("Mintlify Chat Proxy Endpoints", () => {
   beforeEach(() => {
@@ -67,7 +81,8 @@ describe("Mintlify Chat Proxy Endpoints", () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe("MINTLIFY_CHAT_API_KEY is not configured");
+      // Generic error message - doesn't leak internal config details
+      expect(data.error).toBe("Failed to create topic. Please try again later.");
     });
 
     it("should handle Mintlify API errors", async () => {
@@ -331,21 +346,14 @@ describe("Mintlify Chat Proxy Endpoints", () => {
 
       const response = await messagePOST(request);
       
-      // Read the stream to check content
-      const reader = response.body?.getReader();
-      let content = "";
-      
-      if (reader) {
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          content += new TextDecoder().decode(value);
-        }
-      }
-
-      expect(content).not.toContain("test-api-key");
-      expect(content).not.toContain("Bearer");
+      // Verify no API key in response headers
       expect(response.headers.get("authorization")).toBeNull();
+      expect(response.headers.get("Authorization")).toBeNull();
+      
+      // Read response text (for non-stream responses in test env)
+      const responseText = await response.text();
+      expect(responseText).not.toContain("test-api-key");
+      expect(responseText).not.toContain("Bearer");
     });
 
     it("should handle missing message field", async () => {
@@ -393,7 +401,9 @@ describe("Mintlify Chat Proxy Endpoints", () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
+      // Verify generic error message doesn't contain API key
       expect(JSON.stringify(data)).not.toContain("test-api-key");
+      expect(data.error).toBe("Failed to create topic. Please try again later.");
     });
 
     it("should validate environment variables on every request", async () => {

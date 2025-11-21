@@ -37,15 +37,9 @@ export async function POST(_req: NextRequest) {
   } catch (error) {
     console.error("[Mintlify Chat Topic]", error);
     
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    }
-
+    // Return generic error message to avoid leaking internal details
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to create topic. Please try again later." },
       { status: 500 }
     );
   }

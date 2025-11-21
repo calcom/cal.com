@@ -67,11 +67,10 @@ export const generateResponse = async ({
     for (;;) {
       const { done, value } = await streamReader.read();
       if (done) {
-        const newValue = new TextDecoder().decode(value);
-
-        onChunkReceived(newValue, queryResponse.headers.get("x-mintlify-base-url") ?? "", true);
+        onChunkReceived("", queryResponse.headers.get("x-mintlify-base-url") ?? "", true);
         return;
       }
+      
 
       const newValue = new TextDecoder().decode(value);
       onChunkReceived(newValue);
