@@ -446,7 +446,7 @@ export default defineContentScript({
                       <span style="color: #3c4043; font-weight: 500;">${title}</span>
                     </div>
                     <div style="color: #5f6368; font-size: 12px; margin-left: 22px;">
-                      ${length}min • ${description}
+                      ${length}min${description ? ` • ${description}` : ''}
                     </div>
                   `;
                   
