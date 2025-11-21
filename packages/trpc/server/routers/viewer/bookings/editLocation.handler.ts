@@ -7,6 +7,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
@@ -24,7 +25,6 @@ import type { Ensure } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import { CredentialAccessService } from "./CredentialAccessService";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
 
