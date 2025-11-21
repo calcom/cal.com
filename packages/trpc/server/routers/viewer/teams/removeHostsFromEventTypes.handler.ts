@@ -33,6 +33,9 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
       eventTypeId: {
         in: eventTypeIds,
       },
+      eventType: {
+        teamId: teamId,
+      },
       userId: {
         in: userIds,
       },
