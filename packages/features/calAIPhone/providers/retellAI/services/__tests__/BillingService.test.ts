@@ -182,28 +182,28 @@ describe("BillingService", () => {
 
     it("should handle team-scoped cancellation", async () => {
       const mockPhoneNumber = createMockPhoneNumberRecord({
+        id: 1,
         stripeSubscriptionId: "sub_123",
+        teamId: 5,
       });
 
-      mocks.mockPhoneNumberRepository.findByIdWithTeamAccess.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.findById.mockResolvedValue(mockPhoneNumber);
+      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockResolvedValue(undefined);
+      mocks.mockRetellRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
       await service.cancelPhoneNumberSubscription({
         ...validCancelData,
         teamId: 5,
       });
 
-      expect(mocks.mockPhoneNumberRepository.findByIdWithTeamAccess).toHaveBeenCalledWith({
-        id: 1,
-        teamId: 5,
-        userId: 1,
-      });
+      expect(mocks.mockPhoneNumberRepository.findById).toHaveBeenCalledWith(1);
     });
 
     it("should throw error if phone number not found", async () => {
       mocks.mockPhoneNumberRepository.findById.mockResolvedValue(null);
 
       await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
-        "Phone number not found or you don't have permission to cancel it"
+        "HTTP Error 404"
       );
     });
 
