@@ -49,7 +49,7 @@ export function GatedFeaturesModal() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
       <DialogContent className="!p-0" style={{ maxWidth: "400px" }}>
         <div className="p-6">
-          <img src={image} alt={title} className="w-full h-36 mb-5" />
+          <img src={image} alt={t(title)} className="w-full h-36 mb-5" />
           <div className="p-1 text-xs bg-emphasis rounded-md w-fit mb-3 leading-3">{t(badgeText)}</div>
 
           <div className="mb-5 flex flex-col gap-2">
@@ -66,7 +66,7 @@ export function GatedFeaturesModal() {
         </div>
         <div className="w-full bg-muted border-subtle flex items-center justify-end rounded-b-2xl border-t px-6 py-5 gap-2">
           <Button color="minimal" onClick={close}>{t("dismiss")}</Button>
-          <Button color="secondary" target="_blank" href={learnMoreUrl}>{t("learn_more")}</Button>
+          <Button color="secondary" target="_blank" rel="noopener noreferrer" href={learnMoreUrl}>{t("learn_more")}</Button>
           <Button color="primary" href={ctaUrl}>{t("upgrade")}</Button>
         </div>
       </DialogContent>
