@@ -77,7 +77,7 @@ interface LimitsTabProps {
   setRangeEndDate: (value: string) => void;
 }
 
-export function LimitsTab(props: LimitsTabProps) {
+export default function LimitsTab(props: LimitsTabProps) {
   return (
     <View className="gap-3">
       {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
@@ -453,4 +453,3 @@ export function LimitsTab(props: LimitsTabProps) {
     </View>
   );
 }
-

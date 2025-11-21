@@ -5,9 +5,11 @@ import { View, Text, TouchableOpacity, Image, ActivityIndicator, Modal, Alert, L
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Header() {
   const router = useRouter();
+  const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,9 +121,11 @@ export function Header() {
             {
               text: "Sign Out",
               style: "destructive",
-              onPress: () => {
-                // TODO: Implement sign out
-                console.log("Sign Out pressed");
+              onPress: async () => {
+                // Clear OAuth tokens and auth state
+                await logout();
+                // Navigate back to onboarding screen
+                router.replace("/onboarding");
               },
             },
           ]

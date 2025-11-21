@@ -78,3 +78,13 @@ export const tabs = [
   { id: "colors", label: "Colors" },
 ];
 
+export default {
+  bufferTimeOptions,
+  timeUnitOptions,
+  frequencyUnitOptions,
+  durationUnitOptions,
+  slotIntervalOptions,
+  availableDurations,
+  defaultLocations,
+  tabs,
+};

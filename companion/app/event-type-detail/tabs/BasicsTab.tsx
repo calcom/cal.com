@@ -244,3 +244,4 @@ export function BasicsTab(props: BasicsTabProps) {
   );
 }
 
+export default BasicsTab;

@@ -103,3 +103,4 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
   );
 }
 
+export default AvailabilityTab;

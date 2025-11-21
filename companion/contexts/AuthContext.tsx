@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { storage } from '../utils/storage';
 import { WebAuthService } from '../services/webAuth';
 import { CalComAPIService } from '../services/calcom';
 
@@ -69,10 +69,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // For mobile, check SecureStore for stored tokens
+      // For mobile, check storage for stored tokens
       const [storedAccessToken, storedRefreshToken] = await Promise.all([
-        SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
-        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+        storage.getItem(ACCESS_TOKEN_KEY),
+        storage.getItem(REFRESH_TOKEN_KEY),
       ]);
 
       if (storedAccessToken && storedRefreshToken) {
@@ -108,10 +108,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.warn('Could not store tokens in localStorage:', localStorageError);
         }
       } else {
-        // Store in SecureStore for mobile
+        // Store in storage for mobile
         await Promise.all([
-          SecureStore.setItemAsync(ACCESS_TOKEN_KEY, newAccessToken),
-          SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken),
+          storage.setItem(ACCESS_TOKEN_KEY, newAccessToken),
+          storage.setItem(REFRESH_TOKEN_KEY, newRefreshToken),
         ]);
       }
 
@@ -170,10 +170,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.warn('Could not clear tokens from localStorage:', localStorageError);
         }
       } else {
-        // Clear SecureStore for mobile
+        // Clear storage for mobile
         await Promise.all([
-          SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
-          SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+          storage.removeItem(ACCESS_TOKEN_KEY),
+          storage.removeItem(REFRESH_TOKEN_KEY),
         ]);
       }
 
