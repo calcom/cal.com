@@ -1,14 +1,19 @@
 import { createInstance } from "i18next";
+import type { i18n as I18nInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "@calcom/lib/fetchWithTimeout";
 import logger from "@calcom/lib/logger";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { i18n } = require("@calcom/config/next-i18next.config");
+const path = require("path");
+const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
+const englishTranslations: Record<string, string> = require(translationsPath);
+/* eslint-enable @typescript-eslint/no-require-imports */
 
-const translationCache = new Map<string, Record<string, string>>();
-const i18nInstanceCache = new Map<string, any>();
+const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
+const i18nInstanceCache = new Map<string, I18nInstance>();
 const SUPPORTED_NAMESPACES = ["common"];
 
 /**
@@ -38,17 +43,16 @@ export async function loadTranslations(_locale: string, _ns: string) {
     );
 
     if (!response.ok) {
-      logger.error(`Failed to fetch translations: ${response.status}`);
-      return {};
+      logger.warn(`Failed to fetch translations for ${locale}: ${response.status}, falling back to English`);
+      return englishTranslations;
     }
 
     const translations = await response.json();
     translationCache.set(cacheKey, translations);
     return translations;
   } catch (err) {
-    console.error("loadTranslations Error:", err);
-
-    return {};
+    logger.warn(`Failed to load translations for ${locale}, falling back to English:`, err);
+    return englishTranslations;
   }
 }
 
@@ -60,8 +64,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
  */
 export const getTranslation = async (locale: string, ns: string) => {
   const cacheKey = `${locale}-${ns}`;
-  if (i18nInstanceCache.has(cacheKey)) {
-    return i18nInstanceCache.get(cacheKey).getFixedT(locale, ns);
+  const cachedInstance = i18nInstanceCache.get(cacheKey);
+  if (cachedInstance) {
+    return cachedInstance.getFixedT(locale, ns);
   }
 
   const resources = await loadTranslations(locale, ns);

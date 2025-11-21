@@ -14,6 +14,7 @@ import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignA
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   FormValues,
   TeamMember,
@@ -477,7 +478,11 @@ const RoundRobinHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {hostGroups?.length > 0 ? t("round_robin_groups_helper") : t("round_robin_helper")}
+              <LearnMoreLink
+                t={t}
+                i18nKey={hostGroups?.length > 0 ? "round_robin_groups_helper" : "round_robin_helper"}
+                href="https://cal.com/help/event-types/round-robin"
+              />
             </p>
           </div>
           <Button color="secondary" size="sm" StartIcon="plus" onClick={handleAddGroup}>

@@ -1,6 +1,8 @@
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingGuestsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-guests.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
@@ -15,6 +17,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
@@ -71,9 +74,11 @@ import { Module } from "@nestjs/common";
     OAuthClientRepository,
     OAuthClientUsersService,
     BookingsService_2024_08_13,
+    BookingGuestsService_2024_08_13,
     InputBookingsService_2024_08_13,
     OutputBookingsService_2024_08_13,
     OutputBookingReferencesService_2024_08_13,
+    OutputEventTypesService_2024_06_14,
     BookingsRepository_2024_08_13,
     EventTypesRepository_2024_06_14,
     BookingSeatRepository,
@@ -92,7 +97,7 @@ import { Module } from "@nestjs/common";
     BookingReferencesRepository_2024_08_13,
     CalVideoService,
   ],
-  controllers: [BookingsController_2024_08_13],
+  controllers: [BookingsController_2024_08_13, BookingGuestsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
 })
 export class BookingsModule_2024_08_13 {}

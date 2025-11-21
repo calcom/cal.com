@@ -111,15 +111,15 @@ const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
 const registerNewSetter = (
   registration:
     | {
-        elementName: keyof EmbedStyles;
-        setState: SetStyles;
-        styles: true;
-      }
+      elementName: keyof EmbedStyles;
+      setState: SetStyles;
+      styles: true;
+    }
     | {
-        elementName: keyof EmbedNonStylesConfig;
-        setState: setNonStylesConfig;
-        styles: false;
-      }
+      elementName: keyof EmbedNonStylesConfig;
+      setState: setNonStylesConfig;
+      styles: false;
+    }
 ) => {
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
@@ -285,6 +285,9 @@ export const useEmbedType = () => {
 function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
+  }
+  if (document.body.style.opacity !== "1") {
+    document.body.style.opacity = "1";
   }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {

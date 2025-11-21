@@ -237,8 +237,6 @@ describe("deleteHandler", () => {
         {
           id: 1,
           workflowStepId: 1,
-          scheduled: true,
-          referenceId: "ref-1",
         },
       ];
       const mockWorkflow = {
@@ -262,10 +260,6 @@ describe("deleteHandler", () => {
         where: {
           workflowStep: {
             workflowId: workflowId,
-          },
-          scheduled: true,
-          NOT: {
-            referenceId: null,
           },
         },
       });

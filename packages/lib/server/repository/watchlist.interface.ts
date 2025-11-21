@@ -28,16 +28,18 @@ export interface WatchlistAuditEntry {
 export interface CreateWatchlistInput {
   type: WatchlistType;
   value: string;
-  organizationId: number;
+  organizationId: number | null;
   action: WatchlistAction;
   description?: string;
   userId: number;
+  isGlobal?: boolean;
 }
 
 export interface CheckWatchlistInput {
   type: WatchlistType;
   value: string;
-  organizationId: number;
+  organizationId?: number | null;
+  isGlobal?: boolean;
 }
 
 export interface FindAllEntriesInput {
@@ -59,8 +61,17 @@ export interface IWatchlistRepository {
     })[];
     meta: { totalRowCount: number };
   }>;
-  findEntryWithAudit(id: string): Promise<{
-    entry: WatchlistEntry | null;
+  findEntryWithAuditAndReports(id: string): Promise<{
+    entry:
+      | (WatchlistEntry & {
+          bookingReports?: Array<{
+            booking: {
+              uid: string;
+              title: string | null;
+            };
+          }>;
+        })
+      | null;
     auditHistory: WatchlistAuditEntry[];
   }>;
   deleteEntry(id: string, userId: number): Promise<void>;

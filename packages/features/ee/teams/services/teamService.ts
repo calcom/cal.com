@@ -1,10 +1,11 @@
 import { randomBytes } from "crypto";
 
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -76,7 +77,10 @@ export class TeamService {
       if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
       return {
         token: existingToken.token,
-        inviteLink: TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
+        inviteLink: await TeamService.buildInviteLink(
+          existingToken.token,
+          isOrganizationOrATeamInOrganization
+        ),
       };
     }
 
@@ -93,14 +97,18 @@ export class TeamService {
 
     return {
       token,
-      inviteLink: TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
+      inviteLink: await TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
     };
   }
 
-  private static buildInviteLink(token: string, isOrgContext: boolean): string {
+  private static async buildInviteLink(token: string, isOrgContext: boolean): Promise<string> {
     const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-    return isOrgContext ? orgInviteLink : teamInviteLink;
+    if (!isOrgContext) {
+      return teamInviteLink;
+    }
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
+    return orgInviteLink;
   }
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
@@ -110,8 +118,10 @@ export class TeamService {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
-    const teamBilling = await TeamBilling.findAndInit(id);
-    await teamBilling.cancel();
+    // const teamBilling = await TeamBillingService.findAndInit(id);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(id);
+    await teamBillingService.cancel();
 
     // Step 2: Clean up internal, related data like workflow reminders.
     try {
@@ -159,9 +169,11 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
-
-    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
-    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
+    const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
+      teamBillingService.updateQuantity()
+    );
     await Promise.allSettled(teamBillingPromises);
   }
 
@@ -210,8 +222,9 @@ export class TeamService {
       } else throw e;
     }
 
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-    await teamBilling.updateQuantity();
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(verificationToken.teamId);
+    await teamBillingService.updateQuantity();
 
     return verificationToken.team.name;
   }
@@ -344,8 +357,9 @@ export class TeamService {
   }
 
   static async publish(teamId: number) {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    return teamBilling.publish();
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
+    return teamBillingService.publish();
   }
 
   private static async removeMember({

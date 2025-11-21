@@ -559,7 +559,7 @@ export class BookingRepository {
     });
   }
 
-  async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
+  async findBookingIncludeCalVideoSettingsAndReferences({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
         uid: bookingUid,
@@ -573,6 +573,22 @@ export class BookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
             calVideoSettings: {
               select: {
                 disableRecordingForGuests: true,
@@ -582,6 +598,7 @@ export class BookingRepository {
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
+                requireEmailForGuests: true,
               },
             },
           },
@@ -1169,6 +1186,200 @@ export class BookingRepository {
             data: true,
           },
         },
+      },
+    });
+  }
+
+  async getBookingForCalEventBuilder(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        description: true,
+        customInputs: true,
+        responses: true,
+        metadata: true,
+        location: true,
+        iCalUID: true,
+        iCalSequence: true,
+        oneTimePassword: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+        },
+        user: {
+          // Organizer
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+            timeZone: true,
+            locale: true,
+            timeFormat: true,
+            destinationCalendar: true,
+            profiles: { select: { organizationId: true } },
+          },
+        },
+        // destination calendar of the Organizer
+        destinationCalendar: true,
+        eventType: {
+          select: {
+            id: true,
+            slug: true,
+            description: true,
+            hideCalendarNotes: true,
+            hideCalendarEventDetails: true,
+            hideOrganizerEmail: true,
+            schedulingType: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            seatsShowAvailabilityCount: true,
+            customReplyToEmail: true,
+            disableRescheduling: true,
+            disableCancelling: true,
+            requiresConfirmation: true,
+            recurringEvent: true,
+            bookingFields: true,
+            metadata: true,
+            eventName: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+                members: {
+                  select: {
+                    user: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        timeZone: true,
+                        locale: true,
+                        timeFormat: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                username: true,
+                timeZone: true,
+                locale: true,
+                timeFormat: true,
+                destinationCalendar: true,
+              },
+            },
+            hosts: {
+              select: {
+                userId: true,
+                isFixed: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    timeZone: true,
+                    locale: true,
+                    timeFormat: true,
+                    destinationCalendar: true,
+                  },
+                },
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        references: {
+          select: {
+            type: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+          },
+          where: {
+            type: {
+              endsWith: "_video",
+            },
+          },
+        },
+        seatsReferences: {
+          select: {
+            id: true,
+            referenceUid: true,
+            attendee: { select: { id: true, email: true, phoneNumber: true } },
+          },
+        },
+      },
+    });
+  }
+  async findByIdIncludeDestinationCalendar(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        eventType: true,
+        destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateBookingAttendees({
+    bookingId,
+    newAttendees,
+    updatedResponses,
+  }: {
+    bookingId: number;
+    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    updatedResponses: Prisma.InputJsonValue;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+      },
+      data: {
+        attendees: {
+          createMany: {
+            data: newAttendees,
+          },
+        },
+        responses: updatedResponses,
       },
     });
   }

@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
-import type { Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, submitAndWaitForResponse } from "./lib/testUtils";
@@ -41,7 +41,7 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").click();
     await page.getByPlaceholder("Price").fill("200");
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
 

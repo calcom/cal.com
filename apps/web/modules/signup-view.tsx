@@ -34,8 +34,6 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -184,6 +182,7 @@ export default function Signup({
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
+  onboardingV3Enabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isSamlSignup, setIsSamlSignup] = useState(false);
@@ -192,7 +191,6 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
-  const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
@@ -260,9 +258,10 @@ export default function Signup({
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
-        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
+        const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
@@ -311,7 +310,7 @@ export default function Signup({
                 id="gtm-init-script"
                 // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
                 // And we don't want it to error here anyways
-                // eslint-disable-next-line react/no-danger
+                 
                 dangerouslySetInnerHTML={{
                   __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
@@ -321,7 +320,7 @@ export default function Signup({
                 }}
               />
               <noscript
-                // eslint-disable-next-line react/no-danger
+                 
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}

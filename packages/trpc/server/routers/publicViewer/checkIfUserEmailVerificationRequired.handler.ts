@@ -34,7 +34,8 @@ export const checkEmailVerificationRequired = async ({
   }
 
   const userRepo = new UserRepository(prisma);
-  const user = await userRepo.findByEmailWithEmailVerificationSetting({ email: baseEmail });
+  const users = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: [baseEmail] });
+  const user = users[0];
 
   if (user?.requiresBookerEmailVerification && baseEmail.toLowerCase() !== userSessionEmail?.toLowerCase()) {
     log.warn(`user email requiring verification: ${baseEmail}`);

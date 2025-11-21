@@ -242,5 +242,5 @@ async function gotoBookingPage(page: Page) {
 }
 
 async function saveAndWaitForResponse(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1");
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1");
 }

@@ -1,7 +1,7 @@
 import type { PageProps } from "app/_types";
-import { getTranslate, _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -24,13 +24,12 @@ const Page = async ({ params: _params }: PageProps) => {
   const webhook = await webhookRepository.findByWebhookId(id);
 
   return (
-    <SettingsHeader
+    <SettingsHeaderWithBackButton
       title={t("edit_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton>
+      borderInShellHeader={true}>
       <EditWebhookView webhook={webhook} />
-    </SettingsHeader>
+    </SettingsHeaderWithBackButton>
   );
 };
 

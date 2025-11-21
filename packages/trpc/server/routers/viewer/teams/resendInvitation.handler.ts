@@ -1,5 +1,6 @@
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
@@ -51,7 +52,8 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
       if (user?.completedOnboarding) {
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       } else {
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
         inviteTeamOptions.isCalcomMember = false;
       }
     } catch (error) {

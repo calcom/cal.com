@@ -616,44 +616,9 @@ export async function findUniqueDelegationCalendarCredential({
 }
 
 /**
- * CredentialForCalendarCache is different from CredentialForCalendarService in the sense that CredentialForCalendarCache.id is greater than 0 and CredentialForCalendarService.id is -1
- * Thus it is a Credential from DB and and also a Delegation User Credential(when CredentialForCalendarCache.delegatedTo is not null)
- */
-export async function getCredentialForCalendarCache({ credentialId }: { credentialId: number }) {
-  const credential = await CredentialRepository.findByIdIncludeDelegationCredential({
-    id: credentialId,
-  });
-
-  let credentialForCalendarService;
-
-  if (credential?.delegationCredential) {
-    if (!credential.userId) {
-      throw new Error(`Credential ${credentialId} doesn't have a user`);
-    }
-    const delegationCredential = await findUniqueDelegationCalendarCredential({
-      userId: credential.userId,
-      delegationCredentialId: credential.delegationCredential.id,
-    });
-
-    if (!delegationCredential) {
-      credentialForCalendarService = null;
-    } else {
-      // We prepare a credential that is in-db(in contrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
-      credentialForCalendarService = {
-        ...delegationCredential,
-        id: credential.id,
-      };
-    }
-  } else {
-    credentialForCalendarService = buildNonDelegationCredential(credential);
-  }
-  return credentialForCalendarService;
-}
-
-/**
  * It includes in-memory DelegationCredential credentials as well.
  */
-export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<User, "id" | "email">) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,

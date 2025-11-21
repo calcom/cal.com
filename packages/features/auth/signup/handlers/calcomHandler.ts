@@ -7,7 +7,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -44,7 +44,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     })
     .parse(body);
 
-  const billingService = new StripeBillingService();
+  const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,

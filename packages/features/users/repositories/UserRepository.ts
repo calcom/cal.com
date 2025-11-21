@@ -276,32 +276,6 @@ export class UserRepository {
     });
     return user;
   }
-  async findByEmailWithEmailVerificationSetting({ email }: { email: string }) {
-    const user = await this.prismaClient.user.findFirst({
-      where: {
-        OR: [
-          {
-            email: email.toLowerCase(),
-            emailVerified: { not: null },
-          },
-          {
-            secondaryEmails: {
-              some: {
-                email: email.toLowerCase(),
-                emailVerified: { not: null },
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        email: true,
-        requiresBookerEmailVerification: true,
-      },
-    });
-    return user;
-  }
 
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());

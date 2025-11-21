@@ -810,5 +810,59 @@ describe("BillingEnabledOrgOnboardingService", () => {
         })
       );
     });
+
+    it("should transfer branding data (logo, brandColor, bannerUrl) from onboarding to organization", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const onboardingWithBranding = await createTestOnboarding({
+        logo: "https://example.com/logo.png",
+        bio: "Test organization bio",
+        brandColor: "#FF5733",
+        bannerUrl: "https://example.com/banner.jpg",
+      });
+
+      await createTestUser({
+        email: onboardingWithBranding.orgOwnerEmail,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      const { organization } = await service.createOrganization(onboardingWithBranding, {
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+      });
+
+      expect(organization.logoUrl).toBe("https://example.com/logo.png");
+      expect(organization.bio).toBe("Test organization bio");
+      expect(organization.brandColor).toBe("#FF5733");
+      expect(organization.bannerUrl).toBe("https://example.com/banner.jpg");
+    });
+
+    it("should handle null branding data correctly", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const onboardingWithNullBranding = await createTestOnboarding({
+        logo: null,
+        bio: null,
+        brandColor: null,
+        bannerUrl: null,
+      });
+
+      await createTestUser({
+        email: onboardingWithNullBranding.orgOwnerEmail,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      const { organization } = await service.createOrganization(onboardingWithNullBranding, {
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+      });
+
+      expect(organization.logoUrl).toBeNull();
+      expect(organization.bio).toBeNull();
+      expect(organization.brandColor).toBeNull();
+      expect(organization.bannerUrl).toBeNull();
+    });
   });
 });

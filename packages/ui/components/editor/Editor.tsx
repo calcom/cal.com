@@ -61,7 +61,16 @@ export const Editor = (props: TextEditorProps) => {
   const plainText = props.plainText ?? false;
   return (
     <div className="editor rounded-md">
-      {props.label && <label className="mb-1 block text-sm font-medium leading-6">{props.label}</label>}
+      {props.label && (
+        <label
+          onClick={() => {
+            const el = document.getElementById("custom-editor");
+            el?.focus();
+          }}
+          className="mb-1 block text-sm font-medium leading-6">
+          {props.label}
+        </label>
+      )}
       <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
           <ToolbarPlugin
@@ -81,6 +90,7 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  id="custom-editor"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input focus:outline-none"
