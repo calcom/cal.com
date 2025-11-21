@@ -61,7 +61,7 @@ export default defineContentScript({
     toggleButton.style.width = '40px';
     toggleButton.style.height = '40px';
     toggleButton.style.borderRadius = '50%';
-    toggleButton.style.border = 'none';
+    toggleButton.style.border = '1px solid white';
     toggleButton.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     toggleButton.style.backdropFilter = 'blur(10px)';
     toggleButton.style.color = 'white';
@@ -84,7 +84,7 @@ export default defineContentScript({
     closeButton.style.width = '40px';
     closeButton.style.height = '40px';
     closeButton.style.borderRadius = '50%';
-    closeButton.style.border = 'none';
+    closeButton.style.border = '1px solid white';
     closeButton.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     closeButton.style.backdropFilter = 'blur(10px)';
     closeButton.style.color = 'white';
@@ -579,6 +579,7 @@ export default defineContentScript({
               padding: 10px 12px;
               background: ${type === 'success' ? '#111827' : '#752522'};
               color: white;
+              border: 1px solid #2b2b2b;
               border-radius: 8px;
               font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
               font-size: 14px;
