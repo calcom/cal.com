@@ -118,9 +118,7 @@ export async function POST(req: NextRequest) {
         ...sanitizedHeaders,
       },
     });
-  } catch (error) {
-    console.error("[Mintlify Chat Message]", error);
-    
+  } catch {
     // Return generic error message to avoid leaking internal details
     // Validation errors are already handled above with specific messages
     return NextResponse.json(

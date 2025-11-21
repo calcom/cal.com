@@ -34,9 +34,7 @@ export async function POST(_req: NextRequest) {
     const topic = await topicResponse.json();
 
     return NextResponse.json(topic);
-  } catch (error) {
-    console.error("[Mintlify Chat Topic]", error);
-    
+  } catch {
     // Return generic error message to avoid leaking internal details
     return NextResponse.json(
       { error: "Failed to create topic. Please try again later." },

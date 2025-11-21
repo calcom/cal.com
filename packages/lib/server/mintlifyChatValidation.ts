@@ -12,11 +12,9 @@
 const MAX_MESSAGE_LENGTH = 10000; // 10KB max message length
 const MAX_TOPIC_ID_LENGTH = 200;
 
-/**
- * Validates that a string contains only safe characters
- * Rejects control characters, null bytes, and path traversal sequences
- */
-export function sanitizeString(input: string): string {
+const PATH_TRAVERSAL_PATTERNS = ["../", "..\\"]; // basic sequences we never expect inside identifiers
+
+const stripControlCharacters = (input: string) => {
   if (typeof input !== "string") {
     throw new Error("Input must be a string");
   }
@@ -28,8 +26,28 @@ export function sanitizeString(input: string): string {
   // eslint-disable-next-line no-control-regex
   sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "");
 
+  return sanitized;
+};
+
+/**
+ * Sanitizes free-form user messages by stripping control characters.
+ * This intentionally does not reject path-like substrings so users can ask about "../".
+ */
+export function sanitizeMessageString(input: string): string {
+  const sanitized = stripControlCharacters(input);
+
+  // Replace basic traversal sequences with safe equivalents to avoid leaking to logs
+  return sanitized.replaceAll("../", "..&#47;").replaceAll("..\\", "..&#92;");
+}
+
+/**
+ * Sanitizes identifiers (topic IDs) and rejects path traversal attempts.
+ */
+export function sanitizeTopicIdentifier(input: string): string {
+  const sanitized = stripControlCharacters(input);
+
   // Check for path traversal attempts
-  if (sanitized.includes("../") || sanitized.includes("..\\")) {
+  if (PATH_TRAVERSAL_PATTERNS.some((pattern) => sanitized.includes(pattern))) {
     throw new Error("Path traversal detected");
   }
 
@@ -76,8 +94,8 @@ export function validateChatMessage(payload: unknown): {
   }
 
   // Sanitize both fields
-  const sanitizedMessage = sanitizeString(message);
-  const sanitizedTopicId = sanitizeString(topicId);
+  const sanitizedMessage = sanitizeMessageString(message);
+  const sanitizedTopicId = sanitizeTopicIdentifier(topicId);
 
   // Validate topicId format (alphanumeric, dashes, underscores only)
   if (!/^[a-zA-Z0-9_-]+$/.test(sanitizedTopicId)) {

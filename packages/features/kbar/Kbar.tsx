@@ -248,7 +248,9 @@ export const KBarContent = () => {
   useEventTypesAction();
   const [inputText, setInputText] = useState("");
   const [aiResponse, setAiResponse] = useState("");
-  const showAiChat = process.env.NEXT_PUBLIC_CHAT_API_URL;
+  const showAiChat =
+    process.env.NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT === "true" &&
+    !!process.env.NEXT_PUBLIC_CHAT_API_URL;
 
   return (
     <KBarPortal>
