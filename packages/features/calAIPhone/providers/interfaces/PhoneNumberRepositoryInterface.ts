@@ -24,18 +24,9 @@ export interface PhoneNumberRepositoryInterface {
   }): Promise<PhoneNumberData | null>;
 
   /**
-   * Find phone number by ID and user ID
+   * Find phone number by ID
    */
-  findByIdAndUserId(params: { id: number; userId: number }): Promise<PhoneNumberData | null>;
-
-  /**
-   * Find phone number by ID with team access validation
-   */
-  findByIdWithTeamAccess(params: {
-    id: number;
-    teamId: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null>;
+  findById(id: number): Promise<PhoneNumberData | null>;
 
   /**
    * Create a new phone number record
