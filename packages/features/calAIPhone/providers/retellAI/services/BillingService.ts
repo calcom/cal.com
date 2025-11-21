@@ -146,6 +146,14 @@ export class BillingService {
       });
     }
 
+    // there is a phone number, but we're not sure if it belongs to the user id
+    if (!teamId && phoneNumber.userId !== userId) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Insufficient permission to delete phone number ${phoneNumber.phoneNumber}.`
+      });
+    }
+
     if (!phoneNumber.stripeSubscriptionId) {
       throw new HttpError({
         statusCode: 400,
