@@ -24,9 +24,9 @@ const content: Record<GatedFeatures, FeatureContent> = {
       "1_parent_team_unlimited_subteams",
       "attribute_based_routing",
       "compliance_check",
-      "and_more",
+      "and_more_features",
     ],
-    learnMoreUrl: "https://go.cal.com/rbac",
+    learnMoreUrl: "https://go.cal.com/enterprise",
     ctaUrl: "/settings/organizations/new",
   },
 };
