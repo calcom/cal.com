@@ -2504,6 +2504,7 @@
   "currency": "Currency",
   "organization_banner_description": "Create an environment where your teams can create shared apps, workflows and event types with round-robin and collective scheduling.",
   "organization_banner_title": "Manage organizations with multiple teams",
+  "organization_trial_workspace_warning": "This trial uses the Organizations workspace structure. Your current data will move with you into Organizations, but it won't transfer back if you switch to Teams later. If you prefer Teams again in the future, you can create a new team.",
   "set_up_your_organization": "Set up your organization",
   "set_up_your_platform_organization": "Set up your platform",
   "organizations_description": "Organizations are shared environments where teams can create shared event types, apps, workflows and more.",
