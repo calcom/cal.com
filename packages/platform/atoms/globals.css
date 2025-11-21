@@ -11888,3 +11888,48 @@ html[dir="rtl"] .react-tel-input .flag-dropdown {
     margin-top: calc(var(--spacing) * 8);
   }
 }
+
+.sm\:stack-y-0 {
+  @media (width >= 40rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 0);
+    }
+  }
+}
+.sm\:stack-y-8 {
+  @media (width >= 40rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 8);
+    }
+  }
+}
+
+.md\:stack-y-0 {
+  @media (width >= 48rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 0);
+    }
+  }
+}
+
+.lg\:stack-y-0 {
+  @media (width >= 64rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 0);
+    }
+  }
+}
+.lg\:stack-y-5 {
+  @media (width >= 64rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 5);
+    }
+  }
+}
+.lg\:stack-y-6 {
+  @media (width >= 64rem) {
+    & > :not([hidden]) ~ :not([hidden]) {
+      margin-top: calc(var(--spacing) * 6);
+    }
+  }
+}
