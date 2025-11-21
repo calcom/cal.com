@@ -1571,17 +1571,6 @@ export class EventTypeRepository {
     return { eventTypes, total };
   }
 
-  async findByIdForTargetSearch(eventTypeId: number) {
-    return this.prismaClient.eventType.findUnique({
-      where: { id: eventTypeId },
-      select: {
-        id: true,
-        parentId: true,
-        userId: true,
-      },
-    });
-  }
-
     /**
    * List child event types for a given parent.
    * Supports search, user exclusion, cursor pagination.

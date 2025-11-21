@@ -1,5 +1,4 @@
 import type { Booking, User } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/client";
 
 interface BookingCancellationDataParams {
@@ -18,19 +17,19 @@ export type CancelledBookingResult = Prisma.BookingGetPayload<{ select: typeof c
 
 export class BookingCancellationDataBuilder {
   /**
-   * Builds the data structure for cancelling the original booking
+   * Builds the data structure for cancelling the original booking.
+   * Note: status is not included here as it's enforced by the repository's cancelBooking method.
    * @param params - The parameters needed to build cancellation data
-   * @returns Prisma booking update data with where clause and select
+   * @returns Where clause, additional data (without status), and select clause
    */
   static build({ originalBooking, newUser }: BookingCancellationDataParams): {
     where: Prisma.BookingWhereUniqueInput;
-    data: Prisma.BookingUpdateInput;
+    data: Omit<Prisma.BookingUpdateInput, "status">;
     select: typeof cancellationSelect;
   } {
     return {
       where: { id: originalBooking.id },
       data: {
-        status: BookingStatus.CANCELLED,
         cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
         metadata:
           typeof originalBooking.metadata === "object" && originalBooking.metadata !== null

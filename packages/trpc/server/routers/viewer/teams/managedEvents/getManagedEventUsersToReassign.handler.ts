@@ -89,7 +89,7 @@ export const getManagedEventUsersToReassign = async ({
     throw new Error("Booking requires an event type to reassign users");
   }
 
-  const childEventType = await eventTypeRepository.findByIdForTargetSearch(booking.eventTypeId);
+  const childEventType = await eventTypeRepository.findByIdWithParent(booking.eventTypeId);
   
   if (!childEventType) {
     throw new Error(`Event type ${booking.eventTypeId} not found`);

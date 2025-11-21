@@ -1492,75 +1492,53 @@ export class BookingRepository {
     });
   }
 
-  async reassignBooking<T extends Prisma.BookingSelect>(data: {
-    originalBookingId: number;
-    cancellationData: {
-      where: Prisma.BookingWhereUniqueInput;
-      data: Prisma.BookingUpdateInput;
-      select: T;
-    };
-    newBookingData: Prisma.BookingCreateInput;
-  }): Promise<{
-    newBooking: {
-      id: number;
-      uid: string;
-      title: string;
-      description: string | null;
-      startTime: Date;
-      endTime: Date;
-      location: string | null;
-      metadata: Prisma.JsonValue;
-      responses: Prisma.JsonValue;
-      iCalUID: string | null;
-      iCalSequence: number;
-      smsReminderNumber: string | null;
-      attendees: {
-        name: string;
-        email: string;
-        timeZone: string;
-        locale: string | null;
-      }[];
-    };
-    cancelledBooking: Prisma.BookingGetPayload<{ select: T }>;
-  }> {
-    return this.prismaClient.$transaction(async (tx) => {
-      const cancelled = await tx.booking.update({
-        where: data.cancellationData.where,
-        data: data.cancellationData.data,
-        select: data.cancellationData.select,
-      });
+  /**
+   * Updates a booking with provided data. Pure persistence operation.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async updateBooking<T extends Prisma.BookingSelect>(
+    where: Prisma.BookingWhereUniqueInput,
+    data: Prisma.BookingUpdateInput,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.update({ where, data, select });
+  }
 
-      const created = await tx.booking.create({
-        data: data.newBookingData,
-        select: {
-          id: true,
-          uid: true,
-          title: true,
-          description: true,
-          startTime: true,
-          endTime: true,
-          location: true,
-          metadata: true,
-          responses: true,
-          iCalUID: true,
-          iCalSequence: true,
-          smsReminderNumber: true,
-          attendees: {
-            select: {
-              name: true,
-              email: true,
-              timeZone: true,
-              locale: true,
-            },
-            orderBy: {
-              id: "asc",
-            },
-          },
-        },
-      });
-
-      return { newBooking: created, cancelledBooking: cancelled };
+  /**
+   * Cancels a booking by setting status to CANCELLED and merging optional additional data.
+   * The status field cannot be overridden - it will always be set to CANCELLED.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async cancelBooking<T extends Prisma.BookingSelect>(
+    where: Prisma.BookingWhereUniqueInput,
+    additionalData: Omit<Prisma.BookingUpdateInput, "status">,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.update({
+      where,
+      data: {
+        ...additionalData,
+        status: BookingStatus.CANCELLED,
+      },
+      select,
     });
+  }
+
+  /**
+   * Creates a booking with provided data. Pure persistence operation.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async createBooking<T extends Prisma.BookingSelect>(
+    data: Prisma.BookingCreateInput,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.create({ data, select });
   }
 
   async findByIdForTargetEventTypeSearch(bookingId: number) {

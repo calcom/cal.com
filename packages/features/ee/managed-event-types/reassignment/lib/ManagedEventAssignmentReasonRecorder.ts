@@ -36,7 +36,7 @@ export default class ManagedEventAssignmentReasonRecorder {
   }) {
     const userRepository = new UserRepository(prisma);
     const assignmentReasonRepository = new AssignmentReasonRepository(prisma);
-    const reassignedBy = await userRepository.findByReassignedById(reassignById);
+    const reassignedBy = await userRepository.findByIdWithUsername(reassignById);
 
     const reasonEnum = AssignmentReasonEnum.REASSIGNED;
 

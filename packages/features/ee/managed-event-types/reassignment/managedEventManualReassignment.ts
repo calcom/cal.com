@@ -18,6 +18,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
@@ -25,9 +26,10 @@ import { cancelWorkflowRemindersForReassignment } from "./lib/cancelWorkflowRemi
 import ManagedEventAssignmentReasonRecorder, {
   ManagedEventReassignmentType,
 } from "./lib/ManagedEventAssignmentReasonRecorder";
-import type { CancelledBookingResult } from "./lib/builders/BookingCancellationDataBuilder";
+
 
 import { findTargetChildEventType, validateManagedEventReassignment } from "./utils";
+import { buildReassignmentBookingData, type CancelledBookingResult } from "./lib/buildReassignmentBookingData";
 
 interface ManagedEventManualReassignmentParams {
   bookingId: number;
@@ -38,6 +40,33 @@ interface ManagedEventManualReassignmentParams {
   emailsEnabled?: boolean;
   isAutoReassignment?: boolean;
 }
+
+// Select fields needed for the new booking in the reassignment workflow
+const REASSIGNMENT_NEW_BOOKING_SELECT = {
+  id: true,
+  uid: true,
+  title: true,
+  description: true,
+  startTime: true,
+  endTime: true,
+  location: true,
+  metadata: true,
+  responses: true,
+  iCalUID: true,
+  iCalSequence: true,
+  smsReminderNumber: true,
+  attendees: {
+    select: {
+      name: true,
+      email: true,
+      timeZone: true,
+      locale: true,
+    },
+    orderBy: {
+      id: "asc" as const,
+    },
+  },
+} as const satisfies Prisma.BookingSelect;
 
 export async function managedEventManualReassignment({
   bookingId,
@@ -105,8 +134,6 @@ export async function managedEventManualReassignment({
   if (!originalBookingFull) {
     throw new Error("Original booking not found");
   }
-
-  const { buildReassignmentBookingData } = await import("./lib/buildReassignmentBookingData");
   
   const { newBookingData, originalBookingCancellationData } = await buildReassignmentBookingData({
     originalBooking: originalBookingFull,
@@ -120,12 +147,24 @@ export async function managedEventManualReassignment({
     reassignedById,
   });
 
-  // Execute the reassignment in a transaction (cancel + create) using repository
-  const reassignmentResult = await bookingRepository.reassignBooking({
-    originalBookingId: originalBookingFull.id,
-    cancellationData: originalBookingCancellationData,
-    newBookingData,
+  // Execute the reassignment in a transaction (cancel + create)
+  const reassignmentResult = await prisma.$transaction(async (tx) => {
+    const cancelledBooking = await bookingRepository.cancelBooking(
+      originalBookingCancellationData.where,
+      originalBookingCancellationData.data,
+      originalBookingCancellationData.select,
+      tx
+    );
+
+    const newBooking = await bookingRepository.createBooking(
+      newBookingData,
+      REASSIGNMENT_NEW_BOOKING_SELECT,
+      tx
+    );
+
+    return { newBooking, cancelledBooking };
   });
+
   const newBooking = reassignmentResult.newBooking;
   const cancelledBooking: CancelledBookingResult = reassignmentResult.cancelledBooking;
 
