@@ -1,8 +1,8 @@
-import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
 import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
 import {
   EventTypeWorkflowStepOutputDto,
   EventTypeWorkflowOutput,
+  EventTypeWorkflowActivationOutputDto,
 } from "@/modules/workflows/outputs/event-type-workflow.output";
 import {
   RoutingFormWorkflowOutput,
@@ -200,13 +200,13 @@ export class WorkflowsOutputService {
 
     return this._isFormAllowedStepAction(action)
       ? ({
-          ...baseAction,
-          action: action,
-        } satisfies RoutingFormWorkflowStepOutputDto)
+        ...baseAction,
+        action: action,
+      } satisfies RoutingFormWorkflowStepOutputDto)
       : ({
-          ...baseAction,
-          action: action,
-        } satisfies EventTypeWorkflowStepOutputDto);
+        ...baseAction,
+        action: action,
+      } satisfies EventTypeWorkflowStepOutputDto);
   }
 
   toRoutingFormOutputDto(workflow: WorkflowType): RoutingFormWorkflowOutput | void {
@@ -219,12 +219,12 @@ export class WorkflowsOutputService {
 
       const trigger: TriggerDtoType = this._isOffsetTrigger(workflow.trigger)
         ? {
-            type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
-            offset: {
-              value: workflow.time ?? 1,
-              unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
-            },
-          }
+          type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
+          offset: {
+            value: workflow.time ?? 1,
+            unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
+          },
+        }
         : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
       const steps: RoutingFormWorkflowStepOutputDto[] = workflow.steps.map((step) => {
@@ -244,19 +244,23 @@ export class WorkflowsOutputService {
 
   toEventTypeOutputDto(workflow: WorkflowType): EventTypeWorkflowOutput | void {
     if (workflow.type === "EVENT_TYPE" && !this._isFormAllowedTrigger(workflow.trigger)) {
-      const activation: WorkflowActivationDto = {
+      const isOrgWorkflow = workflow.team?.isOrganization ?? false;
+      const activation: EventTypeWorkflowActivationOutputDto = {
         isActiveOnAllEventTypes: workflow.isActiveOnAll,
         activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
       };
+      if (isOrgWorkflow) {
+        activation.activeOnTeamIds = workflow.activeOnTeams?.map((relation) => relation.teamId) ?? [];
+      }
 
       const trigger: TriggerEventTypeDtoType = this._isOffsetTrigger(workflow.trigger)
         ? {
-            type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
-            offset: {
-              value: workflow.time ?? 1,
-              unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
-            },
-          }
+          type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
+          offset: {
+            value: workflow.time ?? 1,
+            unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
+          },
+        }
         : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
       const steps: EventTypeWorkflowStepOutputDto[] = workflow.steps.map((step) => {

@@ -7,17 +7,19 @@ import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
 import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
 import { updateWorkflow } from "@calcom/platform-libraries/workflows";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
+import type { Team, Workflow, WorkflowStep } from "@calcom/prisma/client";
 
 export type WorkflowType = Workflow & {
+  team?: Pick<Team, "isOrganization"> | null;
   activeOn: { eventTypeId: number }[];
   steps: WorkflowStep[];
   activeOnRoutingForms: { routingFormId: string }[];
+  activeOnTeams: { teamId: number }[];
 };
 
 @Injectable()
 export class WorkflowsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) { }
 
   async deleteTeamWorkflowById(teamId: number, workflowId: number) {
     return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });
@@ -34,6 +36,8 @@ export class WorkflowsRepository {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
         activeOnRoutingForms: { select: { routingFormId: true } },
+        activeOnTeams: { select: { teamId: true } },
+        team: { select: { isOrganization: true } },
       },
     });
 
@@ -51,6 +55,8 @@ export class WorkflowsRepository {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
         activeOnRoutingForms: { select: { routingFormId: true } },
+        activeOnTeams: { select: { teamId: true } },
+        team: { select: { isOrganization: true } },
       },
     });
 
@@ -67,6 +73,8 @@ export class WorkflowsRepository {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
         activeOnRoutingForms: { select: { routingFormId: true } },
+        activeOnTeams: { select: { teamId: true } },
+        team: { select: { isOrganization: true } },
       },
       skip,
       take,
@@ -85,6 +93,8 @@ export class WorkflowsRepository {
         steps: true,
         activeOn: { select: { eventTypeId: true } },
         activeOnRoutingForms: { select: { routingFormId: true } },
+        activeOnTeams: { select: { teamId: true } },
+        team: { select: { isOrganization: true } },
       },
       skip,
       take,
@@ -102,7 +112,13 @@ export class WorkflowsRepository {
         timeUnit: TimeUnit.HOUR,
         teamId,
       },
-      include: { activeOn: true, steps: true, activeOnRoutingForms: true },
+      include: {
+        activeOn: true,
+        steps: true,
+        activeOnRoutingForms: true,
+        activeOnTeams: true,
+        team: { select: { isOrganization: true } },
+      },
     });
   }
 
