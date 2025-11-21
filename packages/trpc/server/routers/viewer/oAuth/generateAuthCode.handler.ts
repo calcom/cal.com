@@ -19,7 +19,7 @@ type AddClientOptions = {
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
 
-  const validationResult = parseAndValidateScopes(scopes);
+  const validationResult = parseAndValidateScopes(scopes, { allowEmpty: false });
   if (!validationResult.success) {
     throw new TRPCError({
       code: "BAD_REQUEST",

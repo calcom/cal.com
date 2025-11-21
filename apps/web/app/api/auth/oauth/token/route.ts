@@ -59,12 +59,12 @@ async function handler(req: NextRequest) {
   });
 
   if (!accessCode) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
-  const validationResult = parseAndValidateScopes(accessCode.scopes);
+  const validationResult = parseAndValidateScopes(accessCode.scopes, { allowEmpty: false });
   if (!validationResult.success) {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
