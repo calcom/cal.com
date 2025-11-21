@@ -39,7 +39,7 @@ const scenarios: Scenario[] = [
     title: "Two Overlapping Events",
     description: "Two events with overlapping time ranges on the same day",
     expected:
-      "First event should be 80% width, second event offset 15% to the right with 50% width (variable widths: wider for longer events, narrower for shorter events). Hover should bring event to front.",
+      "First event 80% width at left edge (0%), second event 50% width aligned to right edge (49.5% offset). Events spread across full width for maximum visual distinction. Hover should bring event to front.",
     events: [
       {
         id: 1,
@@ -62,7 +62,7 @@ const scenarios: Scenario[] = [
     title: "Three Overlapping Events (Cascading)",
     description: "Three events that overlap, creating a cascading effect",
     expected:
-      "Events should cascade with offsets 0%, 10%, 20% with variable widths (55%, ~42%, 33% - progressively narrower from left to right). Z-index should increment. Hover brings any to top.",
+      "Events spread across full width with variable widths (55%, ~42%, 33%). Offsets: 0%, ~35%, 66.5% (last event aligned to right edge). Right edges evenly distributed for maximum scatter. Z-index should increment. Hover brings any to top.",
     events: [
       {
         id: 3,
@@ -113,7 +113,7 @@ const scenarios: Scenario[] = [
     id: "same-start-time",
     title: "Same Start Time, Different Durations",
     description: "Multiple events starting at the same time with varying lengths",
-    expected: "Longest event first (base of cascade), shorter ones offset 10%, 20% with variable widths (55%, ~42%, 33% - progressively narrower). All start at 10:00.",
+    expected: "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
     events: [
       {
         id: 8,
@@ -142,7 +142,7 @@ const scenarios: Scenario[] = [
     id: "four-overlapping",
     title: "Four Overlapping Events",
     description: "Four events that overlap simultaneously",
-    expected: "Events should cascade with offsets 0%, 8%, 16%, 24% with variable widths (40%, ~33%, ~28%, 25% - progressively narrower from left to right).",
+    expected: "Events spread across full width with variable widths (40%, ~33%, ~28%, 25%). Last event aligned to right edge. Right edges evenly distributed for maximum scatter.",
     events: [
       {
         id: 11,

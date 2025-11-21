@@ -203,38 +203,73 @@ export function calculateEventLayouts(
       ? Array(groupSize).fill(baseWidthPercent)
       : calculateVariableWidths(groupSize, minWidthPercent, curveExponent);
     
-    // Calculate the default offset step for this group size
-    const defaultOffsetStep = calculateDynamicOffsetStep(groupSize, offsetStepPercent);
-    
-    let stepUsed = defaultOffsetStep;
-    for (let i = 1; i < groupSize; i++) {
-      const allowedSpace = Math.max(0, 100 - widths[i] - safetyMarginPercent);
-      const maxStepForThisEvent = allowedSpace / i;
-      stepUsed = Math.min(stepUsed, maxStepForThisEvent);
-    }
+    const Rmax = 100 - safetyMarginPercent;
     
     if (useCustomOffset) {
+      const defaultOffsetStep = calculateDynamicOffsetStep(groupSize, offsetStepPercent);
+      
+      let stepUsed = defaultOffsetStep;
+      for (let i = 1; i < groupSize; i++) {
+        const allowedSpace = Math.max(0, 100 - widths[i] - safetyMarginPercent);
+        const maxStepForThisEvent = allowedSpace / i;
+        stepUsed = Math.min(stepUsed, maxStepForThisEvent);
+      }
+      
       stepUsed = Math.min(offsetStepPercent, stepUsed);
-    }
 
-    group.forEach((event, indexInGroup) => {
-      const leftRaw = indexInGroup * stepUsed;
-      const left = round3(leftRaw);
-      
-      const maxWidthCap = 100 - left - safetyMarginPercent;
-      const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
-      
-      const width = floor3(Math.max(0, widthCap));
+      group.forEach((event, indexInGroup) => {
+        const leftRaw = indexInGroup * stepUsed;
+        const left = round3(leftRaw);
+        
+        const maxWidthCap = 100 - left - safetyMarginPercent;
+        const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
+        
+        const width = floor3(Math.max(0, widthCap));
 
-      layouts.push({
-        event,
-        leftOffsetPercent: left,
-        widthPercent: width,
-        baseZIndex: baseZIndex + indexInGroup,
-        groupIndex,
-        indexInGroup,
+        layouts.push({
+          event,
+          leftOffsetPercent: left,
+          widthPercent: width,
+          baseZIndex: baseZIndex + indexInGroup,
+          groupIndex,
+          indexInGroup,
+        });
       });
-    });
+    } else {
+      if (groupSize === 1) {
+        const width = floor3(Math.min(widths[0], Rmax));
+        layouts.push({
+          event: group[0],
+          leftOffsetPercent: 0,
+          widthPercent: width,
+          baseZIndex: baseZIndex,
+          groupIndex,
+          indexInGroup: 0,
+        });
+      } else {
+        const Rmin = widths[0];
+        
+        group.forEach((event, indexInGroup) => {
+          const t = indexInGroup / (groupSize - 1);
+          const ri = Rmin + (Rmax - Rmin) * t;
+          const leftRaw = ri - widths[indexInGroup];
+          const left = round3(leftRaw);
+          
+          const maxWidthCap = Rmax - left;
+          const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
+          const width = floor3(Math.max(0, widthCap));
+
+          layouts.push({
+            event,
+            leftOffsetPercent: left,
+            widthPercent: width,
+            baseZIndex: baseZIndex + indexInGroup,
+            groupIndex,
+            indexInGroup,
+          });
+        });
+      }
+    }
   });
 
   return layouts;
