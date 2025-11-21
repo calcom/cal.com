@@ -1,3 +1,4 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -28,6 +29,14 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
   // check if user has permission to update event types
   if (!hasEventTypeUpdatePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+  // verify that all userIds are members of the team
+  const teamMemberIds = await MembershipRepository.findAcceptedMembershipsByUserIdsInTeam({
+    userIds,
+    teamId,
+  });
+
+  const filteredUserIds = teamMemberIds.map((teamMember) => teamMember.userId);
+
   return await prisma.host.deleteMany({
     where: {
       eventTypeId: {
@@ -37,7 +46,7 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
         teamId: teamId,
       },
       userId: {
-        in: userIds,
+        in: filteredUserIds,
       },
     },
   });
