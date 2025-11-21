@@ -54,7 +54,7 @@ export default function WebhookTestDisclosure() {
           {t("ping_test")}
         </Button>
       </div>
-      <div className="border-subtle space-y-0 rounded-b-lg border border-t-0 px-6 py-8 sm:mx-0">
+      <div className="border-subtle stack-y-0 rounded-b-lg border border-t-0 px-6 py-8 sm:mx-0">
         <div className="border-subtle flex justify-between rounded-t-lg border p-4">
           <div className="flex items-center space-x-1">
             <h3 className="text-emphasis self-center text-sm font-semibold leading-4">

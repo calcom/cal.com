@@ -93,43 +93,34 @@ html.todesktop.dark {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+}
 
-  /* Custom space-y-* utilities post tailwind v4 upgrade */
-  .stack-y-0\.5 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.125rem;
+/**
+ * Legacy space-y-* utilities for Tailwind v4 compatibility
+ *
+ * Tailwind v4 changed the selector used by space-x-* and space-y-* utilities to address
+ * performance issues on large pages. The selector changed from:
+ *
+ *   .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+ *
+ * to:
+ *
+ *   .space-y-4 > :not(:last-child) { margin-bottom: 1rem; }
+ *
+ * These `.stack-y-*` utilities recreate the pre-v4 behavior using the old selector pattern
+ * (`:not([hidden]) ~ :not([hidden])` with `margin-top`) for cases where the new behavior
+ * causes layout issues.
+ *
+ * Usage: <div class="stack-y-4"> or <div class="lg:stack-y-6">
+ * Supports all spacing values: stack-y-0, stack-y-0.5, stack-y-1, stack-y-1.5, stack-y-2, etc.
+ *
+ * Reference: https://tailwindcss.com/docs/upgrade-guide#space-between-selector
+ */
+@utility stack-y-* {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-top: --spacing(--value(integer));
+    margin-top: --value([length]);
   }
-
-  .stack-y-1 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.25rem;
-  }
-
-  .stack-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.375rem;
-  }
-
-  .stack-y-2 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.5rem;
-  }
-
-  .stack-y-3 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.75rem;
-  }
-
-  .stack-y-4 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1rem;
-  }
-
-  .stack-y-5 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.25rem;
-  }
-
-  .stack-y-6 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 1.5rem;
-  }
-
-  .stack-y-8 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 2rem;
-  }  
 }
 
 /*
