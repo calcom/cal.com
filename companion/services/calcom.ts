@@ -20,8 +20,18 @@ import type {
 
 const API_BASE_URL = "https://api.cal.com/v2";
 
-// You'll need to set your API key here
-const API_KEY = process.env.EXPO_PUBLIC_CAL_API_KEY || "your-cal-api-key-here";
+// Access token will be set by the AuthContext
+let currentAccessToken: string | null = null;
+
+// Set access token (called by AuthContext)
+const setAccessToken = (token: string | null): void => {
+  currentAccessToken = token;
+};
+
+// Get current access token
+const getAccessToken = (): string | null => {
+  return currentAccessToken;
+};
 
 // Re-export types for backward compatibility
 export type {
@@ -70,6 +80,15 @@ export const getBookingParticipation = (
 
 export class CalComAPIService {
   private static userProfile: UserProfile | null = null;
+
+  // Set access token (called by AuthContext when user logs in)
+  static setAccessToken(token: string | null): void {
+    console.log('CalComAPIService.setAccessToken called:', {
+      hasToken: !!token,
+      tokenLength: token?.length
+    });
+    setAccessToken(token);
+  }
 
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
@@ -160,10 +179,15 @@ export class CalComAPIService {
   static async testRawBookingsAPI(): Promise<void> {
     try {
       const url = `${API_BASE_URL}/bookings?status=upcoming&status=unconfirmed&limit=50`;
+      const accessToken = getAccessToken();
+
+      if (!accessToken) {
+        throw new Error('No access token available for testing');
+      }
 
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
           "cal-api-version": "2024-08-13",
         },
@@ -184,10 +208,17 @@ export class CalComAPIService {
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
+    // Get OAuth access token
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+      throw new Error('No access token available. Please login again.');
+    }
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "cal-api-version": apiVersion,
         ...options.headers,
@@ -196,10 +227,8 @@ export class CalComAPIService {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      
       // Parse error for better user messages
       let errorMessage = response.statusText;
-      
       try {
         const errorJson = JSON.parse(errorBody);
         errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
@@ -207,15 +236,14 @@ export class CalComAPIService {
         // If JSON parsing fails, use the raw error body
         errorMessage = errorBody || response.statusText;
       }
-      
       // Handle specific error cases
       if (response.status === 401) {
-        if (errorMessage.includes("expired")) {
-          throw new Error("Your API key has expired. Please update it in the app settings.");
+        if (errorMessage.includes("expired") || errorMessage.includes("invalid") || errorMessage.includes("unauthorized")) {
+          // Token expired or invalid - trigger re-authentication
+          throw new Error("Your session has expired. Please login again.");
         }
-        throw new Error("Authentication failed. Please check your API key.");
+        throw new Error("Authentication failed. Please login again.");
       }
-      
       throw new Error(`API Error: ${errorMessage}`);
     }
 
@@ -244,7 +272,7 @@ export class CalComAPIService {
   static async createEventType(input: CreateEventTypeInput): Promise<EventType> {
     try {
       console.log("Creating event type with input:", JSON.stringify(input, null, 2));
-      
+
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         "/event-types",
         {
@@ -680,7 +708,6 @@ export class CalComAPIService {
   ): Promise<EventType> {
     try {
       console.log(`Updating event type ${eventTypeId} with:`, JSON.stringify(updates, null, 2));
-      
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         `/event-types/${eventTypeId}`,
         {

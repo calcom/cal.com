@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from 'react-
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface MoreMenuItem {
   name: string;
@@ -14,6 +15,7 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
+  const { logout } = useAuth();
 
   const openExternalLink = async (url: string, fallbackMessage: string) => {
     try {
@@ -27,6 +29,28 @@ export default function More() {
       console.error(`Failed to open ${url}:`, error);
       Alert.alert("Error", `Failed to open ${fallbackMessage}. Please try again.`);
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/auth/login');
+            } catch (error) {
+              console.error('Logout failed:', error);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const menuItems: MoreMenuItem[] = [
@@ -66,6 +90,11 @@ export default function More() {
       isExternal: true,
       onPress: () => openExternalLink("https://go.cal.com/support", "Support"),
     },
+    {
+      name: "Sign Out",
+      icon: "log-out-outline",
+      onPress: handleLogout,
+    },
   ];
 
   return (
@@ -84,7 +113,7 @@ export default function More() {
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}
             >
-              <View className="flex-row items-center flex-1">
+              <View className="flex-row flex-1 items-center">
                 <Ionicons name={item.icon} size={20} color="#333" />
                 <Text className="text-base font-semibold text-[#333] ml-3">{item.name}</Text>
               </View>
@@ -96,7 +125,7 @@ export default function More() {
             </TouchableOpacity>
           ))}
         </View>
-        <Text className="text-sm text-gray-500 mt-4">
+        <Text className="mt-4 text-sm text-gray-500">
           We view the companion as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.
         </Text>
       </ScrollView>
