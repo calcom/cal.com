@@ -85,6 +85,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   isPlatformUser?: boolean;
+  hideHeader?: boolean;
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -127,7 +128,7 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      {(props.heading || !!props.backPath) && (
+      {!props.hideHeader && (props.heading || !!props.backPath) && (
         <div
           className={classNames(
             "bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0",

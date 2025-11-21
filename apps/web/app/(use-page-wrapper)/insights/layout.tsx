@@ -14,6 +14,7 @@ export default async function InsightsLayout({ children }: { children: React.Rea
         withoutMain={false}
         heading={t("insights")}
         subtitle={t("insights_subtitle")}
+        hideHeader={true}
         actions={<div className={`mb-2 flex items-center gap-2 ${CTA_CONTAINER_CLASS_NAME}`} />}>
         <UpgradeTipWrapper>{children}</UpgradeTipWrapper>
       </Shell>
