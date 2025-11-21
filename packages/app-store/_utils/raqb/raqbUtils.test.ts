@@ -1217,7 +1217,7 @@ describe("resolveQueryValue", () => {
         fields: mockFields,
         response: {
           location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: null as unknown, label: "" }, // null value
+          city: { value: null as unknown as string, label: "" }, // null value
         },
       },
       attributes: mockAttributes,
@@ -1612,7 +1612,7 @@ describe("resolveQueryValue", () => {
       dynamicFieldValueOperands: {
         fields: mockFields,
         response: {
-          location: {} as unknown, // Empty object, no value property
+          location: {} as unknown as { value: string; label: string }, // Empty object, no value property
         },
       },
       attributes: mockAttributes,

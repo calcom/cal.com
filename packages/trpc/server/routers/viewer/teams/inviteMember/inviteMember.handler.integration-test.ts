@@ -90,7 +90,7 @@ async function createTestTeam(data: {
       slug: uniqueSlug,
       isOrganization: data.isOrganization || false,
       parentId: data.parentId,
-      metadata: data.metadata,
+      metadata: data.metadata as Prisma.InputJsonValue | undefined,
     },
   });
 
