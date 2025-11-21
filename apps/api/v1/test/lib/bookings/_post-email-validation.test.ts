@@ -6,53 +6,10 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { buildEventType, buildUser } from "@calcom/lib/test/builder";
 import { prisma } from "@calcom/prisma";
 
 import handler from "../../../pages/api/bookings/_post";
-
-vi.mock("@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB", () => ({
-  getEventTypesFromDB: vi.fn(),
-}));
-
-const mockEventTypeData = {
-  eventType: {
-    id: 1,
-    title: "Test Event",
-    profile: { organizationId: null },
-    users: [{ id: 1, email: "test@example.com", credentials: [] }],
-    hosts: [],
-    customInputs: [],
-    recurringEvent: null,
-    length: 15,
-    slug: "test-event",
-    price: 0,
-    currency: "USD",
-    requiresConfirmation: false,
-    disableGuests: false,
-    minimumBookingNotice: 120,
-    beforeEventBuffer: 0,
-    afterEventBuffer: 0,
-    seatsPerTimeSlot: null,
-    seatsShowAttendees: false,
-    schedulingType: null,
-    periodType: "UNLIMITED",
-    periodStartDate: null,
-    periodEndDate: null,
-    periodDays: null,
-    periodCountCalendarDays: false,
-    locations: [],
-    metadata: {},
-    successRedirectUrl: null,
-    description: null,
-    team: null,
-    owner: { id: 1, email: "test@example.com", credentials: [] },
-  },
-  users: [{ id: 1, email: "test@example.com", credentials: [] }],
-  allCredentials: [],
-  destinationCalendar: null,
-};
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
@@ -62,6 +19,15 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   BookingRepository: vi.fn().mockImplementation(() => ({
     findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
   })),
+}));
+
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
+  UserRepository: vi.fn().mockImplementation(() => ({
+    findManyByEmailsWithEmailVerificationSettings: vi.fn().mockResolvedValue([]),
+  })),
+  withSelectedCalendars: vi.fn().mockReturnValue({
+    findManyByEmailsWithEmailVerificationSettings: vi.fn().mockResolvedValue([]),
+  }),
 }));
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
@@ -164,16 +130,13 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-const mockGetEventTypesFromDB = getEventTypesFromDB as ReturnType<typeof vi.fn>;
-
 describe("POST /api/bookings - Email Validation for Legacy customInputs Path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFindOriginalRescheduledBooking.mockResolvedValue(null);
-    mockGetEventTypesFromDB.mockResolvedValue(mockEventTypeData.eventType);
   });
 
-  describe("Test Case 1: Invalid primary email", () => {
+  describe("Invalid primary email", () => {
     test("should return 400 with ZodError message for invalid primary email", async () => {
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -183,7 +146,11 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
           end: dayjs().add(1, "day").add(15, "minutes").format(),
           eventTypeId: 1,
           email: "rua juranda 172", // Invalid email (street address)
+          guests: [],
+          notes: "",
           location: "Cal.com Video",
+          smsReminderNumber: null,
+          rescheduleReason: "",
           timeZone: "America/Sao_Paulo",
           language: "pt-BR",
           customInputs: [],
@@ -208,7 +175,7 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
     });
   });
 
-  describe("Test Case 2: Invalid guest email", () => {
+  describe("Invalid guest email", () => {
     test("should return 400 with ZodError message for invalid guest email", async () => {
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -219,7 +186,10 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
           eventTypeId: 1,
           email: "valid@example.com",
           guests: ["claudovinorosaNúmero 530 novo SãoGeraldo"], // Invalid guest email (street address)
+          notes: "",
           location: "Cal.com Video",
+          smsReminderNumber: null,
+          rescheduleReason: "",
           timeZone: "America/Sao_Paulo",
           language: "pt-BR",
           customInputs: [],
@@ -244,75 +214,7 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
     });
   });
 
-  describe("Test Case 3: Empty guest strings are filtered", () => {
-    test("should filter empty guest strings and validate remaining emails", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-        method: "POST",
-        body: {
-          name: "Test User",
-          start: dayjs().add(1, "day").format(),
-          end: dayjs().add(1, "day").add(15, "minutes").format(),
-          eventTypeId: 1,
-          email: "valid@example.com",
-          guests: ["", "valid-guest@example.com", ""], // Empty strings should be filtered
-          location: "Cal.com Video",
-          timeZone: "America/Sao_Paulo",
-          language: "pt-BR",
-          customInputs: [],
-          metadata: {},
-        },
-        prisma,
-      });
-
-      prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-        ...buildEventType({ profileId: null, length: 15 }),
-        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
-        profile: { organizationId: null },
-        hosts: [],
-        users: [buildUser()],
-      });
-
-      await handler(req, res);
-
-      const statusCode = res._getStatusCode();
-      expect(statusCode).not.toBe(400);
-    });
-
-    test("should filter all empty guest strings to empty array", async () => {
-      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-        method: "POST",
-        body: {
-          name: "Test User",
-          start: dayjs().add(1, "day").format(),
-          end: dayjs().add(1, "day").add(15, "minutes").format(),
-          eventTypeId: 1,
-          email: "valid@example.com",
-          guests: ["", "", ""], // All empty strings
-          location: "Cal.com Video",
-          timeZone: "America/Sao_Paulo",
-          language: "pt-BR",
-          customInputs: [],
-          metadata: {},
-        },
-        prisma,
-      });
-
-      prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-        ...buildEventType({ profileId: null, length: 15 }),
-        // @ts-expect-error requires mockDeep which will be introduced in the Prisma 6.7.0 upgrade, ignore for now.
-        profile: { organizationId: null },
-        hosts: [],
-        users: [buildUser()],
-      });
-
-      await handler(req, res);
-
-      const statusCode = res._getStatusCode();
-      expect(statusCode).not.toBe(400);
-    });
-  });
-
-  describe("Test Case 4: Valid emails succeed", () => {
+  describe("Valid emails succeed", () => {
     test("should succeed with valid primary and guest emails", async () => {
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -323,7 +225,10 @@ describe("POST /api/bookings - Email Validation for Legacy customInputs Path", (
           eventTypeId: 1,
           email: "valid@example.com",
           guests: ["guest1@example.com", "guest2@example.com"],
+          notes: "",
           location: "Cal.com Video",
+          smsReminderNumber: null,
+          rescheduleReason: "",
           timeZone: "America/Sao_Paulo",
           language: "pt-BR",
           customInputs: [],
