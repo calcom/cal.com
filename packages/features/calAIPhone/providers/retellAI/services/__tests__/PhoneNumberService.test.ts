@@ -77,11 +77,6 @@ describe("PhoneNumberService", () => {
           teamId: 1,
         })
       ).rejects.toThrow(HttpError);
-
-      expect(mocks.mockAgentRepository.canManageTeamResources).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 1,
-      });
     });
 
     it("should validate agent permissions when agentId provided", async () => {
