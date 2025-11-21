@@ -8,7 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
@@ -191,9 +191,8 @@ async function createPlatformAndSetupUser({
         permissions: 1023,
         areEmailsEnabled: true,
         organizationId: team.id,
-        id: "clxyyy21o0003sbk7yw5z6tzg",
-        secret:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
+        id: process.env.SEED_PLATFORM_OAUTH_CLIENT_ID || "",
+        secret: process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET || "",
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
@@ -1535,7 +1534,7 @@ async function main() {
 
 async function runSeed() {
   await prisma.$connect();
-  
+
   await mainAppStore();
   await main();
   await mainHugeEventTypesSeed();
