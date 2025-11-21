@@ -13,6 +13,7 @@
     "ext:zip": "wxt zip"
   },
   "dependencies": {
+    "@expo/ui": "^0.2.0-beta.7",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-segmented-control/segmented-control": "^2.5.7",
     "@types/react": "~19.1.10",
@@ -28,6 +29,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-native": "0.81.5",
+    "react-native-context-menu-view": "^1.20.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-svg": "^15.15.0",

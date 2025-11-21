@@ -18,6 +18,7 @@ import {
   Modal,
   KeyboardAvoidingView,
 } from "react-native";
+import { ContextMenu, Host, Button } from "@expo/ui/swift-ui";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
@@ -46,6 +47,9 @@ export default function EventTypes() {
   // Modal state for web platform action sheet
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
+  
+  // Modal state for New button menu
+  const [showNewModal, setShowNewModal] = useState(false);
   
   // Toast state for web platform
   const [showToast, setShowToast] = useState(false);
@@ -326,7 +330,49 @@ export default function EventTypes() {
   };
 
   const handleCreateNew = () => {
-    setShowCreateModal(true);
+    if (Platform.OS === "web") {
+      // Show custom modal for web platform
+      setShowNewModal(true);
+      return;
+    }
+    
+    if (Platform.OS === "ios") {
+      // iOS ActionSheet for Expo Go compatibility
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Cancel", "New Event Type", "One-off meeting"],
+          cancelButtonIndex: 0,
+          title: "New",
+          message: "Choose what to create",
+        },
+        (buttonIndex) => {
+          switch (buttonIndex) {
+            case 1: // New Event Type
+              setShowCreateModal(true);
+              break;
+            case 2: // One-off meeting
+              handleOneOffMeeting();
+              break;
+            default:
+              // Cancel - do nothing
+              break;
+          }
+        }
+      );
+      return;
+    }
+    
+    // Fallback for Android
+    Alert.alert("New", "Choose what to create", [
+      { text: "Cancel", style: "cancel" },
+      { text: "New Event Type", onPress: () => setShowCreateModal(true) },
+      { text: "One-off meeting", onPress: handleOneOffMeeting },
+    ]);
+  };
+
+  const handleOneOffMeeting = () => {
+    // TODO: Implement one-off meeting creation
+    Alert.alert("One-off meeting", "This feature will be implemented soon");
   };
 
   const handleCreateEventType = async () => {
@@ -789,6 +835,75 @@ export default function EventTypes() {
                 </View>
               </>
             )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* New Menu Modal for Web Platform */}
+      <Modal
+        visible={showNewModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNewModal(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowNewModal(false)}>
+          <TouchableOpacity
+            className="bg-white rounded-2xl w-full max-w-sm mx-4"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}>
+            
+            {/* Header */}
+            <View className="p-6 border-b border-gray-200">
+              <Text className="text-xl font-semibold text-gray-900">
+                New
+              </Text>
+              <Text className="text-sm text-gray-500 mt-1">
+                Choose what to create
+              </Text>
+            </View>
+            
+            {/* Options List */}
+            <View className="p-2">
+              {/* New Event Type */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowNewModal(false);
+                  setShowCreateModal(true);
+                }}
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+              >
+                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">New Event Type</Text>
+              </TouchableOpacity>
+
+              {/* Separator */}
+              <View className="h-px bg-gray-200 mx-4 my-2" />
+
+              {/* One-off meeting */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowNewModal(false);
+                  handleOneOffMeeting();
+                }}
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+              >
+                <Ionicons name="videocam-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">One-off meeting</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Cancel button */}
+            <View className="p-2 md:p-4 border-t border-gray-200">
+              <TouchableOpacity
+                className="w-full p-3 bg-gray-100 rounded-lg"
+                onPress={() => setShowNewModal(false)}>
+                <Text className="text-center text-base font-medium text-gray-700">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>

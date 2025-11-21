@@ -22,6 +22,8 @@ import { Header } from "../../components/Header";
 export default function Availability() {
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export default function Availability() {
       });
 
       setSchedules(sortedSchedules);
+      setFilteredSchedules(sortedSchedules);
     } catch (err) {
       setError("Failed to load availability. Please check your API key and try again.");
     } finally {
@@ -71,6 +74,19 @@ export default function Availability() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchSchedules();
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredSchedules(schedules);
+    } else {
+      const filtered = schedules.filter(
+        (schedule) =>
+          schedule.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredSchedules(filtered);
+    }
   };
 
   const handleScheduleLongPress = (schedule: Schedule) => {
@@ -254,12 +270,57 @@ export default function Availability() {
 
   if (schedules.length === 0 && !loading) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View className="flex-1 bg-gray-100">
         <Header />
-        <View className="flex-1 justify-center items-center p-5">
+        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
+          <TextInput
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
+            placeholder="Search schedules"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+          <TouchableOpacity className="flex-row items-center justify-center gap-1 bg-black px-2.5 py-2 rounded-lg min-w-[60px]" onPress={handleCreateNew}>
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text className="text-white text-base font-semibold">New</Text>
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 justify-center items-center p-5 bg-gray-50">
           <Ionicons name="calendar-outline" size={64} color="#666" />
           <Text className="text-xl font-bold mt-4 mb-2 text-[#333]">No schedules found</Text>
           <Text className="text-base text-[#666] text-center">Create your availability schedule in Cal.com</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (filteredSchedules.length === 0 && searchQuery.trim() !== "") {
+    return (
+      <View className="flex-1 bg-gray-100">
+        <Header />
+        <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
+          <TextInput
+            className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
+            placeholder="Search schedules"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+          <TouchableOpacity className="flex-row items-center justify-center gap-1 bg-black px-2.5 py-2 rounded-lg min-w-[60px]" onPress={handleCreateNew}>
+            <Ionicons name="add" size={18} color="#fff" />
+            <Text className="text-white text-base font-semibold">New</Text>
+          </TouchableOpacity>
+        </View>
+        <View className="flex-1 justify-center items-center p-5 bg-gray-50">
+          <Ionicons name="search-outline" size={64} color="#666" />
+          <Text className="text-xl font-bold mt-4 mb-2 text-[#333]">No results found</Text>
+          <Text className="text-base text-[#666] text-center">Try searching with different keywords</Text>
         </View>
       </View>
     );
@@ -326,12 +387,28 @@ export default function Availability() {
   };
 
   return (
-    <View className="flex-1 bg-[#f8f9fa]">
+    <View className="flex-1 bg-gray-100">
       <Header />
+      <View className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex-row items-center gap-3">
+        <TextInput
+          className="flex-1 bg-white rounded-lg px-3 py-2 text-[17px] text-black border border-gray-200 focus:ring-2 focus:ring-black focus:border-black"
+          placeholder="Search schedules"
+          placeholderTextColor="#9CA3AF"
+          value={searchQuery}
+          onChangeText={handleSearch}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+        />
+        <TouchableOpacity className="flex-row items-center justify-center gap-1 bg-black px-2.5 py-2 rounded-lg min-w-[60px]" onPress={handleCreateNew}>
+          <Ionicons name="add" size={18} color="#fff" />
+          <Text className="text-white text-base font-semibold">New</Text>
+        </TouchableOpacity>
+      </View>
       <View className="px-2 md:px-4 pt-4 flex-1">
         <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
           <FlatList
-            data={schedules}
+            data={filteredSchedules}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderSchedule}
             contentContainerStyle={{ paddingBottom: 90 }}
@@ -340,21 +417,6 @@ export default function Availability() {
           />
         </View>
       </View>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        className="absolute bottom-36 right-6 bg-black rounded-full w-14 h-14 items-center justify-center shadow-lg"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4.65,
-          elevation: 8,
-        }}
-        onPress={handleCreateNew}
-        activeOpacity={0.8}>
-        <Ionicons name="add" size={30} color="#fff" />
-      </TouchableOpacity>
 
       {/* Create Schedule Modal */}
       <Modal

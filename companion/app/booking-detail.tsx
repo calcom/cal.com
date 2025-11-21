@@ -281,7 +281,7 @@ export default function BookingDetail() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: "Booking Details",
+          headerTitle: booking?.title || "Booking Details",
           headerLeft: () => (
             <TouchableOpacity 
               onPress={() => router.back()} 
