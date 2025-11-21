@@ -432,10 +432,7 @@ describe("RoleManagementFactory", () => {
             MembershipRole.OWNER
           )
         ).rejects.toThrow(
-          new RoleManagementError(
-            "Only owners or admin can update roles",
-            RoleManagementErrorCode.UNAUTHORIZED
-          )
+          new RoleManagementError("Only owners can update this role", RoleManagementErrorCode.UNAUTHORIZED)
         );
       });
     });

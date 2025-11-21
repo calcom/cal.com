@@ -73,6 +73,7 @@ export class LegacyRoleManager implements IRoleManager {
     newRole?: MembershipRole | string
   ): Promise<void> {
     let hasPermission = false;
+    const isOwnerChange = newRole === MembershipRole.OWNER;
     if (scope === "team") {
       const team = await prisma.membership.findFirst({
         where: {
@@ -93,7 +94,7 @@ export class LegacyRoleManager implements IRoleManager {
     // Only OWNER/ADMIN can update role
     if (!hasPermission) {
       throw new RoleManagementError(
-        "Only owners or admin can update roles",
+        isOwnerChange ? "Only owners can update this role" : "Only owners or admin can update roles",
         RoleManagementErrorCode.UNAUTHORIZED
       );
     }
