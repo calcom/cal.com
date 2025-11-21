@@ -132,12 +132,15 @@ export class BookingEmailSmsHandler {
     } = data;
 
     await sendRescheduledEmailsAndSMS(
-      withHideBranding({
-        ...evt,
-        additionalInformation,
-        additionalNotes,
-        cancellationReason: `$RCH$${rescheduleReason || ""}`,
-      }, true),
+      withHideBranding(
+        {
+          ...evt,
+          additionalInformation,
+          additionalNotes,
+          cancellationReason: `$RCH$${rescheduleReason || ""}`,
+        },
+        evt.hideBranding ?? false
+      ),
       metadata
     );
   }
@@ -233,17 +236,17 @@ export class BookingEmailSmsHandler {
     try {
       await Promise.all([
         sendRoundRobinRescheduledEmailsAndSMS(
-          withHideBranding({ ...copyEventAdditionalInfo, iCalUID }, true),
+          withHideBranding({ ...copyEventAdditionalInfo, iCalUID }, evt.hideBranding ?? false),
           rescheduledMembers,
           metadata
         ),
         sendRoundRobinScheduledEmailsAndSMS({
-          calEvent: withHideBranding(copyEventAdditionalInfo, true),
+          calEvent: withHideBranding(copyEventAdditionalInfo, evt.hideBranding ?? false),
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
         sendRoundRobinCancelledEmailsAndSMS(
-          withHideBranding(cancelledRRHostEvt, true),
+          withHideBranding(cancelledRRHostEvt, evt.hideBranding ?? false),
           cancelledMembers,
           metadata,
           reassignedTo
@@ -287,7 +290,10 @@ export class BookingEmailSmsHandler {
 
     try {
       await sendScheduledEmailsAndSMS(
-        withHideBranding({ ...evt, additionalInformation, additionalNotes, customInputs }, true),
+        withHideBranding(
+          { ...evt, additionalInformation, additionalNotes, customInputs },
+          evt.hideBranding ?? false
+        ),
         eventNameObject,
         isHostConfirmationEmailsDisabled,
         isAttendeeConfirmationEmailDisabled,
@@ -317,7 +323,7 @@ export class BookingEmailSmsHandler {
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
-      const eventWithNotes = withHideBranding({ ...evt, additionalNotes }, true);
+    const eventWithNotes = withHideBranding({ ...evt, additionalNotes }, evt.hideBranding ?? false);
 
     try {
       await Promise.all([
