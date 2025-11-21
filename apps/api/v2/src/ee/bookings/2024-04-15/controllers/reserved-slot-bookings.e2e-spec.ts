@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
+import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -265,27 +266,62 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
         it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-23T09:30:00.000Z");
-          const endTime = new Date("2040-05-23T10:30:00.000Z");
+          const startTime1 = new Date("2040-05-23T09:30:00.000Z");
+          const endTime1 = new Date("2040-05-23T10:30:00.000Z");
+          const startTime2 = new Date("2040-05-30T09:30:00.000Z");
+          const endTime2 = new Date("2040-05-30T10:30:00.000Z");
+          const startTime3 = new Date("2040-06-06T09:30:00.000Z");
+          const endTime3 = new Date("2040-06-06T10:30:00.000Z");
 
-          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
+          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime1, endTime1);
 
-          const bookingData: CreateBookingInput_2024_04_15 = {
-            start: startTime.toISOString(),
-            end: endTime.toISOString(),
-            eventTypeId: recurringEventTypeId,
-            timeZone: "Europe/Rome",
-            language: "en",
-            metadata: {},
-            hashedLink: null,
-            responses: {
-              name: "Test Attendee recurring uid in cookie",
-              email: `reserved-slot-test-${randomString()}@example.com`,
+          const bookingData: CreateRecurringBookingInput_2024_04_15[] = [
+            {
+              start: startTime1.toISOString(),
+              end: endTime1.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in cookie",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              recurringEventId: "test-reserved-slot-recurring-id1",
             },
-          };
+            {
+              start: startTime2.toISOString(),
+              end: endTime2.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in cookie",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              recurringEventId: "test-reserved-slot-recurring-id2",
+            },
+            {
+              start: startTime3.toISOString(),
+              end: endTime3.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in cookie",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              recurringEventId: "test-reserved-slot-recurring-id3",
+            },
+          ];
 
           const response = await request(app.getHttpServer())
-          .post("/v2/bookings")
+            .post("/v2/bookings/recurring")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
             .set("Cookie", `${RESERVED_SLOT_UID_COOKIE_NAME}=${reservedSlotUid}`)
@@ -303,28 +339,65 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
         it("should create booking with reservedSlotUid from request body and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-21T11:30:00.000Z");
-          const endTime = new Date("2040-05-21T12:30:00.000Z");
+          const startTime1 = new Date("2040-05-21T11:30:00.000Z");
+          const endTime1 = new Date("2040-05-21T12:30:00.000Z");
+          const startTime2 = new Date("2040-05-28T11:30:00.000Z");
+          const endTime2 = new Date("2040-05-28T12:30:00.000Z");
+          const startTime3 = new Date("2040-06-04T11:30:00.000Z");
+          const endTime3 = new Date("2040-06-04T12:30:00.000Z");
 
-          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
+          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime1, endTime1);
 
-          const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
-            start: startTime.toISOString(),
-            end: endTime.toISOString(),
-            eventTypeId: recurringEventTypeId,
-            timeZone: "Europe/Rome",
-            language: "en",
-            metadata: {},
-            hashedLink: null,
-            responses: {
-              name: "Test Attendee recurring uid in request body",
-              email: `reserved-slot-test-${randomString()}@example.com`,
+          const bookingData: (CreateRecurringBookingInput_2024_04_15 & { reservedSlotUid: string })[] = [
+            {
+              start: startTime1.toISOString(),
+              end: endTime1.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in request body",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              reservedSlotUid,
+              recurringEventId: "test-reserved-slot-recurring-id-body4",
             },
-            reservedSlotUid,
-          };
+            {
+              start: startTime2.toISOString(),
+              end: endTime2.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in request body",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              reservedSlotUid,
+              recurringEventId: "test-reserved-slot-recurring-id-body5",
+            },
+            {
+              start: startTime3.toISOString(),
+              end: endTime3.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee recurring uid in request body",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              reservedSlotUid,
+              recurringEventId: "test-reserved-slot-recurring-id-body6",
+            },
+          ];
 
           const response = await request(app.getHttpServer())
-            .post("/v2/bookings")
+            .post("/v2/bookings/recurring")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
             .expect(201);
@@ -351,23 +424,26 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
           await createReservedSlot(user.id, recurringEventTypeId, secondReservedSlotUid, startTime, endTime);
 
-          const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
-            start: startTime.toISOString(),
-            end: endTime.toISOString(),
-            eventTypeId: recurringEventTypeId,
-            timeZone: "Europe/Rome",
-            language: "en",
-            metadata: {},
-            hashedLink: null,
-            responses: {
-              name: "Test Attendee",
-              email: `reserved-slot-test-${randomString()}@example.com`,
+          const bookingData: (CreateRecurringBookingInput_2024_04_15 & { reservedSlotUid: string })[] = [
+            {
+              start: startTime.toISOString(),
+              end: endTime.toISOString(),
+              eventTypeId: recurringEventTypeId,
+              timeZone: "Europe/Rome",
+              language: "en",
+              metadata: {},
+              hashedLink: null,
+              responses: {
+                name: "Test Attendee",
+                email: `reserved-slot-test-${randomString()}@example.com`,
+              },
+              reservedSlotUid: secondReservedSlotUid,
+              recurringEventId: "test-reserved-slot-recurring-conflict",
             },
-            reservedSlotUid: secondReservedSlotUid, // Try to book with the second (not first in line)
-          };
+          ];
 
           const response = await request(app.getHttpServer())
-            .post("/v2/bookings")
+            .post("/v2/bookings/recurring")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
             .expect(409);

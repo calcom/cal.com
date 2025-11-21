@@ -339,6 +339,7 @@ export class BookingsController_2024_04_15 {
         }
       }
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
+      const reservedSlotUid = getReservedSlotUidFromRequest(req);
       const createdBookings: BookingResponse[] = await this.recurringBookingService.createBooking({
         bookingData: body.map((booking) => ({ ...booking, creationSource: CreationSource.API_V2 })),
         bookingMeta: {
@@ -350,6 +351,7 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           noEmail: bookingRequest.body.noEmail,
+          reservedSlotUid,
         },
       });
 
