@@ -9,7 +9,7 @@
     "@getalby/lightning-tools": "^5.1.2",
     "@getalby/sdk": "^4.0.0",
     "@webbtc/webln-types": "^3.0.0",
-    "react-qr-code": "^2.0.12",
+    "react-qr-code": "^2.0.18",
     "svix": "^0.85.1"
   },
   "devDependencies": {

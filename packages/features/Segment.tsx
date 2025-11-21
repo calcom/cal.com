@@ -5,6 +5,7 @@ import type { ImmutableTree, BuilderProps } from "@react-awesome-query-builder/u
 import type { JsonTree } from "@react-awesome-query-builder/ui";
 import { useCallback, useState } from "react";
 
+import { buildStateFromQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -12,7 +13,6 @@ import {
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
-import { buildStateFromQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import cn from "@calcom/ui/classNames";

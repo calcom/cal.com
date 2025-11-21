@@ -55,7 +55,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
-  const selectedDate = searchParams?.get("date");
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =
@@ -185,20 +185,17 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   // Toggle query param for overlay calendar
   const onOverlaySwitchStateChange = useCallback(
     (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      const url = new URL(window.location.href);
       if (state) {
-        current.set("overlayCalendar", "true");
+        url.searchParams.set("overlayCalendar", "true");
         localStorage.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        current.delete("overlayCalendar");
+        url.searchParams.delete("overlayCalendar");
         localStorage.removeItem("overlayCalendarSwitchDefault");
       }
-      // cast to string
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
+      router.push(`${url.pathname}${url.search}`);
     },
-    [searchParams, pathname, router]
+    [router]
   );
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
