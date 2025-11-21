@@ -78,6 +78,10 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   }
 
   if (user) {
+    if (user.organizationId !== org.id) {
+      log.warn(`Blocked SCIM cross-tenant hijack attempt for ${userEmail}`);
+      throw new Error("User belongs to another organization.");
+    }
     if (eventData.active) {
       if (await new UserRepository(prisma).isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({
