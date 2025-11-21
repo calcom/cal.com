@@ -39,7 +39,7 @@ const scenarios: Scenario[] = [
     title: "Two Overlapping Events",
     description: "Two events with overlapping time ranges on the same day",
     expected:
-      "Second event should be offset 8% to the right, both 80% width. Hover should bring event to front.",
+      "Second event should be offset 15% to the right with 75% width (larger offset and narrower width for better visual distinction with 2 events). Hover should bring event to front.",
     events: [
       {
         id: 1,
@@ -62,7 +62,7 @@ const scenarios: Scenario[] = [
     title: "Three Overlapping Events (Cascading)",
     description: "Three events that overlap, creating a cascading effect",
     expected:
-      "Events should cascade with offsets 0%, 8%, 16%. Z-index should increment. Hover brings any to top.",
+      "Events should cascade with offsets 0%, 10%, 20% with 70% width (medium offset and narrower width for 3 events). Z-index should increment. Hover brings any to top.",
     events: [
       {
         id: 3,
@@ -113,7 +113,7 @@ const scenarios: Scenario[] = [
     id: "same-start-time",
     title: "Same Start Time, Different Durations",
     description: "Multiple events starting at the same time with varying lengths",
-    expected: "Longest event first (base of cascade), shorter ones offset 8%, 16%. All start at 10:00.",
+    expected: "Longest event first (base of cascade), shorter ones offset 10%, 20% with 70% width (medium offset and narrower width for 3 events). All start at 10:00.",
     events: [
       {
         id: 8,
@@ -139,16 +139,16 @@ const scenarios: Scenario[] = [
     ],
   },
   {
-    id: "chain-overlaps",
-    title: "Chain Overlaps (A→B→C)",
-    description: "Events where A overlaps B, and B overlaps C",
-    expected: "Single overlap group with cascading offsets 0%, 8%, 16%.",
+    id: "four-overlapping",
+    title: "Four Overlapping Events",
+    description: "Four events that overlap simultaneously",
+    expected: "Events should cascade with offsets 0%, 8%, 16%, 24% (base offset for 4 events, narrower width at 65%).",
     events: [
       {
         id: 11,
         title: "Event A",
         start: makeDate(4, 10, 0),
-        end: makeDate(4, 11, 0),
+        end: makeDate(4, 12, 0),
         options: { status: "ACCEPTED", color: "#3b82f6" },
       },
       {
@@ -162,8 +162,15 @@ const scenarios: Scenario[] = [
         id: 13,
         title: "Event C",
         start: makeDate(4, 11, 0),
-        end: makeDate(4, 12, 0),
+        end: makeDate(4, 12, 30),
         options: { status: "ACCEPTED", color: "#10b981" },
+      },
+      {
+        id: 50,
+        title: "Event D",
+        start: makeDate(4, 11, 15),
+        end: makeDate(4, 12, 15),
+        options: { status: "PENDING", color: "#8b5cf6" },
       },
     ],
   },

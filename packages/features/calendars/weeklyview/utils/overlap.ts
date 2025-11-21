@@ -20,10 +20,68 @@ export interface EventLayout {
 
 const DEFAULT_CONFIG: Required<OverlapLayoutConfig> = {
   baseWidthPercent: 80,
-  offsetStepPercent: 8,
+  offsetStepPercent: 8, // This will be dynamically adjusted based on group size
   baseZIndex: 60,
   safetyMarginPercent: 0.5,
 };
+
+/**
+ * Calculates the optimal offset step percentage based on the number of overlapping events
+ * More events = smaller offset for tighter packing
+ * Fewer events = larger offset for better visual distinction
+ * 
+ * @param groupSize - Number of overlapping events in the group
+ * @param baseOffsetStep - The base offset step percentage (default 8%)
+ * @returns The calculated offset step percentage
+ */
+function calculateDynamicOffsetStep(groupSize: number, baseOffsetStep: number): number {
+  if (groupSize <= 1) {
+    return 0;
+  }
+  
+  if (groupSize === 2) {
+    return 15;
+  }
+  
+  if (groupSize === 3) {
+    return 10;
+  }
+  
+  if (groupSize === 4) {
+    return baseOffsetStep;
+  }
+  
+  return Math.max(3, baseOffsetStep * (4 / groupSize));
+}
+
+/**
+ * Calculates the optimal width percentage based on the number of overlapping events
+ * More events = narrower width for better distinction
+ * Fewer events = wider width
+ * 
+ * @param groupSize - Number of overlapping events in the group
+ * @param baseWidth - The base width percentage (default 80%)
+ * @returns The calculated width percentage
+ */
+function calculateDynamicWidth(groupSize: number, baseWidth: number): number {
+  if (groupSize <= 1) {
+    return baseWidth;
+  }
+  
+  if (groupSize === 2) {
+    return 75;
+  }
+  
+  if (groupSize === 3) {
+    return 70;
+  }
+  
+  if (groupSize === 4) {
+    return 65;
+  }
+  
+  return Math.max(50, 65 - (groupSize - 4) * 2);
+}
 
 /**
  * Rounds a number to 3 decimal places using standard rounding
@@ -114,9 +172,14 @@ export function calculateEventLayouts(
 
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
-    const allowedOffsetSpace = Math.max(0, 100 - baseWidthPercent - safetyMarginPercent);
+    
+    const dynamicWidth = calculateDynamicWidth(groupSize, baseWidthPercent);
+    const allowedOffsetSpace = Math.max(0, 100 - dynamicWidth - safetyMarginPercent);
+    
+    const dynamicOffsetStep = calculateDynamicOffsetStep(groupSize, offsetStepPercent);
+    
     const stepUsed = Math.min(
-      offsetStepPercent,
+      dynamicOffsetStep,
       allowedOffsetSpace / Math.max(1, groupSize - 1)
     );
 
@@ -125,7 +188,7 @@ export function calculateEventLayouts(
       const left = round3(leftRaw);
       
       const maxWidthCap = 100 - left - safetyMarginPercent;
-      const widthCap = Math.min(baseWidthPercent, maxWidthCap);
+      const widthCap = Math.min(dynamicWidth, maxWidthCap);
       
       const width = floor3(Math.max(0, widthCap));
 
