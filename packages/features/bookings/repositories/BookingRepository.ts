@@ -1409,10 +1409,38 @@ export class BookingRepository {
       where: {
         id: bookingId,
       },
-      include: {
-        attendees: true,
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        userId: true,
+        eventTypeId: true,
+        responses: true,
+        iCalUID: true,
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
         destinationCalendar: true,
-        references: true,
+        references: {
+          select: {
+            id: true,
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+          },
+        },
         eventType: {
           select: {
             id: true,
