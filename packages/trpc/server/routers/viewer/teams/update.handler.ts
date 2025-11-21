@@ -23,9 +23,34 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
-  const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
+  const prevTeam = await prisma.team.findUnique({
+    where: {
+      id: input.id,
+    },
+    select: {
+      id: true,
+      parentId: true,
+      slug: true,
+      metadata: true,
+      rrTimestampBasis: true,
+    },
+  });
 
-  if (!isOrgAdmin) {
+  if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+  const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
+  const organizationId = ctx.user.organizationId;
+
+  if (isOrgAdmin) {
+    const teamBelongsToOrg = prevTeam.id === organizationId || prevTeam.parentId === organizationId;
+
+    if (!teamBelongsToOrg) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You can only update teams within your organization.",
+      });
+    }
+  } else {
     const permissionCheckService = new PermissionCheckService();
     const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
       userId: ctx.user?.id || 0,
@@ -51,14 +76,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
     }
   }
-
-  const prevTeam = await prisma.team.findUnique({
-    where: {
-      id: input.id,
-    },
-  });
-
-  if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
   if (input.bookingLimits) {
     const isValid = validateIntervalLimitOrder(input.bookingLimits);
