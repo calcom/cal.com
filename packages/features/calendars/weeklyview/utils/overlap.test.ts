@@ -181,12 +181,12 @@ describe("overlap utility", () => {
       
       expect(layouts[0].event.id).toBe(1);
       expect(layouts[0].leftOffsetPercent).toBe(0);
-      expect(layouts[0].widthPercent).toBe(75);
+      expect(layouts[0].widthPercent).toBe(80);
       expect(layouts[0].baseZIndex).toBe(60);
       
       expect(layouts[1].event.id).toBe(2);
       expect(layouts[1].leftOffsetPercent).toBe(15);
-      expect(layouts[1].widthPercent).toBe(75);
+      expect(layouts[1].widthPercent).toBe(50);
       expect(layouts[1].baseZIndex).toBe(61);
     });
 
@@ -329,9 +329,9 @@ describe("overlap utility", () => {
 
       const layouts = calculateEventLayouts(events);
 
-      expect(layouts[0].widthPercent).toBe(70);
-      expect(layouts[1].widthPercent).toBe(70);
-      expect(layouts[2].widthPercent).toBe(70);
+      expect(layouts[0].widthPercent).toBe(55);
+      expect(layouts[1].widthPercent).toBeCloseTo(41.9, 0);
+      expect(layouts[2].widthPercent).toBe(33);
       
       expect(layouts[0].leftOffsetPercent).toBe(0);
       expect(layouts[1].leftOffsetPercent).toBe(10);
@@ -354,6 +354,8 @@ describe("overlap utility", () => {
       expect(map.get(2)?.event.id).toBe(2);
       expect(map.get(1)?.leftOffsetPercent).toBe(0);
       expect(map.get(2)?.leftOffsetPercent).toBe(15);
+      expect(map.get(1)?.widthPercent).toBe(80);
+      expect(map.get(2)?.widthPercent).toBe(50);
     });
 
     it("should handle empty layouts", () => {
