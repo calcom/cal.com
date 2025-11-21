@@ -34,10 +34,10 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
-    const userEmail = `reserved-slot-bookings-user-${randomString()}@api.com`;
+    const userEmail = `reserved-slot-20240415-user-${randomString()}@api.com`;
     let user: User;
     let eventTypeId: number;
-    const eventTypeSlug = `reserved-slot-bookings-event-type-${randomString()}`;
+    const eventTypeSlug = `reserved-slot-20240415-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -240,7 +240,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
       describe("recurring event type", () => {
         let recurringEventTypeId: number;
-        const recurringEventTypeSlug = `recurring-reserved-slot-bookings-event-type-${randomString()}`;
+        const recurringEventTypeSlug = `recurring-reserved-slot-20240415-event-type-${randomString()}`;
 
         beforeAll(async () => {
           const recurringEvent = await eventTypesRepositoryFixture.create(
@@ -265,8 +265,8 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
         it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-24T11:30:00.000Z");
-          const endTime = new Date("2040-05-24T12:30:00.000Z");
+          const startTime = new Date("2040-05-23T09:30:00.000Z");
+          const endTime = new Date("2040-05-23T10:30:00.000Z");
 
           await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
 
@@ -279,13 +279,13 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
             metadata: {},
             hashedLink: null,
             responses: {
-              name: "Test Attendee",
+              name: "Test Attendee recurring uid in cookie",
               email: `reserved-slot-test-${randomString()}@example.com`,
             },
           };
 
           const response = await request(app.getHttpServer())
-            .post("/v2/bookings")
+          .post("/v2/bookings")
             .send(bookingData)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
             .set("Cookie", `${RESERVED_SLOT_UID_COOKIE_NAME}=${reservedSlotUid}`)
@@ -303,8 +303,8 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
 
         it("should create booking with reservedSlotUid from request body and remove selected slot", async () => {
           const reservedSlotUid = `reserved-slot-${randomString()}`;
-          const startTime = new Date("2040-05-25T11:30:00.000Z");
-          const endTime = new Date("2040-05-25T12:30:00.000Z");
+          const startTime = new Date("2040-05-21T11:30:00.000Z");
+          const endTime = new Date("2040-05-21T12:30:00.000Z");
 
           await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
 
@@ -317,7 +317,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
             metadata: {},
             hashedLink: null,
             responses: {
-              name: "Test Attendee",
+              name: "Test Attendee recurring uid in request body",
               email: `reserved-slot-test-${randomString()}@example.com`,
             },
             reservedSlotUid,

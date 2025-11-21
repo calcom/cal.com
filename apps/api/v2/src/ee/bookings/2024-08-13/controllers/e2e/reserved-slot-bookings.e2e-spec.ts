@@ -37,10 +37,10 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
-    const userEmail = `reserved-slot-bookings-user-${randomString()}@api.com`;
+    const userEmail = `reserved-slot-20240813-user-${randomString()}@api.com`;
     let user: User;
     let eventTypeId: number;
-    const eventTypeSlug = `reserved-slot-bookings-event-type-${randomString()}`;
+    const eventTypeSlug = `reserved-slot-20240813-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -231,7 +231,7 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
       describe("recurring event type", () => {
         let recurringEventTypeId: number;
-        const recurringEventTypeSlug = `recurring-reserved-slot-bookings-event-type-${randomString()}`;
+        const recurringEventTypeSlug = `recurring-reserved-slot-20240813-event-type-${randomString()}`;
 
         beforeAll(async () => {
           const recurringEvent = await eventTypesRepositoryFixture.create(
