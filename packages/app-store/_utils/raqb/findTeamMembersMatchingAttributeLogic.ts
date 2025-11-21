@@ -2,6 +2,7 @@ import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-qu
 import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
 import type { BasicConfig as Config } from "@react-awesome-query-builder/ui";
 import async from "async";
+import type { RulesLogic } from "json-logic-js";
 
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
@@ -165,7 +166,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = jsonLogic.apply(attributeJsonLogic as JsonLogicResult, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as RulesLogic, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
