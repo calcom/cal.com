@@ -484,13 +484,71 @@ export default defineContentScript({
             // Construct the Cal.com booking link
             const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
             
-            // Copy to clipboard
-            navigator.clipboard.writeText(bookingUrl).then(() => {
-              // Show success notification
-              showNotification('Link copied to clipboard!', 'success');
-            }).catch(() => {
-              showNotification('Failed to copy link', 'error');
-            });
+            // Try to insert at cursor position in the compose field
+            const inserted = insertTextAtCursor(bookingUrl);
+            
+            if (inserted) {
+              showNotification('Link inserted into email!', 'success');
+            } else {
+              // Fallback: copy to clipboard if insertion fails
+              navigator.clipboard.writeText(bookingUrl).then(() => {
+                showNotification('Link copied to clipboard!', 'success');
+              }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+              });
+            }
+          }
+          
+          function insertTextAtCursor(text) {
+            // Find the active compose field
+            // Gmail uses contenteditable divs for the compose body
+            const composeBody = document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+                               document.querySelector('[role="textbox"][g_editable="true"]') ||
+                               document.querySelector('div[contenteditable="true"][role="textbox"]');
+            
+            if (!composeBody) {
+              return false;
+            }
+            
+            // Focus the compose field
+            composeBody.focus();
+            
+            // Get the current selection
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+              // If no selection, append to the end
+              const textNode = document.createTextNode(' ' + text + ' ');
+              composeBody.appendChild(textNode);
+              
+              // Move cursor after inserted text
+              const range = document.createRange();
+              range.setStartAfter(textNode);
+              range.collapse(true);
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+              
+              return true;
+            }
+            
+            // Insert at cursor position
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            
+            // Create a text node with the link (with spaces around it)
+            const textNode = document.createTextNode(' ' + text + ' ');
+            range.insertNode(textNode);
+            
+            // Move cursor after inserted text
+            range.setStartAfter(textNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Trigger input event so Gmail knows content changed
+            composeBody.dispatchEvent(new Event('input', { bubbles: true }));
+            composeBody.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            return true;
           }
           
           function showNotification(message, type) {
