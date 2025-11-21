@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { parseAndValidateScopes } from "@calcom/features/auth/lib/scopeValidator";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
@@ -61,12 +62,17 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  const validationResult = parseAndValidateScopes(accessCode.scopes);
+  if (!validationResult.success) {
+    return NextResponse.json({ error: "invalid_grant" }, { status: 401 });
+  }
+
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
   const payloadAuthToken: OAuthTokenPayload = {
     userId: accessCode.userId,
     teamId: accessCode.teamId,
-    scope: accessCode.scopes,
+    scope: validationResult.scopes,
     token_type: "Access Token",
     clientId: client_id,
   };
@@ -74,7 +80,7 @@ async function handler(req: NextRequest) {
   const payloadRefreshToken: OAuthTokenPayload = {
     userId: accessCode.userId,
     teamId: accessCode.teamId,
-    scope: accessCode.scopes,
+    scope: validationResult.scopes,
     token_type: "Refresh Token",
     clientId: client_id,
   };

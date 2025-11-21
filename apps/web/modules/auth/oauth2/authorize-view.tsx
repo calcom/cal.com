@@ -28,6 +28,7 @@ export default function Authorize() {
   const queryString = searchParams?.toString();
 
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
+  const [error, setError] = useState<string | null>(null);
   const scopes = scope ? scope.toString().split(",") : [];
 
   const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
@@ -45,6 +46,9 @@ export default function Authorize() {
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
       window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+    },
+    onError: (error) => {
+      setError(error.message);
     },
   });
 
@@ -96,6 +100,7 @@ export default function Authorize() {
           <div className="relative -ml-6 h-24 w-24">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
               </div>
             </div>
@@ -104,6 +109,11 @@ export default function Authorize() {
         <h1 className="px-5 pb-5 pt-3 text-center text-2xl font-bold tracking-tight">
           {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-4">
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
         <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
         <Select
           isSearchable={true}

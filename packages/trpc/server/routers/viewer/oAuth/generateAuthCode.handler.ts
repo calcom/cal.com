@@ -1,8 +1,8 @@
 import { randomBytes } from "crypto";
 
 import dayjs from "@calcom/dayjs";
+import { parseAndValidateScopes } from "@calcom/features/auth/lib/scopeValidator";
 import { prisma } from "@calcom/prisma";
-import type { AccessScope } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -18,6 +18,15 @@ type AddClientOptions = {
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
+
+  const validationResult = parseAndValidateScopes(scopes);
+  if (!validationResult.success) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: validationResult.error,
+    });
+  }
+
   const client = await prisma.oAuthClient.findUnique({
     where: {
       clientId,
@@ -61,7 +70,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       userId: !teamSlug ? ctx.user.id : undefined,
       teamId: team ? team.id : undefined,
       expiresAt: dayjs().add(10, "minutes").toDate(),
-      scopes: scopes as [AccessScope],
+      scopes: validationResult.scopes,
     },
   });
   return { client, authorizationCode };
