@@ -4,6 +4,7 @@ import z from "zod";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
@@ -22,43 +23,62 @@ const querySchema = z.object({
 // It handles premium user payment success/failure
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
+  const log = logger.getSubLogger({ prefix: [`[paymentCallback] checkoutSessionId: ${checkoutSessionId}`] });
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
-  if (!stripeCustomer)
+  if (!stripeCustomer) {
+    log.error("Could not find stripeCustomer");
     throw new HttpError({
       statusCode: 404,
-      message: "Stripe customer not found or deleted",
+      message:
+        "Stripe customer not found or deleted.  Please contact support@cal.com and mention your premium username",
       url: req.url,
       method: req.method,
     });
+  }
 
-  // first let's try to find user by metadata stripeCustomerId
   let user = await prisma.user.findFirst({
     where: {
-      metadata: {
-        path: ["stripeCustomerId"],
-        equals: stripeCustomer.id,
-      },
+      email: stripeCustomer.email,
+    },
+    select: {
+      id: true,
+      email: true,
+      locale: true,
+      metadata: true,
     },
   });
 
-  if (!user && stripeCustomer.email) {
-    // if user not found, let's try to find user by email
+  // If we cannot find the user via email, query via stripeCustomerId
+  if (!user) {
     user = await prisma.user.findFirst({
       where: {
-        email: stripeCustomer.email,
+        metadata: {
+          path: ["stripeCustomerId"],
+          equals: stripeCustomer.id,
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        locale: true,
+        metadata: true,
       },
     });
   }
 
-  if (!user)
+  if (!user) {
+    log.error("Could not find user");
     throw new HttpError({ statusCode: 404, message: "User not found", url: req.url, method: req.method });
+  }
+  const username = stripeCustomer.metadata.username;
+  const email = user.email || stripeCustomer.email;
 
   if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
     try {
       await prisma.user.update({
         data: {
-          username: stripeCustomer.metadata.username,
+          username,
           metadata: {
             ...(user.metadata as Prisma.JsonObject),
             isPremium: true,
@@ -69,7 +89,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      console.error(error);
+      log.error(error);
       throw new HttpError({
         statusCode: 400,
         url: req.url,
@@ -79,7 +99,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
   }
+
+  // Pass email, username, and payment status in the redirect URL
+  callbackUrl.searchParams.set("email", email || "");
+  callbackUrl.searchParams.set("username", username);
   callbackUrl.searchParams.set("paymentStatus", checkoutSession.payment_status);
+
   return res.redirect(callbackUrl.toString()).end();
 }
 
