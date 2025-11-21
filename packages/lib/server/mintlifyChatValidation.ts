@@ -34,10 +34,7 @@ const stripControlCharacters = (input: string) => {
  * This intentionally does not reject path-like substrings so users can ask about "../".
  */
 export function sanitizeMessageString(input: string): string {
-  const sanitized = stripControlCharacters(input);
-
-  // Replace basic traversal sequences with safe equivalents to avoid leaking to logs
-  return sanitized.replaceAll("../", "..&#47;").replaceAll("..\\", "..&#92;");
+  return stripControlCharacters(input);
 }
 
 /**

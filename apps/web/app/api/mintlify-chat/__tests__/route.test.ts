@@ -241,6 +241,19 @@ describe("Mintlify Chat Proxy Endpoints", () => {
 
     it("should reject control characters in message", async () => {
       const maliciousMessage = "test\x00message\x01with\x02control\x03chars";
+      const mockStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("sanitized response"));
+          controller.close();
+        },
+      });
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        body: mockStream,
+        headers: new Headers(),
+      });
       
       const request = new Request("http://localhost:3000/api/mintlify-chat/message", {
         method: "POST",
@@ -252,8 +265,8 @@ describe("Mintlify Chat Proxy Endpoints", () => {
 
       const response = await messagePOST(request);
 
-      // Should either sanitize or reject
-      expect(response.status).toBeGreaterThanOrEqual(200);
+      // Should either sanitize (200) or reject with validation error (400)
+      expect([200, 400]).toContain(response.status);
       
       if (response.status === 200) {
         // If sanitized, verify control chars were removed from the proxied request
