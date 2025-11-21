@@ -752,6 +752,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_view_phone_numbers",
       scope: [],
     },
+    [CrudAction.Update]: {
+      description: "Update phone numbers",
+      category: "phoneNumber",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_phone_numbers",
+      scope: [],
+      dependsOn: ["phoneNumber.read"],
+    },
     [CrudAction.Delete]: {
       description: "Delete phone numbers",
       category: "phoneNumber",

@@ -11,6 +11,7 @@ import { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumbe
 import { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import { RetellSDKClient } from "./RetellSDKClient";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 export class RetellAIPhoneServiceProviderFactory
   implements AIPhoneServiceProviderFactory<AIPhoneServiceProviderType.RETELL_AI>
@@ -25,12 +26,14 @@ export class RetellAIPhoneServiceProviderFactory
     const agentRepository = new PrismaAgentRepositoryAdapter();
     const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
     const transactionManager = new PrismaTransactionAdapter();
+    const permissionService = new PermissionCheckService();
 
     return new RetellAIPhoneServiceProvider(
       sdkClient,
       agentRepository,
       phoneNumberRepository,
-      transactionManager
+      transactionManager,
+      permissionService
     );
   }
 
@@ -47,12 +50,14 @@ export class RetellAIPhoneServiceProviderFactory
     const agentRepository = new PrismaAgentRepositoryAdapter();
     const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
     const transactionManager = new PrismaTransactionAdapter();
+    const permissionService = new PermissionCheckService();
 
     return new RetellAIPhoneServiceProvider(
       sdkClient,
       agentRepository,
       phoneNumberRepository,
-      transactionManager
+      transactionManager,
+      permissionService
     );
   }
 }
