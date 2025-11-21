@@ -605,16 +605,14 @@ export class CreditService {
           let userIdsWithoutCredits: number[] = [];
 
           if (result.teamId) {
-            const teamMembers = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(
-              result.teamId,
-              prisma
-            );
+            const membershipRepo = new MembershipRepository();
+            const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId: result.teamId });
 
-            if (teamMembers && teamMembers.length > 0) {
+            if (teamMemberIds && teamMemberIds.length > 0) {
               const creditChecks = await Promise.all(
-                teamMembers.map(async (member) => {
-                  const hasCredits = await this.hasAvailableCredits({ userId: member.userId });
-                  return { userId: member.userId, hasCredits };
+                teamMemberIds.map(async (userId) => {
+                  const hasCredits = await this.hasAvailableCredits({ userId });
+                  return { userId, hasCredits };
                 })
               );
 

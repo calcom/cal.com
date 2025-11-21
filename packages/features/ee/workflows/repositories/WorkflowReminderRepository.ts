@@ -1,10 +1,10 @@
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 export type ScheduledMessageToCancel = {
   referenceId: string | null;
   workflowStep: {
-    action: string;
+    action: WorkflowActions;
   } | null;
   scheduledDate: Date;
   uuid: string | null;
