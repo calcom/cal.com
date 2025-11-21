@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 interface Props {
   team: {
@@ -44,7 +43,6 @@ export default function TeamInviteListItem(props: Props) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
       await utils.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       await utils.viewer.organizations.listMembers.invalidate();
     },
   });

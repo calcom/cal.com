@@ -17,7 +17,6 @@ import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -32,7 +31,6 @@ export default function ApiKeyDialogForm({
   const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
       utils.viewer.apiKeys.list.invalidate();
-      revalidateApiKeysList();
       showToast(t("api_key_updated"), "success");
       handleClose();
     },
@@ -147,7 +145,6 @@ export default function ApiKeyDialogForm({
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
               await utils.viewer.apiKeys.list.invalidate();
-              revalidateApiKeysList();
               setSuccessfulNewApiKeyModal(true);
             }
           }}

@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
+import type { NextApiRequest } from "next";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
@@ -13,6 +14,7 @@ import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/wat
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import { buildLegacyRequest } from "@calcom/lib/legacy-request";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
@@ -20,7 +22,6 @@ import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
@@ -215,7 +216,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     }
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      language: await getLocaleFromRequest(
+        buildLegacyRequest(await headers(), await cookies()) as unknown as NextApiRequest
+      ),
       username: username || "",
     });
   }

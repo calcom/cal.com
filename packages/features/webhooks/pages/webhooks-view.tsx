@@ -17,17 +17,24 @@ type WebhooksByViewer = RouterOutputs["viewer"]["webhook"]["getByViewer"];
 
 type Props = {
   data: WebhooksByViewer;
+  onInvalidate?: () => void | Promise<void>;
 };
 
-const WebhooksView = ({ data }: Props) => {
+const WebhooksView = ({ data, onInvalidate }: Props) => {
   return (
     <div>
-      <WebhooksList webhooksByViewer={data} />
+      <WebhooksList webhooksByViewer={data} onInvalidate={onInvalidate} />
     </div>
   );
 };
 
-const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
+const WebhooksList = ({
+  webhooksByViewer,
+  onInvalidate,
+}: {
+  webhooksByViewer: WebhooksByViewer;
+  onInvalidate?: () => void | Promise<void>;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
   const { profiles, webhookGroups } = webhooksByViewer;
@@ -72,6 +79,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                       onEditWebhook={() =>
                         router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                       }
+                      onInvalidate={onInvalidate}
                     />
                   ))}
                 </div>

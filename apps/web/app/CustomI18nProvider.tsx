@@ -1,15 +1,10 @@
 "use client";
 
-import { createContext, useMemo } from "react";
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 
-type CustomI18nContextType = {
-  translations: Record<string, string>;
-  ns: string;
-  locale: string;
-};
-
-export const CustomI18nContext = createContext<CustomI18nContextType | null>(null);
+import { CustomI18nContext } from "@calcom/lib/i18n/CustomI18nContext";
+import type { CustomI18nContextType } from "@calcom/lib/i18n/CustomI18nContext";
 
 export function CustomI18nProvider({
   children,
@@ -26,7 +21,7 @@ export function CustomI18nProvider({
       locale,
       ns,
     }),
-    [locale, ns]
+    [translations, locale, ns]
   );
 
   return <CustomI18nContext.Provider value={value}>{children}</CustomI18nContext.Provider>;

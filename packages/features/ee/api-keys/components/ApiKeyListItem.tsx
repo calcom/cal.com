@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
@@ -40,7 +39,6 @@ const ApiKeyListItem = ({
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
-      revalidateApiKeysList();
       showToast(t("api_key_deleted"), "success");
     },
     onError(err) {

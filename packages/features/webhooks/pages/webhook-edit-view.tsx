@@ -7,7 +7,6 @@ import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -25,7 +24,13 @@ type WebhookProps = {
   platform: boolean;
 };
 
-export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
+export function EditWebhookView({
+  webhook,
+  onInvalidate,
+}: {
+  webhook?: WebhookProps;
+  onInvalidate?: () => void | Promise<void>;
+}) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const router = useRouter();
@@ -46,7 +51,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.webhook.get.invalidate({ webhookId: webhook?.id });
       showToast(t("webhook_updated_successfully"), "success");
-      revalidateWebhooksList();
+      await onInvalidate?.();
       router.push("/settings/developer/webhooks");
     },
     onError(error) {

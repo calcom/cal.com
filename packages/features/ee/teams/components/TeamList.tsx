@@ -11,7 +11,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import TeamListItem from "./TeamListItem";
 
@@ -43,7 +42,6 @@ export default function TeamList(props: Props) {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       await utils.viewer.teams.hasTeamPlan.invalidate();
       trackFormbricksAction("team_disbanded");
     },

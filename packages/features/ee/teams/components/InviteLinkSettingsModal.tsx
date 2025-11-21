@@ -10,7 +10,6 @@ import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;
@@ -33,7 +32,6 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       showToast(t("invite_link_deleted"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       props.onExit();
     },
     onError: (e) => {
@@ -46,7 +44,6 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
       showToast(t("invite_link_updated"), "success");
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
-      revalidateTeamsList();
     },
     onError: (e) => {
       showToast(e.message, "error");

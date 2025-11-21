@@ -31,8 +31,6 @@ import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -69,10 +67,6 @@ const OtherTeamProfileView = () => {
       await utils.viewer.teams.get.invalidate();
       if (team?.slug) {
         // Org admins editing another team's profile should purge the cached team data
-        revalidateTeamDataCache({
-          teamSlug: team.slug,
-          orgSlug: team.parent?.slug ?? null,
-        });
       }
       showToast(t("your_team_updated_successfully"), "success");
     },
@@ -137,7 +131,6 @@ const OtherTeamProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
@@ -161,7 +154,7 @@ const OtherTeamProfileView = () => {
     if (team?.id) deleteTeamMutation.mutate({ teamId: team.id });
   }
 
-  function leaveTeam() {
+  function _leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
         teamIds: [team.id],
@@ -291,7 +284,6 @@ const OtherTeamProfileView = () => {
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
                       className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />
                   </>

@@ -21,7 +21,6 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 
 const querySchema = z.object({
   title: z.string().min(1),
@@ -34,7 +33,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = () => {
+const DuplicateDialog = ({ onInvalidate }: { onInvalidate?: () => void | Promise<void> } = {}) => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();
@@ -44,7 +43,7 @@ const DuplicateDialog = () => {
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, _setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // react hook form
@@ -72,10 +71,10 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypesHeavy.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
+      await onInvalidate?.();
       await router.replace(`/event-types/${eventType.id}`);
 
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-      revalidateEventTypesList();
       await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
         limit: 10,
         searchQuery: debouncedSearchTerm,

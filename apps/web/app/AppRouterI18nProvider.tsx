@@ -1,15 +1,10 @@
 "use client";
 
-import { createContext, useMemo } from "react";
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 
-type AppRouterI18nContextType = {
-  translations: Record<string, string>;
-  ns: string;
-  locale: string;
-};
-
-export const AppRouterI18nContext = createContext<AppRouterI18nContextType | null>(null);
+import { AppRouterI18nContext } from "@calcom/lib/i18n/AppRouterI18nContext";
+import type { AppRouterI18nContextType } from "@calcom/lib/i18n/AppRouterI18nContext";
 
 export function AppRouterI18nProvider({
   children,
@@ -26,7 +21,7 @@ export function AppRouterI18nProvider({
       locale,
       ns,
     }),
-    [locale, ns]
+    [translations, locale, ns]
   );
 
   return <AppRouterI18nContext.Provider value={value}>{children}</AppRouterI18nContext.Provider>;
