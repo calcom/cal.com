@@ -17,7 +17,7 @@ type AddClientOptions = {
 };
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { clientId, scopes, teamSlug } = input;
+  const { clientId, scopes, teamSlug, codeChallenge, codeChallengeMethod } = input;
   const client = await prisma.oAuthClient.findUnique({
     where: {
       clientId,
@@ -62,6 +62,8 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       teamId: team ? team.id : undefined,
       expiresAt: dayjs().add(10, "minutes").toDate(),
       scopes: scopes as [AccessScope],
+      codeChallenge,
+      codeChallengeMethod,
     },
   });
   return { client, authorizationCode };
