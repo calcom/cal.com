@@ -447,10 +447,6 @@ export class ProfileRepository {
     return profile;
   }
 
-  /**
-   * Find profile by UUID (secure identifier)
-   * This method should be used for direct UUID lookups
-   */
   static async findByUid(uid: string) {
     const profile = await prisma.profile.findFirst({
       where: {
