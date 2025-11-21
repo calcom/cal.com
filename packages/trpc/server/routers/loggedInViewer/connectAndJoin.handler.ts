@@ -2,9 +2,9 @@ import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -150,11 +150,6 @@ export const Handler = async ({ ctx, input }: Options) => {
                   hideBranding: true,
                 },
               },
-            },
-          },
-          parent: {
-            select: {
-              teamId: true,
             },
           },
         },
