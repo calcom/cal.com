@@ -155,7 +155,7 @@ describe("PhoneNumberService", () => {
       const mockRecord = createMockPhoneNumberRecord({
         subscriptionStatus: PhoneNumberSubscriptionStatus.PENDING,
       });
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
 
       await service.deletePhoneNumber({
         phoneNumber: "+1234567890",
@@ -171,7 +171,7 @@ describe("PhoneNumberService", () => {
     });
 
     it("should throw error if phone number not found", async () => {
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(null);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(null);
 
       await expect(
         service.deletePhoneNumber({
@@ -186,7 +186,7 @@ describe("PhoneNumberService", () => {
       const mockRecord = createMockPhoneNumberRecord({
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
 
       await expect(
         service.deletePhoneNumber({
@@ -200,8 +200,9 @@ describe("PhoneNumberService", () => {
     it("should handle team-scoped deletion", async () => {
       const mockRecord = createMockPhoneNumberRecord({
         subscriptionStatus: PhoneNumberSubscriptionStatus.PENDING,
+        teamId: 1,
       });
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndTeamId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
 
       await service.deletePhoneNumber({
         phoneNumber: "+1234567890",
@@ -210,11 +211,7 @@ describe("PhoneNumberService", () => {
         deleteFromDB: true,
       });
 
-      expect(mocks.mockPhoneNumberRepository.findByPhoneNumberAndTeamId).toHaveBeenCalledWith({
-        phoneNumber: "+1234567890",
-        teamId: 1,
-        userId: 1,
-      });
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
       expect(mocks.mockPhoneNumberRepository.deletePhoneNumber).toHaveBeenCalledWith({
         phoneNumber: "+1234567890",
       });
@@ -226,7 +223,7 @@ describe("PhoneNumberService", () => {
       const mockRecord = createMockPhoneNumberRecord();
       const mockAgent = createMockDatabaseAgent();
 
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockResolvedValue(createMockPhoneNumber());
 
@@ -248,7 +245,7 @@ describe("PhoneNumberService", () => {
     it("should validate agent permissions", async () => {
       const mockRecord = createMockPhoneNumberRecord();
 
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(null);
 
       await expect(
@@ -264,7 +261,7 @@ describe("PhoneNumberService", () => {
       const mockRecord = createMockPhoneNumberRecord();
       const mockAgent = createMockDatabaseAgent();
 
-      mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
+      mocks.mockPhoneNumberRepository.findByPhoneNumber.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockRejectedValue(new TestError("404 Not Found"));
 
