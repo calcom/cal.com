@@ -144,7 +144,7 @@ export class MembershipRepository {
     return prisma.membership.findMany({
       where: {
         userId: { in: userIds },
-        accetped: true,
+        accepted: true,
         teamId,
       },
     });
