@@ -1421,6 +1421,7 @@ export class BookingRepository {
         eventTypeId: true,
         responses: true,
         iCalUID: true,
+        userPrimaryEmail: true,
         attendees: {
           select: {
             id: true,
