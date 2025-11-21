@@ -274,11 +274,6 @@ const handleDeleteCredential = async ({
                       },
                     },
                   },
-                  parent: {
-                    select: {
-                      teamId: true,
-                    },
-                  },
                   metadata: true,
                 },
               },
