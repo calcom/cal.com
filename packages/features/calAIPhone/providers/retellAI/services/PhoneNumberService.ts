@@ -39,7 +39,7 @@ export class PhoneNumberService {
 
     const { userId, agentId, teamId, ...rest } = data;
 
-    if (teamId && await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
       permissions: ["phoneNumber.create"],
@@ -135,7 +135,7 @@ export class PhoneNumberService {
       });
     }
 
-    if (teamId && await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
       permissions: ["phoneNumber.delete"],
@@ -143,7 +143,7 @@ export class PhoneNumberService {
     })) {
       throw new HttpError({
         statusCode: 403,
-        message: `Insufficient permission to import phone numbers for team ${teamId}.`
+        message: `Insufficient permission to delete phone numbers for team ${teamId}.`
       });
     }
 
@@ -270,7 +270,7 @@ export class PhoneNumberService {
       });
     }
 
-    if (teamId && await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
       permissions: ["phoneNumber.update"],
