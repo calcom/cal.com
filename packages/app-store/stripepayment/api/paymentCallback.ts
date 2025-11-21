@@ -39,17 +39,21 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
-  let user = await prisma.user.findFirst({
-    where: {
-      email: stripeCustomer.email,
-    },
-    select: {
-      id: true,
-      email: true,
-      locale: true,
-      metadata: true,
-    },
-  });
+  let user;
+
+  if (stripeCustomer?.email) {
+    user = await prisma.user.findFirst({
+      where: {
+        email: stripeCustomer.email,
+      },
+      select: {
+        id: true,
+        email: true,
+        locale: true,
+        metadata: true,
+      },
+    });
+  }
 
   // If we cannot find the user via email, query via stripeCustomerId
   if (!user) {
@@ -75,7 +79,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const username = stripeCustomer.metadata.username;
-  const email = user.email || stripeCustomer.email;
+  const email = user.email ?? stripeCustomer.email;
 
   // If payment hasn't been completed, redirect to verify page with failure status
   if (checkoutSession.payment_status !== "paid") {
@@ -127,8 +131,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   await sendVerificationRequest({
     identifier: email,
     url,
-    provider: { from: process.env.EMAIL_FROM || "noreply@cal.com" },
-    theme: { colorScheme: "auto" },
   });
 
   // Pass email, username, and payment status in the redirect URL

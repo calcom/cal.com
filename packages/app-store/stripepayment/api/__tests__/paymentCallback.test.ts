@@ -110,8 +110,6 @@ describe("paymentCallback", () => {
       expect(mockSendVerificationRequest).toHaveBeenCalledWith({
         identifier: "test@example.com",
         url: expect.stringContaining("token=test-token-123"),
-        provider: { from: process.env.EMAIL_FROM || "noreply@cal.com" },
-        theme: { colorScheme: "auto" },
       });
     });
 
