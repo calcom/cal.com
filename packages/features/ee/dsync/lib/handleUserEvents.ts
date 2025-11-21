@@ -78,8 +78,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   }
 
   if (user) {
-    if (user.organizationId !== org.id) {
-      log.warn(`Blocked SCIM cross-tenant hijack attempt for ${userEmail}`);
+    if (user.organizationId && user.organizationId !== org.id) {
       throw new Error("User belongs to another organization.");
     }
     if (eventData.active) {
