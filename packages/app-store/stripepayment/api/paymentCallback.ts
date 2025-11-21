@@ -76,7 +76,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const username = stripeCustomer.metadata.username;
   const email = user.email || stripeCustomer.email;
 
-  if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
+  // If payment hasn't been completed, redirect to verify page with failure status
+  if (checkoutSession.payment_status !== "paid") {
+    log.warn("Payment not completed", { paymentStatus: checkoutSession.payment_status });
+    callbackUrl.searchParams.set("email", email || "");
+    callbackUrl.searchParams.set("username", username || "");
+    callbackUrl.searchParams.set("paymentStatus", checkoutSession.payment_status);
+    return res.redirect(callbackUrl.toString()).end();
+  }
+
+  if (stripeCustomer.metadata.username) {
     try {
       await prisma.user.update({
         data: {
