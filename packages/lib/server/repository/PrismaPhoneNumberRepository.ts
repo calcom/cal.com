@@ -40,11 +40,10 @@ export class PrismaPhoneNumberRepository {
     return memberships.map((membership) => membership.teamId);
   }
 
-  async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
-    return await this.prismaClient.calAiPhoneNumber.findFirstOrThrow({
+  async findByPhoneNumber(phoneNumber: string) {
+    return await this.prismaClient.calAiPhoneNumber.findUnique({
       where: {
         phoneNumber,
-        userId,
       },
       select: {
         id: true,
@@ -506,7 +505,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
+  async findByPhoneNumberForCallAnalyze(phoneNumber: string) {
     return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,

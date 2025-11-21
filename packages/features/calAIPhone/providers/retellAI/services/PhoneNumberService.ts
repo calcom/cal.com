@@ -286,7 +286,6 @@ export class PhoneNumberService {
     if (!phoneNumberRecord) {
       throw new HttpError({
         statusCode: 404,
-        message: "Phone number not found or you don't have permission to update it.",
       });
     }
 
