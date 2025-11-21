@@ -23,6 +23,7 @@ const getBaseProps = (events: CalendarEvent[]): CalendarComponentProps => ({
   showBorder: false,
   hideHeader: true,
   borderColor: "subtle",
+  scrollToCurrentTime: false,
 });
 
 type Scenario = {
