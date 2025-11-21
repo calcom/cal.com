@@ -27,7 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Always use API URL from environment variable (users should not configure this)
     // Note: SDK adds /api path automatically, so base URL should not include it
-    const api_url = process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
+    const api_url = process.env.COINLEY_API_URL;
+
+    if (!api_url) {
+      return res.status(500).json({
+        message: "Server configuration error: COINLEY_API_URL environment variable not set"
+      });
+    }
 
     // Validate credentials using Zod schema
     // Note: Wallet addresses are configured in Coinley merchant dashboard, not during installation
@@ -44,6 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId: session.user.id,
         appId: "coinley",
       },
+      select: {
+        id: true,
+      },
     });
 
     if (existingCredential) {
@@ -56,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      console.log("[Coinley] Credentials updated for user:", session.user.id);
+      console.log("[Coinley] Credentials updated successfully");
     } else {
       // Create new credential
       await prisma.credential.create({
@@ -69,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      console.log("[Coinley] Credentials created for user:", session.user.id);
+      console.log("[Coinley] Credentials created successfully");
     }
 
     // Return success

@@ -1,10 +1,12 @@
-import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
-import type { IAbstractPaymentService } from "@calcom/app-store/_utils/payments/IAbstractPaymentService";
 import { v4 as uuidv4 } from "uuid";
+
 import prisma from "@calcom/prisma";
+import type { Booking, Credential, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
+import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
+import axios, { type AxiosInstance } from "axios";
+
 import type { AppKeysSchema } from "../zod";
 import { appKeysSchema } from "../zod";
-import axios, { type AxiosInstance } from "axios";
 
 interface CoinleyPaymentIntent {
   success: boolean;
@@ -100,7 +102,7 @@ export class PaymentService implements IAbstractPaymentService {
     const paymentUid = uuidv4();
 
     try {
-      console.log("[Coinley PaymentService] Creating payment for booking:", bookingId);
+      console.log("[Coinley PaymentService] Creating payment");
 
       // Create payment intent with Coinley API
       // Note: Merchant wallet addresses are retrieved by the backend using the API key/secret
@@ -146,11 +148,7 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
 
-      console.log("[Coinley] Payment created:", {
-        paymentId: paymentIntent.payment.id,
-        bookingId,
-        amount: payment.amount,
-      });
+      console.log("[Coinley] Payment created successfully");
 
       return storedPayment;
     } catch (error: any) {
@@ -207,10 +205,7 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
 
-      console.log("[Coinley] Payment captured:", {
-        paymentId: paymentData.paymentId,
-        status: capturedPayment.status,
-      });
+      console.log("[Coinley] Payment captured successfully");
 
       return updatedPayment;
     } catch (error: any) {
@@ -253,9 +248,7 @@ export class PaymentService implements IAbstractPaymentService {
         data: { refunded: true },
       });
 
-      console.log("[Coinley] Payment refunded:", {
-        paymentId: paymentData.paymentId,
-      });
+      console.log("[Coinley] Payment refunded successfully");
 
       return refundedPayment;
     } catch (error: any) {
@@ -284,9 +277,7 @@ export class PaymentService implements IAbstractPaymentService {
         where: { id: payment.id },
       });
 
-      console.log("[Coinley] Payment deleted:", {
-        paymentId: paymentData.paymentId,
-      });
+      console.log("[Coinley] Payment deleted successfully");
 
       return true;
     } catch (error: any) {
@@ -335,11 +326,7 @@ export class PaymentService implements IAbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void> {
-    console.log("[Coinley] After payment hook:", {
-      bookingId: booking.id,
-      paymentId: paymentData.id,
-      amount: paymentData.amount,
-    });
+    console.log("[Coinley] After payment hook executed");
 
     // Additional actions can be added here:
     // - Send custom confirmation emails
