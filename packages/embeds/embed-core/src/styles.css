@@ -27,3 +27,10 @@ body,
   /** We avoid loading tailwind outside the shadow DOM as it could potentially affect the user's webpage. So define --tw prefixed properties here as and when used for now */
   --tw-border-style: solid;
 }
+
+@utility stack-y-* {
+  &> :not([hidden])~ :not([hidden]) {
+    margin-top: --spacing(--value(integer));
+    margin-top: --value([length]);
+  }
+}
