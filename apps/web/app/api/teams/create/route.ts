@@ -113,10 +113,13 @@ async function getHandler(req: NextRequest) {
   const isOnboarding = checkoutSessionMetadata.isOnboarding === "true";
 
   if (isOnboarding) {
-    // Redirect to event-types for onboarding flow
-    return NextResponse.redirect(new URL("/onboarding/personal/settings", WEBAPP_URL), {
-      status: 302,
-    });
+    // Redirect to invite page with teamId query param
+    return NextResponse.redirect(
+      new URL(`/onboarding/teams/invite?teamId=${team.id}`, WEBAPP_URL),
+      {
+        status: 302,
+      }
+    );
   }
 
   // redirect to team screen

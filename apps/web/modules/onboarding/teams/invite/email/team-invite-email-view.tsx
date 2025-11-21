@@ -2,24 +2,28 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { showToast } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
+import { trpc } from "@calcom/trpc/react";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
-import { useCreateTeam } from "../../../hooks/useCreateTeam";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 
 type TeamInviteEmailViewProps = {
   userEmail: string;
+  teamId?: number | null;
 };
 
 type FormValues = {
@@ -29,14 +33,31 @@ type FormValues = {
   }[];
 };
 
-export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => {
+export const TeamInviteEmailView = ({ userEmail, teamId }: TeamInviteEmailViewProps) => {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
+  const flags = useFlags();
 
   const store = useOnboardingStore();
-  const { teamInvites, setTeamInvites, teamDetails } = store;
+  const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId: storedTeamId } = store;
   const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
-  const { createTeam, isSubmitting } = useCreateTeam();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
+
+  // Store teamId from URL if provided and not already stored
+  useEffect(() => {
+    if (teamId && !storedTeamId) {
+      setTeamId(teamId);
+    }
+  }, [teamId, storedTeamId, setTeamId]);
+
+  // Redirect to details page if team doesn't exist
+  useEffect(() => {
+    if (!storedTeamId && !teamId) {
+      router.push("/onboarding/teams/details");
+    }
+  }, [storedTeamId, teamId, router]);
 
   const formSchema = z.object({
     invites: z.array(
@@ -63,26 +84,66 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
-    const invitesWithTeam = data.invites.map((invite) => ({
-      email: invite.email,
-      team: teamDetails.name,
-      role: invite.role,
-    }));
+    const currentTeamId = storedTeamId || teamId;
 
-    setTeamInvites(invitesWithTeam);
+    if (!currentTeamId) {
+      showToast(t("team_not_found"), "error");
+      router.push("/onboarding/teams/details");
+      return;
+    }
 
-    // Create the team (will handle checkout redirect if needed)
-    await createTeam(store);
+    setIsSubmitting(true);
+
+    try {
+      const invitesWithTeam = data.invites.map((invite) => ({
+        email: invite.email,
+        team: teamDetails.name,
+        role: invite.role,
+      }));
+
+      setTeamInvites(invitesWithTeam);
+
+      // Send invites using inviteMember mutation
+      // The mutation accepts an array of {email, role} objects
+      const inviteData = data.invites.map((invite) => ({
+        email: invite.email,
+        role: invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER,
+      }));
+
+      await inviteMemberMutation.mutateAsync({
+        teamId: currentTeamId,
+        usernameOrEmail: inviteData,
+        language: i18n.language,
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      // Navigate to next step after successful invites
+      const gettingStartedPath = flags["onboarding-v3"]
+        ? "/onboarding/personal/settings"
+        : "/getting-started";
+      router.push(gettingStartedPath);
+    } catch (error) {
+      console.error("Failed to send invites:", error);
+      showToast(
+        error instanceof Error ? error.message : t("failed_to_send_invites"),
+        "error"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBack = () => {
     router.push("/onboarding/teams/invite");
   };
 
-  const handleSkip = async () => {
+  const handleSkip = () => {
     setTeamInvites([]);
-    // Create the team without invites (will handle checkout redirect if needed)
-    await createTeam(store);
+    // Navigate to next step without sending invites (team already exists)
+    const gettingStartedPath = flags["onboarding-v3"]
+      ? "/onboarding/personal/settings"
+      : "/getting-started";
+    router.push(gettingStartedPath);
   };
 
   const hasValidInvites = fields.some((_, index) => {

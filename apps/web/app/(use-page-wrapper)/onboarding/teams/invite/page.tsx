@@ -1,4 +1,5 @@
 import { _generateMetadata } from "app/_utils";
+import type { PageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -19,7 +20,7 @@ export const generateMetadata = async () => {
   );
 };
 
-const ServerPage = async () => {
+const ServerPage = async ({ searchParams }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
@@ -31,8 +32,10 @@ const ServerPage = async () => {
   }
 
   const userEmail = session.user.email || "";
+  const resolvedSearchParams = await searchParams;
+  const teamId = resolvedSearchParams.teamId ? Number(resolvedSearchParams.teamId) : null;
 
-  return <TeamInviteView userEmail={userEmail} />;
+  return <TeamInviteView userEmail={userEmail} teamId={teamId} />;
 };
 
 export default ServerPage;

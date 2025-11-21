@@ -13,6 +13,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { useCreateTeam } from "../../hooks/useCreateTeam";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
 
@@ -23,7 +24,9 @@ type TeamDetailsViewProps = {
 export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { teamDetails, teamBrand, setTeamDetails, setTeamBrand } = useOnboardingStore();
+  const store = useOnboardingStore();
+  const { teamDetails, teamBrand, setTeamDetails, setTeamBrand } = store;
+  const { createTeam, isSubmitting } = useCreateTeam();
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");
@@ -62,7 +65,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
     setTeamLogo(newLogo);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!isSlugValid) {
       return;
     }
@@ -77,8 +80,8 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       logo: teamLogo || null,
     });
 
-    // We will push to /invite when we have other methods of inviting users from onboarding i.e. CSV upload, Google Workspace connect, copy link etc
-    router.push("/onboarding/teams/invite/email");
+    // Create the team (will handle checkout redirect if needed)
+    await createTeam(store);
   };
 
   return (
@@ -101,7 +104,8 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                   color="primary"
                   className="rounded-[10px]"
                   onClick={handleContinue}
-                  disabled={!isSlugValid || !teamName || !teamSlug}>
+                  disabled={!isSlugValid || !teamName || !teamSlug || isSubmitting}
+                  loading={isSubmitting}>
                   {t("continue")}
                 </Button>
               </div>

@@ -41,11 +41,10 @@ export function useCreateTeam() {
       }
 
       if (result.team) {
-        // Not sure we need this flag check - keeping it here for safe keeping as this is called only from v3 onboarding flow
-        const gettingStartedPath = flags["onboarding-v3"]
-          ? "/onboarding/personal/settings"
-          : "/getting-started";
-        router.push(gettingStartedPath);
+        // Store team ID in onboarding store
+        store.setTeamId(result.team.id);
+        // Redirect to invite page after team creation
+        router.push("/onboarding/teams/invite");
       }
     } catch (error) {
       console.error("Failed to create team:", error);
