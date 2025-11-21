@@ -256,9 +256,10 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
       expect(result).toBeNull();
     });
 
-    it("should allow access without userId for backward compatibility", async () => {
+    it("should require userId parameter for security", async () => {
       const userUpId = `usr-${user1.id}`;
-      const result = await ProfileRepository.findByUpId(userUpId);
+      // userId is now required - this test verifies the method signature
+      const result = await ProfileRepository.findByUpId(userUpId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.upId).toBe(userUpId);
@@ -277,10 +278,9 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
       await expect(() => ProfileRepository.findByUpId("invalid-format", user1.id)).rejects.toThrow();
     });
 
-    it("should work without userId parameter (backward compatibility)", async () => {
-      // Without userId, it should still work but without authorization check
-      // This is for backward compatibility during migration
-      const result = await ProfileRepository.findByUpId(profile1.upId);
+    it("should require userId parameter - authorization check always runs", async () => {
+      // userId is now required - authorization check always runs
+      const result = await ProfileRepository.findByUpId(profile1.upId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);

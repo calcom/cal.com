@@ -500,19 +500,13 @@ export class ProfileRepository {
     return normalizeProfile(profile);
   }
 
-  /**
-   * Find profile by upId with authorization check
-   * @param upId - The profile identifier (prof-<uuid> or legacy numeric ID)
-   * @param userId - The requesting user's ID for authorization check
-   * @returns Profile if found and user has access, null otherwise
-   */
-  static async findByUpId(upId: string, userId?: number) {
+  static async findByUpId(upId: string, userId: number) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     log.debug("findByUpId", safeStringify({ upId, lookupTarget, userId }));
 
     if (lookupTarget.type === LookupTarget.User) {
       // For user profiles, only allow access if userId matches
-      if (userId !== undefined && lookupTarget.id !== userId) {
+      if (lookupTarget.id !== userId) {
         log.warn(
           "Unauthorized access attempt to user profile",
           safeStringify({ upId, userId, targetUserId: lookupTarget.id })
@@ -618,34 +612,31 @@ export class ProfileRepository {
     }
 
     // Authorization check: verify user has access to this profile
-    if (userId !== undefined) {
-      const profileId = rawProfile.id;
-      const organizationId = rawProfile.organizationId;
+    const profileId = rawProfile.id;
+    const organizationId = rawProfile.organizationId;
 
-      if (profileId && organizationId) {
-        const hasAccess = await ProfileRepository.checkUserAccessToProfile({
-          userId,
-          profileId,
-          organizationId,
-        });
+    if (profileId && organizationId) {
+      const hasAccess = await ProfileRepository.checkUserAccessToProfile({
+        userId,
+        profileId,
+        organizationId,
+      });
 
-        if (!hasAccess) {
-          log.warn(
-            "Unauthorized access attempt to profile",
-            safeStringify({ upId, userId, profileId, organizationId })
-          );
-          return null;
-        }
-      } else if (profileId) {
-        // For personal profiles, check if user owns it
-        if (rawProfile.userId !== userId) {
-          log.warn("Unauthorized access attempt to profile", safeStringify({ upId, userId, profileId }));
-          return null;
-        }
+      if (!hasAccess) {
+        log.warn(
+          "Unauthorized access attempt to profile",
+          safeStringify({ upId, userId, profileId, organizationId })
+        );
+        return null;
+      }
+    } else if (profileId) {
+      // For personal profiles, check if user owns it
+      if (rawProfile.userId !== userId) {
+        log.warn("Unauthorized access attempt to profile", safeStringify({ upId, userId, profileId }));
+        return null;
       }
     }
 
-    // Normalize the profile (this will set upId to prof-<uid>)
     const profile = normalizeProfile(rawProfile);
     const user = rawProfile.user;
 
@@ -661,12 +652,6 @@ export class ProfileRepository {
     };
   }
 
-  /**
-   * Check if a user has access to a profile
-   * A user has access if:
-   * 1. They own the profile (profile.userId === userId), OR
-   * 2. They are an active member of the profile's organization
-   */
   private static async checkUserAccessToProfile({
     userId,
     profileId,
@@ -690,7 +675,6 @@ export class ProfileRepository {
       return true;
     }
 
-    // Check if user is an active member of the organization
     const membership = await prisma.membership.findFirst({
       where: {
         userId,
