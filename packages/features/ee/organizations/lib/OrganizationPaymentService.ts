@@ -1,9 +1,11 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -83,7 +85,7 @@ export class OrganizationPaymentService {
   protected user: OnboardingUser;
 
   constructor(user: OnboardingUser, permissionService?: OrganizationPermissionService) {
-    this.billingService = new StripeBillingService();
+    this.billingService = getBillingProviderService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
   }
@@ -276,6 +278,13 @@ export class OrganizationPaymentService {
         organizationOnboardingId,
       })
     );
+
+    const subscriptionData = ORG_TRIAL_DAYS
+      ? {
+          trial_period_days: ORG_TRIAL_DAYS,
+        }
+      : undefined;
+
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
       successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
@@ -288,6 +297,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      ...(subscriptionData && { subscriptionData }),
     });
   }
 
