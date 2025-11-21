@@ -151,7 +151,7 @@ export default defineContentScript({
     document.body.appendChild(buttonsContainer);
 
     // Listen for extension icon click
-    chrome.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'icon-clicked') {
         if (isClosed) {
           // Reopen closed sidebar
@@ -184,6 +184,7 @@ export default defineContentScript({
 </svg>`;
           }
         }
+        sendResponse({ success: true }); // Send response to acknowledge
       }
     });
 
@@ -308,7 +309,7 @@ export default defineContentScript({
             // Close menu when clicking outside
             setTimeout(() => {
               document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target)) {
+                if (!menu.contains(e.target as Node)) {
                   menu.remove();
                   document.removeEventListener('click', closeMenu);
                 }
@@ -334,45 +335,44 @@ export default defineContentScript({
           
           async function fetchEventTypes(menu) {
             try {
+              // Check if extension context is valid
+              if (!chrome.runtime?.id) {
+                throw new Error('Extension context invalidated. Please reload the page.');
+              }
+
               // Use chrome.runtime.sendMessage to make API call through background script
               const response = await new Promise((resolve, reject) => {
-                chrome.runtime.sendMessage(
-                  { action: 'fetch-event-types' },
-                  (response) => {
-                    console.log('Raw response from background:', response);
-                    if (chrome.runtime.lastError) {
-                      console.log('Chrome runtime error:', chrome.runtime.lastError);
-                      reject(new Error(chrome.runtime.lastError.message));
-                    } else if (response && response.error) {
-                      console.log('Response has error:', response.error);
-                      reject(new Error(response.error));
-                    } else {
-                      console.log('Resolving with response:', response);
-                      resolve(response);
+                try {
+                  chrome.runtime.sendMessage(
+                    { action: 'fetch-event-types' },
+                    (response) => {
+                      if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                      } else if (response && response.error) {
+                        reject(new Error(response.error));
+                      } else {
+                        resolve(response);
+                      }
                     }
-                  }
-                );
+                  );
+                } catch (err) {
+                  reject(err);
+                }
               });
               
-              console.log('Final response from background script:', response);
-              
-              let eventTypes = [];
-              if (response && response.data) {
-                eventTypes = response.data;
+              let eventTypes: any[] = [];
+              if (response && (response as any).data) {
+                eventTypes = (response as any).data;
               } else if (Array.isArray(response)) {
                 eventTypes = response;
               } else {
-                console.log('Unexpected response format:', response);
                 eventTypes = [];
               }
               
               // Ensure eventTypes is an array
               if (!Array.isArray(eventTypes)) {
-                console.log('EventTypes is not an array:', typeof eventTypes, eventTypes);
                 eventTypes = [];
               }
-              
-              console.log('Final eventTypes array:', eventTypes, 'Length:', eventTypes.length);
               
               // Clear loading state
               menu.innerHTML = '';
@@ -404,7 +404,6 @@ export default defineContentScript({
                 eventTypes.forEach((eventType, index) => {
                   // Validate eventType object
                   if (!eventType || typeof eventType !== 'object') {
-                    console.warn('Invalid event type object:', eventType);
                     return;
                   }
                   
@@ -451,7 +450,6 @@ export default defineContentScript({
                   menu.appendChild(menuItem);
                 });
               } catch (forEachError) {
-                console.error('Error in forEach loop:', forEachError);
                 menu.innerHTML = `
                   <div style="padding: 16px; text-align: center; color: #ea4335;">
                     Error displaying event types
@@ -460,14 +458,12 @@ export default defineContentScript({
               }
               
             } catch (error) {
-              console.error('Failed to fetch event types:', error);
-              console.log('Error details:', error.message, error.stack);
               menu.innerHTML = `
                 <div style="padding: 16px; text-align: center; color: #ea4335;">
                   Failed to load event types
                 </div>
                 <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
-                  Error: ${error.message}
+                  Error: ${(error as Error).message}
                 </div>
                 <div style="padding: 16px 16px; text-align: center;">
                   <button onclick="this.parentElement.parentElement.remove()" style="
@@ -492,8 +488,7 @@ export default defineContentScript({
             navigator.clipboard.writeText(bookingUrl).then(() => {
               // Show success notification
               showNotification('Link copied to clipboard!', 'success');
-            }).catch(err => {
-              console.error('Failed to copy link:', err);
+            }).catch(() => {
               showNotification('Failed to copy link', 'error');
             });
           }
