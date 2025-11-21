@@ -172,6 +172,16 @@ export interface App {
   delegationCredential?: {
     workspacePlatformSlug: string;
   };
+  /**
+   * OAuth scopes configuration for Cal.com OAuth provider
+   * Used to validate which scopes this app's OAuth clients can request
+   */
+  calOAuthScopes?: {
+    /** Scopes that this app is allowed to request */
+    allowed: string[];
+    /** Scopes that must be included in every request (subset of allowed) */
+    required?: string[];
+  };
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

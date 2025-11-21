@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto";
 
 import dayjs from "@calcom/dayjs";
-import { parseAndValidateScopes } from "@calcom/features/auth/lib/scopeValidator";
+import { parseAndValidateScopesForClient } from "@calcom/features/auth/lib/scopeValidator";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -19,7 +19,7 @@ type AddClientOptions = {
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
 
-  const validationResult = parseAndValidateScopes(scopes, { allowEmpty: false });
+  const validationResult = await parseAndValidateScopesForClient(scopes, clientId, { allowEmpty: false });
   if (!validationResult.success) {
     throw new TRPCError({
       code: "BAD_REQUEST",

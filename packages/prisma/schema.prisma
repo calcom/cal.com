@@ -1743,6 +1743,7 @@ model OAuthClient {
   clientSecret String
   name         String
   logo         String?
+  appSlug      String? // Links to app-store integration for scope validation
   accessCodes  AccessCode[]
 }
 
