@@ -157,19 +157,18 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       return teams;
     }
 
-    const existingTeamIndex = teams.findIndex((t) => t.id === conflictingTeam.id);
+    const existingTeam = teams.find((t) => t.id === conflictingTeam.id);
 
-    if (existingTeamIndex !== -1) {
-      const existingTeam = teams[existingTeamIndex];
-      if (!existingTeam.isBeingMigrated) {
-        const updatedTeams = [...teams];
-        updatedTeams[existingTeamIndex] = {
-          ...existingTeam,
-          isBeingMigrated: true,
-        };
-        return updatedTeams;
+    if (existingTeam) {
+      if (existingTeam.isBeingMigrated) {
+        return teams;
       }
-      return teams;
+
+      return teams.map((team) =>
+        team.id === conflictingTeam.id
+          ? { ...team, isBeingMigrated: true }
+          : team
+      );
     }
 
     return [
