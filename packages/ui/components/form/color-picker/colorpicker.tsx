@@ -35,7 +35,7 @@ const ColorPicker = (props: ColorPickerProps) => {
         <div className="border-default min-w-9 flex h-full items-center justify-center border ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0">
           <Popover.Trigger asChild>
             <button
-              className="h-5 w-5 rounded-sm"
+              className="relative h-5 w-5 rounded-sm after:absolute after:inset-[-8px] after:content-['']"
               aria-label="pick colors"
               style={{ backgroundColor: color }}
             />
