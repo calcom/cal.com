@@ -64,13 +64,7 @@ async function createMockOrganization({ id, name, slug }: { id: number; name: st
   });
 }
 
-async function createMockUser({
-  email,
-  organizationId,
-}: {
-  email: string;
-  organizationId: number | null;
-}) {
+async function createMockUser({ email, organizationId }: { email: string; organizationId: number | null }) {
   return prismock.user.create({
     data: {
       email,
@@ -111,16 +105,14 @@ describe("handleUserEvents", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     await createMockOrganization({
       id: organizationId,
       name: organizationName,
       slug: organizationSlug,
     });
 
-    const { getTeamOrThrow } = await import(
-      "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils"
-    );
+    const { getTeamOrThrow } = await import("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils");
     vi.mocked(getTeamOrThrow).mockResolvedValue({
       id: organizationId,
       name: organizationName,
@@ -145,7 +137,7 @@ describe("handleUserEvents", () => {
 
       await createMockUser({
         email: userEmail,
-        organizationId: differentOrgId,
+        organizationId: 9999,
       });
 
       const event: DirectorySyncEvent = {
@@ -203,13 +195,13 @@ describe("handleUserEvents", () => {
         () =>
           ({
             isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
-          }) as unknown as InstanceType<typeof UserRepository>
+          } as unknown as InstanceType<typeof UserRepository>)
       );
 
       await expect(handleUserEvents(event, organizationId)).resolves.not.toThrow();
     });
 
-    it("should throw error when user has no organizationId (prevents hijacking legacy users)", async () => {
+    it("should pass when user has no organizationId (allow existing user to be added to an org)", async () => {
       const userEmail = "legacy@example.com";
 
       await createMockUser({
@@ -233,9 +225,7 @@ describe("handleUserEvents", () => {
         },
       };
 
-      await expect(handleUserEvents(event, organizationId)).rejects.toThrow(
-        "User belongs to another organization."
-      );
+      await expect(handleUserEvents(event, organizationId)).resolves.toBeUndefined();
     });
 
     it("should succeed when user does not exist yet (new user creation)", async () => {
@@ -306,7 +296,7 @@ describe("handleUserEvents", () => {
         () =>
           ({
             isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
-          }) as unknown as InstanceType<typeof UserRepository>
+          } as unknown as InstanceType<typeof UserRepository>)
       );
 
       const inviteExistingUserToOrg = (await import("./users/inviteExistingUserToOrg")).default;
@@ -391,7 +381,7 @@ describe("handleUserEvents", () => {
         () =>
           ({
             isAMemberOfOrganization: vi.fn().mockResolvedValue(true),
-          }) as unknown as InstanceType<typeof UserRepository>
+          } as unknown as InstanceType<typeof UserRepository>)
       );
 
       const { assignValueToUserInOrgBulk } = await import("./assignValueToUser");
@@ -432,10 +422,10 @@ describe("handleUserEvents", () => {
         },
       };
 
-      const { getTeamOrThrow } = await import(
-        "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils"
+      const { getTeamOrThrow } = await import("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils");
+      vi.mocked(getTeamOrThrow).mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof getTeamOrThrow>>
       );
-      vi.mocked(getTeamOrThrow).mockResolvedValue(null as unknown as Awaited<ReturnType<typeof getTeamOrThrow>>);
 
       await expect(handleUserEvents(event, nonExistentOrgId)).rejects.toThrow("Org not found");
     });
