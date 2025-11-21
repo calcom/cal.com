@@ -428,7 +428,7 @@ export default defineContentScript({
                   
                   const title = eventType.title || 'Untitled Event';
                   const length = eventType.length || eventType.duration || 30;
-                  const description = eventType.description || 'No description';
+                  const description = eventType.description || '';
                   
                   const menuItem = document.createElement('div');
                   menuItem.style.cssText = `
