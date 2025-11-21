@@ -61,12 +61,23 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
      * TODO: When we add profileId to membership, we lookup by profileId
      * If the profile is movedFromUser, we lookup all memberships without profileId as well.
      */
-    const profile = await ProfileRepository.findById(lookupTarget.id);
+    let profile;
+    if ("uid" in lookupTarget && lookupTarget.uid) {
+      profile = await ProfileRepository.findByUid(lookupTarget.uid);
+    } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+      profile = await ProfileRepository.findById(lookupTarget.id);
+    } else {
+      return [];
+    }
     if (!profile) {
       return [];
     }
+    const userId = "user" in profile && profile.user ? profile.user.id : null;
+    if (!userId) {
+      return [];
+    }
     prismaWhere = {
-      userId: profile.user.id,
+      userId,
       ...where,
     };
   } else {

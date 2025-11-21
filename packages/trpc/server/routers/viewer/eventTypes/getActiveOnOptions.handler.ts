@@ -214,7 +214,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   const shouldSkipEventTypes = isOrg;
 
   const userProfile = ctx.user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const profile = await ProfileRepository.findByUpId(userProfile.upId, ctx.user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
