@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -601,15 +602,37 @@ export class CreditService {
         ];
 
         if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
-          const { cancelScheduledMessagesAndScheduleEmails } = await import(
-            "@calcom/features/ee/workflows/lib/reminders/reminderScheduler"
-          );
+          let userIdsWithoutCredits: number[] = [];
+
+          if (result.teamId) {
+            const teamMembers = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(
+              result.teamId,
+              prisma
+            );
+
+            if (teamMembers && teamMembers.length > 0) {
+              const creditChecks = await Promise.all(
+                teamMembers.map(async (member) => {
+                  const hasCredits = await this.hasAvailableCredits({ userId: member.userId });
+                  return { userId: member.userId, hasCredits };
+                })
+              );
+
+              userIdsWithoutCredits = creditChecks
+                .filter(({ hasCredits }) => !hasCredits)
+                .map(({ userId }) => userId);
+            }
+          } else if (result.userId) {
+            userIdsWithoutCredits = [result.userId];
+          }
+
           promises.push(
-            cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
-              (error) => {
-                log.error("Failed to cancel scheduled messages", error, { result });
-              }
-            )
+            cancelScheduledMessagesAndScheduleEmails({
+              teamId: result.teamId,
+              userIdsWithoutCredits,
+            }).catch((error) => {
+              log.error("Failed to cancel scheduled messages", error, { result });
+            })
           );
         }
 
