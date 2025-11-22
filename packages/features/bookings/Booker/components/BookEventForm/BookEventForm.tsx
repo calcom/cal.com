@@ -255,9 +255,7 @@ export const BookEventForm = ({
                   isVerificationCodeSending
                 }
                 className={classNames?.confirmButton}
-                data-testid={
-                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
-                }>
+                data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
