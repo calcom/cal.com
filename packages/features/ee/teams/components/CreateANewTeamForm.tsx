@@ -133,7 +133,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required")}}
+            rules={{ required: t("team_url_required") }}
             render={({ field: { value } }) => (
               <TextField
                 name="slug"
