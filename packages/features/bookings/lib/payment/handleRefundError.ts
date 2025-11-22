@@ -6,6 +6,7 @@ const handleRefundError = async (opts: { event: CalendarEvent; reason: string; p
   try {
     await sendOrganizerPaymentRefundFailedEmail({
       ...opts.event,
+      hideBranding: opts.event.hideBranding ?? false,
       paymentInfo: { reason: opts.reason, id: opts.paymentId },
     });
   } catch (e) {

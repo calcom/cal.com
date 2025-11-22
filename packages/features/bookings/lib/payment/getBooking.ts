@@ -37,6 +37,7 @@ export async function getBooking(bookingId: number) {
         select: {
           owner: {
             select: {
+              id: true,
               hideBranding: true,
             },
           },
@@ -85,6 +86,12 @@ export async function getBooking(bookingId: number) {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -110,6 +117,8 @@ export async function getBooking(bookingId: number) {
           locale: true,
           destinationCalendar: true,
           isPlatformManaged: true,
+          hideBranding: true,
+          organizationId: true,
         },
       },
     },

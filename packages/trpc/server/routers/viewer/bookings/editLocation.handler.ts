@@ -8,9 +8,12 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -300,12 +303,33 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   });
 
   try {
+    const eventTypeId = booking.eventTypeId;
+    let hideBranding = false;
+    if (!eventTypeId) {
+      logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+      hideBranding = false;
+    } else {
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
+        },
+      });
+      const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: orgId ?? null,
+      });
+    }
+
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation },
+      { ...evt, additionalInformation, hideBranding },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {
-    console.log("Error sending LocationChangeEmails", safeStringify(error));
+    logger.error("Error sending LocationChangeEmails", safeStringify(error));
   }
 
   return { message: "Location updated" };

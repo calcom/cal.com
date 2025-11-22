@@ -11,6 +11,7 @@ import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
+  withHideBranding,
 } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -24,6 +25,7 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -341,6 +343,14 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType.id,
+    team: eventType.team ?? null,
+    owner: organizer,
+    organizationId: orgId ?? null,
+  });
+  evt.hideBranding = hideBranding;
+
   if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
@@ -421,7 +431,7 @@ export const roundRobinReassignment = async ({
   // Send to new RR host
   if (emailsEnabled) {
     await sendRoundRobinScheduledEmailsAndSMS({
-      calEvent: evtWithoutCancellationReason,
+      calEvent: withHideBranding(evtWithoutCancellationReason),
       members: [
         {
           ...reassignedRRHost,
@@ -472,7 +482,7 @@ export const roundRobinReassignment = async ({
 
     if (emailsEnabled) {
       await sendRoundRobinReassignedEmailsAndSMS({
-        calEvent: cancelledRRHostEvt,
+        calEvent: withHideBranding(cancelledRRHostEvt),
         members: [
           {
             ...previousRRHost,
@@ -493,7 +503,7 @@ export const roundRobinReassignment = async ({
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
-        calEvent: evtWithoutCancellationReason,
+        calEvent: withHideBranding(evtWithoutCancellationReason),
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
