@@ -1,37 +1,102 @@
 import DOMPurify from "dompurify";
 
-import { md } from "@calcom/lib/markdownIt";
+import { md, unescapeMarkdown } from "./markdownIt";
 
-if (typeof window == "undefined") {
-  console.warn(
-    "`markdownToSafeHTMLClient` should not be used on the server side. use markdownToSafeHTML instead"
-  );
-}
+/**
+ * Converts markdown to safe HTML with inline styles for client-side use
+ * Uses the centralized markdown-it instance from @calcom/lib/markdownIt
+ *
+ * ⚠️ SECURITY: This function sanitizes the output using DOMPurify to prevent XSS attacks.
+ * The underlying markdown-it instance has `html: true` enabled, which would be dangerous
+ * without this sanitization step.
+ *
+ * @param markdown - The markdown string to convert
+ * @returns Safe HTML string with inline styles (sanitized to prevent XSS)
+ */
+export function markdownToSafeHTMLClient(markdown: string | null | undefined): string {
+  if (typeof window === "undefined") {
+    console.warn("`markdownToSafeHTMLClient` should not be used on the server side.");
+  }
 
-export function markdownToSafeHTMLClient(markdown: string | null) {
   if (!markdown) return "";
 
-  const html = md.render(markdown);
+  // Unescape legacy turndown escapes
+  const unescaped = unescapeMarkdown(markdown);
 
-  const safeHTML = DOMPurify.sanitize(html);
+  // Render markdown to HTML using markdown-it (with inline styles from renderer rules)
+  const rendered = md.render(unescaped);
 
-  let safeHTMLWithListFormatting = safeHTML
-    .replace(
-      /<ul>/g,
-      "<ul style='list-style-type: disc; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
-    )
-    .replace(
-      /<ol>/g,
-      "<ol style='list-style-type: decimal; list-style-position: inside; margin-left: 12px; margin-bottom: 4px'>"
-    )
-    .replace(/<a\s+href=/g, "<a target='_blank' class='text-blue-500 hover:text-blue-600' href=");
+  // Sanitize the HTML to prevent XSS attacks using DOMPurify
+  // Critical: Use hooks to preserve CSS properties that DOMPurify might filter
+  // DOMPurify filters CSS properties automatically; preserve allowed styles/attributes
+  const STYLE_ALLOWED_TAGS = new Set([
+    "A",
+    "P",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "H6",
+    "UL",
+    "OL",
+    "LI",
+    "BLOCKQUOTE",
+    "PRE",
+    "CODE",
+  ]);
 
-  // Match: <li>Some text </li><li><ul>...</ul></li> or
-  // Convert to: <li>Some text <ul>...</ul></li>
-  safeHTMLWithListFormatting = safeHTMLWithListFormatting.replace(
-    /<li>([^<]+|<strong>.*?<\/strong>)<\/li>\s*<li>\s*<ul([^>]*)>([\s\S]*?)<\/ul>\s*<\/li>/g,
-    "<li>$1<ul$2>$3</ul></li>"
-  );
+  DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+    if (data.attrName === "style" && STYLE_ALLOWED_TAGS.has(node.tagName)) {
+      data.keepAttr = true;
+      return;
+    }
 
-  return safeHTMLWithListFormatting;
+    if (data.attrName === "value" && node.tagName === "LI") {
+      data.keepAttr = true;
+      return;
+    }
+
+    if (data.attrName === "start" && node.tagName === "OL") {
+      data.keepAttr = true;
+    }
+  });
+
+  const safeHTML = DOMPurify.sanitize(rendered, {
+    ALLOWED_TAGS: [
+      "p",
+      "br",
+      "strong",
+      "em",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "code",
+      "pre",
+      "blockquote",
+      "hr",
+      "s",
+      "strike",
+      "b",
+      "i",
+      "u",
+    ],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+    ADD_ATTR: ["style", "value", "start"], // Explicitly preserve supported attributes
+    KEEP_CONTENT: true,
+    // Ensure style attributes are not forbidden
+    FORBID_ATTR: [],
+  });
+
+  // Remove hook after sanitization to avoid affecting other uses
+  DOMPurify.removeHook("uponSanitizeAttribute");
+
+  return safeHTML;
 }
