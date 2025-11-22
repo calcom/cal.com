@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
@@ -136,17 +136,195 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  // Keep raw value to preserve the decimal separator.
+  // Intl.NumberFormat drops it if no digit follows,
+  // but we need it for correct formatting on every keystroke.
+  const [rawValue, setRawValue] = useState(value || "");
+
+  // Detect locale and generate a number formatter
+  const language = typeof navigator !== "undefined" ? navigator.language : "en-US";
+  const nf = useMemo(() => new Intl.NumberFormat(language), [language]);
+
+  // use number formatter to find the minus symbol and decimal,group seperators
+  const symbols = useMemo(() => {
+    const parts = nf.formatToParts(-1234567.89);
+    let decimal = ".";
+    let minus = "-";
+    let group: string | null = null;
+
+    for (const p of parts) {
+      if (p.type === "decimal") decimal = p.value;
+      if (p.type === "minusSign") minus = p.value;
+      if (p.type === "group" && !group) group = p.value;
+    }
+
+    return { decimal, minus, group };
+  }, [nf]);
+
+  // Escape special regex characters
+  const escapeRegex = useCallback((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), []);
+
+  // function to normalize raw value
+  const normalizeRawValue = useCallback(
+    (raw: string) => {
+      let normalized = raw;
+      if (symbols.group) {
+        normalized = normalized.replace(new RegExp(escapeRegex(symbols.group), "g"), "");
+      }
+      normalized = normalized
+        .replace(new RegExp(escapeRegex(symbols.decimal), "g"), ".")
+        .replace(new RegExp(escapeRegex(symbols.minus), "g"), "-");
+      return normalized;
+    },
+    [symbols]
+  );
+
+  // generate the formatted value to display in input
+  // maximum significant digits allowed is 15 - because precision issue with Number()
+  // why need to use Number() - Intl.NumberFormat only accept Number
+  // since we are using Number() the no of decimal digits is varies based on total digits
+  const formattedValue = useMemo(() => {
+    // Use rawValue (which updates immediately) instead of value prop
+    const normalized = normalizeRawValue(rawValue);
+    const significantDigits = (normalized || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+
+    let processedValue = normalized || "";
+
+    // Truncate to 15 significant digits if exceeded
+    if (significantDigits > 15) {
+      processedValue = trimToMaxSignifcantDigits(normalized);
+    }
+
+    const numberValue = Number(processedValue);
+
+    // only do formatting if following condition
+    // - not NaN
+    // - not end with decimal Intl.NumberFormat drops decimal seperator if not followed by digit
+    // - not minus sign because it can also be dropped if not followed by digit
+    // - and number not equal to zero. because we want to allow ''
+    if (
+      !isNaN(numberValue) &&
+      !rawValue.endsWith(symbols.decimal) &&
+      rawValue !== symbols.minus &&
+      numberValue !== 0
+    ) {
+      return new Intl.NumberFormat(language, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 14,
+      }).format(numberValue);
+    }
+
+    return rawValue;
+  }, [rawValue, language, symbols, normalizeRawValue]);
+
+  // function to remove more than 15 significant digits
+  function trimToMaxSignifcantDigits(value: string) {
+    const isNegative = value.startsWith("-");
+    const [intPart, decPart] = value.replace("-", "").split(".");
+    const intTrimmed = intPart.replace(/^0+/, "") || "0";
+
+    // Take first 15 digits from integer part
+    const first15Int = intTrimmed.slice(0, 15);
+
+    // Join with decimal part (keep all decimals)
+    return (isNegative ? "-" : "") + first15Int + (decPart ? "." + decPart : "");
+  }
+
+  // useEffect to detect external change in value and set raw value based on it
+  useEffect(() => {
+    if (normalizeRawValue(rawValue) !== value) {
+      if (!value || value === "") {
+        setRawValue("");
+        return;
+      }
+
+      if (value === "-") {
+        setRawValue(symbols.minus);
+        return;
+      }
+
+      const significantDigits = (value || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+
+      let processedValue = value || "";
+
+      // Truncate to 15 significant digits if exceeded
+      if (significantDigits > 15) {
+        processedValue = trimToMaxSignifcantDigits(value);
+      }
+
+      // Then handle trailing decimal (after trimming)
+      if (processedValue.endsWith(".")) {
+        const withoutDecimal = processedValue.slice(0, -1);
+        const numberValue = Number(withoutDecimal);
+        if (!isNaN(numberValue)) {
+          const formatted = new Intl.NumberFormat(language, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 14,
+          }).format(numberValue);
+          setRawValue(formatted + symbols.decimal);
+          return;
+        }
+      }
+
+      const numberValue = Number(processedValue);
+
+      if (!isNaN(numberValue)) {
+        const localizedValue = new Intl.NumberFormat(language, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 14,
+        }).format(numberValue);
+        setRawValue(localizedValue);
+      } else {
+        setRawValue(""); // Clear the input if number is invalid
+      }
+    }
+  }, [value, symbols]);
+
+  // function to change value change
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+
+    // create regex for allowed characters - minus sign, decimal, group seperator
+    const allowedChars = [
+      "0-9",
+      escapeRegex(symbols.decimal),
+      symbols.group ? escapeRegex(symbols.group) : "",
+      escapeRegex(symbols.minus), // Put minus last
+    ]
+      .filter(Boolean)
+      .join("");
+
+    val = val.replace(new RegExp(`[^${allowedChars}]`, "g"), "");
+
+    // Only allow leading minus
+    val = val.replace(new RegExp(`(?!^)${escapeRegex(symbols.minus)}`, "g"), "");
+
+    // Keep only first decimal seperator
+    const firstDecimal = val.indexOf(symbols.decimal);
+    if (firstDecimal !== -1) {
+      val =
+        val.substring(0, firstDecimal + 1) +
+        val.substring(firstDecimal + 1).replace(new RegExp(escapeRegex(symbols.decimal), "g"), "");
+    }
+
+    setRawValue(val);
+
+    // Normalize for parent: remove group separators, then replace decimal and minus
+    let normalized = normalizeRawValue(val);
+    // Strip leading zeros (except "0" or "0.xxx" or "-0" or "-0.xxx")
+    normalized = normalized.replace(/^(-?)0+(?=\d)/, "$1");
+    setValue(normalized);
+  };
+
   return (
     <TextField
       size="sm"
-      type="number"
+      type="text"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
       className="mb-2"
-      value={value}
-      onChange={(e) => {
-        setValue(e.target.value);
-      }}
+      value={formattedValue}
+      onChange={handleChange}
       {...remainingProps}
     />
   );
