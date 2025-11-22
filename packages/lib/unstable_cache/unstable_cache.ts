@@ -2,8 +2,8 @@
  * This implementation is adapted from https://github.com/vercel/next.js/issues/51613#issuecomment-1892644565.
  * It is a wrapper around `unstable_cache` that adds serialization and deserialization
  */
+import { parse, stringify } from "devalue";
 import { unstable_cache } from "next/cache";
-import { parse, stringify } from "superjson";
 
 export const cache = <T, P extends unknown[]>(
   fn: (...params: P) => Promise<T>,
