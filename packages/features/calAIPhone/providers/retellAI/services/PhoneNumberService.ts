@@ -39,7 +39,7 @@ export class PhoneNumberService {
 
     const { userId, agentId, teamId, ...rest } = data;
 
-    if (teamId && !await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermission({
       userId,
       teamId,
       permission: "phoneNumber.create",
@@ -135,7 +135,7 @@ export class PhoneNumberService {
       });
     }
 
-    if (teamId && !await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermission({
       userId,
       teamId,
       permission: "phoneNumber.delete",
@@ -273,7 +273,7 @@ export class PhoneNumberService {
       });
     }
 
-    if (teamId && !await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermission({
       userId,
       teamId,
       permission: "phoneNumber.update",

@@ -42,7 +42,7 @@ export class BillingService {
     agentId?: string | null;
     workflowId?: string;
   }) {
-    if (teamId && !await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermission({
       userId,
       teamId,
       permission: "phoneNumber.create",
@@ -127,7 +127,7 @@ export class BillingService {
     userId: number;
     teamId?: number;
   }) {
-    if (teamId && !await this.deps.permissionService.checkPermissions({
+    if (teamId && !await this.deps.permissionService.checkPermission({
         userId,
         teamId,
         permission: "phoneNumber.delete",

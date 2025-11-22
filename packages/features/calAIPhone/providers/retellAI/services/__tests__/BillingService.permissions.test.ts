@@ -48,7 +48,7 @@ describe("BillingService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to create phone numbers for team 42.");
 
-      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+      expect(mocks.mockPermissionService.checkPermission).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
         permission: "phoneNumber.create",
@@ -71,7 +71,7 @@ describe("BillingService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to delete phone numbers for team 42.");
 
-      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+      expect(mocks.mockPermissionService.checkPermission).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
         permission: "phoneNumber.delete",
@@ -135,7 +135,7 @@ describe("BillingService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to delete phone number +1234567890.");
 
-      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+      expect(mocks.mockPermissionService.checkPermission).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
         permission: "phoneNumber.delete",
