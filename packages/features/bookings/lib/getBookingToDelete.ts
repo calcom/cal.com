@@ -53,6 +53,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               id: true,
               name: true,
               parentId: true,
+              cancellationReasonRequired: true,
             },
           },
           parentId: true,

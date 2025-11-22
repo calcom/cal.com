@@ -78,6 +78,7 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          cancellationReasonRequired: true,
           brandColor: true,
           darkBrandColor: true,
           theme: true,

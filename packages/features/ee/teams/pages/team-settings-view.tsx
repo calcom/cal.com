@@ -20,6 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
@@ -186,6 +187,102 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const form = useForm<{
+    cancellationReasonRequired:
+      | "MANDATORY_FOR_BOTH"
+      | "MANDATORY_FOR_HOST_ONLY"
+      | "MANDATORY_FOR_ATTENDEE_ONLY"
+      | "OPTIONAL_FOR_BOTH";
+  }>({
+    defaultValues: {
+      cancellationReasonRequired: team?.cancellationReasonRequired || "MANDATORY_FOR_HOST_ONLY",
+    },
+  });
+
+  const { reset } = form;
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess(res) {
+      await utils.viewer.teams.get.invalidate();
+      if (res) {
+        reset({
+          cancellationReasonRequired: res.cancellationReasonRequired || "MANDATORY_FOR_HOST_ONLY",
+        });
+      }
+      showToast(t("settings_updated_successfully"), "success");
+    },
+  });
+
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+
+  const cancellationReasonOptions = [
+    { value: "MANDATORY_FOR_BOTH", label: t("mandatory_for_both") },
+    { value: "MANDATORY_FOR_HOST_ONLY", label: t("mandatory_for_host_only") },
+    { value: "MANDATORY_FOR_ATTENDEE_ONLY", label: t("mandatory_for_attendee_only") },
+    { value: "OPTIONAL_FOR_BOTH", label: t("optional_for_both") },
+  ];
+
+  return (
+    <>
+      {isAdmin ? (
+        <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
+          <Form
+            form={form}
+            handleSubmit={(values) => {
+              mutation.mutate({ ...values, id: team.id });
+            }}>
+            <div className="flex flex-col">
+              <div className="mb-4">
+                <h4 className="text-emphasis text-sm font-semibold leading-5">
+                  {t("cancellation_reason_requirements")}
+                </h4>
+                <p className="text-default mt-1 text-sm">
+                  {t("cancellation_reason_requirements_description")}
+                </p>
+              </div>
+              <Controller
+                name="cancellationReasonRequired"
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    data-testid="cancellation-reason-dropdown"
+                    value={cancellationReasonOptions.find((option) => option.value === value)}
+                    onChange={(selectedOption) => {
+                      if (selectedOption) {
+                        onChange(selectedOption.value);
+                        mutation.mutate({
+                          cancellationReasonRequired: selectedOption.value as
+                            | "MANDATORY_FOR_BOTH"
+                            | "MANDATORY_FOR_HOST_ONLY"
+                            | "MANDATORY_FOR_ATTENDEE_ONLY"
+                            | "OPTIONAL_FOR_BOTH",
+                          id: team.id,
+                        });
+                      }
+                    }}
+                    options={cancellationReasonOptions}
+                    className="w-80"
+                  />
+                )}
+              />
+            </div>
+          </Form>
+        </div>
+      ) : (
+        <div className="border-subtle mt-6 rounded-md border p-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
+        </div>
+      )}
+    </>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -207,7 +304,7 @@ const TeamSettingsViewWrapper = () => {
         router.replace("/teams");
       }
     },
-    [error]
+    [error, router]
   );
 
   if (isPending) return <AppearanceSkeletonLoader />;
@@ -218,6 +315,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <PrivacySettingsView team={team} />
+      <CancellationReasonSettingsView team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinSettings team={team} />
     </>
