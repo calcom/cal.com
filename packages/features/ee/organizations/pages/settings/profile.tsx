@@ -10,6 +10,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -20,8 +21,10 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { LinkIconButton } from "@calcom/ui/components/button";
+import { Dialog, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
+import { Form, Checkbox } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -86,6 +89,8 @@ const OrgProfileView = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const utils = trpc.useUtils();
+  const [deleteConfirmationChecked, setDeleteConfirmationChecked] = useState(false);
 
   const orgBranding = useOrgBranding();
 
@@ -107,6 +112,24 @@ const OrgProfileView = ({
     },
     [error, router]
   );
+
+  const deleteOrganizationMutation = trpc.viewer.organizations.deleteOrganization.useMutation({
+    async onSuccess() {
+      await utils.viewer.organizations.listCurrent.invalidate();
+      await utils.viewer.teams.list.invalidate();
+      showToast(t("your_organization_disbanded_successfully"), "success");
+      router.push(`${WEBAPP_URL}/teams`);
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  function deleteOrganization() {
+    if (currentOrganisation?.id) {
+      deleteOrganizationMutation.mutate({ orgId: currentOrganisation.id });
+    }
+  }
 
   if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader />;
@@ -150,7 +173,6 @@ const OrgProfileView = ({
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),
                     }}
@@ -170,7 +192,67 @@ const OrgProfileView = ({
             </div>
           </div>
         )}
-        {/* LEAVE ORG should go above here ^ */}
+
+        {permissions?.canDelete && (
+          <>
+            <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+              <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+              <p className="text-subtle text-sm">{t("delete_organization")}</p>
+            </div>
+            <Dialog
+              onOpenChange={(open) => {
+                if (!open) {
+                  setDeleteConfirmationChecked(false);
+                }
+              }}>
+              <SectionBottomActions align="end">
+                <DialogTrigger asChild>
+                  <Button
+                    color="destructive"
+                    className="border"
+                    StartIcon="trash-2"
+                    data-testid="delete-organization-button">
+                    {t("delete_organization")}
+                  </Button>
+                </DialogTrigger>
+              </SectionBottomActions>
+              <ConfirmationDialogContent
+                variety="danger"
+                title={t("admin_delete_organization_title", {
+                  organizationName: currentOrganisation?.name ?? "",
+                })}
+                confirmBtn={
+                  <DialogClose
+                    color="primary"
+                    loading={deleteOrganizationMutation.isPending}
+                    disabled={!deleteConfirmationChecked}
+                    onClick={() => deleteOrganization()}
+                    data-testid="dialog-confirmation">
+                    {deleteOrganizationMutation.isPending ? t("loading") : t("delete")}
+                  </DialogClose>
+                }>
+                <ul className="ml-4 mt-5 list-disc space-y-2">
+                  <li>{t("admin_delete_organization_description_1")}</li>
+                  <li>{t("admin_delete_organization_description_2")}</li>
+                  <li>{t("admin_delete_organization_description_3")}</li>
+                  <li>{t("admin_delete_organization_description_4")}</li>
+                </ul>
+                <div className="mt-6 flex items-start space-x-2">
+                  <Checkbox
+                    id="delete-confirmation"
+                    checked={deleteConfirmationChecked}
+                    onCheckedChange={(checked: boolean) => setDeleteConfirmationChecked(checked === true)}
+                  />
+                  <label
+                    htmlFor="delete-confirmation"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t("confirm_delete_organization_checkbox")}
+                  </label>
+                </div>
+              </ConfirmationDialogContent>
+            </Dialog>
+          </>
+        )}
       </>
     </LicenseRequired>
   );
@@ -221,7 +303,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     try {
       await navigator.clipboard.writeText(value);
       showToast(t("organization_id_copied"), "success");
-    } catch (error) {
+    } catch {
       showToast(t("error_copying_to_clipboard"), "error");
     }
   };
@@ -289,7 +371,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                 <>
                   <OrgBanner
                     data-testid="profile-upload-banner"
-                    alt={`${defaultValues.name} Banner` || ""}
+                    alt={defaultValues.name ? `${defaultValues.name} Banner` : ""}
                     className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
                     fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}

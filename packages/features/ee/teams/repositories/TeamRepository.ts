@@ -291,6 +291,27 @@ export class TeamRepository {
     });
   }
 
+  async findTeamForDeletion(teamId: number) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        slug: true,
+        isOrganization: true,
+        members: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
     const memberships = await this.prismaClient.membership.findMany({
       where: {

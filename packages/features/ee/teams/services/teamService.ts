@@ -133,12 +133,40 @@ export class TeamService {
       logger.error(`Failed to delete workflow reminders for team ${id}`, e);
     }
 
-    // Step 3: Delete the team from the database. This is the core "commit" point.
+    // Step 3: Fetch team details for organization-specific cleanup
     const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findTeamForDeletion(id);
+
+    if (team?.isOrganization) {
+      if (team.slug) {
+        try {
+          await deleteDomain(team.slug);
+        } catch {
+          log.error(`Failed to delete domain ${team.slug}. Do a manual deletion if needed`);
+        }
+      }
+
+      // Delete all redirects for users
+      const users = team.members?.map((member) => member.user) ?? [];
+      await TeamService.deleteAllRedirectsForUsers(users);
+
+      await TeamService.renameUsersToAvoidUsernameConflicts(users);
+    }
+
+    // Step 4: Delete the team from the database. This is the core "commit" point.
     const deletedTeam = await teamRepo.deleteById({ id });
 
-    // Step 4: Clean up any final, non-critical external state.
-    if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
+    // Step 5: Log the deletion for tracking purposes
+    if (deletedTeam) {
+      if (deletedTeam.isOrganization) {
+        logger.info(`Organization deleted: ${deletedTeam.name} (ID: ${deletedTeam.id})`);
+      } else {
+        logger.info(`Team deleted: ${deletedTeam.name} (ID: ${deletedTeam.id})`);
+      }
+    }
+
+    // Step 5: Clean up any final, non-critical external state (for teams only, orgs already handled)
+    if (deletedTeam && deletedTeam.isOrganization === false && deletedTeam.slug) {
       deleteDomain(deletedTeam.slug);
     }
 
@@ -573,5 +601,51 @@ export class TeamService {
         },
       }),
     ]);
+  }
+
+  private static async renameUsersToAvoidUsernameConflicts(
+    users: { id: number; username: string | null }[]
+  ) {
+    for (const user of users) {
+      let currentUsername = user.username;
+
+      if (!currentUsername) {
+        currentUsername = "no-username";
+        log.warn(`User ${user.id} has no username, defaulting to ${currentUsername}`);
+      }
+
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          // user.id being auto-incremented, we can safely assume that the username will be unique
+          username: `${currentUsername}-${user.id}`,
+        },
+      });
+    }
+  }
+
+  private static async deleteAllRedirectsForUsers(users: { username: string | null }[]) {
+    const { RedirectType } = await import("@calcom/prisma/enums");
+    return await Promise.all(
+      users
+        .filter(
+          (
+            user
+          ): user is {
+            username: string;
+          } => !!user.username
+        )
+        .map((user) =>
+          prisma.tempOrgRedirect.deleteMany({
+            where: {
+              from: user.username,
+              type: RedirectType.User,
+              fromOrgId: 0,
+            },
+          })
+        )
+    );
   }
 }
