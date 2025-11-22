@@ -68,10 +68,23 @@ export default function Platform() {
     refetchBillingState();
   });
 
-  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
+  const isLoading = isUserLoading || isOAuthClientLoading || (isUserBillingDataLoading && !userBillingData);
 
-  if (isUserBillingDataLoading && !userBillingData) {
-    return <div className="m-5">{t("loading")}</div>;
+  if (isLoading) {
+    return (
+      <Shell
+        heading={t("platform")}
+        subtitle={t("platform_description")}
+        title={t("platform")}
+        description={t("platform_description")}
+        withoutMain={false}
+        isPlatformUser={true}>
+        <div className="space-y-4">
+          <div className="bg-subtle h-32 animate-pulse rounded-md" />
+          <div className="bg-subtle h-64 animate-pulse rounded-md" />
+        </div>
+      </Shell>
+    );
   }
 
   if (isPlatformUser && !isPaidUser)
