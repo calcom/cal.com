@@ -21,6 +21,31 @@ function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequest
   return cause instanceof Prisma.PrismaClientKnownRequestError;
 }
 
+function isYupError(cause: unknown): cause is {
+  name: string;
+  message: string;
+  inner: Array<{ path?: string; message: string; type?: string }>;
+  errors: string[];
+} {
+  return (
+    hasName(cause) &&
+    cause.name === "ValidationError" &&
+    typeof cause === "object" &&
+    "inner" in cause &&
+    Array.isArray((cause as { inner: unknown }).inner)
+  );
+}
+
+function parseYupErrors(
+  inner: Array<{ path?: string; message: string; type?: string }>,
+  fallbackMessage: string
+): string {
+  if (inner.length === 0) {
+    return fallbackMessage;
+  }
+  return inner.map((error) => error.message).join("; ");
+}
+
 function parseZodErrorIssues(issues: ZodIssue[]): string {
   return issues
     .map((i) =>
@@ -38,6 +63,14 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return new HttpError({
       statusCode: 400,
       message: parseZodErrorIssues(cause.issues),
+      cause,
+    });
+  }
+  if (isYupError(cause)) {
+    // The ics library (v2.37.0) uses Yup for validation
+    return new HttpError({
+      statusCode: 400,
+      message: parseYupErrors(cause.inner, cause.message),
       cause,
     });
   }
