@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import React, { Fragment, useState, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -92,6 +92,7 @@ export const NavigationItem: React.FC<{
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
@@ -160,6 +161,11 @@ export const NavigationItem: React.FC<{
               setIsExpanded(!isExpanded);
               if (isTablet && hasChildren) {
                 setIsTooltipOpen(!isTooltipOpen);
+              }
+              if (hasChildren && item.child && item.child.length > 0) {
+                const firstChild = item.child[0];
+                const href = buildHref(firstChild);
+                router.push(href);
               }
             }}
             className={classNames(
@@ -292,6 +298,7 @@ export const MobileNavigationMoreItem: React.FC<{
 }> = (props) => {
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
+  const router = useRouter();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
   const buildHref = useBuildHref();
@@ -305,7 +312,14 @@ export const MobileNavigationMoreItem: React.FC<{
       {hasChildren ? (
         <>
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+              if (item.child && item.child.length > 0) {
+                const firstChild = item.child[0];
+                const href = buildHref(firstChild);
+                router.push(href);
+              }
+            }}
             className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
             <span className="text-default flex items-center font-semibold">
               {item.icon && (
