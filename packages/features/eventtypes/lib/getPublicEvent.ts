@@ -162,6 +162,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    captchaType: true,
   } satisfies Prisma.EventTypeSelect;
 };
 
@@ -364,6 +365,7 @@ export const getPublicEvent = async (
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
       fieldTranslations: [],
+      captchaType: "OFF",
     };
   }
 
@@ -578,6 +580,7 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    captchaType: eventWithUserProfiles.captchaType,
   };
 };
 

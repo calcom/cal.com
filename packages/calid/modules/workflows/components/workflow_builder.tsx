@@ -146,15 +146,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     isError,
     error,
     isPending: isPendingWorkflow,
-  } = trpc.viewer.workflows.calid_get.useQuery(workflowId ? { id: workflowId } : {}, {
-    enabled: !!workflowId,
-  });
+  } = trpc.viewer.workflows.calid_get.useQuery(
+    { id: workflowId },
+    {
+      enabled: !!workflowId,
+    }
+  );
 
   // Get verified numbers and emails
   let { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {}
-    // { enabled: !!workflowData?.calIdTeamId, }
   );
 
   verifiedNumbersData ??= [];
@@ -165,7 +166,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           calIdTeamId: workflowData?.calIdTeamId,
         }
       : {}
-    // { enabled: !!workflowData?.calIdTeamId }
   );
 
   verifiedEmailsData ??= [];
@@ -240,7 +240,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
   // Template update tracker
   const [updateTemplate, setUpdateTemplate] = useState<{ [stepId: string]: number }>({});
-  const [firstRender, setFirstRender] = useState(true);
 
   // Get trigger and template options
   const triggerOptions = getWorkflowTriggerOptions(t);

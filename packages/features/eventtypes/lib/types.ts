@@ -5,7 +5,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import type { EventLocationType } from "@calcom/lib/location";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { CaptchaType, PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -175,6 +175,7 @@ export type FormValues = {
   maxActiveBookingPerBookerOfferReschedule: boolean;
   disableCancelling: boolean;
   hideCalendarEventDetails: boolean;
+  captchaType: CaptchaType;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

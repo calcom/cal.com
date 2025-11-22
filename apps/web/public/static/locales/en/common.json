@@ -1,6 +1,10 @@
 {
   "booking_seats": "Booked Seats",
   "payment_not_completed": "Payment not completed",
+  "go_to_website": "Go to website",
+  "select_captcha_strength":"Select captcha strength",
+  "enable_captcha":"Enable captcha on Booking page",
+  "enable_captcha_description":"By enabling captcha, you'll prevent automated bots from booking you.",
   "use_this_phone_number_for_whatsapp": "Allow bookers to reach you on WhatsApp via this phone number",
   "existing_workflows": "Existing Workflows",
   "strong": "Strong",

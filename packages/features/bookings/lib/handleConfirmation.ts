@@ -110,7 +110,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
-  console.log("handleConfirmation results", safeStringify(results));
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
@@ -307,10 +306,15 @@ export async function handleConfirmation(args: {
           !emailsEnabled && Boolean(platformClientParams?.platformClientId)
         );
       }
+      const bookingResponse = isPrismaObjOrUndefined(updatedBookings[index]?.responses);
+      const attendeePhoneNumber = (bookingResponse?.attendeePhoneNumber ||
+        bookingResponse?.smsReminderNumber ||
+        bookingResponse?.phone ||
+        null) as string | null;
 
       await scheduleWorkflowReminders({
         workflows,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        smsReminderNumber: attendeePhoneNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
@@ -318,7 +322,8 @@ export async function handleConfirmation(args: {
     }
   } catch (error) {
     // Silently fail
-    console.error(error);
+
+    console.error("error", error);
   }
 
   // Webhooks and scheduled triggers

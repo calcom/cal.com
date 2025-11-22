@@ -22,7 +22,7 @@ const confirmNumberOwnership = async (
     await prisma.verifiedNumber.create({
       data: {
         userId: userIdentifier,
-        teamId: organizationId,
+        calIdTeamId: organizationId,
         phoneNumber: contactNumber,
       },
     });
