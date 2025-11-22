@@ -847,12 +847,10 @@ export class CreditService {
         },
       });
 
-      const creditService = new CreditService();
-
       userIdsWithNoCredits = (
         await Promise.all(
           teamMembers.map(async (member) => {
-            const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
+            const hasCredits = await this.hasAvailableCredits({ userId: member.userId });
             return { userId: member.userId, hasCredits };
           })
         )
