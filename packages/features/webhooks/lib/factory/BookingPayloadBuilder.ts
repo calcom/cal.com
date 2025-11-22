@@ -43,7 +43,11 @@ function createBookingWebhookPayload<T extends keyof BookingExtraDataMap>(
   params: CreateBookingWebhookPayloadParams<T>
 ): WebhookPayload {
   const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
-  const organizer = { ...params.evt.organizer, utcOffset: utcOffsetOrganizer };
+  const organizer = {
+    ...params.evt.organizer,
+    email: params.evt.hideOrganizerEmail ? "" : params.evt.organizer.email,
+    utcOffset: utcOffsetOrganizer
+  };
 
   return {
     triggerEvent: params.triggerEvent,

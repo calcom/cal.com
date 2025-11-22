@@ -18,6 +18,7 @@ interface EventReservationSchemaInterface {
   location: Booking["location"];
   description: Booking["description"];
   status: Booking["status"];
+  hideOrganizerEmail?: boolean;
 }
 
 const EventReservationSchema: FC<EventReservationSchemaInterface> = ({
@@ -30,6 +31,7 @@ const EventReservationSchema: FC<EventReservationSchemaInterface> = ({
   location,
   description,
   status,
+  hideOrganizerEmail,
 }) => {
   const reservationStatus = useMemo<ReservationStatusType>(() => {
     switch (status) {
@@ -58,7 +60,11 @@ const EventReservationSchema: FC<EventReservationSchemaInterface> = ({
           startDate: startTime.toString(),
           endDate: endTime.toString(),
           organizer: organizer
-            ? ({ "@type": "Person", name: organizer.name, email: organizer.email } as Person)
+            ? ({
+                "@type": "Person",
+                name: organizer.name,
+                ...(hideOrganizerEmail ? {} : { email: organizer.email })
+              } as Person)
             : undefined,
           attendee: attendees?.map(
             (person) => ({ "@type": "Person", name: person.name, email: person.email } as Person)
