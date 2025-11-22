@@ -1,39 +1,15 @@
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-
-export type ScheduledMessageToCancel = {
-  referenceId: string | null;
-  workflowStep: {
-    action: WorkflowActions;
-  } | null;
-  scheduledDate: Date;
-  uuid: string | null;
-  id: number;
-  booking: {
-    attendees: {
-      email: string;
-      locale: string | null;
-    }[];
-    user: {
-      email: string;
-    } | null;
-  } | null;
-};
+import { prisma } from "@calcom/prisma";
+import { WorkflowMethods } from "@calcom/prisma/enums";
 
 export class WorkflowReminderRepository {
-  static async findScheduledMessagesToCancel(
-    {
-      teamId,
-      userIdsWithoutCredits,
-    }: {
-      teamId?: number | null;
-      userIdsWithoutCredits: number[];
-    },
-    tx?: PrismaTransaction
-  ): Promise<ScheduledMessageToCancel[]> {
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.workflowReminder.findMany({
+  static async findScheduledMessagesToCancel({
+    teamId,
+    userIdsWithoutCredits,
+  }: {
+    teamId?: number | null;
+    userIdsWithoutCredits: number[];
+  }) {
+    return await prisma.workflowReminder.findMany({
       where: {
         workflowStep: {
           workflow: {
@@ -85,13 +61,8 @@ export class WorkflowReminderRepository {
     });
   }
 
-  static async updateRemindersToEmail(
-    { reminderIds }: { reminderIds: number[] },
-    tx?: PrismaTransaction
-  ): Promise<void> {
-    const prismaClient = tx ?? prisma;
-
-    await prismaClient.workflowReminder.updateMany({
+  static async updateRemindersToEmail({ reminderIds }: { reminderIds: number[] }): Promise<void> {
+    await prisma.workflowReminder.updateMany({
       where: {
         id: {
           in: reminderIds,
