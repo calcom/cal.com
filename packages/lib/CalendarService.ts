@@ -98,7 +98,7 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" as const }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
@@ -139,10 +139,49 @@ export default abstract class BaseCalendarService implements Calendar {
     return attendees;
   }
 
+  /**
+   * Applies CalDAV-specific modifications to an iCal string
+   */
+  private applyCalDAVModifications(iCalString: string, organizerTimeZone?: string): string {
+    let modifiedICalString = iCalString;
+    
+    // Add SCHEDULE-AGENT=CLIENT to all attendees to prevent duplicate invitations
+    modifiedICalString = modifiedICalString.replace(
+      /ATTENDEE;([^:]*)/g,
+      'ATTENDEE;SCHEDULE-AGENT=CLIENT;$1'
+    );
+    modifiedICalString = modifiedICalString.replace(
+      /ATTENDEE:/g,
+      'ATTENDEE;SCHEDULE-AGENT=CLIENT:'
+    );
+    
+    // Ensure timezone information is properly included for CalDAV
+    if (organizerTimeZone && !modifiedICalString.includes('VTIMEZONE')) {
+      const timezoneBlock = this.generateTimezoneBlock(organizerTimeZone);
+      modifiedICalString = modifiedICalString.replace(
+        'BEGIN:VEVENT',
+        `${timezoneBlock}\nBEGIN:VEVENT`
+      );
+      
+      // Update DTSTART and DTEND to include timezone reference (support both Z and non-Z formats)
+      modifiedICalString = modifiedICalString.replace(
+        /DTSTART:(\d{8}T\d{6})Z?/,
+        `DTSTART;TZID=${organizerTimeZone}:$1`
+      );
+      modifiedICalString = modifiedICalString.replace(
+        /DTEND:(\d{8}T\d{6})Z?/,
+        `DTEND;TZID=${organizerTimeZone}:$1`
+      );
+    }
+    
+    return modifiedICalString;
+  }
+
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+      // Use existing iCalUID if available, otherwise generate a new one
+      const uid = event.iCalUID || uuidv4();
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
@@ -155,6 +194,8 @@ export default abstract class BaseCalendarService implements Calendar {
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event),
+        startOutputType: "local",
+        productId: "cal.com",
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -166,6 +207,9 @@ export default abstract class BaseCalendarService implements Calendar {
 
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
+
+      // Apply CalDAV-specific modifications to the iCal string
+      const modifiedICalString = this.applyCalDAVModifications(iCalString, event.organizer.timeZone);
 
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
@@ -187,7 +231,7 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: modifiedICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
           )
@@ -246,6 +290,10 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
+      // Apply CalDAV-specific modifications to the iCal string
+      const modifiedICalString = iCalString ? this.applyCalDAVModifications(iCalString, event.organizer.timeZone) : iCalString;
+      
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -255,7 +303,7 @@ export default abstract class BaseCalendarService implements Calendar {
             calendarObject: {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              data: (modifiedICalString || iCalString)?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -313,6 +361,111 @@ export default abstract class BaseCalendarService implements Calendar {
       this.log.error(reason);
 
       throw reason;
+    }
+  }
+
+  /**
+   * Generates a proper VTIMEZONE block for CalDAV timezone handling
+   * This helps prevent timezone confusion in CalDAV clients like Fastmail
+   * Note: DST rules are simplified and may not work correctly for all timezones
+   */
+  private generateTimezoneBlock(timeZone: string): string {
+    // Generate a proper VTIMEZONE block with standard and daylight time components
+    // This ensures better compatibility with CalDAV servers
+    const now = new Date();
+    const january = new Date(now.getFullYear(), 0, 1);
+    const july = new Date(now.getFullYear(), 6, 1);
+    
+    const standardOffset = this.getTimezoneOffset(january, timeZone);
+    const daylightOffset = this.getTimezoneOffset(july, timeZone);
+    
+    const hasDST = standardOffset !== daylightOffset;
+    
+    let timezoneBlock = `BEGIN:VTIMEZONE\nTZID:${timeZone}\n`;
+    
+    // TODO: These DST rules are simplified and may not work correctly for all timezones
+    // Consider using Intl.DateTimeFormat or a timezone library for accurate DST transitions
+    // Add STANDARD time component
+    timezoneBlock += `BEGIN:STANDARD\n`;
+    timezoneBlock += `DTSTART:19701025T020000\n`;
+    timezoneBlock += `RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\n`;
+    timezoneBlock += `TZNAME:${timeZone}\n`;
+    timezoneBlock += `TZOFFSETFROM:${hasDST ? daylightOffset : standardOffset}\n`;
+    timezoneBlock += `TZOFFSETTO:${standardOffset}\n`;
+    timezoneBlock += `END:STANDARD\n`;
+    
+    // Add DAYLIGHT time component if DST is observed
+    if (hasDST) {
+      timezoneBlock += `BEGIN:DAYLIGHT\n`;
+      timezoneBlock += `DTSTART:19700329T020000\n`;
+      timezoneBlock += `RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU\n`;
+      timezoneBlock += `TZNAME:${timeZone}\n`;
+      timezoneBlock += `TZOFFSETFROM:${standardOffset}\n`;
+      timezoneBlock += `TZOFFSETTO:${daylightOffset}\n`;
+      timezoneBlock += `END:DAYLIGHT\n`;
+    }
+    
+    timezoneBlock += `END:VTIMEZONE`;
+    
+    return timezoneBlock;
+  }
+
+  /**
+   * Helper method to get timezone offset in iCal format
+   */
+  private getTimezoneOffset(date: Date, timeZone: string): string {
+    try {
+      const offset = this.getTimezoneOffsetMs(timeZone, date) / 60000;
+      
+      const hours = Math.floor(Math.abs(offset) / 60);
+      const minutes = Math.abs(offset) % 60;
+      const sign = offset >= 0 ? '+' : '-';
+      
+      return `${sign}${hours.toString().padStart(2, '0')}${minutes.toString().padStart(2, '0')}`;
+    } catch (e) {
+      // Fallback to UTC if timezone calculation fails
+      return '+0000';
+    }
+  }
+
+  /**
+   * Helper method to get timezone offset in milliseconds
+   */
+  private getTimezoneOffsetMs(timeZone: string, date: Date): number {
+    try {
+      // Create a date in the target timezone using Intl.DateTimeFormat
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(date);
+      const values: Record<string, number> = {};
+      parts.forEach(part => {
+        if (part.type !== 'literal') {
+          values[part.type] = parseInt(part.value);
+        }
+      });
+      
+      const localDate = new Date(
+        values.year,
+        values.month - 1, // JS months are 0-based
+        values.day,
+        values.hour,
+        values.minute,
+        values.second
+      );
+      
+      // Calculate offset between UTC and local time
+      return localDate.getTime() - date.getTime();
+    } catch (e) {
+      return 0;
     }
   }
 
