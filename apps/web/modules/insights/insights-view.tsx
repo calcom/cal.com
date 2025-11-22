@@ -100,7 +100,7 @@ function InsightsPageContent() {
         <TimezoneBadge />
       </div>
 
-      <div className="my-4 space-y-4">
+      <div className="my-4 stack-y-4">
         <BookingKPICards />
 
         <EventTrendsChart />

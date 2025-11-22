@@ -255,12 +255,12 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner className="overflow-scroll">
-        <KBarAnimator className="bg-default z-10 w-full max-w-screen-sm overflow-hidden rounded-md shadow-lg">
+        <KBarAnimator className="bg-default z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md shadow-lg">
           <div className="border-subtle flex items-center justify-center border-b">
             <Icon name="search" className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
-              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none"
+              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none px-0 border-0 focus:ring-0"
               value={inputText}
               onChange={(e) => {
                 setInputText(e.currentTarget.value.trim());
@@ -282,7 +282,7 @@ export const KBarContent = () => {
             <span className="pr-2">{t("close")}</span>
           </div>
         </KBarAnimator>
-        <div className="z-1 fixed inset-0 bg-neutral-800 bg-opacity-70" />
+        <div className="z-1 fixed inset-0 bg-neutral-800/70" />
       </KBarPositioner>
     </KBarPortal>
   );
@@ -297,7 +297,7 @@ export const KBarTrigger = () => {
           color="minimal"
           onClick={query.toggle}
           className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2">
-          <Icon name="search" className="h-4 w-4 flex-shrink-0 text-inherit" />
+          <Icon name="search" className="h-4 w-4 shrink-0 text-inherit" />
         </button>
       </Tooltip>
     </>

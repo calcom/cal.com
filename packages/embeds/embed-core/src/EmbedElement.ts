@@ -8,7 +8,7 @@ import {
   addDarkColorSchemeChangeListener,
   getMaxHeightForModal,
 } from "./ui-utils";
-
+import type { ExternalThemeClass } from "./ui/themeClass";
 type ShadowRootWithStyle = ShadowRoot & {
   host: HTMLElement & { style: CSSStyleDeclaration };
 };
@@ -19,7 +19,7 @@ export class EmbedElement extends HTMLElement {
   public isModal!: boolean;
   public skeletonContainerHeightTimer: number | null = null;
   // Theme Class is derived from `this.theme` as well as system color scheme preference
-  public themeClass!: string;
+  public themeClass!: ExternalThemeClass;
   public layout!: AllPossibleLayouts;
   public getSkeletonData!: (_args: { layout: AllPossibleLayouts; pageType: EmbedPageType | null }) => {
     skeletonContent: string;

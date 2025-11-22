@@ -613,12 +613,12 @@ function UserListTableContent({
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
+          <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

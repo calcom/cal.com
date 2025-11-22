@@ -38,7 +38,7 @@ export default function UpgradeTipWrapper({ children }: { children: React.ReactN
       features={features}
       background="/tips/insights"
       buttons={
-        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+        <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
           <ButtonGroup>
             <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}

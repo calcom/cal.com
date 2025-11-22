@@ -105,7 +105,7 @@ const TemplateFields = () => {
   const fields = templateFieldsMap[templateType as TemplateType];
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       {fields?.map((field) => (
         <div key={field.name}>
           <Controller
@@ -199,7 +199,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   return (
     <div>
-      <div className="space-y-4">
+      <div className="stack-y-4">
         <>
           <Label>{t("your_phone_number")}</Label>
           <Controller

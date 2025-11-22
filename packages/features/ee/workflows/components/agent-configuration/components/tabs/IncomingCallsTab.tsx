@@ -87,11 +87,11 @@ export function IncomingCallsTab({
   if (!hasActivePhoneNumbers) {
     return (
       <div className="p-8 rounded-xl border border-subtle">
-        <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-muted">
+        <div className="flex flex-col items-center stack-y-6 text-center">
+          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-cal-muted">
             <Icon name="info" className="w-8 h-8 text-subtle" />
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             <h3 className="text-lg font-semibold text-emphasis">{t("setup_incoming_agent")}</h3>
             <p className="text-sm text-subtle">{t("connect_a_phone_number_first")}</p>
           </div>
@@ -103,11 +103,11 @@ export function IncomingCallsTab({
   if (!inboundAgentId) {
     return (
       <div className="p-8 rounded-xl border border-subtle">
-        <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-muted">
+        <div className="flex flex-col items-center stack-y-6 text-center">
+          <div className="flex justify-center items-center w-16 h-16 rounded-lg bg-cal-muted">
             <Icon name="phone-incoming" className="w-8 h-8 text-subtle" />
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             <h3 className="text-lg font-semibold text-emphasis">{t("setup_inbound_agent")}</h3>
             <p className="text-sm text-subtle">{t("setup_inbound_agent_for_incoming_calls")}</p>
           </div>
@@ -145,7 +145,7 @@ export function IncomingCallsTab({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <div>
         <Label className="block mb-1 text-sm font-medium text-emphasis">{t("event_type")}</Label>
         <p className="text-subtle mb-1.5 text-xs">{t("select_event_type_for_inbound_calls")}</p>

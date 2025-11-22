@@ -497,7 +497,7 @@ export const AppPage = ({
           )}
         </ul>
         <hr className="border-subtle my-8 border" />
-        <span className="leading-1 text-subtle block text-xs">
+        <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>

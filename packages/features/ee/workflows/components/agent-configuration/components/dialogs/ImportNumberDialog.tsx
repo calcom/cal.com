@@ -73,7 +73,7 @@ export function ImportNumberDialog({
         <DialogHeader title={t("import_phone_number")} subtitle={t("import_phone_number_description")} />
 
         <Form form={phoneNumberForm} handleSubmit={(values) => handleImportPhoneNumber(values)}>
-          <div className="space-y-6">
+          <div className="stack-y-6">
             <Controller
               name="phoneNumber"
               control={phoneNumberForm.control}
@@ -124,14 +124,14 @@ export function ImportNumberDialog({
               )}
             />
 
-            <div className="bg-muted rounded-xl p-1">
+            <div className="bg-cal-muted rounded-xl p-1">
               <div className="flex items-center justify-between p-2">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-none">{t("advanced")}</Label>
                 <Switch size="sm" checked={showAdvancedFields} onCheckedChange={setShowAdvancedFields} />
               </div>
 
               {showAdvancedFields && (
-                <div className="bg-default space-y-5 rounded-lg p-4">
+                <div className="bg-default stack-y-5 rounded-lg p-4">
                   <Controller
                     name="sipTrunkAuthUsername"
                     control={phoneNumberForm.control}
@@ -211,7 +211,7 @@ export function ImportNumberDialog({
             {/* Having trouble importing section */}
             <div className="rounded-lg border p-2">
               <div className="flex items-start gap-3">
-                <Icon name="info" className="text-subtle mt-0.5 h-5 w-5 flex-shrink-0" />
+                <Icon name="info" className="text-subtle mt-0.5 h-5 w-5 shrink-0" />
                 <div className="flex-1">
                   <p className="text-emphasis text-sm font-medium">{t("having_trouble_importing")}</p>
                   <p className="text-subtle mt-1 text-sm leading-tight">

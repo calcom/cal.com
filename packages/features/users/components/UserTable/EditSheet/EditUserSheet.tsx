@@ -83,8 +83,8 @@ export function EditUserSheet({
                     </p>
                   </div>
                 </SheetHeader>
-                <SheetBody className="flex flex-col space-y-4 p-4">
-                  <div className="mb-4 flex flex-col space-y-4">
+                <SheetBody className="flex flex-col stack-y-4 p-4">
+                  <div className="mb-4 flex flex-col stack-y-4">
                     <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                     <DisplayInfo
                       label="Cal"
@@ -111,7 +111,7 @@ export function EditUserSheet({
                   {usersAttributes && usersAttributes?.length > 0 && (
                     <div className="mt-4 flex flex-col">
                       <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
-                      <div className="flex flex-col space-y-4">
+                      <div className="flex flex-col stack-y-4">
                         {usersAttributes.map((attribute, index) => (
                           <>
                             <DisplayInfo

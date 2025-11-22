@@ -485,7 +485,7 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
 
 export default function WeeklyCalendarPlayground() {
   return (
-    <div className="space-y-8 p-6">
+    <div className="stack-y-8 p-6">
       <div>
         <h1 className="text-3xl font-bold">Weekly Calendar Playground</h1>
         <p className="text-subtle mt-2">
@@ -495,7 +495,7 @@ export default function WeeklyCalendarPlayground() {
       </div>
 
       {/* Grid View of All Scenarios */}
-      <div className="space-y-8">
+      <div className="stack-y-8">
         <h2 className="mb-4 text-2xl font-bold">All Scenarios (Side-by-Side)</h2>
         {scenarios.map((scenario, index) => (
           <ScenarioCard key={index} scenario={scenario} />
@@ -505,7 +505,7 @@ export default function WeeklyCalendarPlayground() {
       {/* Testing Checklist */}
       <div className="border-subtle rounded-lg border p-6">
         <h2 className="mb-4 text-xl font-bold">Testing Checklist</h2>
-        <ul className="text-subtle space-y-2 text-sm">
+        <ul className="text-subtle stack-y-2 text-sm">
           <li>✓ Visual appearance matches expectations (80% width with 8% cascading offsets)</li>
           <li>✓ Hover behavior works smoothly - hovered event appears topmost</li>
           <li>✓ No visual glitches with 3+ overlapping events</li>

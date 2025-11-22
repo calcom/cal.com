@@ -77,7 +77,7 @@ export const BookingKPICards = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <ChartCard title={t("events")}>
         <StatContainer>
           {eventCategories.map((item, index) => (
@@ -117,7 +117,7 @@ const LoadingKPICards = (props: {
   const { t } = useLocale();
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <ChartCard title={t("events")}>
         <StatContainer>
           {eventCategories.map((item, index) => (

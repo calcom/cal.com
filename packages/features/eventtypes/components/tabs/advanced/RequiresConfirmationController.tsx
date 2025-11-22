@@ -197,7 +197,7 @@ export default function RequiresConfirmationController({
                                         );
                                       }}
                                       className={classNames(
-                                        "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                        "border-default m-0! block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                         customClassNames?.conditionalConfirmationRadio?.timeInput
                                       )}
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
@@ -241,7 +241,7 @@ export default function RequiresConfirmationController({
                           id="notice"
                           value="notice"
                         />
-                        <div className="-ml-1 space-y-2">
+                        <div className="-ml-1 stack-y-2">
                           <CheckboxField
                             checked={requiresConfirmationWillBlockSlot}
                             descriptionAsLabel

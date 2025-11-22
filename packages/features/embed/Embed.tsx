@@ -205,10 +205,10 @@ const ChooseEmbedTypesDialogContent = ({
           <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
-      <div className="items-start space-y-2 md:flex md:space-y-0">
+      <div className="items-start stack-y-2 md:flex md:stack-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-cal-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -220,7 +220,7 @@ const ChooseEmbedTypesDialogContent = ({
                 });
               }
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
+            <div className="bg-default order-0 box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
             <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
@@ -714,7 +714,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
   const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
-  const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
+  const teamSlug = eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams.toString());
@@ -921,10 +921,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     <DialogContent
       enableOverflow
       ref={dialogContentRef}
-      className="rounded-lg p-0.5 sm:max-w-[80rem]"
+      className="rounded-lg p-0.5 sm:max-w-7xl!"
       type="creation">
       <div className="flex">
-        <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
+        <div className="bg-cal-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -956,7 +956,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       <div>
                         {/*TODO: Add Auto/Fixed toggle from Figma */}
                         <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                        <div className="justify-left mb-6 flex items-center !font-normal ">
+                        <div className="justify-left mb-6 flex items-center font-normal! ">
                           <div className="mr-[9px]">
                             <TextField
                               labelProps={{ className: "hidden" }}
@@ -1300,8 +1300,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
 
                 return (
-                  <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
-                    <div className="flex h-[55vh] flex-grow flex-col">
+                  <div key={tab.href} className={classNames("flex grow flex-col")}>
+                    <div className="flex h-[55vh] grow flex-col">
                       <EmailEmbedPreview
                         selectedDuration={selectedDuration}
                         calLink={calLink}
