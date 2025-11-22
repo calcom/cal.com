@@ -403,7 +403,6 @@ model User {
   backupCodes         String?
   identityProvider    IdentityProvider     @default(CAL)
   identityProviderId  String?
-  availability        Availability[]
   invitedTo           Int?
   webhooks            Webhook[]
   brandColor          String?
@@ -914,8 +913,6 @@ model Schedule {
 
 model Availability {
   id          Int        @id @default(autoincrement())
-  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
@@ -925,7 +922,6 @@ model Availability {
   Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
 
-  @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
 }

@@ -40,7 +40,7 @@ import { Module } from "@nestjs/common";
   ],
 })
 export class PlatformEndpointsModule implements NestModule {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   configure(_consumer: MiddlewareConsumer) {
     // TODO: apply ratelimits
   }

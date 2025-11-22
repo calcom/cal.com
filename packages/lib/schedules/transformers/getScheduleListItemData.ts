@@ -5,7 +5,6 @@ export type Schedule = {
   timeZone: string | null;
   availability: {
     id: number;
-    userId: number | null;
     startTime: Date;
     endTime: Date;
     eventTypeId: number | null;

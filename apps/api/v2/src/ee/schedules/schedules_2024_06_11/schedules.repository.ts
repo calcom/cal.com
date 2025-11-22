@@ -47,7 +47,6 @@ export class SchedulesRepository_2024_06_11 {
           days: availability.days,
           startTime: availability.startTime,
           endTime: availability.endTime,
-          userId,
         });
       });
     }
@@ -58,7 +57,6 @@ export class SchedulesRepository_2024_06_11 {
           date: override.date,
           startTime: override.startTime,
           endTime: override.endTime,
-          userId,
         });
       });
     }
@@ -151,7 +149,6 @@ export class SchedulesRepository_2024_06_11 {
           days: availability.days,
           startTime: availability.startTime,
           endTime: availability.endTime,
-          userId,
         });
       });
     }
@@ -162,7 +159,6 @@ export class SchedulesRepository_2024_06_11 {
           date: override.date,
           startTime: override.startTime,
           endTime: override.endTime,
-          userId,
         });
       });
     }

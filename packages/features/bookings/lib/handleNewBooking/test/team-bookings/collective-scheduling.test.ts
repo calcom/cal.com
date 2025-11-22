@@ -186,7 +186,7 @@ describe("handleNewBooking", () => {
                 email: booker.email,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -487,7 +487,7 @@ describe("handleNewBooking", () => {
                 email: booker.email,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -715,7 +715,7 @@ describe("handleNewBooking", () => {
                 email: booker.email,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -949,7 +949,7 @@ describe("handleNewBooking", () => {
                 attendeePhoneNumber: booker.attendeePhoneNumber,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -1188,7 +1188,7 @@ describe("handleNewBooking", () => {
                 attendeePhoneNumber: booker.attendeePhoneNumber,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.PENDING,
@@ -1438,7 +1438,7 @@ describe("handleNewBooking", () => {
               email: booker.email,
               name: booker.name,
             }),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -1638,7 +1638,7 @@ describe("handleNewBooking", () => {
               email: booker.email,
               name: booker.name,
             }),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -1843,7 +1843,7 @@ describe("handleNewBooking", () => {
               email: booker.email,
               name: booker.name,
             }),
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+             
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -2037,7 +2037,7 @@ describe("handleNewBooking", () => {
                 email: booker.email,
                 name: booker.name,
               }),
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,

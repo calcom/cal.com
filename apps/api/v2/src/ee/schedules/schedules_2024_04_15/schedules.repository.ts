@@ -33,7 +33,6 @@ export class SchedulesRepository_2024_04_15 {
               days: availability.days,
               startTime: availability.startTime,
               endTime: availability.endTime,
-              userId,
             };
           }),
         },

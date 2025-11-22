@@ -500,7 +500,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
