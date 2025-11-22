@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -11,11 +13,14 @@ import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { AssignFeatureSheet } from "./AssignFeatureSheet";
+import { ExperimentConfigSheet } from "./ExperimentConfigSheet";
 
 export const FlagAdminList = () => {
   const [data] = trpc.viewer.features.list.useSuspenseQuery();
   const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [experimentConfigOpen, setExperimentConfigOpen] = useState(false);
+  const [selectedExperimentFlag, setSelectedExperimentFlag] = useState<Flag | null>(null);
 
   const groupedFlags = data.reduce((acc, flag) => {
     const type = flag.type || "OTHER";
@@ -33,6 +38,11 @@ export const FlagAdminList = () => {
     setSheetOpen(true);
   };
 
+  const handleExperimentConfigClick = (flag: Flag) => {
+    setSelectedExperimentFlag(flag);
+    setExperimentConfigOpen(true);
+  };
+
   return (
     <>
       <div className="space-y-4">
@@ -47,6 +57,14 @@ export const FlagAdminList = () => {
                   </div>
                   <div className="flex items-center gap-2 py-2">
                     <FlagToggle flag={flag} />
+                    {flag.type === "EXPERIMENT" && (
+                      <Button
+                        color="secondary"
+                        size="sm"
+                        variant="icon"
+                        onClick={() => handleExperimentConfigClick(flag)}
+                        StartIcon="bar-chart"></Button>
+                    )}
                     <Button
                       color="secondary"
                       size="sm"
@@ -62,6 +80,13 @@ export const FlagAdminList = () => {
       </div>
       {selectedFlag && (
         <AssignFeatureSheet flag={selectedFlag} open={sheetOpen} onOpenChange={setSheetOpen} />
+      )}
+      {selectedExperimentFlag && (
+        <ExperimentConfigSheet
+          flag={selectedExperimentFlag}
+          open={experimentConfigOpen}
+          onOpenChange={setExperimentConfigOpen}
+        />
       )}
     </>
   );
