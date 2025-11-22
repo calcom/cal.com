@@ -120,7 +120,7 @@ export class WorkflowRepository {
     }
     const verifiedNumbers = await prisma.verifiedNumber.findMany({
       where: {
-        OR: [{ userId }, { teamId }],
+        OR: [{ userId }, { calIdTeamId: teamId }],
       },
     });
 

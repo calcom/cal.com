@@ -15,5 +15,6 @@ export const calIdVerifyPhoneNumberHandler = async ({ ctx, input }: CalIdVerifyP
   const { phoneNumber, code, calIdTeamId } = input;
   const { user } = ctx;
   const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id, calIdTeamId);
+  console.log("verifyStatus", verifyStatus);
   return verifyStatus;
 };
