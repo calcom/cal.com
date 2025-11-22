@@ -719,7 +719,6 @@ export class UserRepository {
                 create: {
                   username,
                   organizationId: organizationIdValue,
-                  uid: ProfileRepository.generateProfileUid(),
                 },
               },
             }

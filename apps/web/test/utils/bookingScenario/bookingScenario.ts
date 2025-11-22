@@ -10,7 +10,6 @@ import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -1653,7 +1652,6 @@ export function getScenarioData(
         {
           organizationId: orgId,
           username: profileUsername,
-          uid: ProfileRepository.generateProfileUid(),
         },
       ];
     });
