@@ -956,7 +956,7 @@ export class AvailableSlotsService {
     "getAvailableSlots"
   );
 
-  private async _getBookerUserIfCalUser({ rescheduleUid }: { rescheduleUid?: string }) {
+  private async _getBookerUserIfCalUser({ rescheduleUid }: { rescheduleUid?: string | null }) {
     if (!rescheduleUid) return null;
 
     const bookingRepo = this.dependencies.bookingRepo;
@@ -1071,7 +1071,7 @@ export class AvailableSlotsService {
     let allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
     // CAL-4531: When host reschedules, check if booker is a Cal.com user and include their availability
-    const bookerUser = await this.getBookerUserIfCalUser({ rescheduleUid: input.rescheduleUid });
+    const bookerUser = await this.getBookerUserIfCalUser({ rescheduleUid: input.rescheduleUid ?? undefined });
     if (bookerUser) {
       loggerWithEventDetails.info("Booker is a Cal.com user, including their availability", {
         bookerUserId: bookerUser.id,
@@ -1091,8 +1091,8 @@ export class AvailableSlotsService {
           ...allHosts,
           {
             isFixed: true, // Treat booker as fixed host so their availability is always checked
-            groupId: null,
-            user: bookerWithCredentials as GetAvailabilityUserWithDelegationCredentials,
+            createdAt: null,
+            user: bookerWithCredentials,
           },
         ];
       }
