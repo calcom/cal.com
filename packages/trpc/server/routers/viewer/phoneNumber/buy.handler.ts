@@ -1,23 +1,20 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
 import { TRPCError } from "@trpc/server";
-
-import type { TrpcSessionUser } from "../../../types";
 import type { TBuyInputSchema } from "./buy.schema";
 
 type BuyHandlerOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: number };
   };
   input: TBuyInputSchema;
 };
 
-export const buyHandler = async ({ ctx, input }: BuyHandlerOptions) => {
-  const userId = ctx.user.id;
+export const buyHandler = async ({ ctx: { user: loggedInUser }, input }: BuyHandlerOptions) => {
   const aiService = createDefaultAIPhoneServiceProvider();
 
   const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
-    userId,
+    userId: loggedInUser.id,
     teamId: input?.teamId ?? undefined,
     agentId: input.agentId,
     workflowId: input.workflowId,
