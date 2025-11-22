@@ -10,6 +10,7 @@ export const VideoApiAdapterMap =
         huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
         jelly: import("./jelly/lib/VideoApiAdapter"),
         jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),
+        kmeet: import("./kmeet/lib/VideoApiAdapter"),
         nextcloudtalk: import("./nextcloudtalk/lib/VideoApiAdapter"),
         office365video: import("./office365video/lib/VideoApiAdapter"),
         shimmervideo: import("./shimmervideo/lib/VideoApiAdapter"),
