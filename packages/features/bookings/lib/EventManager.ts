@@ -509,9 +509,8 @@ export default class EventManager {
         ? reference.thirdPartyRecurringEventId
         : reference.uid;
 
-    const calendarCredential = await this.getCredentialAndWarnIfNotFound(
+    const calendarCredential = await this.getCalendarCredentialAndWarnIfNotFound(
       credentialId,
-      this.calendarCredentials,
       credentialType,
       reference.delegationCredentialId
     );
@@ -530,51 +529,72 @@ export default class EventManager {
     log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
     const { uid: bookingRefUid, credentialId } = reference;
 
-    const videoCredential = await this.getCredentialAndWarnIfNotFound(
-      credentialId,
-      this.videoCredentials,
-      reference.type
-    );
+    const videoCredential = await this.getVideoCredentialAndWarnIfNotFound(credentialId, reference.type);
 
     if (videoCredential) {
       await deleteMeeting(videoCredential, bookingRefUid);
     }
   }
 
-  private async getCredentialAndWarnIfNotFound(
+  private async getVideoCredentialAndWarnIfNotFound(
     credentialId: number | null | undefined,
-    credentials: CredentialForCalendarService[],
+    type: string
+  ): Promise<CredentialForCalendarService | null | undefined> {
+    const credential = this.videoCredentials.find((cred) => cred.id === credentialId);
+    if (credential) {
+      return credential;
+    }
+
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
+          this.videoCredentials.find((cred) => cred.type === type) || null;
+
+    if (!foundCredential) {
+      log.error(
+        "getVideoCredentialAndWarnIfNotFound: Could not find video credential",
+        safeStringify({
+          credentialId,
+          type,
+          videoCredentialIds: this.videoCredentials.map((cred) => cred.id),
+        })
+      );
+    }
+
+    return foundCredential;
+  }
+
+  private async getCalendarCredentialAndWarnIfNotFound(
+    credentialId: number | null | undefined,
     type: string,
     delegationCredentialId?: string | null
-  ) {
+  ): Promise<CredentialForCalendarService | null | undefined> {
     if (delegationCredentialId) {
       return this.calendarCredentials.find((cred) => cred.delegatedToId === delegationCredentialId);
     }
-    const credential = credentials.find((cred) => cred.id === credentialId);
+    const credential = this.calendarCredentials.find((cred) => cred.id === credentialId);
     if (credential) {
       return credential;
-    } else {
-      const credential =
-        typeof credentialId === "number" && credentialId > 0
-          ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
-          : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
-            this.videoCredentials.find((cred) => cred.type === type) ||
-            this.calendarCredentials.find((cred) => cred.type === type) ||
-            null;
-
-      if (!credential) {
-        log.error(
-          "getCredentialAndWarnIfNotFound: Could not find credential",
-          safeStringify({
-            credentialId,
-            type,
-            videoCredentials: this.videoCredentials,
-          })
-        );
-      }
-
-      return credential;
     }
+
+    const foundCredential =
+      typeof credentialId === "number" && credentialId > 0
+        ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+        : this.calendarCredentials.find((cred) => cred.type === type) || null;
+
+    if (!foundCredential) {
+      log.error(
+        "getCalendarCredentialAndWarnIfNotFound: Could not find calendar credential",
+        safeStringify({
+          credentialId,
+          type,
+          calendarCredentialIds: this.calendarCredentials.map((cred) => cred.id),
+        })
+      );
+    }
+
+    return foundCredential;
   }
 
   /**
