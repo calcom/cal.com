@@ -910,6 +910,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   }
   const label =
     variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+
+  if (!label) {
+    const fieldName =
+      variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
+    const defaultLabel = fieldTypeConfigVariants?.[variant]?.fieldsMap?.[fieldName as string]?.defaultLabel;
+    const resolvedLabel = defaultLabel || field.defaultLabel || field.name || "Name";
+    return <span>{t(resolvedLabel)}</span>;
+  }
+
   return <span>{t(label)}</span>;
 }
 
