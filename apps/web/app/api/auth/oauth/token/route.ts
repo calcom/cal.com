@@ -4,30 +4,54 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
-  const { code, client_id, client_secret, grant_type, redirect_uri } = await parseUrlFormData(req);
+  const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } = await parseUrlFormData(
+    req
+  );
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  const [hashedSecret] = generateSecret(client_secret);
-
+  // First, find the client by client_id to determine client type
   const client = await prisma.oAuthClient.findFirst({
     where: {
       clientId: client_id,
-      clientSecret: hashedSecret,
     },
     select: {
       redirectUri: true,
+      clientSecret: true,
+      clientType: true,
     },
   });
 
   if (!client || client.redirectUri !== redirect_uri) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  // Handle authentication based on client type
+  if (client.clientType === "CONFIDENTIAL") {
+    // Confidential client - requires client secret
+    if (!client_secret) {
+      return NextResponse.json(
+        { message: "client_secret required for confidential clients" },
+        { status: 400 }
+      );
+    }
+
+    const [hashedSecret] = generateSecret(client_secret);
+    if (client.clientSecret !== hashedSecret) {
+      return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
+    }
+  } else if (client.clientType === "PUBLIC") {
+    // Public client - must use PKCE, no client secret
+    if (!code_verifier) {
+      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
+    }
   }
 
   const accessCode = await prisma.accessCode.findFirst({
@@ -37,6 +61,13 @@ async function handler(req: NextRequest) {
       expiresAt: {
         gt: new Date(),
       },
+    },
+    select: {
+      userId: true,
+      teamId: true,
+      scopes: true,
+      codeChallenge: true,
+      codeChallengeMethod: true,
     },
   });
 
@@ -61,7 +92,25 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
+  // PKCE verification
+  if (client.clientType === "PUBLIC") {
+    // Public client - must have code challenge
+    if (!accessCode.codeChallenge) {
+      return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
+    }
+    if (!code_verifier) {
+      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
+    }
+
+    const method = accessCode.codeChallengeMethod || "S256";
+    if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
+      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+    }
+  }
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
+  }
+  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
 
   const payloadAuthToken: OAuthTokenPayload = {
     userId: accessCode.userId,
