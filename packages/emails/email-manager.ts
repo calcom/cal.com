@@ -117,7 +117,7 @@ export const sendScheduledEmailsAndSMS = withReporting(
 );
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmailsAndSMS = async ({
+export const sendReassignedScheduledEmailsAndSMS = async ({
   calEvent,
   members,
   eventTypeMetadata,
@@ -178,7 +178,7 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinUpdatedEmailsAndSMS = async ({
+export const sendReassignedUpdatedEmailsAndSMS = async ({
   calEvent,
   eventTypeMetadata,
 }: {
@@ -219,7 +219,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
+export const sendReassignedEmailsAndSMS = async (args: {
   calEvent: CalendarEvent;
   members: Person[];
   reassignedTo: { name: string | null; email: string };

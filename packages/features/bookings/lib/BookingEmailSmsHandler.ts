@@ -9,7 +9,7 @@ import {
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
   sendRoundRobinRescheduledEmailsAndSMS,
-  sendRoundRobinScheduledEmailsAndSMS,
+  sendReassignedScheduledEmailsAndSMS,
   sendRoundRobinCancelledEmailsAndSMS,
   sendRescheduledEmailsAndSMS,
   sendScheduledEmailsAndSMS,
@@ -236,7 +236,7 @@ export class BookingEmailSmsHandler {
           rescheduledMembers,
           metadata
         ),
-        sendRoundRobinScheduledEmailsAndSMS({
+        sendReassignedScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: metadata,

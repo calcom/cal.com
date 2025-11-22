@@ -1,4 +1,3 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -168,6 +167,11 @@ export class BookingRepository {
         eventType: {
           select: {
             teamId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
             hosts: {
               select: {
                 userId: true,
@@ -190,37 +194,52 @@ export class BookingRepository {
     });
   }
 
-  /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
-  async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
-    const booking = await this.prismaClient.booking.findUnique({
+  async findByIdIncludeEventType({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
       },
       select: {
         userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
         eventType: {
           select: {
             teamId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
           },
         },
       },
     });
-
-    if (!booking) return false;
-
-    if (userId === booking.userId) return true;
-
-    // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType || !booking.eventType.teamId) return false;
-
-    // TODO add checks for team and org
-    const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
-      userId,
-      teamId: booking.eventType.teamId,
-    });
-
-    return isAdminOrUser;
   }
 
   async findFirstBookingByReschedule({ originalBookingUid }: { originalBookingUid: string }) {
@@ -1345,6 +1364,95 @@ export class BookingRepository {
     });
   }
 
+  async findByIdForReassignment(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        uid: true,
+        eventTypeId: true,
+        userId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async findByIdWithAttendeesPaymentAndReferences(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        customInputs: true,
+        responses: true,
+        startTime: true,
+        endTime: true,
+        metadata: true,
+        status: true,
+        location: true,
+        smsReminderNumber: true,
+        iCalUID: true,
+        iCalSequence: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            timeFormat: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+          },
+        },
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            meetingUrl: true,
+            meetingId: true,
+            meetingPassword: true,
+            externalCalendarId: true,
+            credentialId: true,
+            thirdPartyRecurringEventId: true,
+            delegationCredentialId: true,
+          },
+        },
+        eventType: true,
+        workflowReminders: {
+          select: {
+            id: true,
+            referenceId: true,
+            method: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateBookingAttendees({
     bookingId,
     newAttendees,
@@ -1368,6 +1476,78 @@ export class BookingRepository {
           },
         },
         responses: updatedResponses,
+      },
+    });
+  }
+
+  /**
+   * Updates a booking with provided data. Pure persistence operation.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async updateBooking<T extends Prisma.BookingSelect>(
+    where: Prisma.BookingWhereUniqueInput,
+    data: Prisma.BookingUpdateInput,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.update({ where, data, select });
+  }
+
+  /**
+   * Cancels a booking by setting status to CANCELLED and merging optional additional data.
+   * The status field cannot be overridden - it will always be set to CANCELLED.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async cancelBooking<T extends Prisma.BookingSelect>(
+    where: Prisma.BookingWhereUniqueInput,
+    additionalData: Omit<Prisma.BookingUpdateInput, "status">,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.update({
+      where,
+      data: {
+        ...additionalData,
+        status: BookingStatus.CANCELLED,
+      },
+      select,
+    });
+  }
+
+  /**
+   * Creates a booking with provided data. Pure persistence operation.
+   * Accepts an optional transaction client for use in service-level transactions.
+   */
+  async createBooking<T extends Prisma.BookingSelect>(
+    data: Prisma.BookingCreateInput,
+    select: T,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.create({ data, select });
+  }
+
+  async findByIdForTargetEventTypeSearch(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        eventTypeId: true,
+        userId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async findByIdForWithUserIdAndEventTypeId(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
       },
     });
   }
