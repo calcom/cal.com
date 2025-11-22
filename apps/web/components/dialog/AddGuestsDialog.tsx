@@ -66,6 +66,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
             <div className="bg-default">
               <MultiEmail
                 label={t("add_emails")}
+                addAnotherBtnLabel={t("add_another")}
                 value={multiEmailValue}
                 readOnly={false}
                 setValue={setMultiEmailValue}
