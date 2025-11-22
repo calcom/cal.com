@@ -11,6 +11,7 @@ import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredenti
 import EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -52,7 +53,10 @@ const createNewSeat = async (
 
   if (
     eventType.seatsPerTimeSlot &&
-    eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
+    eventType.seatsPerTimeSlot <=
+      seatedBooking.attendees.filter(
+        (attendee) => !!attendee.bookingSeat && (attendee.bookingSeat?.payment?.success ?? true)
+      ).length
   ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
   }
@@ -187,6 +191,19 @@ const createNewSeat = async (
       throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
     }
 
+    console.log("reference Id: ", attendeeUniqueId);
+
+    const bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: attendeeUniqueId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    console.log("Attendee Seat:", bookingSeat);
+
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
@@ -195,12 +212,19 @@ const createNewSeat = async (
       bookerName: fullName,
       bookerEmail,
       bookerPhoneNumber,
+      bookingSeat: {
+        id: bookingSeat.id,
+      },
+      responses,
     });
+
+    const paymentLink = isPrismaObjOrUndefined(payment?.data)?.paymentLink as string;
 
     resultBooking = { ...foundBooking };
     resultBooking["message"] = "Payment required";
     resultBooking["paymentUid"] = payment?.uid;
     resultBooking["id"] = payment?.id;
+    resultBooking["paymentLink"] = paymentLink;
   } else {
     resultBooking = { ...foundBooking };
   }

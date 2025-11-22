@@ -8,7 +8,7 @@ import type { VerticalTabItemProps } from "@calid/features/ui/components/navigat
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";

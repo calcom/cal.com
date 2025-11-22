@@ -250,7 +250,7 @@ function getEventTypeRel(eventTypeId: EventTypeId) {
   return eventTypeId ? { connect: { id: eventTypeId } } : {};
 }
 
-function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
+function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">, responses?: Prisma.JsonValue) {
   //if attendee is team member, it should fetch their locale not booker's locale
   //perhaps make email fetch request to see if his locale is stored, else
   const teamMembers = evt?.team?.members ?? [];
@@ -261,6 +261,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
     timeZone: attendee.timeZone,
     locale: attendee.language.locale,
     phoneNumber: attendee.phoneNumber,
+    responses: responses,
   }));
 }
 

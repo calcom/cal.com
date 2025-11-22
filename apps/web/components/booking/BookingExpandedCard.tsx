@@ -29,9 +29,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
-  console.log("Responses are: ", responses);
-  console.log("props are: ", props);
-
   const defaultFields = [
     "name",
     "email",
@@ -47,19 +44,20 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const customFields = {};
 
-  if (responses && responses["attendeePhoneNumber"] !== undefined) {
-    customFields["Phone Number"] = responses["attendeePhoneNumber"];
-  }
-  for (const key in bookingFields) {
-    if (bookingFields[key]?.label && !defaultFields.includes(key)) {
-      // @ts-ignore
-      if (responses[bookingFields[key].name] !== undefined) {
-        customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+  if (responses) {
+    if (responses["attendeePhoneNumber"] !== undefined) {
+      customFields["Phone Number"] = responses["attendeePhoneNumber"];
+    }
+
+    for (const key in bookingFields) {
+      if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+        // @ts-ignore
+        if (responses[bookingFields[key].name] !== undefined) {
+          customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+        }
       }
     }
   }
-
-  console.log("Custom fields are: ", customFields);
 
   const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);

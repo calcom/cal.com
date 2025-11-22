@@ -1389,13 +1389,17 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: !!newBooking.paymentUid,
         isDryRun: isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+
+        paymentRequired: bookingResponse.paymentRequired,
+        paymentUid: newBooking.paymentUid,
+        paymentLink: newBooking?.paymentLink,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -1467,6 +1471,7 @@ async function handler(
   let referencesToCreate: PartialReference[] = [];
 
   let booking: CreatedBooking | null = null;
+  let newBookingSeat: BookingSeat | null = null;
 
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
@@ -1589,7 +1594,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await prisma.bookingSeat.create({
+        newBookingSeat = await prisma.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
@@ -2165,6 +2170,8 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      responses: reqBody.responses,
+      bookingSeat: newBookingSeat
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
