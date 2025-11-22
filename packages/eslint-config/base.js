@@ -5,20 +5,24 @@ import onlyWarn from "eslint-plugin-only-warn";
 import turboPlugin from "eslint-plugin-turbo";
 import tseslint from "typescript-eslint";
 
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config}
- */
+import noCascadeWithoutIndex from "./rules/no-cascade-without-index.rule.js";
+
+/** @type {import("eslint").Linter.Config[]} */
 export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
+
   {
     plugins: {
       turbo: turboPlugin,
       import: importPlugin,
       onlyWarn,
+      calcom: {
+        rules: {
+          "no-cascade-without-index": noCascadeWithoutIndex,
+        },
+      },
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
@@ -29,10 +33,28 @@ export const config = [
       sourceType: "module",
     },
     settings: {
-      "import/resolver": {
-        typescript: true,
-        node: true,
+      "import/resolver": { typescript: true, node: true },
+    },
+  },
+  {
+    files: ["**/*.prisma"],
+    languageOptions: {
+      parser: {
+        parse(text) {
+          return {
+            type: "Program",
+            body: [],
+            sourceType: "module",
+            tokens: [],
+            comments: [],
+            range: [0, text.length],
+            loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 0 } },
+          };
+        },
       },
+    },
+    rules: {
+      "calcom/no-cascade-without-index": "error",
     },
   },
   {
@@ -40,6 +62,7 @@ export const config = [
   },
 ];
 
+/** Helper to forbid imports */
 export function forbid({ from, target, message }) {
   return {
     rules: {
