@@ -510,4 +510,26 @@ export class OrganizationRepository {
 
     return org?.organizationSettings ?? null;
   }
+
+  async updateBrandAssets({
+    id,
+    logoUrl,
+    bannerUrl,
+  }: {
+    id: number;
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+  }) {
+    return await this.prismaClient.team.update({
+      where: { id, isOrganization: true },
+      data: {
+        logoUrl,
+        bannerUrl,
+      },
+      select: {
+        logoUrl: true,
+        bannerUrl: true,
+      },
+    });
+  }
 }

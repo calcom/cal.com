@@ -18,7 +18,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { isBase64Image, resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
@@ -285,15 +285,15 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     teamId: number;
     isBanner?: boolean;
   }): Promise<string> {
-    if (!isBase64Image(image)) {
-      return image;
+    if (image.startsWith("data:image/")) {
+      return await uploadLogo({
+        logo: image,
+        teamId,
+        isBanner,
+      });
     }
 
-    return await uploadLogo({
-      logo: image,
-      teamId,
-      isBanner,
-    });
+    return image;
   }
 
   protected async uploadOrganizationBrandAssets({
@@ -314,6 +314,22 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       ? await this.uploadImageAsset({ image: bannerUrl, teamId: organizationId, isBanner: true })
       : bannerUrl;
 
+    if (uploadedLogoUrl && uploadedLogoUrl.startsWith("data:")) {
+      log.error(
+        "uploadOrganizationBrandAssets: Logo upload failed, still have data URL",
+        safeStringify({ organizationId, logoUrlPrefix: uploadedLogoUrl.substring(0, 50) })
+      );
+      throw new Error("Failed to upload organization logo - data URL not uploaded");
+    }
+
+    if (uploadedBannerUrl && uploadedBannerUrl.startsWith("data:")) {
+      log.error(
+        "uploadOrganizationBrandAssets: Banner upload failed, still have data URL",
+        safeStringify({ organizationId, bannerUrlPrefix: uploadedBannerUrl.substring(0, 50) })
+      );
+      throw new Error("Failed to upload organization banner - data URL not uploaded");
+    }
+
     if (uploadedLogoUrl === undefined && uploadedBannerUrl === undefined) {
       return {
         logoUrl,
@@ -321,16 +337,11 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       };
     }
 
-    return await prisma.team.update({
-      where: { id: organizationId },
-      data: {
-        logoUrl: uploadedLogoUrl,
-        bannerUrl: uploadedBannerUrl,
-      },
-      select: {
-        logoUrl: true,
-        bannerUrl: true,
-      },
+    const organizationRepository = getOrganizationRepository();
+    return await organizationRepository.updateBrandAssets({
+      id: organizationId,
+      logoUrl: uploadedLogoUrl,
+      bannerUrl: uploadedBannerUrl,
     });
   }
 
