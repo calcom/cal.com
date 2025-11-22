@@ -1,6 +1,4 @@
-"use client";
-
-import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
+import { Utils as QbUtils, type JsonTree, type Config } from "@react-awesome-query-builder/core";
 
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -20,7 +18,7 @@ export const evaluateRaqbLogic = (
     beStrictWithEmptyLogic = false,
   }: {
     queryValue: JsonTree;
-    queryBuilderConfig: any;
+    queryBuilderConfig: Config;
     data: Record<string, unknown>;
     beStrictWithEmptyLogic?: boolean;
   },
@@ -55,5 +53,5 @@ export const evaluateRaqbLogic = (
     console.log("Checking logic with data", safeStringify({ logic, data }));
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return !!jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
+  return jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
 };

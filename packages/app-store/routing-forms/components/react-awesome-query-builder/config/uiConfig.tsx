@@ -1,21 +1,28 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
+import type { ChangeEvent } from "react";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
-import widgetsComponents from "../widgets";
+import widgetsComponents, { SelectLikeComponentPropsRAQB } from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
 import type { ConfigFor } from "./types";
 
 export { ConfigFor } from "./types";
 
-const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
+const renderComponent = function <T1>(
+  props: T1 | undefined,
+  Component: React.FC<T1>,
+  _componentName?: string
+) {
   if (!props) {
+    return <div />;
+  }
+  if (!Component) {
     return <div />;
   }
   return <Component {...props} />;
@@ -32,6 +39,7 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  Icon,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -43,14 +51,14 @@ const MultiSelectFactory = (
         listValues: { title: string; value: string }[];
       })
     | undefined
-) => renderComponent(props, MultiSelectWidget);
+) => renderComponent(props as unknown as SelectLikeComponentPropsRAQB<string[]>, MultiSelectWidget);
 const SelectFactory = (
   props:
     | (SelectWidgetProps & {
         listValues: { title: string; value: string }[];
       })
     | undefined
-) => renderComponent(props, SelectWidget);
+) => renderComponent(props as unknown as SelectLikeComponentPropsRAQB<string>, SelectWidget);
 
 const PhoneFactory = (props: WidgetProps | undefined) => {
   if (!props) {
@@ -117,13 +125,14 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
 
 // These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
 const sharedSettingsProps: Partial<Settings> = {
-  renderField: (props) => renderComponent(props, FieldSelect),
-  renderOperator: (props) => renderComponent(props, FieldSelect),
-  renderFunc: (props) => renderComponent(props, FieldSelect),
-  renderConjs: (props) => renderComponent(props, Conjs),
-  renderButton: (props) => renderComponent(props, Button),
-  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
-  renderProvider: (props) => renderComponent(props, Provider),
+  renderField: (props) => renderComponent(props, FieldSelect, "FieldSelect"),
+  renderOperator: (props) => renderComponent(props, FieldSelect, "FieldSelect(operator)"),
+  renderFunc: (props) => renderComponent(props, FieldSelect, "FieldSelect(func)"),
+  renderConjs: (props) => renderComponent(props, Conjs, "Conjs"),
+  renderButton: (props) => renderComponent(props, Button, "Button"),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup, "ButtonGroup"),
+  renderProvider: (props) => renderComponent(props, Provider, "Provider"),
+  renderIcon: (props) => renderComponent(props, Icon, "Icon"),
 };
 
 function withRenderFnsSettings(settings: Settings) {

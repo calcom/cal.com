@@ -8,7 +8,8 @@ import type {
   ConjsProps,
   FieldProps,
   ProviderProps,
-} from "react-awesome-query-builder";
+  IconProps,
+} from "@react-awesome-query-builder/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
@@ -370,6 +371,10 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
 const Provider = ({ children }: ProviderProps) => children;
 
+function IconComponent({ type: _type }: IconProps) {
+  return null;
+}
+
 const widgets = {
   TextWidget,
   TextAreaWidget,
@@ -381,6 +386,7 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
+  Icon: IconComponent,
 };
 
 export default widgets;

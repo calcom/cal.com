@@ -29,8 +29,9 @@ export type FormInputFieldsProps = {
 export default function FormInputFields(props: FormInputFieldsProps) {
   const { form, response, setResponse, disabledFields = [] } = props;
 
+  const fullConfig = getQueryBuilderConfigForFormFields(form);
   const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
-    config: getQueryBuilderConfigForFormFields(form),
+    config: fullConfig,
     configFor: ConfigFor.FormFields,
   });
 
@@ -48,7 +49,9 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (!("factory" in widget)) {
           return null;
         }
-        const Component = widget.factory;
+
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const Component = widget.factory as React.ComponentType<Record<string, any>>;
 
         const options = getUIOptionsForSelect(field);
         const fieldIdentifier = getFieldIdentifier(field);

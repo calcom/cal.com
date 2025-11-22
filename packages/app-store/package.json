@@ -22,6 +22,8 @@
     "@calcom/office365video": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@calcom/zoomvideo": "workspace:*",
+    "@react-awesome-query-builder/core": "^6.6.15",
+    "@react-awesome-query-builder/ui": "^6.6.15",
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",

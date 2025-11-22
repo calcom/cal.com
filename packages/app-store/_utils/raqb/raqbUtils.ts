@@ -1,19 +1,33 @@
-import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder";
-import { Utils as QbUtils } from "react-awesome-query-builder";
+import type {
+  JsonGroup,
+  JsonItem,
+  JsonRule,
+  JsonTree,
+  JsonCaseGroup,
+  BaseWidget,
+} from "@react-awesome-query-builder/core";
+import type { Config } from "@react-awesome-query-builder/core";
+import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   AttributeOptionValueWithType,
   AttributeOptionValue,
   Attribute,
 } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
+
+/**
+ * Normalized JsonTree type where children1 is a Record instead of an array.
+ * This is used for storage/schema compatibility.
+ */
+export type NormalizedJsonTree = Omit<JsonTree, "children1"> & {
+  children1?: Record<string, JsonItem | JsonCaseGroup>;
+};
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
@@ -72,6 +86,60 @@ export function buildEmptyQueryValue() {
   return { id: QbUtils.uuid(), type: "group" as const };
 }
 
+/**
+ * Normalizes RAQB v6 JsonTree format to match the expected schema format.
+ * Converts children1 from array to record (keyed by rule IDs) and cleans up optional fields.
+ */
+export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): NormalizedJsonTree | null {
+  if (!tree) {
+    return null;
+  }
+
+  const { children1, ...rest } = tree;
+  const normalized: NormalizedJsonTree = { ...rest };
+
+  if (children1) {
+    const isJsonItemArray = (arr: unknown): arr is JsonItem[] =>
+      Array.isArray(arr) && arr.every((c) => c && typeof c === "object" && "type" in c);
+    const isJsonCaseGroupArray = (arr: unknown): arr is JsonCaseGroup[] =>
+      Array.isArray(arr) && arr.every((c) => c && typeof c === "object" && "case" in c);
+
+    if (isJsonItemArray(children1)) {
+      const children1Record: Record<string, JsonItem | JsonCaseGroup> = {};
+      children1.forEach((child) => {
+        if (child.id) {
+          const normalizedChild = child.type === "group" ? normalizeRaqbJsonTree(child as JsonTree) : child;
+          if (normalizedChild) {
+            children1Record[child.id] = normalizedChild as JsonItem;
+          }
+        }
+      });
+      normalized.children1 = children1Record;
+    } else if (isJsonCaseGroupArray(children1)) {
+      const children1Record: Record<string, JsonItem | JsonCaseGroup> = {};
+      children1.forEach((child) => {
+        if (child.id) {
+          children1Record[child.id] = child;
+        }
+      });
+      normalized.children1 = children1Record;
+    } else {
+      const normalizedChildren: Record<string, JsonItem | JsonCaseGroup> = {};
+      Object.entries(children1).forEach(([key, child]) => {
+        if (child && typeof child === "object" && "type" in child) {
+          const normalizedChild = child.type === "group" ? normalizeRaqbJsonTree(child as JsonTree) : child;
+          if (normalizedChild) {
+            normalizedChildren[key] = normalizedChild as JsonItem | JsonCaseGroup;
+          }
+        }
+      });
+      normalized.children1 = normalizedChildren;
+    }
+  }
+
+  return normalized;
+}
+
 export const buildStateFromQueryValue = ({
   queryValue,
   config,
@@ -111,7 +179,6 @@ export function getValueOfAttributeOption(
   ) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
-      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
       return subOptions;
     }
     return attributeOption.value;
@@ -174,7 +241,7 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
 }: {
   dynamicFieldValueOperands?: dynamicFieldValueOperands;
   attributes: Attribute[];
-}) {
+}): unknown {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
     dynamicOperandFields: dynamicFieldValueOperands?.fields,
@@ -183,6 +250,9 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
       const raqbFieldType = raqbField.type;
+      const originalFieldSettings = (
+        raqbField as { fieldSettings?: { listValues?: { value: string; title: string }[] } }
+      ).fieldSettings;
 
       return [
         raqbFieldId,
@@ -190,8 +260,8 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
           ...raqbField,
           type: raqbFieldType,
           fieldSettings: {
-            ...raqbField.fieldSettings,
-            listValues: raqbField.fieldSettings.listValues?.map((option) => {
+            ...originalFieldSettings,
+            listValues: originalFieldSettings?.listValues?.map((option: { value: string; title: string }) => {
               return {
                 ...option,
                 // Use the title(which is the attributeOption.value) as the value of the raqb field so that it can be compatible for matching with the form field value
