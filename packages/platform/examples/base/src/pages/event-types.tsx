@@ -63,7 +63,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {isLoadingEvents && !eventTypeId && <p>Loading...</p>}
 
         {!isLoadingEvents && !eventTypeId && Boolean(eventTypes?.length) && !rescheduleUid && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4" data-testid="individual-event-types">
             {eventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
                 const formatEventSlug = event.slug
@@ -91,8 +91,11 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         )}
 
         {!isLoadingTeamEvents && !eventTypeId && Boolean(teamEventTypes?.length) && !rescheduleUid && (
-          <div className="flex flex-col gap-4">
-            <h1>Team event types</h1>
+          <h1>Team event types</h1>
+        )}
+
+        {!isLoadingTeamEvents && !eventTypeId && Boolean(teamEventTypes?.length) && !rescheduleUid && (
+          <div className="flex flex-col gap-4" data-testid="team-event-types">
             {teamEventTypes?.map(
               (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
                 const formatEventSlug = event.slug
