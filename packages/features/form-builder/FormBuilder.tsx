@@ -4,6 +4,7 @@ import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 import { ZodError } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -35,6 +36,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
+import { fieldEditDialogSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -585,7 +587,7 @@ function FieldEditDialog({
   const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    //resolver: zodResolver(fieldSchema),
+    resolver: zodResolver(fieldEditDialogSchema),
   });
   const formFieldType = fieldForm.getValues("type");
 

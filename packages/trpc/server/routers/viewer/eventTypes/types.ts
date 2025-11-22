@@ -7,8 +7,8 @@ import {
   EventTypeMetaDataSchema,
   stringOrNumber,
   rrSegmentQueryValueSchema,
+  fieldSchema,
 } from "@calcom/prisma/zod-utils";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
@@ -74,6 +74,28 @@ const childSchema = z.object({
   hidden: z.boolean(),
 });
 
+/**
+ * Refined schema for booking fields input that enforces label requirement for checkbox type.
+ * This prevents invalid data from being saved even if UI validation is bypassed.
+ */
+const bookingFieldsInputSchema = z.array(
+  fieldSchema.superRefine((field, ctx) => {
+    if (field.type === "checkbox") {
+      const hasLabel = field.label && field.label.trim().length > 0;
+      const hasDefaultLabel = field.defaultLabel && field.defaultLabel.trim().length > 0;
+      const isSystemField = field.editable === "system" || field.editable === "system-but-optional";
+
+      if (!hasLabel && !(isSystemField && hasDefaultLabel)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Label is required for checkbox fields",
+          path: ["label"],
+        });
+      }
+    }
+  })
+);
+
 /** Optional fields */
 const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   isInstantEvent: z.boolean(),
@@ -98,7 +120,7 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   assignAllTeamMembers: z.boolean(),
   isRRWeightsEnabled: z.boolean(),
   metadata: EventTypeMetaDataSchema,
-  bookingFields: eventTypeBookingFields,
+  bookingFields: bookingFieldsInputSchema,
   assignRRMembersUsingSegment: z.boolean().optional(),
   rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
   useEventLevelSelectedCalendars: z.boolean().optional(),
