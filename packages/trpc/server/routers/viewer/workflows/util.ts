@@ -909,6 +909,8 @@ export async function scheduleBookingReminders(
           userId,
           teamId,
           verifiedAt: step?.verifiedAt ?? null,
+          submittedPhoneNumber: booking.smsReminderNumber,
+          routedEventTypeId: null,
         });
       }
     });

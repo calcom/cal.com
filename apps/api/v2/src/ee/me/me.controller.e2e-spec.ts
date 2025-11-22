@@ -30,6 +30,7 @@ describe("Me Endpoints", () => {
     let profilesRepositoryFixture: ProfileRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     const userEmail = `me-controller-user-${randomString()}@api.com`;
+    const name = "Me Controller User";
     let user: User;
     let org: Team;
 
@@ -55,6 +56,7 @@ describe("Me Endpoints", () => {
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+        name,
       });
 
       org = await organizationsRepositoryFixture.create({
@@ -92,6 +94,9 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.name).toEqual(user.name);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -114,6 +119,8 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -148,13 +155,13 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 as any };
+      const bodyWithIncorrectTimeFormat = { timeFormat: 100 };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" as any };
+      const bodyWithIncorrectWeekStart = { weekStart: "waba luba dub dub" };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
