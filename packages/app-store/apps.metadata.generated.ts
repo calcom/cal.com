@@ -72,6 +72,7 @@ import plausible_config_json from "./plausible/config.json";
 import posthog_config_json from "./posthog/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
+import razorpay_config_json from "./razorpay/config.json";
 import retell_ai_config_json from "./retell-ai/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
@@ -182,6 +183,7 @@ export const appStoreMetadata = {
   posthog: posthog_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
+  razorpay: razorpay_config_json,
   "retell-ai": retell_ai_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,

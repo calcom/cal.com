@@ -39,6 +39,7 @@ export const EventTypeAddonMap = {
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   posthog: dynamic(() => import("./posthog/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
+  razorpay: dynamic(() => import("./razorpay/components/EventTypeAppCardInterface")),
   salesforce: dynamic(() => import("./salesforce/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
   "booking-pages-tag": dynamic(() =>
@@ -65,5 +66,6 @@ export const EventTypeSettingsMap = {
   paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
+  razorpay: dynamic(() => import("./razorpay/components/EventTypeAppSettingsInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppSettingsInterface")),
 };
