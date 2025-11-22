@@ -135,6 +135,12 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
   }
 }
 
+function hasCalVideoSettings(
+  eventType: Awaited<ReturnType<typeof getEventType>>
+): eventType is getEventTypeResponse {
+  return eventType && typeof eventType === "object" && "calVideoSettings" in eventType;
+}
+
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
   if (!originalRescheduledBooking) {
@@ -495,14 +501,18 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  const eventTypeForProcessing = hasCalVideoSettings(eventType)
+    ? eventType
+    : ({ ...(eventType as unknown as getEventTypeResponse), calVideoSettings: null } as getEventTypeResponse);
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-    bookingFields: eventType.bookingFields,
+    bookingFields: eventTypeForProcessing.bookingFields,
   });
 
   const bookingData = await getBookingData({
     reqBody: rawBookingData,
-    eventType,
+    eventType: eventTypeForProcessing,
     schema: bookingDataSchema,
   });
 
@@ -845,6 +855,7 @@ async function handler(
       users: IsFixedAwareUserWithCredentials[];
     } = {
       ...eventType,
+      calVideoSettings: eventTypeForProcessing.calVideoSettings,
       users: users as IsFixedAwareUserWithCredentials[],
       ...(eventType.recurringEvent && {
         recurringEvent: {
@@ -1261,9 +1272,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1309,8 +1320,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1651,6 +1662,15 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
+  // Sync calVideoSettings from eventTypeForProcessing to eventType
+  // This ensures eventType has both the runtime updates (like recurringEvent.count) and calVideoSettings
+  if (hasCalVideoSettings(eventType)) {
+    // eventType already has calVideoSettings, no action needed
+  } else {
+    // eventType is missing calVideoSettings, copy from eventTypeForProcessing
+    (eventType as unknown as getEventTypeResponse).calVideoSettings = eventTypeForProcessing.calVideoSettings;
+  }
+
   const changedOrganizer =
     !!originalRescheduledBooking &&
     (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -1708,7 +1728,7 @@ async function handler(
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
-          eventTypeData: eventType,
+          eventTypeData: eventType as getEventTypeResponse,
           id: eventTypeId,
           slug: eventTypeSlug,
           organizerUser,
@@ -1931,14 +1951,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2237,8 +2257,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingFlowConfig = {
@@ -2331,9 +2351,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2583,6 +2603,13 @@ async function handler(
         teamId,
         orgId,
         isDryRun,
+        calVideoSettings: (eventType as getEventTypeResponse).calVideoSettings
+          ? {
+              ...(eventType as getEventTypeResponse).calVideoSettings,
+              redirectUrlOnExit:
+                (eventType as getEventTypeResponse).calVideoSettings?.redirectUrlOnExit ?? undefined,
+            }
+          : null,
       });
     }
   } catch (error) {
@@ -2630,7 +2657,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
