@@ -21,7 +21,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const pathname = usePathname();
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
-  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
   const requirePayment = getAppData("enabled");
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
@@ -36,7 +36,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       }}
       teamId={eventType.team?.id || undefined}
       disableSwitch={shouldDisableSwitch}
-      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
+      switchTooltip={shouldDisableSwitch ? t("Other payment app enabled") : undefined}>
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}

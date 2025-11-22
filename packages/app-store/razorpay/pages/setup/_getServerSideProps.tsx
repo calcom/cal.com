@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 
 export interface IRazorpaySetupProps {
   keyId?: string;
-  webhookSecret?: string;
   defaultCurrency?: string;
 }
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -35,7 +34,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       props: {
         keyId: keys.key_id,
-        webhookSecret: keys.webhook_secret,
         defaultCurrency: keys.default_currency,
       } as IRazorpaySetupProps,
     };

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import z from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
 interface IRazorpayPaymentComponentProps {
@@ -19,15 +20,18 @@ const RazorpayPaymentDataSchema = z.object({
   amount: z.number(),
   currency: z.string(),
 });
+
 export const RazorpayPaymentComponent = (props: IRazorpayPaymentComponentProps) => {
+  const { t } = useLocale();
   const { payment } = props;
+  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
+    script.onload = () => setScriptLoaded(true);
     document.body.appendChild(script);
-
     return () => {
       document.body.removeChild(script);
     };
@@ -35,7 +39,7 @@ export const RazorpayPaymentComponent = (props: IRazorpayPaymentComponentProps) 
   const parsedData = RazorpayPaymentDataSchema.safeParse(payment.data);
 
   if (!parsedData.success) {
-    return <p className="mt-3 text-center">Payment data error</p>;
+    return <p className="mt-3 text-center">{t("Payment data error")}</p>;
   }
   const { orderId, keyId, amount, currency } = parsedData.data;
   const handlePayment = () => {
@@ -45,7 +49,7 @@ export const RazorpayPaymentComponent = (props: IRazorpayPaymentComponentProps) 
       currency: currency,
       order_id: orderId,
       name: "Cal.com",
-      description: "Event Booking Payment",
+      description: t("Event Booking Payment"),
       handler: function (response: {
         razorpay_payment_id: string;
         razorpay_order_id: string;
@@ -88,8 +92,15 @@ export const RazorpayPaymentComponent = (props: IRazorpayPaymentComponentProps) 
   };
   return (
     <div className="mt-4 flex w-full flex-col items-center justify-center">
-      <Button onClick={handlePayment} className="w-full">
-        Pay ₹{(amount / 100).toFixed(2)}
+      <Button onClick={handlePayment} className="w-full" disabled={!scriptLoaded}>
+        {scriptLoaded
+          ? `${t("pay_amount", {
+              amount: new Intl.NumberFormat(window !== undefined ? window.navigator.language : "en", {
+                style: "currency",
+                currency: currency,
+              }).format(amount / 100),
+            })}`
+          : t("Loading...")}
       </Button>
     </div>
   );

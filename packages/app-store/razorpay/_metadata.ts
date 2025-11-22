@@ -6,7 +6,6 @@ export const metadata = {
     description: _package.description,
     installed: false,
     slug: "razorpay",
-    category: "payment",
     categories: ["payment"],
     logo: "icon.svg",
     publisher: "Cal.com",

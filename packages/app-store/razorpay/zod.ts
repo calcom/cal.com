@@ -36,7 +36,7 @@ export const razorpayPaymentSchema = z.object({
 
 
 export const razorpayRefundSchema = z.object({
-    paymentId: z.number().positive("Payment ID must be positive"),
+    paymentId: z.string().min(1, "Payment ID is required"),
     amount: z.number().positive("Amount must be positive").optional(),
     reason: z.string().optional(),
 });

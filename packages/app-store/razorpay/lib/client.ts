@@ -1,3 +1,5 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 export function createPaymentLink({
     paymentUid,
     name,
@@ -21,10 +23,10 @@ export function createPaymentLink({
         params.append("name", name);
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+    const baseUrl = WEBAPP_URL;
 
     if (!baseUrl) {
-        throw new Error("NEXT_PUBLIC_WEBAPP_URL environment variable is not set");
+        throw new Error("WEBAPP_URL environment variable is not set");
     }
 
     return `${baseUrl}/payment/${paymentUid}?${params.toString()}`;

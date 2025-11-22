@@ -24,7 +24,7 @@ const CURRENCY_OPTIONS = [
 export default function RazorpaySetup(props: IRazorpaySetupProps) {
   const [keyId, setKeyId] = useState(props.keyId || "");
   const [keySecret, setKeySecret] = useState("");
-  const [webhookSecret, setWebhookSecret] = useState(props.webhookSecret || "");
+  const [webhookSecret, setWebhookSecret] = useState("");
   const [defaultCurrency, setDefaultCurrency] = useState(props.defaultCurrency || "INR");
   const router = useRouter();
   const { t } = useLocale();
@@ -48,7 +48,7 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
   const isFormValid = keyId.trim() !== "" && keySecret.trim() !== "" && defaultCurrency !== "";
   const handleSave = () => {
     if (!isFormValid) {
-      showToast("Please fill all required fields", "error");
+      showToast(t("Please fill all required fields"), "error");
       return;
     }
     saveKeysMutation.mutate({
@@ -77,11 +77,11 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
                 width={44}
                 height={44}
               />
-              <p className="text-default mt-5 text-lg">Razorpay</p>
+              <p className="text-default mt-5 text-lg">{t("Razorpay")}</p>
             </div>
             <form autoComplete="off" className="mt-5">
               <TextField
-                label="Razorpay Key ID *"
+                label={t("Razorpay Key ID*")}
                 type="text"
                 name="key_id"
                 id="key_id"
@@ -91,7 +91,7 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
                 required
               />
               <TextField
-                label="Razorpay Key Secret *"
+                label={t("Razorpay Key Secret*")}
                 type="password"
                 name="key_secret"
                 id="key_secret"
@@ -102,7 +102,7 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
                 required
               />
               <TextField
-                label="Webhook Secret (Optional)"
+                label={t("Webhook Secret (Optional)")}
                 type="password"
                 name="webhook_secret"
                 id="webhook_secret"
@@ -111,14 +111,18 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
                 placeholder="Enter webhook secret"
               />
               <div className="mt-4">
-                <label className="text-default mb-2 block text-sm font-medium">Default Currency *</label>
+                <label className="text-default mb-2 block text-sm font-medium">
+                  {t("Default Currency*")}
+                </label>
                 <select
                   value={defaultCurrency}
                   onChange={(e) => setDefaultCurrency(e.target.value)}
                   className="border-default bg-default text-default focus:border-brand block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-0">
                   {CURRENCY_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {`${option.value} - ${new Intl.DisplayNames([t("locale") || "en"], {
+                        type: "currency",
+                      }).of(option.value)}`}
                     </option>
                   ))}
                 </select>
@@ -140,51 +144,55 @@ export default function RazorpaySetup(props: IRazorpaySetupProps) {
               </div>
             </form>
             <div>
-              <p className="text-default mt-5 text-lg font-bold">Getting Started with Razorpay</p>
+              <p className="text-default mt-5 text-lg font-bold"> {t("Getting Started with Razorpay")}</p>
               <p className="text-default mt-2 font-medium">
-                Razorpay is a payment gateway that allows you to accept payments from your customers in India.
-                Configure your API keys to start accepting payments.
+                {t(
+                  "Razorpay is a payment gateway that allows you to accept payments from your customers in India."
+                )}
+                {t("Configure your API keys to start accepting payments.")}
               </p>
               <p className="text-default mt-5 inline-flex font-bold">
                 <Icon name="circle-alert" className="mr-2 mt-1 h-4 w-4" />
-                Important Requirements:
+                {t("Important Requirements:")}
               </p>
               <ul className="text-default ml-1 mt-2 list-disc pl-2">
-                <li>Active Razorpay account</li>
-                <li>API keys from Razorpay Dashboard</li>
-                <li>Webhook configured (optional but recommended)</li>
+                <li>{t("Active Razorpay account")}</li>
+                <li>{t("API keys from Razorpay Dashboard")}</li>
+                <li>{t("Webhook configured (optional but recommended)")}</li>
               </ul>
-              <p className="text-default mb-2 mt-5 font-bold">Setup Instructions:</p>
+              <p className="text-default mb-2 mt-5 font-bold">{t("Setup Instructions:")}</p>
               <ol className="text-default ml-1 mt-2 list-decimal pl-2">
                 <li>
-                  Log into your{" "}
+                  {t("Log into your")}{" "}
                   <a
                     target="_blank"
                     href="https://dashboard.razorpay.com/"
                     className="text-blue-600 underline"
                     rel="noreferrer">
-                    Razorpay Dashboard
+                    {t("Razorpay Dashboard")}
                   </a>
                 </li>
-                <li>Go to Settings → API Keys</li>
-                <li>Generate or use existing API keys (Key ID and Key Secret)</li>
+                <li>{t("Go to Settings → API Keys")}</li>
+                <li>{t("Generate or use existing API keys (Key ID and Key Secret)")}</li>
                 <li>
-                  (Optional) Configure webhook at Settings → Webhooks with URL:{" "}
-                  <code className="bg-subtle rounded px-1">{`${window.location.origin}/api/integrations/razorpay/webhook`}</code>
+                  {t("Configure webhook at Settings → Webhooks with URL:")}{" "}
+                  <code className="bg-subtle rounded px-1">{`${
+                    typeof window !== "undefined" ? window.location.origin : ""
+                  }/api/integrations/razorpay/webhook`}</code>
                 </li>
                 <li>
-                  <strong>Select the following events:</strong>
+                  <strong>{t("Select the following events:")}</strong>
                   <ul className="mb-2 mt-1 list-disc pl-4 text-sm">
-                    <li>order.paid</li>
-                    <li>payment.captured</li>
-                    <li>payment.authorized</li>
-                    <li>payment.failed</li>
-                    <li>refund.processed</li>
-                    <li>refund.failed</li>
+                    <li>{t("order.paid")}</li>
+                    <li>{t("payment.captured")}</li>
+                    <li>{t("payment.authorized")}</li>
+                    <li>{t("payment.failed")}</li>
+                    <li>{t("refund.processed")}</li>
+                    <li>{t("refund.failed")}</li>
                   </ul>
                 </li>
-                <li>Copy the webhook secret if configured</li>
-                <li>Paste all credentials in the form above and save</li>
+                <li>{t("Copy the webhook secret if configured")}</li>
+                <li>{t("Paste all credentials in the form above and save")}</li>
               </ol>
             </div>
           </div>

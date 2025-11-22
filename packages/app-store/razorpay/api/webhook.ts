@@ -147,18 +147,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ message: "Invalid signature" });
         }
 
-        res.status(200).json({ received: true });
-
-        processedWebhooks.add(webhookId);
-
         if (processedWebhooks.size > 1000) {
             const entries = Array.from(processedWebhooks);
             entries.slice(0, 100).forEach((id) => processedWebhooks.delete(id));
         }
 
-        const processPromise = processWebhookEvent(event);
+        if (processedWebhooks.has(webhookId)) {
+            return res.status(200).json({ received: true, duplicate: true });
+        }
 
+        const processPromise = processWebhookEvent(event);
         await processPromise;
+
+        processedWebhooks.add(webhookId);
+
+        res.status(200).json({ received: true });
 
     } catch (error) {
         log.error("Webhook error:", error);

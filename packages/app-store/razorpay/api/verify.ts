@@ -45,6 +45,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ message: "Payment not found" });
         }
 
+        if (payment.externalId !== razorpay_order_id) {
+            log.error("Order ID mismatch", {
+                paymentUid,
+                expectedOrderId: payment.externalId,
+                providedOrderId: razorpay_order_id
+            });
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
         const credentials = payment.booking?.user?.credentials?.[0];
         if (!credentials) {
             log.error("Razorpay credentials not found", { paymentUid });

@@ -10,7 +10,7 @@ export interface RazorpayPaymentEntity {
   invoice_id: string | null;
   international: boolean;
   method: "card" | "netbanking" | "wallet" | "emi" | "upi";
-  refund_status: "null" | "partial" | "full";
+  refund_status: null | "partial" | "full";
   captured: boolean;
   description: string;
   card_id: string | null;

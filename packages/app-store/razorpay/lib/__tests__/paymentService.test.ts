@@ -19,9 +19,7 @@ const MockRazorpay = vi.fn().mockImplementation(() => ({
         refund: mockPaymentsRefund,
     },
 }));
-vi.mock("razorpay", () => ({
-    default: MockRazorpay,
-}));
+vi.mock("razorpay", () => MockRazorpay);
 vi.mock("@calcom/prisma", () => ({
     prisma: {
         payment: {

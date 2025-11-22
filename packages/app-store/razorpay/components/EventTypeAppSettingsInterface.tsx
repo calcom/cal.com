@@ -33,7 +33,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const requirePayment = getAppData("enabled");
 
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
@@ -79,12 +79,12 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               min="0.5"
               type="number"
               required
-              placeholder="Price"
+              placeholder={t("Price")}
               disabled={disabled}
               onChange={(e) => {
                 setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
               }}
-              value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}
+              value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : ""}
             />
           </div>
           <div className="mt-5 w-60">
@@ -94,7 +94,15 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             <Select
               data-testid="razorpay-currency-select"
               variant="default"
-              options={currencyOptions}
+              options={
+                currencyOptions.map((option) => ({
+                  value: option.value,
+                  label: `${option.value.toUpperCase()} - ${new Intl.DisplayNames([i18n.language || "en"], {
+                    type: "currency",
+                  }).of(option.value.toUpperCase())}`,
+                  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+                })) as any
+              }
               innerClassNames={{
                 input: "razorpay-currency-input",
               }}
@@ -134,18 +142,18 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           </div>
           <div className="mt-4 w-60">
             <label className="text-default mb-1 block text-sm font-medium" htmlFor="refund-policy">
-              Refund Policy
+              {t("Refund Policy")}
             </label>
             <Select
               options={[
-                { value: "NEVER", label: "Never refund" },
-                { value: "ALWAYS", label: "Always refund on cancellation" },
-                { value: "DAYS", label: "Refund if cancelled X days before" },
+                { value: "NEVER", label: t("Never refund") },
+                { value: "ALWAYS", label: t("Always refund on cancellation") },
+                { value: "DAYS", label: t("Refund if cancelled X days before") },
               ]}
               value={[
-                { value: "NEVER", label: "Never refund" },
-                { value: "ALWAYS", label: "Always refund on cancellation" },
-                { value: "DAYS", label: "Refund if cancelled X days before" },
+                { value: "NEVER", label: t("Never refund") },
+                { value: "ALWAYS", label: t("Always refund on cancellation") },
+                { value: "DAYS", label: t("Refund if cancelled X days before") },
               ].find((opt) => opt.value === (getAppData("refundPolicy") || "NEVER"))}
               onChange={(option) => {
                 if (option) {
@@ -163,7 +171,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <div className="mt-2">
                 <TextField
                   type="number"
-                  label="Refund if cancelled at least X days before"
+                  label={t("Refund if cancelled at least X days before")}
                   value={getAppData("refundDaysCount") || 7}
                   onChange={(e) => setAppData("refundDaysCount", parseInt(e.target.value))}
                   min="1"
@@ -177,7 +185,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                     onChange={(e) => setAppData("refundCountCalendarDays", e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
                   />
-                  Count calendar days (instead of business days)
+                  {t("Count calendar days (instead of business days)")}
                 </label>
               </div>
             </>
