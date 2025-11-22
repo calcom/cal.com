@@ -96,7 +96,7 @@ export function getUrlSearchParamsToForward({
     }
   }
 
-  const attributeRoutingConfigParams: Record<string, any> = {};
+  const attributeRoutingConfigParams: Record<string, string> = {};
 
   if (attributeRoutingConfig) {
     for (const key of Object.keys(attributeRoutingConfig)) {
@@ -118,9 +118,13 @@ export function getUrlSearchParamsToForward({
   const allQueryParams: Params = {
     ...(teamId && { ["cal.teamId"]: `${teamId}` }),
     ...(orgId && { ["cal.orgId"]: `${orgId}` }),
-    ...(crmContactOwnerEmail && { ["cal.crmContactOwnerEmail"]: `${crmContactOwnerEmail}` }),
-    ...(crmContactOwnerRecordType && { ["cal.crmContactOwnerRecordType"]: `${crmContactOwnerRecordType}` }),
-    ...(crmAppSlug && { ["cal.crmAppSlug"]: `${crmAppSlug}` }),
+    ...(crmContactOwnerEmail !== null &&
+      crmContactOwnerEmail !== undefined && { ["cal.crmContactOwnerEmail"]: `${crmContactOwnerEmail}` }),
+    ...(crmContactOwnerRecordType !== null &&
+      crmContactOwnerRecordType !== undefined && {
+        ["cal.crmContactOwnerRecordType"]: `${crmContactOwnerRecordType}`,
+      }),
+    ...(crmAppSlug !== null && crmAppSlug !== undefined && { ["cal.crmAppSlug"]: `${crmAppSlug}` }),
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,

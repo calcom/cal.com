@@ -132,7 +132,14 @@ export async function getCRMData(
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+  const hasCrmParams =
+    "cal.crmContactOwnerEmail" in query ||
+    "cal.crmContactOwnerRecordType" in query ||
+    "cal.crmAppSlug" in query;
+
+  const crmParamsAreEmptyStrings = teamMemberEmail === "" || crmOwnerRecordType === "" || crmAppSlug === "";
+
+  if (!hasCrmParams && !crmParamsAreEmptyStrings) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );

@@ -214,7 +214,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             formResponse: response,
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(
-              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
+              stringify({
+                ...paramsToBeForwardedAsIs,
+                "cal.action": "eventTypeRedirectUrl",
+              })
             ),
             teamMembersMatchingAttributeLogic,
             formResponseId: formResponseId ?? null,
