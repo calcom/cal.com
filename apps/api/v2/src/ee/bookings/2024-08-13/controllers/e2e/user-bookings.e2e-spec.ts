@@ -16,6 +16,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -64,6 +65,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let workflowRepositoryFixture: WorkflowRepositoryFixture;
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
@@ -105,6 +107,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       workflowReminderRepositoryFixture = new WorkflowReminderRepositoryFixture(moduleRef);
       workflowRepositoryFixture = new WorkflowRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `user-bookings-organization-${randomString()}`,
@@ -3018,6 +3021,86 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
                   expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                } else {
+                  throw new Error(
+                    "Invalid response data - expected booking but received array of possibly recurring bookings"
+                  );
+                }
+              });
+          });
+        });
+
+        describe("booking without OAuth client (API key only)", () => {
+          let userWithoutOAuthClient: User;
+          let userWithoutOAuthClientEventTypeId: number;
+          let apiKeyString: string;
+
+          beforeAll(async () => {
+            // Create a user without OAuth client connection
+            const userWithoutOAuthClientEmail = `user-no-oauth-${randomString()}@api.com`;
+            userWithoutOAuthClient = await userRepositoryFixture.create({
+              email: userWithoutOAuthClientEmail,
+              username: userWithoutOAuthClientEmail,
+            });
+
+            // Create a schedule for the user
+            const userSchedule: CreateScheduleInput_2024_04_15 = {
+              name: `user-no-oauth-schedule-${randomString()}`,
+              timeZone: "Europe/Rome",
+              isDefault: true,
+            };
+            await schedulesService.createUserSchedule(userWithoutOAuthClient.id, userSchedule);
+
+            // Create an event type for the user
+            const event = await eventTypesRepositoryFixture.create(
+              {
+                title: `user-no-oauth-event-type-${randomString()}`,
+                slug: `user-no-oauth-event-type-${randomString()}`,
+                length: 60,
+              },
+              userWithoutOAuthClient.id
+            );
+            userWithoutOAuthClientEventTypeId = event.id;
+
+            // Create an API key for the user
+            const { keyString } = await apiKeysRepositoryFixture.createApiKey(
+              userWithoutOAuthClient.id,
+              null
+            );
+            apiKeyString = `cal_test_${keyString}`;
+          });
+
+          it("should create calendar event when booking with API key (no OAuth client)", async () => {
+            const body: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 15, 9, 0, 0)).toISOString(),
+              eventTypeId: userWithoutOAuthClientEventTypeId,
+              attendee: {
+                name: "Test Attendee",
+                email: "test_attendee@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "en",
+              },
+            };
+
+            return request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set("Authorization", `Bearer ${apiKeyString}`)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201)
+              .then(async (response) => {
+                const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+                expect(responseBody.status).toEqual(SUCCESS_STATUS);
+                expect(responseBody.data).toBeDefined();
+                expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+                if (responseDataIsBooking(responseBody.data)) {
+                  const data: BookingOutput_2024_08_13 = responseBody.data;
+                  expect(data.id).toBeDefined();
+                  expect(data.uid).toBeDefined();
+                  // Verify that EventManager.create was called, meaning calendar events are enabled
+                  // This verifies the fix at line 128 in input.service.ts where areCalendarEventsEnabled: true is set
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(1);
                 } else {
                   throw new Error(
                     "Invalid response data - expected booking but received array of possibly recurring bookings"
