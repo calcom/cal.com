@@ -1075,7 +1075,6 @@ export class AvailableSlotsService {
     if (bookerUser) {
       loggerWithEventDetails.info("Booker is a Cal.com user, including their availability", {
         bookerUserId: bookerUser.id,
-        bookerEmail: bookerUser.email,
       });
 
       // Fetch booker with full credentials and schedule for availability check
