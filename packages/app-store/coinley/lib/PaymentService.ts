@@ -87,13 +87,16 @@ export class PaymentService implements IAbstractPaymentService {
    * Create a new payment intent
    */
   async create(
-    payment: Pick<Payment, "amount" | "currency">,
+    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    userId: number,
+    userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
     paymentOption: PaymentOption,
-    metadata: Record<string, string>
+    bookerEmail: string,
+    bookerPhoneNumber?: string | null,
+    eventTitle?: string,
+    bookingTitle?: string
   ): Promise<Payment> {
     if (!this.credentials) {
       throw new Error("Coinley credentials not configured");
@@ -109,15 +112,18 @@ export class PaymentService implements IAbstractPaymentService {
       const response = await this.client.post<CoinleyPaymentIntent>("/payments/create", {
         amount: payment.amount / 100, // Convert cents to dollars
         currency: payment.currency || "USDT",
-        network: metadata.preferredNetwork || "ethereum",
+        network: "ethereum", // Default network, will be configurable per event type
+        customerEmail: bookerEmail,
         metadata: {
           bookingId: bookingId.toString(),
-          userId: userId.toString(),
+          userId: userId?.toString() || "",
           username: username || "",
           bookerName: bookerName || "",
+          bookerEmail,
           paymentUid,
           source: "calcom",
-          ...metadata,
+          eventTitle: eventTitle || "",
+          bookingTitle: bookingTitle || "",
         },
         paymentOption: paymentOption === "HOLD" ? "authorize" : "capture",
         // CallbackUrl not used - frontend handles confirmation via confirm-payment API
@@ -161,13 +167,11 @@ export class PaymentService implements IAbstractPaymentService {
    * Collect card/wallet for later charging (HOLD payments)
    */
   async collectCard(
-    payment: Pick<Payment, "amount" | "currency">,
+    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    userId: number,
-    username: string | null,
-    bookerName: string | null,
     paymentOption: PaymentOption,
-    metadata: Record<string, string>
+    bookerEmail: string,
+    bookerPhoneNumber?: string | null
   ): Promise<Payment> {
     if (paymentOption !== "HOLD") {
       throw new Error("collectCard requires HOLD payment option");
@@ -175,7 +179,16 @@ export class PaymentService implements IAbstractPaymentService {
 
     // For blockchain payments, collectCard and create are similar
     // The difference is in the backend handling (authorize vs capture)
-    return this.create(payment, bookingId, userId, username, bookerName, paymentOption, metadata);
+    return this.create(
+      payment,
+      bookingId,
+      null, // userId
+      null, // username
+      null, // bookerName
+      paymentOption,
+      bookerEmail,
+      bookerPhoneNumber
+    );
   }
 
   /**
@@ -187,7 +200,7 @@ export class PaymentService implements IAbstractPaymentService {
     }
 
     try {
-      const paymentData = payment.data as CoinleyPaymentDetails;
+      const paymentData = payment.data as unknown as CoinleyPaymentDetails;
 
       // Capture the authorized payment
       const response = await this.client.post<CoinleyPaymentDetails>(
@@ -234,7 +247,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Payment already refunded");
       }
 
-      const paymentData = payment.data as CoinleyPaymentDetails;
+      const paymentData = payment.data as unknown as CoinleyPaymentDetails;
 
       // Create refund via Coinley API
       await this.client.post(`/payments/${paymentData.paymentId}/refund`, {
@@ -267,7 +280,7 @@ export class PaymentService implements IAbstractPaymentService {
 
     try {
       const payment = await this.getPayment(paymentId);
-      const paymentData = payment.data as CoinleyPaymentDetails;
+      const paymentData = payment.data as unknown as CoinleyPaymentDetails;
 
       // Cancel payment with Coinley API
       await this.client.post(`/payments/${paymentData.paymentId}/cancel`);
@@ -289,7 +302,10 @@ export class PaymentService implements IAbstractPaymentService {
   /**
    * Update payment details
    */
-  async update(paymentId: Payment["id"], data: Partial<Payment>): Promise<Payment> {
+  async update(
+    paymentId: Payment["id"],
+    data: Partial<Prisma.PaymentUncheckedCreateInput>
+  ): Promise<Payment> {
     const updatedPayment = await prisma.payment.update({
       where: { id: paymentId },
       data,
@@ -319,12 +335,13 @@ export class PaymentService implements IAbstractPaymentService {
   async afterPayment(
     event: any,
     booking: {
-      user: any | null;
-      id: Booking["id"];
-      startTime: Booking["startTime"];
-      endTime: Booking["endTime"];
+      user: { email: string | null; name: string | null; timeZone: string } | null;
+      id: number;
+      startTime: { toISOString: () => string };
+      uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    eventTypeMetadata?: any
   ): Promise<void> {
     console.log("[Coinley] After payment hook executed");
 
