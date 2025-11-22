@@ -59,4 +59,11 @@ export interface ISelectedCalendarRepository {
       | "syncSubscribedAt"
     >
   ): Promise<SelectedCalendar>;
+
+  /**
+   * Find selected calendars by user id
+   *
+   * @param userId
+   */
+  findByUserId(userId: number): Promise<SelectedCalendar[]>;
 }
