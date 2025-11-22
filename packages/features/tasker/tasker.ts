@@ -37,6 +37,9 @@ type TaskPayloads = {
     responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
     routedEventTypeId?: number | null;
   };
+  sendAwaitingPaymentEmail: z.infer<
+    typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

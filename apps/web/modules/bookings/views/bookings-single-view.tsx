@@ -77,6 +77,10 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+  // Stripe redirect parameters
+  redirect_status: z.string().optional(),
+  payment_intent: z.string().optional(),
+  payment_intent_client_secret: z.string().optional(),
 });
 
 const useBrandColors = ({
@@ -118,6 +122,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
+    redirect_status,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
@@ -146,7 +151,11 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
+  // Check if payment succeeded based on Stripe redirect status (optimistic)
+  // or database status (canonical after webhook)
+  const isPaymentSucceededOptimistically = redirect_status === "succeeded";
+  const isAwaitingPayment =
+    props.paymentStatus && !props.paymentStatus.success && !isPaymentSucceededOptimistically;
 
   const attendees = bookingInfo?.attendees;
 
