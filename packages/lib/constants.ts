@@ -258,3 +258,5 @@ export const ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS =
 export const ORG_TRIAL_DAYS = process.env.STRIPE_ORG_TRIAL_DAYS
   ? Math.max(0, parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10))
   : null;
+
+export const IS_API_V2_E2E = process.env.IS_E2E === "true";

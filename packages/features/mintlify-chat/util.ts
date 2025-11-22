@@ -1,35 +1,45 @@
 /**
  * This file contains utility functions for interacting with the Mintlify chat API.
  * The code was adapted from https://mintlify.com/docs/advanced/rest-api/overview#getting-started. The original source can be found at https://github.com/mintlify/discovery-api-example/tree/main/src/utils.
+ * 
+ * NOTE: These functions now call our internal proxy API routes at /api/mintlify-chat/*
+ * instead of calling Mintlify directly. This keeps the API key secure on the server side.
  */
 
-const API_KEY = process.env.NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY;
-const apiBaseUrl = process.env.NEXT_PUBLIC_CHAT_API_URL;
-
+/**
+ * Creates a new Mintlify chat topic via our internal proxy
+ */
 export const createChat = async () => {
-  if (!API_KEY || !apiBaseUrl) return;
+  try {
+    const topicResponse = await fetch("/api/mintlify-chat/topic", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  const topicResponse = await fetch(`${apiBaseUrl}/topic`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${API_KEY}`,
-    },
-  });
+    if (!topicResponse.ok) {
+      console.error("Failed to create chat topic:", topicResponse.statusText);
+      return;
+    }
 
-  if (!topicResponse.ok) {
-    return;
-  }
+    const topic: unknown = await topicResponse.json();
 
-  const topic: unknown = await topicResponse.json();
-
-  if (topic && typeof topic === "object" && "topicId" in topic && typeof topic.topicId === "string") {
-    return topic.topicId;
-  } else {
+    if (topic && typeof topic === "object" && "topicId" in topic && typeof topic.topicId === "string") {
+      return topic.topicId;
+    } else {
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Error creating chat topic:", error);
     return undefined;
   }
 };
 
+/**
+ * Generates a response from Mintlify via our internal proxy
+ * Streams the response back to the caller in chunks
+ */
 export const generateResponse = async ({
   topicId,
   userQuery,
@@ -39,37 +49,35 @@ export const generateResponse = async ({
   userQuery: string;
   onChunkReceived: (chunk: string, baseUrl?: string, finalChunk?: boolean) => void;
 }) => {
-  if (!API_KEY || !apiBaseUrl) return;
-
-  const queryResponse = await fetch(
-    `
-${apiBaseUrl}/message`,
-    {
+  try {
+    const queryResponse = await fetch("/api/mintlify-chat/message", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({ message: userQuery, topicId }),
+    });
+
+    if (!queryResponse.ok || !queryResponse.body) {
+      throw Error(queryResponse.statusText);
     }
-  );
+    
+    const streamReader = queryResponse.body.getReader();
 
-  if (!queryResponse.ok || !queryResponse.body) {
-    throw Error(queryResponse.statusText);
-  }
-  const streamReader = queryResponse.body.getReader();
+    for (;;) {
+      const { done, value } = await streamReader.read();
+      if (done) {
+        onChunkReceived("", queryResponse.headers.get("x-mintlify-base-url") ?? "", true);
+        return;
+      }
+      
 
-  for (;;) {
-    const { done, value } = await streamReader.read();
-    if (done) {
       const newValue = new TextDecoder().decode(value);
-
-      onChunkReceived(newValue, queryResponse.headers.get("X-Mintlify-Base-Url") ?? "", true);
-      return;
+      onChunkReceived(newValue);
     }
-
-    const newValue = new TextDecoder().decode(value);
-    onChunkReceived(newValue);
+  } catch (error) {
+    console.error("Error generating response:", error);
+    throw error;
   }
 };
 
