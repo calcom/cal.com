@@ -311,6 +311,7 @@ export const roundRobinManualReassignment = async ({
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
     conferenceCredentialId: conferenceCredentialId ?? undefined,
+    organizationId: orgId,
   };
 
   if (hasOrganizerChanged) {
