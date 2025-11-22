@@ -31,7 +31,7 @@ const validateNumberVerification = async (
 
   const verificationRecord = await prisma.verifiedNumber.findFirst({
     where: {
-      OR: [{ userId: userIdentifier }, { teamId: teamIdentifier }],
+      OR: [{ userId: userIdentifier }, { calIdTeamId: teamIdentifier }],
       phoneNumber: phoneNumber || "",
     },
   });
