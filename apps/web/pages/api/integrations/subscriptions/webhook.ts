@@ -4,7 +4,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
 
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     if (!err.message.includes("No credential found with subscription ID")) {
       console.error(`Webhook Error: ${err.message}`);
     }

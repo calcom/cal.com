@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError } from "@calcom/lib/http-error";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -30,7 +30,7 @@ export async function checkDurationLimits(
   try {
     return !!(await Promise.all(limitCalculations));
   } catch (error) {
-    throw new HttpError({ message: getErrorFromUnknown(error).message, statusCode: 401 });
+    throw new HttpError({ message: getClientErrorFromUnknown(error).message, statusCode: 401 });
   }
 }
 

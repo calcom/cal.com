@@ -5,7 +5,7 @@ import z from "zod";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -368,7 +368,7 @@ export class PaymentService implements IAbstractPaymentService {
       });
       return updatedPayment;
     } catch (e) {
-      const err = getErrorFromUnknown(e);
+      const err = getClientErrorFromUnknown(e);
       throw err;
     }
   }
