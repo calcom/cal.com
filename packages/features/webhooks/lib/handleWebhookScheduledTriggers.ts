@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { getUrlValidationService } from "@calcom/features/url-validation/di/UrlValidationService.container";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -33,9 +34,24 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
   });
 
   const fetchPromises: Promise<any>[] = [];
+  const urlValidationService = getUrlValidationService();
 
   // run jobs
   for (const job of jobsToRun) {
+    // SECURITY: Validate URL before making request
+    try {
+      await urlValidationService.validateAsync(job.subscriberUrl);
+    } catch (error) {
+      logger.error(`Invalid webhook URL for job ${job.id}: ${(error as Error).message}`, {
+        subscriberUrl: job.subscriberUrl,
+      });
+      // Skip this job and delete it
+      await prisma.webhookScheduledTriggers.delete({
+        where: { id: job.id },
+      });
+      continue;
+    }
+
     // Fetch the webhook configuration so that we can get the secret.
     let webhook = job.webhook;
 

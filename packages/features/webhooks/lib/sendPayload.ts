@@ -3,6 +3,7 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { getUrlValidationService } from "@calcom/features/url-validation/di/UrlValidationService.container";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import type { Payment, Webhook } from "@calcom/prisma/client";
@@ -293,6 +294,13 @@ const _sendPayload = async (
   const { subscriberUrl } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");
+  }
+
+  const urlValidationService = getUrlValidationService();
+  try {
+    await urlValidationService.validateAsync(subscriberUrl);
+  } catch (error) {
+    throw new Error(`Invalid webhook URL: ${(error as Error).message}`);
   }
 
   const response = await fetch(subscriberUrl, {
