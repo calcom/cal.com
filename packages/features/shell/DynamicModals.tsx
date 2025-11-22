@@ -3,6 +3,7 @@
 import { WelcomeToOrganizationsModal } from "@calcom/features/ee/organizations/components/WelcomeToOrganizationsModal";
 
 import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
+import { GatedFeaturesModal } from "./components/GatedFeaturesModal";
 
 /**
  * Container for all query-param driven modals that should appear globally across the app.
@@ -20,6 +21,7 @@ export function DynamicModals() {
       <WelcomeToOrganizationsModal />
       <WelcomeToCalcomModal />
       {/* Add more query-param driven modals here */}
+      <GatedFeaturesModal />
     </>
   );
 }

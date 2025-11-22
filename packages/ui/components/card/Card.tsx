@@ -133,8 +133,9 @@ export interface BaseCardProps extends CVACardType {
     "data-testid"?: string;
   };
   learnMore?: {
-    href: string;
+    href?: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   };
   mediaLink?: string;
   thumbnailUrl?: string;
@@ -158,7 +159,7 @@ export function Card({
   coverPhoto,
   buttonClassName,
 }: BaseCardProps) {
-  const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
+  const LinkComponent = learnMore?.href?.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
@@ -249,13 +250,25 @@ export function Card({
       {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <LinkComponent
-              href={learnMore.href}
-              target="_blank"
-              rel="noreferrer"
-              className={classNames("text-default text-xs font-medium", buttonClassName)}>
-              {learnMore.text}
-            </LinkComponent>
+            <>
+              {learnMore.onClick ? (
+                <button
+                  color="minimal"
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </button>
+              ) : learnMore.href ? (
+                <LinkComponent
+                  href={learnMore.href}
+                  target="_blank"
+                  color="minimal"
+                  rel="noreferrer"
+                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </LinkComponent>
+              ) : undefined}
+            </>
           )}
           {actionButton?.child && (
             <button
