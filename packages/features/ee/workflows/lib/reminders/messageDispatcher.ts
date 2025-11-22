@@ -9,6 +9,11 @@ import * as twilio from "./providers/twilioProvider";
 
 const log = logger.getSubLogger({ prefix: ["[reminderScheduler]"] });
 
+export type CreditCheckFn = (params: {
+  userId?: number | null;
+  teamId?: number | null;
+}) => Promise<boolean>;
+
 export async function sendSmsOrFallbackEmail(props: {
   twilioData: {
     phoneNumber: string;
@@ -27,13 +32,18 @@ export async function sendSmsOrFallbackEmail(props: {
     t: TFunction;
     replyTo: string;
   };
+  creditCheckFn?: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-
-  const creditService = new CreditService();
-
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  
+  let hasCredits: boolean;
+  if (props.creditCheckFn) {
+    hasCredits = await props.creditCheckFn({ userId, teamId });
+  } else {
+    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+    const creditService = new CreditService();
+    hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  }
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;
@@ -75,12 +85,18 @@ export async function scheduleSmsOrFallbackEmail(props: {
     replyTo: string;
     workflowStepId?: number;
   };
+  creditCheckFn?: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-  const creditService = new CreditService();
-
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  
+  let hasCredits: boolean;
+  if (props.creditCheckFn) {
+    hasCredits = await props.creditCheckFn({ userId, teamId });
+  } else {
+    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+    const creditService = new CreditService();
+    hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  }
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;

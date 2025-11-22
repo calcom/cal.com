@@ -23,6 +23,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
 import { scheduleEmailReminder } from "./emailReminderManager";
+import type { CreditCheckFn } from "./messageDispatcher";
 import type { BookingInfo } from "./smsReminderManager";
 import { scheduleSMSReminder, type ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
@@ -72,6 +73,7 @@ type ProcessWorkflowStepParams = (
 export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
+  creditCheckFn?: CreditCheckFn;
 };
 
 const processWorkflowStep = async (
@@ -84,7 +86,8 @@ const processWorkflowStep = async (
     hideBranding,
     seatReferenceUid,
     formData,
-  }: ProcessWorkflowStepParams
+  }: ProcessWorkflowStepParams,
+  creditCheckFn?: CreditCheckFn
 ) => {
   if (!step?.verifiedAt) return;
 
@@ -114,6 +117,7 @@ const processWorkflowStep = async (
     teamId: workflow.teamId,
     seatReferenceUid,
     verifiedAt: step.verifiedAt,
+    creditCheckFn,
   };
 
   if (isSMSAction(step.action)) {
@@ -243,6 +247,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     seatReferenceUid,
     isDryRun = false,
     formData,
+    creditCheckFn,
   } = args;
   if (isDryRun || !workflows.length) return;
 
@@ -250,13 +255,18 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        emailAttendeeSendToOverride,
-        smsReminderNumber,
-        hideBranding,
-        seatReferenceUid,
-        ...(evt ? { calendarEvent: evt } : { formData }),
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          emailAttendeeSendToOverride,
+          smsReminderNumber,
+          hideBranding,
+          seatReferenceUid,
+          ...(evt ? { calendarEvent: evt } : { formData }),
+        },
+        creditCheckFn
+      );
     }
   }
 };
