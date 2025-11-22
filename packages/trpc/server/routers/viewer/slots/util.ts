@@ -960,7 +960,7 @@ export class AvailableSlotsService {
     if (!rescheduleUid) return null;
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const booking = await bookingRepo.getByUidWithAttendeesAndUserAndEvent(rescheduleUid);
+    const booking = await bookingRepo.findByUidIncludeEventType({ bookingUid: rescheduleUid });
 
     if (!booking || !booking.attendees || booking.attendees.length === 0) {
       return null;
