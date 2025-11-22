@@ -550,10 +550,13 @@ export class AgentService {
       });
     }
 
-    if (!teamId && phoneNumberRecord.userId !== userId) {
+    if (
+      (!teamId && phoneNumberRecord.userId !== userId) ||
+      (teamId && phoneNumberRecord.teamId !== teamId)
+    ) {
       throw new HttpError({
         statusCode: 403,
-        message: "You don't have permission to use this phone number.",
+        message: "Insufficient permission to create inbound agents for this phone number.",
       });
     }
 

@@ -147,7 +147,10 @@ export class BillingService {
     }
 
     // there is a phone number, but we're not sure if it belongs to the user id
-    if (!teamId && phoneNumber.userId !== userId) {
+    if (
+      (!teamId && phoneNumber.userId !== userId) ||
+      (teamId && phoneNumber.teamId !== teamId)
+    ) {
       throw new HttpError({
         statusCode: 403,
         message: `Insufficient permission to delete phone number ${phoneNumber.phoneNumber}.`

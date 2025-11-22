@@ -154,7 +154,10 @@ export class PhoneNumberService {
       });
     }
 
-    if (!teamId && phoneNumberToDelete.userId !== userId) {
+    if (
+      (!teamId && phoneNumberToDelete.userId !== userId) || 
+      (teamId && phoneNumberToDelete.teamId !== teamId)
+    ) {
       throw new HttpError({
         statusCode: 403,
         message: `Insufficient permission to delete phone number ${phoneNumber}.`
@@ -289,7 +292,10 @@ export class PhoneNumberService {
       });
     }
 
-    if (!teamId && phoneNumberRecord.userId !== userId) {
+    if (
+      (!teamId && phoneNumberRecord.userId !== userId) || 
+      (teamId && phoneNumberRecord.teamId !== teamId)
+    ) {
       throw new HttpError({
         statusCode: 403,
         message: `Insufficient permission to update phone number ${phoneNumber}.`
