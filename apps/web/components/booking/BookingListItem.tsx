@@ -291,10 +291,46 @@ function BookingListItem(booking: BookingItemProps) {
   const currentYear = dayjs().year();
   const isDifferentYear = bookingYear !== currentYear;
 
-  const startTime = dayjs(booking.startTime)
-    .tz(userTimeZone)
-    .locale(language)
-    .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
+  // --- FIX: Proper locale + timezone formatting using Intl ---
+  const locale = language; // e.g., "fr", "en", "de", etc.
+  const timeZone = userTimeZone;
+
+  let dateFormatOptions: Intl.DateTimeFormatOptions;
+
+  if (isUpcoming) {
+    // Previous behavior:
+    // "ddd, D MMM" → "Mon, 17 Nov" in English
+    // "lun. 17 nov." in French
+    if (isDifferentYear) {
+      dateFormatOptions = {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      };
+    } else {
+      dateFormatOptions = {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      };
+    }
+  } else {
+    // "D MMMM YYYY" → 17 novembre 2024
+    dateFormatOptions = {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+  }
+
+  const intlFormatter = new Intl.DateTimeFormat(locale, {
+    ...dateFormatOptions,
+    timeZone,
+  });
+
+  // Final formatted date
+  const startTime = intlFormatter.format(new Date(booking.startTime));
 
   // Getting accepted recurring dates to show
   const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
