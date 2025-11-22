@@ -9,7 +9,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../../lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   NO_SHOW_HOST: "#64748b",
@@ -58,6 +57,7 @@ export const NoShowHostsOverTimeChart = () => {
     data: noShowHostsData,
     isSuccess,
     isPending,
+    isError,
   } = trpc.viewer.insights.noShowHostsOverTime.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
@@ -66,38 +66,36 @@ export const NoShowHostsOverTimeChart = () => {
     },
   });
 
-  if (isPending) return <LoadingInsight />;
-
-  if (!isSuccess) return null;
-
   return (
-    <ChartCard title={t("no_show_hosts_over_time")} className="h-full">
-      <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={noShowHostsData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="Month" className="text-xs" axisLine={false} tickLine={false} />
-            <YAxis
-              allowDecimals={false}
-              className="text-xs opacity-50"
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={valueFormatter}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="linear"
-              dataKey="Count"
-              name={t("no_show_hosts")}
-              stroke={COLOR.NO_SHOW_HOST}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
-              animationDuration={1000}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <ChartCard title={t("no_show_hosts_over_time")} className="h-full" isPending={isPending} isError={isError}>
+      {isSuccess ? (
+        <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={noShowHostsData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="Month" className="text-xs" axisLine={false} tickLine={false} />
+              <YAxis
+                allowDecimals={false}
+                className="text-xs opacity-50"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={valueFormatter}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line
+                type="linear"
+                dataKey="Count"
+                name={t("no_show_hosts")}
+                stroke={COLOR.NO_SHOW_HOST}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : null}
     </ChartCard>
   );
 };

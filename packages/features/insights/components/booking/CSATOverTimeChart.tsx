@@ -8,7 +8,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
   CSAT: "#22c55e",
@@ -57,6 +56,7 @@ export const CSATOverTimeChart = () => {
     data: csatData,
     isSuccess,
     isPending,
+    isError,
   } = trpc.viewer.insights.csatOverTime.useQuery(insightsBookingParams, {
     staleTime: 180000,
     refetchOnWindowFocus: false,
@@ -65,39 +65,38 @@ export const CSATOverTimeChart = () => {
     },
   });
 
-  if (isPending) return <LoadingInsight />;
-
-  if (!isSuccess) return null;
 
   return (
-    <ChartCard title={t("csat_over_time")} className="h-full">
-      <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={csatData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="Month" className="text-xs" axisLine={false} tickLine={false} />
-            <YAxis
-              allowDecimals={true}
-              className="text-xs opacity-50"
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) => `${value}%`}
-              domain={[0, 100]}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="linear"
-              dataKey="CSAT"
-              name={t("csat")}
-              stroke={COLOR.CSAT}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
-              animationDuration={1000}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <ChartCard title={t("csat_over_time")} className="h-full" isPending={isPending} isError={isError}>
+      {isSuccess ? (
+        <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={csatData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="Month" className="text-xs" axisLine={false} tickLine={false} />
+              <YAxis
+                allowDecimals={true}
+                className="text-xs opacity-50"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line
+                type="linear"
+                dataKey="CSAT"
+                name={t("csat")}
+                stroke={COLOR.CSAT}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : null}
     </ChartCard>
   );
 };

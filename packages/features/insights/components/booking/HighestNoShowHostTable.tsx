@@ -5,14 +5,13 @@ import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
-import { LoadingInsight } from "../LoadingInsights";
 import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestNoShowHostTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -23,13 +22,9 @@ export const HighestNoShowHostTable = () => {
     }
   );
 
-  if (isPending) return <LoadingInsight />;
-
-  if (!isSuccess || !data) return null;
-
   return (
-    <ChartCard title={t("most_no_show_host")}>
-      <UserStatsTable data={data} />
+    <ChartCard title={t("most_no_show_host")} isPending={isPending} isError={isError}>
+      {isSuccess && data ? <UserStatsTable data={data} /> : null}
     </ChartCard>
   );
 };
