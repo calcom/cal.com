@@ -2160,7 +2160,6 @@ async function handler(
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
 
-    console.log("Got here for payment", { bookerPhoneNumber });
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
