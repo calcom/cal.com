@@ -8,6 +8,7 @@ import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { bookingMetadataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -25,6 +26,8 @@ import {
   SheetFooter,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
+
+import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
@@ -89,25 +92,25 @@ function BookingDetailsSheetInner({
   // Get navigation state directly from the store
   const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
   const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
 
   const handleClose = () => {
-    setSelectedBookingId(null);
+    setSelectedBookingUid(null);
   };
 
   const storeApi = useBookingDetailsSheetStoreApi();
 
   const handleNext = () => {
-    const nextId = storeApi.getState().getNextBookingId();
-    if (nextId !== null) {
-      setSelectedBookingId(nextId);
+    const nextUid = storeApi.getState().getNextBookingUid();
+    if (nextUid !== null) {
+      setSelectedBookingUid(nextUid);
     }
   };
 
   const handlePrevious = () => {
-    const prevId = storeApi.getState().getPreviousBookingId();
-    if (prevId !== null) {
-      setSelectedBookingId(prevId);
+    const prevUid = storeApi.getState().getPreviousBookingUid();
+    if (prevUid !== null) {
+      setSelectedBookingUid(prevUid);
     }
   };
 
@@ -151,9 +154,22 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
-        <SheetHeader
-          showCloseButton={false}
-          rightContent={
+        <SheetHeader showCloseButton={false} className="w-full">
+          <div className="flex items-center justify-between gap-x-4">
+            <div className="flex min-w-0 flex-col gap-y-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <Badge variant={statusBadge.variant} className="capitalize">
+                  {statusBadge.label}
+                </Badge>
+                {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+                {recurringInfo && (
+                  <Badge variant="gray">
+                    <Icon name="repeat" className="mr-1 h-3 w-3" />
+                    {recurringInfo.count}
+                  </Badge>
+                )}
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="icon"
@@ -175,25 +191,22 @@ function BookingDetailsSheetInner({
                   handleNext();
                 }}
               />
+              <Button
+                variant="icon"
+                color="minimal"
+                StartIcon="x"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleClose();
+                }}
+              />
             </div>
-          }>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusBadge.variant} className="capitalize">
-              {statusBadge.label}
-            </Badge>
-            {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
-            {recurringInfo && (
-              <Badge variant="gray">
-                <Icon name="repeat" className="mr-1 h-3 w-3" />
-                {recurringInfo.count}
-              </Badge>
-            )}
           </div>
         </SheetHeader>
 
-        <SheetBody className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-1">
+        <SheetBody className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
               <SheetTitle className="text-2xl font-semibold">{booking.title}</SheetTitle>
               <p className="text-subtle text-sm">
                 {startTime.format("dddd, MMMM D, YYYY h:mma")} - {endTime.format("h:mma")} (
@@ -209,6 +222,8 @@ function BookingDetailsSheetInner({
 
             <RecurringInfoSection recurringInfo={recurringInfo} />
 
+            <AssignmentReasonSection booking={booking} />
+
             <PaymentSection booking={booking} />
 
             <SlotsSection booking={booking} />
@@ -223,35 +238,29 @@ function BookingDetailsSheetInner({
         </SheetBody>
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
-          <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
-            <Button color="secondary" StartIcon="x" onClick={handleClose}>
-              {t("close")}
-            </Button>
+          <div className="flex w-full min-w-0 flex-row flex-wrap items-center justify-end gap-2 px-4 pb-4 pt-4">
+            <JoinMeetingButton
+              location={booking.location}
+              metadata={booking.metadata}
+              bookingStatus={booking.status}
+            />
 
-            <div className="flex gap-2">
-              <JoinMeetingButton
-                location={booking.location}
-                metadata={booking.metadata}
-                bookingStatus={booking.status}
-              />
-
-              <BookingActionsDropdown
-                booking={{
-                  ...booking,
-                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
-                  recurringInfo: undefined,
-                  loggedInUser: {
-                    userId,
-                    userTimeZone,
-                    userTimeFormat: userTimeFormat ?? null,
-                    userEmail,
-                  },
-                  isToday: false,
-                }}
-                usePortal={false}
-                context="details"
-              />
-            </div>
+            <BookingActionsDropdown
+              booking={{
+                ...booking,
+                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                recurringInfo: undefined,
+                loggedInUser: {
+                  userId,
+                  userTimeZone,
+                  userTimeFormat: userTimeFormat ?? null,
+                  userEmail,
+                },
+                isToday: false,
+              }}
+              usePortal={false}
+              context="details"
+            />
           </div>
         </SheetFooter>
       </SheetContent>
@@ -274,20 +283,27 @@ function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
 }
 
 function WhoSection({ booking }: { booking: BookingOutput }) {
+  console.log("💡 booking", booking);
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
               size="md"
-              imageSrc={getPlaceholderAvatar(null, booking.user.name)}
-              alt={booking.user.name || ""}
+              imageSrc={
+                booking.user.avatarUrl
+                  ? getUserAvatarUrl(booking.user)
+                  : getPlaceholderAvatar(null, booking.user.name || booking.user.email)
+              }
+              alt={booking.user.name || booking.user.email || ""}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                <p className="text-emphasis truncate text-sm font-medium">
+                  {booking.user.name || booking.user.email}
+                </p>
                 <Badge variant="blue" size="sm">
                   {t("host")}
                 </Badge>
@@ -297,15 +313,26 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           </div>
         )}
 
-        {booking.attendees.map((attendee, idx) => (
-          <div key={idx} className="flex items-center gap-4">
-            <Avatar size="md" imageSrc={getPlaceholderAvatar(null, attendee.name)} alt={attendee.name} />
-            <div className="min-w-0 flex-1">
-              <p className="text-emphasis truncate text-sm font-medium">{attendee.name}</p>
-              <p className="text-default truncate text-sm">{attendee.email}</p>
+        {booking.attendees.map((attendee, idx) => {
+          const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+          return (
+            <div key={idx} className="flex items-center gap-4">
+              <Avatar
+                size="md"
+                imageSrc={
+                  attendee.user?.avatarUrl
+                    ? getUserAvatarUrl(attendee.user)
+                    : getPlaceholderAvatar(null, name)
+                }
+                alt={name}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-emphasis truncate text-sm font-medium">{name}</p>
+                <p className="text-default truncate text-sm">{attendee.email}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Section>
   );
@@ -379,6 +406,30 @@ function RecurringInfoSection({
           recurringCount: recurringInfo.count,
         })}
       </p>
+    </Section>
+  );
+}
+
+function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  if (!booking.assignmentReason || booking.assignmentReason.length === 0) {
+    return null;
+  }
+
+  return (
+    <Section title={t("assignment_reason")}>
+      <div className="flex flex-col gap-2">
+        {booking.assignmentReason.map((reason, index) => {
+          const reasonTitle = assignmentReasonBadgeTitleMap(reason.reasonEnum);
+          return (
+            <div key={index} className="text-default text-sm">
+              <Badge variant="gray">{t(reasonTitle)}</Badge>
+              {reason.reasonString && <span className="ml-1">{reason.reasonString}</span>}
+            </div>
+          );
+        })}
+      </div>
     </Section>
   );
 }
@@ -502,7 +553,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={classNames("space-y-1", className)}>
+    <div className={classNames("flex flex-col gap-1", className)}>
       <h3 className="text-subtle text-xs font-semibold">{title}</h3>
       {children}
     </div>

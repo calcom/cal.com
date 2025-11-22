@@ -28,7 +28,7 @@ export function BookingsCalendarView({
   onWeekStartChange,
   isPending = false,
 }: BookingsCalendarViewProps) {
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const { resolvedTheme, forcedTheme } = useGetTheme();
@@ -84,7 +84,7 @@ export function BookingsCalendarView({
           options: {
             status: booking.status,
             ...(eventTypeColor && { color: eventTypeColor }),
-            bookingId: booking.id,
+            bookingUid: booking.uid,
           },
         };
       });
@@ -112,7 +112,7 @@ export function BookingsCalendarView({
     );
 
   return (
-    <div className="border-subtle flex h-[calc(100vh-260px)] min-h-[600px] flex-col rounded-2xl border">
+    <div className="border-subtle flex h-[calc(100vh-6rem)] min-h-[600px] flex-col rounded-2xl border">
       <div className="mx-4 mt-4 flex items-center justify-between py-1.5">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">{weekRange}</h2>
@@ -150,11 +150,12 @@ export function BookingsCalendarView({
           showBorder={false}
           borderColor="subtle"
           onEventClick={(event) => {
-            const bookingId = event.options?.bookingId;
-            if (bookingId) {
-              setSelectedBookingId(bookingId);
+            const bookingUid = event.options?.bookingUid;
+            if (bookingUid) {
+              setSelectedBookingUid(bookingUid);
             }
           }}
+          showTimezone
           hideHeader
         />
       </div>

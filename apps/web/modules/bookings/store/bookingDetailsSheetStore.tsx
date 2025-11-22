@@ -3,23 +3,23 @@
 import React from "react";
 import { createStore, useStore } from "zustand";
 
-import { useSelectedBookingId } from "../hooks/useSelectedBookingId";
+import { useSelectedBookingUid } from "../hooks/useSelectedBookingUid";
 import type { BookingOutput } from "../types";
 
 interface BookingDetailsSheetStore {
   // State
-  selectedBookingId: number | null;
+  selectedBookingUid: string | null;
   bookings: BookingOutput[];
 
   // Actions
-  setSelectedBookingId: (id: number | null) => void;
+  setSelectedBookingUid: (uid: string | null) => void;
   setBookings: (bookings: BookingOutput[]) => void;
   clearSelection: () => void;
 
   // Computed getters (used via selectors)
   getSelectedBooking: () => BookingOutput | null;
-  getNextBookingId: () => number | null;
-  getPreviousBookingId: () => number | null;
+  getNextBookingUid: () => string | null;
+  getPreviousBookingUid: () => string | null;
   hasNext: () => boolean;
   hasPrevious: () => boolean;
 }
@@ -29,54 +29,54 @@ type BookingDetailsSheetStoreType = ReturnType<typeof createBookingDetailsSheetS
 const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) => {
   return createStore<BookingDetailsSheetStore>((set, get) => ({
     // Initial state
-    selectedBookingId: null,
+    selectedBookingUid: null,
     bookings: initialBookings,
 
     // Actions
-    setSelectedBookingId: (id) => set({ selectedBookingId: id }),
+    setSelectedBookingUid: (uid) => set({ selectedBookingUid: uid }),
     setBookings: (bookings) => set({ bookings }),
-    clearSelection: () => set({ selectedBookingId: null }),
+    clearSelection: () => set({ selectedBookingUid: null }),
 
     // Computed getters
     getSelectedBooking: () => {
       const state = get();
-      if (!state.selectedBookingId) return null;
-      return state.bookings.find((booking) => booking.id === state.selectedBookingId) ?? null;
+      if (!state.selectedBookingUid) return null;
+      return state.bookings.find((booking) => booking.uid === state.selectedBookingUid) ?? null;
     },
 
-    getNextBookingId: () => {
+    getNextBookingUid: () => {
       const state = get();
-      if (!state.selectedBookingId) return null;
+      if (!state.selectedBookingUid) return null;
 
-      const currentIndex = state.bookings.findIndex((booking) => booking.id === state.selectedBookingId);
+      const currentIndex = state.bookings.findIndex((booking) => booking.uid === state.selectedBookingUid);
       if (currentIndex === -1 || currentIndex >= state.bookings.length - 1) return null;
 
-      return state.bookings[currentIndex + 1].id;
+      return state.bookings[currentIndex + 1].uid;
     },
 
-    getPreviousBookingId: () => {
+    getPreviousBookingUid: () => {
       const state = get();
-      if (!state.selectedBookingId) return null;
+      if (!state.selectedBookingUid) return null;
 
-      const currentIndex = state.bookings.findIndex((booking) => booking.id === state.selectedBookingId);
+      const currentIndex = state.bookings.findIndex((booking) => booking.uid === state.selectedBookingUid);
       if (currentIndex <= 0) return null;
 
-      return state.bookings[currentIndex - 1].id;
+      return state.bookings[currentIndex - 1].uid;
     },
 
     hasNext: () => {
       const state = get();
-      if (!state.selectedBookingId) return false;
+      if (!state.selectedBookingUid) return false;
 
-      const currentIndex = state.bookings.findIndex((booking) => booking.id === state.selectedBookingId);
+      const currentIndex = state.bookings.findIndex((booking) => booking.uid === state.selectedBookingUid);
       return currentIndex >= 0 && currentIndex < state.bookings.length - 1;
     },
 
     hasPrevious: () => {
       const state = get();
-      if (!state.selectedBookingId) return false;
+      if (!state.selectedBookingUid) return false;
 
-      const currentIndex = state.bookings.findIndex((booking) => booking.id === state.selectedBookingId);
+      const currentIndex = state.bookings.findIndex((booking) => booking.uid === state.selectedBookingUid);
       return currentIndex > 0;
     },
   }));
@@ -92,7 +92,7 @@ export function BookingDetailsSheetStoreProvider({
   bookings: BookingOutput[];
 }) {
   const [store] = React.useState(() => createBookingDetailsSheetStore(bookings));
-  const [selectedBookingIdFromUrl, setSelectedBookingIdToUrl] = useSelectedBookingId();
+  const [selectedBookingUidFromUrl, setSelectedBookingUidToUrl] = useSelectedBookingUid();
 
   // Update bookings when they change
   React.useEffect(() => {
@@ -102,22 +102,22 @@ export function BookingDetailsSheetStoreProvider({
   // Sync Store → URL
   React.useEffect(() => {
     const unsubscribe = store.subscribe((state) => {
-      const storeId = state.selectedBookingId;
-      if (storeId !== selectedBookingIdFromUrl) {
-        setSelectedBookingIdToUrl(storeId);
+      const storeUid = state.selectedBookingUid;
+      if (storeUid !== selectedBookingUidFromUrl) {
+        setSelectedBookingUidToUrl(storeUid);
       }
     });
 
     return unsubscribe;
-  }, [selectedBookingIdFromUrl, setSelectedBookingIdToUrl, store]);
+  }, [selectedBookingUidFromUrl, setSelectedBookingUidToUrl, store]);
 
   // Sync URL → Store
   React.useEffect(() => {
-    const currentStoreId = store.getState().selectedBookingId;
-    if (currentStoreId !== selectedBookingIdFromUrl) {
-      store.getState().setSelectedBookingId(selectedBookingIdFromUrl);
+    const currentStoreUid = store.getState().selectedBookingUid;
+    if (currentStoreUid !== selectedBookingUidFromUrl) {
+      store.getState().setSelectedBookingUid(selectedBookingUidFromUrl);
     }
-  }, [selectedBookingIdFromUrl, store]);
+  }, [selectedBookingUidFromUrl, store]);
 
   return (
     <BookingDetailsSheetStoreContext.Provider value={store}>

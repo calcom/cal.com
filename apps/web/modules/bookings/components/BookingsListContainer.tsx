@@ -1,21 +1,32 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { ColumnFilterType } from "@calcom/features/data-table";
+import { ColumnFilterType, useDataTable } from "@calcom/features/data-table";
+import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Alert } from "@calcom/ui/components/alert";
+import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 
+import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
 } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput, BookingOutput } from "../types";
+import type {
+  RowData,
+  BookingRowData,
+  BookingListingStatus,
+  BookingOutput,
+  BookingsGetOutput,
+} from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
 
@@ -24,33 +35,40 @@ interface BookingsListContainerProps {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  enableDetailsSheet: boolean;
+}
+
+interface BookingsListInnerProps extends BookingsListContainerProps {
   data?: BookingsGetOutput;
   isPending: boolean;
-  enableDetailsSheet: boolean;
+  hasError: boolean;
+  errorMessage?: string;
   totalRowCount?: number;
-  ErrorView?: React.ReactNode;
-  hasError?: boolean;
 }
 
 function BookingsListInner({
   status,
   permissions,
+  enableDetailsSheet,
   data,
   isPending,
-  enableDetailsSheet,
-  totalRowCount,
-  ErrorView,
   hasError,
-}: BookingsListContainerProps) {
+  errorMessage,
+  totalRowCount,
+}: BookingsListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+  const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+
+  const ErrorView = errorMessage ? (
+    <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
+  ) : undefined;
 
   const handleBookingClick = useCallback(
-    (bookingId: number) => {
-      setSelectedBookingId(bookingId);
+    (bookingUid: string) => {
+      setSelectedBookingUid(bookingUid);
     },
-    [setSelectedBookingId]
+    [setSelectedBookingUid]
   );
 
   // Define table columns for filtering (hidden columns used for filter UI)
@@ -58,7 +76,7 @@ function BookingsListInner({
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.eventType.id, {
         id: "eventTypeId",
         header: t("event_type"),
         enableColumnFilter: true,
@@ -70,7 +88,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.eventType.team?.id, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,
@@ -82,7 +100,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
         enableColumnFilter: permissions.canReadOthersBookings,
@@ -133,7 +151,7 @@ function BookingsListInner({
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+      columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.uid, {
         id: "bookingUid",
         header: t("booking_uid"),
         enableColumnFilter: true,
@@ -151,37 +169,30 @@ function BookingsListInner({
       columnHelper.display({
         id: "customView",
         cell: (props) => {
-          if (props.row.original.type === "data") {
-            const { booking, recurringInfo, isToday } = props.row.original;
-            return (
-              <BookingListItem
-                key={booking.id}
-                isToday={isToday}
-                loggedInUser={{
-                  userId: user?.id,
-                  userTimeZone: user?.timeZone,
-                  userTimeFormat: user?.timeFormat,
-                  userEmail: user?.email,
-                }}
-                listingStatus={status}
-                recurringInfo={recurringInfo}
-                {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.id) })}
-                {...booking}
-              />
-            );
-          } else if (props.row.original.type === "today") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("today")}
-              </p>
-            );
-          } else if (props.row.original.type === "next") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("next")}
-              </p>
-            );
+          const row = props.row.original;
+
+          // Separator rows are handled automatically by DataTable
+          if (isSeparatorRow(row)) {
+            return null;
           }
+
+          const { booking, recurringInfo, isToday } = row;
+          return (
+            <BookingListItem
+              key={booking.id}
+              isToday={isToday}
+              loggedInUser={{
+                userId: user?.id,
+                userTimeZone: user?.timeZone,
+                userTimeFormat: user?.timeFormat,
+                userEmail: user?.email,
+              }}
+              listingStatus={status}
+              recurringInfo={recurringInfo}
+              {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.uid) })}
+              {...booking}
+            />
+          );
         },
       }),
     ];
@@ -192,7 +203,7 @@ function BookingsListInner({
    * - Deduplicates recurring bookings for recurring/unconfirmed/cancelled tabs
    * - For "upcoming" status, filters out today's bookings (they're shown in separate "Today" section)
    */
-  const flatData = useMemo<RowData[]>(() => {
+  const flatData = useMemo<BookingRowData[]>(() => {
     // For recurring/unconfirmed/cancelled tabs: track recurring series to show only one representative booking per series
     // Key: recurringEventId, Value: array of all bookings in that series
     const shownBookings: Record<string, BookingOutput[]> = {};
@@ -230,7 +241,7 @@ function BookingsListInner({
 
     return (
       data?.bookings.filter(filterBookings).map((booking) => ({
-        type: "data",
+        type: "data" as const,
         booking,
         recurringInfo: data?.recurringInfo.find((info) => info.recurringEventId === booking.recurringEventId),
         isToday: false,
@@ -239,7 +250,7 @@ function BookingsListInner({
   }, [data, status, user?.timeZone]);
 
   // Extract today's bookings for the "Today" section (only used in "upcoming" status)
-  const bookingsToday = useMemo<RowData[]>(() => {
+  const bookingsToday = useMemo<BookingRowData[]>(() => {
     return (data?.bookings ?? [])
       .filter(
         (booking: BookingOutput) =>
@@ -264,13 +275,13 @@ function BookingsListInner({
     // For "upcoming" status, organize into "Today" and "Next" sections
     const merged: RowData[] = [];
     if (bookingsToday.length > 0) {
-      merged.push({ type: "today" as const }, ...bookingsToday);
+      merged.push({ type: "separator" as const, label: t("today") }, ...bookingsToday);
     }
     if (flatData.length > 0) {
-      merged.push({ type: "next" as const }, ...flatData);
+      merged.push({ type: "separator" as const, label: t("next") }, ...flatData);
     }
     return merged;
-  }, [bookingsToday, flatData, status]);
+  }, [bookingsToday, flatData, status, t]);
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
@@ -293,8 +304,13 @@ function BookingsListInner({
     getFacetedUniqueValues,
   });
 
+  const isEmpty = !data?.bookings || data.bookings.length === 0;
+
   return (
     <>
+      {status === "upcoming" && !isEmpty && (
+        <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+      )}
       <BookingsList
         status={status}
         table={table}
@@ -316,30 +332,46 @@ function BookingsListInner({
   );
 }
 
-export function BookingsListContainer({
-  status,
-  permissions,
-  data,
-  isPending,
-  enableDetailsSheet,
-  totalRowCount,
-  ErrorView,
-  hasError,
-}: BookingsListContainerProps) {
-  // Extract bookings from data for BookingDetailsSheet
-  const bookings = useMemo(() => data?.bookings ?? [], [data]);
+export function BookingsListContainer(props: BookingsListContainerProps) {
+  const { limit, offset } = useDataTable();
+  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
+    useBookingFilters();
+
+  const query = trpc.viewer.bookings.get.useQuery(
+    {
+      limit,
+      offset,
+      filters: {
+        statuses: [props.status],
+        eventTypeIds,
+        teamIds,
+        userIds,
+        attendeeName,
+        attendeeEmail,
+        bookingUid,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+      },
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    }
+  );
+
+  const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingsListInner
-        status={status}
-        permissions={permissions}
-        data={data}
-        isPending={isPending}
-        enableDetailsSheet={enableDetailsSheet}
-        totalRowCount={totalRowCount}
-        ErrorView={ErrorView}
-        hasError={hasError}
+        {...props}
+        data={query.data}
+        isPending={query.isPending}
+        hasError={!!query.error}
+        errorMessage={query.error?.message}
+        totalRowCount={query.data?.totalCount}
       />
     </BookingDetailsSheetStoreProvider>
   );

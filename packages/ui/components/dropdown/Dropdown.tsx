@@ -170,7 +170,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.className
       )}>
       <>
-        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
+        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4 shrink-0" />)}
         <div className={classNames("w-full text-left text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>

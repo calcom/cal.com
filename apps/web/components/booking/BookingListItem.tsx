@@ -46,6 +46,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
+import type { BookingAttendee } from "../../modules/bookings/types";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
   useBookingActionsStoreContext,
@@ -150,15 +151,10 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
-  });
+  const attendeeList = booking.attendees.map((attendee) => ({
+    ...attendee,
+    noShow: attendee.noShow || false,
+  }));
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
@@ -497,12 +493,16 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            <BookingActionsDropdown booking={booking} context="list" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {isCancelled && booking.rescheduled && (
+              <div className="hidden items-center md:flex">
+                <RequestSentMessage />
+              </div>
+            )}
             {shouldShowIndividualReportButton(actionContext) && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   variant="icon"
@@ -516,17 +516,13 @@ function BookingListItem(booking: BookingItemProps) {
                 />
               </div>
             )}
-            {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-            {isCancelled && booking.rescheduled && (
-              <div className="hidden h-full items-center md:flex">
-                <RequestSentMessage />
-              </div>
-            )}
+            <BookingActionsDropdown booking={booking} context="list" />
           </div>
         </div>
         <BookingItemBadges
           booking={booking}
           isPending={isPending}
+          isRejected={isRejected}
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
@@ -540,6 +536,7 @@ function BookingListItem(booking: BookingItemProps) {
 const BookingItemBadges = ({
   booking,
   isPending,
+  isRejected,
   recurringDates,
   userTimeFormat,
   userTimeZone,
@@ -547,6 +544,7 @@ const BookingItemBadges = ({
 }: {
   booking: BookingItemProps;
   isPending: boolean;
+  isRejected: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
@@ -567,6 +565,11 @@ const BookingItemBadges = ({
             {t("rescheduled")}
           </Badge>
         </Tooltip>
+      )}
+      {isRejected && !isRescheduled && booking.assignmentReason.length === 0 && (
+        <Badge variant="gray" className="ltr:mr-2 rtl:ml-2">
+          {t("rejected")}
+        </Badge>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
@@ -720,21 +723,13 @@ const FirstAttendee = ({
   );
 };
 
-type AttendeeProps = {
-  name?: string;
-  email: string;
-  phoneNumber: string | null;
-  id: number;
-  noShow: boolean;
-};
-
 type NoShowProps = {
   bookingUid: string;
   isBookingInPast: boolean;
 };
 
-const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber } = attendeeProps;
+const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
+  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber, user } = attendeeProps;
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
@@ -751,6 +746,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
     },
   });
 
+  const displayName = user?.name || name || user?.email || email;
+
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
@@ -760,10 +757,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <>
-              {name || email} <Icon name="eye-off" className="inline h-4" />
+              {displayName} <Icon name="eye-off" className="inline h-4" />
             </>
           ) : (
-            <>{name || email}</>
+            <>{displayName}</>
           )}
         </button>
       </DropdownMenuTrigger>
@@ -818,20 +815,12 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 };
 
 type GroupedAttendeeProps = {
-  attendees: AttendeeProps[];
+  attendees: BookingAttendee[];
   bookingUid: string;
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
-  const { bookingUid } = groupedAttendeeProps;
-  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
-    return {
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    };
-  });
+  const { bookingUid, attendees } = groupedAttendeeProps;
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
@@ -843,11 +832,14 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
       showToast(err.message, "error");
     },
   });
-  const { control, handleSubmit } = useForm<{
-    attendees: AttendeeProps[];
-  }>({
+
+  type FormValues = {
+    attendees: Array<{ id: number; email: string; noShow: boolean }>;
+  };
+
+  const { control, handleSubmit } = useForm<FormValues>({
     defaultValues: {
-      attendees,
+      attendees: attendees.map((a) => ({ id: a.id, email: a.email, noShow: a.noShow || false })),
     },
     mode: "onBlur",
   });
@@ -857,8 +849,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     name: "attendees",
   });
 
-  const onSubmit = (data: { attendees: AttendeeProps[] }) => {
-    const filteredData = data.attendees.slice(1);
+  const onSubmit = (data: FormValues) => {
+    const filteredData = data.attendees.slice(1).map((attendee) => ({
+      email: attendee.email,
+      noShow: attendee.noShow,
+    }));
     noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
   };
@@ -875,30 +870,46 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="min-w-[300px]">
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
         <form onSubmit={handleSubmit(onSubmit)}>
-          {fields.slice(1).map((field, index) => (
-            <Controller
-              key={field.id}
-              name={`attendees.${index + 1}.noShow`}
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <DropdownMenuCheckboxItem
-                  checked={value || false}
-                  onCheckedChange={onChange}
-                  className="pr-8 focus:outline-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onChange(!value);
-                  }}>
-                  <span className={value ? "line-through" : ""}>{field.email}</span>
-                </DropdownMenuCheckboxItem>
-              )}
-            />
-          ))}
+          {fields.slice(1).map((field, index) => {
+            const attendee = attendees[index + 1];
+            const displayName =
+              attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+            const hasName = attendee.name || attendee.user?.name;
+
+            return (
+              <Controller
+                key={field.id}
+                name={`attendees.${index + 1}.noShow`}
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <DropdownMenuCheckboxItem
+                    checked={value || false}
+                    onCheckedChange={onChange}
+                    className="focus:outline-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(!value);
+                    }}>
+                    <div className={`w-full ${value ? "line-through" : ""}`}>
+                      {hasName ? (
+                        <>
+                          <div>{displayName}</div>
+                          <div className="text-subtle text-xs">{field.email}</div>
+                        </>
+                      ) : (
+                        <div>{field.email}</div>
+                      )}
+                    </div>
+                  </DropdownMenuCheckboxItem>
+                )}
+              />
+            );
+          })}
           <DropdownMenuSeparator />
           <div className="flex justify-end p-2">
             <Button
@@ -917,7 +928,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   );
 };
 
-const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
+const GroupedGuests = ({ guests }: { guests: BookingAttendee[] }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
@@ -937,23 +948,37 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="min-w-[300px]">
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
-        {guests.slice(1).map((guest) => (
-          <DropdownMenuItem key={guest.id}>
-            <DropdownItem
-              className="pr-6 focus:outline-none"
-              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedEmail(guest.email);
-              }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
-            </DropdownItem>
-          </DropdownMenuItem>
-        ))}
+        {guests.slice(1).map((guest) => {
+          const displayName = guest.user?.name || guest.name || guest.user?.email || guest.email;
+          const hasName = guest.name || guest.user?.name;
+
+          return (
+            <DropdownMenuItem key={guest.id}>
+              <DropdownItem
+                className="pr-6 focus:outline-none"
+                StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedEmail(guest.email);
+                }}>
+                <div className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>
+                  {hasName ? (
+                    <>
+                      <div>{displayName}</div>
+                      <div className="text-subtle text-xs">{guest.email}</div>
+                    </>
+                  ) : (
+                    <div>{guest.email}</div>
+                  )}
+                </div>
+              </DropdownItem>
+            </DropdownMenuItem>
+          );
+        })}
         <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2">
+        <div className="flex justify-end gap-2 p-2">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"
@@ -988,7 +1013,7 @@ const DisplayAttendees = ({
   bookingUid,
   isBookingInPast,
 }: {
-  attendees: AttendeeProps[];
+  attendees: BookingAttendee[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
@@ -998,7 +1023,7 @@ const DisplayAttendees = ({
   attendees.sort((a, b) => a.id - b.id);
 
   return (
-    <div className="text-emphasis text-sm">
+    <div className="text-emphasis text-sm" onClick={(e) => e.stopPropagation()}>
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
       <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />

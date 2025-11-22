@@ -7,6 +7,7 @@ import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
@@ -581,7 +582,7 @@ export function BookingActionsDropdown({
             color="secondary"
             size={size}
             StartIcon="ellipsis"
-            className={className}
+            className={classNames("px-2", className)}
             // Prevent click from bubbling to parent row/container click handlers
             onClick={(e) => e.stopPropagation()}
           />

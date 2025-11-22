@@ -22,7 +22,9 @@ type GetOptions = {
   take: number;
   skip: number;
   filters: {
+    // Support both singular 'status' (for API v2) and plural 'statuses' (/bookings page)
     status?: InputByStatus;
+    statuses?: InputByStatus[];
     teamIds?: number[] | undefined;
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
@@ -36,12 +38,18 @@ type GetOptions = {
 const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
   const { prisma, user, kysely } = ctx;
 
+  // Support both singular 'status' and plural 'statuses' for backward compatibility
+  const statusesFilter = filters.statuses ?? (filters.status ? [filters.status] : bookingListingByStatus);
+
   const { bookings, recurringInfo, totalCount } = await getBookings({
     user,
     prisma,
     kysely,
     bookingListingByStatus,
-    filters: filters,
+    filters: {
+      ...filters,
+      statuses: statusesFilter,
+    },
     sort,
     take,
     skip,

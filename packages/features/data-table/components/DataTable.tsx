@@ -362,7 +362,7 @@ function DataTableBody<TData>({
 
   return (
     <TableBody
-      className="border-subtle relative grid border-t"
+      className="border-muted relative grid border-t"
       data-testid={testId}
       style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => {
@@ -382,7 +382,7 @@ function DataTableBody<TData>({
                   transform: `translateY(${virtualItem.start}px)`,
                 }),
               }}
-              className="hover:bg-subtle border-subtle flex w-full border-b">
+              className="hover:bg-subtle border-muted flex w-full border-b">
               <SeparatorRowRenderer separator={row.original as SeparatorRow} className={separatorClassName} />
             </TableRow>
           );
