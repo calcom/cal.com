@@ -14,7 +14,7 @@ import type { OrganizationBranding } from "@calcom/features/ee/organizations/con
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
-import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import { AVATAR_FALLBACK, HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -605,8 +605,11 @@ const SettingsSidebarContainer = ({
                           width={16}
                           height={16}
                           className="rounded-full ltr:mr-3 rtl:ml-3"
-                          src={tab?.avatar}
+                          src={tab.avatar}
                           alt="Organization Logo"
+                          onError={(error) => {
+                            error.currentTarget.src = AVATAR_FALLBACK;
+                          }}
                         />
                       )}
                       <Skeleton
