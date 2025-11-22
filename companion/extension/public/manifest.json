@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Cal.com Companion",
+  "version": "1.7.0",
+  "description": "Your calendar companion for quick booking and scheduling",
+  "permissions": ["activeTab", "http://localhost:8081/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
+  },
+  "action": {
+    "default_title": "Cal.com Companion"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content-scripts/content.js"]
+  }]
+}
