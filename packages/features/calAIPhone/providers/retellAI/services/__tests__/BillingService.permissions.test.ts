@@ -51,8 +51,8 @@ describe("BillingService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.create"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
     });
   });
@@ -74,8 +74,8 @@ describe("BillingService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findById).not.toHaveBeenCalled();
@@ -138,8 +138,8 @@ describe("BillingService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findById).toHaveBeenCalledWith(1);

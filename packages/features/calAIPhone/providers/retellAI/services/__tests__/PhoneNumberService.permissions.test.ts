@@ -63,8 +63,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.create"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockRetellRepository.importPhoneNumber).not.toHaveBeenCalled();
@@ -97,8 +97,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.create"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.create",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockRetellRepository.importPhoneNumber).toHaveBeenCalled();
@@ -124,8 +124,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
@@ -156,8 +156,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalled();
@@ -242,8 +242,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
@@ -275,8 +275,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.delete"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
@@ -303,8 +303,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.update"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
@@ -346,8 +346,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.update"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.updateAgents).toHaveBeenCalledWith({
@@ -485,8 +485,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.update"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
@@ -529,8 +529,8 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
         userId: 1,
         teamId: 42,
-        permissions: ["phoneNumber.update"],
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        permission: "phoneNumber.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
       });
 
       expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");

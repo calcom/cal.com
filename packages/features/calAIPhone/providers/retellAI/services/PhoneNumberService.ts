@@ -42,8 +42,8 @@ export class PhoneNumberService {
     if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
-      permissions: ["phoneNumber.create"],
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      permission: "phoneNumber.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     })) {
       throw new HttpError({
         statusCode: 403,
@@ -138,8 +138,8 @@ export class PhoneNumberService {
     if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
-      permissions: ["phoneNumber.delete"],
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      permission: "phoneNumber.delete",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     })) {
       throw new HttpError({
         statusCode: 403,
@@ -276,8 +276,8 @@ export class PhoneNumberService {
     if (teamId && !await this.deps.permissionService.checkPermissions({
       userId,
       teamId,
-      permissions: ["phoneNumber.update"],
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      permission: "phoneNumber.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     })) {
       throw new HttpError({
         statusCode: 403,
