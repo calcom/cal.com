@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -86,7 +85,6 @@ export type EventAdvancedTabCustomClassNames = {
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
-  canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
   eventDetailsVisibility?: SettingsToggleClassNames;
   bookingRedirect?: SettingsToggleClassNames & {
@@ -518,7 +516,6 @@ export const EventAdvancedTab = ({
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
-  const sendCalVideoTranscriptionEmailsProps = shouldLockDisableProps("canSendCalVideoTranscriptionEmails");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const hideCalendarEventDetailsLocked = shouldLockDisableProps("hideCalendarEventDetails");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
@@ -743,29 +740,6 @@ export const EventAdvancedTab = ({
         </>
       )}
 
-      <Controller
-        name="canSendCalVideoTranscriptionEmails"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames(
-              "text-sm",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.label
-            )}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.container
-            )}
-            title={t("send_cal_video_transcription_emails")}
-            data-testid="send-cal-video-transcription-emails"
-            {...sendCalVideoTranscriptionEmailsProps}
-            description={t("description_send_cal_video_transcription_emails")}
-            descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
       {!isPlatform && (
         <Controller
           name="autoTranslateDescriptionEnabled"
