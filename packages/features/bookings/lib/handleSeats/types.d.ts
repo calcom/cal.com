@@ -68,6 +68,7 @@ export type HandleSeatsResultBooking =
       appsStatus?: AppsStatus[];
       seatReferenceUid?: string;
       paymentUid?: string;
+      paymentLink?: string;
       message?: string;
       paymentId?: number;
     })

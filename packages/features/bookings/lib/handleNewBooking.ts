@@ -1389,13 +1389,17 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: !!newBooking.paymentUid,
         isDryRun: isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+
+        paymentRequired: bookingResponse.paymentRequired,
+        paymentUid: newBooking.paymentUid,
+        paymentLink: newBooking?.paymentLink,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2165,6 +2169,7 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      responses: reqBody.responses
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

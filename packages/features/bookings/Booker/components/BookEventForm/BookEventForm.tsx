@@ -13,9 +13,12 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { Time } from "@calcom/lib/timeFormat";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
+import {type Timezone} from "../../types.ts"
 import { useBookerStore } from "../../store";
 import { formatEventFromTime } from "../../utils/dates";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
@@ -62,6 +65,7 @@ export const BookEventForm = ({
   confirmButtonDisabled,
   classNames,
   billingAddressRequired = false,
+  timezone
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -69,6 +73,7 @@ export const BookEventForm = ({
     data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
   };
   billingAddressRequired: boolean;
+  timezone: Timezone;
 }) => {
   const eventType = eventQuery.data;
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -184,7 +189,7 @@ export const BookEventForm = ({
                 dataError: errors.dataErrors,
                 t,
                 responseVercelIdHeader,
-                timeFormat,
+                timeFormat: TimeFormat.TWELVE_HOUR,
                 timezone,
                 language: i18n.language,
               })}
