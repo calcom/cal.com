@@ -7,6 +7,8 @@ export interface OverlapLayoutConfig {
   offsetStepPercent?: number;
   baseZIndex?: number;
   safetyMarginPercent?: number;
+  minWidthPercent?: number;
+  curveExponent?: number;
 }
 
 export interface EventLayout {
@@ -20,10 +22,89 @@ export interface EventLayout {
 
 const DEFAULT_CONFIG: Required<OverlapLayoutConfig> = {
   baseWidthPercent: 80,
-  offsetStepPercent: 8,
+  offsetStepPercent: 8, // This will be dynamically adjusted based on group size
   baseZIndex: 60,
   safetyMarginPercent: 0.5,
+  minWidthPercent: 25,
+  curveExponent: 1.3,
 };
+
+/**
+ * Calculates the optimal offset step percentage based on the number of overlapping events
+ * More events = smaller offset for tighter packing
+ * Fewer events = larger offset for better visual distinction
+ * 
+ * @param groupSize - Number of overlapping events in the group
+ * @param baseOffsetStep - The base offset step percentage (default 8%)
+ * @returns The calculated offset step percentage
+ */
+function calculateDynamicOffsetStep(groupSize: number, baseOffsetStep: number): number {
+  if (groupSize <= 1) {
+    return 0;
+  }
+  
+  if (groupSize === 2) {
+    return 15;
+  }
+  
+  if (groupSize === 3) {
+    return 10;
+  }
+  
+  if (groupSize === 4) {
+    return baseOffsetStep;
+  }
+  
+  return Math.max(3, baseOffsetStep * (4 / groupSize));
+}
+
+/**
+ * Calculates variable widths for each event in a cascade based on position
+ * Leftmost (longest) events get more width, rightmost (shortest) get less width
+ * Uses anchor points for 2-4 events and smooth easing curve for 5+ events
+ * 
+ * @param groupSize - Number of overlapping events in the group
+ * @param minWidthPercent - Minimum width to maintain readability (default 25%)
+ * @param curveExponent - Easing curve exponent for width distribution (default 1.3)
+ * @returns Array of width percentages, one for each position in the cascade
+ */
+function calculateVariableWidths(
+  groupSize: number,
+  minWidthPercent: number,
+  curveExponent: number
+): number[] {
+  if (groupSize <= 1) {
+    return [100]; // Single event gets full width (100%)
+  }
+  
+  // Define anchor points for first and last widths based on group size
+  let wFirst: number;
+  let wLast: number;
+  
+  if (groupSize === 2) {
+    wFirst = 80;
+    wLast = 50;
+  } else if (groupSize === 3) {
+    wFirst = 55;
+    wLast = 33;
+  } else if (groupSize === 4) {
+    wFirst = 40;
+    wLast = 25;
+  } else {
+    wFirst = Math.max(30, 40 - 3 * (groupSize - 4));
+    wLast = minWidthPercent;
+  }
+  
+  const widths: number[] = [];
+  for (let i = 0; i < groupSize; i++) {
+    const t = groupSize > 1 ? i / (groupSize - 1) : 0;
+    const easedT = Math.pow(1 - t, curveExponent);
+    const width = wLast + (wFirst - wLast) * easedT;
+    widths.push(Math.max(minWidthPercent, width));
+  }
+  
+  return widths;
+}
 
 /**
  * Rounds a number to 3 decimal places using standard rounding
@@ -102,7 +183,7 @@ export function calculateEventLayouts(
   events: CalendarEvent[],
   config: OverlapLayoutConfig = {}
 ): EventLayout[] {
-  const { baseWidthPercent, offsetStepPercent, baseZIndex, safetyMarginPercent } = {
+  const { baseWidthPercent, offsetStepPercent, baseZIndex, safetyMarginPercent, minWidthPercent, curveExponent } = {
     ...DEFAULT_CONFIG,
     ...config,
   };
@@ -114,30 +195,81 @@ export function calculateEventLayouts(
 
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
-    const allowedOffsetSpace = Math.max(0, 100 - baseWidthPercent - safetyMarginPercent);
-    const stepUsed = Math.min(
-      offsetStepPercent,
-      allowedOffsetSpace / Math.max(1, groupSize - 1)
-    );
-
-    group.forEach((event, indexInGroup) => {
-      const leftRaw = indexInGroup * stepUsed;
-      const left = round3(leftRaw);
+    
+    const useCustomWidth = config.baseWidthPercent !== undefined;
+    const useCustomOffset = config.offsetStepPercent !== undefined;
+    
+    const widths = useCustomWidth 
+      ? Array(groupSize).fill(baseWidthPercent)
+      : calculateVariableWidths(groupSize, minWidthPercent, curveExponent);
+    
+    const Rmax = 100 - safetyMarginPercent;
+    
+    if (useCustomOffset) {
+      const defaultOffsetStep = calculateDynamicOffsetStep(groupSize, offsetStepPercent);
       
-      const maxWidthCap = 100 - left - safetyMarginPercent;
-      const widthCap = Math.min(baseWidthPercent, maxWidthCap);
+      let stepUsed = defaultOffsetStep;
+      for (let i = 1; i < groupSize; i++) {
+        const allowedSpace = Math.max(0, 100 - widths[i] - safetyMarginPercent);
+        const maxStepForThisEvent = allowedSpace / i;
+        stepUsed = Math.min(stepUsed, maxStepForThisEvent);
+      }
       
-      const width = floor3(Math.max(0, widthCap));
+      stepUsed = Math.min(offsetStepPercent, stepUsed);
 
-      layouts.push({
-        event,
-        leftOffsetPercent: left,
-        widthPercent: width,
-        baseZIndex: baseZIndex + indexInGroup,
-        groupIndex,
-        indexInGroup,
+      group.forEach((event, indexInGroup) => {
+        const leftRaw = indexInGroup * stepUsed;
+        const left = round3(leftRaw);
+        
+        const maxWidthCap = 100 - left - safetyMarginPercent;
+        const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
+        
+        const width = floor3(Math.max(0, widthCap));
+
+        layouts.push({
+          event,
+          leftOffsetPercent: left,
+          widthPercent: width,
+          baseZIndex: baseZIndex + indexInGroup,
+          groupIndex,
+          indexInGroup,
+        });
       });
-    });
+    } else {
+      if (groupSize === 1) {
+        const width = floor3(Math.min(widths[0], Rmax));
+        layouts.push({
+          event: group[0],
+          leftOffsetPercent: 0,
+          widthPercent: width,
+          baseZIndex: baseZIndex,
+          groupIndex,
+          indexInGroup: 0,
+        });
+      } else {
+        const Rmin = widths[0];
+        
+        group.forEach((event, indexInGroup) => {
+          const t = indexInGroup / (groupSize - 1);
+          const ri = Rmin + (Rmax - Rmin) * t;
+          const leftRaw = ri - widths[indexInGroup];
+          const left = round3(leftRaw);
+          
+          const maxWidthCap = Rmax - left;
+          const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
+          const width = floor3(Math.max(0, widthCap));
+
+          layouts.push({
+            event,
+            leftOffsetPercent: left,
+            widthPercent: width,
+            baseZIndex: baseZIndex + indexInGroup,
+            groupIndex,
+            indexInGroup,
+          });
+        });
+      }
+    }
   });
 
   return layouts;
