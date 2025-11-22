@@ -34,7 +34,7 @@ export const getLocale = async (
     if (typeof window === "undefined") {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mod = await import("@calcom/prisma") as any;
+        const mod = (await import("@calcom/prisma")) as any;
         const serverPrisma = mod.prisma ?? mod.default;
 
         const user = await serverPrisma.user.findFirst({
@@ -42,14 +42,14 @@ export const getLocale = async (
           select: { locale: true },
         });
 
-
         if (user) {
           // User found - return their locale or default to "en" if null
           return user.locale || "en";
         }
       } catch (error) {
         // Silently fail and fallback to token/browser locale
-        console.error("[getLocale] Failed to fetch user locale", error);
+        // Log only the error message to avoid exposing PII from the query context
+        console.error("[getLocale] Failed to fetch user locale:", error instanceof Error ? error.message : "Unknown error");
       }
     }
   }

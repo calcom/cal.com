@@ -9,43 +9,12 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { isReservedRoute } from "@lib/reservedRoutes";
 
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
+import { extractUsernameFromPathname } from "./lib/extractUsernameFromPathname";
 import { Providers } from "./providers";
-
-/**
- * Extracts the username from a pathname for booking page locale detection.
- * Handles various URL patterns including org-based routes.
- */
-export function extractUsernameFromPathname(pathname: string): string | undefined {
-  if (!pathname) return undefined;
-
-  const pathSegments = pathname.split("/").filter(Boolean);
-
-  if (pathSegments.length === 0) return undefined;
-
-  const firstSegment = pathSegments[0];
-
-  // For /[username] and /[username]/[type]
-  // Don't treat reserved routes as usernames
-  if (!isReservedRoute(firstSegment)) {
-    return firstSegment;
-  }
-
-  // For /org/[orgSlug]/[username] - org is reserved, so we need special handling
-  // to extract the username at position [2]
-  if (firstSegment === "org" && pathSegments.length > 2) {
-    const potentialUsername = pathSegments[2];
-    if (!isReservedRoute(potentialUsername)) {
-      return potentialUsername;
-    }
-  }
-
-  return undefined;
-}
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -120,7 +89,6 @@ const getInitialProps = async () => {
   // Pathname format: /[username] or /[username]/[eventType] or /org/[orgSlug]/[username], etc.
   const pathname = h.get("x-pathname") || "";
   const username = extractUsernameFromPathname(pathname);
-
 
   const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()), username)) ?? "en";
   const direction = dir(newLocale) ?? "ltr";

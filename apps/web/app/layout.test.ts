@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractUsernameFromPathname } from "./layout";
+import { extractUsernameFromPathname } from "./lib/extractUsernameFromPathname";
 
 describe("Username extraction from pathname", () => {
   describe("Valid booking page paths", () => {
