@@ -7,6 +7,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreationSource } from "@calcom/platform-libraries";
 import type { Profile, User, Team, Prisma } from "@calcom/prisma/client";
 
+import { userMetadata } from "@calcom/platform-libraries";
+
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
   profiles?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> })[];
@@ -292,22 +294,26 @@ export class UsersRepository {
     return profiles.map((profile: Profile & { user: User }) => profile.user);
   }
 
-  async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
+  async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string, credentialId?: number) {
     const user = await this.findById(userId);
 
     if (!user) {
       throw new NotFoundException("user not found");
     }
 
+    const metadata = userMetadata.parse(user?.metadata);
+
+
     return await this.dbWrite.prisma.user.update({
       data: {
         metadata:
-          typeof user.metadata === "object"
+          typeof metadata === "object"
             ? {
-                ...user.metadata,
+                ...metadata,
                 defaultConferencingApp: {
                   appSlug: appSlug,
                   appLink: appLink,
+                  credentialId: credentialId,
                 },
               }
             : {},
