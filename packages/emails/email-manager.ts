@@ -99,7 +99,8 @@ const _sendScheduledEmailsAndSMS = async (
                   title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
                 }),
               },
-              attendee
+              attendee,
+              formattedCalEvent.seatsShowAttendees ?? undefined
             )
         );
       })
@@ -530,7 +531,6 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   const awaitingPaymentSMS = new AwaitingPaymentSMS(calEvent);
   await awaitingPaymentSMS.sendSMSToAttendees();
 };
-
 
 export const sendRequestRescheduleEmailAndSMS = async (
   calEvent: CalendarEvent,

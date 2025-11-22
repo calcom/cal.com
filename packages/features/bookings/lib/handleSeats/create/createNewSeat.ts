@@ -126,7 +126,13 @@ const createNewSeat = async (
   }
   const copyEvent = cloneDeep(evt);
   copyEvent.uid = seatedBooking.uid;
-  if (noEmail !== true) {
+  
+  // Check if payment is required BEFORE sending emails
+  const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking;
+  
+  // Only send confirmation emails if payment is NOT required
+  // If payment is required, emails will be sent after payment is completed via handlePaymentSuccess
+  if (noEmail !== true && !requiresPayment) {
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
@@ -158,7 +164,7 @@ const createNewSeat = async (
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 
-  if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
+  if (requiresPayment) {
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
         ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
