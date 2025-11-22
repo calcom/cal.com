@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // vite.config.ts
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";

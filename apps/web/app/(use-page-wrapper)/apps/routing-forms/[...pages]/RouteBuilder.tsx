@@ -1,11 +1,11 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";

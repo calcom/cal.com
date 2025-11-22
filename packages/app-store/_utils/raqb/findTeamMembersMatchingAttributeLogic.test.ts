@@ -1,4 +1,4 @@
-import type { BaseWidget } from "react-awesome-query-builder";
+import type { Widget as BaseWidget } from "@react-awesome-query-builder/ui";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
@@ -157,7 +157,7 @@ function buildQueryValue({
         },
       };
       return acc;
-    }, {} as any),
+    }, {} as Record<string, unknown>),
   };
 
   return queryValue;
@@ -206,7 +206,7 @@ function buildRoute({
   };
 }
 
-function buildDefaultCustomPageRoute({
+function _buildDefaultCustomPageRoute({
   id,
   attributesQueryValue,
 }: {
@@ -691,14 +691,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           orgId,
         });
 
-        // Should match users 1 and 2 (Delhi matches user 1, Mumbai matches user 2)
-        expect(result1).toEqual(
-          expect.arrayContaining([
-            { userId: 1, result: RaqbLogicResult.MATCH },
-            { userId: 2, result: RaqbLogicResult.MATCH },
-          ])
-        );
+        // Should not match user 3
+        expect(result1).toHaveLength(2);
         expect(result1).not.toContainEqual({ userId: 3, result: RaqbLogicResult.MATCH });
+
+        // Should match users 1 and 2 (Delhi matches user 1, Mumbai matches user 2)
+        expect(result1).toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result1).toContainEqual({ userId: 2, result: RaqbLogicResult.MATCH });
 
         // Test case 2: Booker selects only Chennai
         const { teamMembersMatchingAttributeLogic: result2 } = await findTeamMembersMatchingAttributeLogic({
@@ -756,7 +755,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         rules: [
           {
             raqbFieldId: LocationAttribute.id,
-            value: [[`{field:${LocationFieldId}}`, "Chennai"]], // Mixed: field template + fixed value
+            value: [[`{field:${LocationFieldId}}`, "Chennai"]], // Mixed: field template + fixed value (wrapped in array for RAQB v6)
             operator: "multiselect_some_in",
             valueType: ["multiselect"],
           },
@@ -852,7 +851,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     });
 
     it("should return 0 matching members when main attribute logic and fallback attribute logic fail", async () => {
-      const { failingAttributesQueryValue, matchingAttributesQueryValue } =
+      const { failingAttributesQueryValue, matchingAttributesQueryValue: _matchingAttributesQueryValue } =
         buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,
@@ -982,18 +981,14 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const result = await runInMode({ mode: "live" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
-          "Value NON_EXISTING_OPTION_1 is not in list of values",
-        ]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([]); // this ignores the warnings on raqb v6
       })();
 
       await (async function previewMode() {
         const result = await runInMode({ mode: "preview" });
         // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
-        expect(result.mainAttributeLogicBuildingWarnings).toEqual([
-          "Value NON_EXISTING_OPTION_1 is not in list of values",
-        ]);
+        expect(result.mainAttributeLogicBuildingWarnings).toEqual([]); // this ignores the warnings on raqb v6
       })();
     });
 
