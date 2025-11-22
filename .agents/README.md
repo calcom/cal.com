@@ -72,6 +72,8 @@ Cal.com is a monorepo using Yarn workspaces and Turbo for build orchestration. T
 - **E2E tests** with Playwright
 - Test files use `.test.ts` or `.spec.ts` extensions
 
+Check `@scripts/seed.ts` to discover the accounts you can use to sign in to the app in dev mode.
+
 ## Pull Request Guidelines
 
 For large PRs (>500 lines or >10 files):
