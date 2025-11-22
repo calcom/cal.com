@@ -62,6 +62,23 @@ const organizationWithSettingsSelect = {
   },
 };
 
+const organizationWithSettingsAndMembersSelect = {
+  ...organizationSelect,
+  isPrivate: true,
+  organizationSettings: {
+    select: {
+      lockEventTypeCreationForUsers: true,
+      allowSEOIndexing: true,
+    },
+  },
+  members: {
+    select: membershipSelect,
+    where: {
+      accepted: true,
+    },
+  },
+};
+
 const profileSelect = {
   id: true,
   uid: true,
@@ -130,10 +147,22 @@ export class ProfileRepository {
         id: parseInt(upId.replace("usr-", "")),
       } as const;
     }
-    return {
-      type: LookupTarget.Profile,
-      id: parseInt(upId),
-    } as const;
+    if (upId.startsWith("prof-")) {
+      // UUID-based profile identifier (new secure format)
+      return {
+        type: LookupTarget.Profile,
+        uid: upId.replace("prof-", ""),
+      } as const;
+    }
+    // Legacy support: numeric profile ID (deprecated, kept for backward compatibility)
+    const numericId = parseInt(upId);
+    if (!isNaN(numericId)) {
+      return {
+        type: LookupTarget.Profile,
+        id: numericId,
+      } as const;
+    }
+    throw new Error(`Invalid upId format: ${upId}`);
   }
 
   private static async _create({
@@ -435,10 +464,46 @@ export class ProfileRepository {
     return profile;
   }
 
-  static async findByUpId(upId: string) {
+  static async findByUid(uid: string) {
+    const profile = await prisma.profile.findFirst({
+      where: {
+        uid,
+      },
+      include: {
+        user: {
+          select: userSelect,
+        },
+        movedFromUser: {
+          select: {
+            id: true,
+          },
+        },
+        organization: {
+          select: organizationWithSettingsAndMembersSelect,
+        },
+      },
+    });
+
+    if (!profile) {
+      return null;
+    }
+
+    return normalizeProfile(profile);
+  }
+
+  static async findByUpId(upId: string, userId: number) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    log.debug("findByUpId", safeStringify({ upId, lookupTarget }));
+    log.debug("findByUpId", safeStringify({ upId, lookupTarget, userId }));
+
     if (lookupTarget.type === LookupTarget.User) {
+      // For user profiles, only allow access if userId matches
+      if (lookupTarget.id !== userId) {
+        log.warn(
+          "Unauthorized access attempt to user profile",
+          safeStringify({ upId, userId, targetUserId: lookupTarget.id })
+        );
+        return null;
+      }
       const user = await this.findUserByid({ id: lookupTarget.id });
       if (!user) {
         return null;
@@ -453,11 +518,94 @@ export class ProfileRepository {
       };
     }
 
-    const profile = await ProfileRepository.findById(lookupTarget.id);
-    if (!profile) {
+    let rawProfile;
+    if ("uid" in lookupTarget) {
+      // UUID-based lookup (new secure format)
+      if (!lookupTarget.uid) {
+        return null;
+      }
+      rawProfile = await prisma.profile.findFirst({
+        where: { uid: lookupTarget.uid },
+        include: {
+          user: { select: userSelect },
+          organization: {
+            select: organizationWithSettingsAndMembersSelect,
+          },
+        },
+      });
+    } else {
+      // Legacy numeric ID lookup (deprecated)
+      rawProfile = await prisma.profile.findUnique({
+        where: { id: lookupTarget.id },
+        include: {
+          user: { select: userSelect },
+          movedFromUser: { select: { id: true } },
+          organization: {
+            select: {
+              id: true,
+              logoUrl: true,
+              name: true,
+              slug: true,
+              metadata: true,
+              bannerUrl: true,
+              isPrivate: true,
+              isPlatform: true,
+              hideBranding: true,
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                  allowSEOIndexing: true,
+                },
+              },
+              members: {
+                select: membershipSelect,
+                where: {
+                  accepted: true,
+                  user: { profiles: { some: { id: lookupTarget.id } } },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (!rawProfile) {
       return null;
     }
-    const user = profile.user;
+
+    // Authorization check: verify user has access to this profile
+    const profileId = rawProfile.id;
+    const organizationId = rawProfile.organizationId;
+
+    if (profileId && organizationId) {
+      const hasAccess = await ProfileRepository.checkUserAccessToProfile({
+        userId,
+        profileId,
+        organizationId,
+      });
+
+      if (!hasAccess) {
+        log.warn(
+          "Unauthorized access attempt to profile",
+          safeStringify({ upId, userId, profileId, organizationId })
+        );
+        return null;
+      }
+    } else if (profileId) {
+      // For personal profiles, check if user owns it
+      if (rawProfile.userId !== userId) {
+        log.warn("Unauthorized access attempt to profile", safeStringify({ upId, userId, profileId }));
+        return null;
+      }
+    }
+
+    const profile = normalizeProfile(rawProfile);
+    const user = rawProfile.user;
+
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
       return {
         ...this.buildPersonalProfileFromUser({ user }),
@@ -468,6 +616,41 @@ export class ProfileRepository {
       ...profile,
       ...ProfileRepository.getInheritedDataFromUser({ user }),
     };
+  }
+
+  private static async checkUserAccessToProfile({
+    userId,
+    profileId,
+    organizationId,
+  }: {
+    userId: number;
+    profileId: number | null;
+    organizationId: number | null;
+  }): Promise<boolean> {
+    if (!profileId || !organizationId) {
+      return false;
+    }
+
+    // Check if user owns the profile
+    const profile = await prisma.profile.findUnique({
+      where: { id: profileId },
+      select: { userId: true },
+    });
+
+    if (profile?.userId === userId) {
+      return true;
+    }
+
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: organizationId,
+        accepted: true,
+      },
+      select: { id: true },
+    });
+
+    return !!membership;
   }
 
   static async findById(id: number | null) {
@@ -509,7 +692,6 @@ export class ProfileRepository {
               },
             },
             members: {
-              distinct: ["role"],
               select: membershipSelect,
               where: {
                 accepted: true,
@@ -753,6 +935,7 @@ export class ProfileRepository {
 export const normalizeProfile = <
   T extends {
     id: number;
+    uid: string;
     organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt?: Date;
     updatedAt?: Date;
@@ -762,7 +945,7 @@ export const normalizeProfile = <
 ) => {
   return {
     ...profile,
-    upId: profile.id.toString(),
+    upId: `prof-${profile.uid}`,
     organization: getParsedTeam(profile.organization),
     // Make these ↓ props ISO strings so that they can be returned from getServerSideProps as is without any issues
     ...(profile.createdAt ? { createdAt: profile.createdAt.toISOString() } : null),

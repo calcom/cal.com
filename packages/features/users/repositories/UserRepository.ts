@@ -452,7 +452,7 @@ export class UserRepository {
     user: T;
     upId: UpId;
   }) {
-    const profile = await ProfileRepository.findByUpId(upId);
+    const profile = await ProfileRepository.findByUpId(upId, user.id);
     if (!profile) {
       return {
         ...user,
