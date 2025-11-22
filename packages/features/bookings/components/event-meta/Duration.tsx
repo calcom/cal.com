@@ -45,10 +45,11 @@ export const EventDuration = ({
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const isPlatform = useIsPlatform();
-  const [selectedDuration, setSelectedDuration, state] = useBookerStoreContext((state) => [
+  const [selectedDuration, setSelectedDuration, state, rescheduleUid] = useBookerStoreContext((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
     state.state,
+    state.rescheduleUid,
   ]);
 
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -70,9 +71,16 @@ export const EventDuration = ({
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
     // Only store event duration in url if event has multiple durations.
-    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
+    if (!rescheduleUid && !selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
       setSelectedDuration(event.length);
-  }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
+  }, [
+    selectedDuration,
+    setSelectedDuration,
+    event.metadata?.multipleDuration,
+    event.length,
+    isDynamicEvent,
+    rescheduleUid,
+  ]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
