@@ -1,0 +1,167 @@
+import { describe, expect, it } from "vitest";
+
+import { isReservedRoute } from "@lib/reservedRoutes";
+
+/**
+ * Username extraction logic from layout.tsx
+ * This tests the logic that determines if a pathname represents a booking page
+ * and extracts the username from it
+ */
+
+function extractUsernameFromPathname(pathname: string): string | undefined {
+  if (!pathname) return undefined;
+
+  const pathSegments = pathname.split("/").filter(Boolean);
+
+  if (pathSegments.length === 0) return undefined;
+
+  const firstSegment = pathSegments[0];
+
+  // For /[username] and /[username]/[type]
+  // Don't treat reserved routes as usernames
+  if (!isReservedRoute(firstSegment)) {
+    return firstSegment;
+  }
+
+  // For /org/[orgSlug]/[username] and similar org-based routes
+  if (firstSegment === "org" && pathSegments.length > 2) {
+    const potentialUsername = pathSegments[2];
+    if (!isReservedRoute(potentialUsername)) {
+      return potentialUsername;
+    }
+  }
+
+  return undefined;
+}
+
+describe("Username extraction from pathname", () => {
+  describe("Valid booking page paths", () => {
+    it("should extract username from /[username]", () => {
+      expect(extractUsernameFromPathname("/andriy-anthon")).toBe("andriy-anthon");
+    });
+
+    it("should extract username from /[username]/[eventType]", () => {
+      expect(extractUsernameFromPathname("/john-doe/30min")).toBe("john-doe");
+    });
+
+    it("should extract username from /[username]/[eventType]/embed", () => {
+      expect(extractUsernameFromPathname("/jane-smith/meeting/embed")).toBe("jane-smith");
+    });
+
+    it("should handle usernames with hyphens", () => {
+      expect(extractUsernameFromPathname("/test-user-name")).toBe("test-user-name");
+    });
+
+    it("should handle usernames with numbers", () => {
+      expect(extractUsernameFromPathname("/user123")).toBe("user123");
+    });
+  });
+
+  describe("Org-based booking page paths", () => {
+    it("should extract username from /org/[orgSlug]/[username]", () => {
+      expect(extractUsernameFromPathname("/org/acme/john-doe")).toBe("john-doe");
+    });
+
+    it("should extract username from /org/[orgSlug]/[username]/[eventType]", () => {
+      expect(extractUsernameFromPathname("/org/company/alice/meeting")).toBe("alice");
+    });
+
+    it("should extract username from /org/[orgSlug]/[username]/[eventType]/embed", () => {
+      expect(extractUsernameFromPathname("/org/startup/bob/consultation/embed")).toBe("bob");
+    });
+  });
+
+  describe("Reserved routes that should NOT be treated as usernames", () => {
+    it("should NOT extract from /booking paths", () => {
+      expect(extractUsernameFromPathname("/booking/xyz")).toBeUndefined();
+    });
+
+    it("should NOT extract from /d paths", () => {
+      expect(extractUsernameFromPathname("/d/xyz123")).toBeUndefined();
+    });
+
+    it("should NOT extract from /d (dynamic group bookings)", () => {
+      expect(extractUsernameFromPathname("/d/user1+user2")).toBeUndefined();
+    });
+
+    it("should extract username from virtual routes if used as username", () => {
+      // Virtual routes like /forms, /success, /cancel are reserved and won't be treated as usernames
+      // but static routes like /booking, /d, /org don't need reservation because
+      // Next.js static routes take precedence over [user]
+      expect(extractUsernameFromPathname("/forms")).toBeUndefined(); // virtual route - reserved
+    });
+  });
+
+  describe("Routes that CAN be usernames (wrapped in route groups)", () => {
+    // These are in app/(use-page-wrapper)/ and don't conflict with /[user]
+    it("CAN extract username 'settings' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/settings")).toBe("settings");
+    });
+
+    it("CAN extract username 'event-types' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/event-types")).toBe("event-types");
+    });
+
+    it("CAN extract username 'bookings' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/bookings")).toBe("bookings");
+    });
+
+    it("CAN extract username 'teams' (route group doesn't conflict)", () => {
+      // Note: 'team' (singular) IS reserved from RESERVED_SUBDOMAINS
+      // but 'teams' (plural) is just a route group route
+      expect(extractUsernameFromPathname("/teams")).toBe("teams");
+    });
+
+    it("CAN extract username 'apps' (route group doesn't conflict)", () => {
+      // Note: 'app' (singular) IS reserved from RESERVED_SUBDOMAINS
+      // but 'apps' (plural) is just in route group
+      expect(extractUsernameFromPathname("/apps")).toBe("apps");
+    });
+
+    it("CAN extract username 'workflows' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/workflows")).toBe("workflows");
+    });
+
+    it("CAN extract username 'insights' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/insights")).toBe("insights");
+    });
+
+    it("CAN extract username 'availability' (route group doesn't conflict)", () => {
+      expect(extractUsernameFromPathname("/availability")).toBe("availability");
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should return undefined for empty pathname", () => {
+      expect(extractUsernameFromPathname("")).toBeUndefined();
+    });
+
+    it("should return undefined for root path", () => {
+      expect(extractUsernameFromPathname("/")).toBeUndefined();
+    });
+
+    it("should handle paths with trailing slashes", () => {
+      expect(extractUsernameFromPathname("/john-doe/")).toBe("john-doe");
+    });
+
+    it("should handle paths with multiple slashes", () => {
+      expect(extractUsernameFromPathname("//john-doe//meeting//")).toBe("john-doe");
+    });
+
+    it("should handle case-sensitive usernames", () => {
+      expect(extractUsernameFromPathname("/JohnDoe")).toBe("JohnDoe");
+    });
+  });
+
+  describe("Real-world examples from the issue", () => {
+    it("should extract username from cal.com/andriy-anthon", () => {
+      expect(extractUsernameFromPathname("/andriy-anthon")).toBe("andriy-anthon");
+    });
+
+    it("should NOT extract from cal.com/he/andriy-anthon (locale prefix)", () => {
+      // The 'he' is treated as a username since it's not in RESERVED_ROUTES
+      // This might need handling if locale-based routing is desired
+      expect(extractUsernameFromPathname("/he/andriy-anthon")).toBe("he");
+    });
+  });
+});

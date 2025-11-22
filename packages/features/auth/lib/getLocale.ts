@@ -25,8 +25,36 @@ export const getLocale = async (
     | {
         cookies: ReadonlyRequestCookies;
         headers: ReadonlyHeaders;
-      }
+      },
+  username?: string
 ): Promise<string> => {
+  // IMPORTANT: For booking pages, the page OWNER's locale takes precedence over the visitor's locale
+  // If username is provided (from pathname), fetch the page owner's locale first
+  if (username) {
+    if (typeof window === "undefined") {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mod = await import("@calcom/prisma") as any;
+        const serverPrisma = mod.prisma ?? mod.default;
+
+        const user = await serverPrisma.user.findFirst({
+          where: { username, locked: false },
+          select: { locale: true },
+        });
+
+
+        if (user) {
+          // User found - return their locale or default to "en" if null
+          return user.locale || "en";
+        }
+      } catch (error) {
+        // Silently fail and fallback to token/browser locale
+        console.error(`[getLocale] Failed to fetch user locale for ${username}:`, error);
+      }
+    }
+  }
+
+  // Fallback to authenticated user's token locale (for non-booking pages or when page owner not found)
   const token = await getToken({
     req: req as GetTokenParams["req"],
   });
@@ -37,6 +65,7 @@ export const getLocale = async (
     return tokenLocale;
   }
 
+  // Final fallback: use Accept-Language header from browser
   const acceptLanguage =
     req.headers instanceof Headers ? req.headers.get("accept-language") : req.headers["accept-language"];
 

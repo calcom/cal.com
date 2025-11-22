@@ -9,6 +9,7 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { isReservedRoute } from "@lib/reservedRoutes";
 
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
@@ -83,7 +84,36 @@ const getInitialProps = async () => {
   const h = await headers();
   const isEmbed = h.get("x-isEmbed") === "true";
   const embedColorScheme = h.get("x-embedColorScheme");
-  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
+
+  // Extract username from pathname for public booking pages
+  // Pathname format: /[username] or /[username]/[eventType] or /org/[orgSlug]/[username], etc.
+  let username: string | undefined;
+  const pathname = h.get("x-pathname") || "";
+
+  if (pathname) {
+    const pathSegments = pathname.split("/").filter(Boolean);
+
+    if (pathSegments.length > 0) {
+      const firstSegment = pathSegments[0];
+
+      // For /[username] and /[username]/[type]
+      // Don't treat reserved routes as usernames
+      if (!isReservedRoute(firstSegment)) {
+        username = firstSegment;
+      }
+      // For /org/[orgSlug]/[username] - org is reserved, so we need special handling
+      // to extract the username at position [2]
+      else if (firstSegment === "org" && pathSegments.length > 2) {
+        const potentialUsername = pathSegments[2];
+        if (!isReservedRoute(potentialUsername)) {
+          username = potentialUsername;
+        }
+      }
+    }
+  }
+
+
+  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()), username)) ?? "en";
   const direction = dir(newLocale) ?? "ltr";
 
   return {
@@ -93,7 +123,6 @@ const getInitialProps = async () => {
     direction,
   };
 };
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
@@ -115,8 +144,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-inter: ${interFont.style.fontFamily.replace(/'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
           }
         `}</style>
       </head>
@@ -125,19 +154,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         style={
           isEmbed
             ? {
-              background: "transparent",
-              // Keep the embed hidden till parent initializes and
-              // - gives it the appropriate styles if UI instruction is there.
-              // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-              // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-              visibility: "hidden",
-              // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
-              opacity: 0,
-            }
+                background: "transparent",
+                // Keep the embed hidden till parent initializes and
+                // - gives it the appropriate styles if UI instruction is there.
+                // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+                visibility: "hidden",
+                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+                opacity: 0,
+              }
             : {
-              visibility: "visible",
-              opacity: 1,
-            }
+                visibility: "visible",
+                opacity: 1,
+              }
         }>
         <IconSprites />
         <SpeculationRules
