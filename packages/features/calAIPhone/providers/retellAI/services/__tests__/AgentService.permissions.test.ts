@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { AgentService } from "../AgentService";
-import { setupBasicMocks, createMockDatabaseAgent } from "./test-utils";
+import { setupBasicMocks, createMockDatabaseAgent, createMockPhoneNumberRecord } from "./test-utils";
 
 /**
  * Permission tests for AgentService
@@ -147,6 +147,52 @@ describe("AgentService - Permission Checks", () => {
       expect(mockDeleteAIConfiguration).not.toHaveBeenCalled();
       expect(mocks.mockAgentRepository.delete).not.toHaveBeenCalled();
       expect(mocks.mockRetellRepository.getAgent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("createInboundAgent - Team phone number ownership", () => {
+    it("should deny when phone number does not belong to the team", async () => {
+      const { service, mocks } = buildService();
+      
+      vi.mocked(mocks.mockAgentRepository.canManageTeamResources).mockResolvedValue(true);
+
+      vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
+        createMockPhoneNumberRecord({
+          id: 1,
+          phoneNumber: "+12025550123",
+          userId: 1,
+          teamId: 999, // Different team
+          inboundAgentId: null,
+        })
+      );
+
+      const mockAIConfigurationService = {
+        setupInboundAIConfiguration: vi.fn().mockResolvedValue({
+          llmId: "llm-123",
+          agentId: "agent-123",
+        }),
+      };
+
+      await expect(
+        service.createInboundAgent({
+          name: "Test Inbound Agent",
+          phoneNumber: "+12025550123",
+          userId: 1,
+          teamId: 42,
+          workflowStepId: 1,
+          aiConfigurationService: mockAIConfigurationService,
+        })
+      ).rejects.toThrow("Insufficient permission to create inbound agents for this phone number.");
+
+      expect(mocks.mockAgentRepository.canManageTeamResources).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 42,
+      });
+
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+12025550123");
+
+      expect(mockAIConfigurationService.setupInboundAIConfiguration).not.toHaveBeenCalled();
+      expect(mocks.mockAgentRepository.create).not.toHaveBeenCalled();
     });
   });
 });

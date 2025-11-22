@@ -120,6 +120,7 @@ export const createMockAgentRepository = (): AgentRepositoryInterface & {
     findByIdWithCallAccess: vi.fn(),
     delete: vi.fn(),
     linkOutboundAgentToWorkflow: vi.fn(),
+    linkInboundAgentToWorkflow: vi.fn(),
   };
 };
 
@@ -137,6 +138,7 @@ export const createMockPhoneNumberRepository = (): PhoneNumberRepositoryInterfac
     updateSubscriptionStatus: vi.fn(),
     findByIdAndUserId: vi.fn(),
     findByIdWithTeamAccess: vi.fn(),
+    updateInboundAgentId: vi.fn(),
   };
 };
 

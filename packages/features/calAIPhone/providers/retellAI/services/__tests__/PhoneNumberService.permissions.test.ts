@@ -215,6 +215,76 @@ describe("PhoneNumberService - Permission Checks", () => {
     });
   });
 
+  describe("deletePhoneNumber - Team phone number ownership", () => {
+    it("should deny when phone number does not belong to the team", async () => {
+      const { service, mocks } = buildService();
+      
+      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      
+      vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
+        createMockPhoneNumberRecord({
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 999,
+          subscriptionStatus: PhoneNumberSubscriptionStatus.PENDING,
+        })
+      );
+
+      await expect(
+        service.deletePhoneNumber({
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 42,
+          deleteFromDB: false,
+        })
+      ).rejects.toThrow("Insufficient permission to delete phone number +1234567890.");
+
+      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 42,
+        permissions: ["phoneNumber.delete"],
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
+
+      expect(mocks.mockRetellRepository.deletePhoneNumber).not.toHaveBeenCalled();
+    });
+
+    it("should allow when phone number belongs to the team", async () => {
+      const { service, mocks } = buildService();
+      
+      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      
+      vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
+        createMockPhoneNumberRecord({
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 42,
+          subscriptionStatus: PhoneNumberSubscriptionStatus.PENDING,
+        })
+      );
+
+      await service.deletePhoneNumber({
+        phoneNumber: "+1234567890",
+        userId: 1,
+        teamId: 42,
+        deleteFromDB: false,
+      });
+
+      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 42,
+        permissions: ["phoneNumber.delete"],
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
+
+      expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
+    });
+  });
+
   describe("updatePhoneNumberWithAgents - Team-scoped permissions", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
@@ -385,6 +455,91 @@ describe("PhoneNumberService - Permission Checks", () => {
       expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
 
       expect(mocks.mockPhoneNumberRepository.updateAgents).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updatePhoneNumberWithAgents - Team phone number ownership", () => {
+    it("should deny when phone number does not belong to the team", async () => {
+      const { service, mocks } = buildService();
+      
+      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      
+      vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
+        createMockPhoneNumberRecord({
+          id: 1,
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 999,
+        })
+      );
+
+      await expect(
+        service.updatePhoneNumberWithAgents({
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 42,
+          inboundAgentId: "inbound-agent-123",
+        })
+      ).rejects.toThrow("Insufficient permission to update phone number +1234567890.");
+
+      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 42,
+        permissions: ["phoneNumber.update"],
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
+
+      expect(mocks.mockPhoneNumberRepository.updateAgents).not.toHaveBeenCalled();
+    });
+
+    it("should allow when phone number belongs to the team", async () => {
+      const { service, mocks } = buildService();
+      
+      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      
+      vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
+        createMockPhoneNumberRecord({
+          id: 1,
+          phoneNumber: "+1234567890",
+          userId: 1,
+          teamId: 42,
+        })
+      );
+
+      vi.mocked(mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess).mockResolvedValue(
+        createMockDatabaseAgent({
+          providerAgentId: "inbound-agent-123",
+          teamId: 42,
+        })
+      );
+
+      vi.mocked(mocks.mockRetellRepository.getPhoneNumber).mockResolvedValue(
+        createMockPhoneNumber({ phone_number: "+1234567890" })
+      );
+
+      await service.updatePhoneNumberWithAgents({
+        phoneNumber: "+1234567890",
+        userId: 1,
+        teamId: 42,
+        inboundAgentId: "inbound-agent-123",
+      });
+
+      expect(mocks.mockPermissionService.checkPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 42,
+        permissions: ["phoneNumber.update"],
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      expect(mocks.mockPhoneNumberRepository.findByPhoneNumber).toHaveBeenCalledWith("+1234567890");
+
+      expect(mocks.mockPhoneNumberRepository.updateAgents).toHaveBeenCalledWith({
+        id: 1,
+        inboundProviderAgentId: "inbound-agent-123",
+        outboundProviderAgentId: undefined,
+      });
     });
   });
 });
