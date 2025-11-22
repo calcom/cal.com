@@ -383,13 +383,72 @@ export class InsightsRoutingBaseService {
       totalWithoutBookingQuery
     );
 
+    // Get reassigned bookings count, average time to book, and seats data
+    const statsQuery = Prisma.sql`
+      SELECT 
+        COUNT(DISTINCT CASE WHEN b."reassignById" IS NOT NULL THEN b.id END)::integer as reassigned_count,
+        AVG(EXTRACT(EPOCH FROM (rfrd."bookingCreatedAt" - rfrd."createdAt")))::integer as avg_seconds,
+        COUNT(DISTINCT b.id)::integer as total_bookings,
+        COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) THEN b.id END)::integer as total_seats_bookings
+      FROM "RoutingFormResponseDenormalized" rfrd
+      INNER JOIN "Booking" b ON b.uid = rfrd."bookingUid"
+      WHERE ${baseConditions}
+    `;
+
+    // Calculate fully booked events by grouping by time slot
+    const fullyBookedQuery = Prisma.sql`
+      SELECT COUNT(*)::integer as fully_booked_count
+      FROM (
+        SELECT 
+          b."eventTypeId",
+          b."startTime",
+          et."seatsPerTimeSlot",
+          COUNT(DISTINCT bs.id) as seats_filled
+        FROM "RoutingFormResponseDenormalized" rfrd
+        INNER JOIN "Booking" b ON b.uid = rfrd."bookingUid"
+        INNER JOIN "EventType" et ON et.id = b."eventTypeId"
+        INNER JOIN "BookingSeat" bs ON bs."bookingId" = b.id
+        WHERE ${baseConditions}
+          AND et."seatsPerTimeSlot" IS NOT NULL
+        GROUP BY b."eventTypeId", b."startTime", et."seatsPerTimeSlot"
+        HAVING COUNT(DISTINCT bs.id) >= et."seatsPerTimeSlot"
+      ) as fully_booked_slots
+    `;
+
+    const statsResult = await this.prisma.$queryRaw<
+      Array<{
+        reassigned_count: number;
+        avg_seconds: number | null;
+        total_bookings: number;
+        total_seats_bookings: number;
+      }>
+    >(statsQuery);
+
+    const fullyBookedResult = await this.prisma.$queryRaw<
+      Array<{
+        fully_booked_count: number;
+      }>
+    >(fullyBookedQuery);
+
     const total = Number(totalResult[0]?.count || 0);
     const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
+    const stats = statsResult[0];
+    const fullyBooked = fullyBookedResult[0]?.fully_booked_count || 0;
 
     return {
       total,
       totalWithoutBooking,
       totalWithBooking: total - totalWithoutBooking,
+      totalReassigned: stats?.reassigned_count || 0,
+      avgTimeToBook: stats?.avg_seconds || 0,
+      seatsData:
+        stats && stats.total_bookings > 0
+          ? {
+              totalBookings: stats.total_bookings,
+              totalSeatsBookings: stats.total_seats_bookings,
+              fullyBookedEvents: fullyBooked,
+            }
+          : null,
     };
   }
 
@@ -1082,4 +1141,52 @@ export class InsightsRoutingBaseService {
 
     return sortedGroupedByFormAndField;
   }
+
+  async getMostSubmittedAnswers(): Promise<
+    Array<{
+      fieldId: string;
+      fieldLabel: string;
+      answer: string;
+      count: number;
+    }>
+  > {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT 
+      f."fieldId" as "fieldId",
+      COALESCE(
+        (SELECT field->>'label' 
+        FROM "App_RoutingForms_Form" form,
+        LATERAL jsonb_array_elements(form.fields) as field
+        WHERE form.id = rfrd."formId" 
+        AND field->>'id' = f."fieldId"
+        LIMIT 1
+        ),
+        f."fieldId"
+      ) as "fieldLabel",
+      COALESCE(arr.value, f."valueString", f."valueNumber"::text) as answer,
+      COUNT(DISTINCT rfrd.id)::integer as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      JOIN "RoutingFormResponseField" f ON rfrd.id = f."responseId"
+      LEFT JOIN LATERAL unnest(f."valueStringArray") as arr(value) ON f."valueStringArray" != '{}'
+      WHERE ${baseConditions}
+        AND COALESCE(arr.value, f."valueString", f."valueNumber"::text) IS NOT NULL
+      GROUP BY rfrd."formId", f."fieldId", COALESCE(arr.value, f."valueString", f."valueNumber"::text)
+      ORDER BY count DESC
+      LIMIT 20
+    `;
+
+    const result = await this.prisma.$queryRaw<
+      Array<{
+        fieldId: string;
+        fieldLabel: string;
+        answer: string;
+        count: number;
+      }>
+    >(query);
+
+    return result;
+  }
+
 }
