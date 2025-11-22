@@ -1,17 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getReservedSlotUidFromCookies } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
+
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZIsAvailableInputSchema, ZIsAvailableOutputSchema } from "./isAvailable.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 import { ZGetScheduleInputSchema } from "./types";
-
-type SlotsRouterHandlerCache = {
-  getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;
-  reserveSlot?: typeof import("./reserveSlot.handler").reserveSlotHandler;
-  isAvailable?: typeof import("./isAvailable.handler").isAvailableHandler;
-};
 
 /** This should be called getAvailableSlots */
 export const slotsRouter = router({
@@ -47,7 +43,7 @@ export const slotsRouter = router({
     .input(ZRemoveSelectedSlotInputSchema)
     .mutation(async ({ input, ctx }) => {
       const { req, prisma } = ctx;
-      const uid = req?.cookies?.uid || input.uid;
+      const uid = getReservedSlotUidFromCookies(req) || input.uid;
       if (uid) {
         await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
       }
