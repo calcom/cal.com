@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -657,6 +656,9 @@ export const EventAdvancedTab = ({
             title={t("confirmation")}
             description={t("what_booker_should_provide")}
             addFieldLabel={t("add_a_booking_question")}
+            hasAttendeePhoneLocation={(formMethods.getValues("locations") || []).some(
+              (l) => l?.type === "phone"
+            )}
             formProp="bookingFields"
             {...shouldLockDisableProps("bookingFields")}
             dataStore={{
