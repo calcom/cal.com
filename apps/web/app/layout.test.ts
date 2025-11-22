@@ -1,38 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isReservedRoute } from "@lib/reservedRoutes";
-
-/**
- * Username extraction logic from layout.tsx
- * This tests the logic that determines if a pathname represents a booking page
- * and extracts the username from it
- */
-
-function extractUsernameFromPathname(pathname: string): string | undefined {
-  if (!pathname) return undefined;
-
-  const pathSegments = pathname.split("/").filter(Boolean);
-
-  if (pathSegments.length === 0) return undefined;
-
-  const firstSegment = pathSegments[0];
-
-  // For /[username] and /[username]/[type]
-  // Don't treat reserved routes as usernames
-  if (!isReservedRoute(firstSegment)) {
-    return firstSegment;
-  }
-
-  // For /org/[orgSlug]/[username] and similar org-based routes
-  if (firstSegment === "org" && pathSegments.length > 2) {
-    const potentialUsername = pathSegments[2];
-    if (!isReservedRoute(potentialUsername)) {
-      return potentialUsername;
-    }
-  }
-
-  return undefined;
-}
+import { extractUsernameFromPathname } from "./layout";
 
 describe("Username extraction from pathname", () => {
   describe("Valid booking page paths", () => {
@@ -85,7 +53,7 @@ describe("Username extraction from pathname", () => {
     });
 
     it("should extract username from virtual routes if used as username", () => {
-      // Virtual routes like /forms, /success, /cancel are reserved and won't be treated as usernames
+      // Virtual routes like /forms, /success are reserved and won't be treated as usernames
       // but static routes like /booking, /d, /org don't need reservation because
       // Next.js static routes take precedence over [user]
       expect(extractUsernameFromPathname("/forms")).toBeUndefined(); // virtual route - reserved

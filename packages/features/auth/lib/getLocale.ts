@@ -49,7 +49,7 @@ export const getLocale = async (
         }
       } catch (error) {
         // Silently fail and fallback to token/browser locale
-        console.error(`[getLocale] Failed to fetch user locale for ${username}:`, error);
+        console.error("[getLocale] Failed to fetch user locale", error);
       }
     }
   }

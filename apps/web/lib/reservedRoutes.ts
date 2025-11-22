@@ -17,7 +17,11 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 // Even though Next.js routing precedence ensures they won't conflict, we keep them here
 // to avoid unnecessary database queries in getLocale()
 const STATIC_BOOKING_ROUTES = [
+  "d",                  // /d/[link] - short link route
+  "booking",            // /booking/* - booking-related pages
   "booking-successful", // /booking-successful
+  "org",                // /org/[orgSlug]/[username] - organization-based booking pages
+  "team",               // /team/[teamSlug]/[username] - team-based booking pages
 ] as const;
 
 // Virtual routes that don't have files but work via rewrites/special handling

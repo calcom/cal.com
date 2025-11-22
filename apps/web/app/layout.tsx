@@ -16,6 +16,37 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
+/**
+ * Extracts the username from a pathname for booking page locale detection.
+ * Handles various URL patterns including org-based routes.
+ */
+export function extractUsernameFromPathname(pathname: string): string | undefined {
+  if (!pathname) return undefined;
+
+  const pathSegments = pathname.split("/").filter(Boolean);
+
+  if (pathSegments.length === 0) return undefined;
+
+  const firstSegment = pathSegments[0];
+
+  // For /[username] and /[username]/[type]
+  // Don't treat reserved routes as usernames
+  if (!isReservedRoute(firstSegment)) {
+    return firstSegment;
+  }
+
+  // For /org/[orgSlug]/[username] - org is reserved, so we need special handling
+  // to extract the username at position [2]
+  if (firstSegment === "org" && pathSegments.length > 2) {
+    const potentialUsername = pathSegments[2];
+    if (!isReservedRoute(potentialUsername)) {
+      return potentialUsername;
+    }
+  }
+
+  return undefined;
+}
+
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
@@ -87,30 +118,8 @@ const getInitialProps = async () => {
 
   // Extract username from pathname for public booking pages
   // Pathname format: /[username] or /[username]/[eventType] or /org/[orgSlug]/[username], etc.
-  let username: string | undefined;
   const pathname = h.get("x-pathname") || "";
-
-  if (pathname) {
-    const pathSegments = pathname.split("/").filter(Boolean);
-
-    if (pathSegments.length > 0) {
-      const firstSegment = pathSegments[0];
-
-      // For /[username] and /[username]/[type]
-      // Don't treat reserved routes as usernames
-      if (!isReservedRoute(firstSegment)) {
-        username = firstSegment;
-      }
-      // For /org/[orgSlug]/[username] - org is reserved, so we need special handling
-      // to extract the username at position [2]
-      else if (firstSegment === "org" && pathSegments.length > 2) {
-        const potentialUsername = pathSegments[2];
-        if (!isReservedRoute(potentialUsername)) {
-          username = potentialUsername;
-        }
-      }
-    }
-  }
+  const username = extractUsernameFromPathname(pathname);
 
 
   const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()), username)) ?? "en";

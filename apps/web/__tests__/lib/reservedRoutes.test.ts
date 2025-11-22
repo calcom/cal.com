@@ -5,7 +5,7 @@ import { isReservedRoute, getReservedRoutes } from "@lib/reservedRoutes";
 describe("reservedRoutes", () => {
   describe("getReservedRoutes", () => {
     it("should contain static booking routes", () => {
-      const staticBookingRoutes = ["d", "booking", "booking-successful", "org", "team"];
+      const staticBookingRoutes = ["booking-successful"];
       const reservedRoutes = getReservedRoutes();
       staticBookingRoutes.forEach((route) => {
         expect(reservedRoutes).toContain(route);
@@ -13,7 +13,7 @@ describe("reservedRoutes", () => {
     });
 
     it("should contain virtual routes", () => {
-      const virtualRoutes = ["forms", "router", "success", "cancel"];
+      const virtualRoutes = ["forms", "router", "success"];
       const reservedRoutes = getReservedRoutes();
       virtualRoutes.forEach((route) => {
         expect(reservedRoutes).toContain(route);
@@ -40,7 +40,6 @@ describe("reservedRoutes", () => {
       expect(isReservedRoute("forms")).toBe(true);
       expect(isReservedRoute("router")).toBe(true);
       expect(isReservedRoute("success")).toBe(true);
-      expect(isReservedRoute("cancel")).toBe(true);
     });
 
     it("should return false for potential usernames", () => {

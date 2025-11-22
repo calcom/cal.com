@@ -137,7 +137,7 @@ describe("getLocale", () => {
 
       const result = await getLocale(mockReq as any, "some-user");
 
-      // lookup() transforms pt-BR to pt if pt-BR is not in the locales list
+      // lookup() transforms pt-BR to pt since both exist in i18n.locales and pt is the base language
       expect(result).toBe("pt");
     });
   });
