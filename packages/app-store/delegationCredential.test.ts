@@ -97,6 +97,7 @@ const mockOrganization = {
   hideCalendarNotes: false,
   eventTypeMatchParentTeam: false,
   lockEventTypeCreationForUsers: false,
+  lockDefaultAvailability: false,
   parentId: null,
   pendingPayment: false,
   isPlatform: false,

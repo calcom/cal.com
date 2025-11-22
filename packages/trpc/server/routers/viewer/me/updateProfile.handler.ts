@@ -9,6 +9,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -262,7 +263,9 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
-    // on timezone change update timezone of default schedule
+    // Check if user has locked default availability before updating default schedule timezone
+    const hasLockedAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
+
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
@@ -277,14 +280,51 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: data.timeZone,
-      },
-    });
+    // Update all schedules to the new timezone
+    const allScheduleIds = updatedUser.schedules.map((schedule) => schedule.id);
+    const schedulesToUpdate = hasLockedAvailability
+      ? allScheduleIds.filter((id) => id !== defaultScheduleId)
+      : allScheduleIds;
+
+    // Update all schedules (excluding default if locked)
+    if (schedulesToUpdate.length > 0) {
+      await prisma.schedule.updateMany({
+        where: {
+          id: {
+            in: schedulesToUpdate,
+          },
+        },
+        data: {
+          timeZone: data.timeZone,
+        },
+      });
+    }
+
+    // Handle default schedule separately if locked
+    if (hasLockedAvailability) {
+      // Ensure the default schedule has a timezone set (for existing schedules that might have null timezone)
+      const defaultSchedule = await prisma.schedule.findUnique({
+        where: {
+          id: defaultScheduleId,
+        },
+        select: {
+          timeZone: true,
+        },
+      });
+
+      if (!defaultSchedule?.timeZone) {
+        // Set the schedule timezone to the user's current timezone (before the change)
+        // This preserves the schedule's timezone when the user's timezone changes
+        await prisma.schedule.update({
+          where: {
+            id: defaultScheduleId,
+          },
+          data: {
+            timeZone: user.timeZone,
+          },
+        });
+      }
+    }
   }
 
   // Notify stripe about the change
