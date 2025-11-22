@@ -118,7 +118,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value).replace(/\./g, "-"));
+                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -133,7 +133,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required"), }}
+            rules={{ required: t("team_url_required")}}
             render={({ field: { value } }) => (
               <TextField
                 name="slug"
