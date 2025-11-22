@@ -503,6 +503,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       })),
     };
+
+    newHosts.forEach((host) => {
+      logger.info("Host added to event type", {
+        action: "host_added",
+        actorId: ctx.user.id,
+        eventTypeId: id,
+        userId: host.userId,
+        teamId,
+      });
+    });
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
