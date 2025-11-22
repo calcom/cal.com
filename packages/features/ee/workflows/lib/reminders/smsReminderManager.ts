@@ -24,7 +24,11 @@ import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
-import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
+import {
+  scheduleSmsOrFallbackEmail,
+  sendSmsOrFallbackEmail,
+  type CreditCheckFn,
+} from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
 import type { FormSubmissionData } from "./reminderScheduler";
 import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
@@ -89,6 +93,7 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
+  creditCheckFn?: CreditCheckFn;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -173,6 +178,7 @@ const scheduleSMSReminderForEvt = async (
     userId,
     teamId,
     seatReferenceUid,
+    creditCheckFn,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -243,6 +249,7 @@ const scheduleSMSReminderForEvt = async (
                   replyTo: evt.organizer.email,
                 }
               : undefined,
+            creditCheckFn,
           });
         } catch (error) {
           log.error(`Error sending SMS with error ${error}`);
@@ -274,6 +281,7 @@ const scheduleSMSReminderForEvt = async (
                   workflowStepId,
                 }
               : undefined,
+            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {
@@ -318,7 +326,8 @@ const scheduleSMSReminderForForm = async (
     formData: FormSubmissionData;
   }
 ) => {
-  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
+  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData, creditCheckFn } =
+    args;
 
   let smsMessage = message;
 
@@ -362,6 +371,7 @@ const scheduleSMSReminderForForm = async (
                 replyTo: formData.user.email,
               }
             : undefined,
+        creditCheckFn,
       });
     } catch (error) {
       log.error(`Error sending SMS with error ${error}`);
