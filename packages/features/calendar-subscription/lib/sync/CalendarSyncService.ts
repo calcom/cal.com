@@ -72,7 +72,18 @@ export class CalendarSyncService {
       return;
     }
 
-    // todo handle cancel booking
+    // causing import issues
+    const handleCancelBooking = await import("@calcom/features/bookings/lib/handleCancelBooking");
+    await handleCancelBooking.default({
+      userId: booking.userId!,
+      bookingData: {
+        uid: booking.uid,
+        allRemainingBookings: true,
+        cancelSubsequentBookings: true,
+        cancellationReason: "Cancelled on user's calendar",
+        cancelledBy: booking.userPrimaryEmail!,
+      },
+    });
   }
 
   /**
@@ -93,6 +104,14 @@ export class CalendarSyncService {
       return;
     }
 
-    // todo handle update booking
+    // causing import issues
+    const handleNewBooking = await import("@calcom/features/bookings/lib/handleNewBooking");
+    await handleNewBooking.default({
+      bookingData: {
+        ...booking,
+        startTime: event.start?.toISOString() ?? booking.startTime,
+        endTime: event.end?.toISOString() ?? booking.endTime,
+      },
+    });
   }
 }
