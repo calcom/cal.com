@@ -36,6 +36,11 @@ import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
+import { ZListTeamFeaturesSchema } from "./listTeamFeatures.schema";
+import { ZToggleTeamFeatureSchema } from "./toggleTeamFeature.schema";
+import { ZGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
+import { ZAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
+import { ZUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -216,5 +221,31 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./pendingReportsCount.handler");
     return handler(opts);
   }),
+  listTeamFeatures: authedOrgAdminProcedure.input(ZListTeamFeaturesSchema).query(async (opts) => {
+    const { default: handler } = await import("./listTeamFeatures.handler");
+    return handler(opts);
+  }),
+  toggleTeamFeature: authedOrgAdminProcedure.input(ZToggleTeamFeatureSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./toggleTeamFeature.handler");
+    return handler(opts);
+  }),
+  getTeamsForFeature: authedOrgAdminProcedure
+    .input(ZGetTeamsForFeatureSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./getTeamsForFeature.handler");
+      return handler(opts);
+    }),
+  assignFeatureToTeam: authedOrgAdminProcedure
+    .input(ZAssignFeatureToTeamSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./assignFeatureToTeam.handler");
+      return handler(opts);
+    }),
+  unassignFeatureFromTeam: authedOrgAdminProcedure
+    .input(ZUnassignFeatureFromTeamSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./unassignFeatureFromTeam.handler");
+      return handler(opts);
+    }),
 
 });
