@@ -119,7 +119,7 @@ function buildSlotsWithDateRanges({
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-  const slotBoundaries = new Map<number, true>();
+  const slotBoundaries = new Map<number, { rangeStart: number; rangeEnd: number }>();
 
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
@@ -147,29 +147,37 @@ function buildSlotsWithDateRanges({
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
 
-    // Find the nearest appropriate slot boundary if this time falls within an existing slot
-    const slotBoundariesValueArray = Array.from(slotBoundaries.keys());
+    // Find the nearest appropriate slot boundary from the same date and overlapping ranges
+    const slotBoundariesValueArray = Array.from(slotBoundaries.entries());
     if (slotBoundariesValueArray.length > 0) {
-      slotBoundariesValueArray.sort((a, b) => a - b);
+      slotBoundariesValueArray.sort((a, b) => a[0] - b[0]);
 
       let prevBoundary = null;
+      let prevBoundaryMeta = null;
       for (let i = slotBoundariesValueArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesValueArray[i] < slotStartTime.valueOf()) {
-          prevBoundary = slotBoundariesValueArray[i];
+        const [boundaryTime, boundaryMeta] = slotBoundariesValueArray[i];
+        if (boundaryTime < slotStartTime.valueOf()) {
+          prevBoundary = boundaryTime;
+          prevBoundaryMeta = boundaryMeta;
           break;
         }
       }
 
-      if (prevBoundary) {
+      if (prevBoundary && prevBoundaryMeta) {
         const prevBoundaryEnd = dayjs(prevBoundary).add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
+
+        // Only align if ranges overlap AND on same date (prevents cross-week interference)
+        if (
+          prevBoundaryMeta.rangeEnd > range.start.valueOf() &&
+          prevBoundaryMeta.rangeStart < range.end.valueOf() &&
+          dayjs(prevBoundary).tz(timeZone).format("YYYY-MM-DD") ===
+            range.start.tz(timeZone).format("YYYY-MM-DD") &&
+          prevBoundaryEnd.isAfter(slotStartTime)
+        ) {
           const dayjsPrevBoundary = dayjs(prevBoundary);
-          if (!dayjsPrevBoundary.isBefore(range.start)) {
-            slotStartTime = dayjsPrevBoundary;
-          } else {
-            slotStartTime = prevBoundaryEnd;
-          }
-          slotStartTime = slotStartTime.tz(timeZone);
+          slotStartTime = (dayjsPrevBoundary.isBefore(range.start) ? prevBoundaryEnd : dayjsPrevBoundary).tz(
+            timeZone
+          );
         }
       }
     }
@@ -181,7 +189,10 @@ function buildSlotsWithDateRanges({
         continue;
       }
 
-      slotBoundaries.set(slotStartTime.valueOf(), true);
+      slotBoundaries.set(slotStartTime.valueOf(), {
+        rangeStart: range.start.valueOf(),
+        rangeEnd: range.end.valueOf(),
+      });
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
