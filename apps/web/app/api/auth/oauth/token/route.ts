@@ -7,8 +7,20 @@ import type { NextRequest } from "next/server";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { isValidOAuthTokenHeader, VALID_REQ_CONTENT_TYPE } from "app/api/isValidOAuthTokenHeader";
 
 async function handler(req: NextRequest) {
+  const isValidReqContentType = isValidOAuthTokenHeader(req)
+  if (!isValidReqContentType) {
+    return NextResponse.json(
+      {
+        error: "invalid_request",
+        error_description: `content-type must be ${VALID_REQ_CONTENT_TYPE}`,
+      },
+      { status: 400, headers: { "Cache-Control": "no-store", "Pragma": "no-cache" } }
+    );
+  }
+
   const { code, client_id, client_secret, grant_type, redirect_uri } = await parseUrlFormData(req);
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
