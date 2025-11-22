@@ -602,32 +602,13 @@ export class CreditService {
         ];
 
         if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
-          let userIdsWithoutCredits: number[] = [];
-
-          if (result.teamId) {
-            const membershipRepo = new MembershipRepository();
-            const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId: result.teamId });
-
-            if (teamMemberIds && teamMemberIds.length > 0) {
-              const creditChecks = await Promise.all(
-                teamMemberIds.map(async (userId) => {
-                  const hasCredits = await this.hasAvailableCredits({ userId });
-                  return { userId, hasCredits };
-                })
-              );
-
-              userIdsWithoutCredits = creditChecks
-                .filter(({ hasCredits }) => !hasCredits)
-                .map(({ userId }) => userId);
-            }
-          } else if (result.userId) {
-            userIdsWithoutCredits = [result.userId];
-          }
-
           promises.push(
             cancelScheduledMessagesAndScheduleEmails({
               teamId: result.teamId,
-              userIdsWithoutCredits,
+              userIdsWithNoCredits: await this._getUserIdsWithoutCredits({
+                teamId: result.teamId ?? null,
+                userId: result.userId ?? null,
+              }),
             }).catch((error) => {
               log.error("Failed to cancel scheduled messages", error, { result });
             })
@@ -846,5 +827,37 @@ export class CreditService {
         orgId,
       };
     });
+  }
+
+  private async _getUserIdsWithoutCredits({
+    teamId,
+    userId,
+  }: {
+    teamId: number | null;
+    userId: number | null;
+  }) {
+    let userIdsWithNoCredits: number[] = userId ? [userId] : [];
+    if (teamId) {
+      const teamMembers = await prisma.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+        },
+      });
+
+      const creditService = new CreditService();
+
+      userIdsWithNoCredits = (
+        await Promise.all(
+          teamMembers.map(async (member) => {
+            const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
+            return { userId: member.userId, hasCredits };
+          })
+        )
+      )
+        .filter(({ hasCredits }) => !hasCredits)
+        .map(({ userId }) => userId);
+    }
+    return userIdsWithNoCredits;
   }
 }

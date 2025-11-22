@@ -11,11 +11,11 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -288,10 +288,10 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
 
 const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId,
-  userIdsWithoutCredits,
+  userIdsWithNoCredits,
 }: {
   teamId?: number | null;
-  userIdsWithoutCredits: number[];
+  userIdsWithNoCredits: number[];
 }) => {
   const { WorkflowReminderRepository } = await import(
     "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
@@ -299,7 +299,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
 
   const scheduledMessages = await WorkflowReminderRepository.findScheduledMessagesToCancel({
     teamId,
-    userIdsWithoutCredits,
+    userIdsWithNoCredits,
   });
 
   await Promise.allSettled(scheduledMessages.map((msg) => twilio.cancelSMS(msg.referenceId ?? "")));

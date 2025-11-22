@@ -4,10 +4,10 @@ import { WorkflowMethods } from "@calcom/prisma/enums";
 export class WorkflowReminderRepository {
   static async findScheduledMessagesToCancel({
     teamId,
-    userIdsWithoutCredits,
+    userIdsWithNoCredits,
   }: {
     teamId?: number | null;
-    userIdsWithoutCredits: number[];
+    userIdsWithNoCredits: number[];
   }) {
     return await prisma.workflowReminder.findMany({
       where: {
@@ -16,7 +16,7 @@ export class WorkflowReminderRepository {
             OR: [
               {
                 userId: {
-                  in: userIdsWithoutCredits,
+                  in: userIdsWithNoCredits,
                 },
               },
               ...(teamId ? [{ teamId }] : []),

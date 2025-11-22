@@ -61,7 +61,7 @@ describe("reminderScheduler", () => {
 
       prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
 
-      await cancelScheduledMessagesAndScheduleEmails({ teamId: 10, userIdsWithoutCredits: [1, 2, 3] });
+      await cancelScheduledMessagesAndScheduleEmails({ teamId: 10, userIdsWithNoCredits: [1, 2, 3] });
 
       expect(twilioProvider.cancelSMS).toHaveBeenCalledWith("sms-123");
 
@@ -108,7 +108,7 @@ describe("reminderScheduler", () => {
 
       prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
 
-      await cancelScheduledMessagesAndScheduleEmails({ userIdsWithoutCredits: [11] });
+      await cancelScheduledMessagesAndScheduleEmails({ userIdsWithNoCredits: [11] });
 
       const callArgs = prismaMock.workflowReminder.findMany.mock.calls[0][0];
       expect(callArgs.where.workflowStep.workflow.OR).toEqual([{ userId: { in: [11] } }]);
