@@ -83,6 +83,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,
+    givenName: user.givenName,
+    lastName: user.lastName,
   };
 }
 

@@ -18,6 +18,8 @@ declare module "next-auth" {
 
   interface User extends Omit<DefaultUser, "id"> {
     id: PrismaUser["id"];
+    givenName?: string;
+    lastName?: string | null;
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
     completedOnboarding?: boolean;
@@ -48,6 +50,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string | number;
     name?: string | null;
+    givenName?: string;
+    lastName?: string | null;
     username?: string | null;
     avatarUrl?: string | null;
     email?: string | null;
