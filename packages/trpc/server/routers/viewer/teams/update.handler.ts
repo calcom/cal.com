@@ -38,30 +38,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
-  const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
-  const organizationId = ctx.user.organizationId;
+  const permissionCheckService = new PermissionCheckService();
+  const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user?.id || 0,
+    teamId: input.id,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
 
-  if (isOrgAdmin) {
-    const teamBelongsToOrg = prevTeam.id === organizationId || prevTeam.parentId === organizationId;
-
-    if (!teamBelongsToOrg) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You can only update teams within your organization.",
-      });
-    }
-  } else {
-    const permissionCheckService = new PermissionCheckService();
-    const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
-      userId: ctx.user?.id || 0,
-      teamId: input.id,
-      permission: "team.update",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-
-    if (!hasTeamUpdatePermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  if (!hasTeamUpdatePermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   if (input.slug) {

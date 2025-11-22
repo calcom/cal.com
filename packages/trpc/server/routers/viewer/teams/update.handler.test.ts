@@ -5,8 +5,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { prisma } from "@calcom/prisma";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import { updateHandler } from "./update.handler";
 import type { TUpdateInputSchema } from "./update.schema";
@@ -55,7 +53,7 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn((slug: string) => `https://${slug}.cal.com`),
 }));
 
-describe("updateHandler - Security Fix Tests", () => {
+describe("updateHandler - Permission Check Tests", () => {
   const mockPermissionCheckService = {
     checkPermission: vi.fn(),
   };
@@ -67,178 +65,20 @@ describe("updateHandler - Security Fix Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as InstanceType<typeof PermissionCheckService>
+      () => mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>
     );
     vi.mocked(TeamRepository).mockImplementation(
-      () => mockTeamRepository as InstanceType<typeof TeamRepository>
+      () => mockTeamRepository as unknown as InstanceType<typeof TeamRepository>
     );
   });
 
-  describe("Organization Admin Access Control", () => {
-    const orgAdminUser: NonNullable<TrpcSessionUser> = {
+  describe("Permission Check Service", () => {
+    const user: NonNullable<TrpcSessionUser> = {
       id: 1,
       organizationId: 100,
-      organization: {
-        isOrgAdmin: true,
-      },
     } as NonNullable<TrpcSessionUser>;
 
-    const otherOrgId = 200;
-    const orgTeamId = 100; // Same as organizationId
-    const childTeamId = 101; // Child team of org 100
-    const otherOrgTeamId = 201; // Team from different org
-
-    it("should allow org admin to update their own organization", async () => {
-      const input: TUpdateInputSchema = {
-        id: orgTeamId,
-        name: "Updated Org Name",
-      };
-
-      vi.mocked(prisma.team.findUnique).mockResolvedValue({
-        id: orgTeamId,
-        parentId: null,
-        slug: "test-org",
-        metadata: {},
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      vi.mocked(prisma.team.update).mockResolvedValue({
-        id: orgTeamId,
-        name: "Updated Org Name",
-        bio: null,
-        slug: "test-org",
-        theme: null,
-        brandColor: null,
-        darkBrandColor: null,
-        logoUrl: null,
-        bookingLimits: null,
-        includeManagedEventsInLimits: null,
-        rrResetInterval: null,
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      const result = await updateHandler({
-        ctx: { user: orgAdminUser },
-        input,
-      });
-
-      expect(result.name).toBe("Updated Org Name");
-      expect(prisma.team.findUnique).toHaveBeenCalledWith({
-        where: { id: orgTeamId },
-        select: {
-          id: true,
-          parentId: true,
-          slug: true,
-          metadata: true,
-          rrTimestampBasis: true,
-        },
-      });
-    });
-
-    it("should allow org admin to update child teams within their organization", async () => {
-      const input: TUpdateInputSchema = {
-        id: childTeamId,
-        name: "Updated Child Team",
-      };
-
-      vi.mocked(prisma.team.findUnique).mockResolvedValue({
-        id: childTeamId,
-        parentId: orgAdminUser.organizationId, // Team belongs to org
-        slug: "child-team",
-        metadata: {},
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      vi.mocked(prisma.team.update).mockResolvedValue({
-        id: childTeamId,
-        name: "Updated Child Team",
-        bio: null,
-        slug: "child-team",
-        theme: null,
-        brandColor: null,
-        darkBrandColor: null,
-        logoUrl: null,
-        bookingLimits: null,
-        includeManagedEventsInLimits: null,
-        rrResetInterval: null,
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      const result = await updateHandler({
-        ctx: { user: orgAdminUser },
-        input,
-      });
-
-      expect(result.name).toBe("Updated Child Team");
-      expect(prisma.team.update).toHaveBeenCalled();
-    });
-
-    it("should prevent org admin from updating teams from other organizations", async () => {
-      const input: TUpdateInputSchema = {
-        id: otherOrgTeamId,
-        name: "Malicious Update",
-      };
-
-      vi.mocked(prisma.team.findUnique).mockResolvedValue({
-        id: otherOrgTeamId,
-        parentId: otherOrgId, // Team belongs to different org
-        slug: "other-org-team",
-        metadata: {},
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      await expect(
-        updateHandler({
-          ctx: { user: orgAdminUser },
-          input,
-        })
-      ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
-        message: "You can only update teams within your organization.",
-      });
-
-      // Should not proceed to update
-      expect(prisma.team.update).not.toHaveBeenCalled();
-    });
-
-    it("should prevent org admin from updating teams with no parent (standalone teams)", async () => {
-      const input: TUpdateInputSchema = {
-        id: 999,
-        name: "Standalone Team",
-      };
-
-      vi.mocked(prisma.team.findUnique).mockResolvedValue({
-        id: 999,
-        parentId: null, // Standalone team, not part of any org
-        slug: "standalone",
-        metadata: {},
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      await expect(
-        updateHandler({
-          ctx: { user: orgAdminUser },
-          input,
-        })
-      ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
-        message: "You can only update teams within your organization.",
-      });
-
-      expect(prisma.team.update).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Non-Org Admin Access Control", () => {
-    const regularUser: NonNullable<TrpcSessionUser> = {
-      id: 2,
-      organizationId: 100,
-      organization: {
-        isOrgAdmin: false,
-      },
-    } as NonNullable<TrpcSessionUser>;
-
-    it("should use permission check service for non-org admins", async () => {
+    it("should use permission check service for all users", async () => {
       const input: TUpdateInputSchema = {
         id: 50,
         name: "Updated Team",
@@ -270,19 +110,20 @@ describe("updateHandler - Security Fix Tests", () => {
       } as any);
 
       await updateHandler({
-        ctx: { user: regularUser },
+        ctx: { user },
         input,
       });
 
       expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
-        userId: regularUser.id,
+        userId: user.id,
         teamId: input.id,
         permission: "team.update",
         fallbackRoles: expect.any(Array),
       });
+      expect(prisma.team.update).toHaveBeenCalled();
     });
 
-    it("should throw UNAUTHORIZED when non-org admin lacks permission", async () => {
+    it("should throw UNAUTHORIZED when permission check fails", async () => {
       const input: TUpdateInputSchema = {
         id: 50,
         name: "Unauthorized Update",
@@ -300,7 +141,7 @@ describe("updateHandler - Security Fix Tests", () => {
 
       await expect(
         updateHandler({
-          ctx: { user: regularUser },
+          ctx: { user },
           input,
         })
       ).rejects.toMatchObject({
@@ -309,15 +150,61 @@ describe("updateHandler - Security Fix Tests", () => {
 
       expect(prisma.team.update).not.toHaveBeenCalled();
     });
+
+    it("should handle user with no id by passing 0", async () => {
+      const userWithoutId = {
+        id: undefined,
+        organizationId: 100,
+      } as unknown as NonNullable<TrpcSessionUser>;
+
+      const input: TUpdateInputSchema = {
+        id: 50,
+        name: "Updated Team",
+      };
+
+      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 50,
+        parentId: 100,
+        slug: "test-team",
+        metadata: {},
+        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+      } as any);
+
+      vi.mocked(prisma.team.update).mockResolvedValue({
+        id: 50,
+        name: "Updated Team",
+        bio: null,
+        slug: "test-team",
+        theme: null,
+        brandColor: null,
+        darkBrandColor: null,
+        logoUrl: null,
+        bookingLimits: null,
+        includeManagedEventsInLimits: null,
+        rrResetInterval: null,
+        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+      } as any);
+
+      await updateHandler({
+        ctx: { user: userWithoutId },
+        input,
+      });
+
+      expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
+        userId: 0,
+        teamId: input.id,
+        permission: "team.update",
+        fallbackRoles: expect.any(Array),
+      });
+    });
   });
 
   describe("Team Not Found", () => {
-    const orgAdminUser: NonNullable<TrpcSessionUser> = {
+    const user: NonNullable<TrpcSessionUser> = {
       id: 1,
       organizationId: 100,
-      organization: {
-        isOrgAdmin: true,
-      },
     } as NonNullable<TrpcSessionUser>;
 
     it("should throw NOT_FOUND when team does not exist", async () => {
@@ -330,13 +217,16 @@ describe("updateHandler - Security Fix Tests", () => {
 
       await expect(
         updateHandler({
-          ctx: { user: orgAdminUser },
+          ctx: { user },
           input,
         })
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
         message: "Team not found.",
       });
+
+      // Should not check permissions if team doesn't exist
+      expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
     });
   });
 });
