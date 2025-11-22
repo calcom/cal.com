@@ -1,6 +1,6 @@
 import type { Prisma } from "@calcom/prisma/client";
 
-export const eventTypeSelect = {
+const eventTypeBaseSelect = {
   id: true,
   teamId: true,
   schedulingType: true,
@@ -87,6 +87,11 @@ export const eventTypeSelect = {
     },
   },
 } satisfies Prisma.EventTypeSelect;
+
+export const eventTypeSelect = {
+  ...eventTypeBaseSelect,
+  firstAvailableSlotsPerDay: true,
+} as unknown as Prisma.EventTypeSelect;
 
 // Create a separate select for schedule-related fields
 export const eventTypeScheduleSelect = {

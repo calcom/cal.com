@@ -390,8 +390,6 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
-
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -400,15 +398,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
-  const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
-    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
-  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -641,28 +635,50 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
         }}
       />
       <Controller
-        name="onlyShowFirstAvailableSlot"
+        name="firstAvailableSlotsPerDay"
         render={({ field: { onChange, value } }) => {
-          const isChecked = value;
+          const legacyFirstOnly = !!formMethods.watch("onlyShowFirstAvailableSlot");
+          const isChecked = (typeof value === "number" && value > 0) || legacyFirstOnly;
+          const firstSlotsLocked = shouldLockDisableProps("firstAvailableSlotsPerDay");
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               labelClassName={classNames("text-sm", customClassNames?.firstAvailableSlotOnly?.label)}
-              title={t("only_show_first_available_slot")}
-              description={t("only_show_first_available_slot_description")}
+              title={t("number_of_first_slots_per_day")}
+              description={t("number_of_first_slots_per_day_description")}
               checked={isChecked}
-              {...onlyFirstAvailableSlotLocked}
+              {...firstSlotsLocked}
               onCheckedChange={(active) => {
-                onChange(active ?? false);
+                formMethods.setValue("onlyShowFirstAvailableSlot", false, { shouldDirty: true });
+                if (active) {
+                  onChange(typeof value === "number" && value > 0 ? value : 1);
+                } else {
+                  onChange(null);
+                }
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                 isChecked && "rounded-b-none",
                 customClassNames?.firstAvailableSlotOnly?.container
               )}
-              childrenClassName={customClassNames?.firstAvailableSlotOnly?.children}
-              descriptionClassName={customClassNames?.firstAvailableSlotOnly?.description}
-            />
+              childrenClassName={classNames("lg:ml-0", customClassNames?.firstAvailableSlotOnly?.children)}
+              descriptionClassName={customClassNames?.firstAvailableSlotOnly?.description}>
+              <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
+                <TextField
+                  required
+                  type="number"
+                  containerClassName={classNames("max-w-80")}
+                  label={t("number_of_first_slots_per_day")}
+                  min={1}
+                  step={1}
+                  value={typeof value === "number" ? value : 1}
+                  onChange={(e) => {
+                    const next = Number(e.target.value || 1);
+                    onChange(next);
+                  }}
+                />
+              </div>
+            </SettingsToggle>
           );
         }}
       />

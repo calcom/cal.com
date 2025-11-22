@@ -166,6 +166,11 @@ export class EventTypeOutput {
   @ApiHideProperty()
   onlyShowFirstAvailableSlot!: boolean;
 
+  @IsInt()
+  @ApiHideProperty()
+  @IsOptional()
+  firstAvailableSlotsPerDay?: number | null;
+
   @IsBoolean()
   @ApiHideProperty()
   seatsShowAttendees!: boolean;

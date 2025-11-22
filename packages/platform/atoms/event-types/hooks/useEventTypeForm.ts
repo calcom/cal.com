@@ -39,8 +39,7 @@ export const useEventTypeForm = ({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
-  // this is a nightmare to type, will do in follow up PR
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type EventTypeWithFirstSlots = { firstAvailableSlotsPerDay?: number | null };
   const defaultValues: any = useMemo(() => {
     return {
       title: eventType.title,
@@ -68,6 +67,7 @@ export const useEventTypeForm = ({
       instantMeetingSchedule: eventType.instantMeetingSchedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
       onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
+      firstAvailableSlotsPerDay: (eventType as EventTypeWithFirstSlots).firstAvailableSlotsPerDay ?? null,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,

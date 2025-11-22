@@ -72,6 +72,11 @@ export const schemaEventTypeBaseBodyParams = EventTypeSchema.pick({
 })
   .merge(
     z.object({
+      firstAvailableSlotsPerDay: z.number().int().min(1).nullable().optional(),
+    })
+  )
+  .merge(
+    z.object({
       children: z.array(childrenSchema).optional().default([]),
       hosts: z.array(hostSchema).optional().default([]),
     })

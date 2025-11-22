@@ -1238,6 +1238,7 @@ export class EventTypeRepository {
         periodStartDate: true,
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
+        firstAvailableSlotsPerDay: true,
         allowReschedulingPastBookings: true,
         hideOrganizerEmail: true,
         showOptimizedSlots: true,

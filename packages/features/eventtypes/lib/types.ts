@@ -152,6 +152,7 @@ export type FormValues = {
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
+  firstAvailableSlotsPerDay?: number | null;
   showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
