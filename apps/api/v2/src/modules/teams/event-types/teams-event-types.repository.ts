@@ -84,6 +84,11 @@ export class TeamsEventTypesRepository {
       where: {
         teamId,
       },
+      orderBy: [
+        {
+          id: "desc",
+        },
+      ],
       include: {
         users: true,
         schedule: true,
