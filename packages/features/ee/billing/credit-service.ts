@@ -2,7 +2,6 @@ import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -602,6 +601,9 @@ export class CreditService {
         ];
 
         if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
+          const { cancelScheduledMessagesAndScheduleEmails } = await import(
+            "@calcom/features/ee/workflows/lib/reminders/reminderScheduler"
+          );
           promises.push(
             cancelScheduledMessagesAndScheduleEmails({
               teamId: result.teamId,
