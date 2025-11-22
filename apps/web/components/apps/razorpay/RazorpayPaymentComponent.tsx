@@ -95,10 +95,13 @@ export const RazorpayPaymentComponent = (props: IRazorpayPaymentComponentProps) 
       <Button onClick={handlePayment} className="w-full" disabled={!scriptLoaded}>
         {scriptLoaded
           ? `${t("pay_amount", {
-              amount: new Intl.NumberFormat(window !== undefined ? window.navigator.language : "en", {
-                style: "currency",
-                currency: currency,
-              }).format(amount / 100),
+              amount: new Intl.NumberFormat(
+                typeof window !== "undefined" ? window.navigator.language : "en",
+                {
+                  style: "currency",
+                  currency: currency,
+                }
+              ).format(amount / 100),
             })}`
           : t("Loading...")}
       </Button>

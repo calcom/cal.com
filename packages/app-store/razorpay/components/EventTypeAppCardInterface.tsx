@@ -36,7 +36,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       }}
       teamId={eventType.team?.id || undefined}
       disableSwitch={shouldDisableSwitch}
-      switchTooltip={shouldDisableSwitch ? t("Other payment app enabled") : undefined}>
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}
