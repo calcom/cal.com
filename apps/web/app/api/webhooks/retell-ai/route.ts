@@ -172,7 +172,7 @@ async function handleCallAnalyzed(callData: RetellCallData) {
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
     const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-    const phoneNumber = await phoneNumberRepo.findByPhoneNumberForCallAnalyze(from_number);
+    const phoneNumber = await phoneNumberRepo.findByPhoneNumberWithUserAndTeam(from_number);
 
     if (!phoneNumber) {
       const msg = `No phone number found for ${from_number}, call ${call_id}`;

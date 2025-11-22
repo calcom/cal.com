@@ -468,7 +468,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  async findByPhoneNumberForCallAnalyze(phoneNumber: string) {
+  async findByPhoneNumberWithUserAndTeam(phoneNumber: string) {
     return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,
