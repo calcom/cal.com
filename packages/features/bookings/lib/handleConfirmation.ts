@@ -69,6 +69,13 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    tracking?: {
+      utm_source: string | null;
+      utm_medium: string | null;
+      utm_campaign: string | null;
+      utm_term: string | null;
+      utm_content: string | null;
+    } | null;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -464,7 +471,7 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
-    const payload: EventPayloadType = {
+    const payload: EventPayloadType & { tracking?: typeof booking.tracking } = {
       ...evt,
       ...eventTypeInfo,
       bookingId,
@@ -473,6 +480,7 @@ export async function handleConfirmation(args: {
       smsReminderNumber: booking.smsReminderNumber || undefined,
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       ...(platformClientParams ? platformClientParams : {}),
+      ...(booking.tracking && { tracking: booking.tracking }),
     };
 
     const promises = subscribersBookingCreated.map((sub) =>

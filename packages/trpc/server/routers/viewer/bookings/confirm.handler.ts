@@ -136,6 +136,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      tracking: true,
     },
   });
 
@@ -378,13 +379,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
-    const webhookData: EventPayloadType = {
+    const webhookData: EventPayloadType & { tracking?: typeof booking.tracking } = {
       ...evt,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
+      ...(booking.tracking && { tracking: booking.tracking }),
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 

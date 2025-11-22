@@ -1345,6 +1345,29 @@ export class BookingRepository {
     });
   }
 
+  async findBookingTracking(identifier: { id?: number; uid?: string }) {
+    if (!identifier.id && !identifier.uid) {
+      throw new Error("Either booking id or uid must be provided");
+    }
+
+    const where = identifier.id ? { id: identifier.id } : { uid: identifier.uid! };
+
+    return await this.prismaClient.booking.findUnique({
+      where,
+      select: {
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateBookingAttendees({
     bookingId,
     newAttendees,
