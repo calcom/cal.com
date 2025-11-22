@@ -40,7 +40,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
+import { PasswordField, CheckboxField, TextField, Form, SelectField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -375,6 +375,51 @@ export default function Signup({
                     appName: APP_NAME,
                   })}
                 </p>
+              )}
+              {(IS_CALCOM || (typeof window !== "undefined" && window.location.hostname === "localhost")) && (
+                <div className="mt-4">
+                  <SelectField
+                    label={t("data_region")}
+                    value={{
+                      label: t(
+                        typeof window !== "undefined" && 
+                        (window.location.hostname.includes("cal.eu") || 
+                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
+                          ? "european_union"
+                          : "united_states"
+                      ),
+                      value:
+                        typeof window !== "undefined" && 
+                        (window.location.hostname.includes("cal.eu") || 
+                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
+                          ? "eu"
+                          : "us",
+                    }}
+                    options={[
+                      { label: t("united_states"), value: "us" },
+                      { label: t("european_union"), value: "eu" },
+                    ]}
+                    onChange={(option) => {
+                      if (option && "value" in option) {
+                        const currentUrl = new URL(window.location.href);
+                        
+                        // Handle localhost - add region as URL parameter
+                        if (currentUrl.hostname === "localhost") {
+                          currentUrl.searchParams.set("region", option.value);
+                          window.location.href = currentUrl.toString();
+                          return;
+                        }
+                        
+                        // Handle production domains
+                        const targetDomain =
+                          option.value === "eu"
+                            ? currentUrl.href.replace("app.cal.com", "app.cal.eu")
+                            : currentUrl.href.replace("app.cal.eu", "app.cal.com");
+                        window.location.href = targetDomain;
+                      }
+                    }}
+                  />
+                </div>
               )}
             </div>
 
