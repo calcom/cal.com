@@ -404,6 +404,21 @@ export const ComponentForField = ({
     );
   }
 
+  if (componentConfig.propsType === "date") {
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          name={field.name}
+          label={field.label}
+          readOnly={readOnly}
+          value={value as string}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
+  }
+
   assertUnreachable(componentConfig);
   return null;
 };
