@@ -49,6 +49,7 @@ import { showToast } from "@calcom/ui/toast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
 import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
 import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
@@ -269,7 +270,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     isTabUnconfirmed,
     isBookingFromRoutingForm,
     isDisabledCancelling,
-    isDisabledRescheduling: isDisabledRescheduling && ((hasUserId && !isUserOwner)),
+    isDisabledRescheduling: isDisabledRescheduling && hasUserId && !isUserOwner,
     isCalVideoLocation:
       !booking.location ||
       booking.location === "integrations:daily" ||
@@ -322,6 +323,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const [isCancelInstanceDialogOpen, setIsCancelInstanceDialogOpen] = useState(false);
+  const [isBookingSeatsDialogOpen, setIsBookingSeatsDialogOpen] = useState(false);
   const [isRescheduleInstanceDialogOpen, setIsRescheduleInstanceDialogOpen] = useState(false);
 
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -478,6 +480,9 @@ export default function BookingListItem(booking: BookingItemProps) {
       (date) => new Date(date).getTime() > new Date().getTime()
     );
 
+  const showBookingSeatsDialogButton =
+    isUpcoming && !isCancelled && !isRecurring && isConfirmed && booking.eventType.seatsPerTimeSlot > 1;
+
   return (
     <>
       {isNoShowDialogOpen && (
@@ -538,6 +543,17 @@ export default function BookingListItem(booking: BookingItemProps) {
           recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
         />
       )}
+
+      {showBookingSeatsDialogButton && (
+        <BookingSeatsDialog
+          isOpenDialog={isBookingSeatsDialogOpen}
+          setIsOpenDialog={setIsBookingSeatsDialogOpen}
+          bookingUid={booking.uid}
+          bookingSeats={booking.seatsReferences}
+          userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
+
       {showCancelOrModifyInstanceAction && (
         <RescheduleInstanceDialog
           isOpen={isRescheduleInstanceDialogOpen}
@@ -750,6 +766,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                         onClick={() => setIsOpenCancellationDialog(true)}
                         className="flex items-center space-x-2">
                         <span>{t("cancel")}</span>
+                      </Button>
+                    )}
+
+                    {showBookingSeatsDialogButton && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsBookingSeatsDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("booking_seats")}</span>
                       </Button>
                     )}
 

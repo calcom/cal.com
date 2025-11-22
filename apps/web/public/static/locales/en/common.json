@@ -1,4 +1,5 @@
 {
+  "booking_seats": "Booked Seats",
   "payment_not_completed": "Payment not completed",
   "use_this_phone_number_for_whatsapp": "Allow bookers to reach you on WhatsApp via this phone number",
   "existing_workflows": "Existing Workflows",

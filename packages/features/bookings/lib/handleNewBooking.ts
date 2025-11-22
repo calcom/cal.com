@@ -1471,6 +1471,7 @@ async function handler(
   let referencesToCreate: PartialReference[] = [];
 
   let booking: CreatedBooking | null = null;
+  let newBookingSeat: BookingSeat | null = null;
 
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
@@ -1593,7 +1594,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await prisma.bookingSeat.create({
+        newBookingSeat = await prisma.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
@@ -2169,7 +2170,8 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
-      responses: reqBody.responses
+      responses: reqBody.responses,
+      bookingSeat: newBookingSeat
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
