@@ -20,6 +20,8 @@ import type { WithLocaleProps } from "@lib/withLocale";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 
+import DynamicPostHogPageView from "@calcom/features/ee/event-tracking/lib/posthog/web/pageViewDynamic";
+
 import { getThemeProviderProps } from "./getThemeProviderProps";
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
@@ -77,6 +79,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
+        //eslint-disable-next-line react/no-unknown-property
         <style jsx global>
           {`
             .dark {
@@ -141,7 +144,10 @@ const AppProviders = (props: PageWrapperProps) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>
+          <DynamicPostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );

@@ -13,6 +13,7 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
     tooltip?: string;
     iconLeft?: ReactNode;
     dataTestId?: string;
+    onClick?: VoidFunction;
   }[];
   isFullWidth?: boolean;
   orientation?: "horizontal" | "vertical";
@@ -67,6 +68,7 @@ export const ToggleGroup = ({
           <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
             <RadixToggleGroup.Item
               disabled={option.disabled}
+              onClick={option?.onClick}
               value={option.value}
               data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
               className={classNames(

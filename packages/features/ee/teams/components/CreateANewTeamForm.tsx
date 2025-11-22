@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -85,6 +86,10 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
         form={newTeamFormMethods}
         handleSubmit={(v) => {
           if (!createTeamMutation.isPending) {
+            posthog.capture("create_team_checkout_clicked", {
+              team_name: v.name,
+              team_slug: v.slug,
+            });
             setServerErrorMessage(null);
             createTeamMutation.mutate(v);
           }

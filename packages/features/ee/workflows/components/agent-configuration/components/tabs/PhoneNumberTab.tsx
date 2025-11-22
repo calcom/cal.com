@@ -1,3 +1,4 @@
+import posthog from "posthog-js";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -286,6 +287,7 @@ export function PhoneNumberTab({
             <Button
               onClick={() => {
                 if (readOnly) return;
+                posthog.capture("calai_buy_number_modal_opened");
                 setIsBuyDialogOpen(true);
               }}
               StartIcon="external-link"
