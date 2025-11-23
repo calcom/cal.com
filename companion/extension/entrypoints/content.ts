@@ -40,7 +40,7 @@ export default defineContentScript({
     iframeContainer.style.display = "flex";
     iframeContainer.style.justifyContent = "flex-end";
     iframeContainer.style.pointerEvents = "auto";
-    
+
     // Create iframe
     const iframe = document.createElement("iframe");
     iframe.src = "http://localhost:8081";
@@ -50,7 +50,7 @@ export default defineContentScript({
     iframe.style.borderRadius = "0";
     iframe.style.backgroundColor = "white";
     iframe.style.boxShadow = "-2px 0 10px rgba(0,0,0,0.1)";
-    
+
     iframeContainer.appendChild(iframe);
 
     sidebarContainer.appendChild(iframeContainer);
