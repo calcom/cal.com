@@ -39,7 +39,7 @@ import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMee
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
@@ -103,6 +103,7 @@ const BookerComponent = ({
     hideEventTypeDetails,
     isEmbed,
     bookerLayouts,
+    isTablet,
   } = bookerLayout;
 
   const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
@@ -128,9 +129,43 @@ const BookerComponent = ({
       : 0;
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
-  if (nonEmptyScheduleDays.length !== 0)
-    columnViewExtraDays.current =
-      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+
+  const calculatedColumnViewExtraDays = useMemo(() => {
+    if (layout !== BookerLayouts.COLUMN_VIEW) {
+      return columnViewExtraDays.current;
+    }
+
+    const columnViewExtraDaysConfig = isTablet
+      ? extraDaysConfig[BookerLayouts.COLUMN_VIEW].tablet
+      : extraDaysConfig[BookerLayouts.COLUMN_VIEW].desktop;
+
+    if (nonEmptyScheduleDays.length === 0) {
+      return columnViewExtraDaysConfig;
+    }
+
+    const columnAddonDays =
+      nonEmptyScheduleDays.length < columnViewExtraDaysConfig
+        ? (columnViewExtraDaysConfig - nonEmptyScheduleDays.length + 1) * totalWeekDays
+        : nonEmptyScheduleDays.length === columnViewExtraDaysConfig
+        ? totalWeekDays
+        : 0;
+
+    const columnAvailableSlots = nonEmptyScheduleDays.slice(0, columnViewExtraDaysConfig + 1);
+
+    if (columnAvailableSlots.length < 2) {
+      return columnViewExtraDaysConfig;
+    }
+
+    const calculated =
+      Math.abs(dayjs(selectedDate).diff(columnAvailableSlots[columnAvailableSlots.length - 2], "day")) +
+      columnAddonDays;
+
+    return calculated;
+  }, [layout, selectedDate, nonEmptyScheduleDays.length, isTablet, columnViewExtraDays]);
+
+  if (layout === BookerLayouts.COLUMN_VIEW) {
+    columnViewExtraDays.current = calculatedColumnViewExtraDays;
+  }
 
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
