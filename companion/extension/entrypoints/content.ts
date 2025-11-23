@@ -61,7 +61,7 @@ export default defineContentScript({
     toggleButton.style.width = '40px';
     toggleButton.style.height = '40px';
     toggleButton.style.borderRadius = '50%';
-    toggleButton.style.border = 'none';
+    toggleButton.style.border = '1px solid white';
     toggleButton.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     toggleButton.style.backdropFilter = 'blur(10px)';
     toggleButton.style.color = 'white';
@@ -84,7 +84,7 @@ export default defineContentScript({
     closeButton.style.width = '40px';
     closeButton.style.height = '40px';
     closeButton.style.borderRadius = '50%';
-    closeButton.style.border = 'none';
+    closeButton.style.border = '1px solid white';
     closeButton.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     closeButton.style.backdropFilter = 'blur(10px)';
     closeButton.style.color = 'white';
@@ -151,7 +151,7 @@ export default defineContentScript({
     document.body.appendChild(buttonsContainer);
 
     // Listen for extension icon click
-    chrome.runtime.onMessage.addListener((message) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'icon-clicked') {
         if (isClosed) {
           // Reopen closed sidebar
@@ -184,13 +184,19 @@ export default defineContentScript({
 </svg>`;
           }
         }
+        sendResponse({ success: true }); // Send response to acknowledge
       }
     });
 
-    // Gmail integration function
-    function initGmailIntegration() {
-      // Function to inject Cal.com button as a new table cell after Send button
-      function injectCalButton() {
+        // Gmail integration function
+        function initGmailIntegration() {
+          // Cache for event types (refreshed on page reload)
+          let eventTypesCache: any[] | null = null;
+          let cacheTimestamp: number | null = null;
+          const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+          // Function to inject Cal.com button as a new table cell after Send button
+          function injectCalButton() {
         // Look specifically for Gmail compose Send buttons - they have specific attributes
         // Gmail Send button usually has div[role="button"] with specific data attributes inside a td
         const sendButtons = document.querySelectorAll('div[role="button"][data-tooltip="Send ‪(Ctrl-Enter)‬"], div[role="button"][data-tooltip*="Send"], div[role="button"][aria-label*="Send"]');
@@ -308,7 +314,7 @@ export default defineContentScript({
             // Close menu when clicking outside
             setTimeout(() => {
               document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target)) {
+                if (!menu.contains(e.target as Node)) {
                   menu.remove();
                   document.removeEventListener('click', closeMenu);
                 }
@@ -334,45 +340,58 @@ export default defineContentScript({
           
           async function fetchEventTypes(menu) {
             try {
-              // Use chrome.runtime.sendMessage to make API call through background script
-              const response = await new Promise((resolve, reject) => {
-                chrome.runtime.sendMessage(
-                  { action: 'fetch-event-types' },
-                  (response) => {
-                    console.log('Raw response from background:', response);
-                    if (chrome.runtime.lastError) {
-                      console.log('Chrome runtime error:', chrome.runtime.lastError);
-                      reject(new Error(chrome.runtime.lastError.message));
-                    } else if (response && response.error) {
-                      console.log('Response has error:', response.error);
-                      reject(new Error(response.error));
-                    } else {
-                      console.log('Resolving with response:', response);
-                      resolve(response);
-                    }
-                  }
-                );
-              });
+              // Check cache first
+              const now = Date.now();
+              const isCacheValid = eventTypesCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION;
               
-              console.log('Final response from background script:', response);
+              let eventTypes: any[] = [];
               
-              let eventTypes = [];
-              if (response && response.data) {
-                eventTypes = response.data;
-              } else if (Array.isArray(response)) {
-                eventTypes = response;
+              if (isCacheValid) {
+                // Use cached data
+                eventTypes = eventTypesCache!;
               } else {
-                console.log('Unexpected response format:', response);
-                eventTypes = [];
+                // Check if extension context is valid
+                if (!chrome.runtime?.id) {
+                  throw new Error('Extension context invalidated. Please reload the page.');
+                }
+
+                // Fetch fresh data from background script
+                const response = await new Promise((resolve, reject) => {
+                  try {
+                    chrome.runtime.sendMessage(
+                      { action: 'fetch-event-types' },
+                      (response) => {
+                        if (chrome.runtime.lastError) {
+                          reject(new Error(chrome.runtime.lastError.message));
+                        } else if (response && response.error) {
+                          reject(new Error(response.error));
+                        } else {
+                          resolve(response);
+                        }
+                      }
+                    );
+                  } catch (err) {
+                    reject(err);
+                  }
+                });
+                
+                if (response && (response as any).data) {
+                  eventTypes = (response as any).data;
+                } else if (Array.isArray(response)) {
+                  eventTypes = response;
+                } else {
+                  eventTypes = [];
+                }
+                
+                // Ensure eventTypes is an array
+                if (!Array.isArray(eventTypes)) {
+                  eventTypes = [];
+                }
+                
+                // Update cache
+                eventTypesCache = eventTypes;
+                cacheTimestamp = now;
               }
-              
-              // Ensure eventTypes is an array
-              if (!Array.isArray(eventTypes)) {
-                console.log('EventTypes is not an array:', typeof eventTypes, eventTypes);
-                eventTypes = [];
-              }
-              
-              console.log('Final eventTypes array:', eventTypes, 'Length:', eventTypes.length);
               
               // Clear loading state
               menu.innerHTML = '';
@@ -404,13 +423,12 @@ export default defineContentScript({
                 eventTypes.forEach((eventType, index) => {
                   // Validate eventType object
                   if (!eventType || typeof eventType !== 'object') {
-                    console.warn('Invalid event type object:', eventType);
                     return;
                   }
                   
                   const title = eventType.title || 'Untitled Event';
                   const length = eventType.length || eventType.duration || 30;
-                  const description = eventType.description || 'No description';
+                  const description = eventType.description || '';
                   
                   const menuItem = document.createElement('div');
                   menuItem.style.cssText = `
@@ -428,7 +446,7 @@ export default defineContentScript({
                       <span style="color: #3c4043; font-weight: 500;">${title}</span>
                     </div>
                     <div style="color: #5f6368; font-size: 12px; margin-left: 22px;">
-                      ${length}min • ${description}
+                      ${length}min${description ? ` • ${description}` : ''}
                     </div>
                   `;
                   
@@ -451,7 +469,6 @@ export default defineContentScript({
                   menu.appendChild(menuItem);
                 });
               } catch (forEachError) {
-                console.error('Error in forEach loop:', forEachError);
                 menu.innerHTML = `
                   <div style="padding: 16px; text-align: center; color: #ea4335;">
                     Error displaying event types
@@ -460,14 +477,12 @@ export default defineContentScript({
               }
               
             } catch (error) {
-              console.error('Failed to fetch event types:', error);
-              console.log('Error details:', error.message, error.stack);
               menu.innerHTML = `
                 <div style="padding: 16px; text-align: center; color: #ea4335;">
                   Failed to load event types
                 </div>
                 <div style="padding: 0 16px; text-align: center; color: #5f6368; font-size: 12px;">
-                  Error: ${error.message}
+                  Error: ${(error as Error).message}
                 </div>
                 <div style="padding: 16px 16px; text-align: center;">
                   <button onclick="this.parentElement.parentElement.remove()" style="
@@ -488,38 +503,134 @@ export default defineContentScript({
             // Construct the Cal.com booking link
             const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
             
-            // Copy to clipboard
-            navigator.clipboard.writeText(bookingUrl).then(() => {
-              // Show success notification
-              showNotification('Link copied to clipboard!', 'success');
-            }).catch(err => {
-              console.error('Failed to copy link:', err);
-              showNotification('Failed to copy link', 'error');
-            });
+            // Try to insert at cursor position in the compose field
+            const inserted = insertTextAtCursor(bookingUrl);
+            
+            if (inserted) {
+              showNotification('Link inserted', 'success');
+            } else {
+              // Fallback: copy to clipboard if insertion fails
+              navigator.clipboard.writeText(bookingUrl).then(() => {
+                showNotification('Link copied to clipboard!', 'success');
+              }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+              });
+            }
+          }
+          
+          function insertTextAtCursor(text) {
+            // Find the active compose field
+            // Gmail uses contenteditable divs for the compose body
+            const composeBody = document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+                               document.querySelector('[role="textbox"][g_editable="true"]') ||
+                               document.querySelector('div[contenteditable="true"][role="textbox"]');
+            
+            if (!composeBody) {
+              return false;
+            }
+            
+            // Focus the compose field
+            (composeBody as HTMLElement).focus();
+            
+            // Get the current selection
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) {
+              // If no selection, append to the end
+              const textNode = document.createTextNode(' ' + text + ' ');
+              composeBody.appendChild(textNode);
+              
+              // Move cursor after inserted text
+              const range = document.createRange();
+              range.setStartAfter(textNode);
+              range.collapse(true);
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+              
+              return true;
+            }
+            
+            // Insert at cursor position
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            
+            // Create a text node with the link (with spaces around it)
+            const textNode = document.createTextNode(' ' + text + ' ');
+            range.insertNode(textNode);
+            
+            // Move cursor after inserted text
+            range.setStartAfter(textNode);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Trigger input event so Gmail knows content changed
+            composeBody.dispatchEvent(new Event('input', { bubbles: true }));
+            composeBody.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            return true;
           }
           
           function showNotification(message, type) {
             const notification = document.createElement('div');
             notification.style.cssText = `
               position: fixed;
-              top: 20px;
-              right: 20px;
-              padding: 12px 16px;
-              background: ${type === 'success' ? '#137333' : '#d93025'};
+              bottom: 80px;
+              right: 80px;
+              padding: 10px 12px;
+              background: ${type === 'success' ? '#111827' : '#752522'};
               color: white;
-              border-radius: 4px;
+              border: 1px solid #2b2b2b;
+              border-radius: 8px;
               font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
               font-size: 14px;
+              font-weight: 600;
               z-index: 10000;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              opacity: 0;
+              transform: translateY(10px);
+              transition: opacity 0.2s ease, transform 0.2s ease;
             `;
-            notification.textContent = message;
+            
+            // Add check icon for success
+            if (type === 'success') {
+              const checkIcon = document.createElement('span');
+              checkIcon.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              `;
+              checkIcon.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+              `;
+              notification.appendChild(checkIcon);
+            }
+            
+            // Add message text
+            const messageText = document.createElement('span');
+            messageText.textContent = message;
+            notification.appendChild(messageText);
             
             document.body.appendChild(notification);
             
-            // Remove after 3 seconds
+            // Trigger fade-in animation
+            requestAnimationFrame(() => {
+              notification.style.opacity = '1';
+              notification.style.transform = 'translateY(0)';
+            });
+            
+            // Fade out and remove after 3 seconds
             setTimeout(() => {
-              notification.remove();
+              notification.style.opacity = '0';
+              notification.style.transform = 'translateY(10px)';
+              setTimeout(() => {
+                notification.remove();
+              }, 200);
             }, 3000);
           }
           
