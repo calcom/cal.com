@@ -286,8 +286,20 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-const bookingYear = new Date(booking.startTime).getFullYear();
-const currentYear = new Date().getFullYear();
+const bookingYear = Number(
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: userTimeZone,
+    year: "numeric",
+  }).format(new Date(booking.startTime))
+);
+
+const currentYear = Number(
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: userTimeZone,
+    year: "numeric",
+  }).format(new Date())
+);
+
 const isDifferentYear = bookingYear !== currentYear;
 
 const startTime = isUpcoming
