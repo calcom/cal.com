@@ -6,17 +6,17 @@ interface AdvancedTabProps {
   // Calendar event name
   calendarEventName: string;
   setCalendarEventName: (value: string) => void;
-  
+
   // Add to calendar email
   addToCalendarEmail: string;
   setAddToCalendarEmail: (value: string) => void;
-  
+
   // Layout
   selectedLayouts: string[];
   setSelectedLayouts: (layouts: string[]) => void;
   defaultLayout: string;
   setDefaultLayout: (layout: string) => void;
-  
+
   // Confirmation settings
   requiresConfirmation: boolean;
   setRequiresConfirmation: (value: boolean) => void;
@@ -24,7 +24,7 @@ interface AdvancedTabProps {
   setDisableCancelling: (value: boolean) => void;
   disableRescheduling: boolean;
   setDisableRescheduling: (value: boolean) => void;
-  
+
   // Additional settings
   sendCalVideoTranscription: boolean;
   setSendCalVideoTranscription: (value: boolean) => void;
@@ -44,17 +44,17 @@ interface AdvancedTabProps {
   setAllowReschedulingPastEvents: (value: boolean) => void;
   allowBookingThroughRescheduleLink: boolean;
   setAllowBookingThroughRescheduleLink: (value: boolean) => void;
-  
+
   // Redirect on booking
   successRedirectUrl: string;
   setSuccessRedirectUrl: (value: string) => void;
   forwardParamsSuccessRedirect: boolean;
   setForwardParamsSuccessRedirect: (value: boolean) => void;
-  
+
   // Custom reply-to email
   customReplyToEmail: string;
   setCustomReplyToEmail: (value: string) => void;
-  
+
   // Event type colors
   eventTypeColorLight: string;
   setEventTypeColorLight: (value: string) => void;
@@ -72,10 +72,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
   return (
     <View className="gap-3">
       {/* Calendar Event Name Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Calendar event name</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Calendar event name</Text>
         <TextInput
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-2"
+          className="mb-2 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
           value={props.calendarEventName}
           onChangeText={props.setCalendarEventName}
           placeholder="30min between Pro Example and {Scheduler}"
@@ -87,13 +87,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Add to Calendar Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Add to calendar</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Add to calendar</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           We'll display this email address as the organizer, and send confirmation emails here.
         </Text>
         <TextInput
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+          className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
           value={props.addToCalendarEmail}
           onChangeText={props.setAddToCalendarEmail}
           placeholder="pro@example.com"
@@ -104,18 +104,18 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Layout Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Layout</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Layout</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           You can select multiple and your bookers can switch views.
         </Text>
 
         {/* Layout Options */}
-        <View className="gap-2 mb-4">
+        <View className="mb-4 gap-2">
           {layoutOptions.map((layout) => (
             <TouchableOpacity
               key={layout.id}
-              className={`flex-row items-center justify-between p-3 rounded-lg border ${
+              className={`flex-row items-center justify-between rounded-lg border p-3 ${
                 props.selectedLayouts.includes(layout.id)
                   ? "border-black bg-[#F0F0F0]"
                   : "border-[#E5E5EA]"
@@ -134,7 +134,8 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 } else {
                   props.setSelectedLayouts([...props.selectedLayouts, layout.id]);
                 }
-              }}>
+              }}
+            >
               <View className="flex-row items-center gap-2">
                 <Ionicons name={layout.icon as any} size={20} color="#333" />
                 <Text className="text-base text-[#333]">{layout.label}</Text>
@@ -149,7 +150,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         {/* Default View */}
         {props.selectedLayouts.length > 1 && (
           <View>
-            <Text className="text-sm font-medium text-[#333] mb-2">Default view</Text>
+            <Text className="mb-2 text-sm font-medium text-[#333]">Default view</Text>
             <View className="gap-2">
               {props.selectedLayouts.map((layoutId) => {
                 const layout = layoutOptions.find((l) => l.id === layoutId);
@@ -157,12 +158,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
                 return (
                   <TouchableOpacity
                     key={layout.id}
-                    className={`flex-row items-center justify-between p-3 rounded-lg border ${
+                    className={`flex-row items-center justify-between rounded-lg border p-3 ${
                       props.defaultLayout === layout.id
                         ? "border-black bg-[#F0F0F0]"
                         : "border-[#E5E5EA]"
                     }`}
-                    onPress={() => props.setDefaultLayout(layout.id)}>
+                    onPress={() => props.setDefaultLayout(layout.id)}
+                  >
                     <Text className="text-base text-[#333]">{layout.label}</Text>
                     {props.defaultLayout === layout.id && (
                       <Ionicons name="checkmark-circle" size={20} color="#000" />
@@ -176,26 +178,27 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Booking Questions Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Booking questions</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Booking questions</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           Customize the questions asked on the booking page.
         </Text>
         <TouchableOpacity
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 flex-row items-center justify-center"
+          className="flex-row items-center justify-center rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 md:px-4"
           onPress={() =>
             Alert.alert("Coming Soon", "Booking questions customization will be available soon.")
-          }>
+          }
+        >
           <Ionicons name="add-circle-outline" size={20} color="#666" />
-          <Text className="text-base text-[#666] ml-2">Manage booking questions</Text>
+          <Text className="ml-2 text-base text-[#666]">Manage booking questions</Text>
         </TouchableOpacity>
       </View>
 
       {/* Requires confirmation */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Requires confirmation</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Requires confirmation</Text>
             <Text className="text-sm text-[#666]">
               The booking needs to be manually confirmed before it is pushed to your calendar
             </Text>
@@ -210,10 +213,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Disable Cancelling */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Disable Cancelling</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Disable Cancelling</Text>
             <Text className="text-sm text-[#666]">
               Guests can no longer cancel the event with calendar invite or email
             </Text>
@@ -228,10 +231,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Disable Rescheduling */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Disable Rescheduling</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Disable Rescheduling</Text>
             <Text className="text-sm text-[#666]">
               Guests can no longer reschedule the event with calendar invite or email
             </Text>
@@ -246,10 +249,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Send Cal Video Transcription Emails */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Send Cal Video Transcription Emails
             </Text>
             <Text className="text-sm text-[#666]">
@@ -266,15 +269,15 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Auto translate */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Auto translate title and description
             </Text>
             <Text className="text-sm text-[#666]">
-              Automatically translate titles and descriptions to the visitor's browser language using
-              AI
+              Automatically translate titles and descriptions to the visitor's browser language
+              using AI
             </Text>
           </View>
           <Switch
@@ -287,10 +290,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Requires booker email verification */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Requires booker email verification
             </Text>
             <Text className="text-sm text-[#666]">
@@ -307,10 +310,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Hide notes in calendar */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Hide notes in calendar</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Hide notes in calendar</Text>
             <Text className="text-sm text-[#666]">
               For privacy reasons, additional inputs and notes will be hidden in the calendar entry
             </Text>
@@ -325,10 +328,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Hide calendar event details */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Hide calendar event details on shared calendars
             </Text>
             <Text className="text-sm text-[#666]">
@@ -346,10 +349,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Hide organizer's email */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Hide organizer's email</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Hide organizer's email</Text>
             <Text className="text-sm text-[#666]">
               Hide organizer's email address from the booking screen, email notifications, and
               calendar events
@@ -365,10 +368,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Lock timezone */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Lock timezone on booking page
             </Text>
             <Text className="text-sm text-[#666]">
@@ -385,10 +388,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Allow rescheduling past events */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Allow rescheduling past events
             </Text>
             <Text className="text-sm text-[#666]">
@@ -405,10 +408,10 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Allow booking through reschedule link */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">
               Allow booking through reschedule link
             </Text>
             <Text className="text-sm text-[#666]">
@@ -426,13 +429,13 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Redirect on booking Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Redirect on booking</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Redirect on booking</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           Redirect to a custom URL after a successful booking
         </Text>
         <TextInput
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black mb-3"
+          className="mb-3 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
           value={props.successRedirectUrl}
           onChangeText={props.setSuccessRedirectUrl}
           placeholder="https://example.com/thank-you"
@@ -440,7 +443,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           keyboardType="url"
           autoCapitalize="none"
         />
-        <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center justify-between">
           <Text className="text-sm text-[#333]">Forward query parameters</Text>
           <Switch
             value={props.forwardParamsSuccessRedirect}
@@ -452,14 +455,14 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Custom Reply-To Email Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Custom 'Reply-To' email</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Custom 'Reply-To' email</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           Use a different email address as the replyTo for confirmation emails instead of the
           organizer's email
         </Text>
         <TextInput
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+          className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
           value={props.customReplyToEmail}
           onChangeText={props.setCustomReplyToEmail}
           placeholder="reply@example.com"
@@ -470,22 +473,22 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </View>
 
       {/* Event Type Color Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Event type color</Text>
-        <Text className="text-sm text-[#666] mb-3">
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Event type color</Text>
+        <Text className="mb-3 text-sm text-[#666]">
           This is only used for event type & booking differentiation within the app. It is not
           displayed to bookers.
         </Text>
         <View className="gap-3">
           <View>
-            <Text className="text-sm font-medium text-[#333] mb-2">Light theme color</Text>
+            <Text className="mb-2 text-sm font-medium text-[#333]">Light theme color</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
+                className="h-12 w-12 rounded-lg border border-[#E5E5EA]"
                 style={{ backgroundColor: props.eventTypeColorLight }}
               />
               <TextInput
-                className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                className="flex-1 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="#292929"
@@ -495,14 +498,14 @@ export function AdvancedTab(props: AdvancedTabProps) {
             </View>
           </View>
           <View>
-            <Text className="text-sm font-medium text-[#333] mb-2">Dark theme color</Text>
+            <Text className="mb-2 text-sm font-medium text-[#333]">Dark theme color</Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="w-12 h-12 rounded-lg border border-[#E5E5EA]"
+                className="h-12 w-12 rounded-lg border border-[#E5E5EA]"
                 style={{ backgroundColor: props.eventTypeColorDark }}
               />
               <TextInput
-                className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+                className="flex-1 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="#FAFAFA"
@@ -516,4 +519,3 @@ export function AdvancedTab(props: AdvancedTabProps) {
     </View>
   );
 }
-

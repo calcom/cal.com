@@ -62,4 +62,3 @@ export interface BookingParticipationResult {
   isAttendee: boolean;
   isParticipating: boolean;
 }
-

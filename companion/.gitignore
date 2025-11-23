@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+.yarn/
+.pnp.*
 
 # Expo
 .expo/
@@ -25,6 +27,7 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
@@ -32,6 +35,7 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +43,25 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# WXT Chrome Extension build outputs
+.output/
+.wxt/
+dev/
+
+# Extension builds (generated at build time)
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.code-workspace

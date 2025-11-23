@@ -23,19 +23,20 @@ interface AvailabilityTabProps {
 
 export function AvailabilityTab(props: AvailabilityTabProps) {
   return (
-    <View className="bg-white rounded-2xl p-5">
+    <View className="rounded-2xl bg-white p-5">
       <View className="mb-3">
-        <Text className="text-base font-semibold text-[#333] mb-1.5">Availability</Text>
+        <Text className="mb-1.5 text-base font-semibold text-[#333]">Availability</Text>
         <TouchableOpacity
-          className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
+          className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
           onPress={() => props.setShowScheduleDropdown(true)}
-          disabled={props.schedulesLoading}>
+          disabled={props.schedulesLoading}
+        >
           <Text className="text-base text-black">
             {props.schedulesLoading
               ? "Loading schedules..."
               : props.selectedSchedule
-              ? props.selectedSchedule.name
-              : "Select schedule"}
+                ? props.selectedSchedule.name
+                : "Select schedule"}
           </Text>
           <Ionicons name="chevron-down" size={20} color="#8E8E93" />
         </TouchableOpacity>
@@ -44,7 +45,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
       {props.selectedSchedule && (
         <>
           <View
-            className="pt-5 mt-5"
+            className="mt-5 pt-5"
             style={{
               borderTopWidth: 1,
               borderTopColor: "#E5E5EA",
@@ -52,21 +53,23 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
               marginRight: -20,
               paddingLeft: 20,
               paddingRight: 20,
-            }}>
+            }}
+          >
             {props.scheduleDetailsLoading ? (
-              <View className="py-4 items-center">
-                <Text className="text-sm text-[#8E8E93] italic">Loading schedule details...</Text>
+              <View className="items-center py-4">
+                <Text className="text-sm italic text-[#8E8E93]">Loading schedule details...</Text>
               </View>
             ) : props.selectedScheduleDetails ? (
               props.getDaySchedule().map((dayInfo, index) => (
-                <View key={index} className="flex-row justify-between items-center py-4">
+                <View key={index} className="flex-row items-center justify-between py-4">
                   <Text
-                    className={`text-[15px] font-medium text-[#333] flex-1 ml-2 ${
-                      !dayInfo.available ? "line-through text-[#8E8E93]" : ""
-                    }`}>
+                    className={`ml-2 flex-1 text-[15px] font-medium text-[#333] ${
+                      !dayInfo.available ? "text-[#8E8E93] line-through" : ""
+                    }`}
+                  >
                     {dayInfo.day}
                   </Text>
-                  <Text className="text-[15px] text-[#666] text-right mr-4">
+                  <Text className="mr-4 text-right text-[15px] text-[#666]">
                     {dayInfo.available && dayInfo.startTime && dayInfo.endTime
                       ? `${props.formatTime(dayInfo.startTime)} - ${props.formatTime(dayInfo.endTime)}`
                       : "Unavailable"}
@@ -74,14 +77,16 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 </View>
               ))
             ) : (
-              <View className="py-4 items-center">
-                <Text className="text-sm text-[#8E8E93] italic">Failed to load schedule details</Text>
+              <View className="items-center py-4">
+                <Text className="text-sm italic text-[#8E8E93]">
+                  Failed to load schedule details
+                </Text>
               </View>
             )}
           </View>
 
           <View
-            className="pt-5 mt-5"
+            className="mt-5 pt-5"
             style={{
               borderTopWidth: 1,
               borderTopColor: "#E5E5EA",
@@ -89,10 +94,11 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
               marginRight: -20,
               paddingLeft: 20,
               paddingRight: 20,
-            }}>
-            <Text className="text-base font-semibold text-[#333] mb-1.5">Timezone</Text>
-            <View className="bg-[#F8F9FA] rounded-lg px-3 py-3 items-center">
-              <Text className="text-base text-[#666] text-center">
+            }}
+          >
+            <Text className="mb-1.5 text-base font-semibold text-[#333]">Timezone</Text>
+            <View className="items-center rounded-lg bg-[#F8F9FA] px-3 py-3">
+              <Text className="text-center text-base text-[#666]">
                 {props.selectedTimezone || props.selectedScheduleDetails?.timeZone || "No timezone"}
               </Text>
             </View>
@@ -102,4 +108,3 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
     </View>
   );
 }
-

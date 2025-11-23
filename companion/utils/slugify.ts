@@ -31,4 +31,3 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
 };
 
 export default slugify;
-

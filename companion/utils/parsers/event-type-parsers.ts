@@ -27,4 +27,3 @@ export const parseSlotInterval = (interval: string): number => {
   const match = interval.match(/(\d+)/);
   return match ? parseInt(match[1]) : 0;
 };
-

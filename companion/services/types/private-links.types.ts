@@ -23,4 +23,3 @@ export interface GetPrivateLinkResponse {
   status: string;
   data: PrivateLink;
 }
-

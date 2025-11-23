@@ -29,4 +29,3 @@ export interface GetScheduleResponse {
   status: "success";
   data: Schedule | null;
 }
-

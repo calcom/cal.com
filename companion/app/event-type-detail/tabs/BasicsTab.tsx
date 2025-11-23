@@ -14,7 +14,7 @@ interface BasicsTabProps {
   username: string;
   eventSlug: string;
   setEventSlug: (value: string) => void;
-  
+
   // Duration
   allowMultipleDurations: boolean;
   setAllowMultipleDurations: (value: boolean) => void;
@@ -24,7 +24,7 @@ interface BasicsTabProps {
   setShowDurationDropdown: (show: boolean) => void;
   defaultDuration: string;
   setShowDefaultDurationDropdown: (show: boolean) => void;
-  
+
   // Location
   selectedLocation: string;
   setShowLocationDropdown: (show: boolean) => void;
@@ -42,11 +42,11 @@ export function BasicsTab(props: BasicsTabProps) {
   return (
     <View className="gap-3">
       {/* Title and Description Card */}
-      <View className="bg-white rounded-2xl p-5">
+      <View className="rounded-2xl bg-white p-5">
         <View className="mb-3">
-          <Text className="text-base font-semibold text-[#333] mb-1.5">Title</Text>
+          <Text className="mb-1.5 text-base font-semibold text-[#333]">Title</Text>
           <TextInput
-            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+            className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
             value={props.eventTitle}
             onChangeText={props.setEventTitle}
             placeholder="Enter event title"
@@ -55,9 +55,9 @@ export function BasicsTab(props: BasicsTabProps) {
         </View>
 
         <View className="mb-3">
-          <Text className="text-base font-semibold text-[#333] mb-1.5">Description</Text>
+          <Text className="mb-1.5 text-base font-semibold text-[#333]">Description</Text>
           <TextInput
-            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black"
+            className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-base text-black"
             style={{ height: 100, textAlignVertical: "top" }}
             value={props.eventDescription}
             onChangeText={props.setEventDescription}
@@ -69,9 +69,9 @@ export function BasicsTab(props: BasicsTabProps) {
         </View>
 
         <View className="mb-3">
-          <Text className="text-base font-semibold text-[#333] mb-1.5">URL</Text>
-          <View className="flex-row items-center bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg overflow-hidden">
-            <Text className="bg-[#E5E5EA] text-[#666] text-base px-3 py-3 rounded-tl-lg rounded-bl-lg">
+          <Text className="mb-1.5 text-base font-semibold text-[#333]">URL</Text>
+          <View className="flex-row items-center overflow-hidden rounded-lg border border-[#E5E5EA] bg-[#F8F9FA]">
+            <Text className="rounded-bl-lg rounded-tl-lg bg-[#E5E5EA] px-3 py-3 text-base text-[#666]">
               cal.com/{props.username}/
             </Text>
             <TextInput
@@ -86,13 +86,13 @@ export function BasicsTab(props: BasicsTabProps) {
       </View>
 
       {/* Duration Card */}
-      <View className="bg-white rounded-2xl p-5">
+      <View className="rounded-2xl bg-white p-5">
         {!props.allowMultipleDurations && (
           <View className="mb-3">
-            <Text className="text-base font-semibold text-[#333] mb-1.5">Duration</Text>
+            <Text className="mb-1.5 text-base font-semibold text-[#333]">Duration</Text>
             <View className="flex-row items-center gap-3">
               <TextInput
-                className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
+                className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
                 value={props.eventDuration}
                 onChangeText={props.setEventDuration}
                 placeholder="30"
@@ -107,10 +107,13 @@ export function BasicsTab(props: BasicsTabProps) {
         {props.allowMultipleDurations && (
           <>
             <View className="mb-3">
-              <Text className="text-base font-semibold text-[#333] mb-1.5">Available durations</Text>
+              <Text className="mb-1.5 text-base font-semibold text-[#333]">
+                Available durations
+              </Text>
               <TouchableOpacity
-                className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                onPress={() => props.setShowDurationDropdown(true)}>
+                className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
+                onPress={() => props.setShowDurationDropdown(true)}
+              >
                 <Text className="text-base text-black">
                   {props.selectedDurations.length > 0
                     ? `${props.selectedDurations.length} duration${
@@ -124,10 +127,11 @@ export function BasicsTab(props: BasicsTabProps) {
 
             {props.selectedDurations.length > 0 && (
               <View className="mb-3">
-                <Text className="text-base font-semibold text-[#333] mb-1.5">Default duration</Text>
+                <Text className="mb-1.5 text-base font-semibold text-[#333]">Default duration</Text>
                 <TouchableOpacity
-                  className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
-                  onPress={() => props.setShowDefaultDurationDropdown(true)}>
+                  className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
+                  onPress={() => props.setShowDefaultDurationDropdown(true)}
+                >
                   <Text className="text-base text-black">
                     {props.defaultDuration || "Select default duration"}
                   </Text>
@@ -138,8 +142,8 @@ export function BasicsTab(props: BasicsTabProps) {
           </>
         )}
 
-        <View className="flex-row justify-between items-start">
-          <Text className="text-base text-[#333] font-medium mb-1">Allow multiple durations</Text>
+        <View className="flex-row items-start justify-between">
+          <Text className="mb-1 text-base font-medium text-[#333]">Allow multiple durations</Text>
           <Switch
             value={props.allowMultipleDurations}
             onValueChange={props.setAllowMultipleDurations}
@@ -150,22 +154,25 @@ export function BasicsTab(props: BasicsTabProps) {
       </View>
 
       {/* Location Card */}
-      <View className="bg-white rounded-2xl p-5">
+      <View className="rounded-2xl bg-white p-5">
         <View className="mb-3">
-          <Text className="text-base font-semibold text-[#333] mb-1.5">Location</Text>
+          <Text className="mb-1.5 text-base font-semibold text-[#333]">Location</Text>
           <TouchableOpacity
-            className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
+            className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
             onPress={() => props.setShowLocationDropdown(true)}
-            disabled={props.conferencingLoading}>
-            <View className="flex-row items-center flex-1">
-              {!props.conferencingLoading && props.selectedLocation && props.getSelectedLocationIconUrl() && (
-                <SvgImage
-                  uri={props.getSelectedLocationIconUrl()!}
-                  width={20}
-                  height={20}
-                  style={{ marginRight: 8 }}
-                />
-              )}
+            disabled={props.conferencingLoading}
+          >
+            <View className="flex-1 flex-row items-center">
+              {!props.conferencingLoading &&
+                props.selectedLocation &&
+                props.getSelectedLocationIconUrl() && (
+                  <SvgImage
+                    uri={props.getSelectedLocationIconUrl()!}
+                    width={20}
+                    height={20}
+                    style={{ marginRight: 8 }}
+                  />
+                )}
               <Text className="text-base text-black">
                 {props.conferencingLoading
                   ? "Loading locations..."
@@ -177,7 +184,9 @@ export function BasicsTab(props: BasicsTabProps) {
 
           {/* Location Input Fields - shown conditionally based on selected location type */}
           {(() => {
-            const currentLocation = defaultLocations.find((loc) => loc.label === props.selectedLocation);
+            const currentLocation = defaultLocations.find(
+              (loc) => loc.label === props.selectedLocation
+            );
             if (!currentLocation || !currentLocation.organizerInputType) {
               return null;
             }
@@ -189,11 +198,12 @@ export function BasicsTab(props: BasicsTabProps) {
 
               return (
                 <View className="mt-3">
-                  <Text className="text-sm font-medium text-[#333] mb-1.5">
-                    {currentLocation.organizerInputLabel || (isAddress ? "Address" : "Meeting Link")}
+                  <Text className="mb-1.5 text-sm font-medium text-[#333]">
+                    {currentLocation.organizerInputLabel ||
+                      (isAddress ? "Address" : "Meeting Link")}
                   </Text>
                   <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 text-base text-[#333]"
+                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 text-base text-[#333] md:px-4"
                     placeholder={currentLocation.organizerInputPlaceholder || ""}
                     value={isAddress ? props.locationAddress : props.locationLink}
                     onChangeText={(text) => {
@@ -208,7 +218,7 @@ export function BasicsTab(props: BasicsTabProps) {
                     keyboardType={isLink ? "url" : "default"}
                   />
                   {currentLocation.messageForOrganizer && (
-                    <Text className="text-xs text-[#666] mt-2">
+                    <Text className="mt-2 text-xs text-[#666]">
                       {currentLocation.messageForOrganizer}
                     </Text>
                   )}
@@ -218,11 +228,11 @@ export function BasicsTab(props: BasicsTabProps) {
               // Phone input
               return (
                 <View className="mt-3">
-                  <Text className="text-sm font-medium text-[#333] mb-1.5">
+                  <Text className="mb-1.5 text-sm font-medium text-[#333]">
                     {currentLocation.organizerInputLabel || "Phone Number"}
                   </Text>
                   <TextInput
-                    className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-2 md:px-4 py-3 text-base text-[#333]"
+                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-3 text-base text-[#333] md:px-4"
                     placeholder={currentLocation.organizerInputPlaceholder || "Enter phone number"}
                     value={props.locationPhone}
                     onChangeText={props.setLocationPhone}
@@ -231,7 +241,9 @@ export function BasicsTab(props: BasicsTabProps) {
                     keyboardType="phone-pad"
                   />
                   {currentLocation.messageForOrganizer && (
-                    <Text className="text-xs text-[#666] mt-2">{currentLocation.messageForOrganizer}</Text>
+                    <Text className="mt-2 text-xs text-[#666]">
+                      {currentLocation.messageForOrganizer}
+                    </Text>
                   )}
                 </View>
               );
@@ -243,4 +255,3 @@ export function BasicsTab(props: BasicsTabProps) {
     </View>
   );
 }
-

@@ -49,7 +49,8 @@ export default function TabLayout() {
           paddingTop: 4,
           height: 66,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="event-types"
         options={{
