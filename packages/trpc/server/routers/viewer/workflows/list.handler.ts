@@ -1,100 +1,38 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { prisma } from "@calcom/prisma";
+import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
 
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TListInputSchema;
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
+  const teamRepository = new TeamRepository(ctx.prisma);
 
-  const org = await prisma.team.findFirst({
-    where: {
-      isOrganization: true,
-      children: {
-        some: {
-          id: input?.teamId,
-        },
-      },
-      members: {
-        some: {
-          userId: input?.userId || ctx.user.id,
-          accepted: true,
-        },
-      },
-    },
-    select: {
-      id: true,
-    },
+  const org = await teamRepository.findOrganization({
+    teamId: input.teamId,
+    userId: input.userId || ctx.user.id,
   });
 
   if (org) {
-    const activeOrgWorkflows = await prisma.workflow.findMany({
-      where: {
-        team: {
-          id: org.id,
-          members: {
-            some: {
-              userId: ctx.user.id,
-              accepted: true,
-            },
-          },
-        },
-        OR: [
-          {
-            isActiveOnAll: true,
-          },
-          {
-            activeOnTeams: {
-              some: {
-                team: {
-                  OR: [
-                    { id: input?.teamId },
-                    {
-                      members: {
-                        some: {
-                          userId: ctx.user.id,
-                          accepted: true,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        team: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            members: true,
-          },
-        },
-        activeOnTeams: {
-          select: {
-            team: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        steps: true,
-      },
+    const activeOrgWorkflows = await WorkflowRepository.findActiveOrgWorkflows({
+      orgId: org.id,
+      userId: ctx.user.id,
+      teamId: input.teamId!,
+      excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
     });
     workflows.push(
       ...activeOrgWorkflows.map((workflow) => {
@@ -104,48 +42,10 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   }
 
   if (input && input.teamId) {
-    const teamWorkflows: WorkflowType[] = await prisma.workflow.findMany({
-      where: {
-        team: {
-          id: input.teamId,
-          members: {
-            some: {
-              userId: ctx.user.id,
-              accepted: true,
-            },
-          },
-        },
-      },
-      include: {
-        team: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            members: true,
-          },
-        },
-        activeOn: {
-          select: {
-            eventType: {
-              select: {
-                id: true,
-                title: true,
-                parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        steps: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
+    const teamWorkflows: WorkflowType[] = await WorkflowRepository.findTeamWorkflows({
+      teamId: input.teamId,
+      userId: ctx.user.id,
+      excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
     });
     const workflowsWithReadOnly = teamWorkflows.map((workflow) => {
       const readOnly = !!workflow.team?.members?.find(
@@ -156,97 +56,35 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
     workflows.push(...workflowsWithReadOnly);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
   if (input && input.userId) {
-    const userWorkflows: WorkflowType[] = await prisma.workflow.findMany({
-      where: {
-        userId: ctx.user.id,
-      },
-      include: {
-        activeOn: {
-          select: {
-            eventType: {
-              select: {
-                id: true,
-                title: true,
-                parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        steps: true,
-        team: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            members: true,
-          },
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
+    const userWorkflows: WorkflowType[] = await WorkflowRepository.findUserWorkflows({
+      userId: ctx.user.id,
+      excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
     });
 
     workflows.push(...userWorkflows);
 
-    return { workflows };
+    // Add permissions to each workflow
+    const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+    // Filter workflows based on view permission
+    const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+    return { workflows: filteredWorkflows };
   }
 
-  const allWorkflows = await prisma.workflow.findMany({
-    where: {
-      OR: [
-        { userId: ctx.user.id },
-        {
-          team: {
-            members: {
-              some: {
-                userId: ctx.user.id,
-                accepted: true,
-              },
-            },
-          },
-        },
-      ],
-    },
-    include: {
-      activeOn: {
-        select: {
-          eventType: {
-            select: {
-              id: true,
-              title: true,
-              parentId: true,
-              _count: {
-                select: {
-                  children: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      steps: true,
-      team: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          members: true,
-        },
-      },
-    },
-    orderBy: {
-      id: "asc",
-    },
+  const allWorkflows = await WorkflowRepository.findAllWorkflows({
+    userId: ctx.user.id,
+    excludeFormTriggers: input.includeOnlyEventTypeWorkflows,
   });
 
   const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
@@ -259,5 +97,11 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   workflows.push(...workflowsWithReadOnly);
 
-  return { workflows };
+  // Add permissions to each workflow
+  const workflowsWithPermissions = await addPermissionsToWorkflows(workflows, ctx.user.id);
+
+  // Filter workflows based on view permission
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
+  return { workflows: filteredWorkflows };
 };

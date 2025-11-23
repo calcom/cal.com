@@ -1,14 +1,14 @@
-import type { Attendee } from "@prisma/client";
-
-// eslint-disable-next-line no-restricted-imports
+ 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { deleteMeeting } from "@calcom/core/videoClient";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
+import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
+import type { Attendee } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { OriginalRescheduledBooking } from "../../handleNewBooking/types";
+import type { OriginalRescheduledBooking } from "../../handleNewBooking/originalRescheduledBookingUtils";
 
 /* Check if the original booking has no more attendees, if so delete the booking
   and any calendar or video integrations */
@@ -18,16 +18,24 @@ const lastAttendeeDeleteBooking = async (
   originalBookingEvt?: CalendarEvent
 ) => {
   let deletedReferences = false;
+  const bookingUser = originalRescheduledBooking?.user;
+  const delegationCredentials = bookingUser
+    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
+      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+        user: { email: bookingUser.email, id: bookingUser.id },
+      })
+    : [];
   if ((!filteredAttendees || filteredAttendees.length === 0) && originalRescheduledBooking) {
     const integrationsToDelete = [];
 
     for (const reference of originalRescheduledBooking.references) {
-      if (reference.credentialId) {
-        const credential = await prisma.credential.findUnique({
-          where: {
-            id: reference.credentialId,
+      if (reference.credentialId || reference.delegationCredentialId) {
+        const credential = await getDelegationCredentialOrFindRegularCredential({
+          id: {
+            credentialId: reference.credentialId,
+            delegationCredentialId: reference.delegationCredentialId,
           },
-          select: credentialForCalendarServiceSelect,
+          delegationCredentials,
         });
 
         if (credential) {

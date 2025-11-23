@@ -1,9 +1,9 @@
-import type { TFunction } from "next-i18next";
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
+import { getSubject, getTypeOfInvite } from "../../lib/utils/team-invite-utils";
 import { V2BaseEmailHtml, CallToAction } from "../components";
 
 type TeamInvite = {
@@ -61,7 +61,7 @@ export const TeamInviteEmail = (
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
           label={props.language(
-            props.isCalcomMember ? (props.isAutoJoin ? "login" : "email_user_cta") : "create_your_account"
+            props.isCalcomMember ? (props.isAutoJoin ? "login" : "accept_invite") : "join_now"
           )}
           href={props.joinLink}
           endIconName="linkIcon"
@@ -157,49 +157,48 @@ export const TeamInviteEmail = (
           <>
             {autoJoinType == "added" ? (
               <>
-                <Trans i18nKey="email_team_invite|content|added_to_org">
-                  {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-                </Trans>{" "}
-                <Trans
-                  i18nKey="email_team_invite|content_addition|existing_user_added"
-                  values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
-                  Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-                  <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous
-                  links still work and redirect appropriately.
-                  <br />
-                  <br />
-                  Please note: All of your personal event types have been moved into the{" "}
-                  <strong>{teamName}</strong> organisation, which may also include potential personal link.
-                  <br />
-                  <br />
-                  Please log in and make sure you have no private events on your new organisational account.
-                  <br />
-                  <br />
-                  For personal events we recommend creating a new account with a personal email address.
-                  <br />
-                  <br />
-                  Enjoy your new clean link:{" "}
-                  <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-                </Trans>
+                <ServerTrans
+                  t={props.language}
+                  i18nKey="email_team_invite|content|added_to_org"
+                  values={{ teamName, invitedBy, appName: APP_NAME }}
+                />{" "}
+                <ServerTrans
+                  t={props.language}
+                  i18nKey="email|existing_user_added_link_changed"
+                  components={{
+                    a0: (
+                      <a className="cursor-pointer text-blue-500 underline" href={prevLink ?? ""}>
+                        {prevLinkWithoutProtocol}
+                      </a>
+                    ),
+                    a1: (
+                      <a className="cursor-pointer text-blue-500 underline" href={newLink ?? ""}>
+                        {newLinkWithoutProtocol}
+                      </a>
+                    ),
+                    a2: (
+                      <a
+                        className="cursor-pointer text-blue-500 underline"
+                        href={`${newLink}?orgRedirection=true`}>
+                        {newLinkWithoutProtocol}
+                      </a>
+                    ),
+                  }}
+                  values={{ teamName, appName: APP_NAME }}
+                />
               </>
             ) : (
               <>
-                <Trans i18nKey="email_team_invite|content|invited_to_org">
-                  {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-                </Trans>{" "}
-                <Trans
+                <ServerTrans
+                  t={props.language}
+                  i18nKey="email_team_invite|content|invited_to_org"
+                  values={{ teamName, invitedBy, appName: APP_NAME }}
+                />{" "}
+                <ServerTrans
+                  t={props.language}
                   i18nKey="existing_user_added_link_will_change"
-                  values={{ prevLink: props.prevLink, newLink: props.newLink, teamName: props.teamName }}>
-                  On accepting the invite, your link will change to your organization domain but don&apos;t
-                  worry, all previous links will still work and redirect appropriately.
-                  <br />
-                  <br />
-                  Please note: All of your personal event types will be moved into the{" "}
-                  <strong>{teamName}</strong> organisation, which may also include potential personal link.
-                  <br />
-                  <br />
-                  For personal events we recommend creating a new account with a personal email address.
-                </Trans>
+                  values={{ teamName, appName: APP_NAME }}
+                />
               </>
             )}
           </>
@@ -208,18 +207,20 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <Trans i18nKey="email_team_invite|content|added_to_org">
-              {invitedBy} has added you to the <strong>{teamName}</strong> organization.
-            </Trans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|added_to_org"
+              values={{ teamName, invitedBy, appName: APP_NAME }}
+            />
           ) : (
-            <Trans i18nKey="email_team_invite|content|invited_to_org">
-              {invitedBy} has invited you to join the <strong>{teamName}</strong> organization.
-            </Trans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|invited_to_org"
+              values={{ teamName, invitedBy, appName: APP_NAME }}
+            />
           )}{" "}
-          <Trans>
-            {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
-            without the email tennis.
-          </Trans>
+          {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
+          without the email tennis.
         </>
       );
     }
@@ -228,20 +229,20 @@ export const TeamInviteEmail = (
       return (
         <>
           {autoJoinType === "added" ? (
-            <Trans i18nKey="email_team_invite|content|added_to_subteam">
-              {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>.
-            </Trans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|added_to_subteam"
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy, appName: APP_NAME }}
+            />
           ) : (
-            <Trans i18nKey="email_team_invite|content|invited_to_subteam">
-              {invitedBy} has invited you to the team <strong>{teamName}</strong> in their organization{" "}
-              <strong>{parentTeamName}</strong>.
-            </Trans>
+            <ServerTrans
+              t={props.language}
+              i18nKey="email_team_invite|content|invited_to_subteam"
+              values={{ teamName, parentTeamName: parentTeamName ?? "", invitedBy, appName: APP_NAME }}
+            />
           )}{" "}
-          <Trans>
-            {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
-            without the email tennis.
-          </Trans>
+          {appName} is the event-juggling scheduler that enables you and your team to schedule meetings
+          without the email tennis.
         </>
       );
     }

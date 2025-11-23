@@ -1,11 +1,10 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { Payment, Prisma, PaymentOption, Booking } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import logger from "@calcom/lib/logger";
+import type { Payment, Prisma, PaymentOption, Booking } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -13,8 +12,8 @@ export function getMockPaymentService() {
   function createPaymentLink(/*{ paymentUid, name, email, date }*/) {
     return "http://mock-payment.example.com/";
   }
-  const paymentUid = uuidv4();
-  const externalId = uuidv4();
+  const paymentUid = "MOCK_PAYMENT_UID";
+  const externalId = "mock_payment_external_id";
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -37,7 +36,7 @@ export function getMockPaymentService() {
         bookingId,
         // booking       Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
         fee: 10,
-        success: true,
+        success: false,
         refunded: false,
         data: {},
         externalId,
@@ -46,10 +45,15 @@ export function getMockPaymentService() {
         currency: payment.currency,
       };
 
-      const paymentData = prismaMock.payment.create({
+      const paymentData = await prismaMock.payment.create({
         data: paymentCreateData,
       });
       logger.silly("Created mock payment", JSON.stringify({ paymentData }));
+
+      const verifyPayment = await prismaMock.payment.findFirst({
+        where: { externalId: paymentCreateData.externalId },
+      });
+      logger.silly("Verified payment exists", JSON.stringify({ verifyPayment }));
 
       return paymentData;
     }

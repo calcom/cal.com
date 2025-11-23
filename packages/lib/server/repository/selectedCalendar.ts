@@ -1,8 +1,9 @@
-import type { Prisma } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
+
+import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -65,7 +66,9 @@ export class SelectedCalendarRepository {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) {
-      throw new Error("Selected calendar already exists");
+      throw new Error(
+        `Selected calendar already exists for userId: ${data.userId}, integration: ${data.integration}, externalId: ${data.externalId}, eventTypeId: ${data.eventTypeId}`
+      );
     }
 
     return await prisma.selectedCalendar.create({
@@ -78,19 +81,28 @@ export class SelectedCalendarRepository {
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
-    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
+    const credentialPayload = buildCredentialPayloadForPrisma({
+      credentialId: data.credentialId,
+      delegationCredentialId: data.delegationCredentialId,
+    });
 
+    const newData = {
+      ...data,
+      ...credentialPayload,
+    };
+
+    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(newData);
     if (conflictingCalendar) {
       return await prisma.selectedCalendar.update({
         where: {
           id: conflictingCalendar.id,
         },
-        data,
+        data: newData,
       });
     }
 
     return await prisma.selectedCalendar.create({
-      data,
+      data: newData,
     });
   }
 
@@ -110,6 +122,14 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.delete({
       where: {
         id: calendarsToDelete[0].id,
+      },
+    });
+  }
+
+  static async deleteById({ id }: { id: string }) {
+    return await prisma.selectedCalendar.delete({
+      where: {
+        id,
       },
     });
   }
@@ -146,13 +166,35 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        // We skip retrying calendars that have errored
-        error: null,
-        OR: [
-          // Either is a calendar pending to be watched
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
+        AND: [
+          {
+            OR: [
+              // Either is a calendar that has not errored
+              { error: null },
+              // Or is a calendar that has errored but has not reached max attempts
+              {
+                error: { not: null },
+                watchAttempts: {
+                  lt: {
+                    // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                    // Removing ts-expect-error fails in another case that _ref isn't defined
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    _ref: "maxAttempts",
+                    _container: "SelectedCalendar",
+                  },
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              // Either is a calendar pending to be watched
+              { googleChannelExpiration: null },
+              // Or is a calendar that is about to expire
+              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
         ],
       },
     });
@@ -167,19 +209,43 @@ export class SelectedCalendarRepository {
       // RN we only support google calendar subscriptions for now
       integration: "google_calendar",
       googleChannelExpiration: { not: null },
-      user: {
-        teams: {
-          every: {
-            team: {
-              features: {
-                none: {
-                  featureId: "calendar-cache",
+      AND: [
+        {
+          OR: [
+            // Either is a calendar that has not errored during unwatch
+            { error: null },
+            // Or is a calendar that has errored during unwatch but has not reached max attempts
+            {
+              error: { not: null },
+              unwatchAttempts: {
+                lt: {
+                  // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                  // Removing ts-expect-error fails in another case that _ref isn't defined
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
+                  _ref: "maxAttempts",
+                  _container: "SelectedCalendar",
+                },
+              },
+            },
+          ],
+        },
+        {
+          user: {
+            teams: {
+              every: {
+                team: {
+                  features: {
+                    none: {
+                      featureId: "calendar-cache",
+                    },
+                  },
                 },
               },
             },
           },
         },
-      },
+      ],
     };
     // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
     const nextBatch = await prisma.selectedCalendar.findMany({
@@ -190,7 +256,12 @@ export class SelectedCalendarRepository {
   }
 
   static async findMany({ where, select, orderBy }: FindManyArgs) {
-    return await prisma.selectedCalendar.findMany({ where, select, orderBy });
+    const args = {
+      where,
+      select,
+      orderBy,
+    } satisfies Prisma.SelectedCalendarFindManyArgs;
+    return await prisma.selectedCalendar.findMany(args);
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
@@ -327,6 +398,45 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.update({
       where: { id },
       data,
+    });
+  }
+
+  static async updateManyByCredentialId(credentialId: number, data: Prisma.SelectedCalendarUpdateInput) {
+    return await prisma.selectedCalendar.updateMany({
+      where: { credentialId },
+      data,
+    });
+  }
+
+  static async setErrorInWatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error,
+      lastErrorAt: new Date(),
+      watchAttempts: { increment: 1 },
+    });
+  }
+
+  static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error,
+      lastErrorAt: new Date(),
+      unwatchAttempts: { increment: 1 },
+    });
+  }
+
+  static async removeWatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error: null,
+      lastErrorAt: null,
+      watchAttempts: 0,
+    });
+  }
+
+  static async removeUnwatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error: null,
+      lastErrorAt: null,
+      unwatchAttempts: 0,
     });
   }
 }

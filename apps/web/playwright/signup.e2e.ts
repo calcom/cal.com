@@ -6,7 +6,8 @@ import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calc
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -20,7 +21,7 @@ test.describe("Signup Main Page Test", async () => {
     await preventFlakyTest(page);
   });
 
-  test("Continue with email button must exist / work", async ({ page }) => {
+  test("Continue with Email button must exist / work", async ({ page }) => {
     const button = page.getByTestId("continue-with-email-button");
     await expect(button).toBeVisible();
     await expect(button).toBeEnabled();
@@ -47,7 +48,7 @@ test.describe("Signup Main Page Test", async () => {
 
 test.describe("Email Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
-    features.reset(); // This resets to the inital state not an empt yarray
+    features.reset(); // This resets to the initial state not an empt yarray
   });
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
@@ -208,7 +209,7 @@ test.describe("Email Signup Flow Test", async () => {
       data: {
         identifier: userToCreate.email,
         token,
-        expires: new Date(new Date().setHours(168)), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
         team: {
           create: {
             name: "Rick's Team",
@@ -294,10 +295,6 @@ test.describe("Email Signup Flow Test", async () => {
       userEmail: userToCreate.email,
     });
 
-    // We need to wait for emails to be sent
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(5000);
-
     expect(receivedEmails?.total).toBe(1);
 
     const verifyEmail = receivedEmails?.items[0];
@@ -311,7 +308,7 @@ test.describe("Email Signup Flow Test", async () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)

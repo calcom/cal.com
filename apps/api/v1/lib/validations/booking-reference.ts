@@ -1,7 +1,7 @@
-import { _BookingReferenceModel as BookingReference } from "@calcom/prisma/zod";
 import { denullishShape } from "@calcom/prisma/zod-utils";
+import { BookingReferenceSchema } from "@calcom/prisma/zod/modelSchema/BookingReferenceSchema";
 
-export const schemaBookingReferenceBaseBodyParams = BookingReference.pick({
+export const schemaBookingReferenceBaseBodyParams = BookingReferenceSchema.pick({
   type: true,
   bookingId: true,
   uid: true,
@@ -11,7 +11,7 @@ export const schemaBookingReferenceBaseBodyParams = BookingReference.pick({
   deleted: true,
 }).partial();
 
-export const schemaBookingReferenceReadPublic = BookingReference.pick({
+export const schemaBookingReferenceReadPublic = BookingReferenceSchema.pick({
   id: true,
   type: true,
   bookingId: true,
@@ -22,7 +22,7 @@ export const schemaBookingReferenceReadPublic = BookingReference.pick({
   deleted: true,
 });
 
-export const schemaBookingCreateBodyParams = BookingReference.omit({ id: true, bookingId: true })
-  .merge(denullishShape(BookingReference.pick({ bookingId: true })))
+export const schemaBookingCreateBodyParams = BookingReferenceSchema.omit({ id: true, bookingId: true })
+  .merge(denullishShape(BookingReferenceSchema.pick({ bookingId: true })))
   .strict();
 export const schemaBookingEditBodyParams = schemaBookingCreateBodyParams.partial();

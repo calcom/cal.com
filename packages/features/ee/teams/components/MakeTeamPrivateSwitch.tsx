@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, SettingsToggle } from "@calcom/ui";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 const MakeTeamPrivateSwitch = ({
   teamId,
@@ -36,6 +37,7 @@ const MakeTeamPrivateSwitch = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t(isOrg ? "make_org_private" : "make_team_private")}
+        labelClassName="text-sm"
         disabled={disabled || mutation?.isPending}
         description={t(isOrg ? "make_org_private_description" : "make_team_private_description")}
         checked={isTeamPrivate}
@@ -43,7 +45,6 @@ const MakeTeamPrivateSwitch = ({
           setTeamPrivate(checked);
           mutation.mutate({ id: teamId, isPrivate: checked });
         }}
-        switchContainerClassName="my-6"
         data-testid="make-team-private-check"
       />
     </>

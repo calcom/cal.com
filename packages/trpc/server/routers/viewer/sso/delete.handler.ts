@@ -1,9 +1,14 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import {
+  canAccessOrganization,
+  samlProductID,
+  samlTenantID,
+  tenantPrefix,
+} from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteOptions = {
@@ -18,7 +23,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   const { teamId } = input;
 
-  const { message, access } = await canAccess(ctx.user, teamId);
+  const { message, access } = await canAccessOrganization(ctx.user, teamId);
 
   if (!access) {
     throw new TRPCError({

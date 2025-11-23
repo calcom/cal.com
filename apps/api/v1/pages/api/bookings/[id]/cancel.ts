@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 

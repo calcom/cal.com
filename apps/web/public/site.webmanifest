@@ -16,6 +16,7 @@
     ],
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
+    "display_override": ["minimal-ui"],
     "display": "standalone",
     "scope": "/",
     "start_url": "/"  

@@ -3,21 +3,28 @@ import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
+import { AppDependencyComponent } from "@calcom/app-store/AppDependencyComponent";
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
+import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
-import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
+import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
 
 export type AppPageProps = {
   name: string;
@@ -79,12 +86,14 @@ export const AppPage = ({
   const searchParams = useCompatSearchParams();
 
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
+  const utils = trpc.useUtils();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data?.setupPending) return;
       setIsLoading(false);
-      showToast(t("app_successfully_installed"), "success");
+      showToast(data?.message || t("app_successfully_installed"), "success");
+      await utils.viewer.apps.appCredentialsByType.invalidate({ appType: type });
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
@@ -98,10 +107,20 @@ export const AppPage = ({
    * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
    */
   const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
+  const availableForTeams = doesAppSupportTeamInstall({
+    appCategories: categories,
+    concurrentMeetings: concurrentMeetings,
+    isPaid: !!paid,
+  });
 
   const handleAppInstall = () => {
+    if (isRedirectApp(slug)) {
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
+      return;
+    }
     setIsLoading(true);
-    if (isConferencing(categories)) {
+    if (isConferencing(categories) && !concurrentMeetings) {
       mutation.mutate({
         type,
         variant,
@@ -113,13 +132,7 @@ export const AppPage = ({
             step: AppOnboardingSteps.EVENT_TYPES_STEP,
           }),
       });
-    } else if (
-      !doesAppSupportTeamInstall({
-        appCategories: categories,
-        concurrentMeetings: concurrentMeetings,
-        isPaid: !!paid,
-      })
-    ) {
+    } else if (!availableForTeams) {
       mutation.mutate({ type });
     } else {
       router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
@@ -132,25 +145,42 @@ export const AppPage = ({
     useGrouping: false,
   }).format(price);
 
-  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+  const [existingCredentials, setExistingCredentials] = useState<
+    NonNullable<typeof appDbQuery.data>["credentials"]
+  >([]);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+  /**
+   * Marks whether the app is installed for all possible teams and the user.
+   */
+  const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
+
+  const appDbQuery = trpc.viewer.apps.appCredentialsByType.useQuery({ appType: type });
 
   useEffect(
     function refactorMeWithoutEffect() {
       const data = appDbQuery.data;
 
-      const credentialsCount = data?.credentials.length || 0;
-      setShowDisconnectIntegration(
-        data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
-      );
-      setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
+      const credentials = data?.credentials || [];
+      setExistingCredentials(credentials);
+
+      const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
+      const installedTeamIds = new Set<number>();
+      for (const cred of credentials) {
+        if (cred.teamId) installedTeamIds.add(cred.teamId);
+      }
+
+      const totalInstalledTargets = (hasPersonalInstall ? 1 : 0) + installedTeamIds.size;
+
+      const appInstalledForAllTargets =
+        availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
+      setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
-    [appDbQuery.data]
+    [appDbQuery.data, availableForTeams]
   );
 
-  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+  const dependencyData = trpc.viewer.apps.queryForDependencies.useQuery(dependencies, {
     enabled: !!dependencies,
   });
 
@@ -161,12 +191,116 @@ export const AppPage = ({
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
   useEffect(() => {
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
     }
   }, []);
+
+  const installOrDisconnectAppButton = () => {
+    if (isRedirectApp(slug)) {
+      return (
+        <Button
+          onClick={() => handleAppInstall()}
+          className="mt-2"
+          StartIcon="external-link"
+          loading={isLoading}
+          disabled={isLoading}>
+          {t("visit")}
+        </Button>
+      );
+    }
+
+    if (appDbQuery.isPending) {
+      return <SkeletonButton className="h-10 w-24" />;
+    }
+
+    const MultiInstallButtonEl = (
+      <InstallAppButton
+        type={type}
+        disableInstall={disableInstall}
+        teamsPlanRequired={teamsPlanRequired}
+        render={({ useDefaultComponent, ...props }) => {
+          if (useDefaultComponent) {
+            props = {
+              ...props,
+              onClick: () => {
+                handleAppInstall();
+              },
+              loading: isLoading,
+            };
+          }
+          return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
+        }}
+      />
+    );
+
+    const SingleInstallButtonEl = (
+      <InstallAppButton
+        type={type}
+        disableInstall={disableInstall}
+        teamsPlanRequired={teamsPlanRequired}
+        render={({ useDefaultComponent, ...props }) => {
+          if (useDefaultComponent) {
+            props = {
+              ...props,
+              onClick: () => {
+                handleAppInstall();
+              },
+              loading: isLoading,
+            };
+          }
+
+          return (
+            <InstallAppButtonChild
+              credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
+              paid={paid}
+              {...props}
+            />
+          );
+        }}
+      />
+    );
+
+    return (
+      <div className="flex items-center space-x-3">
+        {isGlobal ||
+          (existingCredentials.length > 0 && allowedMultipleInstalls ? (
+            <div className="flex space-x-3">
+              <Button StartIcon="check" color="secondary" disabled>
+                {existingCredentials.length > 0
+                  ? t("active_install", { count: existingCredentials.length })
+                  : t("default")}
+              </Button>
+              {!isGlobal && !appInstalledForAllTargets && MultiInstallButtonEl}
+            </div>
+          ) : (
+            !appInstalledForAllTargets && SingleInstallButtonEl
+          ))}
+
+        {existingCredentials.length > 0 && (
+          <>
+            {existingCredentials.length > 1 ? (
+              <MultiDisconnectIntegration
+                credentials={existingCredentials}
+                onSuccess={() => appDbQuery.refetch()}
+              />
+            ) : (
+              <DisconnectIntegration
+                buttonProps={{ color: "secondary" }}
+                label={t("disconnect")}
+                credentialId={Number(existingCredentials[0].id)}
+                teamId={existingCredentials[0].teamId}
+                onSuccess={() => appDbQuery.refetch()}
+              />
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="relative mt-4 flex-1 flex-col items-start justify-start px-4 md:mt-0 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -240,67 +374,21 @@ export const AppPage = ({
             )}
           </header>
         </div>
-        {!appDbQuery.isPending ? (
-          isGlobal ||
-          (existingCredentials.length > 0 && allowedMultipleInstalls ? (
-            <div className="flex space-x-3">
-              <Button StartIcon="check" color="secondary" disabled>
-                {existingCredentials.length > 0
-                  ? t("active_install", { count: existingCredentials.length })
-                  : t("default")}
-              </Button>
-              {!isGlobal && (
-                <InstallAppButton
-                  type={type}
-                  disableInstall={disableInstall}
-                  teamsPlanRequired={teamsPlanRequired}
-                  render={({ useDefaultComponent, ...props }) => {
-                    if (useDefaultComponent) {
-                      props = {
-                        ...props,
-                        onClick: () => {
-                          handleAppInstall();
-                        },
-                        loading: isLoading,
-                      };
-                    }
-                    return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
-                  }}
-                />
-              )}
+        {installOrDisconnectAppButton()}
+
+        {slug === "msteams" && (
+          <div className="bg-info mt-4 rounded-md px-4 py-3">
+            <div className="items-start space-x-2.5">
+              <div className="text-info flex items-start">
+                <div>
+                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">{t("msteams_calendar_warning_body")}</span>
+                </div>
+              </div>
             </div>
-          ) : showDisconnectIntegration ? (
-            <DisconnectIntegration
-              buttonProps={{ color: "secondary" }}
-              label={t("disconnect")}
-              credentialId={existingCredentials[0]}
-              onSuccess={() => {
-                appDbQuery.refetch();
-              }}
-            />
-          ) : (
-            <InstallAppButton
-              type={type}
-              disableInstall={disableInstall}
-              teamsPlanRequired={teamsPlanRequired}
-              render={({ useDefaultComponent, ...props }) => {
-                if (useDefaultComponent) {
-                  props = {
-                    ...props,
-                    onClick: () => {
-                      handleAppInstall();
-                    },
-                    loading: isLoading,
-                  };
-                }
-                return (
-                  <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />
-                );
-              }}
-            />
-          ))
-        ) : (
-          <SkeletonButton className="h-10 w-24" />
+          </div>
         )}
 
         {dependencies &&

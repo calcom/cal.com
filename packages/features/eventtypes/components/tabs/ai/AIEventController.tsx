@@ -4,26 +4,24 @@ import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
-import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
-import { TEMPLATES_FIELDS } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
-import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import PhoneInput from "@calcom/features/components/phone-input";
+import { getTemplateFieldsSchema } from "@calcom/features/calAIPhone/getTemplateFieldsSchema";
+import { templateFieldsMap } from "@calcom/features/calAIPhone/template-fields-map";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Label,
-  EmptyScreen,
-  SettingsToggle,
-  Divider,
-  TextField,
-  PhoneInput,
-  showToast,
-  Icon,
-} from "@calcom/ui";
+import { Label } from "@calcom/ui/components/form";
+import { Divider } from "@calcom/ui/components/divider";
+import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 type AIEventControllerProps = {
   eventType: EventTypeSetup;
@@ -104,7 +102,7 @@ const TemplateFields = () => {
   const { control, watch } = formMethods;
 
   const templateType = watch("aiPhoneCallConfig.templateType");
-  const fields = TEMPLATES_FIELDS[templateType as TemplateType];
+  const fields = templateFieldsMap[templateType as TemplateType];
 
   return (
     <div className="space-y-4">

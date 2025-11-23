@@ -7,7 +7,7 @@ import {
   getGoogleCalendarCredential,
   Timezones,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
+// TODO: we should rename this - it doesnt get a mockRequestDataForBooking - it just gets mock booking data.
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
@@ -17,12 +17,12 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { getNewBookingHandler } from "./test/getNewBookingHandler";
+
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
 
 const eventLength = 30;
-
-const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
 const booker = getBooker({
   email: "booker@example.com",
@@ -69,6 +69,7 @@ describe(
       // eslint-disable-next-line playwright/no-skipped-test
       test(`Booking limits per week
     `, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -173,12 +174,9 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingWithinLimit,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingWithinLimit,
         });
-
-        const createdBooking = await handleNewBooking(req1);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -200,18 +198,17 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingAboveLimit,
-        });
-
         // this is the third team booking of this week for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
-          "no_available_users_found_error"
-        );
+        await expect(
+          async () =>
+            await handleNewBooking({
+              bookingData: mockBookingAboveLimit,
+            })
+        ).rejects.toThrowError("no_available_users_found_error");
       });
 
       test(`Booking limits per day`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -264,12 +261,9 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingWithinLimit,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingWithinLimit,
         });
-
-        const createdBooking = await handleNewBooking(req1);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -291,18 +285,17 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingAboveLimit,
-        });
-
         // this is the second team booking of this day for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
-          "no_available_users_found_error"
-        );
+        await expect(
+          async () =>
+            await handleNewBooking({
+              bookingData: mockBookingAboveLimit,
+            })
+        ).rejects.toThrowError("no_available_users_found_error");
       });
 
       test(`Booking limits per month`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -400,12 +393,9 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingWithinLimit,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingWithinLimit,
         });
-
-        const createdBooking = await handleNewBooking(req1);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -427,18 +417,17 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingAboveLimit,
-        });
-
         // this is the firth team booking (incl. managed) of this month for user 101, limit reached
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
-          "no_available_users_found_error"
-        );
+        await expect(
+          async () =>
+            await handleNewBooking({
+              bookingData: mockBookingAboveLimit,
+            })
+        ).rejects.toThrowError("no_available_users_found_error");
       });
 
       test(`Booking limits per year`, async ({}) => {
+        const handleNewBooking = getNewBookingHandler();
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
@@ -528,12 +517,9 @@ describe(
           },
         });
 
-        const { req: req1 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingWithinLimit,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingWithinLimit,
         });
-
-        const createdBooking = await handleNewBooking(req1);
 
         expect(createdBooking.responses).toEqual(
           expect.objectContaining({
@@ -555,14 +541,12 @@ describe(
           },
         });
 
-        const { req: req2 } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingAboveLimit,
-        });
-
-        await expect(async () => await handleNewBooking(req2)).rejects.toThrowError(
-          "no_available_users_found_error"
-        );
+        await expect(
+          async () =>
+            await handleNewBooking({
+              bookingData: mockBookingAboveLimit,
+            })
+        ).rejects.toThrowError("no_available_users_found_error");
       });
     });
   },

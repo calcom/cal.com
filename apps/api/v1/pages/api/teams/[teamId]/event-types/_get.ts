@@ -1,11 +1,11 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
-import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { eventTypeSelect } from "~/lib/selects/event-type";
 
 const querySchema = z.object({
   teamId: z.coerce.number(),
@@ -57,17 +57,11 @@ async function getHandler(req: NextApiRequest) {
             members: { some: { userId } },
           },
     },
-    include: {
-      customInputs: true,
-      team: { select: { slug: true } },
-      hosts: { select: { userId: true, isFixed: true } },
-      owner: { select: { username: true, id: true } },
-      children: { select: { id: true, userId: true } },
-    },
+    select: eventTypeSelect,
   };
-
-  const data = await prisma.eventType.findMany(args);
-  return { event_types: data.map((eventType) => schemaEventTypeReadPublic.parse(eventType)) };
+  return {
+    event_types: await prisma.eventType.findMany(args),
+  };
 }
 
 export default defaultResponder(getHandler);

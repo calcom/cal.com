@@ -1,16 +1,16 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { useEffect, useState, forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
+import { useState, type Ref, type ChangeEvent } from "react";
 
-import { classNames } from "@calcom/lib";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ButtonProps } from "@calcom/ui";
-import { Button, Input } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button, type ButtonProps } from "@calcom/ui/components/button";
+import { FilterSearchField } from "@calcom/ui/components/form";
 
-import { useColumnFilters } from "../hooks";
+import { useColumnFilters, useDataTable } from "../hooks";
 
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
@@ -30,56 +30,38 @@ const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTabl
   );
 });
 
-interface SearchBarProps<TData> {
-  table: Table<TData>;
-  searchKey?: string;
-  onSearch?: (value: string) => void;
+interface SearchBarProps {
   className?: string;
 }
 
-function SearchBarComponent<TData>(
-  { table, searchKey, onSearch, className }: SearchBarProps<TData>,
-  ref: React.Ref<HTMLInputElement>
-) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputElement>) {
+  const { searchTerm, setSearchTerm } = useDataTable();
+  const { t } = useLocale();
+  const [localValue, setLocalValue] = useState(searchTerm);
 
   useEffect(() => {
-    onSearch?.(debouncedSearchTerm);
-  }, [debouncedSearchTerm, onSearch]);
+    setLocalValue(searchTerm);
+  }, [searchTerm]);
 
-  if (onSearch) {
-    return (
-      <Input
-        ref={ref}
-        className={`max-w-64 mb-0 mr-auto rounded-md ${className ?? ""}`}
-        placeholder="Search"
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value.trim())}
-      />
-    );
-  }
-
-  if (!searchKey) {
-    console.error("searchKey is required if onSearch is not provided");
-    return null;
-  }
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setLocalValue(value);
+    setSearchTerm(value);
+  };
 
   return (
-    <Input
+    <FilterSearchField
       ref={ref}
-      className="max-w-64 mb-0 mr-auto rounded-md"
-      placeholder="Search"
-      value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-      onChange={(event) => {
-        return table.getColumn(searchKey)?.setFilterValue(event.target.value.trim());
-      }}
+      className={classNames("max-w-48", className)}
+      placeholder={t("search")}
+      value={localValue}
+      onChange={handleSearchChange}
     />
   );
 }
 
-const SearchBar = forwardRef(SearchBarComponent) as <TData>(
-  props: SearchBarProps<TData> & { ref?: React.Ref<HTMLInputElement> }
+const SearchBar = forwardRef(SearchBarComponent) as (
+  props: SearchBarProps & { ref?: React.Ref<HTMLInputElement> }
 ) => ReturnType<typeof SearchBarComponent>;
 
 interface ClearFiltersButtonProps<TData> {

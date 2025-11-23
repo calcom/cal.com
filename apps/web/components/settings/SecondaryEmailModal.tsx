@@ -3,18 +3,12 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  Button,
-  TextField,
-  Form,
-  InputError,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Form, TextField, InputError } from "@calcom/ui/components/form";
 
 interface SecondaryEmailModalProps {
   isLoading: boolean;

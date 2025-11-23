@@ -4,24 +4,20 @@ import type {
   EventTypeForAppCard,
 } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import useAppsData from "@calcom/features/apps/hooks/useAppsData";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import useAppsData from "@calcom/lib/hooks/useAppsData";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { StripeConnect } from "../../connect/stripe/StripeConnect";
-import { useCheck, useTeamCheck } from "../../hooks/stripe/useCheck";
+import { useCheck } from "../../hooks/stripe/useCheck";
 import { useAtomsEventTypeById } from "../hooks/useAtomEventTypeAppIntegration";
 
 const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
-  const { allowConnect, checked } = useCheck({});
-  const { allowConnect: allowConnectTeam, checked: checkedTeam } = useTeamCheck({ teamId: eventType.teamId });
+  const { allowConnect, checked } = useCheck({ teamId: eventType.teamId });
 
-  const isAllowConnect = eventType.teamId ? allowConnectTeam : allowConnect;
-  const isChecking = eventType.teamId ? !checkedTeam : !checked;
+  const isStripeConnected = !checked || !allowConnect;
 
-  const isStripeConnected = isChecking || !isAllowConnect;
-
-  if (isChecking) return <div>Checking...</div>;
+  if (!checked) return <div>Checking...</div>;
 
   return (
     <div>

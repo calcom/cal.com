@@ -5,7 +5,14 @@ import LegacyPage from "~/upgrade/upgrade-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("upgrade"),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    "/upgrade"
   );
 
-export default LegacyPage;
+const ServerPage = async () => {
+  return <LegacyPage />;
+};
+
+export default ServerPage;

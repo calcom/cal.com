@@ -25,6 +25,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { getNewBookingHandler } from "../../handleNewBooking/test/getNewBookingHandler";
 import * as handleSeatsModule from "../handleSeats";
 
 describe("handleSeats", () => {
@@ -33,7 +34,7 @@ describe("handleSeats", () => {
   describe("Correct parameters being passed into handleSeats from handleNewBooking", () => {
     vi.mock("./handleSeats");
     test("On new booking handleSeats is not called", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const spy = vi.spyOn(handleSeatsModule, "default");
 
       const booker = getBooker({
@@ -87,19 +88,16 @@ describe("handleSeats", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expect(spy).toHaveBeenCalledTimes(1);
     });
 
     test("handleSeats is called when a new attendee is added", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -191,7 +189,9 @@ describe("handleSeats", () => {
         body: mockBookingData,
       });
 
-      const createdBooking = await handleNewBooking(req);
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
 
       expect(createdBooking.metadata).toHaveProperty("videoCallUrl");
 
@@ -242,7 +242,7 @@ describe("handleSeats", () => {
 
     test("handleSeats is called on rescheduling a seated event", async () => {
       const spy = vi.spyOn(handleSeatsModule, "default");
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
 
       const booker = getBooker({
         email: "booker@example.com",
@@ -330,12 +330,9 @@ describe("handleSeats", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       const handleSeatsCall = spy.mock.calls[0][0];
 
@@ -387,7 +384,7 @@ describe("handleSeats", () => {
   describe("As an attendee", () => {
     describe("Creating a new booking", () => {
       test("Attendee should be added to existing seated event", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -488,12 +485,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -517,7 +511,7 @@ describe("handleSeats", () => {
 
       // Testing in case of a wave of people book a time slot at the same time
       test("Attendee should be added to existing seated event when bookingUid is not present", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -617,12 +611,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -645,7 +636,7 @@ describe("handleSeats", () => {
       });
 
       test("If attendee is already a part of the booking then throw an error", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "seat1@example.com",
@@ -746,16 +737,15 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+          })
+        ).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
       });
 
       test("If event is already full, fail", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "seat3@example.com",
@@ -869,16 +859,15 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.BookingSeatsFull);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+          })
+        ).rejects.toThrowError(ErrorCode.BookingSeatsFull);
       });
 
       test("Verify Seat Availability Calculation Based on Booked Seats, Not Total Attendees", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "seat2@example.com",
@@ -1021,12 +1010,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         const newAttendee = await prismaMock.attendee.findFirst({
           where: {
@@ -1060,7 +1046,7 @@ describe("handleSeats", () => {
 
     describe("Rescheduling a booking", () => {
       test("When rescheduling to an existing booking, move attendee", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1219,12 +1205,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         // Ensure that the attendee is no longer a part of the old booking
         const oldBookingAttendees = await prismaMock.attendee.findMany({
@@ -1266,7 +1249,7 @@ describe("handleSeats", () => {
       });
 
       test("When rescheduling to an empty timeslot, create a new booking", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1393,7 +1376,9 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        const createdBooking = await handleNewBooking(req);
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
 
         // Ensure that the attendee is no longer a part of the old booking
         const oldBookingAttendees = await prismaMock.attendee.findMany({
@@ -1424,7 +1409,7 @@ describe("handleSeats", () => {
       });
 
       test("When last attendee is rescheduled, delete old booking", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const attendeeToReschedule = getMockBookingAttendee({
           id: 2,
@@ -1532,12 +1517,9 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
 
         // Ensure that the old booking is cancelled
         const oldBooking = await prismaMock.booking.findFirst({
@@ -1671,15 +1653,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -1812,15 +1792,13 @@ describe("handleSeats", () => {
           seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockCancelBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
@@ -1864,7 +1842,7 @@ describe("handleSeats", () => {
   describe("As an owner", () => {
     describe("Rescheduling a booking", () => {
       test("When rescheduling to new timeslot, ensure all attendees are moved", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -1994,14 +1972,10 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-
-        const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
         expect(rescheduledBooking?.startTime).toEqual(secondBookingStartTime);
@@ -2027,7 +2001,7 @@ describe("handleSeats", () => {
       });
 
       test("When rescheduling to existing booking, merge attendees ", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2194,14 +2168,10 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-
-        const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
         expect(rescheduledBooking?.startTime).toEqual(new Date(secondBookingStartTime));
@@ -2238,7 +2208,7 @@ describe("handleSeats", () => {
         expect(originalBooking?.status).toEqual(BookingStatus.CANCELLED);
       });
       test("When merging more attendees than seats, fail ", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2405,19 +2375,17 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        req.userId = organizer.id;
-
         // const rescheduledBooking = await handleNewBooking(req);
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+            userId: organizer.id,
+          })
+        ).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
 
       test("When trying to reschedule in a non-available slot, throw an error", async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -2438,7 +2406,7 @@ describe("handleSeats", () => {
         const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-        // Non-available time slot choosen (7:30PM - 8:00PM IST) while rescheduling
+        // Non-available time slot chosen (7:30PM - 8:00PM IST) while rescheduling
         const secondBookingStartTime = `${plus2DateString}T14:00:00Z`;
         const secondBookingEndTime = `${plus2DateString}T14:30:00Z`;
 
@@ -2551,14 +2519,12 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
-        });
-
-        req.userId = organizer.id;
-
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+        await expect(() =>
+          handleNewBooking({
+            bookingData: mockBookingData,
+            userId: organizer.id,
+          })
+        ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
       });
     });
 
@@ -2678,15 +2644,13 @@ describe("handleSeats", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleCancelBooking({
+          bookingData: {
+            ...mockBookingData,
+            cancellationReason: "test cancellation reason",
+          },
+          userId: organizer.id,
         });
-
-        req.userId = organizer.id;
-        req.body.cancellationReason = "test cancellation reason";
-
-        await handleCancelBooking(req);
 
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({

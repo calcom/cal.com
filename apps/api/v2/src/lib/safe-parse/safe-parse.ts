@@ -3,12 +3,7 @@ import { ZodSchema } from "zod";
 
 const logger = new Logger("safeParse");
 
-export function safeParse<T>(
-  schema: ZodSchema<T>,
-  value: unknown,
-  defaultValue: T,
-  logError = true
-): T {
+export function safeParse<T>(schema: ZodSchema<T>, value: unknown, defaultValue: T, logError = true): T {
   const result = schema.safeParse(value);
   if (result.success) {
     return result.data;

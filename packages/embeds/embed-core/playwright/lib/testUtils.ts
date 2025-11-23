@@ -3,6 +3,39 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+export async function getQueuedFormResponse(queuedFormResponseId: string) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      id: queuedFormResponseId,
+    },
+    include: {
+      actualResponse: true,
+    },
+  });
+}
+
+export async function getAllFormResponses(formId: string) {
+  return prisma.app_RoutingForms_FormResponse.findMany({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getLatestQueuedFormResponse({ formId }: { formId: string }) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
     where: {
@@ -109,12 +142,16 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   });
 
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month gets rendered
   // This doesn't seem to be replicable with the speed of a person, only during automation.
   // It would also allow correct snapshot to be taken for current month.
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
+  return bookEvent({ frame, page });
+}
+
+export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
@@ -157,4 +194,57 @@ export async function assertNoRequestIsBlocked(page: Page) {
       throw new Error(`Request Blocked: ${request.url()}. Error: ${error}`);
     }
   });
+}
+
+export async function expectEmbedIFrameToBeVisible({
+  calNamespace,
+  page,
+}: {
+  calNamespace: string;
+  page: Page;
+}) {
+  const iframe = page.locator(`[name="cal-embed=${calNamespace}"]`);
+  await expect(iframe).toBeVisible();
+}
+
+export async function expectActualFormResponseConnectedToQueuedFormResponse({
+  queuedFormResponse,
+  page,
+  numberOfExpectedSetFieldValues,
+}: {
+  queuedFormResponse: { id: string };
+  page: Page;
+}) {
+  const responsePromise = page.waitForResponse("**/queued-response");
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  const queuedFormResponseFromDb = await getQueuedFormResponse(queuedFormResponse.id);
+
+  expect(queuedFormResponseFromDb?.actualResponse?.id).toBeDefined();
+  const responseFromDb = queuedFormResponseFromDb?.actualResponse?.response;
+  expect(responseFromDb).toBeDefined();
+  const valuesFromResponse = Object.values(responseFromDb).map((item) => item.value);
+  const valuesSetInResponse = valuesFromResponse.filter((value) => !!value);
+  // We are unable to verify the exact response values because we don't directly have the form field identifiers in responseFromDB and would require correlating that with the actual Form from DB
+  // So, for now we just verify the number of values set
+  // There are 5 values that are submitted when CTA is clicked.
+  // TODO: We should be able to verify the exact response values by correlating the form field identifiers with the actual Form from DB
+  expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
+}
+
+export async function cancelBookingThroughEmbed(bookingUid: string, frame: Frame, page: Page) {
+  await frame.waitForSelector('[data-testid="cancel_reason"]');
+
+  await frame.fill('[data-testid="cancel_reason"]', "Test cancellation from embed");
+
+  const responsePromise = page.waitForResponse("**/api/cancel");
+  await frame.click('[data-testid="confirm_cancel"]');
+
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  await expect(frame.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+  return response;
 }

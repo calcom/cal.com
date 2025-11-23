@@ -1,0 +1,248 @@
+---
+title: Configuring your team
+description: Learn how to set up teams via the API v2
+---
+
+This page guides you through the steps to set up teams via the API v2. An organization is just a team that can have children teams.
+
+## Prerequisites
+
+1. You need to have an OAuth client set up, since we'll need the client id and client secret from the OAuth client to be included in the API requests. Here is the link for the [OAuth client setup guide](https://cal.com/docs/platform/quickstart)
+2. You need to have an ESSENTIALS plan or above
+3. In order to create a team and access team info you need to be an organization admin/owner
+4. In order to create and access a team event type you need to be a team admin/owner
+5. For all requests made to the below teams endpoint, you need to provide `x-cal-client-id` and `x-cal-secret-key` headers.
+
+## Steps
+
+<Steps>
+
+<Step>
+ Create a team by sending a POST request to the [create a team](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team) endpoint. The request body would looks something like this:
+
+```
+{
+    "name": "Platform team",
+    "slug": "platform-team",
+    "bio": "This is the platform team!"
+}
+```
+
+The API response returned will look like below.
+```
+{
+  "status": "success",
+  "data": {
+    "hideBookATeamMember": false,
+    "timeZone": "Europe/London",
+    "weekStart": "Sunday",
+    "id": 35137,
+    "parentId": 12575,
+    "name": "Platform team",
+    "slug": "platform-team",
+    "logoUrl": null,
+    "calVideoLogo": null,
+    "appLogo": null,
+    "appIconLogo": null,
+    "bio": "This is the platform team!",
+    "hideBranding": false,
+    "isOrganization": false,
+    "isPrivate": false,
+    "metadata": null,
+    "theme": null,
+    "brandColor": null,
+    "darkBrandColor": null,
+    "bannerUrl": null,
+    "timeFormat": null
+  }
+}
+```
+We recommend storing the team id being returned back in the API response. This will be used in the next steps.
+</Step>
+
+<Step>
+The team created in the previous step has no members, hence we need to add managed users (members) to the team . To create a managed user here is the [managed user](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user) endpoint . After we're done creating a managed user, we need to create membership for the team which can be done by sending a POST request to the [add a member](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) endpoint. The API response returned will look like below.
+```
+{
+  "status": "success",
+  "data": {
+    "id": 504378,
+    "userId": 1278670,
+    "teamId": 36147,
+    "accepted": true,
+    "role": "ADMIN",
+    "disableImpersonation": false,
+    "user": {
+      "avatarUrl": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+      "username": "rick-astley-clvmujib40001p21mxdpkhvu0-gmail",
+      "name": "Cal",
+      "email": "rick+clvmujib40001p21mxdpkhvu0@gmail.com"
+    }
+  }
+}
+```
+</Step>
+
+<Step>
+Now that we have a team set up and it has members, we can create an event type for the team. To create an event type here is the [create an event type](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type) endpoint. The request body would looks something like this:
+```
+{
+  "lengthInMinutes": 60,
+  "title": "Daily standup",
+  "slug": "platform-daily-standup",
+  "description": "Daily standup of the platform team!",
+  "schedulingType": "COLLECTIVE",
+  "hosts": [{"userId": 1399}]
+}
+```
+The API response returned will look like below.
+```
+{
+  "status": "success",
+  "data": {
+    "id": 1954202,
+    "lengthInMinutes": 60,
+    "title": "Daily standup",
+    "slug": "daily-standup-for-platform",
+    "description": "This is a team event type for platform teams daily standup",
+    "locations": [
+      {
+        "type": "integration",
+        "integration": "cal-video"
+      }
+    ],
+    "bookingFields": [
+      {
+        "isDefault": true,
+        "type": "name",
+        "slug": "name",
+        "required": true,
+        "disableOnPrefill": false
+      },
+      {
+        "isDefault": true,
+        "type": "email",
+        "slug": "email",
+        "required": true,
+        "disableOnPrefill": false
+      },
+      {
+        "isDefault": true,
+        "type": "radioInput",
+        "slug": "location",
+        "required": false,
+        "hidden": false
+      },
+      {
+        "isDefault": true,
+        "type": "text",
+        "slug": "title",
+        "required": true,
+        "disableOnPrefill": false,
+        "hidden": true
+      },
+      {
+        "isDefault": true,
+        "type": "textarea",
+        "slug": "notes",
+        "required": false,
+        "disableOnPrefill": false,
+        "hidden": false
+      },
+      {
+        "isDefault": true,
+        "type": "multiemail",
+        "slug": "guests",
+        "required": false,
+        "disableOnPrefill": false,
+        "hidden": false
+      },
+      {
+        "isDefault": true,
+        "type": "textarea",
+        "slug": "rescheduleReason",
+        "required": false,
+        "disableOnPrefill": false,
+        "hidden": false
+      }
+    ],
+    "recurrence": null,
+    "disableGuests": false,
+    "slotInterval": null,
+    "minimumBookingNotice": 120,
+    "beforeEventBuffer": 0,
+    "afterEventBuffer": 0,
+    "metadata": {},
+    "price": 0,
+    "currency": "usd",
+    "lockTimeZoneToggleOnBookingPage": false,
+    "forwardParamsSuccessRedirect": true,
+    "successRedirectUrl": null,
+    "isInstantEvent": false,
+    "scheduleId": null,
+    "onlyShowFirstAvailableSlot": false,
+    "offsetStart": 0,
+    "bookingWindow": {
+      "disabled": true
+    },
+    "confirmationPolicy": {
+      "disabled": true
+    },
+    "requiresBookerEmailVerification": false,
+    "hideCalendarNotes": false,
+    "seats": {
+      "disabled": true
+    },
+    "useDestinationCalendarEmail": false,
+    "hideCalendarEventDetails": false,
+    "hosts": [
+      {
+        "userId": 12860,
+        "name": "Rick Astley",
+        "avatarUrl": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png"
+      }
+    ],
+    "teamId": 36447,
+    "ownerId": null,
+    "parentEventTypeId": null,
+    "schedulingType": "COLLECTIVE",
+    "assignAllTeamMembers": false,
+    "team": {
+      "id": 361247
+    }
+  }
+}
+```
+We recommend storing the slug and team id being returned back in the API response. This will be used in the next steps.
+
+</Step>
+
+<Step>
+Now that we have all the backend setup for teams, it's time to set up the frontend. If we want to enable a team event type in the booker atom, we need to pass the prop `isTeamEvent` as true and also another additional prop `teamId`. The `teamId` is the id of the team that we created in the previous step. Here is the code snippet for the booker atom.
+```
+    <Booker
+      isTeamEvent={true}
+      teamId={35243}
+      eventSlug="daily-standup-for-platform"
+      onCreateBookingSuccess={(booking) => {
+        console.log("booking created successfully", booking);
+      }}
+    />
+```
+Another way to get teams and team event type data is via our custom hooks. Here is an example of how to use the `useTeams` and `useTeamEventTypes` hooks.
+```
+import { useTeams, useTeamEventTypes } from "@calcom/atoms";
+
+export default function TeamEvent(){
+    const { isLoading: isLoadingTeams, data: teams } = useTeams();
+    const { isLoading: isLoadingTeamEventTypes, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
+
+    return (
+        <><h1>Teams event</h1>
+    )
+}
+```
+</Step>
+
+
+</Steps>

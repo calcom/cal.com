@@ -1,33 +1,30 @@
-import {
-  createColumnHelper,
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
-import type { HeaderRow, RoutingFormTableRow } from "../lib/types";
-import { useInsightsFacetedUniqueValues } from "./useInsightsFacetedUniqueValues";
-import { useInsightsParameters } from "./useInsightsParameters";
+import { useInsightsBookingFacetedUniqueValues } from "./useInsightsBookingFacetedUniqueValues";
+import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 type DummyTableRow = {
-  bookingUserId: RoutingFormTableRow["bookingUserId"];
+  userId: number | null;
   eventTypeId: number | null;
+  status: BookingStatus;
+  paid: boolean;
+  userEmail: string | null;
+  userName: string | null;
+  rating: number | null;
 };
 
 const emptyData: DummyTableRow[] = [];
-const dummyHeaders: HeaderRow[] = [];
 
 export const useInsightsBookings = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId } = useInsightsParameters();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
-  const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({
-    headers: dummyHeaders,
+  const getInsightsFacetedUniqueValues = useInsightsBookingFacetedUniqueValues({
     userId,
     teamId,
     isAll,
@@ -36,9 +33,35 @@ export const useInsightsBookings = () => {
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<DummyTableRow>();
     return [
-      columnHelper.accessor("bookingUserId", {
-        id: "bookingUserId",
-        header: t("user"),
+      columnHelper.accessor("eventTypeId", {
+        id: "eventTypeId",
+        header: t("event_type"),
+        size: 200,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("status", {
+        id: "status",
+        header: t("booking_status"),
+        size: 200,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("userId", {
+        id: "userId",
+        header: t("member"),
         enableColumnFilter: true,
         enableSorting: false,
         meta: {
@@ -48,13 +71,52 @@ export const useInsightsBookings = () => {
         },
         cell: () => null,
       }),
-      columnHelper.accessor("eventTypeId", {
-        id: "eventTypeId",
-        header: t("event_type"),
-        size: 200,
+      columnHelper.accessor("paid", {
+        id: "paid",
+        header: t("paid"),
+        size: 150,
         meta: {
           filter: {
             type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("userEmail", {
+        id: "userEmail",
+        header: t("user_email"),
+        size: 200,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("userName", {
+        id: "userName",
+        header: t("user_name"),
+        size: 200,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+      }),
+      columnHelper.accessor("rating", {
+        id: "rating",
+        header: t("rating"),
+        size: 150,
+        meta: {
+          filter: {
+            type: ColumnFilterType.NUMBER,
           },
         },
         enableColumnFilter: true,
@@ -68,7 +130,6 @@ export const useInsightsBookings = () => {
     data: emptyData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
   });

@@ -1,8 +1,9 @@
 import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import type { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
@@ -11,7 +12,7 @@ const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
 
-export async function scheduleMandatoryReminder({
+async function _scheduleMandatoryReminder({
   evt,
   workflows,
   requiresConfirmation,
@@ -57,12 +58,13 @@ export async function scheduleMandatoryReminder({
             time: 1,
             timeUnit: TimeUnit.HOUR,
           },
-          sendTo: filteredAttendees,
+          sendTo: filteredAttendees.map((attendee) => attendee.email),
           template: WorkflowTemplates.REMINDER,
           hideBranding,
           seatReferenceUid,
           includeCalendarEvent: false,
-          isMandatoryReminder: true,
+          // Template is fixed so we don't have to verify
+          verifiedAt: new Date(),
         });
       } catch (error) {
         log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
@@ -72,3 +74,8 @@ export async function scheduleMandatoryReminder({
     log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
   }
 }
+
+export const scheduleMandatoryReminder = withReporting(
+  _scheduleMandatoryReminder,
+  "scheduleMandatoryReminder"
+);

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-core",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
@@ -22,6 +22,8 @@
     "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --host --open'",
     "buildWatchAndServer-https": "run-p '__dev' 'vite --port 3100 --strict-port --host --open --https'",
     "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
+    "buildWatchAndServer-no-auto-open": "run-p '__dev' 'vite --port 3100 --strict-port --host'",
+    "dev-no-open": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer-no-auto-open'",
     "dev-https": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer-https'",
     "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
@@ -52,7 +54,7 @@
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
     "tailwindcss": "^3.3.3",
-    "typescript": "^4.9.4",
+    "typescript": "^5.9.0-beta",
     "vite": "^4.1.2",
     "vite-plugin-environment": "^1.1.3"
   }

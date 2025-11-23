@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import React from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 
@@ -17,6 +17,7 @@ const cvaCardTypeByVariant = cva("", {
       basic: "",
       ProfileCard: "",
       SidebarCard: "",
+      NewLaunchSidebarCard: "",
     },
     structure: {
       image: "",
@@ -35,7 +36,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "basic",
       structure: "card",
-      className: "p-5",
+      className: "p-5 bg-default",
     },
     {
       variant: "basic",
@@ -57,7 +58,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "ProfileCard",
       structure: "card",
-      className: "w-80 p-4 hover:bg-subtle",
+      className: "w-80 p-4 hover:bg-subtle bg-default",
     },
     {
       variant: "ProfileCard",
@@ -79,7 +80,7 @@ const cvaCardTypeByVariant = cva("", {
     {
       variant: "SidebarCard",
       structure: "card",
-      className: "w-full p-3 border border-subtle",
+      className: "w-full p-3 border border-subtle bg-default",
     },
     {
       variant: "SidebarCard",
@@ -90,6 +91,28 @@ const cvaCardTypeByVariant = cva("", {
       variant: "SidebarCard",
       structure: "description",
       className: "text-xs text-default line-clamp-2",
+    },
+
+    // Style for NewLaunchSidebarCard Variant Types
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "image",
+      className: "w-9 h-auto rounded-full mb-4s",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "card",
+      className: "w-full p-3 border border-subtle bg-launch-dark text-white",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "title",
+      className: "text-sm font-cal text-white",
+    },
+    {
+      variant: "NewLaunchSidebarCard",
+      structure: "description",
+      className: "text-xs text-white",
     },
   ],
 });
@@ -116,6 +139,8 @@ export interface BaseCardProps extends CVACardType {
   mediaLink?: string;
   thumbnailUrl?: string;
   structure?: string;
+  coverPhoto?: string;
+  buttonClassName?: string;
 }
 
 export function Card({
@@ -130,14 +155,16 @@ export function Card({
   mediaLink,
   thumbnailUrl,
   learnMore,
+  coverPhoto,
+  buttonClassName,
 }: BaseCardProps) {
   const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
         containerProps?.className,
-        cvaCardTypeByVariant({ variant, structure: "card" }),
-        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
+        "border-subtle text-default bg-default flex flex-col justify-between rounded-md border",
+        cvaCardTypeByVariant({ variant, structure: "card" })
       )}
       data-testid="card-container"
       {...containerProps}>
@@ -158,8 +185,8 @@ export function Card({
         <h5
           title={title}
           className={classNames(
-            cvaCardTypeByVariant({ variant, structure: "title" }),
-            "text-emphasis line-clamp-1 font-bold leading-5"
+            "text-emphasis line-clamp-1 font-bold leading-5",
+            cvaCardTypeByVariant({ variant, structure: "title" })
           )}>
           {title}
         </h5>
@@ -171,11 +198,11 @@ export function Card({
           </p>
         )}
       </div>
-      {variant === "SidebarCard" && (
+      {variant === "SidebarCard" && mediaLink && (
         <a
           onClick={actionButton?.onClick}
           target="_blank"
-          rel="noreferrer"
+          rel="noreferrer noopener"
           href={mediaLink}
           data-testid={actionButton?.["data-testid"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
@@ -201,6 +228,9 @@ export function Card({
           <img alt="play feature video" src={thumbnailUrl} />
         </a>
       )}
+      {variant === "NewLaunchSidebarCard" && coverPhoto && (
+        <img alt="cover" className="mt-3 w-full" src={coverPhoto} />
+      )}
 
       {/* TODO: this should be CardActions https://mui.com/material-ui/api/card-actions/ */}
       {variant === "basic" && actionButton && (
@@ -216,21 +246,23 @@ export function Card({
         </div>
       )}
 
-      {variant === "SidebarCard" && (
+      {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <LinkComponent
               href={learnMore.href}
-              onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-default text-xs font-medium">
+              className={classNames("text-default text-xs font-medium", buttonClassName)}>
               {learnMore.text}
             </LinkComponent>
           )}
           {actionButton?.child && (
             <button
-              className="text-default hover:text-emphasis p-0 text-xs font-normal"
+              className={classNames(
+                "text-default hover:text-emphasis p-0 text-xs font-normal",
+                buttonClassName
+              )}
               color="minimal"
               data-testid={actionButton?.["data-testid"]}
               onClick={actionButton?.onClick}>

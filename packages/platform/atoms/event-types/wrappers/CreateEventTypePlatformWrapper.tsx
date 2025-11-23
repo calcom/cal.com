@@ -2,10 +2,10 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
-import { useCreateEventTypeForm } from "@calcom/lib/hooks/useCreateEventType";
+import { useCreateEventTypeForm } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType } from "@calcom/prisma/client";
-import { Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
 
 import { useCreateEventType } from "../../hooks/event-types/private/useCreateEventType";
 import { useCreateTeamEventType } from "../../hooks/event-types/private/useCreateTeamEventType";
@@ -27,6 +27,7 @@ type CreateEventTypeProps = {
     buttons?: ActionButtonsClassNames;
   };
   onCancel?: () => void;
+  isDryRun?: boolean;
 };
 
 const ActionButtons = ({
@@ -67,6 +68,7 @@ export const CreateEventTypePlatformWrapper = ({
   onError,
   customClassNames,
   onCancel,
+  isDryRun = false,
 }: CreateEventTypeProps) => {
   const { form, isManagedEventType } = useCreateEventTypeForm();
   const createEventTypeQuery = useCreateEventType({ onSuccess, onError });
@@ -75,26 +77,31 @@ export const CreateEventTypePlatformWrapper = ({
   const team = teams?.find((t) => t.id === teamId);
   const { t } = useLocale();
 
+  const permissions = {
+    canCreateEventType: team?.role === "ADMIN" || team?.role === "OWNER",
+  };
+
   return teamId && team ? (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <TeamEventTypeForm
         teamSlug={team?.slug}
         teamId={teamId}
-        isTeamAdminOrOwner={team.role === "ADMIN" || team.role === "OWNER"}
+        permissions={permissions}
         urlPrefix=""
         isPending={createTeamEventTypeQuery.isPending}
         form={form}
         isManagedEventType={isManagedEventType}
         handleSubmit={(values) => {
-          createTeamEventTypeQuery.mutate({
-            lengthInMinutes: values.length,
-            title: values.title,
-            slug: values.slug,
-            description: values.description ?? "",
-            schedulingType: values.schedulingType ?? "COLLECTIVE",
-            hosts: [],
-            teamId,
-          });
+          !isDryRun &&
+            createTeamEventTypeQuery.mutate({
+              lengthInMinutes: values.length,
+              title: values.title,
+              slug: values.slug,
+              description: values.description ?? "",
+              schedulingType: values.schedulingType ?? "COLLECTIVE",
+              hosts: [],
+              teamId,
+            });
         }}
         SubmitButton={(isPending) =>
           ActionButtons({
@@ -115,12 +122,13 @@ export const CreateEventTypePlatformWrapper = ({
         form={form}
         isManagedEventType={isManagedEventType}
         handleSubmit={(values) => {
-          createEventTypeQuery.mutate({
-            lengthInMinutes: values.length,
-            title: values.title,
-            slug: values.slug,
-            description: values.description ?? "",
-          });
+          !isDryRun &&
+            createEventTypeQuery.mutate({
+              lengthInMinutes: values.length,
+              title: values.title,
+              slug: values.slug,
+              description: values.description ?? "",
+            });
         }}
         SubmitButton={(isPending) =>
           ActionButtons({

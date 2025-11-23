@@ -1,12 +1,13 @@
 import React, { Fragment } from "react";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import classNames from "@calcom/lib/classNames";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, type IconName } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import { type IconName } from "@calcom/ui/components/icon";
 
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -42,16 +43,14 @@ type EventDetailCustomBlock = {
 
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
-interface EventMetaProps {
+interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
   icon?: IconName;
   iconUrl?: string;
-  children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.
   highlight?: boolean;
   contentClassName?: string;
-  className?: string;
   isDark?: boolean;
 }
 
@@ -79,6 +78,7 @@ export const EventMetaBlock = ({
   contentClassName,
   className,
   isDark,
+  ...rest
 }: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
@@ -88,7 +88,8 @@ export const EventMetaBlock = ({
         "flex items-start justify-start text-sm",
         highlight ? "text-emphasis" : "text-text",
         className
-      )}>
+      )}
+      {...rest}>
       {iconUrl ? (
         <img
           src={iconUrl}

@@ -1,4 +1,4 @@
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (

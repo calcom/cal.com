@@ -1,8 +1,12 @@
 import React, { forwardRef } from "react";
 
-export const SatSymbol = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function SatSymbol(props) {
+export const SatSymbol = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function SatSymbol(
+  props,
+  ref
+) {
   return (
     <svg
+      ref={ref}
       className={props.className}
       id="Layer_1"
       data-name="Layer 1"

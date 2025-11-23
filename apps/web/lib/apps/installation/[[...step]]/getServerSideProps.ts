@@ -1,41 +1,38 @@
-import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
 
+import { filterEventTypesWhereLocationUpdateIsAllowed } from "@calcom/app-store/_utils/getBulkEventTypes";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 const getUser = async (userId: number) => {
-  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const userRepo = new UserRepository(prisma);
+  const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
 
   if (!userAdminTeams?.id) {
     return null;
   }
 
-  let teams = userAdminTeams.teams.map(({ team }) => ({
+  const teams = userAdminTeams.teams.map(({ team }) => ({
     ...team,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
   }));
 
-  const orgTeam = teams.find((team) => team.isOrganization === true);
-  if (orgTeam?.id) {
-    teams = teams.filter((team) => team?.parent?.id !== orgTeam.id);
-  }
   return {
     ...userAdminTeams,
     teams,
@@ -77,8 +74,16 @@ const getAppBySlug = async (appSlug: string) => {
   return app;
 };
 
-const getEventTypes = async (userId: number, teamIds?: number[]) => {
-  const eventTypeSelect: Prisma.EventTypeSelect = {
+const getEventTypes = async ({
+  userId,
+  teamIds,
+  isConferencing = false,
+}: {
+  userId: number;
+  teamIds?: number[];
+  isConferencing?: boolean;
+}) => {
+  const eventTypeSelect = {
     id: true,
     description: true,
     durationLimits: true,
@@ -99,7 +104,10 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
-  };
+    calVideoSettings: true,
+    parentId: true,
+  } satisfies Prisma.EventTypeSelect;
+
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
@@ -121,24 +129,30 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
         },
       },
     });
-    eventTypeGroups = teams.map((team) => ({
-      teamId: team.id,
-      slug: team.slug,
-      name: team.name,
-      isOrganisation: team.isOrganization,
-      image: getPlaceholderAvatar(team.logoUrl, team.name),
-      eventTypes: team.eventTypes
-        .map((item) => ({
-          ...item,
-          URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
-          selected: false,
-          locations: item.locations as unknown as LocationObject[],
-          bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
-        }))
-        .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
-    }));
+    eventTypeGroups = teams.map((team) => {
+      const filteredEventTypes = isConferencing
+        ? filterEventTypesWhereLocationUpdateIsAllowed(team.eventTypes)
+        : team.eventTypes;
+
+      return {
+        teamId: team.id,
+        slug: team.slug,
+        name: team.name,
+        isOrganisation: team.isOrganization,
+        image: getPlaceholderAvatar(team.logoUrl, team.name),
+        eventTypes: filteredEventTypes
+          .map((item) => ({
+            ...item,
+            URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
+            selected: false,
+            locations: item.locations as unknown as LocationObject[],
+            bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
+          }))
+          .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
+      };
+    });
   } else {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -157,12 +171,16 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     });
 
     if (user) {
+      const filteredEventTypes = isConferencing
+        ? filterEventTypesWhereLocationUpdateIsAllowed(user.eventTypes)
+        : user.eventTypes;
+
       eventTypeGroups.push({
         userId: user.id,
         slug: user.username,
         name: user.name,
         image: getPlaceholderAvatar(user.avatarUrl, user.name),
-        eventTypes: user.eventTypes
+        eventTypes: filteredEventTypes
           .map((item) => ({
             ...item,
             URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${
@@ -210,7 +228,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const _ = stepsEnum.parse(parsedStepParam);
   const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
-  const locale = await getLocale(context.req);
+  const _locale = await getLocale(context.req);
   const app = await getAppBySlug(parsedAppSlug);
   if (!app) return { redirect: { permanent: false, destination: "/apps" } };
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
@@ -248,11 +266,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
     if (isOrg) {
       const teamIds = userTeams.map((item) => item.id);
-      eventTypeGroups = await getEventTypes(user.id, teamIds);
+      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds, isConferencing });
     } else if (parsedTeamIdParam) {
-      eventTypeGroups = await getEventTypes(user.id, [parsedTeamIdParam]);
+      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds: [parsedTeamIdParam], isConferencing });
     } else {
-      eventTypeGroups = await getEventTypes(user.id);
+      eventTypeGroups = await getEventTypes({ userId: user.id, isConferencing });
     }
     if (isConferencing && eventTypeGroups) {
       const destinationCalendar = await prisma.destinationCalendar.findFirst({
@@ -283,7 +301,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: user.id,
     name: user.name,
     avatarUrl: user.avatarUrl,
-    alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
+    alreadyInstalled: appInstalls.some((install) => !install.teamId && install.userId === user.id),
   };
 
   const teamsWithIsAppInstalled = hasTeams
@@ -307,7 +325,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      ...(await serverSideTranslations(locale, ["common"])),
       app,
       appMetadata,
       showEventTypesStep,
@@ -321,7 +338,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isConferencing,
       isOrg,
       // conferencing apps dont support team install
-      installableOnTeams: !isConferencing,
+      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
     } as OnboardingPageProps,
   };
 };

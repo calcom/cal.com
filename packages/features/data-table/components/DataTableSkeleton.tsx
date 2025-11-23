@@ -1,4 +1,11 @@
-import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
+import {
+  TableNew,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@calcom/ui/components/table";
 
 interface DataTableSkeletonProps {
   columns: number;

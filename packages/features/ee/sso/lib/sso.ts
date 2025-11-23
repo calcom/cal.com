@@ -1,9 +1,10 @@
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import jackson from "./jackson";
 import { tenantPrefix, samlProductID } from "./saml";
@@ -35,7 +36,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
       });
 
     const domain = email.split("@")[1];
-    const organization = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
 
     if (!organization)
       throw new TRPCError({

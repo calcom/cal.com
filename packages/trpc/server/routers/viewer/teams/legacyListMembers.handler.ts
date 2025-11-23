@@ -1,8 +1,11 @@
-import type { Prisma } from "@prisma/client";
-
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 
@@ -16,14 +19,18 @@ type ListMembersOptions = {
 
 export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   const { prisma } = ctx;
-  const { isOrgAdmin } = ctx.user.organization;
-  const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
+  const orgId = ctx.user.organizationId;
 
-  if (!hasPermsToView) {
-    return {
-      members: [],
-      nextCursor: undefined,
-    };
+  // Check PBAC permissions for the organization if it's private
+  if (orgId) {
+    const hasPermsToView = await checkCanAccessOrgMembers(ctx, orgId);
+
+    if (!hasPermsToView) {
+      return {
+        members: [],
+        nextCursor: undefined,
+      };
+    }
   }
 
   const limit = input.limit ?? 10;
@@ -37,6 +44,9 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
       where: {
         userId: ctx.user.id,
         accepted: true,
+        ...(input.adminOrOwnedTeamsOnly
+          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
+          : {}),
       },
       select: { teamId: true },
     });
@@ -47,6 +57,9 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
         teamId: { in: input.teamIds },
         userId: ctx.user.id,
         accepted: true,
+        ...(input.adminOrOwnedTeamsOnly
+          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
+          : {}),
       },
     });
     teamsToQuery = memberships.map((m) => m.teamId);
@@ -63,10 +76,6 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     { name: { contains: input.searchText, mode: "insensitive" } },
     { username: { contains: input.searchText, mode: "insensitive" } },
   ];
-
-  if (input.includeEmail) {
-    searchTextClauses.push({ email: { contains: input.searchText, mode: "insensitive" } });
-  }
 
   // Fetch unique users through memberships
   const memberships = await prisma.membership.findMany({
@@ -103,7 +112,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
 
   const enrichedMembers = await Promise.all(
     memberships.map(async (membership) =>
-      UserRepository.enrichUserWithItsProfile({
+      new UserRepository(prisma).enrichUserWithItsProfile({
         user: {
           ...membership.user,
           accepted: membership.accepted,
@@ -125,6 +134,32 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     members: enrichedMembers,
     nextCursor,
   };
+};
+
+const checkCanAccessOrgMembers = async (ctx: ListMembersOptions["ctx"], orgId: number): Promise<boolean> => {
+  const { prisma } = ctx;
+
+  // Get organization info to verify it's private
+  const org = await prisma.team.findUnique({
+    where: { id: orgId },
+    select: { isPrivate: true },
+  });
+
+  if (!org) return false;
+
+  // Check PBAC permissions for listing members
+  const permissionCheckService = new PermissionCheckService();
+
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: orgId,
+    permission: org.isPrivate ? "organization.listMembersPrivate" : "organization.listMembers",
+    fallbackRoles: org.isPrivate
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+      : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  return hasPermission;
 };
 
 export default legacyListMembers;

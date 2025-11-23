@@ -1,9 +1,11 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetUserInput } from "./getUser.schema";
 
 type AdminVerifyOptions = {
@@ -18,13 +20,46 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
+  // Get user's membership role in the organization
+  const currentUserMembership = await prisma.membership.findFirst({
+    where: {
+      userId: currentUser.id,
+      teamId: currentUser.organizationId,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!currentUserMembership) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this organization." });
+  }
+
+  // Check PBAC permissions for viewing/editing organization members
+  const permissions = await getSpecificPermissions({
+    userId: currentUser.id,
+    teamId: currentUser.organizationId,
+    resource: Resource.Organization,
+    userRole: currentUserMembership.role,
+    actions: [CustomAction.ListMembers, CustomAction.ChangeMemberRole],
+    fallbackRoles: {
+      [CustomAction.ListMembers]: {
+        roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.ChangeMemberRole]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  // User needs either ListMembers (to view) or ChangeMemberRole (to edit) permission
+  if (!permissions[CustomAction.ListMembers] || !permissions[CustomAction.ChangeMemberRole]) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   // get requested user from database and ensure they are in the same organization
-  const [requestedUser, membership, teams] = await prisma.$transaction([
-    prisma.user.findFirst({
+  const [requestedUser, membership, teams] = await Promise.all([
+    prisma.user.findUnique({
       where: { id: input.userId },
       select: {
         id: true,
@@ -38,6 +73,11 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
           select: {
             id: true,
             name: true,
+          },
+        },
+        profiles: {
+          select: {
+            username: true,
           },
         },
       },
@@ -77,6 +117,8 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   const foundUser = {
     ...requestedUser,
+    // Enrich with the users profile for the username or fall back to the username their account was created with.
+    username: requestedUser.profiles[0]?.username || requestedUser.username,
     teams: teams.map((team) => ({
       ...team.team,
       accepted: team.accepted,

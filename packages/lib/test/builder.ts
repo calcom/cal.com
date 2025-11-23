@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
@@ -88,6 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
+    interfaceLanguage: null,
     position: 1,
     isInstantEvent: false,
     instantMeetingParameters: [],
@@ -111,6 +112,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     periodCountCalendarDays: null,
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
+    lockedTimeZone: null,
     requiresConfirmation: false,
     requiresConfirmationForFreeEmail: false,
     requiresConfirmationWillBlockSlot: false,
@@ -121,13 +123,20 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     onlyShowFirstAvailableSlot: false,
+    showOptimizedSlots: false,
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
+    disableCancelling: false,
+    disableRescheduling: false,
+    allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
+    includeNoShowInRRCalculation: false,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
+    maxActiveBookingsPerBooker: null,
+    maxActiveBookingPerBookerOfferReschedule: false,
     durationLimits: null,
     assignAllTeamMembers: false,
     rescheduleWithSameRoundRobinHost: false,
@@ -148,6 +157,13 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    customReplyToEmail: null,
+    restrictionScheduleId: null,
+    useBookerTimezone: false,
+    bookingRequiresAuthentication: false,
+    createdAt: null,
+    updatedAt: null,
     ...eventType,
   };
 };

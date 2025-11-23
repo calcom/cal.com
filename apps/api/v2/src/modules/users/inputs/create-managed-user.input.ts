@@ -1,7 +1,10 @@
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl, IsObject, IsNumber } from "class-validator";
+
+import { ValidateMetadata } from "@calcom/platform-types";
 
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 export type TimeFormat = 12 | 24;
@@ -14,6 +17,8 @@ export class CreateManagedUserInput {
   @ApiProperty({ example: "Alice Smith", description: "Managed user's name is used in emails" })
   name!: string;
 
+  @Type(() => Number)
+  @IsNumber()
   @IsOptional()
   @IsIn([12, 24], { message: "timeFormat must be a number either 12 or 24" })
   @ApiPropertyOptional({ example: 12, enum: [12, 24], description: "Must be a number 12 or 24" })
@@ -27,6 +32,7 @@ export class CreateManagedUserInput {
   })
   weekStart?: WeekDay;
 
+  @Transform(({ value }) => (value === null ? undefined : value))
   @IsTimeZone()
   @IsOptional()
   @CapitalizeTimeZone()
@@ -51,4 +57,27 @@ export class CreateManagedUserInput {
     description: `URL of the user's avatar image`,
   })
   avatarUrl?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Bio",
+    example: "I am a bio",
+  })
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @ValidateMetadata({
+    message:
+      "Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+  })
+  metadata?: Record<string, string | boolean | number>;
 }

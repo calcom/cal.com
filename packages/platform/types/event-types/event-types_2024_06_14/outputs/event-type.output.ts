@@ -27,12 +27,15 @@ import {
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
+  CalVideoSettings,
 } from "../inputs";
 import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
+import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
+import { EmailSettings_2024_06_14 } from "../inputs/email-settings.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -52,27 +55,21 @@ import {
   SelectFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
+  UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
+import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
 import {
   OutputAddressLocation_2024_06_14,
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   ValidateOutputLocations_2024_06_14,
 } from "./locations.output";
-
-enum SchedulingTypeEnum {
-  ROUND_ROBIN = "ROUND_ROBIN",
-  COLLECTIVE = "COLLECTIVE",
-  MANAGED = "MANAGED",
-}
-
-export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class User_2024_06_14 {
   @IsInt()
@@ -159,7 +156,7 @@ class EventTypeTeam {
   OutputLinkLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
-  OutputConferencingLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
@@ -173,6 +170,7 @@ class EventTypeTeam {
   CheckboxGroupFieldOutput_2024_06_14,
   MultiEmailFieldOutput_2024_06_14,
   MultiSelectFieldOutput_2024_06_14,
+  UrlFieldOutput_2024_06_14,
   NumberFieldOutput_2024_06_14,
   PhoneFieldOutput_2024_06_14,
   RadioGroupFieldOutput_2024_06_14,
@@ -182,7 +180,8 @@ class EventTypeTeam {
   BaseBookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
-  RangeWindow_2024_06_14
+  RangeWindow_2024_06_14,
+  EmailSettings_2024_06_14
 )
 class BaseEventTypeOutput_2024_06_14 {
   @IsInt()
@@ -230,7 +229,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(OutputLinkLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputIntegrationLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputPhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(OutputConferencingLocation_2024_06_14) },
+      { $ref: getSchemaPath(OutputOrganizersDefaultAppLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputUnknownLocation_2024_06_14) },
     ],
     type: "array",
@@ -261,6 +260,7 @@ class BaseEventTypeOutput_2024_06_14 {
       { $ref: getSchemaPath(CheckboxGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(RadioGroupFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldOutput_2024_06_14) },
+      { $ref: getSchemaPath(UrlFieldOutput_2024_06_14) },
     ],
     type: "array",
   })
@@ -350,6 +350,11 @@ class BaseEventTypeOutput_2024_06_14 {
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
+  @Type(() => BookerActiveBookingsLimitOutput_2024_06_14)
+  @ApiPropertyOptional({ type: BookerActiveBookingsLimitOutput_2024_06_14 })
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimitOutput_2024_06_14;
+
+  @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional()
   onlyShowFirstAvailableSlot?: boolean;
@@ -398,7 +403,7 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @Type(() => Seats_2024_06_14)
   @ApiPropertyOptional({ type: Seats_2024_06_14 })
-  seats?: Seats_2024_06_14;
+  seats?: Seats_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsInt()
@@ -425,12 +430,46 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @ApiPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @DocsProperty({ example: "John Doe" })
   name!: string;
+
+  @IsString()
+  @DocsProperty({ example: "john-doe" })
+  username!: string;
 
   @IsString()
   @IsOptional()
@@ -482,9 +521,9 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
-  @IsEnum(SchedulingTypeEnum)
-  @DocsProperty({ enum: SchedulingTypeEnum, nullable: true })
-  schedulingType!: EventTypesOutputSchedulingType | null;
+  @IsEnum(["roundRobin", "collective", "managed"] as const)
+  @DocsProperty({ enum: ["roundRobin", "collective", "managed"] })
+  schedulingType!: "roundRobin" | "collective" | "managed" | null;
 
   @IsOptional()
   @IsBoolean()
@@ -495,4 +534,20 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @Type(() => EventTypeTeam)
   @DocsProperty()
   team!: EventTypeTeam;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EmailSettings_2024_06_14)
+  @ApiPropertyOptional({
+    description: "Email settings for this event type. Only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

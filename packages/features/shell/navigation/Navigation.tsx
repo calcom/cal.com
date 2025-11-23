@@ -8,14 +8,21 @@ import {
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { classNames } from "@calcom/lib";
-import { Badge } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
 export const MORE_SEPARATOR_NAME = "more";
+
+const preserveBookingsQueryParams = ({
+  prevPathname,
+  nextPathname,
+}: {
+  prevPathname: string | null;
+  nextPathname: string;
+}) => Boolean(prevPathname?.startsWith("/bookings/")) && nextPathname.startsWith("/bookings/");
 
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
@@ -29,6 +36,38 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "calendar",
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
+    child: [
+      {
+        name: "upcoming",
+        href: "/bookings/upcoming",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
+      },
+      {
+        name: "unconfirmed",
+        href: "/bookings/unconfirmed",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
+      },
+      {
+        name: "recurring",
+        href: "/bookings/recurring",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
+      },
+      {
+        name: "past",
+        href: "/bookings/past",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/past",
+      },
+      {
+        name: "cancelled",
+        href: "/bookings/cancelled",
+        preserveQueryParams: preserveBookingsQueryParams,
+        isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
+      },
+    ],
   },
   {
     name: "availability",
@@ -49,8 +88,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "teams",
     href: "/teams",
     icon: "users",
-    onlyDesktop: true,
     badge: <TeamInviteBadge />,
+    moreOnMobile: true,
   },
   {
     name: "apps",
@@ -92,8 +131,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "routing",
     href: "/routing",
     icon: "split",
-    badge: <Badge variant="green">NEW</Badge>,
-
     isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
     moreOnMobile: true,
   },
@@ -113,7 +150,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       {
         name: "bookings",
         href: "/insights",
-        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
+        isCurrent: ({ pathname: path }) => path === "/insights",
       },
       {
         name: "routing",
@@ -122,8 +159,14 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       },
       {
         name: "router_position",
-        href: "/insights/virtual-queues",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+        href: "/insights/router-position",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
+      },
+      {
+        name: "call_history",
+        href: "/insights/call-history",
+        // icon: "phone",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
       },
     ],
   },

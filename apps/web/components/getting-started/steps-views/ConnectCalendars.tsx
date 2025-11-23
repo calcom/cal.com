@@ -1,7 +1,8 @@
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, List } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { List } from "@calcom/ui/components/list";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
@@ -10,16 +11,17 @@ import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface IConnectCalendarsProps {
   nextStep: () => void;
+  isPageLoading: boolean;
 }
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
-  const { nextStep } = props;
-  const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery({
+  const { nextStep, isPageLoading } = props;
+  const queryConnectedCalendars = trpc.viewer.calendars.connectedCalendars.useQuery({
     onboarding: true,
     eventTypeId: null,
   });
   const { t } = useLocale();
-  const queryIntegrations = trpc.viewer.integrations.useQuery({
+  const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,
@@ -80,18 +82,18 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {queryIntegrations.isPending && <StepConnectionLoader />}
 
-      <button
-        type="button"
+      <Button
+        EndIcon="arrow-right"
         data-testid="save-calendar-button"
         className={classNames(
           "text-inverted bg-inverted border-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
+        loading={isPageLoading}
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
-        {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
-        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-      </button>
+        {firstCalendar ? `${t("connect_your_video")}` : `${t("connect_calendar_first")}`}
+      </Button>
     </>
   );
 };

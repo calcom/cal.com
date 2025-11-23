@@ -1,4 +1,5 @@
-// this file is copied from '@calcom/lib/hooks/useCompatSearchParams.tsx'
+"use client";
+
 import { ReadonlyURLSearchParams, useParams, useSearchParams } from "next/navigation";
 
 export const useCompatSearchParams = () => {

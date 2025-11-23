@@ -1,34 +1,46 @@
 {
   "crons": [
     {
-      "path": "/api/cron/calendar-cache-cleanup",
-      "schedule": "0 5 * * *"
+      "path": "/api/cron/calendar-subscriptions",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/calendar-subscriptions-cleanup",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/queuedFormResponseCleanup",
+      "schedule": "0 */12 * * *"
     },
     {
       "path": "/api/tasks/cron",
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/calendar-cache/cron",
-      "schedule": "* * * * *"
-    },
-    {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/credentials",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/selected-calendars",
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
-    "pages/api/trpc/highPerf/[trpc].ts": {
-      "memory": 3008
+    "app/api/cron/workflows/scheduleEmailReminders/route.ts": {
+      "maxDuration": 800
     },
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {
-      "memory": 2048
+    "app/api/cron/workflows/scheduleSMSReminders/route.ts": {
+      "maxDuration": 800
     },
-    "pages/router/embed.tsx": {
-      "memory": 2048
+    "app/api/cron/workflows/scheduleWhatsappReminders/route.ts": {
+      "maxDuration": 800
     },
-    "pages/api/book/event.ts": {
-      "memory": 2048
+    "pages/api/trpc/workflows/[trpc].ts": {
+      "maxDuration": 800
     }
   }
 }

@@ -8,6 +8,7 @@ import type {
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -19,10 +20,6 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
-
-interface CustomPublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -44,11 +41,29 @@ export default class HubspotCalendarService implements CRM {
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
+    const userFields = getLabelValueMapFromResponses(event);
+    const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+    const location = getLocation(event);
+    const userFieldsHtml = Object.entries(userFields)
+      .map(([key, value]) => {
+        const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
+        return `<b>${event.organizer.language.translate(key)}:</b> ${formattedValue}`;
+      })
+      .join("<br><br>");
+
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
+    }<br><br>${
+      event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+            event.additionalNotes
+          }<br><br>`
+        : ""
+    }
+    ${userFieldsHtml}<br><br>
+    <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
+    ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
+  `;
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
@@ -98,7 +113,17 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
-  private hubspotDeleteMeeting = async (uid: string) => {
+  private hubspotCancelMeeting = async (uid: string) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_meeting_outcome: "CANCELED",
+      },
+    };
+
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+  };
+
+  private hubspotArchiveMeeting = async (uid: string) => {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
@@ -185,17 +210,21 @@ export default class HubspotCalendarService implements CRM {
     return await this.handleMeetingCreation(event, contacts);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();
     return await this.hubspotUpdateMeeting(uid, event);
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(uid: string, event: CalendarEvent): Promise<void> {
     const auth = await this.auth;
     await auth.getToken();
-    return await this.hubspotDeleteMeeting(uid);
+
+    if (event?.hasOrganizerChanged) {
+      await this.hubspotArchiveMeeting(uid);
+      return;
+    }
+    await this.hubspotCancelMeeting(uid);
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
@@ -272,5 +301,9 @@ export default class HubspotCalendarService implements CRM {
 
   getAppOptions() {
     console.log("No options implemented");
+  }
+
+  async handleAttendeeNoShow() {
+    console.log("Not implemented");
   }
 }

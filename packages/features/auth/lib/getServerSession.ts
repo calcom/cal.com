@@ -4,10 +4,11 @@ import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
@@ -42,7 +43,7 @@ export async function getServerSession(options: {
   log.debug("Getting server session", safeStringify({ token }));
 
   if (!token || !token.email || !token.sub) {
-    log.debug("Couldnt get token");
+    log.debug("Couldn't get token");
     return null;
   }
 
@@ -64,7 +65,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const licenseKeyService = await LicenseKeySingleton.getInstance();
+  const deploymentRepo = new DeploymentRepository(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
   const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;
@@ -78,7 +80,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });
@@ -93,12 +96,14 @@ export async function getServerSession(options: {
       email: user.email,
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
+      completedOnboarding: user.completedOnboarding,
       role: user.role,
       image: getUserAvatarUrl({
         avatarUrl: user.avatarUrl,
       }),
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
+      orgAwareUsername: token.orgAwareUsername,
       locale: user.locale ?? undefined,
       profile: user.profile,
     },

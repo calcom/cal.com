@@ -1,13 +1,14 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { useEffect, useRef } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useShouldShowArrows, Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -44,7 +45,7 @@ export const EventDuration = ({
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const isPlatform = useIsPlatform();
-  const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
+  const [selectedDuration, setSelectedDuration, state] = useBookerStoreContext((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
     state.state,

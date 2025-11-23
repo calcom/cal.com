@@ -7,7 +7,7 @@ import { useState } from "react";
 import ReactDom from "react-dom";
 
 // Because we don't import from @calcom/embed-react, this file isn't able to test if the build is successful or not and thus npm package would work or not correctly.
-// There are tests in test/built which verifiy that the types from built package are correctly generated and exported correctly.
+// There are tests in test/built which verify that the types from built package are correctly generated and exported correctly.
 import Cal, { getCalApi, type EmbedEvent } from "./src/index";
 
 const api = getCalApi({
@@ -50,6 +50,24 @@ function App() {
           callback,
         });
 
+        const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
+          const data = e.detail.data;
+          console.log("availabilityLoaded", {
+            eventId: data.eventId,
+            eventSlug: data.eventSlug,
+          });
+
+          api("off", {
+            action: "availabilityLoaded",
+            callback: availabilityLoadedCallback,
+          });
+        };
+
+        api("on", {
+          action: "availabilityLoaded",
+          callback: availabilityLoadedCallback,
+        });
+
         // Also, validates the type of e.detail.data as TS runs on this file
         const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
           const data = e.detail.data;
@@ -90,6 +108,7 @@ function App() {
           notes: "Test Meeting",
           guests: ["janedoe@gmail.com"],
           theme: "dark",
+          "cal.embed.pageType": "user.event.booking.slots",
         }}
       />
     </>

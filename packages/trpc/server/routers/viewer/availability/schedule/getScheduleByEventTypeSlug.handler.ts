@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../../types";
 import { getHandler } from "./get.handler";
 import type { TGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
 
@@ -15,10 +15,12 @@ type GetOptions = {
 const EMPTY_SCHEDULE = [[], [], [], [], [], [], []];
 
 export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) => {
-  const foundScheduleForSlug = await ctx.prisma.eventType.findFirst({
+  const foundScheduleForSlug = await ctx.prisma.eventType.findUnique({
     where: {
-      slug: input.eventSlug,
-      userId: ctx.user.id,
+      userId_slug: {
+        userId: ctx.user.id,
+        slug: input.eventSlug,
+      },
     },
     select: {
       scheduleId: true,

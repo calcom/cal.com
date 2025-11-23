@@ -1,9 +1,12 @@
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Icon, showToast, TextField } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface GroupNameCellProps {
   groupNames: string[];
@@ -69,18 +72,21 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
   };
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex flex-wrap items-center gap-2 space-x-4">
       {groupNames.map((name) => (
-        <Badge variant="gray" size="lg" key={name} className="h-8 py-4">
-          <div className="flex items-center space-x-2 ">
-            <p>{name}</p>
-            <div className="hover:bg-emphasis rounded p-1">
+        <Badge variant="gray" size="lg" key={name} className="min-h-8 h-auto py-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="min-w-0 break-words">{name}</p>
+            <div className="hover:bg-emphasis shrink-0 rounded p-1">
               <Icon name="x" className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
         </Badge>
       ))}
-      <Badge variant="gray" size="lg" className={classNames(!showTextInput && "hover:bg-emphasis")}>
+      <Badge
+        variant="gray"
+        size="lg"
+        className={classNames(!showTextInput && "hover:bg-emphasis", "min-h-8 h-auto py-2")}>
         <div
           className="flex items-center space-x-1"
           onClick={() => {

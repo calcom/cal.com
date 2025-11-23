@@ -2,8 +2,11 @@ import type { Table } from "@tanstack/react-table";
 import { describe, it, expect, vi } from "vitest";
 
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
-import { generateCsvRawForMembersTable, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import {
+  generateCsvRawForMembersTable,
+  generateHeaderFromReactTable,
+} from "@calcom/features/users/lib/UserListTableUtils";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
   return {
@@ -60,14 +63,26 @@ describe("generate Csv for Org Users Table", () => {
     username: "testuser",
     email: "test@example.com",
     timeZone: "UTC",
-    role: "MEMBER" as MembershipRole,
+    role: MembershipRole.MEMBER,
     avatarUrl: null,
     accepted: true,
     disableImpersonation: false,
     completedOnboarding: true,
     teams: [],
     attributes: [],
-    lastActiveAt: "",
+    lastActiveAt: new Date().toISOString(),
+    createdAt: null,
+    updatedAt: null,
+    customRole: {
+      type: "SYSTEM",
+      id: "member_role",
+      name: "Member",
+      description: "Default member role",
+      teamId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      color: null,
+    },
   };
 
   it("should throw if no headers", () => {
@@ -91,7 +106,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value1", slug: "slug1", contains: [] }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 
@@ -115,8 +140,24 @@ describe("generate Csv for Org Users Table", () => {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
         attributes: [
-          { id: "1", attributeId: "attr1", value: "value1", slug: "slug1", contains: [] },
-          { id: "2", attributeId: "attr1", value: "value2", slug: "slug1", contains: [] },
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+          {
+            id: "2",
+            attributeId: "attr1",
+            value: "value2",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
         ],
       },
     ];
@@ -166,7 +207,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team,1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value,1", slug: "slug1", contains: [] }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value,1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 

@@ -1,15 +1,21 @@
 import { z } from "zod";
 
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
+import {
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+} from "@calcom/lib/CalendarAppError";
 import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import { OFFICE365_VIDEO_SCOPES } from "../api/add";
 import config from "../config.json";
 
 /** @link https://docs.microsoft.com/en-us/graph/api/application-post-onlinemeetings?view=graph-rest-1.0&tabs=http#response */
@@ -31,8 +37,28 @@ const getO365VideoAppKeys = async () => {
   return getParsedAppKeysFromSlug(config.slug, o365VideoAppKeysSchema);
 };
 
-const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
+  console.log("TeamsVideoApiAdapter--credential: ", credential);
+  let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
+
+  async function triggerDelegationCredentialError(error: Error): Promise<void> {
+    if (credential.userId && credential.user && credential.appId && credential.delegatedToId) {
+      await triggerDelegationCredentialErrorWebhook({
+        error,
+        credential: {
+          id: credential.id,
+          type: credential.type,
+          appId: credential.appId,
+        },
+        user: {
+          id: credential.userId ?? 0,
+          email: credential.user.email,
+        },
+        delegationCredentialId: credential.delegatedToId,
+      });
+    }
+  }
 
   const auth = new OAuthManager({
     credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
@@ -43,19 +69,43 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     appSlug: config.slug,
     currentTokenObject: tokenResponse,
     fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
-      if (!refreshToken) {
+      const isDelegated = Boolean(credential?.delegatedTo);
+      if (!isDelegated && !refreshToken) {
         return null;
       }
-      const { client_id, client_secret } = await getO365VideoAppKeys();
-      return await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+
+      const credentials = isDelegated
+        ? {
+            client_id: credential?.delegatedTo?.serviceAccountKey?.client_id,
+            client_secret: credential?.delegatedTo?.serviceAccountKey?.private_key,
+          }
+        : await getO365VideoAppKeys();
+
+      if (isDelegated && (!credentials.client_id || !credentials.client_secret)) {
+        const error = new CalendarAppDelegationCredentialConfigurationError(
+          "Delegation credential without clientId or Secret"
+        );
+
+        await triggerDelegationCredentialError(error);
+
+        throw error;
+      }
+
+      const url = await getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+      const scope = isDelegated ? "https://graph.microsoft.com/.default" : OFFICE365_VIDEO_SCOPES.join(" ");
+
+      const params: Record<string, string> = {
+        scope,
+        client_id: credentials.client_id || "",
+        client_secret: credentials.client_secret || "",
+        grant_type: isDelegated ? "client_credentials" : "refresh_token",
+        ...(isDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+      };
+
+      return await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id,
-          refresh_token: refreshToken,
-          grant_type: "refresh_token",
-          client_secret,
-        }),
+        body: new URLSearchParams(params),
       });
     },
     isTokenObjectUnusable: async function () {
@@ -69,9 +119,30 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     },
     invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
     expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
-    updateTokenObject: (tokenObject) =>
-      oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id }),
+    updateTokenObject: (tokenObject) => {
+      if (!credential.delegatedTo) {
+        return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
+      }
+      return Promise.resolve();
+    },
   });
+
+  async function getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
+    if (delegatedTo) {
+      if (!tenantId) {
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
+          "Invalid DelegationCredential Settings: tenantId is missing"
+        );
+
+        await triggerDelegationCredentialError(error);
+
+        throw error;
+      }
+      return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    }
+
+    return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+  }
 
   const translateEvent = (event: CalendarEvent) => {
     return {
@@ -81,6 +152,76 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     };
   };
 
+  async function getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {
+    if (azureUserId) return azureUserId;
+
+    const isDelegated = Boolean(credential?.delegatedTo);
+
+    if (!isDelegated) return null;
+
+    const url = await getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+
+    const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
+    const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+
+    if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
+      const error = new CalendarAppDelegationCredentialConfigurationError(
+        "Delegation credential without clientId or Secret"
+      );
+
+      await triggerDelegationCredentialError(error);
+
+      throw error;
+    }
+    const loginResponse = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        scope: "https://graph.microsoft.com/.default",
+        client_id: delegationCredentialClientId,
+        grant_type: "client_credentials",
+        client_secret: delegationCredentialClientSecret,
+      }),
+    });
+
+    const clonedResponse = loginResponse.clone();
+    const parsedLoginResponse = await clonedResponse.json();
+    const token = parsedLoginResponse?.access_token;
+    const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+    const email = credential?.user?.email.replace(oauthClientIdAliasRegex, "");
+    const encodedFilter = encodeURIComponent(`mail eq '${email}'`);
+    const queryParams = `$filter=${encodedFilter}`;
+
+    const response = await fetch(`https://graph.microsoft.com/v1.0/users?${queryParams}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const parsedBody = await response.json();
+
+    if (!parsedBody?.value?.[0]?.id) {
+      const error = new CalendarAppDelegationCredentialInvalidGrantError(
+        "User might not exist in Microsoft Azure Active Directory"
+      );
+
+      await triggerDelegationCredentialError(error);
+
+      throw error;
+    }
+    azureUserId = parsedBody.value[0].id;
+    return azureUserId;
+  }
+
+  async function getUserEndpoint(): Promise<string> {
+    const azureUserId = await getAzureUserId(credential);
+    return azureUserId
+      ? `https://graph.microsoft.com/v1.0/users/${azureUserId}`
+      : "https://graph.microsoft.com/v1.0/me";
+  }
+
   // Since the meeting link is not tied to an event we only need the create and update functions
   return {
     getAvailability: () => {
@@ -89,7 +230,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
       const resultString = await auth
         .requestRaw({
-          url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+          url: `${await getUserEndpoint()}/onlineMeetings`,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
@@ -110,9 +251,14 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      console.log("=======>createMeeting: ");
+
+      const url = `${await getUserEndpoint()}/onlineMeetings`;
+      console.log("urllllllllllll: ", url);
+      console.log("translateEvent(event): ", translateEvent(event));
       const resultString = await auth
         .requestRaw({
-          url: "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+          url,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),

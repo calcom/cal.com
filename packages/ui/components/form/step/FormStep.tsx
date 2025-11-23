@@ -1,6 +1,6 @@
 import React from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 type Props = {
   steps: number;
@@ -16,7 +16,6 @@ function FormStep({ currentStep, steps }: Props) {
       </p>
       <div className="flex flex-nowrap space-x-1">
         {[...Array(steps)].map((_, j) => {
-          console.log({ j, currentStep });
           return (
             <div
               className={classNames(

@@ -4,26 +4,21 @@ import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  Form,
-  PasswordField,
-  Select,
-  SettingsToggle,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
@@ -33,7 +28,7 @@ type ChangePasswordSessionFormValues = {
 };
 
 interface PasswordViewProps {
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
 const SkeletonLoader = () => {
@@ -62,7 +57,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number | undefined>(initialSessionTimeout);
 
-  const sessionMutation = trpc.viewer.updateProfile.useMutation({
+  const sessionMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: (data) => {
       showToast(t("session_timeout_changed"), "success");
       formMethods.reset(formMethods.getValues());
@@ -72,12 +67,12 @@ const PasswordView = ({ user }: PasswordViewProps) => {
       utils.viewer.me.invalidate();
     },
     onMutate: async () => {
-      await utils.viewer.me.cancel();
-      const previousValue = await utils.viewer.me.getData();
+      await utils.viewer.me.get.cancel();
+      const previousValue = await utils.viewer.me.get.getData();
       const previousMetadata = userMetadataSchema.safeParse(previousValue?.metadata);
 
       if (previousValue && sessionTimeout && previousMetadata.success) {
-        utils.viewer.me.setData(undefined, {
+        utils.viewer.me.get.setData(undefined, {
           ...previousValue,
           metadata: { ...previousMetadata?.data, sessionTimeout: sessionTimeout },
         });
@@ -86,7 +81,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     },
     onError: (error, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
+        utils.viewer.me.get.setData(undefined, context.previousValue);
       }
       showToast(`${t("session_timeout_change_error")}, ${error.message}`, "error");
     },
@@ -174,13 +169,13 @@ const PasswordView = ({ user }: PasswordViewProps) => {
           <div className="px-4 py-6 sm:px-6">
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
+                provider: IdentityProvider[user.identityProvider],
               })}
             </h2>
 
             <p className="text-subtle mt-1 text-sm">
               {t("account_managed_by_identity_provider_description", {
-                provider: identityProviderNameMap[user.identityProvider],
+                provider: IdentityProvider[user.identityProvider],
               })}
             </p>
             <Button
@@ -305,7 +300,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 };
 
 const PasswordViewWrapper = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const { t } = useLocale();
   if (isPending || !user) return <SkeletonLoader />;
 

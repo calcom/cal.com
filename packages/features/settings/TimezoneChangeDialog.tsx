@@ -5,10 +5,12 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: string) {
   document.cookie = `calcom-timezone-dialog=1;max-age=${
@@ -26,7 +28,10 @@ const TimezoneChangeDialogContent = () => {
   const formattedCurrentTz = CURRENT_TIMEZONE.replace("_", " ");
 
   const onMutationSuccess = async () => {
-    showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
+    showToast(
+      t("updated_timezone_to", { formattedCurrentTz, interpolation: { escapeValue: false } }),
+      "success"
+    );
     await utils.viewer.me.invalidate();
   };
 
@@ -35,7 +40,7 @@ const TimezoneChangeDialogContent = () => {
   };
 
   // update timezone in db
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onMutationSuccess,
     onError: onMutationError,
   });
@@ -50,7 +55,10 @@ const TimezoneChangeDialogContent = () => {
     <>
       <DialogHeader
         title={t("update_timezone_question")}
-        subtitle={t("update_timezone_description", { formattedCurrentTz })}
+        subtitle={t("update_timezone_description", {
+          formattedCurrentTz,
+          interpolation: { escapeValue: false },
+        })}
       />
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
         <Checkbox description="Always update timezone" />
@@ -69,7 +77,7 @@ const TimezoneChangeDialogContent = () => {
 };
 
 export function useOpenTimezoneDialog() {
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
   const [showDialog, setShowDialog] = useState(false);
   const { data: userSession, status } = useSession();
 

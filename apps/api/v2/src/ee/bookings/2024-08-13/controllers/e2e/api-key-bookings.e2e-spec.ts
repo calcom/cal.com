@@ -12,7 +12,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -30,14 +29,14 @@ import {
   OrganizerRescheduledEmail,
   AttendeeCancelledEmail,
   OrganizerCancelledEmail,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/emails";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 jest.spyOn(AttendeeScheduledEmail.prototype as any, "getHtml").mockImplementation(async function () {
   return "<html><body>Mocked Email Content</body></html>";
@@ -189,7 +188,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             createdBooking = data;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });
@@ -238,7 +237,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             rescheduledBooking = data;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });

@@ -2,8 +2,11 @@ import { v4 as uuidv4 } from "uuid";
 
 import { prisma } from "@calcom/prisma";
 
+import { convertSvgToPng } from "./imageUtils";
+
 export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
   const objectKey = uuidv4();
+  const processedData = await convertSvgToPng(data);
 
   await prisma.avatar.upsert({
     where: {
@@ -15,12 +18,12 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
     },
     create: {
       userId: userId,
-      data,
+      data: processedData,
       objectKey,
       isBanner: false,
     },
     update: {
-      data,
+      data: processedData,
       objectKey,
     },
   });
@@ -38,6 +41,7 @@ export const uploadLogo = async ({
   isBanner?: boolean;
 }): Promise<string> => {
   const objectKey = uuidv4();
+  const processedData = await convertSvgToPng(data);
 
   await prisma.avatar.upsert({
     where: {
@@ -49,12 +53,12 @@ export const uploadLogo = async ({
     },
     create: {
       teamId,
-      data,
+      data: processedData,
       objectKey,
       isBanner,
     },
     update: {
-      data,
+      data: processedData,
       objectKey,
     },
   });

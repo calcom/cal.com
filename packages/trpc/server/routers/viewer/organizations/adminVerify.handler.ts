@@ -1,9 +1,9 @@
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAdminVerifyInput } from "./adminVerify.schema";
 
 type AdminVerifyOptions = {
@@ -34,7 +34,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   if (!foundOrg)
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "This team isnt a org or doesnt exist",
+      message: "This team isn't an org or doesn't exist",
     });
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
@@ -117,6 +117,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         };
       }),
       organizationId: input.orgId,
+      orgAutoAcceptEmail: acceptedEmailDomain,
     }),
   ]);
 

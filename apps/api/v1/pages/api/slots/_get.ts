@@ -3,13 +3,12 @@ import utc from "dayjs/plugin/utc";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
+import { isSupportedTimeZone } from "@calcom/lib/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -18,15 +17,8 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-let isColdStart = true;
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (isColdStart && IS_PRODUCTION) {
-      console.log("Cold start of /v1/slots detected");
-      isColdStart = false;
-    }
-
     const { usernameList, isTeamEvent, ...rest } = req.query;
     const parsedIsTeamEvent = String(isTeamEvent).toLowerCase() === "true";
     let slugs = usernameList;
@@ -35,7 +27,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     const input = getScheduleSchema.parse({ usernameList: slugs, isTeamEvent: parsedIsTeamEvent, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
-    const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
+
+    const availableSlotsService = getAvailableSlotsService();
+    const availableSlots = await availableSlotsService.getAvailableSlots({
+      ctx: await createContext({ req, res }),
+      input,
+    });
+
     const slotsInProvidedTimeZone = timeZoneSupported
       ? Object.keys(availableSlots.slots).reduce(
           (acc: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>, date) => {
@@ -50,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

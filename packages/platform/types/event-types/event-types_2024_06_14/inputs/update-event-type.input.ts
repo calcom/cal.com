@@ -1,9 +1,4 @@
-import {
-  ApiProperty as DocsProperty,
-  ApiPropertyOptional as DocsPropertyOptional,
-  getSchemaPath,
-  ApiExtraModels,
-} from "@nestjs/swagger";
+import { ApiPropertyOptional as DocsPropertyOptional, getSchemaPath, ApiExtraModels } from "@nestjs/swagger";
 import { Type, Transform } from "class-transformer";
 import {
   IsString,
@@ -16,8 +11,13 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsUrl,
+  IsIn,
 } from "class-validator";
 
+import { SchedulingType } from "@calcom/platform-enums";
+
+import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
+import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
@@ -38,6 +38,7 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
@@ -62,9 +63,11 @@ import {
   CREATE_EVENT_SLUG_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
+  CalVideoSettings,
 } from "./create-event-type.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
+import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
 import {
   InputAddressLocation_2024_06_14,
@@ -73,12 +76,15 @@ import {
   InputAttendeePhoneLocation_2024_06_14,
   InputIntegrationLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14,
   InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
+  ValidateTeamLocations_2024_06_14,
 } from "./locations.input";
-import type { InputLocation_2024_06_14 } from "./locations.input";
+import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 @ApiExtraModels(
   InputAddressLocation_2024_06_14,
@@ -111,11 +117,15 @@ import { Seats_2024_06_14 } from "./seats.input";
   NameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
-  RescheduleReasonDefaultFieldInput_2024_06_14
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  BookerActiveBookingsLimit_2024_06_14,
+  EmailSettings_2024_06_14
 )
-export class UpdateEventTypeInput_2024_06_14 {
+@CantHaveRecurrenceAndBookerActiveBookingsLimit()
+class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -151,33 +161,15 @@ export class UpdateEventTypeInput_2024_06_14 {
   description?: string;
 
   @IsOptional()
-  @ValidateLocations_2024_06_14()
-  @DocsPropertyOptional({
-    description:
-      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
-    oneOf: [
-      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
-      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
-    ],
-    type: "array",
-  })
-  @Type(() => Object)
-  locations?: InputLocation_2024_06_14[];
-
-  @IsOptional()
   @ValidateInputBookingFields_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+      "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(LocationDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
@@ -201,7 +193,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, person booking this event't cant add guests via their emails.",
+    description: "If true, person booking this event can't add guests via their emails.",
   })
   disableGuests?: boolean;
 
@@ -225,7 +217,7 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be pre-pended before an event to give more time before it.",
+    description: "Time spaces that can be prepended before an event to give more time before it.",
   })
   beforeEventBuffer?: number;
 
@@ -255,6 +247,29 @@ export class UpdateEventTypeInput_2024_06_14 {
   })
   @Type(() => Object)
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value && typeof value === "object") {
+      if ("disabled" in value && value.disabled) {
+        return Object.assign(new Disabled_2024_06_14(), value);
+      } else {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
+      }
+    }
+    return value;
+  })
+  @ValidateNested()
+  @RequiresAtLeastOnePropertyWhenNotDisabled()
+  @DocsPropertyOptional({
+    description: "Limit the number of active bookings a booker can make for this event type.",
+    oneOf: [
+      { $ref: getSchemaPath(BookerActiveBookingsLimit_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
+  @Type(() => Object)
+  bookerActiveBookingsLimit?: BookerActiveBookingsLimit_2024_06_14 | Disabled_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -292,7 +307,7 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(0)
   @DocsPropertyOptional({ description: "Offset timeslots shown to bookers by a specified number of minutes" })
   offsetStart?: number;
 
@@ -302,6 +317,7 @@ export class UpdateEventTypeInput_2024_06_14 {
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
   })
   @Type(() => BookerLayouts_2024_06_14)
+  @ValidateNested()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
@@ -409,21 +425,131 @@ export class UpdateEventTypeInput_2024_06_14 {
     example: "https://masterchief.com/argentina/flan/video/9129412",
   })
   successRedirectUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @DocsPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
+}
+export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
+  @IsOptional()
+  @ValidateLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputLocation_2024_06_14[];
 }
 
-export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {
+export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
+  @Transform(({ value }) => {
+    if (value === "collective") {
+      return SchedulingType.COLLECTIVE;
+    }
+    if (value === "roundRobin") {
+      return SchedulingType.ROUND_ROBIN;
+    }
+    return value;
+  })
+  @IsIn([SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN])
+  @IsOptional()
+  @DocsPropertyOptional({
+    enum: ["collective", "roundRobin"],
+    example: "collective",
+    description: `The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide \`hosts\` or \`assignAllTeamMembers\` in the request body, otherwise the event type will have no hosts - this is required because
+      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one.`,
+  })
+  schedulingType?: "COLLECTIVE" | "ROUND_ROBIN";
+
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @DocsPropertyOptional({ type: [Host] })
+  @DocsPropertyOptional({
+    type: [Host],
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
+  })
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @ValidateTeamLocations_2024_06_14()
+  @DocsPropertyOptional({
+    description:
+      "Locations where the event will take place. If not provided, cal video link will be used as the location.",
+    oneOf: [
+      { $ref: getSchemaPath(InputAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputLinkLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputIntegrationLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputPhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeAddressLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeePhoneLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputAttendeeDefinedLocation_2024_06_14) },
+      { $ref: getSchemaPath(InputOrganizersDefaultApp_2024_06_14) },
+    ],
+    type: "array",
+  })
+  @Type(() => Object)
+  locations?: InputTeamLocation_2024_06_14[];
+
+  @IsOptional()
+  @ValidateNested()
+  @DocsPropertyOptional({
+    description: "Email settings for this event type. Only available for organization team event types.",
+    type: () => EmailSettings_2024_06_14,
+  })
+  @Type(() => EmailSettings_2024_06_14)
+  emailSettings?: EmailSettings_2024_06_14;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+  })
+  rescheduleWithSameRoundRobinHost?: boolean;
 }

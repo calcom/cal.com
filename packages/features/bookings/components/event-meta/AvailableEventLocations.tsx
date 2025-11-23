@@ -4,11 +4,12 @@ import type {
   LocationObject,
 } from "@calcom/app-store/locations";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Icon, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const excludeNullValues = (value: unknown) => !!value;
 
@@ -46,7 +47,8 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
           if (!eventLocationType) {
             return null;
           }
-          const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
+          const translatedLocation =
+            location.customLabel || getTranslatedLocation(location, eventLocationType, t);
           return (
             <div key={`${location.type}-${index}`} className="font-sm flex flex-row items-center">
               <RenderIcon eventLocationType={eventLocationType} isTooltip />
@@ -73,11 +75,8 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         // It's possible that the location app got uninstalled
         return null;
       }
-      if (eventLocationType.variable === "hostDefault") {
-        return null;
-      }
 
-      const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
+      const locationName = location?.customLabel || getTranslatedLocation(location, eventLocationType, t);
 
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
@@ -86,8 +85,8 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
           ) : (
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}
-          <Tooltip content={translatedLocation}>
-            <p className="line-clamp-1">{translatedLocation}</p>
+          <Tooltip content={locationName}>
+            <p className="line-clamp-1">{locationName}</p>
           </Tooltip>
         </div>
       );

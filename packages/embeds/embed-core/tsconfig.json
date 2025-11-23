@@ -13,5 +13,5 @@
     }
   },
   "include": ["src", "env.d.ts", "index.ts", "*.ts"],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "**/node_modules/**"]
 }

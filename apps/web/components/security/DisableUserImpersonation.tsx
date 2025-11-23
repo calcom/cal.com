@@ -1,13 +1,15 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Button, showToast } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
 const DisableUserImpersonation = ({ disableImpersonation }: { disableImpersonation: boolean }) => {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.me.invalidate();

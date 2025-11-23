@@ -1,6 +1,9 @@
 import type dayjs from "@calcom/dayjs";
+import classNames from "@calcom/ui/classNames";
 
-export const VerticalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
+import type { BorderColor } from "../../types/common";
+
+export const VerticalLines = ({ days, borderColor }: { days: dayjs.Dayjs[]; borderColor: BorderColor }) => {
   const isRTL = () => {
     let userLanguage = "en"; // Default to 'en' if navigator is not defined
 
@@ -15,8 +18,10 @@ export const VerticalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
 
   return (
     <div
-      className="divide-default pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid
-       auto-cols-auto grid-rows-1 divide-x sm:pr-8"
+      className={classNames(
+        "pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid auto-cols-auto grid-rows-1 divide-x sm:pr-8",
+        borderColor === "subtle" ? "divide-subtle" : "divide-default"
+      )}
       dir={direction}
       style={{
         direction: direction,

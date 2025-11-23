@@ -1,4 +1,8 @@
-import type { TFunction } from "next-i18next";
+/**
+ * TODO: Consolidate this file with BookingLocationService and add tests
+ */
+import type { TFunction } from "i18next";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
@@ -7,6 +11,15 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
+import {
+  MeetLocationType as importedMeetLocationType,
+  MSTeamsLocationType as importedMSTeamsLocationType,
+  DailyLocationType as importedDailyLocationType,
+} from "./constants";
+
+export const MeetLocationType = importedMeetLocationType;
+export const MSTeamsLocationType = importedMSTeamsLocationType;
+export const DailyLocationType = importedDailyLocationType;
 
 export type DefaultEventLocationType = {
   default: true;
@@ -15,6 +28,7 @@ export type DefaultEventLocationType = {
   messageForOrganizer: string;
   category: "in person" | "conferencing" | "other" | "phone";
   linkType: "static";
+  supportsCustomLabel?: boolean;
 
   iconUrl: string;
   urlRegExp?: string;
@@ -39,6 +53,7 @@ export type DefaultEventLocationType = {
   | {
       organizerInputType: "phone" | "text" | null;
       organizerInputPlaceholder?: string | null;
+      organizerInputLabel?: string | null;
       attendeeInputType?: null;
       attendeeInputPlaceholder?: null;
     }
@@ -53,13 +68,11 @@ export type DefaultEventLocationType = {
 export type EventLocationTypeFromApp = Ensure<
   EventLocationTypeFromAppMeta,
   "defaultValueVariable" | "variable"
->;
+> & { supportsCustomLabel?: boolean; organizerInputLabel?: string };
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
-export const DailyLocationType = "integrations:daily";
-
-export const MeetLocationType = "integrations:google:meet";
+export const CalVideoLocationType = DailyLocationType;
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
@@ -103,6 +116,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -117,6 +131,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     iconUrl: "/message-pin.svg",
     category: "other",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -142,18 +157,21 @@ export const defaultLocations: DefaultEventLocationType[] = [
     category: "conferencing",
     messageForOrganizer: "",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Link,
     label: "link_meeting",
     organizerInputType: "text",
+    organizerInputLabel: "meeting_link",
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
     iconUrl: "/link.svg",
     category: "other",
     linkType: "static",
+    supportsCustomLabel: true,
   },
   {
     default: true,
@@ -177,6 +195,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     label: "organizer_phone_number",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
+    organizerInputLabel: "phone_number",
     variable: "locationPhoneNumber",
     defaultValueVariable: "hostPhoneNumber",
     iconUrl: "/phone.svg",
@@ -201,6 +220,7 @@ export type LocationObject = {
   address?: string;
   displayLocationPublicly?: boolean;
   credentialId?: number;
+  customLabel?: string;
 } & Partial<
   Record<
     "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
@@ -281,7 +301,7 @@ export const guessEventLocationType = (locationTypeOrValue: string | undefined |
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
-type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link">;
+type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
@@ -294,7 +314,6 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
     if (location.displayLocationPublicly || !eventLocationType) {
       return location;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
       logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;
@@ -378,7 +397,7 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId = undefined;
+  let conferenceCredentialId: number | undefined = undefined;
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
@@ -484,4 +503,67 @@ export const isAttendeeInputRequired = (locationType: string) => {
     return false;
   }
   return location.attendeeInputType;
+};
+
+export const locationsResolver = (t: TFunction) => {
+  return z
+    .array(
+      z
+        .object({
+          type: z.string(),
+          address: z.string().optional(),
+          link: z.string().url().optional(),
+          phone: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          hostPhoneNumber: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          displayLocationPublicly: z.boolean().optional(),
+          credentialId: z.number().optional(),
+          teamName: z.string().optional(),
+        })
+        .passthrough()
+        .superRefine((val, ctx) => {
+          if (val?.link) {
+            const link = val.link;
+            const eventLocationType = getEventLocationType(val.type);
+            if (
+              eventLocationType &&
+              !eventLocationType.default &&
+              eventLocationType.linkType === "static" &&
+              eventLocationType.urlRegExp
+            ) {
+              const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(link).success;
+
+              if (!valid) {
+                const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [eventLocationType?.defaultValueVariable ?? "link"],
+                  message: t("invalid_url_error_message", {
+                    label: eventLocationType.label,
+                    sampleUrl: sampleUrl ?? "https://cal.com",
+                  }),
+                });
+              }
+              return;
+            }
+
+            const valid = z.string().url().optional().safeParse(link).success;
+
+            if (!valid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [eventLocationType?.defaultValueVariable ?? "link"],
+                message: `Invalid URL`,
+              });
+            }
+          }
+          return;
+        })
+    )
+    .optional();
 };

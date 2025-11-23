@@ -1,16 +1,20 @@
-import type { EventType } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
+import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import type { EventType } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import CreateEventTypeForm from "./CreateEventTypeForm";
 
@@ -21,6 +25,17 @@ export interface EventTypeParent {
   name?: string | null;
   slug?: string | null;
   image?: string | null;
+}
+
+export interface ProfileOption {
+  teamId: number | null | undefined;
+  label: string | null;
+  image: string;
+  membershipRole: MembershipRole | null | undefined;
+  slug: string | null;
+  permissions: {
+    canCreateEventType: boolean;
+  };
 }
 
 const locationFormSchema = z.array(
@@ -50,16 +65,7 @@ const querySchema = z.object({
     .optional(),
 });
 
-export default function CreateEventTypeDialog({
-  profileOptions,
-}: {
-  profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string | undefined;
-    membershipRole: MembershipRole | null | undefined;
-  }[];
-}) {
+export function CreateEventTypeDialog({ profileOptions }: { profileOptions: ProfileOption[] }) {
   const { t } = useLocale();
   const router = useRouter();
   const orgBranding = useOrgBranding();
@@ -70,10 +76,7 @@ export default function CreateEventTypeDialog({
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
-  const isTeamAdminOrOwner =
-    teamId !== undefined &&
-    (teamProfile?.membershipRole === MembershipRole.OWNER ||
-      teamProfile?.membershipRole === MembershipRole.ADMIN);
+  const permissions = teamProfile?.permissions ?? { canCreateEventType: false };
 
   const onSuccessMutation = (eventType: EventType) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
@@ -122,7 +125,7 @@ export default function CreateEventTypeDialog({
           <TeamEventTypeForm
             teamSlug={team?.slug}
             teamId={teamId}
-            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            permissions={permissions}
             urlPrefix={urlPrefix}
             isPending={createMutation.isPending}
             form={form}

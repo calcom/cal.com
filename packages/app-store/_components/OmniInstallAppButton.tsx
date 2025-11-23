@@ -1,11 +1,11 @@
-import { classNames } from "@calcom/lib";
-import useApp from "@calcom/lib/hooks/useApp";
+import useApp from "@calcom/features/apps/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Button, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
+import { InstallAppButton } from "../InstallAppButton";
 import useAddAppMutation from "../_utils/useAddAppMutation";
-import { InstallAppButton } from "../components";
 
 /**
  * Use this component to allow installing an app from anywhere on the app.
@@ -16,25 +16,21 @@ export default function OmniInstallAppButton({
   className,
   returnTo,
   teamId,
+  onAppInstallSuccess,
 }: {
   appId: string;
   className: string;
+  onAppInstallSuccess: () => void;
   returnTo?: string;
   teamId?: number;
 }) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
-  const utils = trpc.useUtils();
 
   const mutation = useAddAppMutation(null, {
     returnTo,
     onSuccess: (data) => {
-      //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
-      utils.viewer.appById.invalidate({ appId });
-      utils.viewer.integrations.invalidate({
-        extendsFeature: "EventType",
-        ...(teamId && { teamId }),
-      });
+      onAppInstallSuccess();
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

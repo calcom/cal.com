@@ -1,16 +1,17 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as _PageProps } from "app/_types";
+import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
+import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getEventTypePermissions } from "@calcom/features/pbac/lib/event-type-permissions";
+import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import type { PageProps as EventTypePageProps } from "@lib/event-types/[type]/getServerSideProps";
-import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
-
-import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   type: z
@@ -21,32 +22,48 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-export const generateMetadata = async ({ params }: _PageProps) => {
-  const parsed = querySchema.safeParse(params);
-  if (!parsed.success) {
-    return await _generateMetadata(
-      (t) => `${t("event_type")}`,
-      () => ""
-    );
-  }
-
-  const data = await EventTypeRepository.findTitleById({
-    id: parsed.data.type,
-  });
-
+export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => (data?.title ? `${data.title} | ${t("event_type")}` : `${t("event_type")}`),
-    () => ""
+    (t) => `${t("event_type")}`,
+    () => "",
+    undefined,
+    undefined,
+    "/event-types"
   );
 };
 
-const getData = withAppDirSsr<EventTypePageProps>(getServerSideProps);
+const getCachedEventType = unstable_cache(
+  async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
+    return await caller.get({ id: eventTypeId });
+  },
+  ["viewer.eventTypes.get"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
 
-const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const props = await getData(legacyCtx);
+const ServerPage = async ({ params }: PageProps) => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
 
-  return <EventTypePageWrapper {...props} />;
+  const parsed = querySchema.safeParse(await params);
+  if (!parsed.success) {
+    throw new Error("Invalid Event Type id");
+  }
+  const eventTypeId = parsed.data.type;
+  const _headers = await headers();
+  const _cookies = await cookies();
+
+  const data = await getCachedEventType(eventTypeId, _headers, _cookies);
+  if (!data?.eventType) {
+    throw new Error("This event type does not exist");
+  }
+
+  // Fetch permissions for the event type's team
+  const permissions = await getEventTypePermissions(session.user.id, data.eventType.teamId);
+
+  return <EventTypeWebWrapper data={data} id={eventTypeId} permissions={permissions} />;
 };
 
 export default ServerPage;

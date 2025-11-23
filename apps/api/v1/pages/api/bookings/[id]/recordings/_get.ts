@@ -1,9 +1,11 @@
 import type { NextApiRequest } from "next";
 
-import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import {
+  getRecordingsOfCalVideoByRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+} from "@calcom/features/conferencing/lib/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -61,6 +63,7 @@ export async function getHandler(req: NextApiRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { id },
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { references: true },
   });
 

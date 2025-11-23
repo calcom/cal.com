@@ -7,7 +7,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import {
   useOAuthClientWebhooks,
@@ -37,12 +37,12 @@ export default function EditOAuthClientWebhooks() {
   const { mutateAsync: createWebhook } = useCreateOAuthClientWebhook(clientId);
   const { mutateAsync: updateWebhook } = useUpdateOAuthClientWebhook(clientId);
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell withoutSeo={true} title={t("webhook_update_form")} isPlatformUser={true}>
+        <Shell title={t("webhook_update_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -55,7 +55,7 @@ export default function EditOAuthClientWebhooks() {
               </div>
             </div>
 
-            {webhooksStatus !== "success" && <p>Error while trying to access webhooks.</p>}
+            {webhooksStatus !== "success" && <p>{t("error_accessing_webhooks")}</p>}
 
             {isWebhooksFetched && webhooksStatus === "success" && (
               <WebhookForm
@@ -72,14 +72,6 @@ export default function EditOAuthClientWebhooks() {
                   {
                     value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
                     label: "recording_transcription_generated",
-                  },
-                  {
-                    value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_hosts_cal_video_no_show",
-                  },
-                  {
-                    value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-                    label: "after_guests_cal_video_no_show",
                   },
                 ]}
                 onSubmit={async (data) => {
@@ -104,7 +96,7 @@ export default function EditOAuthClientWebhooks() {
                     await refetchWebhooks();
                     router.push("/settings/platform/");
                   } catch (err) {
-                    showToast(`Failed to ${webhookId ? "update" : "create"} webhook.`, "error");
+                    showToast(t(webhookId ? "webhook_update_failed" : "webhook_create_failed"), "error");
                   }
                 }}
                 onCancel={() => {
@@ -126,7 +118,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

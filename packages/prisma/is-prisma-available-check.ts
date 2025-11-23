@@ -1,17 +1,16 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
-import prisma from ".";
-
-export async function isPrismaAvailableCheck() {
+export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const { prisma } = await import("./index");
+
+    await prisma.$queryRaw<unknown[]>(Prisma.sql`SELECT 1`);
+    await prisma.$disconnect();
     return true;
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database might not available at build time.
       return false;
-    } else {
-      throw e;
     }
+    throw e;
   }
 }

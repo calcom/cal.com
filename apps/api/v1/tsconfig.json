@@ -18,5 +18,5 @@
     "../../../packages/types/*.d.ts",
     "../../../packages/types/next-auth.d.ts"
   ],
-  "exclude": ["node_modules", "templates", "auth"]
+  "exclude": ["**/node_modules/**", "templates", "auth"]
 }

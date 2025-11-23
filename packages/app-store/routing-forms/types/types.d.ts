@@ -1,7 +1,7 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ImmutableTree, Config } from "react-awesome-query-builder";
 import type z from "zod";
 
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
@@ -102,3 +102,13 @@ export type LocalRouteWithRaqbStates = LocalRoute & {
 };
 
 export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;
+
+export type RoutingFormWithResponseCount = RoutingForm & {
+  team: {
+    slug: Team["slug"];
+    name: Team["name"];
+  } | null;
+  _count: {
+    responses: number;
+  };
+};

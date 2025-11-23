@@ -1,12 +1,17 @@
 import { AppConfig } from "@/config/type";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
+import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -19,16 +24,19 @@ import { DateTime } from "luxon";
 import Stripe from "stripe";
 
 @Injectable()
-export class BillingService implements OnModuleDestroy {
+export class BillingService implements IBillingService, OnModuleDestroy {
   private logger = new Logger("BillingService");
   private readonly webAppUrl: string;
 
   constructor(
     private readonly teamsRepository: OrganizationsRepository,
     public readonly stripeService: StripeService,
-    private readonly billingRepository: BillingRepository,
+    public readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
+    private readonly usersRepository: UsersRepository,
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly bookingsRepository: BookingsRepository_2024_08_13,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
@@ -36,18 +44,23 @@ export class BillingService implements OnModuleDestroy {
 
   async getBillingData(teamId: number) {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+
     if (teamWithBilling?.platformBilling) {
       if (!teamWithBilling?.platformBilling.subscriptionId) {
-        return { team: teamWithBilling, status: "no_subscription", plan: "none" };
+        return { team: teamWithBilling, status: "no_subscription" as const, plan: "none" };
+      } else {
+        return {
+          team: teamWithBilling,
+          status: "valid" as const,
+          plan: teamWithBilling.platformBilling.plan,
+        };
       }
-
-      return { team: teamWithBilling, status: "valid", plan: teamWithBilling.platformBilling.plan };
     } else {
-      return { team: teamWithBilling, status: "no_billing", plan: "none" };
+      return { team: teamWithBilling, status: "no_billing" as const, plan: "none" };
     }
   }
 
-  async createTeamBilling(teamId: number) {
+  async createTeamBilling(teamId: number): Promise<string> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     let customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -60,7 +73,7 @@ export class BillingService implements OnModuleDestroy {
       });
     }
 
-    return customerId;
+    return customerId!;
   }
 
   async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
@@ -82,7 +95,6 @@ export class BillingService implements OnModuleDestroy {
         teamId: teamId.toString(),
         plan: plan.toString(),
       },
-      currency: "usd",
       subscription_data: {
         metadata: {
           teamId: teamId.toString(),
@@ -101,6 +113,10 @@ export class BillingService implements OnModuleDestroy {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
+    if (!customerId) {
+      throw new NotFoundException("No customer id associated with the team.");
+    }
+
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       success_url: `${this.webAppUrl}/settings/platform/`,
@@ -118,7 +134,7 @@ export class BillingService implements OnModuleDestroy {
     return url;
   }
 
-  async setSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
+  async setPerBookingSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -128,6 +144,25 @@ export class BillingService implements OnModuleDestroy {
       billingCycleEnd,
       plan,
       subscriptionId
+    );
+  }
+
+  async setPerActiveUserSubscriptionForTeam(
+    teamId: number,
+    subscriptionId: string,
+    plan: PlatformPlan,
+    priceId: string
+  ) {
+    const billingCycleStart = DateTime.now().get("day");
+    const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
+
+    return this.billingRepository.updateTeamBilling(
+      teamId,
+      billingCycleStart,
+      billingCycleEnd,
+      plan,
+      subscriptionId,
+      priceId
     );
   }
 
@@ -190,6 +225,30 @@ export class BillingService implements OnModuleDestroy {
     }
   }
 
+  async handleStripePaymentPastDue(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+    const customerId = this.getCustomerIdFromInvoice(invoice);
+
+    if (subscriptionId && customerId) {
+      const existingUserSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      if (existingUserSubscription.status === "past_due") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+      }
+
+      if (existingUserSubscription.status === "active") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      }
+    }
+
+    if (!subscriptionId || !customerId) {
+      this.logger.log(`SubscriptionId: ${subscriptionId} or customerId: ${customerId} missing`);
+    }
+  }
+
   async handleStripeCheckoutEvents(event: Stripe.Event) {
     const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
@@ -203,9 +262,19 @@ export class BillingService implements OnModuleDestroy {
       this.logger.log("Webhook received but not pertaining to Platform, discarding.");
       return;
     }
+    const isPriceIdPresent = Boolean(checkoutSession.metadata?.priceId);
 
-    if (checkoutSession.mode === "subscription") {
-      await this.setSubscriptionForTeam(
+    if (checkoutSession.mode === "subscription" && isPriceIdPresent) {
+      await this.setPerActiveUserSubscriptionForTeam(
+        teamId,
+        checkoutSession.subscription as string,
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan],
+        checkoutSession.metadata?.priceId
+      );
+    }
+
+    if (checkoutSession.mode === "subscription" && !isPriceIdPresent) {
+      await this.setPerBookingSubscriptionForTeam(
         teamId,
         checkoutSession.subscription as string,
         PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
@@ -217,6 +286,80 @@ export class BillingService implements OnModuleDestroy {
     }
 
     return;
+  }
+
+  async handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+
+    if (!subscriptionId) {
+      throw new NotFoundException("No subscription found for team");
+    }
+
+    const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+
+    if (teamWithBilling?.plan === "PER_ACTIVE_USER") {
+      const activeManagedUsersCount = await this.getActiveManagedUsersCount(
+        subscriptionId,
+        new Date(invoice.period_start * 1000),
+        new Date(invoice.period_end * 1000)
+      );
+
+      const existingSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      const perActiveUserPrice = this.billingConfigService.get(PlatformPlan.PER_ACTIVE_USER)?.base;
+      const subscriptionItem = existingSubscription.items.data.find(
+        (item) => item.price?.id === perActiveUserPrice
+      );
+
+      if (!subscriptionItem) {
+        throw new NotFoundException(
+          "No subscription item found for PER_ACTIVE_USER plan with matching price ID"
+        );
+      }
+
+      await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
+        items: [
+          { id: subscriptionItem.id, quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1 },
+        ],
+      });
+    }
+  }
+
+  async getActiveManagedUsersCount(subscriptionId: string, invoiceStart: Date, invoiceEnd: Date) {
+    const managedUsersEmails = await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(
+      subscriptionId
+    );
+
+    if (!managedUsersEmails) return 0;
+
+    if (!invoiceStart || !invoiceEnd) {
+      this.logger.log("Invoice period start or end date is null");
+      return 0;
+    }
+
+    const activeManagedUserEmailsAsHost = await this.usersRepository.getActiveManagedUsersAsHost(
+      subscriptionId,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    const activeHostEmails = activeManagedUserEmailsAsHost.map((email) => email.email);
+    const notActiveHostEmails = managedUsersEmails
+      .filter((email) => !activeHostEmails.includes(email.email))
+      .map((email) => email.email);
+
+    if (notActiveHostEmails.length === 0) return activeManagedUserEmailsAsHost.length;
+
+    const activeManagedUserEmailsAsAttendee = await this.usersRepository.getActiveManagedUsersAsAttendee(
+      notActiveHostEmails,
+      invoiceStart,
+      invoiceEnd
+    );
+
+    return activeManagedUserEmailsAsAttendee.length + activeManagedUserEmailsAsHost.length;
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
@@ -262,7 +405,7 @@ export class BillingService implements OnModuleDestroy {
         proration_behavior: "create_prorations",
       });
 
-    await this.setSubscriptionForTeam(
+    await this.setPerBookingSubscriptionForTeam(
       teamId,
       teamWithBilling?.platformBilling?.subscriptionId,
       PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
@@ -282,6 +425,9 @@ export class BillingService implements OnModuleDestroy {
       fromReschedule?: string | null;
     }
   ) {
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const { uid, startTime, fromReschedule } = booking;
 
     const delay = startTime.getTime() - Date.now();
@@ -306,10 +452,35 @@ export class BillingService implements OnModuleDestroy {
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
   async cancelUsageByBookingUid(bookingUid: string) {
+    if (this.configService.get("e2e")) {
+      return true;
+    }
     const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
     if (job) {
       await job.remove();
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+    }
+  }
+
+  async cancelTeamSubscription(teamId: number) {
+    const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
+    const customerId = teamWithBilling?.platformBilling?.customerId;
+
+    if (!customerId) {
+      throw new NotFoundException("No customer id found for team in Stripe");
+    }
+
+    if (!teamWithBilling?.platformBilling || !teamWithBilling?.platformBilling.subscriptionId) {
+      throw new NotFoundException("Team plan not found");
+    }
+
+    try {
+      await this.stripeService
+        .getStripe()
+        .subscriptions.cancel(teamWithBilling?.platformBilling?.subscriptionId);
+    } catch (error) {
+      this.logger.log(error, "error while cancelling team subscription in stripe");
+      throw new BadRequestException("Failed to cancel team subscription");
     }
   }
 

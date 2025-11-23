@@ -2,22 +2,26 @@
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 
 import {
+  DataTableWrapper,
   DataTableProvider,
-  DataTable,
   DataTableToolbar,
-  DataTableFilters,
   DataTableSelectionBar,
-  DataTablePagination,
+  DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
-  useFetchMoreOnBottomReached,
+  useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, SkeletonText } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Checkbox } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -55,7 +59,10 @@ type PlatformManagedUsersTableProps = {
 
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
-    <DataTableProvider>
+    <DataTableProvider
+      useSegments={useSegments}
+      defaultPageSize={25}
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -64,36 +71,33 @@ export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps)
 function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps) {
   const { t } = useLocale();
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
-    trpc.viewer.organizations.listMembers.useInfiniteQuery(
-      {
-        limit: 30,
-        searchTerm: debouncedSearchTerm,
-        filters: columnFilters,
-        oAuthClientId,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        enabled: !!oAuthClientId,
-      }
-    );
+  const { pageIndex, pageSize, searchTerm } = useDataTable();
+  const limit = pageSize;
+  const offset = pageIndex * pageSize;
 
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
+    {
+      limit,
+      offset,
+      searchTerm,
+      filters: columnFilters,
+      oAuthClientId,
+    },
+    {
+      placeholderData: keepPreviousData,
+      enabled: !!oAuthClientId,
+    }
+  );
+
+  const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(
-    () => data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data]
-  ) as PlatformManagedUserTableUser[];
+  const flatData = useMemo(() => data?.rows ?? [], [data]) as PlatformManagedUserTableUser[];
 
   const columns = useMemo(() => {
     const cols: ColumnDef<PlatformManagedUserTableUser>[] = [
@@ -109,7 +113,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -127,7 +130,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         enableHiding: false,
         size: 200,
         header: () => {
-          return `Managed Users`;
+          return t("managed_users");
         },
         cell: ({ row }) => {
           if (isPending) {
@@ -158,15 +161,11 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             </div>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
-        },
       },
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         cell: ({ row, table }) => {
           if (isPending) {
@@ -184,20 +183,11 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             </Badge>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
-          }
-
-          // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
-        },
       },
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         cell: ({ row, table }) => {
           if (isPending) {
@@ -232,10 +222,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
               ))}
             </div>
           );
-        },
-        filterFn: (rows, _, filterValue: string[]) => {
-          const teamNames = rows.original.teams.map((team) => team.name);
-          return filterValue.some((value: string) => teamNames.includes(value));
         },
       },
     ];
@@ -293,50 +279,32 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     }
   }
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
-    tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
-  });
-
   const numberOfSelectedRows = useMemo(() => table.getSelectedRowModel().rows.length, [table]);
 
   return (
     <>
-      <DataTable
+      <DataTableWrapper<PlatformManagedUserTableUser>
         testId="managed-user-list-data-table"
         table={table}
-        tableContainerRef={tableContainerRef}
         isPending={isPending}
-        enableColumnResizing={true}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root>
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
-            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
-              <DataTableToolbar.SearchBar
-                table={table}
-                onSearch={(value) => setDebouncedSearchTerm(value)}
-                className="sm:max-w-64 max-w-full"
-              />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.AddFilterButton table={table} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-
-        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
-        </div>
-
+        totalRowCount={data?.meta?.totalRowCount}
+        paginationMode="standard"
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar className="sm:max-w-64 max-w-full" />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
+        ToolbarRight={
+          <>
+            <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
+          </>
+        }>
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -346,7 +314,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             />
           </DataTableSelectionBar.Root>
         )}
-      </DataTable>
+      </DataTableWrapper>
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
     </>
   );

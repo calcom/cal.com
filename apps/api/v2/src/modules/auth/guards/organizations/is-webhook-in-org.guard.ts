@@ -1,10 +1,10 @@
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { OrganizationsWebhooksRepository } from "@/modules/organizations/repositories/organizations-webhooks.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
-import { Team } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 type CachedData = {
   org?: Team;
@@ -26,10 +26,10 @@ export class IsWebhookInOrg implements CanActivate {
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id found in request params.");
+      throw new ForbiddenException("IsWebhookInOrg - No organization id found in request params.");
     }
     if (!webhookId) {
-      throw new ForbiddenException("No webhook id found in request params.");
+      throw new ForbiddenException("IsWebhookInOrg - No webhook id found in request params.");
     }
 
     const REDIS_CACHE_KEY = `apiv2:org:${webhookId}:guard:isWebhookInOrg`;
@@ -43,7 +43,7 @@ export class IsWebhookInOrg implements CanActivate {
       }
     }
 
-    const org = await this.organizationsRepository.findById(Number(organizationId));
+    const org = await this.organizationsRepository.findById({ id: Number(organizationId) });
 
     if (org?.isOrganization) {
       const isWebhookInOrg = await this.organizationsWebhooksRepository.findWebhook(
@@ -53,7 +53,7 @@ export class IsWebhookInOrg implements CanActivate {
       if (isWebhookInOrg) canAccess = true;
     }
 
-    if (org) {
+    if (org && canAccess) {
       await this.redisService.redis.set(
         REDIS_CACHE_KEY,
         JSON.stringify({ org: org, canAccess } satisfies CachedData),
@@ -62,6 +62,12 @@ export class IsWebhookInOrg implements CanActivate {
       );
     }
 
-    return canAccess;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsWebhookInOrg - webhook with id=${webhookId} is not part of the organization with id=${organizationId}.`
+      );
+    }
+
+    return true;
   }
 }

@@ -1,16 +1,21 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react-dom/test-utils";
 import { vi } from "vitest";
 
 import type { ButtonProps } from "../../button";
-import { Button } from "../../button";
 import ColorPicker from "./colorpicker";
 
-vi.mock("@calcom/ui", async () => {
+vi.mock("../../button/Button", async () => {
+  const ButtonMock = (await import("../../button/Button")).Button;
+  return {
+    Button: ({ tooltip, ...rest }: ButtonProps) => <ButtonMock {...rest}>{tooltip}</ButtonMock>,
+  };
+});
+
+vi.mock("../icon/Icon", async () => {
   return {
     Icon: () => <svg data-testid="dummy-icon" />,
-    Button: ({ tooltip, ...rest }: ButtonProps) => <Button {...rest}>{tooltip}</Button>,
   };
 });
 
@@ -38,9 +43,9 @@ describe("Tests for ColorPicker component", () => {
       fireEvent.change(colorPickerInput, { target: { value: "#000000" } });
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(colorPickerButton).toHaveStyle("background-color: #000000");
+    await waitFor(() => {
+      expect(colorPickerButton).toHaveStyle("background-color: #000000");
+    });
   });
 
   test("Should change the color value using the input field", async () => {

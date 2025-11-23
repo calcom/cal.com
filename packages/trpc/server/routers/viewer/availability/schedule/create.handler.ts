@@ -4,15 +4,17 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "timeZone" | "defaultScheduleId">;
   };
   input: TCreateInputSchema;
 };
+
+export type CreateScheduleHandlerReturn = Awaited<ReturnType<typeof createHandler>>;
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { user } = ctx;

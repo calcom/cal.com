@@ -1,3 +1,5 @@
+import type React from "react";
+
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
@@ -7,9 +9,11 @@ import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/c
 import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 
 import type { GetBookingType } from "../lib/get-booking";
+
+export type Timezone = (typeof IntlSupportedTimeZones)[number];
 
 export interface BookerProps {
   eventSlug: string;
@@ -20,6 +24,11 @@ export interface BookerProps {
     all custom classnames related to booker styling go here
   */
   customClassNames?: CustomClassNames;
+
+  /**
+   * Custom React components to render at the bottom of the EventMeta component
+   */
+  eventMetaChildren?: React.ReactNode;
 
   /**
    * Whether is a team or org, we gather basic info from both
@@ -88,11 +97,14 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
+  showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
+  useApiV2?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
@@ -120,22 +132,28 @@ export type WrappedBookerPropsMain = {
   customClassNames?: CustomClassNames;
   isBookingDryRun?: boolean;
   renderCaptcha?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   isPlatform: true;
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
+  timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
+  timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
+export type VIEW_TYPE = "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
-export type BookerLayout = BookerLayouts | "mobile";
+export type BookerLayout = "month_view" | "week_view" | "column_view" | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
@@ -145,15 +163,9 @@ export type CustomClassNames = {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
+    eventMetaChildren?: string;
   };
-  datePickerCustomClassNames?: {
-    datePickerContainer?: string;
-    datePickerTitle?: string;
-    datePickerDays?: string;
-    datePickerDate?: string;
-    datePickerDatesActive?: string;
-    datePickerToggle?: string;
-  };
+  datePickerCustomClassNames?: DatePickerClassNames;
   availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsHeaderContainer?: string;
@@ -162,4 +174,17 @@ export type CustomClassNames = {
     availableTimes?: string;
   };
   atomsWrapper?: string;
+  confirmStep?: {
+    confirmButton?: string;
+    backButton?: string;
+  };
+};
+
+export type DatePickerClassNames = {
+  datePickerContainer?: string;
+  datePickerTitle?: string;
+  datePickerDays?: string;
+  datePickerDate?: string;
+  datePickerDatesActive?: string;
+  datePickerToggle?: string;
 };

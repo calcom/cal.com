@@ -1,9 +1,9 @@
 import { prisma } from "@calcom/prisma";
-import { SMSLockState } from "@calcom/prisma/client";
+import { SMSLockState } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TSetSMSLockState } from "./setSMSLockState.schema";
 
 type GetOptions = {

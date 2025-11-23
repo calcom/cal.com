@@ -5,14 +5,19 @@ import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -65,7 +70,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     checkUsername(debouncedUsername);
   }, [debouncedUsername, currentUsername]);
 
-  const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
+  const updateUsernameMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
@@ -115,12 +120,14 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <TextField
             ref={usernameRef}
             name="username"
+            placeholder="john"
             value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
+            containerClassName="[&>div]:gap-0"
             className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none",
+              "mb-0 mt-0 rounded-md rounded-l-none pl-0",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""

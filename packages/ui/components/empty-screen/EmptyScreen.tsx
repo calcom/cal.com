@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../button";
 import type { IconName } from "../icon";
@@ -68,7 +68,8 @@ export function EmptyScreen({
           <h2
             className={classNames(
               "text-semibold font-cal text-emphasis text-center text-xl normal-nums",
-              icon && "mt-6"
+              icon && "mt-6",
+              !description && "mb-8"
             )}>
             {headline}
           </h2>

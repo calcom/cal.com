@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
+export const paymentDataSelect = {
   data: true,
   success: true,
   uid: true,
@@ -49,6 +49,7 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
           metadata: true,
           users: {
             select: {
+              id: true,
               name: true,
               username: true,
               hideBranding: true,
@@ -59,6 +60,11 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
             select: {
               name: true,
               hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           price: true,
@@ -69,4 +75,4 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
       },
     },
   },
-});
+} satisfies Prisma.PaymentSelect;

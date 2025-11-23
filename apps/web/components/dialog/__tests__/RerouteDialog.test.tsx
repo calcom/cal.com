@@ -1,4 +1,7 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
@@ -35,6 +38,15 @@ const mockOpen = vi.fn((_url: string) => {
 });
 
 vi.stubGlobal("open", mockOpen);
+
+const mockSession = {
+  expires: new Date(Date.now() + 2 * 86400).toISOString(),
+  user: {
+    id: 1,
+    name: "Test User",
+    email: "user@example.com",
+  },
+} as Session;
 
 vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
@@ -81,15 +93,9 @@ vi.mock("@calcom/web/lib/hooks/useRouterQuery", () => ({
   }),
 }));
 
-vi.mock("@calcom/ui", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const actual = await importOriginal<any>("@calcom/ui");
-  return {
-    ...actual,
-    Tooltip: vi.fn(({ children }) => <div data-testid="mock-tooltip">{children}</div>),
-  };
-});
+vi.mock("@calcom/ui/components/tooltip", () => ({
+  Tooltip: vi.fn(({ children }) => <div data-testid="mock-tooltip">{children}</div>),
+}));
 
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
@@ -321,7 +327,11 @@ describe("RerouteDialog", () => {
   });
 
   test("renders the dialog when open", () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
 
     expect(screen.getByText("reroute_booking")).toBeInTheDocument();
     expect(screen.getByText("reroute_booking_description")).toBeInTheDocument();
@@ -329,14 +339,20 @@ describe("RerouteDialog", () => {
 
   test("doesn't render the dialog when closed", () => {
     render(
-      <RerouteDialog isOpenDialog={false} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={false} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
     );
 
     expect(screen.queryByText("reroute_booking")).not.toBeInTheDocument();
   });
 
   test("displays current routing status", async () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
     expect(screen.getByText("current_routing_status")).toBeInTheDocument();
 
     expectEventTypeInfoInCurrentRouting({
@@ -353,17 +369,29 @@ describe("RerouteDialog", () => {
   });
 
   test("verify_new_route button is enabled even when form fields are not filled", async () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
     await expect(screen.getByText("verify_new_route")).toBeEnabled();
   });
 
   test("disabledFields are passed to FormInputFields with value ['email'] - email field is disabled", async () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
     expect(screen.getByTestId("mock-form-field-disabled-fields-identifiers")).toHaveTextContent(/^email$/);
   });
 
   test("Expect form fields and name to be rendered", async () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
     expect(screen.getByText("Test Form")).toBeInTheDocument();
     expect(screen.getByTestId("mock-form-field-company-size-label")).toHaveTextContent("Company Size");
     expect(screen.getByTestId("mock-form-field-company-size-value")).toHaveTextContent("small");
@@ -372,7 +400,11 @@ describe("RerouteDialog", () => {
   });
 
   test("cancel button closes the dialog", async () => {
-    render(<RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />);
+    render(
+      <TooltipProvider>
+        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+      </TooltipProvider>
+    );
 
     expect(screen.getByText("cancel")).toBeInTheDocument();
 
@@ -383,7 +415,11 @@ describe("RerouteDialog", () => {
   describe("New Routing tests", () => {
     test("when verify_new_route is clicked, the form is submitted", async () => {
       render(
-        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+        <SessionProvider session={mockSession}>
+          <TooltipProvider>
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          </TooltipProvider>
+        </SessionProvider>
       );
       fireEvent.click(screen.getByText("verify_new_route"));
 
@@ -402,7 +438,15 @@ describe("RerouteDialog", () => {
     describe("New tab rescheduling", () => {
       test("new tab is closed when new booking is rerouted", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider session={mockSession}>
+            <TooltipProvider>
+              <RerouteDialog
+                isOpenDialog={true}
+                setIsOpenDialog={mockSetIsOpenDialog}
+                booking={mockBooking}
+              />
+            </TooltipProvider>
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleToTheNewEventWithDifferentTimeslotButton();
@@ -441,7 +485,15 @@ describe("RerouteDialog", () => {
 
       test("Rescheduling with same timeslot works", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider session={mockSession}>
+            <TooltipProvider>
+              <RerouteDialog
+                isOpenDialog={true}
+                setIsOpenDialog={mockSetIsOpenDialog}
+                booking={mockBooking}
+              />
+            </TooltipProvider>
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleWithSameTimeslotOfChosenEventButton();

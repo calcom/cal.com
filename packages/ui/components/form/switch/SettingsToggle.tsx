@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ReactNode } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
-import Switch from "./Switch";
+import { Switch } from "./Switch";
 
 type Props = {
   children?: ReactNode;
@@ -26,7 +26,7 @@ type Props = {
   hideSwitch?: boolean;
 };
 
-function SettingsToggle({
+export function SettingsToggle({
   checked,
   onCheckedChange,
   description,
@@ -106,7 +106,7 @@ function SettingsToggle({
               <div>
                 <Label
                   className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}>
-                  {title}
+                  {title} {Badge ? Badge : null}
                   {LockedIcon}
                 </Label>
                 {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
@@ -123,5 +123,3 @@ function SettingsToggle({
     </>
   );
 }
-
-export default SettingsToggle;

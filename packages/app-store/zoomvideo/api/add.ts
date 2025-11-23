@@ -1,8 +1,9 @@
 import type { NextApiRequest } from "next";
 import { stringify } from "querystring";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -25,7 +26,7 @@ async function handler(req: NextApiRequest) {
   const params = {
     response_type: "code",
     client_id,
-    redirect_uri: `${WEBAPP_URL}/api/integrations/zoomvideo/callback`,
+    redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/zoomvideo/callback`,
     state,
   };
   const query = stringify(params);

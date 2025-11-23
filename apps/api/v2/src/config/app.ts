@@ -22,6 +22,10 @@ const loadConfig = (): AppConfig => {
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
       writeUrl: getEnv("DATABASE_WRITE_URL"),
+      readPoolMax: getEnv("DATABASE_READ_POOL_MAX", 9),
+      writePoolMax: getEnv("DATABASE_WRITE_POOL_MAX", 7),
+      workerReadPoolMax: getEnv("DATABASE_READ_WORKER_POOL_MAX", 4),
+      workerWritePoolMax: getEnv("DATABASE_WRITE_WORKER_POOL_MAX", 6),
       redisUrl: getEnv("REDIS_URL"),
     },
     next: {
@@ -36,7 +40,7 @@ const loadConfig = (): AppConfig => {
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
     },
-    e2e: getEnv("IS_E2E", false),
+    e2e: getEnv("IS_E2E", "false") === "true" ? true : false,
   };
 };
 

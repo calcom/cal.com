@@ -1,12 +1,12 @@
 import type { DirectoryType } from "@boxyhq/saml-jackson";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { canAccessOrganization, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZCreateInputSchema } from "./create.schema";
 
 type Options = {
@@ -21,7 +21,7 @@ export const createHandler = async ({ ctx, input }: Options) => {
   const { organizationId } = input;
   const { dsyncController } = await jackson();
 
-  const { message, access } = await canAccess(ctx.user, organizationId);
+  const { message, access } = await canAccessOrganization(ctx.user, organizationId);
 
   if (!access) {
     throw new TRPCError({

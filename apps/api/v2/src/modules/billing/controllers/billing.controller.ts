@@ -6,7 +6,7 @@ import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
-import { BillingService } from "@/modules/billing/services/billing.service";
+import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import {
   Body,
@@ -19,11 +19,15 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Inject,
   Logger,
+  Delete,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
+import Stripe from "stripe";
 
 import { ApiResponse } from "@calcom/platform-types";
 
@@ -37,7 +41,7 @@ export class BillingController {
   private logger = new Logger("Billing Controller");
 
   constructor(
-    private readonly billingService: BillingService,
+    @Inject("IBillingService") private readonly billingService: IBillingService,
     public readonly stripeService: StripeService,
     private readonly configService: ConfigService<AppConfig>
   ) {
@@ -48,7 +52,7 @@ export class BillingController {
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   @MembershipRoles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
-    @Param("teamId") teamId: number
+    @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
     const { status, plan } = await this.billingService.getBillingData(teamId);
 
@@ -96,35 +100,78 @@ export class BillingController {
     };
   }
 
+  @Delete("/:organizationId/unsubscribe")
+  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @MembershipRoles(["OWNER", "ADMIN"])
+  async cancelTeamSubscriptionInStripe(
+    @Param("organizationId") organizationId: number
+  ): Promise<ApiResponse> {
+    await this.billingService.cancelTeamSubscription(organizationId);
+
+    return {
+      status: "success",
+    };
+  }
+
   @Post("/webhook")
   @HttpCode(HttpStatus.OK)
   async stripeWebhook(
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    const event = await this.billingService.stripeService
-      .getStripe()
-      .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
+    try {
+      if (!stripeSignature) {
+        this.logger.warn("Missing stripe-signature header in webhook request");
+        return {
+          status: "success",
+        };
+      }
 
-    switch (event.type) {
-      case "checkout.session.completed":
-        await this.billingService.handleStripeCheckoutEvents(event);
-        break;
-      case "customer.subscription.deleted":
-        await this.billingService.handleStripeSubscriptionDeleted(event);
-        break;
-      case "invoice.payment_failed":
-        await this.billingService.handleStripePaymentFailed(event);
-        break;
-      case "invoice.payment_succeeded":
-        await this.billingService.handleStripePaymentSuccess(event);
-        break;
-      default:
-        break;
+      if (!this.stripeWhSecret) {
+        this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
+        return {
+          status: "success",
+        };
+      }
+
+      const event = await this.billingService.stripeService
+        .getStripe()
+        .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
+
+      switch (event.type) {
+        case "checkout.session.completed":
+          await this.billingService.handleStripeCheckoutEvents(event);
+          break;
+        case "customer.subscription.updated":
+          await this.billingService.handleStripePaymentPastDue(event);
+          break;
+        case "customer.subscription.deleted":
+          await this.billingService.handleStripeSubscriptionDeleted(event);
+          break;
+        case "invoice.created":
+          await this.billingService.handleStripeSubscriptionForActiveManagedUsers(event);
+          break;
+        case "invoice.payment_failed":
+          await this.billingService.handleStripePaymentFailed(event);
+          break;
+        case "invoice.payment_succeeded":
+          await this.billingService.handleStripePaymentSuccess(event);
+          break;
+        default:
+          break;
+      }
+
+      return {
+        status: "success",
+      };
+    } catch (error) {
+      if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
+        this.logger.error("Webhook signature validation failed", error);
+        return {
+          status: "success",
+        };
+      }
+      throw error;
     }
-
-    return {
-      status: "success",
-    };
   }
 }

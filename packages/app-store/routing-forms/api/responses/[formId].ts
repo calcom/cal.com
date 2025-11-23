@@ -1,31 +1,19 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
+import {
+  entityPrismaWhereClause,
+  canEditEntity,
+} from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { sanitizeValue } from "@calcom/lib/csvUtils";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import prisma from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { ensureStringOrStringArray, getLabelsFromOptionIds } from "../../lib/reportingUtils";
+import { getHumanReadableFieldResponseValue } from "../../lib/responseData/getHumanReadableFieldResponseValue";
 import type { FormResponse, SerializableForm } from "../../types/types";
 
 type Fields = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>;
-
-function getHumanReadableFieldResponseValue({
-  field,
-  value,
-}: {
-  field: Fields[number];
-  value: string | number | string[];
-}) {
-  if (field.options) {
-    const optionIds = ensureStringOrStringArray(value);
-    return getLabelsFromOptionIds({ options: field.options, optionIds });
-  } else {
-    return (value instanceof Array ? value : [value]).map(String);
-  }
-}
 
 async function* getResponses(formId: string, fields: Fields) {
   let responses;
@@ -50,7 +38,10 @@ async function* getResponses(formId: string, fields: Fields) {
       fields.forEach((field) => {
         const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        const readableValues = getHumanReadableFieldResponseValue({ field, value });
+        const humanReadableResponseValue = getHumanReadableFieldResponseValue({ field, value });
+        const readableValues = Array.isArray(humanReadableResponseValue)
+          ? humanReadableResponseValue
+          : [humanReadableResponseValue];
         const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });

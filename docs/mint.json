@@ -11,7 +11,7 @@
       "method": "bearer"
     }
   },
-  "favicon": "/favicon-32x32.png",
+  "favicon": "/favicon.png",
   "colors": {
     "primary": "#111827",
     "light": "#d6d6d6",
@@ -52,7 +52,11 @@
     {
       "name": "API v1 Reference",
       "openapi": "/api-reference/v1/openapi-v1.json",
-      "url": "api-reference/v1"
+      "url": "api-reference/v1",
+      "banner": {
+        "type": "warning",
+        "content": "API v1 will be discontinued on February 15, 2026. Please migrate to [API v2](/api-reference/v2/introduction)."
+      }
     }
   ],
   "navigation": [
@@ -83,8 +87,7 @@
           "pages": [
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
-            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing/guides/appstore-and-integration/oauth"
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm"
           ]
         },
         {
@@ -102,6 +105,11 @@
           "pages": ["developing/guides/automation/webhooks"]
         },
         {
+          "group": "Atoms",
+          "icon": "atom",
+          "pages": ["developing/guides/atoms/add-changesets"]
+        },
+        {
           "group": "Email",
           "icon": "inbox",
           "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
@@ -110,6 +118,11 @@
           "group": "Embeds",
           "icon": "code-simple",
           "pages": ["developing/guides/embeds/embed-events"]
+        },
+        {
+          "group": "Insights",
+          "icon": "chart-bar",
+          "pages": ["developing/guides/insights/add-new-booking-charts"]
         }
       ]
     },
@@ -131,6 +144,7 @@
         "self-hosting/deployments/azure",
         "self-hosting/deployments/elestio",
         "self-hosting/deployments/gcp",
+        "self-hosting/deployments/northflank",
         "self-hosting/deployments/railway",
         "self-hosting/deployments/render",
         "self-hosting/deployments/vercel"
@@ -178,6 +192,15 @@
           "group": "Sponsorship",
           "icon": "money-check-dollar",
           "pages": ["/self-hosting/guides/sponsorship/can-calcom-sponsor-my-open-source-project"]
+        },
+        {
+          "group": "Organizations",
+          "icon": "building",
+          "pages": [
+            "/self-hosting/guides/organization/organization-setup",
+            "/self-hosting/guides/organization/understanding-organization-env-variables",
+            "/self-hosting/guides/organization/single-organization-setup"
+          ]
         }
       ]
     },
@@ -185,20 +208,36 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/setup",
         "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
           "pages": [
-            "platform/atoms/google-calendar-connect",
-            "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/event-type",
+            "platform/atoms/cal-provider",
             "platform/atoms/calendar-settings",
+            "platform/atoms/calendar-view",
+            "platform/atoms/conferencing-apps",
+            "platform/atoms/create-schedule",
+            "platform/atoms/event-type",
+            "platform/atoms/google-calendar-connect",
+            "platform/atoms/list-schedules",
+            "platform/atoms/outlook-calendar-connect",
             "platform/atoms/payment-form",
-            "platform/atoms/conferencing-apps"
+            "platform/atoms/stripe-connect"
+          ]
+        },
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
           ]
         },
         {
@@ -207,7 +246,10 @@
           "pages": [
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
-            "platform/guides/booking-redirects"
+            "platform/guides/booking-redirects",
+            "platform/guides/teams-setup",
+            "platform/guides/global-event-types",
+            "platform/guides/custom-booking-flow"
           ]
         },
         "platform/faq"

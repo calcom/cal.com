@@ -5,7 +5,7 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 export interface IUseVerifyEmailProps {
   email: string;
@@ -23,6 +23,7 @@ export const useVerifyEmail = ({
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
+  const isRescheduling = useBookerStore((state) => Boolean(state.rescheduleUid && state.bookingData));
   const debouncedEmail = useDebounce(email, 600);
   const { data: session } = useSession();
 
@@ -44,7 +45,7 @@ export const useVerifyEmail = ({
         email: debouncedEmail,
       },
       {
-        enabled: !!debouncedEmail,
+        enabled: !!debouncedEmail && !isRescheduling,
       }
     );
 
@@ -60,6 +61,7 @@ export const useVerifyEmail = ({
   const isVerificationCodeSending = sendEmailVerificationByCodeMutation.isPending;
 
   const renderConfirmNotVerifyEmailButtonCond =
+    isRescheduling ||
     (!requiresBookerEmailVerification && !isEmailVerificationRequired) ||
     (email && verifiedEmail && verifiedEmail === email);
 

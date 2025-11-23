@@ -6,10 +6,14 @@ async function http<T>(path: string, config: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const errJson = await response.json();
-    const err = HttpError.fromRequest(request, {
-      ...response,
-      statusText: errJson.message || response.statusText,
-    });
+    const err = HttpError.fromRequest(
+      request,
+      {
+        ...response,
+        statusText: errJson.message || response.statusText,
+      },
+      errJson
+    );
     throw err;
   }
   // may error if there is no body, return empty array

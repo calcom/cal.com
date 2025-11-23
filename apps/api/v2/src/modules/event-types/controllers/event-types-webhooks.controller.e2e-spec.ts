@@ -20,7 +20,7 @@ import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repo
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { EventType, Webhook } from "@calcom/prisma/client";
+import type { EventType, Webhook } from "@calcom/prisma/client";
 
 describe("EventTypes WebhooksController (e2e)", () => {
   let app: INestApplication;
@@ -36,7 +36,6 @@ describe("EventTypes WebhooksController (e2e)", () => {
   let webhookRepositoryFixture: WebhookRepositoryFixture;
 
   let webhook: EventTypeWebhookOutputResponseDto["data"];
-  let webhook2: Webhook;
   let otherWebhook: Webhook;
 
   beforeAll(async () => {
@@ -155,7 +154,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             eventTypeId: eventType2.id,
           },
         } satisfies EventTypeWebhookOutputResponseDto);
-        webhook2 = res.body.data;
+        //webhook2 = res.body.data;
       });
   });
 
@@ -282,13 +281,13 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${eventType.id}/webhooks/1234453`)
       .expect(404);
   });
 
-  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not belong to user", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${otherEventType.id}/webhooks/${otherWebhook.id}`)
       .expect(403);

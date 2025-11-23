@@ -1,19 +1,16 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -34,15 +31,14 @@ import {
   AttendeeRequestEmail,
   OrganizerRequestEmail,
   AttendeeDeclinedEmail,
-} from "@calcom/platform-libraries";
-import {
+} from "@calcom/platform-libraries/emails";
+import type {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")
@@ -94,6 +90,8 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   let emailsDisabledSetup: EmailSetup;
 
   const authEmail = `confirm-emails-2024-08-13-admin-${randomString()}@api.com`;
+  let userEmailsEnabled = "";
+  const userEmailsDisabled = `confirm-emails-2024-08-13-user-${randomString()}@api.com`;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -141,8 +139,12 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   async function setupEnabledEmails() {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
+    userEmailsEnabled = `confirm-emails-2024-08-13-user-${randomString()}+${
+      oAuthClientEmailsEnabled.id
+    }@api.com`;
+
     const user = await userRepositoryFixture.create({
-      email: `confirm-emails-2024-08-13-user-${randomString()}@api.com`,
+      email: userEmailsEnabled,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -179,7 +181,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `confirm-emails-2024-08-13-user-${randomString()}@api.com`,
+      email: userEmailsDisabled,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -265,7 +267,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
             emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });
@@ -282,9 +284,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           expect(responseBody.data).toBeDefined();
           expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
           expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          emailsDisabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
 
@@ -322,7 +321,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
             emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });
@@ -338,10 +337,6 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(AttendeeDeclinedEmail.prototype.getHtml).not.toHaveBeenCalled();
-
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          emailsDisabledSetup.rescheduledBookingUid = responseBody.data.uid;
         });
     });
   });
@@ -351,117 +346,176 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       jest.clearAllMocks();
     });
 
-    it("should send an email when creating a booking that requires confirmation", async () => {
-      const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-        eventTypeId: emailsEnabledSetup.eventTypeId,
-        attendee: {
-          name: "Mr Proper",
-          email: "mr_proper@gmail.com",
-          timeZone: "Europe/Rome",
-          language: "it",
-        },
-        location: "https://meet.google.com/abc-def-ghi",
-        bookingFieldsResponses: {
-          customField: "customValue",
-        },
-        metadata: {
-          userId: "100",
-        },
-      };
+    describe("confirming booking that requires confirmation and rescheduling it", () => {
+      it("should send an email when creating a booking that requires confirmation", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+          eventTypeId: emailsEnabledSetup.eventTypeId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
 
-      return request(app.getHttpServer())
-        .post("/v2/bookings")
-        .send(body)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(201)
-        .then(async (response) => {
-          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          if (responseDataIsBooking(responseBody.data)) {
-            expect(responseBody.data.status).toEqual("pending");
-            expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-            expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-            emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
-          } else {
-            throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
-            );
-          }
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            if (responseDataIsBooking(responseBody.data)) {
+              expect(responseBody.data.status).toEqual("pending");
+              expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+              expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+              emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should send an email when confirming a booking", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/confirm`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+          });
+      });
+
+      describe("rescheduling emails", () => {
+        it("should send confirmation emails when organizer reschedules a booking that requires confirmation", async () => {
+          const body: RescheduleBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 14, 30, 0)).toISOString(),
+            rescheduledBy: userEmailsEnabled,
+          };
+
+          return request(app.getHttpServer())
+            .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/reschedule`)
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              if (responseDataIsBooking(responseBody.data)) {
+                expect(responseBody.data.status).toEqual("accepted");
+                expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+                expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
+
+                expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
+                expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).not.toHaveBeenCalled();
+                emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
+              } else {
+                throw new Error(
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
+                );
+              }
+            });
         });
+
+        it("should send requested rescheduling emails when attendee rescheduling a booking that requires confirmation", async () => {
+          const body: RescheduleBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
+          };
+
+          return request(app.getHttpServer())
+            .post(`/v2/bookings/${emailsEnabledSetup.rescheduledBookingUid}/reschedule`)
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              if (responseDataIsBooking(responseBody.data)) {
+                expect(responseBody.data.status).toEqual("pending");
+                expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+                expect(OrganizerRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+
+                expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+                expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+                emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
+              } else {
+                throw new Error(
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
+                );
+              }
+            });
+        });
+      });
     });
 
-    it("should send an email when confirming a booking", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/confirm`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(200)
-        .then(async (response) => {
-          const responseBody: GetBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-          expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
-        });
-    });
+    describe("declining booking that requires confirmation", () => {
+      it("should send an email when creating a booking that requires confirmation", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
+          eventTypeId: emailsEnabledSetup.eventTypeId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
 
-    it("should send an email when creating a booking that requires confirmation", async () => {
-      const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
-        eventTypeId: emailsEnabledSetup.eventTypeId,
-        attendee: {
-          name: "Mr Proper",
-          email: "mr_proper@gmail.com",
-          timeZone: "Europe/Rome",
-          language: "it",
-        },
-        location: "https://meet.google.com/abc-def-ghi",
-        bookingFieldsResponses: {
-          customField: "customValue",
-        },
-        metadata: {
-          userId: "100",
-        },
-      };
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            if (responseDataIsBooking(responseBody.data)) {
+              expect(responseBody.data.status).toEqual("pending");
+              expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+              expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
+              emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
 
-      return request(app.getHttpServer())
-        .post("/v2/bookings")
-        .send(body)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(201)
-        .then(async (response) => {
-          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          if (responseDataIsBooking(responseBody.data)) {
-            expect(responseBody.data.status).toEqual("pending");
-            expect(AttendeeRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-            expect(OrganizerRequestEmail.prototype.getHtmlRequestEmail).toHaveBeenCalled();
-            emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
-          } else {
-            throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
-            );
-          }
-        });
-    });
-
-    it("should send an email when declining a booking", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/decline`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(200)
-        .then(async (response) => {
-          const responseBody: GetBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(AttendeeDeclinedEmail.prototype.getHtml).toHaveBeenCalled();
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
-        });
+      it("should send an email when declining a booking", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/decline`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(AttendeeDeclinedEmail.prototype.getHtml).toHaveBeenCalled();
+          });
+      });
     });
   });
 

@@ -1,0 +1,30 @@
+---
+title: "Environment Variables"
+icon: "gear"
+---
+
+This guide explains the key environment variables used to configure organizations in your Cal.com self-hosted instance.
+
+## RESERVED_SUBDOMAINS
+
+This is a comma-separated list of subdomains that are not allowed to be used as organization slugs.
+
+For example, if you set `RESERVED_SUBDOMAINS="app,auth,help"`, then the domains `app.cal.com`, `auth.cal.com` and `help.cal.com` are reserved for use by the Cal.com instance. This means you cannot create an organization with the slug `app`, `auth` or `help`.
+
+## ALLOWED_HOSTNAMES
+
+This is a comma-separated list of domains on whose subdomains the booking pages and dashboard are allowed to work.
+
+**Examples:**
+
+If `ALLOWED_HOSTNAMES="cal.com,cal.dev"`, then:
+- `acme.cal.com` is a valid organization booking domain and `WEBAPP_URL` can be set to `http://app.cal.com`
+- `dunder.cal.dev` is also a valid organization subdomain and `WEBAPP_URL` can be set to `http://app.cal.dev`
+
+If `ALLOWED_HOSTNAMES="cal.domain.tld"`, then:
+- `WEBAPP_URL` should be set to `http://app.cal.domain.tld`
+- Valid organization domains include: `acme.cal.domain.tld`, `dunder.cal.domain.tld`, `xxxx.cal.domain.tld`
+
+<Info>
+Make sure your DNS is properly configured to point organization subdomains to your Cal.com instance.
+</Info>

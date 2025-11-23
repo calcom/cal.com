@@ -18,7 +18,7 @@ test("Check that the API is available", async () => {
     calLink: "free",
     config: {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error We are intentionaly testing invalid value
+      // @ts-expect-error We are intentionally testing invalid value
       layout: "wrongview",
     },
   });

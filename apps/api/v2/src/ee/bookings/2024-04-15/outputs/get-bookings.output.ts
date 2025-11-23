@@ -16,13 +16,15 @@ import {
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-enum Status {
-  CANCELLED = "CANCELLED",
-  REJECTED = "REJECTED",
-  ACCEPTED = "ACCEPTED",
-  PENDING = "PENDING",
-  AWAITING_HOST = "AWAITING_HOST",
-}
+const Status = {
+  CANCELLED: "CANCELLED",
+  REJECTED: "REJECTED",
+  ACCEPTED: "ACCEPTED",
+  PENDING: "PENDING",
+  AWAITING_HOST: "AWAITING_HOST",
+} as const;
+
+export type Status = (typeof Status)[keyof typeof Status];
 
 class Attendee {
   @IsInt()
@@ -160,7 +162,7 @@ class User {
   email!: string;
 }
 
-class GetBookingsDataEntry {
+export class GetBookingsDataEntry {
   @IsInt()
   @ApiProperty()
   id!: number;

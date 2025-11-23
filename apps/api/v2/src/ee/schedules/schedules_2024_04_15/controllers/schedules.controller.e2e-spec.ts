@@ -12,7 +12,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -20,7 +19,8 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
-import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {

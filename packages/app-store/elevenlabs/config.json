@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "ElevenLabs",
+  "slug": "elevenlabs",
+  "type": "elevenlabs_automation",
+  "logo": "icon-dark.svg",
+  "url": "https://elevenlabs.io/docs/conversational-ai/guides/integrations/cal-com",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "ElevenLabs",
+  "email": "support@elevenlabs.io",
+  "description": "Create the most realistic speech with our AI audio platform",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

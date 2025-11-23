@@ -1,14 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -21,16 +21,14 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "../utils/token";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const data = req.body;
-  const { email, password, language, token } = signupSchema.parse(data);
+export default async function handler(body: Record<string, string>) {
+  const { email, password, language, token } = signupSchema.parse(body);
 
-  const username = slugify(data.username);
+  const username = slugify(body.username);
   const userEmail = email.toLowerCase();
 
   if (!username) {
-    res.status(422).json({ message: "Invalid username" });
-    return;
+    return NextResponse.json({ message: "Invalid username" }, { status: 422 });
   }
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
@@ -52,10 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     if (!userValidation.isValid) {
       logger.error("User validation failed", { userValidation });
-      return res.status(409).json({ message: "Username or email is already taken" });
+      return NextResponse.json({ message: "Username or email is already taken" }, { status: 409 });
     }
     if (!userValidation.username) {
-      return res.status(422).json({ message: "Invalid username" });
+      return NextResponse.json({ message: "Invalid username" }, { status: 422 });
     }
     correctedUsername = userValidation.username;
   }
@@ -86,8 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (isCheckingUsernameInGlobalNamespace) {
         const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
         if (!isUsernameAvailable) {
-          res.status(409).json({ message: "A user exists with that username" });
-          return;
+          return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
         }
       }
 
@@ -135,16 +132,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
     if (!isUsernameAvailable) {
-      res.status(409).json({ message: "A user exists with that username" });
-      return;
+      return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
     }
     if (IS_PREMIUM_USERNAME_ENABLED) {
       const checkUsername = await checkPremiumUsername(correctedUsername);
       if (checkUsername.premium) {
-        res.status(422).json({
-          message: "Sign up from https://cal.com/signup to claim your premium username",
-        });
-        return;
+        return NextResponse.json(
+          { message: "Sign up from https://cal.com/signup to claim your premium username" },
+          { status: 422 }
+        );
       }
     }
     await prisma.user.upsert({
@@ -179,5 +175,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  res.status(201).json({ message: "Created user" });
+  return NextResponse.json({ message: "Created user" }, { status: 201 });
 }

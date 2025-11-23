@@ -12,7 +12,6 @@ import {
   Timezones,
   createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSMSWorkflowToBeTriggered,
@@ -21,11 +20,22 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, beforeEach } from "vitest";
+import { describe, beforeEach, vi } from "vitest";
 
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
+
+  return {
+    ...actual,
+    IS_SMS_CREDITS_ENABLED: false,
+  };
+});
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -41,7 +51,7 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -133,12 +143,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeTriggered({
           sms,
@@ -155,7 +162,7 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the organizer is locked for sms sending",
       async ({ sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -232,12 +239,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -251,7 +255,7 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -379,12 +383,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeTriggered({
           sms,
@@ -402,7 +403,7 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the team is locked for sms sending",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -524,12 +525,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        await handleNewBooking(req);
 
         expectSMSWorkflowToBeNotTriggered({
           sms,
@@ -543,7 +541,7 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new team event is booked and this team is active on org workflow", async ({
       emails,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
@@ -644,12 +642,9 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expectWorkflowToBeTriggered({
         emailsToReceive: ["booker@example.com"],
@@ -660,7 +655,7 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new user event is booked and the user is part of an org team that is active on a org workflow", async ({
       sms,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
@@ -760,12 +755,9 @@ describe("handleNewBooking", () => {
         },
       });
 
-      const { req } = createMockNextJsRequest({
-        method: "POST",
-        body: mockBookingData,
+      await handleNewBooking({
+        bookingData: mockBookingData,
       });
-
-      await handleNewBooking(req);
 
       expectSMSWorkflowToBeTriggered({
         sms,

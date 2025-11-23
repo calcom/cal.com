@@ -6,13 +6,15 @@ import {
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
-
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../../_utils/payments/currencyConversions";
+} from "@calcom/lib/currencyConversions";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
+import { Select } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };

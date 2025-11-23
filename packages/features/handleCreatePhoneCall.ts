@@ -1,7 +1,7 @@
-import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import { RetellAIService, validatePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
-import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
-import type { TCreatePhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { PROMPT_TEMPLATES, LegacyRetellAIService } from "@calcom/features/calAIPhone";
+import { templateTypeEnum } from "@calcom/features/calAIPhone";
+import type { TCreatePhoneCallSchema } from "@calcom/features/calAIPhone";
+import { validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -45,7 +45,7 @@ export const handleCreatePhoneCall = async ({
       ? userCustomPrompt
       : PROMPT_TEMPLATES[templateType]?.generalPrompt;
 
-  const retellAI = new RetellAIService({
+  const retellAI = new LegacyRetellAIService({
     templateType,
     generalPrompt: generalPrompt ?? "",
     beginMessage: beginMessage ?? null,

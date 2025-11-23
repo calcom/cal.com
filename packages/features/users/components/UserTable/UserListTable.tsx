@@ -3,37 +3,41 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
-  DataTableWrapper,
   DataTableProvider,
+  DataTableWrapper,
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
-  textFilter,
-  isTextFilterValue,
-  isSingleSelectFilterValue,
-  isMultiSelectFilterValue,
-  singleSelectFilter,
-  multiSelectFilter,
   ColumnFilterType,
   convertFacetedValuesToMap,
+  useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
-  downloadAsCsv,
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/lib/csvUtils";
+} from "@calcom/features/users/lib/UserListTableUtils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Checkbox, showToast } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Checkbox } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -47,7 +51,7 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -72,6 +76,9 @@ const initalColumnVisibility = {
   member: true,
   role: true,
   teams: true,
+  createdAt: false,
+  updatedAt: false,
+  twoFactorEnabled: false,
   actions: true,
 };
 
@@ -101,15 +108,41 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
   }
 }
 
-export function UserListTable() {
+export type UserListTableProps = {
+  org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
+  teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+  attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
+  permissions?: MemberPermissions;
+};
+
+export function UserListTable(props: UserListTableProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider>
-      <UserListTableContent />
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
+      <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent() {
+function UserListTableContent({
+  org,
+  attributes,
+  teams,
+  facetedTeamValues,
+  permissions,
+}: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -117,65 +150,46 @@ function UserListTableContent() {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery();
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
-
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
-    trpc.viewer.organizations.listMembers.useInfiniteQuery(
-      {
-        limit: 30,
-        searchTerm: debouncedSearchTerm,
-        expand: ["attributes"],
-        filters: columnFilters,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-      }
-    );
+  const { limit, offset, searchTerm, ctaContainerRef } = useDataTable();
 
-  const exportQuery = trpc.viewer.organizations.listMembers.useInfiniteQuery(
+  const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
-      limit: 100, // Max limit
-      searchTerm: debouncedSearchTerm,
+      limit,
+      offset,
+      searchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      enabled: false,
+      placeholderData: keepPreviousData,
     }
   );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+  const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
+  const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
-    const permissions = {
-      canEdit: adminOrOwner,
-      canRemove: adminOrOwner,
-      canResendInvitation: adminOrOwner,
-      canImpersonate: false,
+    // Use PBAC permissions if available, otherwise fall back to role-based check
+    const tablePermissions = {
+      canEdit: permissions?.canChangeMemberRole ?? adminOrOwner,
+      canRemove: permissions?.canRemove ?? adminOrOwner,
+      canResendInvitation: permissions?.canInvite ?? adminOrOwner,
+      canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
     const generateAttributeColumns = () => {
       if (!attributes?.length) {
         return [];
       }
-      return (
-        (attributes?.map((attribute) => {
+      const attributeColumns: ColumnDef<UserTableUser>[] =
+        attributes?.map((attribute) => {
           // TODO: We need to normalize AttributeOption table first
           // so that we can have `number_value` column for numeric operations.
           // Currently, `value` column is used for both text and number attributes.
@@ -184,7 +198,7 @@ function UserListTableContent() {
           const isNumber = false;
           const isText = attribute.type === "TEXT";
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
-          const isMultiSelect = attribute.type === "MULTI_SELECT";
+          // const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
@@ -200,15 +214,15 @@ function UserListTableContent() {
               filter: { type: filterType },
             },
             size: 120,
-            accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
+            accessorFn: (data) => data.attributes?.find((attr) => attr.attributeId === attribute.id)?.value,
             cell: ({ row }) => {
-              const attributeValues = row.original.attributes.filter(
+              const attributeValues = row.original.attributes?.filter(
                 (attr) => attr.attributeId === attribute.id
               );
-              if (attributeValues.length === 0) return null;
+              if (attributeValues?.length === 0) return null;
               return (
                 <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
-                  {attributeValues.map((attributeValue) => {
+                  {attributeValues?.map((attributeValue) => {
                     const isAGroupOption = attributeValue.contains?.length > 0;
                     const suffix = attribute.isWeightsEnabled
                       ? `${attributeValue.weight || 100}%`
@@ -237,28 +251,11 @@ function UserListTableContent() {
                 </div>
               );
             },
-            filterFn: (row, id, filterValue) => {
-              const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
-
-              if (isTextFilterValue(filterValue)) {
-                return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-              } else if (isSingleSelectFilterValue(filterValue)) {
-                return singleSelectFilter(
-                  attributeValues.map((attr) => attr.value),
-                  filterValue
-                );
-              } else if (isMultiSelectFilterValue(filterValue)) {
-                return multiSelectFilter(
-                  attributeValues.map((attr) => attr.value),
-                  filterValue
-                );
-              }
-              return false;
-            },
           };
-        }) as ColumnDef<UserTableUser>[]) ?? []
-      );
+        }) ?? [];
+      return attributeColumns;
     };
+
     const cols: ColumnDef<UserTableUser>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
@@ -272,7 +269,6 @@ function UserListTableContent() {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -290,7 +286,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -317,18 +313,18 @@ function UserListTableContent() {
             </div>
           );
         },
-        filterFn: (rows, id, filterValue) => {
-          const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
-        },
       },
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, customRole } = row.original;
+          const roleName = customRole?.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
@@ -336,25 +332,19 @@ function UserListTableContent() {
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
-              {role}
+              {roleName}
             </Badge>
           );
-        },
-        filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
-          }
-
-          // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
         },
       },
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
         cell: ({ row, table }) => {
           const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
@@ -369,7 +359,7 @@ function UserListTableContent() {
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 
@@ -386,16 +376,66 @@ function UserListTableContent() {
             </div>
           );
         },
-        filterFn: (rows, _, filterValue: string[]) => {
-          const teamNames = rows.original.teams.map((team) => team.name);
-          return filterValue.some((value: string) => teamNames.includes(value));
-        },
       },
       ...generateAttributeColumns(),
       {
         id: "lastActiveAt",
-        header: "Last Active",
+        accessorKey: "lastActiveAt",
+        header: t("last_active"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+          },
+        },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAt",
+        header: t("member_since"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+          },
+        },
+        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
+        header: t("last_updated"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+          },
+        },
+        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
+      },
+      {
+        id: "twoFactorEnabled",
+        accessorKey: "twoFactorEnabled",
+        header: t("2fa"),
+        enableHiding: adminOrOwner,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { twoFactorEnabled } = row.original;
+          if (!adminOrOwner || twoFactorEnabled === undefined) {
+            return null;
+          }
+          return (
+            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
+            </Badge>
+          );
+        },
       },
       {
         id: "actions",
@@ -405,14 +445,18 @@ function UserListTableContent() {
         size: 80,
         cell: ({ row }) => {
           const user = row.original;
-          const permissionsRaw = permissions;
+          const permissionsRaw = tablePermissions;
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
-              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
+              user.accepted &&
+              !user.disableImpersonation &&
+              !isSelf &&
+              !!org?.canAdminImpersonate &&
+              permissionsRaw.canImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -430,14 +474,16 @@ function UserListTableContent() {
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, totalDBRowCount, attributes]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
 
   const table = useReactTable({
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    debugTable: true,
     manualPagination: true,
+    state: {
+      rowSelection,
+    },
     initialState: {
       columnVisibility: initalColumnVisibility,
       columnPinning: {
@@ -447,9 +493,6 @@ function UserListTableContent() {
     },
     defaultColumn: {
       size: 150,
-    },
-    state: {
-      rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -461,8 +504,8 @@ function UserListTableContent() {
           case "role":
             return convertFacetedValuesToMap(
               facetedTeamValues.roles.map((role) => ({
-                label: role,
-                value: role,
+                label: role.name,
+                value: role.id,
               }))
             );
           case "teams":
@@ -472,7 +515,7 @@ function UserListTableContent() {
                 value: team.name,
               }))
             );
-          default:
+          default: {
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
               return convertFacetedValuesToMap(
@@ -483,11 +526,14 @@ function UserListTableContent() {
               );
             }
             return new Map();
+          }
         }
       }
       return new Map();
     },
   });
+
+  const utils = trpc.useUtils();
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -502,30 +548,35 @@ function UserListTableContent() {
         throw new Error("Header is missing.");
       }
 
-      const result = await exportQuery.refetch();
-      if (!result.data) {
-        throw new Error("There are no members found.");
-      }
-      const allMembers = result.data.pages.flatMap((page) => page.rows ?? []) ?? [];
-      let lastPage = result.data.pages[result.data.pages.length - 1];
+      // Fetch all pages
+      let allRows: UserTableUser[] = [];
+      let offset: number | undefined = 0;
+      const limit = 100;
 
-      while (lastPage.nextCursor) {
-        const nextPage = await exportQuery.fetchNextPage();
-        if (!nextPage.data) {
-          break;
+      while (offset !== undefined) {
+        const result = await utils.viewer.organizations.listMembers.fetch({
+          limit,
+          offset,
+          searchTerm,
+          expand: ["attributes"],
+          filters: columnFilters,
+        });
+
+        if (!result.rows?.length) {
+          offset = undefined;
+          continue;
         }
-        const latestPageItems = nextPage.data.pages[nextPage.data.pages.length - 1].rows ?? [];
-        allMembers.push(...latestPageItems);
-        lastPage = nextPage.data.pages[nextPage.data.pages.length - 1];
+
+        allRows = [...allRows, ...result.rows];
+        offset = offset + limit;
+      }
+
+      if (!allRows.length) {
+        throw new Error("There are no members found.");
       }
 
       const ATTRIBUTE_IDS = attributes?.map((attr) => attr.id) ?? [];
-      const csvRaw = generateCsvRawForMembersTable(
-        headers,
-        allMembers as UserTableUser[],
-        ATTRIBUTE_IDS,
-        domain
-      );
+      const csvRaw = generateCsvRawForMembersTable(headers, allRows, ATTRIBUTE_IDS, domain);
       if (!csvRaw) {
         throw new Error("Generating CSV file failed.");
       }
@@ -539,30 +590,76 @@ function UserListTableContent() {
     }
   };
 
-  if (!isPlatformUser && !isSuccessAttributes) {
-    // do not render the table until the attributes are fetched
-    return null;
-  }
-
   return (
     <>
-      <DataTableWrapper
+      <DataTableWrapper<UserTableUser>
         testId="user-list-data-table"
         table={table}
         isPending={isPending}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
-        totalDBRowCount={totalDBRowCount}
+        totalRowCount={data?.meta?.totalRowCount}
+        paginationMode="standard"
         ToolbarLeft={
-          <DataTableToolbar.SearchBar
-            table={table}
-            onSearch={(value) => setDebouncedSearchTerm(value)}
-            className="sm:max-w-64 max-w-full"
-          />
+          <>
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
         }
         ToolbarRight={
           <>
+            <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
+          </>
+        }>
+        {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
+            <DynamicLink table={table} domain={domain} />
+          </DataTableSelectionBar.Root>
+        )}
+        {numberOfSelectedRows > 0 && (
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+            <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+              {t("number_selected", { count: numberOfSelectedRows })}
+            </p>
+            {!isPlatformUser ? (
+              <>
+                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
+                {numberOfSelectedRows >= 2 && (
+                  <DataTableSelectionBar.Button
+                    color="secondary"
+                    onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
+                    icon="handshake">
+                    {t("group_meeting")}
+                  </DataTableSelectionBar.Button>
+                )}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
+                )}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <EventTypesList table={table} orgTeams={teams} />
+                )}
+              </>
+            ) : null}
+            {(permissions?.canRemove ?? adminOrOwner) && (
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
+            )}
+          </DataTableSelectionBar.Root>
+        )}
+      </DataTableWrapper>
+
+      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
+      {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
+      {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
+      {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+
+      {ctaContainerRef.current &&
+        createPortal(
+          <div className="flex items-center gap-2">
             <DataTableToolbar.CTA
               type="button"
               color="secondary"
@@ -572,9 +669,7 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {adminOrOwner && (
+            {(permissions?.canInvite ?? adminOrOwner) && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
@@ -591,54 +686,9 @@ function UserListTableContent() {
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
-          </>
-        }>
-        <div className="flex gap-2 justify-self-start">
-          <DataTableFilters.ActiveFilters table={table} />
-        </div>
-
-        {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
-            <DynamicLink table={table} domain={domain} />
-          </DataTableSelectionBar.Root>
+          </div>,
+          ctaContainerRef.current
         )}
-        {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root
-            className="justify-center"
-            style={{
-              width: "max-content",
-            }}>
-            <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
-              {t("number_selected", { count: numberOfSelectedRows })}
-            </p>
-            {!isPlatformUser ? (
-              <>
-                <TeamListBulkAction table={table} />
-                {numberOfSelectedRows >= 2 && (
-                  <DataTableSelectionBar.Button
-                    color="secondary"
-                    onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
-                    icon="handshake">
-                    {t("group_meeting")}
-                  </DataTableSelectionBar.Button>
-                )}
-                <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                <EventTypesList table={table} orgTeams={teams} />
-              </>
-            ) : null}
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
-          </DataTableSelectionBar.Root>
-        )}
-      </DataTableWrapper>
-
-      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
-      {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
-      {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
-      {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
-      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
     </>
   );
 }

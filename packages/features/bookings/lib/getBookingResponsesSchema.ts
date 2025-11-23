@@ -1,7 +1,9 @@
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
-import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
@@ -16,6 +18,7 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 const catchAllSchema = bookingResponsesDbSchema;
 
 const ensureValidPhoneNumber = (value: string) => {
+  if (!value) return "";
   // + in URL could be replaced with space, so we need to replace it back
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
@@ -144,7 +147,6 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
-              const { isValidPhoneNumber } = await import("libphonenumber-js");
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
@@ -173,7 +175,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && checkOptional ? true : bookingField.required) {
+          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
@@ -275,8 +277,14 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+          // Determine if the phone field needs validation
+          const needsValidation = isRequired || (value && value.trim() !== "");
+
+          // Validate phone number if the field is not hidden and requires validation
+          if (!bookingField.hidden && needsValidation) {
+            if (!(await phoneSchema.safeParseAsync(value)).success) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+            }
           }
           continue;
         }

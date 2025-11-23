@@ -1,21 +1,24 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient } from "@prisma/client";
 
-import { CreateOAuthClientInput } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Prisma } from "@calcom/prisma/client";
 
 export class OAuthClientRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
-  constructor(private readonly module: TestingModule) {
+  constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
   async get(clientId: PlatformOAuthClient["id"]) {
     return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
+  }
+
+  async getByOrgId(orgId: PlatformOAuthClient["organizationId"]) {
+    return this.prismaReadClient.platformOAuthClient.findMany({ where: { organizationId: orgId } });
   }
 
   async getUsers(clientId: PlatformOAuthClient["id"]) {
@@ -29,13 +32,24 @@ export class OAuthClientRepositoryFixture {
     return response?.users;
   }
 
-  async create(organizationId: number, data: CreateOAuthClientInput, secret: string) {
+  async create(
+    organizationId: number,
+    data: Omit<Prisma.PlatformOAuthClientCreateInput, "organization" | "secret">,
+    secret: string
+  ) {
     return this.prismaWriteClient.platformOAuthClient.create({
       data: {
         ...data,
         secret,
         organizationId,
       },
+    });
+  }
+
+  async update(clientId: PlatformOAuthClient["id"], data: Prisma.PlatformOAuthClientUpdateInput) {
+    return this.prismaWriteClient.platformOAuthClient.update({
+      where: { id: clientId },
+      data,
     });
   }
 

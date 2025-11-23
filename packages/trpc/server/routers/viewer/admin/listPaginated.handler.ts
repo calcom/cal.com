@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listPaginated.schema";
 
 type GetOptions = {
@@ -34,6 +34,15 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
             contains: searchTerm.toLocaleLowerCase(),
           },
         },
+        {
+          profiles: {
+            some: {
+              username: {
+                contains: searchTerm.toLowerCase(),
+              },
+            },
+          },
+        },
       ],
     };
   } else {
@@ -58,6 +67,12 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
+      profiles: {
+        select: {
+          username: true,
+        },
+      },
+      whitelistWorkflows: true,
     },
   });
 

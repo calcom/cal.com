@@ -14,8 +14,8 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { VerticalTabItemProps } from "@calcom/ui";
-import { Form } from "@calcom/ui";
+import { Form } from "@calcom/ui/components/form";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import { EventTypeSingleLayout } from "./EventTypeLayout";
 
@@ -25,6 +25,7 @@ export type Host = {
   priority: number;
   weight: number;
   scheduleId?: number | null;
+  groupId: string | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -64,6 +65,7 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   tabName: (typeof tabs)[number];
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
+  saveButtonRef?: React.RefObject<HTMLButtonElement>;
 };
 
 export const EventType = ({
@@ -82,6 +84,7 @@ export const EventType = ({
   handleSubmit,
   children,
   allowDelete = true,
+  saveButtonRef,
 }: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -101,7 +104,8 @@ export const EventType = ({
         isDeleting={isDeleting}
         isPlatform={isPlatform}
         allowDelete={allowDelete}
-        tabsNavigation={tabsNavigation}>
+        tabsNavigation={tabsNavigation}
+        saveButtonRef={saveButtonRef}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>

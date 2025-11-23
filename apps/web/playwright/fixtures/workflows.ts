@@ -3,14 +3,17 @@ import { expect, type Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 
-import { localize } from "../lib/testUtils";
+import { localize } from "../lib/localize";
 
 type CreateWorkflowProps = {
   name?: string;
   isTeam?: true;
   trigger?: WorkflowTriggerEvents;
 };
+
+const subjectPattern = /^Reminder: /i;
 
 export function createWorkflowPageFixture(page: Page) {
   const createWorkflow = async (props: CreateWorkflowProps) => {
@@ -21,32 +24,51 @@ export function createWorkflowPageFixture(page: Page) {
     } else {
       await page.getByTestId("create-button").click();
     }
+
+    await page.getByTestId(`workflow-option-card-scratch`).click();
+    await page.getByTestId("continue-button").click();
+
     if (name) {
       await fillNameInput(name);
     }
     if (trigger) {
-      page.locator("div").filter({ hasText: WorkflowTriggerEvents.BEFORE_EVENT }).nth(1);
-      page.getByText(trigger);
+      await page.locator("#trigger-select").click();
+      await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
       await selectEventType("30 min");
     }
-    await saveWorkflow();
+    const workflow = await saveWorkflow();
+
+    for (const step of workflow.steps) {
+      await prisma.workflowStep.update({
+        where: { id: step.id },
+        data: { verifiedAt: new Date() },
+      });
+    }
+
     await page.getByTestId("go-back-button").click();
   };
 
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
-    await page.getByTestId("save-workflow").click();
+    const saveButton = await page.getByTestId("save-workflow");
+    await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
+    const responseData = await response.json();
+    return responseData[0].result.data.json.workflow;
   };
 
   const assertListCount = async (count: number) => {
-    const workflowListCount = await page.locator('[data-testid="workflow-list"] > li');
+    const workflowListCount = page.locator('[data-testid="workflow-list"] > li');
+    await expect(workflowListCount.first()).toBeVisible();
+    await page.reload();
     await expect(workflowListCount).toHaveCount(count);
   };
 
   const fillNameInput = async (name: string) => {
+    await page.getByTestId("edit-workflow-name-button").click();
     await page.getByTestId("workflow-name").fill(name);
+    await page.keyboard.press("Enter");
   };
 
   const editSelectedWorkflow = async (name: string) => {
@@ -100,6 +122,20 @@ export function createWorkflowPageFixture(page: Page) {
     expect(deleteButton.isDisabled()).toBeTruthy();
   };
 
+  const assertWorkflowWasTriggered = async (emails: Fixtures["emails"], emailsToBeReceived: string[]) => {
+    const message = await emails.messages();
+    emailsToBeReceived.forEach((email) => {
+      expect(message?.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            subject: expect.stringMatching(subjectPattern),
+            to: email,
+          }),
+        ])
+      );
+    });
+  };
+
   const assertWorkflowReminders = async (eventTypeId: number, count: number) => {
     const booking = await prisma.booking.findFirst({
       where: {
@@ -131,5 +167,6 @@ export function createWorkflowPageFixture(page: Page) {
     selectedWorkflowPage,
     workflowOptionsAreDisabled,
     assertWorkflowReminders,
+    assertWorkflowWasTriggered,
   };
 }

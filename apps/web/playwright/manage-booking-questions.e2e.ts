@@ -12,7 +12,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "./lib/fixtures";
 import {
   createHttpServer,
-  createNewEventType,
+  createNewUserEventType,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -70,6 +70,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
         await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
@@ -113,6 +114,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
@@ -258,6 +260,7 @@ test.describe("Manage Booking Questions", () => {
       await test.step("Go to First Team Event", async () => {
         const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
         await locator.click();
+        await expect(locator).toHaveAttribute("aria-current", "page");
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
@@ -633,8 +636,8 @@ async function toggleQuestionRequireStatusAndSave({
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
   await page
     .locator('[data-testid="edit-field-dialog"]')
-    .locator('[data-testid="field-required"] button')
-    .locator(`text=${required ? "Yes" : "No"}`)
+    .locator('[data-testid="field-required"]')
+    .first()
     .click();
   await page.locator('[data-testid="field-add-save"]').click();
   await saveEventType(page);
@@ -674,7 +677,7 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
 }
 
 async function saveEventType(page: Page) {
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 }
@@ -743,8 +746,10 @@ test.describe("Text area min and max characters text", () => {
 
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
-    await createNewEventType(page, { eventTitle });
+    await createNewUserEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
+    await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
       const element = page.locator('[data-testid="add-field"]');
@@ -828,7 +833,7 @@ test.describe("Text area min and max characters text", () => {
       );
       await cancelQuestion();
       // Save the event type
-      await page.locator("[data-testid=update-eventtype]").click();
+      await saveEventType(page);
 
       // Get the url of data-testid="preview-button"
       const previewButton = await page.locator('[data-testid="preview-button"]');

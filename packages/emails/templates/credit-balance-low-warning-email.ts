@@ -1,0 +1,61 @@
+import type { TFunction } from "i18next";
+
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CreditUsageType } from "@calcom/prisma/enums";
+
+import renderEmail from "../src/renderEmail";
+import BaseEmail from "./_base-email";
+
+export default class CreditBalanceLowWarningEmail extends BaseEmail {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    t: TFunction;
+  };
+  team?: {
+    id: number;
+    name: string;
+  };
+  balance: number;
+  creditFor?: CreditUsageType;
+
+  constructor({
+    user,
+    balance,
+    team,
+    creditFor,
+  }: {
+    user: { id: number; name: string | null; email: string; t: TFunction };
+    balance: number;
+    team?: { id: number; name: string | null };
+    creditFor?: CreditUsageType;
+  }) {
+    super();
+    this.user = { ...user, name: user.name || "" };
+    this.team = team ? { ...team, name: team.name || "" } : undefined;
+    this.balance = balance;
+    this.creditFor = creditFor;
+  }
+
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    return {
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
+      to: this.user.email,
+      subject: this.team
+        ? this.user.t("team_credits_low_warning", { teamName: this.team.name })
+        : this.user.t("user_credits_low_warning"),
+      html: await renderEmail("CreditBalanceLowWarningEmail", {
+        balance: this.balance,
+        team: this.team,
+        user: this.user,
+        creditFor: this.creditFor,
+      }),
+      text: this.getTextBody(),
+    };
+  }
+
+  protected getTextBody(): string {
+    return "Your team is running low on credits. Please buy more credits.";
+  }
+}

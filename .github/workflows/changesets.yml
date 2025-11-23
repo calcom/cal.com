@@ -1,0 +1,47 @@
+name: Create PR containing updated CHANGELOG.md and release packages to NPM once PR is merged
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+permissions:
+  id-token: write # for NPM provenance - developers can verify where and how it was built
+  contents: write # to create release by changesets/action below
+  pull-requests: write # to create pull request by changesets/action below
+
+jobs:
+  release:
+    if: github.repository == 'calcom/cal.com' # prevent this action from running on forks
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node and registry for OIDC
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.17.0"
+          registry-url: "https://registry.npmjs.org"
+          always-auth: false
+      - name: Setup node, yarn and install dependencies
+        uses: ./.github/actions/yarn-install
+      - name: Install npm at version supporting OIDC
+        run: npm install -g npm@11.5.1
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: yarn changesets-version
+          publish: yarn changesets-release
+          commit: "chore: version packages" # commit message
+          title: "chore: version packages" # PR title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+          VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: ${{ secrets.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID }}
+          VITE_BOOKER_EMBED_API_URL: ${{ secrets.VITE_BOOKER_EMBED_API_URL }}
+          NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}

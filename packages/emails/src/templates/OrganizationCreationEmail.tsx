@@ -1,8 +1,7 @@
-import { Trans } from "next-i18next";
-
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
-import type { OrganizationCreation } from "../../templates/organization-creation-email";
+import type { OrganizationCreation } from "../../lib/types/email-types";
 import { V2BaseEmailHtml } from "../components";
 
 export const OrganizationCreationEmail = (
@@ -36,8 +35,7 @@ export const OrganizationCreationEmail = (
           marginTop: "32px",
           lineHeightStep: "24px",
         }}>
-        You have been added as an owner of the organization. To publish your new organization, visit{" "}
-        <a href={`${WEBAPP_URL}/upgrade`}>{WEBAPP_URL}/upgrade</a>
+        You have been added as an owner of the organization.
       </p>
       <p
         data-testid="organization-link-info"
@@ -49,30 +47,32 @@ export const OrganizationCreationEmail = (
           lineHeightStep: "24px",
         }}>
         {isNewUser ? (
-          <Trans>
+          <>
             Enjoy your new organization link: <a href={`${newLink}`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          </>
         ) : (
-          <Trans i18nKey="email|existing_user_added_link_changed">
-            Your link has been changed from <a href={prevLink ?? ""}>{prevLinkWithoutProtocol}</a> to{" "}
-            <a href={newLink ?? ""}>{newLinkWithoutProtocol}</a> but don&apos;t worry, all previous links
-            still work and redirect appropriately.
-            <br />
-            <br />
-            Please note: All of your personal event types have been moved into the <strong>
-              {teamName}
-            </strong>{" "}
-            organisation, which may also include potential personal link.
-            <br />
-            <br />
-            Please log in and make sure you have no private events on your new organisational account.
-            <br />
-            <br />
-            For personal events we recommend creating a new account with a personal email address.
-            <br />
-            <br />
-            Enjoy your new clean link: <a href={`${newLink}?orgRedirection=true`}>{newLinkWithoutProtocol}</a>
-          </Trans>
+          <ServerTrans
+            t={props.language}
+            i18nKey="email|existing_user_added_link_changed"
+            components={{
+              a0: (
+                <a className="cursor-pointer text-blue-500 underline" href={prevLink ?? ""}>
+                  {prevLinkWithoutProtocol}
+                </a>
+              ),
+              a1: (
+                <a className="cursor-pointer text-blue-500 underline" href={newLink ?? ""}>
+                  {newLinkWithoutProtocol}
+                </a>
+              ),
+              a2: (
+                <a className="cursor-pointer text-blue-500 underline" href={`${newLink}?orgRedirection=true`}>
+                  {newLinkWithoutProtocol}
+                </a>
+              ),
+            }}
+            values={{ teamName }}
+          />
         )}
       </p>
 

@@ -1,20 +1,21 @@
 import { randomBytes } from "crypto";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
-import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -65,12 +66,20 @@ export async function ensureAtleastAdminPermissions({
   teamId: number;
   isOrg?: boolean;
 }) {
+  const permissionCheckService = new PermissionCheckService();
+
   // Checks if the team they are inviting to IS the org. Not a child team
-  if (isOrg) {
-    if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  } else {
-    // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
-    if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
+  const permission = isOrg ? "organization.invite" : "team.invite";
+  const hasInvitePermission = await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission,
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasInvitePermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 }
 
@@ -83,7 +92,7 @@ export function checkInputEmailIsValid(email: string) {
 }
 
 export async function getTeamOrThrow(teamId: number) {
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -149,7 +158,7 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   // If he is invited to a sub-team and is already part of the organization.
   if (
     team.parentId &&
-    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
     return INVITE_STATUS.CAN_BE_INVITED;
   }
@@ -159,10 +168,27 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     return INVITE_STATUS.USER_PENDING_MEMBER_OF_THE_ORG;
   }
 
+  const hasDifferentOrganizationProfile = invitee.profiles.some((profile) => {
+    const isRegularTeam = !team.isOrganization && !team.parentId;
+    if (isRegularTeam) {
+      // ⚠️ Inviting to a regular team but the user has a profile with some organization
+      return true;
+    }
+
+    const isOrganization = team.isOrganization && !team.parentId;
+    if (isOrganization) {
+      // ⚠️ User has profile with different organization than the organization being invited to
+      return profile.organizationId !== team.id;
+    }
+
+    // ⚠️ User having profile with an organization is invited to join a sub-team that is not part of the organization
+    return profile.organizationId != team.parentId;
+  });
+
   if (
     !ENABLE_PROFILE_SWITCHER &&
-    // Member of an organization is invited to join a team that is not a subteam of the organization
-    invitee.profiles.find((profile) => profile.organizationId != team.parentId)
+    // User having profile with an organization is invited to join a sub-team that is not part of the organization
+    hasDifferentOrganizationProfile
   ) {
     return INVITE_STATUS.USER_MEMBER_OF_OTHER_ORGANIZATION;
   }
@@ -375,6 +401,7 @@ export async function createNewUsersConnectToOrgIfExists({
         if (parentId) {
           await tx.membership.create({
             data: {
+              createdAt: new Date(),
               teamId: parentId,
               userId: createdUser.id,
               role: MembershipRole.MEMBER,
@@ -410,22 +437,24 @@ export async function createMemberships({
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
-        const organizationRole = invitee?.teams?.[0]?.role;
+        const organizationRole = parentId
+          ? invitee?.teams?.find((membership) => membership.teamId === parentId)?.role
+          : undefined;
         const data = [];
+        const createdAt = new Date();
         // membership for the team
         data.push({
+          createdAt,
           teamId,
           userId: invitee.id,
           accepted,
-          role:
-            organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
-              ? organizationRole
-              : invitee.newRole,
+          role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
         });
 
         // membership for the org
         if (parentId && invitee.needToCreateOrgMembership) {
           data.push({
+            createdAt,
             accepted,
             teamId: parentId,
             userId: invitee.id,
@@ -444,6 +473,22 @@ export async function createMemberships({
   }
 }
 
+const createVerificationToken = async (identifier: string, teamId: number) => {
+  const token = randomBytes(32).toString("hex");
+  return prisma.verificationToken.create({
+    data: {
+      identifier,
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+      team: {
+        connect: {
+          id: teamId,
+        },
+      },
+    },
+  });
+};
+
 export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
@@ -459,35 +504,34 @@ export async function sendSignupToOrganizationEmail({
   teamId: number;
   isOrg: boolean;
 }) {
-  const token: string = randomBytes(32).toString("hex");
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      team: {
-        connect: {
-          id: teamId,
-        },
-      },
-    },
-  });
-  await sendTeamInviteEmail({
-    language: translation,
-    from: inviterName || `${team.name}'s admin`,
-    to: usernameOrEmail,
-    teamName: team.name,
-    joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
-    isCalcomMember: false,
-    isOrg: isOrg,
-    parentTeamName: team?.parent?.name,
-    isAutoJoin: false,
-    isExistingUserMovedToOrg: false,
-    // For a new user there is no prev and new links.
-    prevLink: null,
-    newLink: null,
-  });
+  try {
+    const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviterName || `${team.name}'s admin`,
+      to: usernameOrEmail,
+      teamName: team.name,
+      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`,
+      isCalcomMember: false,
+      isOrg: isOrg,
+      parentTeamName: team?.parent?.name,
+      isAutoJoin: false,
+      isExistingUserMovedToOrg: false,
+      // For a new user there is no prev and new links.
+      prevLink: null,
+      newLink: null,
+    });
+  } catch (error) {
+    logger.error(
+      "Failed to send signup to organization email",
+      safeStringify({
+        usernameOrEmail,
+        orgId: teamId,
+      }),
+      error
+    );
+  }
 }
 
 type TeamAndOrganizationSettings = Team & {
@@ -552,7 +596,7 @@ export function getAutoJoinStatus({
 
   const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
   const isUserMemberOfTheTeamsParentOrganization = team.parentId
-    ? UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    ? new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
     : null;
 
   if (isUserMemberOfTheTeamsParentOrganization) {
@@ -605,15 +649,17 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    autoJoinStatus.autoAccept
-      ? usersToAutoJoin.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        })
-      : regularUsers.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        });
+    if (autoJoinStatus.autoAccept) {
+      usersToAutoJoin.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    } else {
+      regularUsers.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    }
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -675,22 +721,23 @@ export const sendExistingUserTeamInviteEmails = async ({
        * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
-        const token = randomBytes(32).toString("hex");
-        await prisma.verificationToken.create({
-          data: {
+        const verificationToken = await createVerificationToken(user.email, teamId);
+
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
+        inviteTeamOptions.isCalcomMember = false;
+      } else if (!isAutoJoin) {
+        let verificationToken = await prisma.verificationToken.findFirst({
+          where: {
             identifier: user.email,
-            token,
-            expires: new Date(new Date().setHours(168)), // +1 week
-            team: {
-              connect: {
-                id: teamId,
-              },
-            },
+            teamId: teamId,
           },
         });
 
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-        inviteTeamOptions.isCalcomMember = false;
+        if (!verificationToken) {
+          verificationToken = await createVerificationToken(user.email, teamId);
+        }
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       }
 
       return sendTeamInviteEmail({
@@ -710,12 +757,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({
@@ -815,7 +856,7 @@ export async function handleExistingUsersInvites({
     if (parentOrganization) {
       const parsedOrg = getParsedTeam(parentOrganization);
       // Create profiles if needed
-      await Promise.all([
+      await Promise.all(
         autoJoinUsers
           .concat(regularUsers)
           .filter((u) => u.needToCreateProfile)
@@ -828,8 +869,8 @@ export async function handleExistingUsersInvites({
               },
               organizationId: parsedOrg.id,
             })
-          ),
-      ]);
+          )
+      );
     }
   } else {
     const organization = team;
@@ -857,12 +898,29 @@ export async function handleExistingUsersInvites({
 
         await prisma.membership.create({
           data: {
+            createdAt: new Date(),
             userId: user.id,
             teamId: team.id,
             accepted: shouldAutoAccept,
             role: user.newRole,
           },
         });
+
+        // If auto-accepting into org, also accept any pending sub-team memberships
+        if (shouldAutoAccept) {
+          await prisma.membership.updateMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            data: {
+              accepted: true,
+            },
+          });
+        }
         return {
           ...user,
           profile,
@@ -931,7 +989,7 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
+  const createdUsers = await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
     teamId: teamId,
@@ -941,6 +999,25 @@ export async function handleNewUsersInvites({
     language,
     creationSource,
   });
+
+  // Add auto-accepted users to team event types with assignAllTeamMembers immediately
+  // Only teams have event types with assignAllTeamMembers, not organizations
+  if (!isOrg) {
+    const autoAcceptedUserIds = createdUsers
+      .filter((user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept)
+      .map((user) => user.id);
+
+    if (autoAcceptedUserIds.length > 0) {
+      const results = await Promise.allSettled(
+        autoAcceptedUserIds.map((userId) => updateNewTeamMemberEventTypes(userId, teamId))
+      );
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          log.error("Error updating new team member event types for user", result.reason);
+        }
+      });
+    }
+  }
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
     return sendSignupToOrganizationEmail({

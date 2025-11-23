@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
@@ -10,7 +11,10 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -19,31 +23,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  PasswordField,
-  showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  TextField,
-  UserAvatar,
-} from "@calcom/ui";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Alert } from "@calcom/ui/components/alert";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -51,23 +45,9 @@ import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfi
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
-        <div className="flex items-center">
-          <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
-          <SkeletonButton className="h-6 w-32 rounded-md p-5" />
-        </div>
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
+import type { TRPCClientErrorLike } from "@trpc/client";
 
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-      </div>
-    </SkeletonContainer>
-  );
-};
+import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
 
 interface DeleteAccountValues {
   totpCode: string;
@@ -88,18 +68,21 @@ export type FormValues = {
   bio: string;
   secondaryEmails: Email[];
 };
+type Props = {
+  user: RouterOutputs["viewer"]["me"]["get"];
+};
 
-const ProfileView = () => {
+const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
-
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const session = useSession();
+  const { update } = session;
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
+      revalidateSettingsProfile();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -122,21 +105,23 @@ const ProfileView = () => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
     onError: (e) => {
       showToast(t(e.message), "error");
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);
       utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
     onError: (error) => {
       setSecondaryEmailAddErrorMessage(error?.message || "");
@@ -157,10 +142,13 @@ const ProfileView = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.viewer.me.invalidate();
+    revalidateSettingsProfile();
+
     showToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
@@ -185,18 +173,20 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
     },
   });
 
@@ -242,10 +232,6 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isPending || !user) {
-    return <SkeletonLoader />;
-  }
-
   const userEmail = user.email || "";
   const defaultValues = {
     username: user.username || "",
@@ -269,8 +255,19 @@ const ProfileView = () => {
     ],
   };
 
+  // Check if user should see company email alert
+  const shouldShowCompanyEmailAlert =
+    !isCompanyEmailAlertDismissed &&
+    !session.data?.user?.org?.id &&
+    !user.organization?.id &&
+    userEmail &&
+    isCompanyEmail(userEmail);
+
   return (
-    <>
+    <SettingsHeader
+      title={t("profile")}
+      description={t("profile_description", { appName: APP_NAME })}
+      borderInShellHeader={true}>
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -306,6 +303,7 @@ const ProfileView = () => {
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
+                revalidateSettingsProfile();
               }}
               onErrorMutation={() => {
                 showToast(t("error_updating_settings"), "error");
@@ -315,6 +313,12 @@ const ProfileView = () => {
         }
         isCALIdentityProvider={isCALIdentityProvider}
       />
+
+      {shouldShowCompanyEmailAlert && (
+        <div className="mt-6">
+          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
+        </div>
+      )}
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
@@ -362,7 +366,8 @@ const ProfileView = () => {
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}>
+                onClick={(e) => onConfirmButton(e)}
+                loading={deleteMeMutation.isPending}>
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>
@@ -473,7 +478,7 @@ const ProfileView = () => {
           onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
         />
       )}
-    </>
+    </SettingsHeader>
   );
 };
 
@@ -508,8 +513,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -525,12 +530,12 @@ const ProfileForm = ({
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    email: emailSchema,
+    email: emailSchema.toLowerCase(),
     bio: z.string(),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
-        email: emailSchema,
+        email: emailSchema.toLowerCase(),
         emailVerified: z.union([z.string(), z.null()]).optional(),
         emailPrimary: z.boolean().optional(),
       })
@@ -652,36 +657,45 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
+        <p className="text-subtle mt-1 flex gap-1 text-sm">
+          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <span className="flex-1">{t("tip_username_plus")}</span>
+        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
-          <div className="-mt-2 flex gap-2">
-            {secondaryEmailFields.map((field, index) => (
-              <CustomEmailTextField
-                key={field.itemId}
-                formMethods={formMethods}
-                formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
-                emailVerified={Boolean(field.emailVerified)}
-                emailPrimary={field.emailPrimary}
-                dataTestId={`profile-form-email-${index}`}
-                handleChangePrimary={() => {
-                  const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                    ...secondaryField,
-                    emailPrimary: cIndex === index,
-                  }));
-                  updateAllSecondaryEmailFields(fields);
-                }}
-                handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                handleItemDelete={() => deleteSecondaryEmail(index)}
-              />
-            ))}
+          <div className="-mt-2 flex flex-wrap items-start gap-2">
+            <div
+              className={
+                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
+              }>
+              {secondaryEmailFields.map((field, index) => (
+                <CustomEmailTextField
+                  key={field.itemId}
+                  formMethods={formMethods}
+                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
+                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                  emailVerified={Boolean(field.emailVerified)}
+                  emailPrimary={field.emailPrimary}
+                  dataTestId={`profile-form-email-${index}`}
+                  handleChangePrimary={() => {
+                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
+                      ...secondaryField,
+                      emailPrimary: cIndex === index,
+                    }));
+                    updateAllSecondaryEmailFields(fields);
+                  }}
+                  handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
+                  handleItemDelete={() => deleteSecondaryEmail(index)}
+                />
+              ))}
+            </div>
             <Button
               color="secondary"
               StartIcon="plus"
-              className="mt-2 h-full"
+              className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
               data-testid="add-secondary-email">
               {t("add_email")}
@@ -699,7 +713,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
-            height="80px"
+            height="120px"
           />
         </div>
         {usersAttributes && usersAttributes?.length > 0 && (

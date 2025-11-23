@@ -1,23 +1,24 @@
-import type { Prisma } from "@prisma/client";
 import { useMemo } from "react";
-import type { z } from "zod";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
-import { classNames, parseRecurringEvent } from "@calcom/lib";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
+import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventTypeModel } from "@calcom/prisma/zod";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { Badge } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
-    z.infer<typeof EventTypeModel>,
-    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
+    EventType,
+    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent" | "description">
+    | "metadata"
+    | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
@@ -40,15 +41,17 @@ export const EventTypeDescription = ({
     [eventType.recurringEvent]
   );
 
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata);
+
   const paymentAppData = getPaymentAppData({
     ...eventType,
-    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    metadata,
   });
 
   return (
     <>
       <div className={classNames("text-subtle", className)}>
-        {eventType.description && (
+        {eventType.descriptionAsSafeHTML && (
           <div
             className={classNames(
               "text-subtle line-clamp-3 break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
@@ -61,8 +64,8 @@ export const EventTypeDescription = ({
           />
         )}
         <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-          {eventType.metadata?.multipleDuration ? (
-            eventType.metadata.multipleDuration.map((dur, idx) => (
+          {metadata?.multipleDuration ? (
+            metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Badge variant="gray" startIcon="clock">
                   {dur}m
@@ -111,7 +114,7 @@ export const EventTypeDescription = ({
           {eventType.requiresConfirmation && (
             <li className="hidden xl:block" data-testid="requires-confirmation-badge">
               <Badge variant="gray" startIcon="clipboard">
-                {eventType.metadata?.requiresConfirmationThreshold
+                {metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
               </Badge>

@@ -1,21 +1,28 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label, Input } from "@calcom/ui";
+// TODO: This file is currently unused.
+import { Label } from "../form/inputs/Label";
+import { Input } from "../form/inputs/TextField";
 
 type Digit = {
   value: number;
   onChange: () => void;
 };
+
+type Translations = {
+  labelText?: string;
+};
+
 type PropType = {
   digits: Digit[];
   digitClassName: string;
+  translations?: Translations;
 };
 
-const TokenHandler = ({ digits, digitClassName }: PropType) => {
-  const { t } = useLocale();
+const TokenHandler = ({ digits, digitClassName, translations }: PropType) => {
+  const { labelText = "Code" } = translations ?? {};
 
   return (
     <div>
-      <Label htmlFor="code">{t("code")}</Label>
+      <Label htmlFor="code">{labelText}</Label>
       <div className="flex flex-row justify-between">
         {digits.map((element, index) => (
           <Input

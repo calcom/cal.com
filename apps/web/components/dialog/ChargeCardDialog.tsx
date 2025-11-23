@@ -1,18 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Icon,
-  showToast,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -26,15 +21,17 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
-  const [chargeError, setChargeError] = useState(false);
+  const [chargeError, setChargeError] = useState<string | null>(null);
+
   const chargeCardMutation = trpc.viewer.payments.chargeCard.useMutation({
     onSuccess: () => {
       utils.viewer.bookings.invalidate();
       setIsOpenDialog(false);
+      setChargeError(null);
       showToast("Charge successful", "success");
     },
-    onError: () => {
-      setChargeError(true);
+    onError: (error) => {
+      setChargeError(error.message || t("error_charging_card"));
     },
   });
 
@@ -57,7 +54,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
             {chargeError && (
               <div className="mt-4 flex text-red-500">
                 <Icon name="triangle-alert" className="mr-2 h-5 w-5 " aria-hidden="true" />
-                <p className="text-sm">{t("error_charging_card")}</p>
+                <p className="text-sm">{chargeError}</p>
               </div>
             )}
 
@@ -65,12 +62,13 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
               <DialogClose />
               <Button
                 data-testid="send_request"
-                disabled={chargeCardMutation.isPending || chargeError}
-                onClick={() =>
+                disabled={chargeCardMutation.isPending}
+                onClick={() => {
+                  setChargeError(null);
                   chargeCardMutation.mutate({
                     bookingId,
-                  })
-                }>
+                  });
+                }}>
                 {t("charge_attendee", currencyStringParams)}
               </Button>
             </DialogFooter>

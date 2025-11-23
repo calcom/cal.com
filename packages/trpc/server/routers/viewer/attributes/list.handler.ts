@@ -1,8 +1,9 @@
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type GetOptions = {
   ctx: {
@@ -19,15 +20,9 @@ const listHandler = async (opts: GetOptions) => {
       message: "You need to be apart of an organization to use this feature",
     });
   }
+  const attributeRepo = new PrismaAttributeRepository(prisma);
 
-  return await prisma.attribute.findMany({
-    where: {
-      teamId: org.id,
-    },
-    include: {
-      options: true,
-    },
-  });
+  return await attributeRepo.findAllByOrgIdWithOptions({ orgId: org.id });
 };
 
 export default listHandler;

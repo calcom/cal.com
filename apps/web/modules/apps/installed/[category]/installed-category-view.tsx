@@ -7,18 +7,17 @@ import { AppList, type HandleDisconnect } from "@calcom/features/apps/components
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { Icon } from "@calcom/ui";
-import {
-  AppSkeletonLoader as SkeletonLoader,
-  Button,
-  EmptyScreen,
-  ShellSubHeading,
-  showToast,
-} from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import type { Icon } from "@calcom/ui/components/icon";
+import { ShellSubHeading } from "@calcom/ui/components/layout";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -38,16 +37,16 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const query = trpc.viewer.integrations.useQuery({
+  const query = trpc.viewer.apps.integrations.useQuery({
     variant,
     exclude,
     onlyInstalled: true,
     includeTeamInstalledApps: true,
   });
 
-  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.apps.getUsersDefaultConferencingApp.useQuery();
 
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation();
+  const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
@@ -65,7 +64,7 @@ const IntegrationsContainer = ({
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           onSuccessCallback();
         },
         onError: (error) => {
@@ -83,7 +82,7 @@ const IntegrationsContainer = ({
       },
       {
         onSuccess: () => {
-          utils.viewer.getUsersDefaultConferencingApp.invalidate();
+          utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
           callback();
         },
       }
@@ -91,11 +90,11 @@ const IntegrationsContainer = ({
   };
 
   const handleConnectDisconnectIntegrationMenuToggle = () => {
-    utils.viewer.integrations.invalidate();
+    utils.viewer.apps.integrations.invalidate();
   };
 
   const handleBulkEditDialogToggle = () => {
-    utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
   // TODO: Refactor and reuse getAppCategories?
@@ -183,9 +182,11 @@ type ModalState = {
 
 type PageProps = {
   category: AppCategories;
+  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+  installedCalendars: RouterOutputs["viewer"]["apps"]["integrations"];
 };
 
-export default function InstalledApps({ category }: PageProps) {
+export default function InstalledApps({ category, connectedCalendars, installedCalendars }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
@@ -209,7 +210,7 @@ export default function InstalledApps({ category }: PageProps) {
     updateData({ isOpen: true, credentialId, teamId });
   };
 
-  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation();
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
@@ -218,8 +219,8 @@ export default function InstalledApps({ category }: PageProps) {
         onSuccess: () => {
           showToast(t("app_removed_successfully"), "success");
           callback();
-          utils.viewer.integrations.invalidate();
-          utils.viewer.connectedCalendars.invalidate();
+          utils.viewer.apps.integrations.invalidate();
+          utils.viewer.calendars.connectedCalendars.invalidate();
         },
         onError: () => {
           showToast(t("error_removing_app"), "error");
@@ -235,7 +236,12 @@ export default function InstalledApps({ category }: PageProps) {
         {categoryList.includes(category) && (
           <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
         )}
-        {category === "calendar" && <CalendarListContainer />}
+        {category === "calendar" && (
+          <CalendarListContainer
+            connectedCalendars={connectedCalendars}
+            installedCalendars={installedCalendars}
+          />
+        )}
         {category === "other" && (
           <IntegrationsContainer
             handleDisconnect={handleDisconnect}

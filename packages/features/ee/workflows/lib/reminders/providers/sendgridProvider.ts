@@ -1,21 +1,20 @@
+/**
+ * @deprecated use smtp with tasker instead
+ */
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
-import { JSDOM } from "jsdom";
 import { v4 as uuidv4 } from "uuid";
 
+import { addHTMLStyles } from "@calcom/emails/templates/workflow-email";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
-
-let sendgridAPIKey: string;
-let senderEmail: string;
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 function assertSendgrid() {
   if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL) {
-    sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-    senderEmail = process.env.SENDGRID_EMAIL as string;
+    const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
     sgMail.setApiKey(sendgridAPIKey);
     client.setApiKey(sendgridAPIKey);
   } else {
@@ -40,8 +39,7 @@ export async function getBatchId() {
 }
 
 export function sendSendgridMail(
-  mailData: Partial<MailData>,
-  addData: { sender?: string | null; includeCalendarEvent?: boolean }
+  mailData: Partial<MailData> & { sender?: string | null; includeCalendarEvent?: boolean }
 ) {
   assertSendgrid();
 
@@ -50,8 +48,8 @@ export function sendSendgridMail(
       setTestEmail({
         to: mailData.to?.toString() || "",
         from: {
-          email: senderEmail,
-          name: addData.sender || SENDER_NAME,
+          email: process.env.SENDGRID_EMAIL as string,
+          name: mailData.sender || SENDER_NAME,
         },
         subject: mailData.subject || "",
         html: mailData.html || "",
@@ -64,7 +62,7 @@ export function sendSendgridMail(
     return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
   }
 
-  if (!sendgridAPIKey) {
+  if (!process.env.SENDGRID_API_KEY) {
     console.info("No sendgrid API key provided, skipping email");
     return Promise.resolve();
   }
@@ -72,13 +70,13 @@ export function sendSendgridMail(
   return sgMail.send({
     to: mailData.to,
     from: {
-      email: senderEmail,
-      name: addData.sender || SENDER_NAME,
+      email: process.env.SENDGRID_EMAIL as string,
+      name: mailData.sender || SENDER_NAME,
     },
     subject: mailData.subject,
     html: addHTMLStyles(mailData.html),
     batchId: mailData.batchId,
-    replyTo: mailData.replyTo || senderEmail,
+    replyTo: mailData.replyTo || (process.env.SENDGRID_EMAIL as string),
     attachments: mailData.attachments,
     sendAt: mailData.sendAt,
   });
@@ -114,20 +112,4 @@ export function deleteScheduledSend(referenceId: string | null) {
     url: `/v3/user/scheduled_sends/${referenceId}`,
     method: "DELETE",
   });
-}
-
-function addHTMLStyles(html?: string) {
-  if (!html) {
-    return "";
-  }
-  const dom = new JSDOM(html);
-  // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
-  const links = Array.from(dom.window.document.querySelectorAll("h6 a")).map((link) => link as HTMLElement);
-
-  links.forEach((link) => {
-    link.style.fontSize = "20px";
-    link.style.textDecoration = "none";
-  });
-
-  return dom.serialize();
 }

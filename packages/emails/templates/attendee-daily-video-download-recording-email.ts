@@ -1,10 +1,11 @@
 // TODO: We should find a way to keep App specific email templates within the App itself
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail {
@@ -25,7 +26,10 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.filter(({ email }) => email !== this.attendee.email).map(({ email }) => email)
+      ),
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

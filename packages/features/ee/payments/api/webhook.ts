@@ -1,23 +1,26 @@
-import type { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import EventManager from "@calcom/core/EventManager";
-import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
+import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getBooking } from "@calcom/lib/payment/getBooking";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -72,10 +75,25 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       eventType,
     },
   });
+
+  const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(user, {
+    ...booking.eventType,
+    metadata,
+  });
+
+  const platformOAuthClientRepository = new PlatformOAuthClientRepository();
+  const platformOAuthClient = user.isPlatformManaged
+    ? await platformOAuthClientRepository.getByUserId(user.id)
+    : null;
+  const areCalendarEventsEnabled = platformOAuthClient?.areCalendarEventsEnabled ?? true;
+  const areEmailsEnabled = platformOAuthClient?.areEmailsEnabled ?? true;
+
   if (!requiresConfirmation) {
-    const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
-    const eventManager = new EventManager(user, metadata?.apps);
-    const scheduleResult = await eventManager.create(evt);
+    const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
+    const scheduleResult = areCalendarEventsEnabled
+      ? await eventManager.create(evt)
+      : placeholderCreatedEvent;
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
   }
@@ -101,14 +119,15 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!requiresConfirmation) {
     await handleConfirmation({
-      user,
+      user: { ...user, credentials: allCredentials },
       evt,
       prisma,
       bookingId: booking.id,
       booking,
       paid: true,
+      platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
     });
-  } else {
+  } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
     await sendAttendeeRequestEmailAndSMS({ ...evt }, evt.attendees[0], eventType.metadata);
   }
@@ -123,7 +142,7 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
 
 /**
  * @deprecated
- * We need to create a PaymentManager in `@calcom/core`
+ * We need to create a PaymentManager in `@calcom/lib`
  * to prevent circular dependencies on App Store migration
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

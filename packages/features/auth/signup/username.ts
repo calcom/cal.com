@@ -83,11 +83,12 @@ const usernameCheck = async (usernameRaw: string) => {
 
   const username = slugify(usernameRaw);
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      username,
-      // Simply remove it when we drop organizationId column
-      organizationId: null,
+      username_organizationId: {
+        username,
+        organizationId: null,
+      },
     },
     select: {
       username: true,

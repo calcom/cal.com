@@ -1,8 +1,9 @@
 import { checkIfUserHasFeatureController } from "@calcom/features/flags/operations/check-if-user-has-feature.controller";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 /**
@@ -21,7 +22,11 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
     return {
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.map(({ email }) => email),
+        true
+      ),
       subject: `${this.t("awaiting_approval")}: ${this.calEvent.title}`,
       html: await this.getHtmlRequestEmail(template, this.calEvent, this.calEvent.organizer),
       text: this.getTextBody("event_awaiting_approval"),

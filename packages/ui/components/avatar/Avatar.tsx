@@ -3,8 +3,8 @@ import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
 
-import classNames from "@calcom/lib/classNames";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import classNames from "@calcom/ui/classNames";
 
 import { Tooltip } from "../tooltip";
 

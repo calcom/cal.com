@@ -10,6 +10,9 @@ export const getParsedTeam = <T extends { metadata: Team["metadata"] }>(team: T)
     requestedSlug,
     metadata: {
       ...metadata,
+      /**
+       * @deprecated New orgs that are being created won't have requestedSlug set as the organizations are created after payment and thus slug is always available
+       */
       requestedSlug,
     },
   };

@@ -12,28 +12,31 @@ const paramsSchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: _PageProps) => {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(await params);
 
   if (!p.success) {
     return notFound();
   }
-
-  const props = await getStaticProps(p.data.slug);
+  const slugFromUrl = p.data.slug;
+  const props = await getStaticProps(slugFromUrl);
 
   if (!props) {
     notFound();
   }
-  const { name, logo, description } = props.data;
+  const { name, logo, dirName: appStoreDirSlug, slug: appSlug, description } = props.data;
 
   return await generateAppMetadata(
-    { slug: logo, name, description },
+    { slug: appStoreDirSlug ?? appSlug, logoUrl: logo, name, description },
     () => name,
-    () => description
+    () => description,
+    undefined,
+    undefined,
+    `/apps/${appSlug}`
   );
 };
 
 async function Page({ params }: _PageProps) {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(await params);
 
   if (!p.success) {
     return notFound();

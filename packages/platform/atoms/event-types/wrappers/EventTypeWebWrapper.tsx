@@ -9,19 +9,40 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
+import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+
+import { TRPCClientError } from "@trpc/react-query";
 
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { useTabsNavigations } from "../hooks/useTabsNavigations";
+
+type EventPermissions = {
+  eventTypes: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+  workflows: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+};
 
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
@@ -32,8 +53,9 @@ const AssignmentWarningDialog = dynamic(
 );
 
 const EventSetupTab = dynamic(() =>
-  // import web wrapper when it's ready
-  import("./EventSetupTabWebWrapper").then((mod) => mod)
+    // import web wrapper when it's ready
+    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
@@ -84,17 +106,56 @@ const EventAITab = dynamic(() =>
 
 export type EventTypeWebWrapperProps = {
   id: number;
+  data: RouterOutputs["viewer"]["eventTypes"]["get"];
+  permissions?: EventPermissions;
 };
 
-export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
-  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
+export const EventTypeWebWrapper = ({
+  id,
+  data: serverFetchedData,
+  permissions = {
+    eventTypes: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    workflows: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+  },
+}: EventTypeWebWrapperProps) => {
+  const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
+    { id },
+    { enabled: !serverFetchedData }
+  );
+
+  if (serverFetchedData) {
+    return (
+      <EventPermissionProvider initialPermissions={permissions}>
+        <EventTypeWeb {...serverFetchedData} id={id} />
+      </EventPermissionProvider>
+    );
+  }
 
   if (!eventTypeQueryData) return null;
 
-  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
+  return (
+    <EventPermissionProvider initialPermissions={permissions}>
+      <EventTypeWeb {...eventTypeQueryData} id={id} />
+    </EventPermissionProvider>
+  );
 };
 
-const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWeb = ({
+  id,
+  ...rest
+}: EventTypeSetupProps & {
+  id: number;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -102,17 +163,19 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const telemetry = useTelemetry();
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps } = trpc.viewer.integrations.useQuery({
+  const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+
+  // Check workflow permissions
+  const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
@@ -124,7 +187,16 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-
+      revalidateEventTypeEditPage(eventType.id);
+      if (eventType.team?.slug) {
+        // When an event-type is updated,
+        // guests could still hit a stale cache and see the old page.
+        revalidateTeamEventTypeCache({
+          teamSlug: eventType.team.slug,
+          meetingSlug: eventType.slug,
+          orgSlug: eventType.team.parent?.slug ?? null,
+        });
+      }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -208,16 +280,24 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
         user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
+        orgId={orgBranding?.id ?? null}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: allActiveWorkflows ? (
-      <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
-    ) : (
-      <></>
+    apps: (
+      <EventAppsTab
+        eventType={{ ...eventType, URL: permalink }}
+        eventTypeApps={eventTypeApps}
+        isPendingApps={isPendingApps}
+      />
     ),
+    workflows:
+      allActiveWorkflows && canReadWorkflows ? (
+        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+      ) : (
+        <></>
+      ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
@@ -298,6 +378,15 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
+      if (team?.slug) {
+        // When a team event-type is deleted,
+        // guests could still hit a stale cache and see the old page.
+        revalidateTeamEventTypeCache({
+          teamSlug: team.slug,
+          meetingSlug: eventType.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");
@@ -321,6 +410,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     team,
     eventTypeApps,
     allActiveWorkflows,
+    canReadWorkflows,
   });
 
   return (
@@ -352,7 +442,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
               handleSubmit(form.getValues());
-              telemetry.event(telemetryEventTypes.slugReplacementAction);
+              // telemetry.event(telemetryEventTypes.slugReplacementAction);
               setSlugExistsChildrenDialogOpen([]);
             }}
           />

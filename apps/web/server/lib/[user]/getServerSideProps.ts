@@ -1,30 +1,29 @@
-import type { DehydratedState } from "@tanstack/react-query";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
+import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
-import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
+import type { EventType, User } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-
-import { ssrInit } from "@server/lib/ssr";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  trpcState: DehydratedState;
   profile: {
     name: string;
     image: string;
@@ -35,6 +34,9 @@ type UserPageProps = {
       requestedSlug: string | null;
       slug: string | null;
       id: number | null;
+      brandColor: string | null;
+      darkBrandColor: string | null;
+      theme: string | null;
     } | null;
     allowSEOIndexing: boolean;
     username: string | null;
@@ -63,50 +65,47 @@ type UserPageProps = {
     | "length"
     | "hidden"
     | "lockTimeZoneToggleOnBookingPage"
+    | "lockedTimeZone"
     | "requiresConfirmation"
     | "canSendCalVideoTranscriptionEmails"
     | "requiresBookerEmailVerification"
     | "price"
     | "currency"
     | "recurringEvent"
+    | "seatsPerTimeSlot"
+    | "schedulingType"
   >)[];
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
-  const isOrgContext = isValidOrgDomain && !!currentOrgDomain;
-
   const dataFetchStart = Date.now();
 
-  if (!isOrgContext) {
-    // If there is no org context, see if some redirect is setup due to org migration
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernameList,
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernameList,
+    redirectType: RedirectType.User,
+    eventTypeSlug: null,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await getUsersInOrgContext(
     usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+    isValidOrgDomain ? currentOrgDomain : null
+  );
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
-    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const destinationUrl = encodeURI(`/${usernameList.join("+")}/dynamic`);
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
@@ -135,15 +134,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
+  const branding = getBrandingForUser({ user });
+
   const profile = {
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
       avatarUrl: user.avatarUrl,
     }),
-    theme: user.theme,
-    brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    theme: branding.theme,
+    brandColor: branding.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor:
+      branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,
@@ -166,7 +168,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       redirect: {
         permanent: false,
-        destination: `${urlDestination}?${urlQuery}`,
+        destination: `${encodeURI(urlDestination)}?${urlQuery}`,
       },
     };
   }
@@ -197,9 +199,29 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
 };
+
+export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
+  const userRepo = new UserRepository(prisma);
+
+  const usersInOrgContext = await userRepo.findUsersByUsername({
+    usernameList,
+    orgSlug,
+  });
+
+  if (usersInOrgContext.length) {
+    return usersInOrgContext;
+  }
+
+  // note(Lauris): platform members (people who run platform) are part of platform organization while
+  // the platform organization does not have a domain. In this case there is no org domain but also platform member
+  // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+  // call to find platform member.
+  return await userRepo.findPlatformMembersByUsernames({
+    usernameList,
+  });
+}

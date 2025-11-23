@@ -1,9 +1,9 @@
 import type z from "zod";
 
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { fieldSchema } from "@calcom/prisma/zod-utils";
 
 import { fieldTypesConfigMap } from "../fieldTypes";
-import type { fieldSchema } from "../schema";
 
 type ConfigVariants = NonNullable<ReturnType<typeof getConfig>>["variants"];
 type Field = z.infer<typeof fieldSchema>;
@@ -30,7 +30,7 @@ function getTranslatedConfigVariants(configVariants: ConfigVariants, translate: 
 }
 
 /**
- * Get's the field's variantsConfig and if not available, then it will get the default variantsConfig from the fieldTypesConfigMap
+ * Gets the field's variantsConfig and if not available, then it will get the default variantsConfig from the fieldTypesConfigMap
  */
 export const getConfig = (field: Pick<Field, "variantsConfig" | "type">) => {
   const fieldVariantsConfig = field.variantsConfig;

@@ -1,9 +1,10 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type { Team, User } from "@calcom/prisma/client";
-import { AvatarGroup } from "@calcom/ui";
+
+import { AvatarGroup } from "./AvatarGroup";
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
   users: (Pick<User, "name" | "username" | "avatarUrl"> & {

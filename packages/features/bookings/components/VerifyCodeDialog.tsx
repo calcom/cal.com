@@ -2,18 +2,14 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Icon,
-  Input,
-  Label,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Input } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,
@@ -41,6 +37,7 @@ export const VerifyCodeDialog = ({
   const { t } = useLocale();
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
+  const setVerificationCode = useBookerStoreContext((state) => state.setVerificationCode);
 
   const digits = useDigitInput({
     acceptedCharacters: /^[0-9]$/,
@@ -61,6 +58,7 @@ export const VerifyCodeDialog = ({
     } else {
       verifyCodeWithSessionNotRequired(value, email);
     }
+    setVerificationCode(value);
     setHasVerified(true);
   }, [
     resetErrors,
@@ -70,6 +68,7 @@ export const VerifyCodeDialog = ({
     value,
     email,
     verifyCodeWithSessionNotRequired,
+    setVerificationCode,
   ]);
 
   useEffect(() => {
@@ -79,7 +78,8 @@ export const VerifyCodeDialog = ({
     if (hasVerified || error || isPending || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [error, isPending, value, verifyCode, hasVerified]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, isPending, value, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
 

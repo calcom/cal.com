@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaTeamsReadPublic } from "~/lib/validations/team";
 

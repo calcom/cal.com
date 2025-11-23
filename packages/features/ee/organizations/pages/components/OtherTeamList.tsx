@@ -1,14 +1,16 @@
+"use client";
+
 import { useState } from "react";
 
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { OrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.module";
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import OtherTeamListItem from "./OtherTeamListItem";
 
 interface Props {
-  teams: RouterOutputs["viewer"]["organizations"]["listOtherTeams"];
+  teams: Awaited<ReturnType<OrganizationRepository["findTeamsInOrgIamNotPartOf"]>>;
   pending?: boolean;
 }
 

@@ -10,6 +10,7 @@ import {
   confirmReschedule,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
   testName,
 } from "./lib/testUtils";
 
@@ -215,7 +216,7 @@ test.describe("Teams - NonOrg", () => {
     const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
     await Promise.all([
       page.click("[data-testid=make-team-private-check]"),
       expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible(),
@@ -300,4 +301,109 @@ test.describe("Teams - NonOrg", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
   todo("Reschedule a Round Robin EventType booking");
+});
+
+test.describe("Team Slug Validation", () => {
+  test.afterEach(({ users, orgs }) => {
+    users.deleteAll();
+    orgs.deleteAll();
+  });
+
+  test("Teams in different organizations can have the same slug", async ({ page, users, orgs }) => {
+    const org1 = await orgs.create({ name: "Organization 1" });
+    const org2 = await orgs.create({ name: "Organization 2" });
+
+    const owner1 = await users.create(
+      {
+        organizationId: org1.id,
+        roleInOrganization: "OWNER",
+      },
+      {
+        hasTeam: true,
+        teamSlug: "cal",
+        teamRole: "OWNER",
+      }
+    );
+
+    const owner2 = await users.create(
+      {
+        organizationId: org2.id,
+        roleInOrganization: "OWNER",
+      },
+      {
+        hasTeam: true,
+        teamSlug: "calCom",
+        teamRole: "OWNER",
+      }
+    );
+    const { team: team1 } = await owner1.getFirstTeamMembership();
+
+    await owner1.apiLogin();
+    await page.goto(`/settings/teams/${team1.id}/profile`);
+    await page.locator('input[name="slug"]').fill("calCom");
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
+      action: () => page.locator("[data-testid=update-team-profile]").click(),
+    });
+  });
+
+  test("Teams within same organization cannot have duplicate slugs", async ({ page, users, orgs }) => {
+    const org = await orgs.create({ name: "Organization 1" });
+
+    const owner = await users.create(
+      {
+        organizationId: org.id,
+        roleInOrganization: "OWNER",
+      },
+      {
+        hasTeam: true,
+        numberOfTeams: 2,
+        teamRole: "OWNER",
+      }
+    );
+
+    const teams = await owner.getAllTeamMembership();
+    await owner.apiLogin();
+    await page.goto(`/settings/teams/${teams[0].team.id}/profile`);
+    if (!teams[1].team.slug) throw new Error("Slug not found for team 2");
+    await page.locator('input[name="slug"]').fill(teams[1].team.slug);
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
+      action: () => page.locator("[data-testid=update-team-profile]").click(),
+      expectedStatusCode: 409,
+    });
+  });
+
+  test("Teams without organization can have same slug as teams in organizations", async ({
+    page,
+    users,
+    orgs,
+  }) => {
+    const org = await orgs.create({ name: "Organization 1" });
+
+    const orgOwner = await users.create(
+      {
+        organizationId: org.id,
+        roleInOrganization: "OWNER",
+      },
+      {
+        hasTeam: true,
+        teamSlug: "calCom",
+        teamRole: "OWNER",
+      }
+    );
+
+    const teamOwner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+      }
+    );
+
+    const { team } = await teamOwner.getFirstTeamMembership();
+    await teamOwner.apiLogin();
+    await page.goto(`/settings/teams/${team.id}/profile`);
+    await page.locator('input[name="slug"]').fill("calCom");
+    await submitAndWaitForResponse(page, "/api/trpc/teams/update?batch=1", {
+      action: () => page.locator("[data-testid=update-team-profile]").click(),
+    });
+  });
 });

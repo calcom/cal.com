@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  user?: RouterOutputs["viewer"]["me"];
+  user?: RouterOutputs["viewer"]["me"]["get"];
   teamMembers: TeamMembers;
 };
 
@@ -22,12 +22,25 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
+  const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType: props.eventType,
     translate: t,
     formMethods,
   });
+
+  // Check if team has restriction schedule feature enabled
+  const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
+    {
+      teamId: props.eventType.team?.id || 0,
+      feature: "restriction-schedule",
+    },
+    {
+      enabled: !!props.eventType.team?.id,
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    }
+  );
 
   const { isPending: isSchedulePending, data: scheduleQueryData } =
     trpc.viewer.availability.schedule.get.useQuery(
@@ -37,6 +50,15 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
         isManagedEventType: isManagedEventType || isChildrenManagedEventType,
       },
       { enabled: !!scheduleId || (!props.isTeamEvent && !!props.user?.defaultScheduleId) }
+    );
+
+  const { isPending: isRestrictionSchedulePending, data: restrictionScheduleQueryData } =
+    trpc.viewer.availability.schedule.get.useQuery(
+      {
+        scheduleId: restrictionScheduleId || undefined,
+        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
+      },
+      { enabled: !!restrictionScheduleId }
     );
 
   const { data: schedulesQueryData, isPending: isSchedulesPending } =
@@ -51,8 +73,12 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
       scheduleQueryData={scheduleQueryData}
+      restrictionScheduleQueryData={restrictionScheduleQueryData}
+      isRestrictionSchedulePending={isRestrictionSchedulePending}
       editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+      restrictionScheduleRedirectUrl={`/availability/${restrictionScheduleQueryData?.id}`}
       hostSchedulesQuery={hostSchedulesQuery}
+      isRestrictionScheduleEnabled={isRestrictionScheduleEnabled}
     />
   );
 };

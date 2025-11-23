@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
-
+import { extendedBookingCreateBody } from "./bookingCreateBodySchema";
 import type { getBookingFieldsWithSystemFields } from "./getBookingFields";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 

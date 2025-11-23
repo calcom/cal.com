@@ -1,29 +1,48 @@
-import { useRouter } from "next/navigation";
-
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
-import { trpc } from "@calcom/trpc/react";
-import type { IconName } from "@calcom/ui";
-import { CreateButtonWithTeamsList, EmptyScreen as ClassicEmptyScreen, Icon, showToast } from "@calcom/ui";
+import cn from "@calcom/ui/classNames";
+import { EmptyScreen as ClassicEmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
+
+import { WorkflowCreationDialog, useWorkflowCreation } from "./WorkflowCreationDialog";
 
 type WorkflowExampleType = {
-  Icon: IconName;
-  text: string;
+  icon: IconName;
+  iconWrapperClassName?: string;
+  title: string;
+  description: string;
+  image?: string;
 };
 
 function WorkflowExample(props: WorkflowExampleType) {
-  const { Icon: iconName, text } = props;
+  const { icon: iconName, title, description, iconWrapperClassName, image } = props;
 
   return (
-    <div className="border-subtle mx-2 my-2 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
-      <div className="flex ">
+    <div className="bg-default border-subtle max-h-24 max-w-[600px] rounded-xl border border-solid p-2.5">
+      <div className="flex">
         <div className="flex items-center justify-center">
-          <div className="bg-emphasis dark:bg-default mr-4 flex h-10 w-10 items-center justify-center rounded-full">
-            <Icon name={iconName} className="text-default h-6 w-6 stroke-[2px]" />
+          <div
+            className={cn(
+              "bg-emphasis dark:bg-default mr-4 flex h-10 w-10 items-center justify-center rounded-[10px]",
+              iconWrapperClassName
+            )}>
+            {image ? (
+              <img
+                src={image}
+                alt=""
+                role="presentation"
+                aria-hidden="true"
+                className={cn("text-default h-5 w-5")}
+              />
+            ) : (
+              <Icon name={iconName} className={cn("text-default h-5 w-5")} aria-hidden="true" />
+            )}
           </div>
         </div>
         <div className="m-auto w-full flex-grow items-center justify-center ">
-          <div className="text-semibold text-emphasis line-clamp-2 w-full text-sm font-medium">{text}</div>
+          <div className="text-semibold text-emphasis line-clamp-2 w-full text-sm font-semibold">{title}</div>
+          <div className="text-default text-sm font-normal leading-none">{description}</div>
         </div>
       </div>
     </div>
@@ -32,33 +51,60 @@ function WorkflowExample(props: WorkflowExampleType) {
 
 export default function EmptyScreen(props: { isFilteredView: boolean }) {
   const { t } = useLocale();
-  const router = useRouter();
+  const { showDialog, setShowDialog, pendingTeamId, openDialog } = useWorkflowCreation();
 
-  const createMutation = trpc.viewer.workflows.create.useMutation({
-    onSuccess: async ({ workflow }) => {
-      await router.replace(`/workflows/${workflow.id}`);
+  const workflowsExamples: WorkflowExampleType[] = [
+    { icon: "smartphone", title: t("send_sms_reminder"), description: t("send_sms_reminder_description") },
+    {
+      icon: "smartphone",
+      title: t("follow_up_with_no_shows"),
+      description: t("follow_up_with_no_shows_description"),
     },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not authorized to create this workflow`;
-        showToast(message, "error");
-      }
+    {
+      icon: "mail",
+      title: t("remind_attendees_to_bring_id"),
+      description: t("remind_attendees_to_bring_id_description"),
     },
-  });
+    {
+      icon: "mail",
+      title: t("email_to_remind_booking"),
+      description: t("email_to_remind_booking_description"),
+    },
+    {
+      icon: "mail",
+      title: t("custom_email_reminder"),
+      description: t("custom_email_reminder_description"),
+    },
+    {
+      icon: "smartphone",
+      title: t("custom_sms_reminder"),
+      description: t("custom_sms_reminder_description"),
+    },
+  ];
 
-  const workflowsExamples = [
-    { icon: "smartphone", text: t("workflow_example_1") },
-    { icon: "smartphone", text: t("workflow_example_2") },
-    { icon: "mail", text: t("workflow_example_3") },
-    { icon: "mail", text: t("workflow_example_4") },
-    { icon: "mail", text: t("workflow_example_5") },
-    { icon: "smartphone", text: t("workflow_example_6") },
-  ] as const;
+  const calAITemplates: WorkflowExampleType[] = [
+    {
+      icon: "phone-outgoing",
+      title: t("call_to_confirm_booking"),
+      description: t("cal_ai_phone_call_action_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+    {
+      icon: "phone-outgoing",
+      title: t("follow_up_with_no_shows"),
+      description: t("follow_up_with_no_shows_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+    {
+      icon: "phone-outgoing",
+      title: t("remind_attendees_to_bring_id"),
+      description: t("remind_attendees_to_bring_id_description"),
+      iconWrapperClassName: "bg-[#2A2947]",
+      image: "/call-outgoing.svg",
+    },
+  ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (Smile icon),
 
   if (props.isFilteredView) {
@@ -79,21 +125,42 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
           <div className="mt-8 ">
             <CreateButtonWithTeamsList
               subtitle={t("new_workflow_subtitle").toUpperCase()}
-              createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+              createFunction={openDialog}
               buttonText={t("create_workflow")}
-              isPending={createMutation.isPending}
               includeOrg={true}
             />
           </div>
         </div>
       </div>
-      <div className="flex flex-row items-center justify-center">
-        <div className="grid-cols-none items-center lg:grid lg:grid-cols-3 xl:mx-20">
-          {workflowsExamples.map((example, index) => (
-            <WorkflowExample key={index} Icon={example.icon} text={example.text} />
-          ))}
-        </div>
+
+      <div className="flex flex-col gap-4">
+        <TemplateSection title={t("cal_ai_templates")} examples={calAITemplates} />
+        <TemplateSection title={t("standard_templates")} examples={workflowsExamples} />
       </div>
+
+      <WorkflowCreationDialog open={showDialog} onOpenChange={setShowDialog} teamId={pendingTeamId} />
     </>
   );
 }
+
+const TemplateSection = ({ title, examples }: { title: string; examples: WorkflowExampleType[] }) => {
+  return (
+    <div className="flex items-center justify-center">
+      <div className="bg-muted flex max-w-5xl flex-col rounded-md p-2">
+        <h2 className="text-emphasis mb-2 text-base font-semibold">{title}</h2>
+        <div className="grid grid-cols-1 items-center gap-2 lg:grid-cols-3">
+          {examples.map((example: WorkflowExampleType, index: number) => (
+            <WorkflowExample
+              key={index}
+              icon={example.icon}
+              title={example.title}
+              description={example.description}
+              iconWrapperClassName={example.iconWrapperClassName}
+              image={example.image}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

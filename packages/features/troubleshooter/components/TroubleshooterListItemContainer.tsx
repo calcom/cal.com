@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import classNames from "@calcom/ui/classNames";
 
 interface TroubleshooterListItemContainerProps {
   title: string;

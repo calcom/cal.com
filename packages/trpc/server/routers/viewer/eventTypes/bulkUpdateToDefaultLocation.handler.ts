@@ -1,7 +1,9 @@
-import { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+import { bulkUpdateEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateEventsToDefaultLocation";
 import { prisma } from "@calcom/prisma";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../types";
 import type { TBulkUpdateToDefaultLocationInputSchema } from "./bulkUpdateToDefaultLocation.schema";
 
 type BulkUpdateToDefaultLocationOptions = {
@@ -13,9 +15,19 @@ type BulkUpdateToDefaultLocationOptions = {
 
 export const bulkUpdateToDefaultLocationHandler = ({ ctx, input }: BulkUpdateToDefaultLocationOptions) => {
   const { eventTypeIds } = input;
-  return bulkUpdateEventsToDefaultLocation({
-    eventTypeIds,
-    user: ctx.user,
-    prisma,
-  });
+  try {
+    return bulkUpdateEventsToDefaultLocation({
+      eventTypeIds,
+      user: ctx.user,
+      prisma,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: error.message,
+      });
+    }
+    throw error;
+  }
 };

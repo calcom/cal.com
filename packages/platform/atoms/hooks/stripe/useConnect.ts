@@ -4,34 +4,43 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import { useAtomsContext } from "../useAtomsContext";
 
-export const useGetRedirectUrl = (redir?: string, errorRedir?: string, teamId?: number | null) => {
-  const authUrl = useQuery({
-    queryKey: ["get-stripe-connect-redirect-uri"],
+export const useGetRedirectUrl = (returnTo?: string, onErrorReturnTo?: string, teamId?: number | null) => {
+  const { organizationId } = useAtomsContext();
+
+  // Determine the appropriate endpoint based on whether teamId is provided
+  let pathname = "/stripe/connect";
+
+  if (teamId && organizationId) {
+    pathname = `/organizations/${organizationId}/teams/${teamId}/stripe/connect`;
+  }
+
+  // Add query parameters
+  const queryParams = new URLSearchParams();
+  if (returnTo) queryParams.append("returnTo", returnTo);
+  if (onErrorReturnTo) queryParams.append("onErrorReturnTo", onErrorReturnTo);
+
+  const fullPath = queryParams.toString() ? `${pathname}?${queryParams.toString()}` : pathname;
+
+  return useQuery({
+    queryKey: ["get-stripe-connect-redirect-uri", teamId, organizationId],
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
-      return http
-        ?.get<ApiResponse<{ authUrl: string }>>(
-          `/stripe/connect${redir ? `?redir=${encodeURIComponent(redir)}` : "?redir="}${
-            errorRedir ? `&errorRedir=${encodeURIComponent(errorRedir)}` : ""
-          }${teamId ? `&teamId=${teamId}` : ""}`
-        )
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.authUrl;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http?.get<ApiResponse<{ authUrl: string }>>(fullPath).then(({ data: responseBody }) => {
+        if (responseBody.status === SUCCESS_STATUS) {
+          return responseBody.data.authUrl;
+        }
+        if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+        return "";
+      });
     },
   });
-
-  return authUrl;
 };
 
-export const useConnect = (redir?: string, errorRedir?: string, teamId?: number | null) => {
-  const { refetch } = useGetRedirectUrl(redir, errorRedir, teamId);
+export const useConnect = (returnTo?: string, onErrorReturnTo?: string, teamId?: number | null) => {
+  const { refetch } = useGetRedirectUrl(returnTo, onErrorReturnTo, teamId);
 
   const connect = async () => {
     const redirectUri = await refetch();

@@ -1,9 +1,13 @@
 import { z } from "zod";
 
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -12,7 +16,7 @@ import { TRPCError } from "@trpc/server";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
 
-type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
@@ -57,13 +61,10 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (function () {
       if (event.team) {
-        const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
-        return (
-          event.team.members
-            .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-            .map((member) => member.userId)
-            .includes(ctx.user.id) || isOrgAdmin
-        );
+        const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
+        const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
+
+        return isOwnerOrAdmin;
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();
@@ -89,6 +90,111 @@ export const eventOwnerProcedure = authedProcedure
 
     return next();
   });
+
+/**
+ * Creates an event admin procedure with configurable permissions
+ * @param permission - The specific permission required (e.g., "eventType.manage", "eventType.update")
+ * @param fallbackRoles - Roles to check when PBAC is disabled (defaults to ["ADMIN", "OWNER"])
+ * @returns A procedure that checks the specified permission
+ */
+export const createEventPbacProcedure = (
+  permission: PermissionString,
+  fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"]
+) => {
+  return authedProcedure
+    .input(
+      z
+        .object({
+          id: z.number().optional(),
+          eventTypeId: z.number().optional(),
+          users: z.array(z.number()).optional(),
+        })
+        .refine((data) => data.id !== undefined || data.eventTypeId !== undefined, {
+          message: "At least one of 'id' or 'eventTypeId' must be present",
+          path: ["id", "eventTypeId"],
+        })
+    )
+    .use(async ({ ctx, input, next }) => {
+      const id = input.eventTypeId ?? input.id;
+
+      const event = await ctx.prisma.eventType.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          userId: true,
+          teamId: true,
+          users: {
+            select: {
+              id: true,
+            },
+          },
+          team: {
+            select: {
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!event) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      // Check if user has permission to access/modify this event
+      if (!event.teamId) {
+        // Personal event - must be owner or assigned user
+        if (event.userId !== ctx.user.id && !event.users.find((user) => user.id === ctx.user.id)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `Permission required: ${permission}`,
+          });
+        }
+      } else {
+        // Team event - check PBAC/fallback permissions
+        const permissionCheckService = new PermissionCheckService();
+        const hasPermission = await permissionCheckService.checkPermission({
+          userId: ctx.user.id,
+          teamId: event.teamId,
+          permission,
+          fallbackRoles,
+        });
+
+        if (!hasPermission) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `Permission required: ${permission}`,
+          });
+        }
+      }
+
+      // Validate that assigned users are allowed
+      if (input.users && input.users.length > 0) {
+        const isAllowed = (function () {
+          if (event.team) {
+            const allTeamMembers = event.team.members.map((member) => member.userId);
+            return input.users!.every((userId: number) => allTeamMembers.includes(userId));
+          }
+          return input.users!.every((userId: number) => userId === ctx.user.id);
+        })();
+
+        if (!isAllowed) {
+          console.warn(
+            `User ${ctx.user.id} attempted to assign event ${event.id} to users ${input.users.join(", ")}.`
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot assign event to users outside of team membership",
+          });
+        }
+      }
+
+      return next();
+    });
+};
 
 export function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
@@ -171,39 +277,37 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Both Email and Attendee Phone Number cannot be hidden`,
+      message: "booking_fields_email_and_phone_both_hidden",
     });
   }
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `At least Email or Attendee Phone Number need to be required field.`,
+      message: "booking_fields_email_or_phone_required",
+    });
+  }
+  if (emailField?.hidden && !attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_phone_required_when_email_hidden",
+    });
+  }
+  if (attendeePhoneNumberField?.hidden && !emailField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_email_required_when_phone_hidden",
     });
   }
 }
-
-type Host = {
-  userId: number;
-  isFixed?: boolean | undefined;
-  priority?: number | null | undefined;
-  weight?: number | null | undefined;
-  scheduleId?: number | null | undefined;
-};
-
-type User = {
-  id: number;
-  email: string;
-};
 
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
   users: await Promise.all(
-    (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-      async (u) =>
-        await UserRepository.enrichUserWithItsProfile({
-          user: u,
-        })
+    (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>
+      new UserRepository(prisma).enrichUserWithItsProfile({
+        user: u,
+      })
     )
   ),
   metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
@@ -213,7 +317,7 @@ export const mapEventType = async (eventType: EventType) => ({
       users: await Promise.all(
         c.users.map(
           async (u) =>
-            await UserRepository.enrichUserWithItsProfile({
+            await new UserRepository(prisma).enrichUserWithItsProfile({
               user: u,
             })
         )

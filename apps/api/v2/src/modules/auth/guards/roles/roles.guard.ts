@@ -7,8 +7,6 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger }
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
-import { Team } from "@calcom/prisma/client";
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger("RolesGuard Logger");
@@ -19,18 +17,52 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { team: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
+
+    if (request.pbacAuthorizedRequest === true) {
+      this.logger.debug("PBAC authorized request, skipping legacy role checking");
+      return true;
+    }
+
     const teamId = request.params.teamId as string;
     const orgId = request.params.orgId as string;
     const user = request.user as ApiAuthGuardUser;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
+    const { canAccess } = await this.checkUserRoleAccess(user, orgId, teamId, allowedRole);
+
+    if (!canAccess) {
+      this.throwForbiddenError(user, orgId, teamId, allowedRole);
+    }
+
+    return true;
+  }
+
+  throwForbiddenError(user: ApiAuthGuardUser, orgId: string, teamId: string, allowedRole: string) {
+    let errorMessage = `RolesGuard - user with id=${user.id} does not have the minimum required role=${allowedRole} within`;
+    if (orgId) {
+      errorMessage += ` organization with id=${orgId}`;
+    }
+    if (teamId) {
+      errorMessage += ` team with id=${teamId}`;
+    }
+    errorMessage += `.`;
+
+    throw new ForbiddenException(errorMessage);
+  }
+
+  async checkUserRoleAccess(
+    user: ApiAuthGuardUser,
+    orgId: string,
+    teamId: string,
+    allowedRole: string
+  ): Promise<{ canAccess: boolean }> {
     const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:roles:${allowedRole}`;
     const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
 
     if (cachedAccess) {
-      return cachedAccess;
+      return { canAccess: cachedAccess };
     }
 
     let canAccess = false;
@@ -58,7 +90,9 @@ export class RolesGuard implements CanActivate {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
-        throw new ForbiddenException(`User is not a member of the organization.`);
+        throw new ForbiddenException(
+          `RolesGuard - User is not a member of the organization with id=${orgId}.`
+        );
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
@@ -75,7 +109,7 @@ export class RolesGuard implements CanActivate {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);
-        throw new ForbiddenException(`User is not a member of the team.`);
+        throw new ForbiddenException(`RolesGuard - User is not a member of the team with id=${teamId}.`);
       }
       if (TEAM_ROLES.includes(allowedRole as unknown as (typeof TEAM_ROLES)[number])) {
         canAccess = hasMinimumRole({
@@ -93,7 +127,7 @@ export class RolesGuard implements CanActivate {
 
       if (!orgMembership) {
         this.logger.log(`User (${user.id}) is not part of the organization (${orgId}), denying access.`);
-        throw new ForbiddenException(`User is not part of the organization.`);
+        throw new ForbiddenException(`RolesGuard - User is not part of the organization with id=${orgId}.`);
       }
 
       // if the role checked is a TEAM role
@@ -107,7 +141,7 @@ export class RolesGuard implements CanActivate {
               `User (${user.id}) is not part of the team (${teamId}) and/or, is not an admin nor an owner of the organization (${orgId}).`
             );
             throw new ForbiddenException(
-              "User is not part of the team and/or, is not an admin nor an owner of the organization."
+              `RolesGuard - User is not part of the team with id=${teamId} and/or, is not an admin nor an owner of the organization with id=${orgId}.`
             );
           }
 
@@ -129,8 +163,12 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
-    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
-    return canAccess;
+
+    if (canAccess) {
+      await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+    }
+
+    return { canAccess };
   }
 }
 
@@ -156,7 +194,7 @@ export function hasMinimumRole(props: HasMinimumRoleProp): boolean {
 
   // minimum role given does not exist
   if (checkedRoleIndex === -1 || requiredRoleIndex === -1) {
-    throw new Error("Invalid role");
+    throw new Error("RolesGuard - Invalid role");
   }
 
   return checkedRoleIndex <= requiredRoleIndex;

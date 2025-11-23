@@ -7,8 +7,8 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . ",
     "build": "yarn trpc:generate || true",
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
@@ -22,6 +22,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "typescript": "^4.9.4"
+    "@calcom/eslint-config": "workspace:*",
+    "typescript": "^5.9.0-beta"
   }
 }

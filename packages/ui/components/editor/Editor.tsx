@@ -12,9 +12,8 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import type { Dispatch, SetStateAction } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
@@ -23,31 +22,17 @@ import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import EditablePlugin from "./plugins/EditablePlugin";
 import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
+import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
+import type { TextEditorProps } from "./types";
 
 /*
- Detault toolbar items:
+ Default toolbar items:
   - blockType
   - bold
   - italic
   - link
 */
-export type TextEditorProps = {
-  getText: () => string;
-  setText: (text: string) => void;
-  excludedToolbarItems?: string[];
-  variables?: string[];
-  addVariableButtonTop?: boolean;
-  height?: string;
-  maxHeight?: string;
-  placeholder?: string;
-  disableLists?: boolean;
-  updateTemplate?: boolean;
-  firstRender?: boolean;
-  setFirstRender?: Dispatch<SetStateAction<boolean>>;
-  editable?: boolean;
-  plainText?: boolean;
-};
 
 const editorConfig = {
   theme: ExampleTheme,
@@ -76,8 +61,18 @@ export const Editor = (props: TextEditorProps) => {
   const plainText = props.plainText ?? false;
   return (
     <div className="editor rounded-md">
+      {props.label && (
+        <label
+          onClick={() => {
+            const el = document.getElementById("custom-editor");
+            el?.focus();
+          }}
+          className="mb-1 block text-sm font-medium leading-6">
+          {props.label}
+        </label>
+      )}
       <LexicalComposer initialConfig={{ ...editorConfig }}>
-        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-[10px] p-0 transition focus-within:ring-2">
+        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:ring-2 focus-within:ring-offset-0">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
@@ -95,9 +90,10 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  id="custom-editor"
                   readOnly={!editable}
                   style={{ height: props.height }}
-                  className="editor-input"
+                  className="editor-input focus:outline-none"
                   data-testid="editor-input"
                 />
               }
@@ -111,6 +107,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            <CustomEnterKeyPlugin />
             {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin

@@ -21,19 +21,16 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
-vi.mock("@calcom/atoms/monorepo", () => ({
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => {
     return false;
   },
 }));
-vi.mock("@calcom/lib", () => ({
-  classNames: (...args: string[]) => {
+vi.mock("@calcom/ui/classNames", () => ({
+  default: (...args: string[]) => {
     return args.filter(Boolean).join(" ");
   },
 }));
-
-vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
-vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
 
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),

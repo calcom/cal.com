@@ -3,8 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +24,8 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid } = input;
+
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
@@ -41,7 +45,12 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
     const bookingWithAttendees = await prisma.booking.findFirst({
-      where: { uid: bookingUid },
+      where: {
+        eventTypeId,
+        startTime: slotUtcStartDate,
+        endTime: slotUtcEndDate,
+        status: BookingStatus.ACCEPTED,
+      },
       select: { attendees: true },
     });
     const bookingAttendeesLength = bookingWithAttendees?.attendees?.length;
@@ -54,9 +63,23 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
     }
   }
 
-  if (eventType && shouldReserveSlot) {
+  // Check for existing reservations for the same slot
+  const slotsRepo = new PrismaSelectedSlotRepository(prisma);
+  const reservedBySomeoneElse = await slotsRepo.findReservedByOthers({
+    slot: {
+      utcStartIso: slotUtcStartDate,
+      utcEndIso: slotUtcEndDate,
+    },
+    eventTypeId,
+    uid,
+  });
+
+  if (eventType && shouldReserveSlot && !reservedBySomeoneElse && !_isDryRun) {
     try {
       await Promise.all(
+        // FIXME: In case of team event, users doesn't have assignees, those are in hosts. users just have the creator of the event which is wrong.
+        // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
+        // We could even improve it by identifying the next person being booked now that we have a queue of assignees.
         eventType.users.map((user) =>
           prisma.selectedSlots.upsert({
             where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
@@ -85,7 +108,18 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
       });
     }
   }
-  res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
+  // We need this cookie to be accessible from embeds where the booking flow is displayed within an iframe on a different origin.
+  // For third‑party iframe contexts (embeds on other sites), browsers require SameSite=None and Secure to make the cookie available.
+  // For local development on http://localhost we fall back to SameSite=Lax to avoid requiring https during development.
+  const useSecureCookies = WEBAPP_URL.startsWith("https://");
+  res?.setHeader(
+    "Set-Cookie",
+    serialize("uid", uid, {
+      path: "/",
+      sameSite: useSecureCookies ? "none" : "lax",
+      secure: useSecureCookies,
+    })
+  );
   return {
     uid: uid,
   };

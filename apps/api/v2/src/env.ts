@@ -17,7 +17,7 @@ export type Environment = {
   STRIPE_API_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   WEB_APP_URL: string;
-  IS_E2E: boolean;
+  IS_E2E: string;
   CALCOM_LICENSE_KEY: string;
   GET_LICENSE_KEY_URL: string;
   API_KEY_PREFIX: string;
@@ -32,12 +32,22 @@ export type Environment = {
   AXIOM_TOKEN: string;
   STRIPE_TEAM_MONTHLY_PRICE_ID: string;
   IS_TEAM_BILLING_ENABLED: boolean;
+  // Used to enable/disable the rewrite of /api/v2 to /v2, active by default.
+  REWRITE_API_V2_PREFIX: string;
+  DATABASE_READ_POOL_MAX: number;
+  DATABASE_WRITE_POOL_MAX: number;
+  DATABASE_READ_WORKER_POOL_MAX: number;
+  DATABASE_WRITE_WORKER_POOL_MAX: number;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
   const value = process.env[key] as Environment[K] | undefined;
 
   if (value === undefined) {
+    // handle fallback falsy cases that should still be used as value
+    if (fallback === false || fallback === "" || fallback === 0) {
+      return fallback;
+    }
     if (fallback) {
       return fallback;
     }

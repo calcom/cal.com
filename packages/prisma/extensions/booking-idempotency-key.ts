@@ -1,29 +1,39 @@
-import { Prisma } from "@prisma/client";
 import { v5 as uuidv5 } from "uuid";
 
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+function generateIdempotencyKey({
+  startTime,
+  endTime,
+  userId,
+  reassignedById,
+}: {
+  startTime: Date | string;
+  endTime: Date | string;
+  userId?: number;
+  reassignedById?: number | null;
+}) {
+  return uuidv5(
+    `${startTime.valueOf()}.${endTime.valueOf()}.${userId}${reassignedById ? `.${reassignedById}` : ""}`,
+    uuidv5.URL
+  );
+}
 
 export function bookingIdempotencyKeyExtension() {
   return Prisma.defineExtension({
     query: {
       booking: {
         async create({ args, query }) {
-          const uniqueEmailJoinInput: string[] = [];
-          if (args.data.attendees?.create && !Array.isArray(args.data.attendees?.create)) {
-            uniqueEmailJoinInput.push(args.data.attendees?.create.email);
+          if (args.data.status === BookingStatus.ACCEPTED) {
+            const idempotencyKey = generateIdempotencyKey({
+              startTime: args.data.startTime,
+              endTime: args.data.endTime,
+              userId: args.data.user?.connect?.id,
+              reassignedById: args.data.reassignById,
+            });
+            args.data.idempotencyKey = idempotencyKey;
           }
-          if (args.data.attendees?.createMany && Array.isArray(args.data.attendees?.createMany.data)) {
-            uniqueEmailJoinInput.push(...args.data.attendees?.createMany.data.map((record) => record.email));
-          }
-          const idempotencyKey = uuidv5(
-            `${
-              args.data.eventType?.connect?.id
-            }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${uniqueEmailJoinInput.join(
-              ","
-            )}`,
-            uuidv5.URL
-          );
-          args.data.idempotencyKey = idempotencyKey;
           return query(args);
         },
         async update({ args, query }) {

@@ -1,6 +1,6 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
 import prisma from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,7 +25,7 @@ export const getHandler = async ({ ctx }: Options) => {
     },
   });
 
-  const directoryId = await prisma.dSyncData.findFirst({
+  const directoryId = await prisma.dSyncData.findUnique({
     where: {
       organizationId,
     },

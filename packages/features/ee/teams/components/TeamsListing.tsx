@@ -1,49 +1,45 @@
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+"use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
+
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CreationSource } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, EmptyScreen, Icon, Label, showToast } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { UpgradeTip } from "../../../tips";
-import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
 
-export function TeamsListing() {
-  const searchParams = useCompatSearchParams();
+type TeamsListingProps = {
+  invitationAccepted: boolean;
+  orgId: number | null;
+  permissions: {
+    canCreateTeam: boolean;
+  };
+  teams: RouterOutputs["viewer"]["teams"]["list"];
+  teamNameFromInvite: string | null;
+  errorMsgFromInvite: string | null;
+};
+
+export function TeamsListing({
+  invitationAccepted,
+  orgId,
+  permissions,
+  teams: data,
+  teamNameFromInvite,
+  errorMsgFromInvite,
+}: TeamsListingProps) {
+  const searchParams = useSearchParams();
   const token = searchParams?.get("token");
   const { t } = useLocale();
-  const trpcContext = trpc.useUtils();
   const router = useRouter();
-
-  const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
-
-  const { data, isPending, error } = trpc.viewer.teams.list.useQuery(
-    {
-      includeOrgs: true,
-    },
-    {
-      enabled: inviteTokenChecked,
-    }
-  );
-
-  const { data: user } = trpc.viewer.me.useQuery();
-
-  const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
-    onSuccess: (teamName) => {
-      trpcContext.viewer.teams.list.invalidate();
-      showToast(t("team_invite_received", { teamName }), "success");
-    },
-    onError: (e) => {
-      showToast(e.message, "error");
-    },
-    onSettled: () => {
-      setInviteTokenChecked(true);
-    },
-  });
 
   const teams = useMemo(() => data?.filter((m) => m.accepted && !m.isOrganization) || [], [data]);
 
@@ -59,7 +55,7 @@ export function TeamsListing() {
     }
   );
 
-  const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);
+  const isCreateTeamButtonDisabled = !!(orgId && !permissions.canCreateTeam);
 
   const features = [
     {
@@ -95,58 +91,68 @@ export function TeamsListing() {
   ];
 
   useEffect(() => {
-    if (!router) return;
-    if (token) inviteMemberByToken({ token, creationSource: CreationSource.WEBAPP });
-    else setInviteTokenChecked(true);
-  }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
+    if (!token) {
+      return;
+    }
 
-  if (isPending || !inviteTokenChecked) {
-    return <SkeletonLoaderTeamList />;
-  }
+    if (errorMsgFromInvite) {
+      showToast(errorMsgFromInvite, "error");
+      return;
+    }
+
+    if (invitationAccepted) {
+      showToast(t("successfully_joined"), "success");
+      return;
+    }
+
+    if (teamNameFromInvite) {
+      showToast(t("team_invite_received", { teamName: teamNameFromInvite }), "success");
+      return;
+    }
+  }, []);
 
   return (
     <>
-      {!!error && <Alert severity="error" title={error.message} />}
-
       {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
-          <TeamList teams={organizationInvites} pending />
+          <TeamList orgId={orgId} teams={organizationInvites} pending />
         </div>
       )}
 
       {teamInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
           <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
-          <TeamList teams={teamInvites} pending />
+          <TeamList orgId={orgId} teams={teamInvites} pending />
         </div>
       )}
 
-      <UpgradeTip
-        plan="team"
-        title={t("calcom_is_better_with_team", { appName: APP_NAME })}
-        description="add_your_team_members"
-        features={features}
-        background="/tips/teams"
-        buttons={
-          !user?.organizationId || user?.organization.isOrgAdmin ? (
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("create_team")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          ) : (
-            <p>{t("org_admins_can_create_new_teams")}</p>
-          )
-        }>
-        {teams.length > 0 ? (
-          <TeamList teams={teams} />
-        ) : (
+      {teams.length > 0 && <TeamList orgId={orgId} teams={teams} />}
+
+      {teams.length === 0 && (
+        <UpgradeTip
+          plan="team"
+          title={t("calcom_is_better_with_team", { appName: APP_NAME })}
+          description={t("add_your_team_members")}
+          features={features}
+          background="/tips/teams"
+          buttons={
+            !orgId || permissions.canCreateTeam ? (
+              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+                <ButtonGroup>
+                  <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                    {t("create_team")}
+                  </Button>
+                  <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                    {t("learn_more")}
+                  </Button>
+                </ButtonGroup>
+              </div>
+            ) : (
+              <p>{t("org_admins_can_create_new_teams")}</p>
+            )
+          }
+          isParentLoading={<SkeletonLoaderTeamList />}>
           <EmptyScreen
             Icon="users"
             headline={t("create_team_to_get_started")}
@@ -164,8 +170,12 @@ export function TeamsListing() {
               </Button>
             }
           />
-        )}
-      </UpgradeTip>
+        </UpgradeTip>
+      )}
+
+      <p className="text-subtle mb-8 mt-4 flex w-full items-center gap-1 text-sm md:justify-center md:text-center">
+        <Icon className="hidden sm:block" name="info" /> {t("tip_username_plus")}
+      </p>
     </>
   );
 }

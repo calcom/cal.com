@@ -1,4 +1,5 @@
 import type { Environment } from "@/env";
+import "dotenv/config";
 
 const env: Partial<Omit<Environment, "NODE_ENV">> = {
   API_URL: "http://localhost",
@@ -12,7 +13,7 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   REDIS_URL: "redis://localhost:6379",
   STRIPE_API_KEY: "sk_test_51J4",
   STRIPE_WEBHOOK_SECRET: "whsec_51J4",
-  IS_E2E: true,
+  IS_E2E: "true",
   API_KEY_PREFIX: "cal_test_",
   GET_LICENSE_KEY_URL: " https://console.cal.com/api/license",
   CALCOM_LICENSE_KEY: "c4234812-12ab-42s6-a1e3-55bedd4a5bb7",
@@ -22,6 +23,7 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: 60000,
   IS_TEAM_BILLING_ENABLED: false,
 };
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 process.env = {
@@ -32,4 +34,7 @@ process.env = {
     "BIds0AQJ96xGBjTSMHTOqLBLutQE7Lu32KKdgSdy7A2cS4mKI2cgb3iGkhDJa5Siy-stezyuPm8qpbhmNxdNHMw",
   VAPID_PRIVATE_KEY: "6cJtkASCar5sZWguIAW7OjvyixpBw9p8zL8WDDwk9Jk",
   CALENDSO_ENCRYPTION_KEY: "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX",
+  INTEGRATION_TEST_MODE: "true",
+  e2e: "true",
+  SLOTS_CACHE_TTL: "1"
 };

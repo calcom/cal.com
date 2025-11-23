@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const credentialForCalendarServiceSelect = Prisma.validator<Prisma.CredentialSelect>()({
+export const credentialForCalendarServiceSelect = {
   id: true,
   appId: true,
   type: true,
@@ -13,9 +13,10 @@ export const credentialForCalendarServiceSelect = Prisma.validator<Prisma.Creden
   teamId: true,
   key: true,
   invalid: true,
-});
+  delegationCredentialId: true,
+} satisfies Prisma.CredentialSelect;
 
-export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
+export const safeCredentialSelect = {
   id: true,
   type: true,
   /** Omitting to avoid frontend leaks */
@@ -29,4 +30,5 @@ export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()(
   teamId: true,
   appId: true,
   invalid: true,
-});
+  delegationCredentialId: true,
+} satisfies Prisma.CredentialSelect;

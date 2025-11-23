@@ -17,7 +17,6 @@ import {
   getScenarioData,
   mockCalendar,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForDynamicGroupBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -29,6 +28,8 @@ import { describe, expect } from "vitest";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -42,7 +43,7 @@ describe("handleNewBooking", () => {
     test(
       `should allow a booking if there is no conflicting booking in any of the users' selectedCalendars`,
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const groupUserId1 = 101;
         const groupUserId2 = 102;
         const booker = getBooker({
@@ -118,12 +119,9 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const { req } = createMockNextJsRequest({
-          method: "POST",
-          body: mockBookingData,
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
         });
-
-        const createdBooking = await handleNewBooking(req);
 
         await expectBookingToBeInDatabase({
           description: "",
@@ -137,11 +135,11 @@ describe("handleNewBooking", () => {
       timeout
     );
 
-    describe("Availablity Check During Booking", () => {
+    describe("Availability Check During Booking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the first user's selectedCalendars`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const groupUserId1 = 101;
           const groupUserId2 = 102;
           const booker = getBooker({
@@ -208,14 +206,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            ErrorCode.HostsUnavailableForBooking
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError(ErrorCode.FixedHostsUnavailableForBooking);
         },
         timeout
       );
@@ -223,7 +219,7 @@ describe("handleNewBooking", () => {
       test(
         `should fail a booking if there is already a conflicting booking in the second user's selectedCalendars`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const groupUserId1 = 101;
           const groupUserId2 = 102;
           const booker = getBooker({
@@ -299,14 +295,12 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-            ErrorCode.HostsUnavailableForBooking
-          );
+          await expect(
+            async () =>
+              await handleNewBooking({
+                bookingData: mockBookingData,
+              })
+          ).rejects.toThrowError(ErrorCode.FixedHostsUnavailableForBooking);
         },
         timeout
       );

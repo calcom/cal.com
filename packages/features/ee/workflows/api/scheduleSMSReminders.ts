@@ -1,11 +1,14 @@
-/* Schedule any workflow reminder that falls within 7 days for SMS */
-import type { NextApiRequest, NextApiResponse } from "next";
+/* Schedule any workflow reminder that falls within the next 2 hours for SMS */
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { defaultHandler } from "@calcom/lib/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -13,37 +16,18 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
-import * as twilio from "../lib/reminders/providers/twilioProvider";
+import { select, getWorkflowRecipientEmail } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
+import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const apiKey = req.headers.authorization || req.query.apiKey;
+export async function handler(req: NextRequest) {
+  const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
+
   if (process.env.CRON_API_KEY !== apiKey) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
-
-  //delete all scheduled sms reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      OR: [
-        {
-          method: WorkflowMethods.SMS,
-          scheduledDate: {
-            lte: dayjs().toISOString(),
-          },
-        },
-        {
-          retryCount: {
-            gt: 1,
-          },
-        },
-      ],
-    },
-  });
 
   //find all unscheduled SMS reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
@@ -51,7 +35,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        gte: new Date(),
+        lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select: {
@@ -61,8 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   })) as (PartialWorkflowReminder & { retryCount: number })[];
 
   if (!unscheduledReminders.length) {
-    res.json({ ok: true });
-    return;
+    return NextResponse.json({ ok: true });
   }
 
   for (const reminder of unscheduledReminders) {
@@ -121,10 +108,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const recipientEmail = getWorkflowRecipientEmail({
+          action: reminder.workflowStep.action || WorkflowActions.SMS_NUMBER,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          organizerEmail: reminder.booking.user?.email,
+        });
+
         const urls = {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+            recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+          }`,
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+            recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+          }`,
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
@@ -174,25 +171,48 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          senderID,
-          userId,
-          teamId
-        );
+        const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
 
-        if (scheduledSMS) {
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
-            },
-          });
+        const scheduledNotification = await scheduleSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: sendTo,
+            body: message,
+            scheduledDate: reminder.scheduledDate,
+            sender: senderID,
+            bodyWithoutOptOut: smsMessageWithoutOptOut,
+            bookingUid: reminder.booking.uid,
+            userId,
+            teamId,
+          },
+          fallbackData:
+            reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
+              ? {
+                  email: reminder.booking.attendees[0].email,
+                  t: await getTranslation(locale || "en", "common"),
+                  replyTo: reminder.booking?.user?.email ?? "",
+                  workflowStepId: reminder.workflowStep.id,
+                }
+              : undefined,
+        });
+
+        if (scheduledNotification) {
+          if (scheduledNotification.sid) {
+            await prisma.workflowReminder.update({
+              where: {
+                id: reminder.id,
+              },
+              data: {
+                scheduled: true,
+                referenceId: scheduledNotification.sid,
+              },
+            });
+          } else if (scheduledNotification.emailReminderId) {
+            await prisma.workflowReminder.delete({
+              where: {
+                id: reminder.id,
+              },
+            });
+          }
         } else {
           await prisma.workflowReminder.update({
             where: {
@@ -216,9 +236,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       console.log(`Error scheduling SMS with error ${error}`);
     }
   }
-  res.status(200).json({ message: "SMS scheduled" });
-}
 
-export default defaultHandler({
-  POST: Promise.resolve({ default: handler }),
-});
+  return NextResponse.json({ message: "SMS scheduled" }, { status: 200 });
+}

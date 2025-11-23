@@ -1,39 +1,45 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
+import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
+import {
+  runAsap,
+  isBookerReady,
+  isLinkReady,
+  recordResponseIfQueued,
+  keepParentInformedAboutDimensionChanges,
+} from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
-import type { EmbedThemeConfig, UiConfig, EmbedNonStylesConfig, BookerLayouts, EmbedStyles } from "./types";
+import type {
+  UiConfig,
+  EmbedNonStylesConfig,
+  BookerLayouts,
+  EmbedStyles,
+  EmbedBookerState,
+  SlotsQuery,
+  PrefillAndIframeAttrsConfig,
+  SetStyles,
+  setNonStylesConfig,
+} from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
-type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
-type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
-const enum EMBED_IFRAME_STATE {
-  NOT_INITIALIZED,
-  INITIALIZED,
-}
-/**
- * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
- */
-export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
-  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
-  iframeAttrs?: Record<string, string> & {
-    id?: string;
-  };
+// We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
+type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
-  // TODO: It should have a dedicated prefill prop
-  // prefill: {},
-  "flag.coep"?: "true" | "false";
+// Prerendering is a hidden process and we shouldn't really track any events from it unless absolutely necessary
+const eventsAllowedInPrerendering = [
+  // so that Postmessage communication starts
+  "__iframeReady",
+  // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
+  "__dimensionChanged",
 
-  // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  // ui: {layout; theme}
-  layout?: BookerLayouts;
-  // TODO: Rename layout and theme as ui.layout and ui.theme as it makes it clear that these two can be configured using `ui` instruction as well any time.
-  "ui.color-scheme"?: string;
-  theme?: EmbedThemeConfig;
-};
+  // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
+  "__connectInitiated",
+
+  // For other events, we should consider introducing prerender specific events and not reuse existing events
+];
 
 declare global {
   interface Window {
@@ -42,54 +48,10 @@ declare global {
       embedStore: typeof embedStore;
       applyCssVars: (cssVarsPerTheme: UiConfig["cssVarsPerTheme"]) => void;
     };
+    // Marks that Booker has moved to some non-"loading" state
+    _embedBookerState?: EmbedBookerState;
   }
 }
-
-/**
- * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
- */
-const embedStore = {
-  // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
-  router: {
-    setNextRouter(nextRouter: ReturnType<typeof useRouter>) {
-      this.nextRouter = nextRouter;
-
-      // Empty the queue after running push on nextRouter. This is important because setNextRouter is be called multiple times
-      this.queue.forEach((url) => {
-        nextRouter.push(url);
-        this.queue.splice(0, 1);
-      });
-    },
-    nextRouter: null as null | ReturnType<typeof useRouter>,
-    queue: [] as string[],
-    goto(url: string) {
-      if (this.nextRouter) {
-        this.nextRouter.push(url.toString());
-      } else {
-        this.queue.push(url);
-      }
-    },
-  },
-
-  state: EMBED_IFRAME_STATE.NOT_INITIALIZED,
-  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {} as EmbedStyles | undefined,
-  nonStyles: {} as EmbedNonStylesConfig | undefined,
-  namespace: null as string | null,
-  embedType: undefined as undefined | null | string,
-  // Store all React State setters here.
-  reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
-  reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
-  parentInformedAboutContentHeight: false,
-  windowLoadEventFired: false,
-  setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
-  theme: undefined as UiConfig["theme"],
-  uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  /**
-   * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
-   */
-  setUiConfig: [] as ((arg0: UiConfig) => void)[],
-};
 
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
@@ -102,14 +64,6 @@ if (isBrowser) {
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
-}
-
-function runAsap(fn: (...arg: unknown[]) => void) {
-  if (isSafariBrowser) {
-    // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
-    return setTimeout(fn, 50);
-  }
-  return requestAnimationFrame(fn);
 }
 
 function log(...args: unknown[]) {
@@ -125,7 +79,7 @@ function log(...args: unknown[]) {
     args.unshift("CAL:");
     logQueue.push(args);
     if (searchParams.get("debug")) {
-      console.log(...args);
+      console.log("Child:", ...args);
     }
   }
 }
@@ -157,15 +111,15 @@ const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
 const registerNewSetter = (
   registration:
     | {
-        elementName: keyof EmbedStyles;
-        setState: SetStyles;
-        styles: true;
-      }
+      elementName: keyof EmbedStyles;
+      setState: SetStyles;
+      styles: true;
+    }
     | {
-        elementName: keyof EmbedNonStylesConfig;
-        setState: setNonStylesConfig;
-        styles: false;
-      }
+      elementName: keyof EmbedNonStylesConfig;
+      setState: setNonStylesConfig;
+      styles: false;
+    }
 ) => {
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
@@ -199,8 +153,6 @@ const useUrlChange = (callback: (newUrl: string) => void) => {
   const pathname = currentFullUrl?.pathname ?? "";
   const searchParams = currentFullUrl?.searchParams ?? null;
   const lastKnownUrl = useRef(`${pathname}?${searchParams}`);
-  const router = useRouter();
-  embedStore.router.setNextRouter(router);
   useEffect(() => {
     const newUrl = `${pathname}?${searchParams}`;
     if (lastKnownUrl.current !== newUrl) {
@@ -227,7 +179,7 @@ export const useEmbedTheme = () => {
 
 /**
  * It serves following purposes
- * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component get's the correct value of ui config
+ * - Gives consistent values for ui config even after Soft Navigation. When a new React component mounts, it would ensure that the component gets the correct value of ui config
  * - Ensures that all the components using useEmbedUiConfig are updated when ui config changes. It is done by maintaining a list of all non-stale setters.
  */
 export const useEmbedUiConfig = () => {
@@ -243,13 +195,12 @@ export const useEmbedUiConfig = () => {
   return uiConfig;
 };
 
-// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
+// TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute identifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [, setStyles] = useState<EmbedStyles>({});
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const styles = embedStore.styles || {};
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -261,7 +212,6 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -332,12 +282,74 @@ export const useEmbedType = () => {
   return state;
 };
 
-function unhideBody() {
-  document.body.style.visibility = "visible";
+function makeBodyVisible() {
+  if (document.body.style.visibility !== "visible") {
+    document.body.style.visibility = "visible";
+  }
+  if (document.body.style.opacity !== "1") {
+    document.body.style.opacity = "1";
+  }
+  // Ensure that it stays visible and not reverted by React
+  runAsap(() => {
+    makeBodyVisible();
+  });
+}
+
+/**
+ * On an embed page, there are two changes done
+ * - Body is made invisible
+ * - Background is set to transparent
+ *
+ * This function reverses both of them
+ */
+function showPageAsNonEmbed() {
+  makeBodyVisible();
+  resetTransparentBackground();
+  function resetTransparentBackground() {
+    if (document.body.style.background === "transparent") {
+      document.body.style.background = "";
+    }
+  }
+}
+
+async function ensureRoutingFormResponseIdInUrl({
+  newlyRecordedResponseId,
+  toBeThereParams,
+  toRemoveParams,
+}: {
+  newlyRecordedResponseId: number;
+  toBeThereParams: Record<string, string | string[]>;
+  toRemoveParams: string[];
+}) {
+  // Update routingFormResponseId in url only after connect is completed, to keep things simple
+  // Adding cal.routingFormResponseId in query param later shouldn't change anything in UI plus no slot request would go again due ot this.
+
+  const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereParams: {
+      ...toBeThereParams,
+      "cal.routingFormResponseId": newlyRecordedResponseId.toString(),
+    },
+    toRemoveParams,
+  });
+  // Immediately stop ensuring query params in url as the page is already ready
+  // We could think about doing it after some time if needed later.
+  stopEnsuringQueryParamsInUrl();
+}
+
+async function waitForRenderStateToBeCompleted() {
+  return new Promise<void>((resolve) => {
+    (function tryToConnect() {
+      if (embedStore.renderState !== "completed") {
+        runAsap(tryToConnect);
+        return;
+      }
+      resolve();
+    })();
+  });
 }
 
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
-const methods = {
+export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
@@ -382,38 +394,83 @@ const methods = {
     setEmbedStyles(stylesConfig || {});
     setEmbedNonStyles(stylesConfig || {});
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
+    // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
+    // Embed background must still remain transparent
     runAsap(function tryInformingLinkReady() {
-      // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
-      if (!embedStore.parentInformedAboutContentHeight) {
+      if (!isLinkReady({ embedStore })) {
         runAsap(tryInformingLinkReady);
         return;
       }
-      // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      unhideBody();
-      if (!isPrerendering()) {
-        sdkActionManager?.fire("linkReady", {});
-      }
+
+      makeBodyVisible();
+      log("renderState is 'completed'");
+      embedStore.renderState = "completed";
+      sdkActionManager?.fire("linkReady", {});
     });
   },
-  connect: function connect(queryObject: PrefillAndIframeAttrsConfig) {
-    const currentUrl = new URL(document.URL);
-    const searchParams = currentUrl.searchParams;
-    searchParams.delete("preload");
-    for (const [key, value] of Object.entries(queryObject)) {
-      if (value === undefined) {
-        continue;
-      }
-      if (value instanceof Array) {
-        value.forEach((val) => searchParams.append(key, val));
-      } else {
-        searchParams.set(key, value as string);
-      }
+  /**
+   * Connects new config to prerendered page
+   */
+  connect: async function connect({
+    config,
+    params,
+  }: {
+    config: PrefillAndIframeAttrsConfig;
+    // This is basically searchParams simplified as Record<string, string | string[]>
+    // So a=1&a=2&b=3 would be {a: ["1", "2"], b: "3"}
+    // We can't accept URLSearchParams as it isn't cloneable and thus postMessage doesn't support it
+    params: Record<string, string | string[]>;
+  }) {
+    sdkActionManager?.fire("__connectInitiated", {});
+    log("Method: connect, requested with params", { config, params });
+    const {
+      iframeAttrs: _1,
+      "cal.embed.noSlotsFetchOnConnect": noSlotsFetchOnConnect,
+      ...queryParamsFromConfig
+    } = config;
+    // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
+    embedStore.providedCorrectHeightToParent = false;
+
+    if (noSlotsFetchOnConnect !== "true") {
+      log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
+      // Incrementing the version forces the slots call to be made again
+      embedStore.connectVersion = embedStore.connectVersion + 1;
     }
 
-    connectPreloadedEmbed({ url: currentUrl });
+    const connectVersion = embedStore.connectVersion;
+    // Config is just a typed and more declarative way to pass the query params from the parent(except iframeAttrs which is meant to be consumed by parent and not supposed to passed to child)
+    // So, query params can come directly by providing them to calLink or through config
+    const toBeThereParams = {
+      ...params,
+      // Query params from config takes precedence over query params in url
+      ...(queryParamsFromConfig as Record<string, string | string[]>),
+      "cal.embed.connectVersion": connectVersion.toString(),
+    };
+
+    const toRemoveParams = ["preload", "prerender", "cal.skipSlotsFetch"];
+    await waitForRenderStateToBeCompleted();
+
+    log("Method: connect, renderState is completed. Connecting");
+    await connectPreloadedEmbed({
+      // We know after removing iframeAttrs, that it is of this type
+      toBeThereParams,
+      toRemoveParams,
+    });
+
+    // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
+    const newlyRecordedResponseId = await recordResponseIfQueued(params);
+    // Allow 0 which is for dry run
+    // Negative values are not possible
+    if (typeof newlyRecordedResponseId !== "number") {
+      return;
+    }
+    await ensureRoutingFormResponseIdInUrl({
+      newlyRecordedResponseId,
+      toBeThereParams,
+      toRemoveParams,
+    });
   },
 };
 
@@ -433,84 +490,6 @@ const messageParent = (data: CustomEvent["detail"]) => {
   );
 };
 
-function keepParentInformedAboutDimensionChanges() {
-  let knownIframeHeight: number | null = null;
-  let knownIframeWidth: number | null = null;
-  let isFirstTime = true;
-  let isWindowLoadComplete = false;
-  runAsap(function informAboutScroll() {
-    if (document.readyState !== "complete") {
-      // Wait for window to load to correctly calculate the initial scroll height.
-      runAsap(informAboutScroll);
-      return;
-    }
-    if (!isWindowLoadComplete) {
-      // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
-      // Postponing to just next cycle allow us to fix this.
-      setTimeout(() => {
-        isWindowLoadComplete = true;
-        informAboutScroll();
-      }, 100);
-      return;
-    }
-    if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("__windowLoadComplete", {});
-    }
-    embedStore.windowLoadEventFired = true;
-    // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
-    // It avoids the unwanted padding outside main tag.
-    const mainElement =
-      document.getElementsByClassName("main")[0] ||
-      document.getElementsByTagName("main")[0] ||
-      document.documentElement;
-    const documentScrollHeight = document.documentElement.scrollHeight;
-    const documentScrollWidth = document.documentElement.scrollWidth;
-
-    if (!(mainElement instanceof HTMLElement)) {
-      throw new Error("Main element should be an HTMLElement");
-    }
-
-    const mainElementStyles = getComputedStyle(mainElement);
-    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
-    const contentHeight = Math.ceil(
-      parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
-    );
-    const contentWidth = Math.ceil(
-      parseFloat(mainElementStyles.width) +
-        parseFloat(mainElementStyles.marginLeft) +
-        parseFloat(mainElementStyles.marginRight)
-    );
-
-    // During first render let iframe tell parent that how much is the expected height to avoid scroll.
-    // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink
-    const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
-    embedStore.parentInformedAboutContentHeight = true;
-    if (!iframeHeight || !iframeWidth) {
-      runAsap(informAboutScroll);
-      return;
-    }
-    if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
-      knownIframeHeight = iframeHeight;
-      knownIframeWidth = iframeWidth;
-      // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkActionManager?.fire("__dimensionChanged", {
-        iframeHeight,
-        iframeWidth,
-        isFirstTime,
-      });
-    }
-    isFirstTime = false;
-    // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
-    // It should stop ideally by reaching a hiddenHeight value of 0.
-    // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
-    runAsap(informAboutScroll);
-  });
-}
-
 function main() {
   if (!isBrowser) {
     return;
@@ -519,20 +498,26 @@ function main() {
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
 
+  const autoScrollFromParam = url.searchParams.get("ui.autoscroll");
+  const shouldDisableAutoScroll = autoScrollFromParam === "false";
   embedStore.uiConfig = {
     // TODO: Add theme as well here
     colorScheme: url.searchParams.get("ui.color-scheme"),
     layout: url.searchParams.get("layout") as BookerLayouts,
+    disableAutoScroll: shouldDisableAutoScroll,
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
-    unhideBody();
+    showPageAsNonEmbed();
     // We would want to avoid a situation where Cal.com embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
     log("Embed SDK Skipped as we are in top");
     return;
   }
+
+  const willSlotsBeFetched = url.searchParams.get("cal.skipSlotsFetch") !== "true";
+  log(`Slots will ${willSlotsBeFetched ? "" : "NOT "}be fetched`);
 
   window.addEventListener("message", (e) => {
     const data: Message = e.data;
@@ -560,6 +545,9 @@ function main() {
   });
 
   sdkActionManager?.on("*", (e) => {
+    if (isPrerendering() && !eventsAllowedInPrerendering.includes(e.detail.type)) {
+      return;
+    }
     const detail = e.detail;
     log(detail);
     messageParent(detail);
@@ -568,12 +556,16 @@ function main() {
   if (url.searchParams.get("preload") !== "true" && window?.isEmbed?.()) {
     initializeAndSetupEmbed();
   } else {
-    log(`Preloaded scenario - Skipping initialization and setup`);
+    log(`Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`);
   }
 }
 
 function initializeAndSetupEmbed() {
-  sdkActionManager?.fire("__iframeReady", {});
+  sdkActionManager?.fire("__iframeReady", {
+    isPrerendering: isPrerendering(),
+  });
+
+  embedStore.renderState = "inProgress";
 
   // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
   if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
@@ -586,7 +578,7 @@ function initializeAndSetupEmbed() {
   const pageStatus = window.CalComPageStatus;
 
   if (!pageStatus || pageStatus == "200") {
-    keepParentInformedAboutDimensionChanges();
+    keepParentInformedAboutDimensionChanges({ embedStore });
   } else
     sdkActionManager?.fire("linkFailed", {
       code: pageStatus,
@@ -612,21 +604,111 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
 
 /**
  * Apply configurations to the preloaded page and then ask parent to show the embed
+ * If there is a need to fetch the slots, then the slots would be fetched and then only this function call would complete
  * url has the config as params
  */
-function connectPreloadedEmbed({ url }: { url: URL }) {
-  // TODO: Use a better way to detect that React has initialized. Currently, we are using setTimeout which is a hack.
-  const MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES = 700;
-  // It can be fired before React has initialized, so use embedStore.router(which is a nextRouter wrapper that supports a queue)
-  embedStore.router.goto(url.toString());
-  setTimeout(() => {
-    // Firing this event would stop the loader and show the embed
-    sdkActionManager?.fire("linkReady", {});
-  }, MAX_TIME_TO_LET_REACT_APPLY_UI_CHANGES);
+async function connectPreloadedEmbed({
+  toBeThereParams,
+  toRemoveParams,
+}: {
+  toBeThereParams: Record<string, string | string[]>;
+  toRemoveParams: string[];
+}) {
+  const { hasChanged, stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereParams,
+    toRemoveParams,
+  });
+
+  let waitForFrames = 0;
+
+  if (isBookerReady() && hasChanged) {
+    // Give some time for react to update state that might lead booker to go to slotsLoading state
+    waitForFrames = 2;
+  }
+
+  // Booker might alreadyu be in slotsDone state. But we don't know if new getTeamSchedule request would intitiate or not. It would initiate when React updates the state but it might not go depending on if there is no actual state change in useSchedule components
+  // But we can know if cal.routedTeamMemberIds is changed. If it is changed, then we reset slotsDone -> slotsLoading.
+
+  // Firing this event would stop the loader and show the embed
+  // This causes loader to go away later.
+  await new Promise<void>((resolve) => {
+    runAsap(function tryToFireLinkReady() {
+      if (!isLinkReady({ embedStore }) || waitForFrames > 0) {
+        waitForFrames--;
+        runAsap(tryToFireLinkReady);
+        return;
+      }
+      // link is ready now, so we could stop doing it.
+      // Also the page is visible to user now.
+      stopEnsuringQueryParamsInUrl();
+      sdkActionManager?.fire("__connectCompleted", {});
+      sdkActionManager?.fire("linkReady", {});
+      resolve();
+    });
+  });
+
+  return {
+    stopEnsuringQueryParamsInUrl,
+  };
 }
 
 const isPrerendering = () => {
   return new URL(document.URL).searchParams.get("prerender") === "true";
 };
+
+export function getEmbedBookerState({
+  bookerState,
+  slotsQuery,
+}: {
+  bookerState: BookerState;
+  slotsQuery: SlotsQuery;
+}): EmbedBookerState {
+  if (bookerState === "loading") {
+    return "initializing";
+  }
+
+  if (slotsQuery.isLoading) {
+    return "slotsLoading";
+  }
+
+  // Pending but not loading, it means that request is intentionally disabled via enabled:false in useQuery
+  if (slotsQuery.isPending) {
+    return "slotsDone";
+  }
+
+  if (slotsQuery.isSuccess) {
+    return "slotsDone";
+  }
+
+  if (slotsQuery.isError) {
+    return "slotsLoadingError";
+  }
+
+  return "slotsPending";
+}
+
+/**
+ * It is meant to sync BookerState to EmbedBookerState
+ * This function is meant to be called outside useEffect so that we don't wait for React to re-render before doing our work
+ */
+export function updateEmbedBookerState({
+  bookerState,
+  slotsQuery,
+}: {
+  bookerState: BookerState;
+  slotsQuery: SlotsQuery;
+}) {
+  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const _window = window as Window & {
+    _embedBookerState?: EmbedBookerState;
+  };
+
+  const embedBookerState = getEmbedBookerState({ bookerState, slotsQuery });
+  _window._embedBookerState = embedBookerState;
+}
 
 main();

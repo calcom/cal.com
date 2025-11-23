@@ -1,4 +1,8 @@
-export { GET } from "@calcom/features/tasker/api/cron";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+
+import { GET as handler } from "@calcom/features/tasker/api/cron";
+
+export const GET = defaultResponderForAppDir(handler);
 
 /**
  * This runs each minute and we need fresh data each time

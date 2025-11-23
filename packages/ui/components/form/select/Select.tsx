@@ -1,25 +1,15 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import type { GroupBase, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
-import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import cx from "@calcom/ui/classNames";
 
 import { Label } from "../inputs/Label";
 import { inputStyles } from "../inputs/TextField";
 import { getReactSelectProps } from "./selectTheme";
-
-export type SelectProps<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & {
-  variant?: "default" | "checkbox";
-  "data-testid"?: string;
-  size?: "sm" | "md";
-  grow?: boolean;
-};
+import type { SelectProps } from "./types";
 
 export const Select = <
   Option,
@@ -29,7 +19,7 @@ export const Select = <
   components,
   variant = "default",
   size = "md",
-  grow,
+  grow = true,
   ...props
 }: SelectProps<Option, IsMulti, Group> & {
   innerClassNames?: {
@@ -62,8 +52,8 @@ export const Select = <
       styles={{
         control: (base) => ({
           ...base,
-          minHeight: size === "sm" ? "28px" : "36px",
-          height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
+          minHeight: size === "sm" ? "28px" : "32px",
+          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
         }),
       }}
       classNames={{
@@ -77,7 +67,7 @@ export const Select = <
             innerClassNames?.option
           ),
         placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () => "text-default",
+        dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
         control: (state) =>
           cx(
             inputStyles({ size }),
@@ -88,10 +78,10 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2"
-              : "h-9 px-3",
+              ? "h-7 px-2 py-1"
+              : "h-8 px-3 py-2",
             props.isDisabled && "bg-subtle",
-            size === "sm" ? "rounded-md" : "rounded-[10px]",
+            "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
             innerClassNames?.control
           ),
@@ -116,13 +106,17 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
+            "flex !items-start justify-center mt-0.5 h-full",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
-                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
-                : "rotate-180 transition-transform"
-              : "text-default" // Woo it adds another SVG here on multi for some reason
+                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
+                : "rotate-180 transition-transform w-4 h-4"
+              : hasMultiLastIcons
+              ? "[&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4 text-default"
+              : "transition-transform w-4 h-4 text-default"
           ),
         multiValueRemove: () => "text-default py-auto",
+
         ...classNames,
       }}
       {...restProps}
@@ -225,7 +219,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

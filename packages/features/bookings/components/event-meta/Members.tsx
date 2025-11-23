@@ -1,12 +1,12 @@
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { AvatarGroup } from "@calcom/ui";
+import { AvatarGroup } from "@calcom/ui/components/avatar";
 
 export interface EventMembersProps {
   /**
@@ -18,6 +18,7 @@ export interface EventMembersProps {
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
   isPrivateLink: boolean;
+  roundRobinHideOrgAndTeam?: boolean;
 }
 
 export const EventMembers = ({
@@ -26,6 +27,7 @@ export const EventMembers = ({
   profile,
   entity,
   isPrivateLink,
+  roundRobinHideOrgAndTeam,
 }: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
@@ -40,6 +42,10 @@ export const EventMembers = ({
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
+  if (schedulingType === SchedulingType.ROUND_ROBIN && roundRobinHideOrgAndTeam) {
+    return <div className="h-6" />;
+  }
+
   const orgOrTeamAvatarItem =
     isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
       ? []
@@ -47,7 +53,7 @@ export const EventMembers = ({
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
             href:
-              isEmbed || isPlatform || isPrivateLink
+              isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
                 ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
@@ -67,7 +73,7 @@ export const EventMembers = ({
           ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
             href:
-              isPlatform || isPrivateLink
+              isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
                     user.profile?.username

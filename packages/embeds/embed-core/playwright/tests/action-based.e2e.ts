@@ -11,6 +11,7 @@ import {
   getBooking,
   deleteAllBookingsByEmail,
   rescheduleEvent,
+  cancelBookingThroughEmbed,
 } from "../lib/testUtils";
 
 // in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
@@ -104,6 +105,34 @@ test.describe("Popup Tests", () => {
 
   todo("Add snapshot test for embed iframe");
 
+  test("should be able to cancel booking through embed iframe", async ({
+    page,
+    embeds: { addEmbedListeners, getActionFiredDetails },
+  }) => {
+    const booking = await test.step("Create a booking", async () => {
+      return await bookFirstFreeUserEventThroughEmbed({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      });
+    });
+
+    await test.step("Cancel the booking through embed", async () => {
+      const calNamespace = "popupCancelBooking";
+      await addEmbedListeners(calNamespace);
+      await page.goto(`/?popupCancelUid=${booking.uid}`);
+      await page.click(`[data-cal-namespace="${calNamespace}"]`);
+      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: `/booking/${booking.uid}` });
+      if (!embedIframe) {
+        throw new Error("Embed iframe not found");
+      }
+      await cancelBookingThroughEmbed(booking.uid, embedIframe, page);
+    });
+
+    const cancelledBooking = await getBooking(booking.uid);
+    expect(cancelledBooking.status).toBe("CANCELLED");
+  });
+
   test("should open Routing Forms embed on click", async ({
     page,
     embeds: { addEmbedListeners, getActionFiredDetails },
@@ -152,7 +181,7 @@ test.describe("Popup Tests", () => {
         }
         const html = embedIframe.locator("html");
         // Expect "light" theme as configured in App for pro user.
-        await expect(html).toHaveAttribute("class", "light");
+        await expect(html).toHaveClass(/light/);
         const { uid: bookingId } = await bookFirstEvent("pro", embedIframe, page);
         const booking = await getBooking(bookingId);
         expect(booking.attendees.length).toBe(3);
@@ -187,7 +216,8 @@ test.describe("Popup Tests", () => {
           return window.matchMedia("(prefers-color-scheme: dark)").matches;
         });
         // Detect browser preference and expect accordingly
-        await expect(html).toHaveAttribute("class", prefersDarkScheme ? "dark" : "light");
+
+        prefersDarkScheme ? await expect(html).toHaveClass(/dark/) : await expect(html).toHaveClass(/light/);
       });
 
       test("should open embed iframe(Booker Profile Page) with dark theme when configured with dark theme using Embed API", async ({
@@ -210,7 +240,7 @@ test.describe("Popup Tests", () => {
         }
 
         const html = embedIframe.locator("html");
-        await expect(html).toHaveAttribute("class", "dark");
+        await expect(html).toHaveClass(/dark/);
       });
 
       test("should open embed iframe(Event Booking Page) with dark theme when configured with dark theme using Embed API", async ({
@@ -233,7 +263,7 @@ test.describe("Popup Tests", () => {
         }
 
         const html = embedIframe.locator("html");
-        await expect(html).toHaveAttribute("class", "dark");
+        await expect(html).toHaveClass(/dark/);
       });
     });
   });
@@ -272,6 +302,24 @@ test.describe("Popup Tests", () => {
 
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: configuredLink,
+    });
+  });
+
+  test("should open embed iframe on click - Configured with hide eventType details", async ({
+    page,
+    embeds,
+  }) => {
+    await deleteAllBookingsByEmail("embed-user@example.com");
+    const calNamespace = "popupHideEventTypeDetails";
+
+    await embeds.gotoPlayground({ calNamespace, url: "/" });
+
+    await page.click(`[data-cal-namespace="${calNamespace}"]`);
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free/30min" });
+
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      pathname: "/free/30min",
     });
   });
 });

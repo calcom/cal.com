@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,
@@ -15,7 +15,9 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Icon } from "@calcom/ui/components/icon";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
@@ -40,14 +42,6 @@ export function UserPage(props: PageProps) {
     ...query
   } = useRouterQuery();
 
-  /*
-   const telemetry = useTelemetry();
-   useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
-    }
-  }, [telemetry, router.asPath]); */
   if (entity.considerUnpublished) {
     return (
       <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
@@ -68,9 +62,9 @@ export function UserPage(props: PageProps) {
             isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          <div className="mb-8 text-center">
+          <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-4">
             <UserAvatar
-              size="xl"
+              size="lg"
               user={{
                 avatarUrl: user.avatarUrl,
                 profile: user.profile,
@@ -78,7 +72,7 @@ export function UserPage(props: PageProps) {
                 username: profile.username,
               }}
             />
-            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis mb-1 mt-4 text-xl" data-testid="name-title">
               {profile.name}
               {!isOrg && user.verified && (
                 <Icon
@@ -96,8 +90,8 @@ export function UserPage(props: PageProps) {
             {!isBioEmpty && (
               <>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
+                  className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                   
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>
@@ -146,5 +140,5 @@ export function UserPage(props: PageProps) {
     </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;

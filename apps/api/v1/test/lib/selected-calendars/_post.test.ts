@@ -6,6 +6,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, test } from "vitest";
 
 import { HttpError } from "@calcom/lib/http-error";
+import type { User } from "@calcom/prisma/client";
 
 import handler from "../../../pages/api/selected-calendars/_post";
 
@@ -72,15 +73,16 @@ describe("POST /api/selected-calendars", () => {
 
       prismaMock.user.findFirstOrThrow.mockResolvedValue({
         id: 444444,
-      } as any);
+      } as User);
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
         credentialId: 1,
         integration: "google",
         externalId: "ext123",
         userId: 444444,
-        id: "xxx-xxx",
+        id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
         eventTypeId: null,
+        delegationCredentialId: null,
         domainWideDelegationCredentialId: null,
         googleChannelId: null,
         googleChannelKind: null,
@@ -88,6 +90,22 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
         error: null,
+        lastErrorAt: null,
+        watchAttempts: 0,
+        maxAttempts: 3,
+        unwatchAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncSubscribedAt: null,
+        syncToken: null,
+        syncedAt: null,
+        syncErrorAt: null,
+        syncErrorCount: null,
       });
 
       await handler(req, res);
@@ -113,7 +131,7 @@ describe("POST /api/selected-calendars", () => {
       req.userId = 333333;
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
-        id: "xxx-xxx",
+        id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
         credentialId: 1,
         integration: "google",
         externalId: "ext123",
@@ -123,9 +141,26 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceId: null,
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
+        delegationCredentialId: null,
         domainWideDelegationCredentialId: null,
         eventTypeId: null,
         error: null,
+        lastErrorAt: null,
+        watchAttempts: 0,
+        maxAttempts: 3,
+        unwatchAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncSubscribedAt: null,
+        syncToken: null,
+        syncedAt: null,
+        syncErrorAt: null,
+        syncErrorCount: null,
       });
 
       await handler(req, res);

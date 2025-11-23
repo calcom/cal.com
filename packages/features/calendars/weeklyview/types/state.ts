@@ -1,6 +1,7 @@
-import type { IFromUser, IToUser } from "@calcom/core/getUserAvailability";
+import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
+import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 
 export type View = "month" | "week" | "day";
@@ -87,7 +88,7 @@ export type CalendarState = {
   loading?: boolean;
   /** Disables all actions on Events*/
   eventsDisabled?: boolean;
-  /** If you don't want the date to be scrollable past a certian date */
+  /** If you don't want the date to be scrollable past a certain date */
   minDate?: Date;
   /** If you don't want the date to be scrollable past a certain date */
   maxDate?: Date;
@@ -127,6 +128,30 @@ export type CalendarState = {
    * Optional boolean to  hide the main header. Default the header will be visible.
    */
   hideHeader?: boolean;
+  /**
+   * Timezone to use for displaying times in the calendar
+   */
+  timezone: string;
+  /**
+   * Show the background pattern for unavailable areas
+   * @default true
+   */
+  showBackgroundPattern?: boolean;
+  /**
+   * Show borders on the leftmost and rightmost sides of the calendar container
+   * @default true
+   */
+  showBorder?: boolean;
+  /**
+   * Border color for calendar cells
+   * @default "default"
+   */
+  borderColor?: BorderColor;
+  /**
+   * Show the timezone in the empty space next to the date headers
+   * @default false
+   */
+  showTimezone?: boolean;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };
