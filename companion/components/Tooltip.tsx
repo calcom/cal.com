@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, Platform } from "react-native";
 
 interface TooltipProps {
   text: string;
@@ -12,7 +12,7 @@ export function Tooltip({ text, children }: TooltipProps) {
   const containerRef = useRef<any>(null);
 
   // Only show tooltips on web platform
-  if (Platform.OS !== 'web') {
+  if (Platform.OS !== "web") {
     return children;
   }
 
@@ -37,32 +37,32 @@ export function Tooltip({ text, children }: TooltipProps) {
       // @ts-ignore - web-only props
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ position: 'relative' }}
+      style={{ position: "relative" }}
     >
       {children}
       {showTooltip && (
         <View
           style={{
-            position: 'fixed',
+            position: "fixed",
             top: position.top,
             left: position.left,
             transform: [{ translateX: -50 }, { translateY: -100 }],
-            backgroundColor: '#1a1a1a',
+            backgroundColor: "#1a1a1a",
             paddingHorizontal: 10,
             paddingVertical: 6,
             borderRadius: 6,
             zIndex: 10002,
-            pointerEvents: 'none',
+            pointerEvents: "none",
             // @ts-ignore - web-only props
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
           }}
         >
           <Text
             style={{
-              color: 'white',
+              color: "white",
               fontSize: 13,
-              fontWeight: '600',
-              whiteSpace: 'nowrap',
+              fontWeight: "600",
+              whiteSpace: "nowrap",
               lineHeight: 18,
             }}
           >
@@ -73,4 +73,3 @@ export function Tooltip({ text, children }: TooltipProps) {
     </View>
   );
 }
-

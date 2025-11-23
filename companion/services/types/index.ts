@@ -5,4 +5,3 @@ export * from "./schedules.types";
 export * from "./users.types";
 export * from "./webhooks.types";
 export * from "./private-links.types";
-

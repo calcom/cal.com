@@ -77,4 +77,3 @@ export const tabs = [
   { id: "seats", label: "Seats" },
   { id: "colors", label: "Colors" },
 ];
-

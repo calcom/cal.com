@@ -121,4 +121,3 @@ export function getAppIconUrl(type: string, appId: string | null): string | null
 
   return `https://app.cal.com/app-store/${dirName}/${iconFileName}`;
 }
-

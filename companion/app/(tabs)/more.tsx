@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
@@ -34,7 +34,8 @@ export default function More() {
       name: "Profile",
       icon: "person-outline",
       isExternal: true,
-      onPress: () => openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page"),
+      onPress: () =>
+        openExternalLink("https://app.cal.com/settings/my-account/profile", "Profile page"),
     },
     {
       name: "Apps",
@@ -75,18 +76,18 @@ export default function More() {
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden">
+        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
               onPress={item.href ? () => router.push(item.href!) : item.onPress}
-              className={`bg-white active:bg-[#F8F9FA] flex-row items-center justify-between px-5 py-5 ${
+              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
                 index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
               }`}
             >
-              <View className="flex-row items-center flex-1">
+              <View className="flex-1 flex-row items-center">
                 <Ionicons name={item.icon} size={20} color="#333" />
-                <Text className="text-base font-semibold text-[#333] ml-3">{item.name}</Text>
+                <Text className="ml-3 text-base font-semibold text-[#333]">{item.name}</Text>
               </View>
               {item.isExternal ? (
                 <Ionicons name="open-outline" size={20} color="#C7C7CC" />
@@ -96,8 +97,9 @@ export default function More() {
             </TouchableOpacity>
           ))}
         </View>
-        <Text className="text-sm text-gray-500 mt-4">
-          We view the companion as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.
+        <Text className="mt-4 text-sm text-gray-500">
+          We view the companion as an extension of the web application. If you are performing any
+          complicated actions, please refer back to the web application.
         </Text>
       </ScrollView>
     </View>
