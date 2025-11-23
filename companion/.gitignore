@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+.yarn/
+.pnp.*
 
 # Expo
 .expo/
@@ -25,6 +27,7 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
@@ -48,3 +51,17 @@ dev/
 
 # Extension builds (generated at build time)
 *.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.code-workspace
