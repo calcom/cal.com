@@ -400,7 +400,14 @@ function DataTableBody<TData>({
             {...computedDataAttributes}
             data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
-            onClick={() => onRowMouseclick && onRowMouseclick(row)}
+            onClick={(e) => {
+              if (!onRowMouseclick) return;
+              const target = e.target as Node | null;
+              const current = e.currentTarget as HTMLElement | null;
+              // Only invoke the handler when the event target is inside the row element.
+              if (!target || !current || !current.contains(target)) return;
+              onRowMouseclick(row);
+            }}
             style={{
               display: "flex",
               ...(virtualItem && {

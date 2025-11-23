@@ -10,6 +10,7 @@ import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -198,6 +199,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
         teamId,
         dubCustomerId: userId,
       },
+      ...(isOrg && ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
     },
   });
   return { url: session.url };

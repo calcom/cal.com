@@ -22,10 +22,12 @@ export function ViewToggleButton() {
 
   useEffect(() => {
     // Force list view on mobile
-    if (isMobile && view !== "list") {
+    if (isMobile && view === "calendar") {
+      // Clear dateRange filter when forcing calendar to list view, same as manual toggle
+      setActiveFilters((prev) => prev?.filter((filter) => filter.f !== "dateRange") ?? []);
       setView("list");
     }
-  }, [isMobile, view, setView]);
+  }, [isMobile, view, setView, setActiveFilters]);
 
   return (
     <div className="hidden sm:block">
