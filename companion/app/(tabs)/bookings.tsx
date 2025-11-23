@@ -33,11 +33,14 @@ export default function Bookings() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
-const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 const [eventTypes, setEventTypes] = useState<EventType[]>([]);
 const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
 const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
 const [eventTypesLoading, setEventTypesLoading] = useState(false);
+const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
+const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -776,89 +779,97 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
     return (
-      <TouchableOpacity
-        className="bg-white active:bg-[#F8F9FA] border-b border-[#E5E5EA]"
-        onPress={() => handleBookingPress(item)}
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 mr-4">
-            {/* Time and Date Row */}
-            <View className="flex-row items-center mb-2">
-              <Text className="text-sm font-medium text-[#333]">
-                {formatDate(startTime, isUpcoming)}
-              </Text>
-              <Text className="text-sm text-[#666] ml-2">
-                {formatTime(startTime)} - {formatTime(endTime)}
-              </Text>
-            </View>
+      <View className="bg-white border-b border-[#E5E5EA]">
+        <TouchableOpacity
+          className="active:bg-[#F8F9FA]"
+          onPress={() => handleBookingPress(item)}
+          onLongPress={() => {
+            setSelectedBooking(item);
+            setShowBookingActionsModal(true);
+          }}
+          style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+        >
+          {/* Time and Date Row */}
+          <View className="flex-row items-center mb-2 flex-wrap">
+            <Text className="text-sm font-medium text-[#333]">
+              {formatDate(startTime, isUpcoming)}
+            </Text>
+            <Text className="text-sm text-[#666] ml-2">
+              {formatTime(startTime)} - {formatTime(endTime)}
+            </Text>
+          </View>
 
-            {/* Badges Row */}
-            <View className="flex-row items-center flex-wrap mb-3">
-              {isPending && (
-                <View className="bg-[#FF9500] px-2 py-0.5 rounded mr-2 mb-1">
-                  <Text className="text-xs font-medium text-white">Unconfirmed</Text>
-                </View>
+          {/* Badges Row */}
+          <View className="flex-row items-center flex-wrap mb-3">
+            {isPending && (
+              <View className="bg-[#FF9500] px-2 py-0.5 rounded mr-2 mb-1">
+                <Text className="text-xs font-medium text-white">Unconfirmed</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Title */}
+          <Text
+            className={`text-lg font-medium text-[#333] leading-5 mb-2 ${isCancelled || isRejected ? "line-through" : ""}`}
+            numberOfLines={2}
+          >
+            {item.title}
+          </Text>
+
+          {/* Description */}
+          {item.description && (
+            <Text className="text-sm text-[#666] leading-5 mb-2" numberOfLines={1}>
+              &quot;{item.description}&quot;
+            </Text>
+          )}
+
+          {/* Host and Attendees */}
+          {((item.hosts && item.hosts.length > 0) || item.user || (item.attendees && item.attendees.length > 0)) && (
+            <Text className="text-sm text-[#333] mb-2">
+              {/* Host */}
+              {(item.hosts && item.hosts.length > 0) || item.user ? (
+                <>
+                  {item.hosts && item.hosts.length > 0
+                    ? item.hosts[0].name || item.hosts[0].email
+                    : item.user?.name || item.user?.email}
+                </>
+              ) : null}
+              
+              {/* Separator */}
+              {((item.hosts && item.hosts.length > 0) || item.user) && item.attendees && item.attendees.length > 0 && (
+                <Text> and </Text>
               )}
-            </View>
+              
+              {/* Attendees */}
+              {item.attendees && item.attendees.length > 0 && (
+                <>
+                  {item.attendees.length === 1
+                    ? item.attendees[0].name || item.attendees[0].email
+                    : item.attendees
+                        .slice(0, 2)
+                        .map((att) => att.name || att.email)
+                        .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
+                </>
+              )}
+            </Text>
+          )}
+        </TouchableOpacity>
 
-            {/* Title */}
-            <View className="mb-2">
-              <Text
-                className={`text-lg font-medium text-[#333] leading-5 ${isCancelled || isRejected ? "line-through" : ""}`}
-                numberOfLines={2}
-              >
-                {item.title}
-              </Text>
-            </View>
-
-            {/* Description */}
-            {item.description && (
-              <View className="mb-2">
-                <Text className="text-sm text-[#666] leading-5" numberOfLines={1}>
-                  &quot;{item.description}&quot;
-                </Text>
-              </View>
-            )}
-
-            {/* Host and Attendees */}
-            {((item.hosts && item.hosts.length > 0) || item.user || (item.attendees && item.attendees.length > 0)) && (
-              <View className="mb-2">
-                <Text className="text-sm text-[#333]">
-                  {/* Host */}
-                  {(item.hosts && item.hosts.length > 0) || item.user ? (
-                    <>
-                      {item.hosts && item.hosts.length > 0
-                        ? item.hosts[0].name || item.hosts[0].email
-                        : item.user?.name || item.user?.email}
-                    </>
-                  ) : null}
-                  
-                  {/* Separator */}
-                  {((item.hosts && item.hosts.length > 0) || item.user) && item.attendees && item.attendees.length > 0 && (
-                    <Text> and </Text>
-                  )}
-                  
-                  {/* Attendees */}
-                  {item.attendees && item.attendees.length > 0 && (
-                    <>
-                      {item.attendees.length === 1
-                        ? item.attendees[0].name || item.attendees[0].email
-                        : item.attendees
-                            .slice(0, 2)
-                            .map((att) => att.name || att.email)
-                            .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
-                    </>
-                  )}
-                </Text>
-              </View>
-            )}
-          </View>
-          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
-            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+        {/* Three dots button - below content, aligned to the right */}
+        <View className="flex-row justify-end" style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          <TouchableOpacity 
+            className="items-center justify-center border border-[#E5E5EA] rounded-lg" 
+            style={{ width: 32, height: 32 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              setSelectedBooking(item);
+              setShowBookingActionsModal(true);
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -997,6 +1008,210 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
                   )}
                 </ScrollView>
               )}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Booking Actions Modal */}
+        <Modal
+          visible={showBookingActionsModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowBookingActionsModal(false)}>
+          <TouchableOpacity
+            className="flex-1 bg-black/50 justify-center items-center p-2 md:p-4"
+            activeOpacity={1}
+            onPress={() => setShowBookingActionsModal(false)}>
+            <TouchableOpacity
+              className="bg-white rounded-2xl w-full max-w-sm mx-4"
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}>
+              
+              {/* Header */}
+              <View className="p-6 border-b border-gray-200">
+                <Text className="text-xl font-semibold text-gray-900 text-center">
+                  Booking Actions
+                </Text>
+              </View>
+
+              {/* Actions List */}
+              <View className="p-2">
+                {/* View Booking */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    if (selectedBooking) {
+                      handleBookingPress(selectedBooking);
+                    }
+                  }}
+                  className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                  <Ionicons name="eye-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">View Booking</Text>
+                </TouchableOpacity>
+
+                {/* Separator */}
+                <View className="h-px bg-gray-200 mx-4 my-2" />
+                
+                {/* Edit event label */}
+                <View className="px-4 py-1">
+                  <Text className="text-xs text-gray-500 font-medium">Edit event</Text>
+                </View>
+
+                {/* Request Reschedule */}
+                {activeFilter === "upcoming" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      if (selectedBooking) {
+                        handleRescheduleBooking(selectedBooking);
+                      }
+                    }}
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                    <Ionicons name="send-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Send Reschedule Request</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Edit Location */}
+                {activeFilter === "upcoming" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      Alert.alert("Edit Location", "Edit location functionality coming soon");
+                    }}
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                    <Ionicons name="location-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Edit Location</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Add Guests */}
+                {activeFilter === "upcoming" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      Alert.alert("Add Guests", "Add guests functionality coming soon");
+                    }}
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                    <Ionicons name="person-add-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Add Guests</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Open Location */}
+                {selectedBooking?.location && (
+                  <>
+                    <View className="h-px bg-gray-200 mx-4 my-2" />
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowBookingActionsModal(false);
+                        if (selectedBooking) {
+                          handleOpenLocation(selectedBooking);
+                        }
+                      }}
+                      className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                      <Ionicons name="location-outline" size={20} color="#6B7280" />
+                      <Text className="ml-3 text-base text-gray-900">Open Location</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Separator */}
+                {(activeFilter === "past" || activeFilter === "upcoming") && (
+                  <>
+                    <View className="h-px bg-gray-200 mx-4 my-2" />
+                    
+                    {/* After event label */}
+                    {activeFilter === "past" && (
+                      <View className="px-4 py-1">
+                        <Text className="text-xs text-gray-500 font-medium">After event</Text>
+                      </View>
+                    )}
+
+                    {/* Mark as No-Show */}
+                    {activeFilter === "past" && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setShowBookingActionsModal(false);
+                          Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+                        }}
+                        className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                        <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
+                        <Text className="ml-3 text-base text-gray-900">Mark as No-Show</Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
+
+                {/* Confirm booking (for unconfirmed) */}
+                {activeFilter === "unconfirmed" && (
+                  <>
+                    <View className="h-px bg-gray-200 mx-4 my-2" />
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowBookingActionsModal(false);
+                        if (selectedBooking) {
+                          handleConfirmBooking(selectedBooking);
+                        }
+                      }}
+                      className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                      <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
+                      <Text className="ml-3 text-base text-green-600">Confirm booking</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {/* Separator */}
+                <View className="h-px bg-gray-200 mx-4 my-2" />
+
+                {/* Report Booking */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    if (selectedBooking) {
+                      handleReportBooking(selectedBooking);
+                    }
+                  }}
+                  className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                  <Ionicons name="flag-outline" size={20} color="#EF4444" />
+                  <Text className="ml-3 text-base text-red-500">Report Booking</Text>
+                </TouchableOpacity>
+
+                {/* Separator */}
+                <View className="h-px bg-gray-200 mx-4 my-2" />
+
+                {/* Cancel/Reject Booking */}
+                {(activeFilter === "upcoming" || activeFilter === "unconfirmed") && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      if (selectedBooking) {
+                        if (activeFilter === "unconfirmed") {
+                          handleRejectBooking(selectedBooking);
+                        } else {
+                          handleCancelEvent(selectedBooking);
+                        }
+                      }
+                    }}
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                    <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
+                    <Text className="ml-3 text-base text-red-500">
+                      {activeFilter === "unconfirmed" ? "Reject booking" : "Cancel event"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Cancel button */}
+              <View className="p-2 md:p-4 border-t border-gray-200">
+                <TouchableOpacity
+                  className="w-full p-3 bg-gray-100 rounded-lg"
+                  onPress={() => setShowBookingActionsModal(false)}>
+                  <Text className="text-center text-base font-medium text-gray-700">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>

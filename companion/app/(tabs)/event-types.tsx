@@ -17,12 +17,15 @@ import {
   Platform,
   Modal,
   KeyboardAvoidingView,
+  Linking,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { ContextMenu, Host, Button } from "@expo/ui/swift-ui";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
+import { Tooltip } from "../../components/Tooltip";
 import { slugify } from "../../utils/slugify";
 
 export default function EventTypes() {
@@ -51,6 +54,11 @@ export default function EventTypes() {
   
   // Modal state for New button menu
   const [showNewModal, setShowNewModal] = useState(false);
+  
+  // Modal state for delete confirmation
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Modal state for one-off meeting
   const [showOneOffModal, setShowOneOffModal] = useState(false);
@@ -239,9 +247,8 @@ export default function EventTypes() {
       // Fallback for non-iOS platforms (Android)
       Alert.alert(eventType.title, eventType.description || "", [
         { text: "Cancel", style: "cancel" },
-        { text: "Copy Link", onPress: () => handleCopyLink(eventType) },
-        { text: "Share", onPress: () => handleShare(eventType) },
         { text: "Edit", onPress: () => handleEdit(eventType) },
+        { text: "Duplicate", onPress: () => handleDuplicate(eventType) },
         { text: "Delete", style: "destructive", onPress: () => handleDelete(eventType) },
       ]);
       return;
@@ -249,24 +256,21 @@ export default function EventTypes() {
 
     ActionSheetIOS.showActionSheetWithOptions(
       {
-        options: ["Cancel", "Copy Link", "Share", "Edit", "Delete"],
-        destructiveButtonIndex: 4, // Delete button
+        options: ["Cancel", "Edit", "Duplicate", "Delete"],
+        destructiveButtonIndex: 3, // Delete button
         cancelButtonIndex: 0,
         title: eventType.title,
         message: eventType.description ? normalizeMarkdown(eventType.description) : undefined,
       },
       (buttonIndex) => {
         switch (buttonIndex) {
-          case 1: // Copy Link
-            handleCopyLink(eventType);
-            break;
-          case 2: // Share
-            handleShare(eventType);
-            break;
-          case 3: // Edit
+          case 1: // Edit
             handleEdit(eventType);
             break;
-          case 4: // Delete
+          case 2: // Duplicate
+            handleDuplicate(eventType);
+            break;
+          case 3: // Delete
             handleDelete(eventType);
             break;
           default:
@@ -325,33 +329,119 @@ export default function EventTypes() {
   };
 
   const handleDelete = (eventType: EventType) => {
-    Alert.alert("Delete Event Type", `Are you sure you want to delete "${eventType.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await CalComAPIService.deleteEventType(eventType.id);
+    setEventTypeToDelete(eventType);
+    setShowDeleteModal(true);
+  };
 
-            // Only update state if component is still mounted
-            if (isMountedRef.current) {
-              // Remove the deleted event type from local state
-              const updatedEventTypes = eventTypes.filter((et) => et.id !== eventType.id);
-              setEventTypes(updatedEventTypes);
-              setFilteredEventTypes(updatedEventTypes);
+  const confirmDelete = async () => {
+    if (!eventTypeToDelete) return;
 
-              Alert.alert("Success", "Event type deleted successfully");
-            }
-          } catch (error) {
-            console.error("Failed to delete event type:", error);
-            if (isMountedRef.current) {
-              Alert.alert("Error", "Failed to delete event type. Please try again.");
-            }
-          }
+    setIsDeleting(true);
+    try {
+      await CalComAPIService.deleteEventType(eventTypeToDelete.id);
+
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        // Remove the deleted event type from local state
+        const updatedEventTypes = eventTypes.filter((et) => et.id !== eventTypeToDelete.id);
+        setEventTypes(updatedEventTypes);
+        setFilteredEventTypes(updatedEventTypes);
+
+        // Close modal and reset state
+        setShowDeleteModal(false);
+        setEventTypeToDelete(null);
+
+        if (Platform.OS === "web") {
+          showToastMessage("Event type deleted successfully");
+        } else {
+          Alert.alert("Success", "Event type deleted successfully");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete event type:", error);
+      if (isMountedRef.current) {
+        if (Platform.OS === "web") {
+          showToastMessage("Failed to delete event type");
+        } else {
+          Alert.alert("Error", "Failed to delete event type. Please try again.");
+        }
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDuplicate = async (eventType: EventType) => {
+    try {
+      // Generate a new title and slug for the duplicate
+      const newTitle = `${eventType.title} (copy)`;
+      let newSlug = `${eventType.slug}-copy`;
+      
+      // Check if slug already exists and append a number if needed
+      let counter = 1;
+      while (eventTypes.some(et => et.slug === newSlug)) {
+        newSlug = `${eventType.slug}-copy-${counter}`;
+        counter++;
+      }
+
+      const duration = getDuration(eventType);
+      
+      // Create the duplicate event type
+      const duplicatedEventType = await CalComAPIService.createEventType({
+        title: newTitle,
+        slug: newSlug,
+        lengthInMinutes: duration,
+        description: eventType.description || undefined,
+      });
+
+      // Refresh the list
+      await fetchEventTypes();
+
+      if (Platform.OS === "web") {
+        showToastMessage("Event type duplicated successfully");
+      } else {
+        Alert.alert("Success", "Event type duplicated successfully");
+      }
+
+      // Navigate to edit the newly created duplicate
+      router.push({
+        pathname: "/event-type-detail",
+        params: {
+          id: duplicatedEventType.id.toString(),
+          title: duplicatedEventType.title,
+          description: duplicatedEventType.description || "",
+          duration: (duplicatedEventType.lengthInMinutes || duplicatedEventType.length || duration).toString(),
+          slug: duplicatedEventType.slug || "",
         },
-      },
-    ]);
+      });
+    } catch (error) {
+      console.error("Failed to duplicate event type:", error);
+      if (Platform.OS === "web") {
+        showToastMessage("Failed to duplicate event type");
+      } else {
+        Alert.alert("Error", "Failed to duplicate event type. Please try again.");
+      }
+    }
+  };
+
+  const handlePreview = async (eventType: EventType) => {
+    try {
+      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
+      // Open in browser
+      if (Platform.OS === "web") {
+        window.open(link, "_blank");
+      } else {
+        // For mobile, use Linking
+        await Linking.openURL(link);
+      }
+    } catch (error) {
+      console.error("Failed to open preview:", error);
+      if (Platform.OS === "web") {
+        showToastMessage("Failed to open preview");
+      } else {
+        Alert.alert("Error", "Failed to open preview. Please try again.");
+      }
+    }
   };
 
   const handleCreateNew = () => {
@@ -717,24 +807,50 @@ export default function EventTypes() {
               </View>
             ) : null}
           </View>
-          <TouchableOpacity
-            className="items-center justify-center border border-[#E5E5EA] border-r-0 rounded-l-lg"
-            style={{ width: 32, height: 32 }}
-            onPress={() => handleCopyLink(item)}
-          >
-            <Ionicons 
-              name={copiedEventTypeId === item.id ? "checkmark" : "link-outline"} 
-              size={20} 
-              color={copiedEventTypeId === item.id ? "#10B981" : "#3C3F44"} 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="items-center justify-center border border-[#E5E5EA] rounded-r-lg"
-            style={{ width: 32, height: 32 }}
-            onPress={() => handleEventTypeLongPress(item)}
-          >
-            <Ionicons name="ellipsis-vertical" size={20} color="#3C3F44" />
-          </TouchableOpacity>
+          <View className="flex-row">
+            <Tooltip text="Preview">
+              <TouchableOpacity
+                className="items-center justify-center border border-[#E5E5EA] border-r-0 rounded-l-lg"
+                style={{ width: 32, height: 32 }}
+                onPress={() => handlePreview(item)}
+              >
+                <Ionicons 
+                  name="open-outline" 
+                  size={18} 
+                  color="#3C3F44" 
+                />
+              </TouchableOpacity>
+            </Tooltip>
+            <Tooltip text={copiedEventTypeId === item.id ? "Copied!" : "Copy link"}>
+              <TouchableOpacity
+                className="items-center justify-center border border-[#E5E5EA] border-r-0"
+                style={{ width: 32, height: 32 }}
+                onPress={() => handleCopyLink(item)}
+              >
+                {copiedEventTypeId === item.id ? (
+                  <Ionicons 
+                    name="checkmark" 
+                    size={18} 
+                    color="#10B981" 
+                  />
+                ) : (
+                  <Svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <Path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <Path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                  </Svg>
+                )}
+              </TouchableOpacity>
+            </Tooltip>
+            <Tooltip text="More">
+              <TouchableOpacity
+                className="items-center justify-center border border-[#E5E5EA] rounded-r-lg"
+                style={{ width: 32, height: 32 }}
+                onPress={() => handleEventTypeLongPress(item)}
+              >
+                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+              </TouchableOpacity>
+            </Tooltip>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -1021,36 +1137,11 @@ export default function EventTypes() {
                     className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
                     onPress={() => {
                       setShowActionModal(false);
+                      const eventType = selectedEventType;
                       setSelectedEventType(null);
-                      handleCopyLink(selectedEventType);
+                      if (eventType) handleEdit(eventType);
                     }}>
-                    <Ionicons 
-                      name={selectedEventType && copiedEventTypeId === selectedEventType.id ? "checkmark" : "link"} 
-                      size={20} 
-                      color={selectedEventType && copiedEventTypeId === selectedEventType.id ? "#10B981" : "#6B7280"} 
-                    />
-                    <Text className="ml-3 text-base text-gray-900">Copy Link</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
-                    onPress={() => {
-                      setShowActionModal(false);
-                      setSelectedEventType(null);
-                      handleShare(selectedEventType);
-                    }}>
-                    <Ionicons name="share" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Share</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
-                    onPress={() => {
-                      setShowActionModal(false);
-                      setSelectedEventType(null);
-                      handleEdit(selectedEventType);
-                    }}>
-                    <Ionicons name="create" size={20} color="#6B7280" />
+                    <Ionicons name="pencil-outline" size={20} color="#6B7280" />
                     <Text className="ml-3 text-base text-gray-900">Edit</Text>
                   </TouchableOpacity>
                   
@@ -1058,10 +1149,26 @@ export default function EventTypes() {
                     className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
                     onPress={() => {
                       setShowActionModal(false);
+                      const eventType = selectedEventType;
                       setSelectedEventType(null);
-                      handleDelete(selectedEventType);
+                      if (eventType) handleDuplicate(eventType);
                     }}>
-                    <Ionicons name="trash" size={20} color="#EF4444" />
+                    <Ionicons name="copy-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Duplicate</Text>
+                  </TouchableOpacity>
+                  
+                  {/* Separator before delete button */}
+                  <View className="h-px bg-gray-200 my-2" />
+                  
+                  <TouchableOpacity
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50"
+                    onPress={() => {
+                      setShowActionModal(false);
+                      const eventType = selectedEventType;
+                      setSelectedEventType(null);
+                      if (eventType) handleDelete(eventType);
+                    }}>
+                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
                     <Text className="ml-3 text-base text-red-500">Delete</Text>
                   </TouchableOpacity>
                 </View>
@@ -1160,9 +1267,9 @@ export default function EventTypes() {
         animationType="fade"
         onRequestClose={() => setShowOneOffModal(false)}>
         <View 
-          className={Platform.OS === "web" ? "fixed inset-0 z-50 bg-white" : "flex-1 bg-black/50"}
+          className={Platform.OS === "web" ? "absolute inset-0 z-50 bg-white" : "flex-1 bg-black/50"}
           style={Platform.OS === "web" ? { 
-            position: 'fixed', 
+            position: 'absolute', 
             top: 0, 
             left: 0, 
             right: 0, 
@@ -1592,6 +1699,68 @@ export default function EventTypes() {
             })()}
           </View>
         </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!isDeleting) {
+            setShowDeleteModal(false);
+            setEventTypeToDelete(null);
+          }
+        }}>
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            {/* Header with icon and title */}
+            <View className="p-6">
+              <View className="flex-row">
+                {/* Danger icon */}
+                <View className="bg-red-50 rounded-full p-2 mr-3 self-start">
+                  <Ionicons name="alert-circle" size={20} color="#DC2626" />
+                </View>
+                
+                {/* Title and description */}
+                <View className="flex-1">
+                  <Text className="text-xl font-semibold text-gray-900 mb-2">
+                    Delete Event Type
+                  </Text>
+                  <Text className="text-sm text-gray-600 leading-5">
+                    {eventTypeToDelete && (
+                      <>This will permanently delete the "{eventTypeToDelete.title}" event type. This action cannot be undone.</>
+                    )}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Footer with buttons */}
+            <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
+              <TouchableOpacity
+                className={`px-4 py-2.5 rounded-lg bg-gray-900 ${isDeleting ? "opacity-50" : ""}`}
+                onPress={confirmDelete}
+                disabled={isDeleting}>
+                <Text className="text-white text-base font-medium text-center">
+                  Delete
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                className="px-4 py-2.5 rounded-lg border border-gray-300 bg-white"
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  setEventTypeToDelete(null);
+                }}
+                disabled={isDeleting}>
+                <Text className="text-gray-700 text-base font-medium text-center">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Toast for Web Platform */}
       {showToast && (

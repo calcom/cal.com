@@ -240,6 +240,7 @@ export default defineContentScript({
             margin: 2px 4px;
             border-radius: 50%;
             background-color: #000000;
+            border: 2px solid #ffffff;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -284,11 +285,10 @@ export default defineContentScript({
               position: absolute;
               bottom: 100%;
               left: 0;
-              min-width: 250px;
-              max-width: 350px;
-              max-height: 300px;
+              width: 400px;
+              max-height: 250px;
               background: white;
-              border-radius: 4px;
+              border-radius: 8px;
               box-shadow: 0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
               font-family: "Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
               font-size: 14px;
@@ -304,8 +304,11 @@ export default defineContentScript({
               </div>
             `;
             
+            // Array to track tooltips for cleanup
+            const tooltipsToCleanup: HTMLElement[] = [];
+            
             // Fetch event types from Cal.com API
-            fetchEventTypes(menu);
+            fetchEventTypes(menu, tooltipsToCleanup);
             
             // Position menu relative to button
             calButtonCell.style.position = 'relative';
@@ -315,12 +318,62 @@ export default defineContentScript({
             setTimeout(() => {
               document.addEventListener('click', function closeMenu(e) {
                 if (!menu.contains(e.target as Node)) {
+                  // Clean up all tooltips
+                  tooltipsToCleanup.forEach(tooltip => tooltip.remove());
                   menu.remove();
                   document.removeEventListener('click', closeMenu);
                 }
               });
             }, 0);
           });
+          
+          function createTooltip(text, buttonElement) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'cal-tooltip';
+            tooltip.style.cssText = `
+              position: fixed;
+              background-color: #1a1a1a;
+              color: white;
+              padding: 4px 8px;
+              border-radius: 6px;
+              font-size: 12px;
+              font-weight: 600;
+              white-space: nowrap;
+              pointer-events: none;
+              opacity: 0;
+              transition: opacity 0.15s ease;
+              z-index: 10002;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              display: none;
+            `;
+            tooltip.textContent = text;
+            document.body.appendChild(tooltip);
+            
+            // Position tooltip on hover
+            const updatePosition = () => {
+              const rect = buttonElement.getBoundingClientRect();
+              tooltip.style.left = `${rect.left + rect.width / 2}px`;
+              tooltip.style.top = `${rect.top - 8}px`;
+              tooltip.style.transform = 'translate(-50%, -100%)';
+            };
+            
+            buttonElement.addEventListener('mouseenter', () => {
+              updatePosition();
+              tooltip.style.display = 'block';
+              tooltip.style.opacity = '1';
+            });
+            
+            buttonElement.addEventListener('mouseleave', () => {
+              tooltip.style.opacity = '0';
+              setTimeout(() => {
+                if (tooltip.style.opacity === '0') {
+                  tooltip.style.display = 'none';
+                }
+              }, 150);
+            });
+            
+            return tooltip;
+          }
           
           function openCalSidebar() {
             // Open Cal.com sidebar or quick schedule flow
@@ -338,7 +391,7 @@ export default defineContentScript({
             }
           }
           
-          async function fetchEventTypes(menu) {
+          async function fetchEventTypes(menu, tooltipsToCleanup) {
             try {
               // Check cache first
               const now = Date.now();
@@ -405,19 +458,6 @@ export default defineContentScript({
                 return;
               }
               
-              // Add header
-              const header = document.createElement('div');
-              header.style.cssText = `
-                padding: 12px 16px;
-                border-bottom: 1px solid #e8eaed;
-                background-color: #f8f9fa;
-                font-weight: 500;
-                color: #3c4043;
-                font-size: 13px;
-              `;
-              header.textContent = 'Select an event type to share';
-              menu.appendChild(header);
-              
               // Add event types - with additional safety checks
               try {
                 eventTypes.forEach((eventType, index) => {
@@ -427,30 +467,260 @@ export default defineContentScript({
                   }
                   
                   const title = eventType.title || 'Untitled Event';
-                  const length = eventType.length || eventType.duration || 30;
+                  const length = eventType.lengthInMinutes || eventType.length || eventType.duration || 30;
                   const description = eventType.description || '';
                   
                   const menuItem = document.createElement('div');
                   menuItem.style.cssText = `
-                    padding: 12px 16px;
+                    padding: 14px 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: background-color 0.1s ease;
+                    border-bottom: ${index < eventTypes.length - 1 ? '1px solid #E5E5EA' : 'none'};
+                  `;
+                  
+                  // Create content wrapper
+                  const contentWrapper = document.createElement('div');
+                  contentWrapper.style.cssText = `
+                    flex: 1;
                     display: flex;
                     flex-direction: column;
                     cursor: pointer;
+                    margin-right: 12px;
+                    position: relative;
+                    min-width: 0;
+                    overflow: hidden;
+                  `;
+                  
+                  contentWrapper.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
+                      <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                      <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        background-color: #E5E5EA;
+                        border: 1px solid #E5E5EA;
+                        border-radius: 6px;
+                        padding: 3px 8px;
+                        font-size: 12px;
+                        color: #000;
+                        font-weight: 600;
+                        flex-shrink: 0;
+                      ">
+                        ${length}min
+                      </span>
+                      ${description ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>` : ''}
+                    </div>
+                  `;
+                  
+                  // Create tooltip for content wrapper
+                  const contentTooltip = document.createElement('div');
+                  contentTooltip.className = 'cal-tooltip';
+                  contentTooltip.style.cssText = `
+                    position: fixed;
+                    background-color: #1a1a1a;
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: opacity 0.15s ease;
+                    z-index: 10002;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    display: none;
+                  `;
+                  contentTooltip.textContent = 'Insert link';
+                  document.body.appendChild(contentTooltip);
+                  tooltipsToCleanup.push(contentTooltip);
+                  
+                  // Show/hide tooltip
+                  contentWrapper.addEventListener('mouseenter', (e) => {
+                    const rect = contentWrapper.getBoundingClientRect();
+                    // Shift right to better center on the visible content
+                    contentTooltip.style.left = `${rect.left + rect.width / 2 + 80}px`;
+                    contentTooltip.style.top = `${rect.top + 35}px`;
+                    contentTooltip.style.transform = 'translate(-50%, -100%)';
+                    contentTooltip.style.display = 'block';
+                    contentTooltip.style.opacity = '1';
+                  });
+                  contentWrapper.addEventListener('mouseleave', () => {
+                    contentTooltip.style.opacity = '0';
+                    setTimeout(() => {
+                      if (contentTooltip.style.opacity === '0') {
+                        contentTooltip.style.display = 'none';
+                      }
+                    }, 150);
+                  });
+                  
+                  // Add click handler to content wrapper to insert link
+                  contentWrapper.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Remove tooltip
+                    contentTooltip.remove();
+                    menu.remove();
+                    // Insert link into email text
+                    insertEventTypeLink(eventType);
+                  });
+                  
+                  // Create buttons container
+                  const buttonsContainer = document.createElement('div');
+                  buttonsContainer.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 0;
+                    flex-shrink: 0;
+                  `;
+                  
+                  // Preview button
+                  const previewBtn = document.createElement('button');
+                  previewBtn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                  `;
+                  previewBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #e5e5ea;
+                    border-right: none;
+                    border-radius: 6px 0 0 6px;
+                    background: white;
+                    cursor: pointer;
                     transition: background-color 0.1s ease;
-                    border-bottom: ${index < eventTypes.length - 1 ? '1px solid #e8eaed' : 'none'};
+                    padding: 0;
+                    position: relative;
                   `;
                   
-                  menuItem.innerHTML = `
-                    <div style="display: flex; align-items: center; margin-bottom: 4px;">
-                      <span style="margin-right: 8px; font-size: 14px;">📅</span>
-                      <span style="color: #3c4043; font-weight: 500;">${title}</span>
-                    </div>
-                    <div style="color: #5f6368; font-size: 12px; margin-left: 22px;">
-                      ${length}min${description ? ` • ${description}` : ''}
-                    </div>
+                  // Create tooltip for preview button
+                  const previewTooltip = createTooltip('Preview', previewBtn);
+                  tooltipsToCleanup.push(previewTooltip);
+                  
+                  previewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
+                    window.open(bookingUrl, '_blank');
+                  });
+                  previewBtn.addEventListener('mouseenter', () => {
+                    previewBtn.style.backgroundColor = '#f8f9fa';
+                  });
+                  previewBtn.addEventListener('mouseleave', () => {
+                    previewBtn.style.backgroundColor = 'white';
+                  });
+                  
+                  // Copy link button
+                  const copyBtn = document.createElement('button');
+                  copyBtn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                  `;
+                  copyBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #e5e5ea;
+                    border-right: none;
+                    background: white;
+                    cursor: pointer;
+                    transition: background-color 0.1s ease;
+                    padding: 0;
+                    position: relative;
                   `;
                   
-                  // Hover effect
+                  // Create tooltip for copy button
+                  const copyTooltip = createTooltip('Copy link', copyBtn);
+                  tooltipsToCleanup.push(copyTooltip);
+                  
+                  copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Copy to clipboard
+                    const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
+                    navigator.clipboard.writeText(bookingUrl).then(() => {
+                      showNotification('Link copied to clipboard!', 'success');
+                      // Change icon to checkmark
+                      copyBtn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      `;
+                      setTimeout(() => {
+                        copyBtn.innerHTML = `
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                          </svg>
+                        `;
+                      }, 2000);
+                    }).catch(() => {
+                      showNotification('Failed to copy link', 'error');
+                    });
+                  });
+                  copyBtn.addEventListener('mouseenter', () => {
+                    copyBtn.style.backgroundColor = '#f8f9fa';
+                  });
+                  copyBtn.addEventListener('mouseleave', () => {
+                    copyBtn.style.backgroundColor = 'white';
+                  });
+                  
+                  // Edit button (replaces three dots menu)
+                  const editBtn = document.createElement('button');
+                  editBtn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3F44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  `;
+                  editBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #e5e5ea;
+                    border-radius: 0 6px 6px 0;
+                    background: white;
+                    cursor: pointer;
+                    transition: background-color 0.1s ease;
+                    padding: 0;
+                    position: relative;
+                  `;
+                  
+                  // Create tooltip for edit button
+                  const editTooltip = createTooltip('Edit', editBtn);
+                  tooltipsToCleanup.push(editTooltip);
+                  
+                  editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const editUrl = `https://app.cal.com/event-types/${eventType.id}`;
+                    window.open(editUrl, '_blank');
+                  });
+                  editBtn.addEventListener('mouseenter', () => {
+                    editBtn.style.backgroundColor = '#f8f9fa';
+                  });
+                  editBtn.addEventListener('mouseleave', () => {
+                    editBtn.style.backgroundColor = 'white';
+                  });
+                  
+                  // Assemble buttons
+                  buttonsContainer.appendChild(previewBtn);
+                  buttonsContainer.appendChild(copyBtn);
+                  buttonsContainer.appendChild(editBtn);
+                  
+                  // Hover effect for whole item
                   menuItem.addEventListener('mouseenter', () => {
                     menuItem.style.backgroundColor = '#f8f9fa';
                   });
@@ -459,12 +729,9 @@ export default defineContentScript({
                     menuItem.style.backgroundColor = 'transparent';
                   });
                   
-                  menuItem.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    menu.remove();
-                    // Copy scheduling link to clipboard and show confirmation
-                    copyEventTypeLink(eventType);
-                  });
+                  // Assemble menu item
+                  menuItem.appendChild(contentWrapper);
+                  menuItem.appendChild(buttonsContainer);
                   
                   menu.appendChild(menuItem);
                 });
@@ -496,6 +763,25 @@ export default defineContentScript({
                   ">Close</button>
                 </div>
               `;
+            }
+          }
+          
+          function insertEventTypeLink(eventType) {
+            // Construct the Cal.com booking link
+            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || 'user'}/${eventType.slug}`;
+            
+            // Try to insert at cursor position in the compose field
+            const inserted = insertTextAtCursor(bookingUrl);
+            
+            if (inserted) {
+              showNotification('Link inserted', 'success');
+            } else {
+              // Fallback: copy to clipboard if insertion fails
+              navigator.clipboard.writeText(bookingUrl).then(() => {
+                showNotification('Link copied to clipboard!', 'success');
+              }).catch(() => {
+                showNotification('Failed to copy link', 'error');
+              });
             }
           }
           

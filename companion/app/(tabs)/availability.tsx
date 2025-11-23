@@ -30,7 +30,11 @@ export default function Availability() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newScheduleName, setNewScheduleName] = useState("");
   const [creating, setCreating] = useState(false);
-
+  const [showActionsModal, setShowActionsModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  
   const fetchSchedules = async () => {
     try {
       setError(null);
@@ -166,25 +170,46 @@ export default function Availability() {
   };
 
   const handleDelete = (schedule: Schedule) => {
-    Alert.alert(
-      "Delete Schedule",
-      `Are you sure you want to delete "${schedule.name}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await CalComAPIService.deleteSchedule(schedule.id);
-              await fetchSchedules();
-            } catch (err) {
-              Alert.alert("Error", "Failed to delete schedule. Please try again.");
-            }
+    if (Platform.OS === 'web') {
+      // Use custom modal for web
+      setShowDeleteModal(true);
+    } else {
+      // Use native Alert for iOS/Android
+      Alert.alert(
+        "Delete Schedule",
+        `Are you sure you want to delete "${schedule.name}"?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await CalComAPIService.deleteSchedule(schedule.id);
+                await fetchSchedules();
+              } catch (err) {
+                Alert.alert("Error", "Failed to delete schedule. Please try again.");
+              }
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedSchedule) return;
+    
+    try {
+      setDeleting(true);
+      await CalComAPIService.deleteSchedule(selectedSchedule.id);
+      setShowDeleteModal(false);
+      setSelectedSchedule(null);
+      await fetchSchedules();
+    } catch (err) {
+      Alert.alert("Error", "Failed to delete schedule. Please try again.");
+      setDeleting(false);
+    }
   };
 
   const handleSchedulePress = (schedule: Schedule) => {
@@ -192,6 +217,66 @@ export default function Availability() {
       pathname: "/availability-detail",
       params: { id: schedule.id.toString() },
     });
+  };
+
+  const handleCreateNew = () => {
+    setNewScheduleName("");
+    setShowCreateModal(true);
+  };
+
+  const handleCreateSchedule = async () => {
+    if (!newScheduleName.trim()) {
+      Alert.alert("Error", "Please enter a schedule name");
+      return;
+    }
+
+    try {
+      setCreating(true);
+
+      // Get user's timezone (default to America/New_York if not available)
+      let userTimezone = "America/New_York";
+      try {
+        const userProfile = await CalComAPIService.getUserProfile();
+        if (userProfile.timeZone) {
+          userTimezone = userProfile.timeZone;
+        }
+      } catch (error) {
+        console.log("Could not get user timezone, using default");
+      }
+
+      // Create schedule with Monday-Friday 9 AM - 5 PM default
+      const newSchedule = await CalComAPIService.createSchedule({
+        name: newScheduleName.trim(),
+        timeZone: userTimezone,
+        isDefault: false,
+        availability: [
+          {
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            startTime: "09:00",
+            endTime: "17:00",
+          },
+        ],
+      });
+
+      setShowCreateModal(false);
+      setNewScheduleName("");
+
+      // Navigate to edit the newly created schedule
+      router.push({
+        pathname: "/availability-detail",
+        params: {
+          id: newSchedule.id.toString(),
+        },
+      });
+
+      // Refresh the list
+      fetchSchedules();
+    } catch (error) {
+      console.error("Failed to create schedule:", error);
+      Alert.alert("Error", "Failed to create schedule. Please try again.");
+    } finally {
+      setCreating(false);
+    }
   };
 
   const renderSchedule = ({ item: schedule, index }: { item: Schedule; index: number }) => {
@@ -232,9 +317,19 @@ export default function Availability() {
               <Text className="text-sm text-[#666] ml-1.5">{schedule.timeZone}</Text>
             </View>
           </View>
-          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
-            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+          
+          {/* Three dots button - vertically centered on the right */}
+          <TouchableOpacity 
+            className="items-center justify-center border border-[#E5E5EA] rounded-lg" 
+            style={{ width: 32, height: 32 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              setSelectedSchedule(schedule);
+              setShowActionsModal(true);
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -325,66 +420,6 @@ export default function Availability() {
       </View>
     );
   }
-
-  const handleCreateNew = () => {
-    setNewScheduleName("");
-    setShowCreateModal(true);
-  };
-
-  const handleCreateSchedule = async () => {
-    if (!newScheduleName.trim()) {
-      Alert.alert("Error", "Please enter a schedule name");
-      return;
-    }
-
-    try {
-      setCreating(true);
-
-      // Get user's timezone (default to America/New_York if not available)
-      let userTimezone = "America/New_York";
-      try {
-        const userProfile = await CalComAPIService.getUserProfile();
-        if (userProfile.timeZone) {
-          userTimezone = userProfile.timeZone;
-        }
-      } catch (error) {
-        console.log("Could not get user timezone, using default");
-      }
-
-      // Create schedule with Monday-Friday 9 AM - 5 PM default
-      const newSchedule = await CalComAPIService.createSchedule({
-        name: newScheduleName.trim(),
-        timeZone: userTimezone,
-        isDefault: false,
-        availability: [
-          {
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            startTime: "09:00",
-            endTime: "17:00",
-          },
-        ],
-      });
-
-      setShowCreateModal(false);
-      setNewScheduleName("");
-
-      // Navigate to edit the newly created schedule
-      router.push({
-        pathname: "/availability-detail",
-        params: {
-          id: newSchedule.id.toString(),
-        },
-      });
-
-      // Refresh the list
-      fetchSchedules();
-    } catch (error) {
-      console.error("Failed to create schedule:", error);
-      Alert.alert("Error", "Failed to create schedule. Please try again.");
-    } finally {
-      setCreating(false);
-    }
-  };
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -484,6 +519,146 @@ export default function Availability() {
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Schedule Actions Modal */}
+      <Modal
+        visible={showActionsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowActionsModal(false)}>
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowActionsModal(false)}>
+          <TouchableOpacity
+            className="bg-white rounded-2xl w-full max-w-sm mx-4"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}>
+            
+            {/* Header */}
+            <View className="p-6 border-b border-gray-200">
+              <Text className="text-xl font-semibold text-gray-900 text-center">
+                Schedule Actions
+              </Text>
+            </View>
+
+            {/* Actions List */}
+            <View className="p-2">
+              {/* Set as Default - only show if not already default */}
+              {selectedSchedule && !selectedSchedule.isDefault && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowActionsModal(false);
+                      if (selectedSchedule) {
+                        handleSetAsDefault(selectedSchedule);
+                      }
+                    }}
+                    className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                    <Ionicons name="star-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
+                  </TouchableOpacity>
+                  
+                  <View className="h-px bg-gray-200 mx-4 my-2" />
+                </>
+              )}
+
+              {/* Duplicate */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowActionsModal(false);
+                  if (selectedSchedule) {
+                    setTimeout(() => {
+                      handleDuplicate(selectedSchedule);
+                    }, 100);
+                  }
+                }}
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                <Ionicons name="copy-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">Duplicate</Text>
+              </TouchableOpacity>
+
+              {/* Separator */}
+              <View className="h-px bg-gray-200 mx-4 my-2" />
+
+              {/* Delete */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowActionsModal(false);
+                  if (selectedSchedule) {
+                    // Small delay to ensure modal closes before alert shows
+                    setTimeout(() => {
+                      handleDelete(selectedSchedule);
+                    }, 100);
+                  }
+                }}
+                className="flex-row items-center p-2 md:p-4 hover:bg-gray-50">
+                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                <Text className="ml-3 text-base text-red-500">Delete</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Cancel button */}
+            <View className="p-2 md:p-4 border-t border-gray-200">
+              <TouchableOpacity
+                className="w-full p-3 bg-gray-100 rounded-lg"
+                onPress={() => setShowActionsModal(false)}>
+                <Text className="text-center text-base font-medium text-gray-700">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !deleting && setShowDeleteModal(false)}>
+        <View className="flex-1 bg-black/50 justify-center items-center p-4">
+          <View className="bg-white rounded-2xl w-full max-w-sm p-6">
+            {/* Icon */}
+            <View className="items-center mb-4">
+              <View className="w-12 h-12 rounded-full bg-red-100 items-center justify-center">
+                <Ionicons name="trash-outline" size={24} color="#EF4444" />
+              </View>
+            </View>
+
+            {/* Title */}
+            <Text className="text-xl font-semibold text-gray-900 text-center mb-2">
+              Delete Schedule
+            </Text>
+
+            {/* Description */}
+            <Text className="text-base text-gray-600 text-center mb-6">
+              Are you sure you want to delete "{selectedSchedule?.name}"? This action cannot be undone.
+            </Text>
+
+            {/* Buttons */}
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                className="flex-1 py-3 px-4 bg-gray-100 rounded-lg"
+                onPress={() => setShowDeleteModal(false)}
+                disabled={deleting}>
+                <Text className="text-center text-base font-semibold text-gray-700">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-3 px-4 bg-gray-900 rounded-lg ${deleting ? 'opacity-50' : ''}`}
+                onPress={confirmDelete}
+                disabled={deleting}>
+                <Text className="text-center text-base font-semibold text-white">
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );

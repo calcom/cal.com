@@ -28,11 +28,6 @@ export function Header() {
     }
   };
 
-  const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log("Search pressed");
-  };
-
   const handleProfile = () => {
     if (Platform.OS === 'ios') {
       const options = [
@@ -142,12 +137,7 @@ export function Header() {
         </View>
 
         {/* Right: Icons */}
-        <View className="flex-row items-center gap-4">
-          {/* Search Icon */}
-          <TouchableOpacity onPress={handleSearch} className="p-2">
-            <Ionicons name="search-outline" size={24} color="#333" />
-          </TouchableOpacity>
-
+        <View className="flex-row items-center gap-4" style={Platform.OS === 'web' ? { marginRight: 8 } : {}}>
           {/* Profile Picture */}
           <TouchableOpacity onPress={handleProfile} className="p-1">
             {loading ? (
