@@ -1057,4 +1057,50 @@ export class CalComAPIService {
       throw error;
     }
   }
+
+  // ============================================
+  // NO-SHOW MANAGEMENT
+  // ============================================
+
+  // Mark attendee as no-show
+  static async markAttendeeNoShow(
+    bookingUid: string,
+    attendeeEmail: string,
+    noShow: boolean
+  ): Promise<{ message: string; attendees: Array<{ email: string; noShow: boolean }> }> {
+    try {
+      // Note: This uses internal Cal.com API endpoint, not the public v2 API
+      // The public v2 API doesn't expose mark-no-show functionality yet
+      const WEBAPP_URL = "https://app.cal.com";
+      const endpoint = `${WEBAPP_URL}/api/trpc/viewer.loggedInViewerRouter.markNoShow`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingUid,
+          attendees: [
+            {
+              email: attendeeEmail,
+              noShow: noShow,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Failed to mark no-show: ${response.statusText} - ${errorBody}`);
+      }
+
+      const data = await response.json();
+      return data.result?.data || data;
+    } catch (error) {
+      console.error("markAttendeeNoShow error:", error);
+      throw error;
+    }
+  }
 }
