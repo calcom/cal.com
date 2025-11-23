@@ -33,4 +33,3 @@ export interface ConferencingOption {
   invalid: boolean;
   delegationCredentialId: string | null;
 }
-

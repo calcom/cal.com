@@ -33,11 +33,13 @@ export default function Bookings() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>("upcoming");
-const [showFilterModal, setShowFilterModal] = useState(false);
-const [eventTypes, setEventTypes] = useState<EventType[]>([]);
-const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
-const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
-const [eventTypesLoading, setEventTypesLoading] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
+  const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
+  const [eventTypesLoading, setEventTypesLoading] = useState(false);
+  const [showBookingActionsModal, setShowBookingActionsModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const filterOptions: { key: BookingFilter; label: string }[] = [
     { key: "upcoming", label: "Upcoming" },
@@ -158,7 +160,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
   useEffect(() => {
     setSearchQuery(""); // Clear search when filter changes
     setSelectedEventTypeId(null); // Clear event type filter when status filter changes
-  setSelectedEventTypeLabel(null);
+    setSelectedEventTypeLabel(null);
     if (!loading) {
       setLoading(true);
       fetchBookings();
@@ -172,7 +174,11 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     fetchBookings();
   };
 
-  const applyFilters = (bookingsToFilter: Booking[], searchText: string, eventTypeId: number | null) => {
+  const applyFilters = (
+    bookingsToFilter: Booking[],
+    searchText: string,
+    eventTypeId: number | null
+  ) => {
     let filtered = bookingsToFilter;
 
     // Apply event type filter
@@ -258,9 +264,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     setActiveFilter(filter);
   };
 
-  const handleSegmentChange = (
-    event: NativeSyntheticEvent<{ selectedSegmentIndex: number }>
-  ) => {
+  const handleSegmentChange = (event: NativeSyntheticEvent<{ selectedSegmentIndex: number }>) => {
     const { selectedSegmentIndex } = event.nativeEvent;
     const selectedFilter = filterOptions[selectedSegmentIndex];
     if (selectedFilter) {
@@ -306,7 +310,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
   const renderSegmentedControl = () => {
     return (
       <>
-        <View className="bg-white px-2 md:px-4 py-3 border-b border-gray-200">
+        <View className="border-b border-gray-200 bg-white px-2 py-3 md:px-4">
           <SegmentedControl
             values={filterLabels}
             selectedIndex={activeIndex}
@@ -315,19 +319,21 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
             appearance="light"
           />
         </View>
-        <View className="bg-gray-100 px-2 md:px-4 py-2 border-b border-gray-300">
+        <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
-              className="flex-row items-center bg-white rounded-lg border border-gray-200" 
+              className="flex-row items-center rounded-lg border border-gray-200 bg-white"
               style={{ width: "20%", paddingHorizontal: 8, paddingVertical: 6 }}
               onPress={handleFilterButtonPress}
             >
               <Ionicons name="options-outline" size={14} color="#333" />
-              <Text className="text-sm text-[#333]" style={{ marginLeft: 4 }}>Filter</Text>
+              <Text className="text-sm text-[#333]" style={{ marginLeft: 4 }}>
+                Filter
+              </Text>
             </TouchableOpacity>
             <View style={{ width: "75%" }}>
               <TextInput
-                className="bg-white rounded-lg px-3 py-2 text-sm text-black border border-gray-200"
+                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black"
                 placeholder="Search bookings"
                 placeholderTextColor="#8E8E93"
                 value={searchQuery}
@@ -339,12 +345,12 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
             </View>
           </View>
           {selectedEventTypeId !== null && (
-            <View className="mt-2 bg-white rounded-lg border border-gray-200 px-3 py-2 flex-row items-center justify-between">
-              <Text className="text-sm text-[#333] flex-1">
+            <View className="mt-2 flex-row items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
+              <Text className="flex-1 text-sm text-[#333]">
                 Filtered by {selectedEventTypeLabel || "event type"}
               </Text>
               <TouchableOpacity onPress={clearEventTypeFilter}>
-                <Text className="text-sm text-[#007AFF] font-semibold">Clear filter</Text>
+                <Text className="text-sm font-semibold text-[#007AFF]">Clear filter</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -370,7 +376,10 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
       const actions = getBookingActions(booking);
       const alertActions = actions.map((action) => ({
         text: action.title,
-        style: (action.destructive ? "destructive" : "default") as "destructive" | "default" | "cancel",
+        style: (action.destructive ? "destructive" : "default") as
+          | "destructive"
+          | "default"
+          | "cancel",
         onPress: action.onPress,
       }));
       alertActions.unshift({ text: "Cancel", style: "cancel" as const, onPress: () => {} });
@@ -394,7 +403,8 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options,
-        destructiveButtonIndex: destructiveButtonIndex >= 0 ? destructiveButtonIndex + 1 : undefined,
+        destructiveButtonIndex:
+          destructiveButtonIndex >= 0 ? destructiveButtonIndex + 1 : undefined,
         cancelButtonIndex: 0,
         title: booking.title,
         message: getBookingDetailsMessage(booking),
@@ -703,14 +713,13 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
         return "";
       }
       const now = new Date();
-      const isCurrentMonth = 
-        date.getFullYear() === now.getFullYear() && 
-        date.getMonth() === now.getMonth();
-      
+      const isCurrentMonth =
+        date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+
       if (isCurrentMonth) {
         return "This month";
       }
-      
+
       return date.toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
@@ -733,7 +742,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     }
   };
 
-  type ListItem = 
+  type ListItem =
     | { type: "monthHeader"; monthYear: string; key: string }
     | { type: "booking"; booking: Booking; key: string };
 
@@ -776,96 +785,107 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     const isRejected = item.status?.toUpperCase() === "REJECTED";
 
     return (
-      <TouchableOpacity
-        className="bg-white active:bg-[#F8F9FA] border-b border-[#E5E5EA]"
-        onPress={() => handleBookingPress(item)}
-        style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-      >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 mr-4">
-            {/* Time and Date Row */}
-            <View className="flex-row items-center mb-2">
-              <Text className="text-sm font-medium text-[#333]">
-                {formatDate(startTime, isUpcoming)}
-              </Text>
-              <Text className="text-sm text-[#666] ml-2">
-                {formatTime(startTime)} - {formatTime(endTime)}
-              </Text>
-            </View>
+      <View className="border-b border-[#E5E5EA] bg-white">
+        <TouchableOpacity
+          className="active:bg-[#F8F9FA]"
+          onPress={() => handleBookingPress(item)}
+          onLongPress={() => {
+            setSelectedBooking(item);
+            setShowBookingActionsModal(true);
+          }}
+          style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+        >
+          {/* Time and Date Row */}
+          <View className="mb-2 flex-row flex-wrap items-center">
+            <Text className="text-sm font-medium text-[#333]">
+              {formatDate(startTime, isUpcoming)}
+            </Text>
+            <Text className="ml-2 text-sm text-[#666]">
+              {formatTime(startTime)} - {formatTime(endTime)}
+            </Text>
+          </View>
 
-            {/* Badges Row */}
-            <View className="flex-row items-center flex-wrap mb-3">
-              {isPending && (
-                <View className="bg-[#FF9500] px-2 py-0.5 rounded mr-2 mb-1">
-                  <Text className="text-xs font-medium text-white">Unconfirmed</Text>
-                </View>
+          {/* Badges Row */}
+          <View className="mb-3 flex-row flex-wrap items-center">
+            {isPending && (
+              <View className="mb-1 mr-2 rounded bg-[#FF9500] px-2 py-0.5">
+                <Text className="text-xs font-medium text-white">Unconfirmed</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Title */}
+          <Text
+            className={`mb-2 text-lg font-medium leading-5 text-[#333] ${isCancelled || isRejected ? "line-through" : ""}`}
+            numberOfLines={2}
+          >
+            {item.title}
+          </Text>
+
+          {/* Description */}
+          {item.description && (
+            <Text className="mb-2 text-sm leading-5 text-[#666]" numberOfLines={1}>
+              &quot;{item.description}&quot;
+            </Text>
+          )}
+
+          {/* Host and Attendees */}
+          {((item.hosts && item.hosts.length > 0) ||
+            item.user ||
+            (item.attendees && item.attendees.length > 0)) && (
+            <Text className="mb-2 text-sm text-[#333]">
+              {/* Host */}
+              {(item.hosts && item.hosts.length > 0) || item.user ? (
+                <>
+                  {item.hosts && item.hosts.length > 0
+                    ? item.hosts[0].name || item.hosts[0].email
+                    : item.user?.name || item.user?.email}
+                </>
+              ) : null}
+
+              {/* Separator */}
+              {((item.hosts && item.hosts.length > 0) || item.user) &&
+                item.attendees &&
+                item.attendees.length > 0 && <Text> and </Text>}
+
+              {/* Attendees */}
+              {item.attendees && item.attendees.length > 0 && (
+                <>
+                  {item.attendees.length === 1
+                    ? item.attendees[0].name || item.attendees[0].email
+                    : item.attendees
+                        .slice(0, 2)
+                        .map((att) => att.name || att.email)
+                        .join(", ") +
+                      (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
+                </>
               )}
-            </View>
+            </Text>
+          )}
+        </TouchableOpacity>
 
-            {/* Title */}
-            <View className="mb-2">
-              <Text
-                className={`text-lg font-medium text-[#333] leading-5 ${isCancelled || isRejected ? "line-through" : ""}`}
-                numberOfLines={2}
-              >
-                {item.title}
-              </Text>
-            </View>
-
-            {/* Description */}
-            {item.description && (
-              <View className="mb-2">
-                <Text className="text-sm text-[#666] leading-5" numberOfLines={1}>
-                  &quot;{item.description}&quot;
-                </Text>
-              </View>
-            )}
-
-            {/* Host and Attendees */}
-            {((item.hosts && item.hosts.length > 0) || item.user || (item.attendees && item.attendees.length > 0)) && (
-              <View className="mb-2">
-                <Text className="text-sm text-[#333]">
-                  {/* Host */}
-                  {(item.hosts && item.hosts.length > 0) || item.user ? (
-                    <>
-                      {item.hosts && item.hosts.length > 0
-                        ? item.hosts[0].name || item.hosts[0].email
-                        : item.user?.name || item.user?.email}
-                    </>
-                  ) : null}
-                  
-                  {/* Separator */}
-                  {((item.hosts && item.hosts.length > 0) || item.user) && item.attendees && item.attendees.length > 0 && (
-                    <Text> and </Text>
-                  )}
-                  
-                  {/* Attendees */}
-                  {item.attendees && item.attendees.length > 0 && (
-                    <>
-                      {item.attendees.length === 1
-                        ? item.attendees[0].name || item.attendees[0].email
-                        : item.attendees
-                            .slice(0, 2)
-                            .map((att) => att.name || att.email)
-                            .join(", ") + (item.attendees.length > 2 ? ` and ${item.attendees.length - 2} more` : "")}
-                    </>
-                  )}
-                </Text>
-              </View>
-            )}
-          </View>
-          <View className="items-center justify-center border border-[#E5E5EA] rounded-lg" style={{ width: 32, height: 32 }}>
-            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+        {/* Three dots button - below content, aligned to the right */}
+        <View className="flex-row justify-end" style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          <TouchableOpacity
+            className="items-center justify-center rounded-lg border border-[#E5E5EA]"
+            style={{ width: 32, height: 32 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              setSelectedBooking(item);
+              setShowBookingActionsModal(true);
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
   const renderListItem = ({ item }: { item: ListItem }) => {
     if (item.type === "monthHeader") {
       return (
-        <View className="bg-[#E5E5EA] px-2 md:px-4 py-3 border-b border-[#E5E5EA]">
+        <View className="border-b border-[#E5E5EA] bg-[#E5E5EA] px-2 py-3 md:px-4">
           <Text className="text-base font-bold text-[#333]">{item.monthYear}</Text>
         </View>
       );
@@ -893,7 +913,7 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-          <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             Unable to load bookings
           </Text>
           <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
@@ -912,8 +932,12 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
         <Header />
         {renderSegmentedControl()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name={emptyState.icon as keyof typeof Ionicons.glyphMap} size={64} color="#666" />
-          <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+          <Ionicons
+            name={emptyState.icon as keyof typeof Ionicons.glyphMap}
+            size={64}
+            color="#666"
+          />
+          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
             {emptyState.title}
           </Text>
           <Text className="text-center text-base text-gray-500">{emptyState.text}</Text>
@@ -927,10 +951,12 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
       <View className="flex-1 bg-gray-50">
         <Header />
         {renderSegmentedControl()}
-        <View className="flex-1 justify-center items-center p-5 bg-gray-50">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="search-outline" size={64} color="#666" />
-          <Text className="text-xl font-bold mt-4 mb-2 text-gray-800">No results found</Text>
-          <Text className="text-base text-gray-500 text-center">Try searching with different keywords</Text>
+          <Text className="mb-2 mt-4 text-xl font-bold text-gray-800">No results found</Text>
+          <Text className="text-center text-base text-gray-500">
+            Try searching with different keywords
+          </Text>
         </View>
       </View>
     );
@@ -940,8 +966,8 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
     <View className="flex-1 bg-[#f8f9fa]">
       <Header />
       {renderSegmentedControl()}
-      <View className="px-2 md:px-4 pt-4 flex-1">
-        <View className="bg-white border border-[#E5E5EA] rounded-lg overflow-hidden flex-1">
+      <View className="flex-1 px-2 pt-4 md:px-4">
+        <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
           <FlatList
             data={groupBookingsByMonth(filteredBookings)}
             keyExtractor={(item) => item.key}
@@ -950,56 +976,280 @@ const [eventTypesLoading, setEventTypesLoading] = useState(false);
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             showsVerticalScrollIndicator={false}
           />
-          </View>
         </View>
+      </View>
 
-        {/* Filter Modal */}
-        <Modal
-          visible={showFilterModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowFilterModal(false)}>
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+          activeOpacity={1}
+          onPress={() => setShowFilterModal(false)}
+        >
           <TouchableOpacity
-            className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center"
             activeOpacity={1}
-            onPress={() => setShowFilterModal(false)}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-5 w-[85%] max-w-[350px]">
-              <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Filter by Event Type</Text>
-              
-              {eventTypesLoading ? (
-                <View className="py-4 items-center">
-                  <ActivityIndicator size="small" color="#333" />
-                  <Text className="text-sm text-[#666] mt-2">Loading event types...</Text>
-                </View>
-              ) : (
-                <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 400 }}>
-                  {eventTypes.map((eventType) => (
-                    <TouchableOpacity
-                      key={eventType.id}
-                      className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
-                        selectedEventTypeId === eventType.id ? "bg-[#F0F0F0]" : ""
-                      }`}
-                      onPress={() => handleEventTypeSelect(eventType.id, eventType.title)}>
-                      <Text className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}>
-                        {eventType.title}
-                      </Text>
-                      {selectedEventTypeId === eventType.id && <Ionicons name="checkmark" size={20} color="#000" />}
-                    </TouchableOpacity>
-                  ))}
-                  
-                  {eventTypes.length === 0 && (
-                    <View className="py-4 items-center">
-                      <Text className="text-sm text-[#666]">No event types found</Text>
+            onPress={(e) => e.stopPropagation()}
+            className="w-[85%] max-w-[350px] rounded-2xl bg-white p-5"
+          >
+            <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+              Filter by Event Type
+            </Text>
+
+            {eventTypesLoading ? (
+              <View className="items-center py-4">
+                <ActivityIndicator size="small" color="#333" />
+                <Text className="mt-2 text-sm text-[#666]">Loading event types...</Text>
+              </View>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 400 }}>
+                {eventTypes.map((eventType) => (
+                  <TouchableOpacity
+                    key={eventType.id}
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
+                      selectedEventTypeId === eventType.id ? "bg-[#F0F0F0]" : ""
+                    }`}
+                    onPress={() => handleEventTypeSelect(eventType.id, eventType.title)}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${selectedEventTypeId === eventType.id ? "font-semibold" : ""}`}
+                    >
+                      {eventType.title}
+                    </Text>
+                    {selectedEventTypeId === eventType.id && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+
+                {eventTypes.length === 0 && (
+                  <View className="items-center py-4">
+                    <Text className="text-sm text-[#666]">No event types found</Text>
+                  </View>
+                )}
+              </ScrollView>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Booking Actions Modal */}
+      <Modal
+        visible={showBookingActionsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBookingActionsModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowBookingActionsModal(false)}
+        >
+          <TouchableOpacity
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <View className="border-b border-gray-200 p-6">
+              <Text className="text-center text-xl font-semibold text-gray-900">
+                Booking Actions
+              </Text>
+            </View>
+
+            {/* Actions List */}
+            <View className="p-2">
+              {/* View Booking */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowBookingActionsModal(false);
+                  if (selectedBooking) {
+                    handleBookingPress(selectedBooking);
+                  }
+                }}
+                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+              >
+                <Ionicons name="eye-outline" size={20} color="#6B7280" />
+                <Text className="ml-3 text-base text-gray-900">View Booking</Text>
+              </TouchableOpacity>
+
+              {/* Separator */}
+              <View className="mx-4 my-2 h-px bg-gray-200" />
+
+              {/* Edit event label */}
+              <View className="px-4 py-1">
+                <Text className="text-xs font-medium text-gray-500">Edit event</Text>
+              </View>
+
+              {/* Request Reschedule */}
+              {activeFilter === "upcoming" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    if (selectedBooking) {
+                      handleRescheduleBooking(selectedBooking);
+                    }
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="send-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Send Reschedule Request</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Edit Location */}
+              {activeFilter === "upcoming" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    Alert.alert("Edit Location", "Edit location functionality coming soon");
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="location-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Edit Location</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Add Guests */}
+              {activeFilter === "upcoming" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    Alert.alert("Add Guests", "Add guests functionality coming soon");
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="person-add-outline" size={20} color="#6B7280" />
+                  <Text className="ml-3 text-base text-gray-900">Add Guests</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Open Location */}
+              {selectedBooking?.location && (
+                <>
+                  <View className="mx-4 my-2 h-px bg-gray-200" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      if (selectedBooking) {
+                        handleOpenLocation(selectedBooking);
+                      }
+                    }}
+                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                  >
+                    <Ionicons name="location-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-base text-gray-900">Open Location</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* Separator */}
+              {(activeFilter === "past" || activeFilter === "upcoming") && (
+                <>
+                  <View className="mx-4 my-2 h-px bg-gray-200" />
+
+                  {/* After event label */}
+                  {activeFilter === "past" && (
+                    <View className="px-4 py-1">
+                      <Text className="text-xs font-medium text-gray-500">After event</Text>
                     </View>
                   )}
-                </ScrollView>
+
+                  {/* Mark as No-Show */}
+                  {activeFilter === "past" && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowBookingActionsModal(false);
+                        Alert.alert("Mark as No-Show", "Mark as no-show functionality coming soon");
+                      }}
+                      className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                    >
+                      <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
+                      <Text className="ml-3 text-base text-gray-900">Mark as No-Show</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
-            </TouchableOpacity>
+
+              {/* Confirm booking (for unconfirmed) */}
+              {activeFilter === "unconfirmed" && (
+                <>
+                  <View className="mx-4 my-2 h-px bg-gray-200" />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowBookingActionsModal(false);
+                      if (selectedBooking) {
+                        handleConfirmBooking(selectedBooking);
+                      }
+                    }}
+                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                  >
+                    <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
+                    <Text className="ml-3 text-base text-green-600">Confirm booking</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* Separator */}
+              <View className="mx-4 my-2 h-px bg-gray-200" />
+
+              {/* Report Booking */}
+              <TouchableOpacity
+                onPress={() => {
+                  setShowBookingActionsModal(false);
+                  if (selectedBooking) {
+                    handleReportBooking(selectedBooking);
+                  }
+                }}
+                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+              >
+                <Ionicons name="flag-outline" size={20} color="#EF4444" />
+                <Text className="ml-3 text-base text-red-500">Report Booking</Text>
+              </TouchableOpacity>
+
+              {/* Separator */}
+              <View className="mx-4 my-2 h-px bg-gray-200" />
+
+              {/* Cancel/Reject Booking */}
+              {(activeFilter === "upcoming" || activeFilter === "unconfirmed") && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBookingActionsModal(false);
+                    if (selectedBooking) {
+                      if (activeFilter === "unconfirmed") {
+                        handleRejectBooking(selectedBooking);
+                      } else {
+                        handleCancelEvent(selectedBooking);
+                      }
+                    }
+                  }}
+                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                >
+                  <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
+                  <Text className="ml-3 text-base text-red-500">
+                    {activeFilter === "unconfirmed" ? "Reject booking" : "Cancel event"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Cancel button */}
+            <View className="border-t border-gray-200 p-2 md:p-4">
+              <TouchableOpacity
+                className="w-full rounded-lg bg-gray-100 p-3"
+                onPress={() => setShowBookingActionsModal(false)}
+              >
+                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
-        </Modal>
-      </View>
-    );
-  }
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}

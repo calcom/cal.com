@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
-import { WebAuthService } from '../services/webAuth';
-import { CalComAPIService } from '../services/calcom';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
+import { WebAuthService } from "../services/webAuth";
+import { CalComAPIService } from "../services/calcom";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -18,8 +18,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ACCESS_TOKEN_KEY = 'cal_access_token';
-const REFRESH_TOKEN_KEY = 'cal_refresh_token';
+const ACCESS_TOKEN_KEY = "cal_access_token";
+const REFRESH_TOKEN_KEY = "cal_refresh_token";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -40,22 +40,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const checkAuthState = async () => {
     try {
       // For web, check localStorage for stored API key/token
-      if (Platform.OS === 'web') {
-        
+      if (Platform.OS === "web") {
         try {
-          const storedToken = localStorage.getItem('cal_access_token');
+          const storedToken = localStorage.getItem("cal_access_token");
           if (storedToken) {
             setAccessToken(storedToken);
             setIsAuthenticated(true);
             setIsWebSession(false); // Using API key, not web session
-            
+
             // Initialize user profile for existing token
             try {
               await CalComAPIService.getUserProfile();
             } catch (profileError) {
-              console.error('Failed to fetch user profile on startup:', profileError);
+              console.error("Failed to fetch user profile on startup:", profileError);
             }
-            
+
             setLoading(false);
             return;
           }
@@ -80,16 +79,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setRefreshToken(storedRefreshToken);
         setIsAuthenticated(true);
         setIsWebSession(false);
-        
+
         // Initialize user profile for existing tokens
         try {
           await CalComAPIService.getUserProfile();
         } catch (profileError) {
-          console.error('Failed to fetch user profile on startup:', profileError);
+          console.error("Failed to fetch user profile on startup:", profileError);
         }
       }
     } catch (error) {
-      console.error('Failed to check auth state:', error);
+      console.error("Failed to check auth state:", error);
     } finally {
       setLoading(false);
     }
@@ -97,15 +96,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (newAccessToken: string, newRefreshToken: string) => {
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         // Store in localStorage for web
         try {
-          localStorage.setItem('cal_access_token', newAccessToken);
+          localStorage.setItem("cal_access_token", newAccessToken);
           if (newRefreshToken) {
-            localStorage.setItem('cal_refresh_token', newRefreshToken);
+            localStorage.setItem("cal_refresh_token", newRefreshToken);
           }
         } catch (localStorageError) {
-          console.warn('Could not store tokens in localStorage:', localStorageError);
+          console.warn("Could not store tokens in localStorage:", localStorageError);
         }
       } else {
         // Store in SecureStore for mobile
@@ -119,16 +118,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setRefreshToken(newRefreshToken);
       setIsAuthenticated(true);
       setIsWebSession(false);
-      
+
       // Initialize user profile after successful login
       try {
         await CalComAPIService.getUserProfile();
       } catch (profileError) {
-        console.error('Failed to fetch user profile:', profileError);
+        console.error("Failed to fetch user profile:", profileError);
         // Don't fail login if profile fetch fails
       }
     } catch (error) {
-      console.error('Failed to save auth tokens:', error);
+      console.error("Failed to save auth tokens:", error);
       throw error;
     }
   };
@@ -138,36 +137,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserInfo(sessionUserInfo);
       setIsAuthenticated(true);
       setIsWebSession(true);
-      
+
       // Try to get any available tokens
       const tokens = await WebAuthService.getTokensFromWebSession();
       if (tokens.accessToken) {
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken || null);
       }
-      
+
       // Initialize user profile after successful web session login
       try {
         await CalComAPIService.getUserProfile();
       } catch (profileError) {
-        console.error('Failed to fetch user profile from web session:', profileError);
+        console.error("Failed to fetch user profile from web session:", profileError);
         // Don't fail login if profile fetch fails
       }
     } catch (error) {
-      console.error('Failed to login from web session:', error);
+      console.error("Failed to login from web session:", error);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         // Clear localStorage for web
         try {
-          localStorage.removeItem('cal_access_token');
-          localStorage.removeItem('cal_refresh_token');
+          localStorage.removeItem("cal_access_token");
+          localStorage.removeItem("cal_refresh_token");
         } catch (localStorageError) {
-          console.warn('Could not clear tokens from localStorage:', localStorageError);
+          console.warn("Could not clear tokens from localStorage:", localStorageError);
         }
       } else {
         // Clear SecureStore for mobile
@@ -182,11 +181,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserInfo(null);
       setIsAuthenticated(false);
       setIsWebSession(false);
-      
+
       // Clear cached user profile
       CalComAPIService.clearUserProfile();
     } catch (error) {
-      console.error('Failed to clear auth tokens:', error);
+      console.error("Failed to clear auth tokens:", error);
     }
   };
 
@@ -208,7 +207,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

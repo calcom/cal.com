@@ -13,8 +13,10 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["content-scripts/content.js"]
-  }]
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-scripts/content.js"]
+    }
+  ]
 }

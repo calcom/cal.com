@@ -51,7 +51,8 @@ export const getBookingParticipation = (
     a !== undefined && b !== undefined && String(a) === String(b);
 
   const isOrganizer =
-    !!booking.user && (idEq(booking.user.id, userId) || emailEq(booking.user.email, normalizedUserEmail));
+    !!booking.user &&
+    (idEq(booking.user.id, userId) || emailEq(booking.user.email, normalizedUserEmail));
 
   const isHost =
     Array.isArray(booking.hosts) &&
@@ -196,10 +197,10 @@ export class CalComAPIService {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      
+
       // Parse error for better user messages
       let errorMessage = response.statusText;
-      
+
       try {
         const errorJson = JSON.parse(errorBody);
         errorMessage = errorJson?.error?.message || errorJson?.message || response.statusText;
@@ -207,7 +208,7 @@ export class CalComAPIService {
         // If JSON parsing fails, use the raw error body
         errorMessage = errorBody || response.statusText;
       }
-      
+
       // Handle specific error cases
       if (response.status === 401) {
         if (errorMessage.includes("expired")) {
@@ -215,7 +216,7 @@ export class CalComAPIService {
         }
         throw new Error("Authentication failed. Please check your API key.");
       }
-      
+
       throw new Error(`API Error: ${errorMessage}`);
     }
 
@@ -244,7 +245,7 @@ export class CalComAPIService {
   static async createEventType(input: CreateEventTypeInput): Promise<EventType> {
     try {
       console.log("Creating event type with input:", JSON.stringify(input, null, 2));
-      
+
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         "/event-types",
         {
@@ -469,7 +470,8 @@ export class CalComAPIService {
             const keys = Object.keys(response.data);
             if (keys.length > 0) {
               bookingsArray = Object.values(response.data).filter(
-                (item): item is Booking => item && typeof item === "object" && ("id" in item || "uid" in item)
+                (item): item is Booking =>
+                  item && typeof item === "object" && ("id" in item || "uid" in item)
               ) as Booking[];
             }
           }
@@ -532,7 +534,12 @@ export class CalComAPIService {
       let schedulesArray: Schedule[] = [];
 
       // Handle response structure: { status: "success", data: [...] }
-      if (response && response.status === "success" && response.data && Array.isArray(response.data)) {
+      if (
+        response &&
+        response.status === "success" &&
+        response.data &&
+        Array.isArray(response.data)
+      ) {
         schedulesArray = response.data;
       } else if (Array.isArray(response)) {
         // Fallback: response might be array directly
@@ -680,7 +687,7 @@ export class CalComAPIService {
   ): Promise<EventType> {
     try {
       console.log(`Updating event type ${eventTypeId} with:`, JSON.stringify(updates, null, 2));
-      
+
       const response = await this.makeRequest<{ status: string; data: EventType }>(
         `/event-types/${eventTypeId}`,
         {
@@ -817,16 +824,13 @@ export class CalComAPIService {
   // Create a global webhook
   static async createWebhook(input: CreateWebhookInput): Promise<Webhook> {
     try {
-      const response = await this.makeRequest<{ status: string; data: Webhook }>(
-        "/webhooks",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(input),
-        }
-      );
+      const response = await this.makeRequest<{ status: string; data: Webhook }>("/webhooks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
 
       if (response && response.data) {
         return response.data;
@@ -895,7 +899,10 @@ export class CalComAPIService {
   }
 
   // Create a webhook for a specific event type
-  static async createEventTypeWebhook(eventTypeId: number, input: CreateWebhookInput): Promise<Webhook> {
+  static async createEventTypeWebhook(
+    eventTypeId: number,
+    input: CreateWebhookInput
+  ): Promise<Webhook> {
     try {
       const response = await this.makeRequest<{ status: string; data: Webhook }>(
         `/event-types/${eventTypeId}/webhooks`,

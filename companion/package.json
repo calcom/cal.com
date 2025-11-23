@@ -10,7 +10,10 @@
     "web": "expo start --web",
     "ext:build": "wxt build",
     "ext": "wxt",
-    "ext:zip": "wxt zip"
+    "ext:zip": "wxt zip",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "prepare": "cd .. && husky companion/.husky"
   },
   "dependencies": {
     "@expo/ui": "^0.2.0-beta.7",
@@ -41,8 +44,16 @@
   "devDependencies": {
     "@types/chrome": "^0.1.31",
     "babel-preset-expo": "^54.0.7",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.17",
     "wxt": "^0.20.11"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }

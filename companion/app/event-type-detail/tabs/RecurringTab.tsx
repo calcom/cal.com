@@ -26,10 +26,10 @@ export function RecurringTab({
   return (
     <View className="gap-3">
       {/* Recurring Event Toggle Card */}
-      <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1 mr-3">
-            <Text className="text-base text-[#333] font-medium mb-1">Recurring event</Text>
+      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+        <View className="flex-row items-start justify-between">
+          <View className="mr-3 flex-1">
+            <Text className="mb-1 text-base font-medium text-[#333]">Recurring event</Text>
             <Text className="text-sm text-[#666]">
               Set up this event type to repeat at regular intervals
             </Text>
@@ -45,15 +45,15 @@ export function RecurringTab({
 
       {/* Recurring Configuration Card - shown when enabled */}
       {recurringEnabled && (
-        <View className="bg-white rounded-2xl p-5 border border-[#E5E5EA]">
-          <Text className="text-base font-semibold text-[#333] mb-4">Recurrence pattern</Text>
+        <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
+          <Text className="mb-4 text-base font-semibold text-[#333]">Recurrence pattern</Text>
 
           {/* Repeats Every */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-[#333] mb-2">Repeats every</Text>
+            <Text className="mb-2 text-sm font-medium text-[#333]">Repeats every</Text>
             <View className="flex-row items-center gap-3">
               <TextInput
-                className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-20 text-center"
+                className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
                 value={recurringInterval}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
@@ -72,7 +72,7 @@ export function RecurringTab({
                 keyboardType="numeric"
               />
               <TouchableOpacity
-                className="flex-1 bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 flex-row justify-between items-center"
+                className="flex-1 flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
                 onPress={() => {
                   Alert.alert("Select Frequency", "Choose how often this event repeats", [
                     {
@@ -93,8 +93,9 @@ export function RecurringTab({
                     },
                     { text: "Cancel", style: "cancel" },
                   ]);
-                }}>
-                <Text className="text-base text-black capitalize">{recurringFrequency}</Text>
+                }}
+              >
+                <Text className="text-base capitalize text-black">{recurringFrequency}</Text>
                 <Ionicons name="chevron-down" size={20} color="#8E8E93" />
               </TouchableOpacity>
             </View>
@@ -102,10 +103,10 @@ export function RecurringTab({
 
           {/* Maximum Occurrences */}
           <View>
-            <Text className="text-sm font-medium text-[#333] mb-2">Maximum number of events</Text>
+            <Text className="mb-2 text-sm font-medium text-[#333]">Maximum number of events</Text>
             <View className="flex-row items-center gap-2">
               <TextInput
-                className="bg-[#F8F9FA] border border-[#E5E5EA] rounded-lg px-3 py-3 text-base text-black w-24 text-center"
+                className="w-24 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
                 value={recurringOccurrences}
                 onChangeText={(text) => {
                   const numericValue = text.replace(/[^0-9]/g, "");
@@ -125,7 +126,7 @@ export function RecurringTab({
               />
               <Text className="text-sm text-[#666]">occurrences</Text>
             </View>
-            <Text className="text-xs text-[#666] mt-2">
+            <Text className="mt-2 text-xs text-[#666]">
               The booking will create {recurringOccurrences} events that repeat {recurringFrequency}
             </Text>
           </View>
@@ -134,4 +135,3 @@ export function RecurringTab({
     </View>
   );
 }
-

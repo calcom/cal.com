@@ -21,7 +21,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalComAPIService, Schedule, ConferencingOption, EventType } from "../services/calcom";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
-import { defaultLocations, getDefaultLocationIconUrl, isDefaultLocation, DefaultLocationType } from "../utils/defaultLocations";
+import {
+  defaultLocations,
+  getDefaultLocationIconUrl,
+  isDefaultLocation,
+  DefaultLocationType,
+} from "../utils/defaultLocations";
 import { SvgImage } from "../components/SvgImage";
 import {
   parseBufferTime,
@@ -146,7 +151,9 @@ export default function EventTypeDetail() {
   // Recurring tab state
   const [recurringEnabled, setRecurringEnabled] = useState(false);
   const [recurringInterval, setRecurringInterval] = useState("1");
-  const [recurringFrequency, setRecurringFrequency] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly");
+  const [recurringFrequency, setRecurringFrequency] = useState<
+    "daily" | "weekly" | "monthly" | "yearly"
+  >("weekly");
   const [recurringOccurrences, setRecurringOccurrences] = useState("12");
 
   const bufferTimeOptions = [
@@ -221,7 +228,9 @@ export default function EventTypeDetail() {
       .join(" ");
   };
 
-  const displayNameToLocationValue = (displayName: string): {
+  const displayNameToLocationValue = (
+    displayName: string
+  ): {
     type: string;
     integration?: string;
     address?: string;
@@ -256,19 +265,23 @@ export default function EventTypeDetail() {
           return { type: defaultLocation.type };
       }
     }
-    
+
     // Otherwise, find matching conferencing option
-    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    const option = conferencingOptions.find(
+      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
+    );
     if (option) {
       return { type: "integration", integration: option.appId, public: true };
     }
-    
+
     return null;
   };
 
   const displayNameToAppId = (displayName: string): string | null => {
     // Legacy function for backward compatibility - only for conferencing apps
-    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === displayName);
+    const option = conferencingOptions.find(
+      (opt) => formatAppIdToDisplayName(opt.appId) === displayName
+    );
     return option ? option.appId : null;
   };
 
@@ -315,10 +328,10 @@ export default function EventTypeDetail() {
 
     // Convert to array format with category labels
     const categoryLabels: Record<string, string> = {
-      "conferencing": "Conferencing",
+      conferencing: "Conferencing",
       "in person": "In Person",
-      "phone": "Phone",
-      "other": "Other",
+      phone: "Phone",
+      other: "Other",
     };
 
     const result: LocationGroup[] = [];
@@ -331,32 +344,41 @@ export default function EventTypeDetail() {
       }
     }
 
-    console.log('Total location groups:', result.length, result.map(g => `${g.category}: ${g.options.length}`));
+    console.log(
+      "Total location groups:",
+      result.length,
+      result.map((g) => `${g.category}: ${g.options.length}`)
+    );
     return result;
   };
 
   const getSelectedLocationIconUrl = (): string | null => {
     if (!selectedLocation) return null;
-    
+
     // First, check if it's a default location
     const defaultLocation = defaultLocations.find((loc) => loc.label === selectedLocation);
     if (defaultLocation) {
       return defaultLocation.iconUrl;
     }
-    
+
     // Try to find in conferencing options
-    const option = conferencingOptions.find((opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation);
+    const option = conferencingOptions.find(
+      (opt) => formatAppIdToDisplayName(opt.appId) === selectedLocation
+    );
     if (option) {
       return getAppIconUrl(option.type, option.appId);
     }
-    
+
     // Fallback: Handle Cal Video directly (it might not be in conferencing options as it's a global app)
     // Check if selectedLocation matches Cal Video display names
     const calVideoNames = ["Cal Video", "Cal-Video", "cal-video"];
-    if (calVideoNames.includes(selectedLocation) || selectedLocation.toLowerCase().includes("cal video")) {
+    if (
+      calVideoNames.includes(selectedLocation) ||
+      selectedLocation.toLowerCase().includes("cal video")
+    ) {
       return getAppIconUrl("daily_video", "cal-video");
     }
-    
+
     // Fallback: Try to reverse the formatAppIdToDisplayName to get appId
     // Convert "Cal Video" back to "cal-video" and try to get icon
     const reverseAppId = selectedLocation.toLowerCase().replace(/\s+/g, "-");
@@ -364,7 +386,7 @@ export default function EventTypeDetail() {
     if (fallbackIconUrl) {
       return fallbackIconUrl;
     }
-    
+
     return null;
   };
 
@@ -528,21 +550,37 @@ export default function EventTypeDetail() {
         }
 
         // Load booking frequency limits
-        if (eventType.bookingLimitsCount && !('disabled' in eventType.bookingLimitsCount)) {
+        if (eventType.bookingLimitsCount && !("disabled" in eventType.bookingLimitsCount)) {
           setLimitBookingFrequency(true);
           const limits = [];
           let idCounter = 1;
           if (eventType.bookingLimitsCount.day) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.day.toString(), unit: "Per day" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsCount.day.toString(),
+              unit: "Per day",
+            });
           }
           if (eventType.bookingLimitsCount.week) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.week.toString(), unit: "Per week" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsCount.week.toString(),
+              unit: "Per week",
+            });
           }
           if (eventType.bookingLimitsCount.month) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.month.toString(), unit: "Per month" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsCount.month.toString(),
+              unit: "Per month",
+            });
           }
           if (eventType.bookingLimitsCount.year) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsCount.year.toString(), unit: "Per year" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsCount.year.toString(),
+              unit: "Per year",
+            });
           }
           if (limits.length > 0) {
             setFrequencyLimits(limits);
@@ -550,21 +588,37 @@ export default function EventTypeDetail() {
         }
 
         // Load duration limits
-        if (eventType.bookingLimitsDuration && !('disabled' in eventType.bookingLimitsDuration)) {
+        if (eventType.bookingLimitsDuration && !("disabled" in eventType.bookingLimitsDuration)) {
           setLimitTotalDuration(true);
           const limits = [];
           let idCounter = 1;
           if (eventType.bookingLimitsDuration.day) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.day.toString(), unit: "Per day" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsDuration.day.toString(),
+              unit: "Per day",
+            });
           }
           if (eventType.bookingLimitsDuration.week) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.week.toString(), unit: "Per week" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsDuration.week.toString(),
+              unit: "Per week",
+            });
           }
           if (eventType.bookingLimitsDuration.month) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.month.toString(), unit: "Per month" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsDuration.month.toString(),
+              unit: "Per month",
+            });
           }
           if (eventType.bookingLimitsDuration.year) {
-            limits.push({ id: idCounter++, value: eventType.bookingLimitsDuration.year.toString(), unit: "Per year" });
+            limits.push({
+              id: idCounter++,
+              value: eventType.bookingLimitsDuration.year.toString(),
+              unit: "Per year",
+            });
           }
           if (limits.length > 0) {
             setDurationLimits(limits);
@@ -577,26 +631,32 @@ export default function EventTypeDetail() {
         }
 
         // Load max active bookings
-        if (eventType.bookerActiveBookingsLimit && !('disabled' in eventType.bookerActiveBookingsLimit)) {
+        if (
+          eventType.bookerActiveBookingsLimit &&
+          !("disabled" in eventType.bookerActiveBookingsLimit)
+        ) {
           setMaxActiveBookingsPerBooker(true);
           setMaxActiveBookingsValue(eventType.bookerActiveBookingsLimit.count.toString());
         }
 
         // Load booking window (future bookings limit)
-        if (eventType.bookingWindow && !('disabled' in eventType.bookingWindow)) {
+        if (eventType.bookingWindow && !("disabled" in eventType.bookingWindow)) {
           setLimitFutureBookings(true);
-          if (eventType.bookingWindow.type === 'range') {
-            setFutureBookingType('range');
-            if (Array.isArray(eventType.bookingWindow.value) && eventType.bookingWindow.value.length === 2) {
+          if (eventType.bookingWindow.type === "range") {
+            setFutureBookingType("range");
+            if (
+              Array.isArray(eventType.bookingWindow.value) &&
+              eventType.bookingWindow.value.length === 2
+            ) {
               setRangeStartDate(eventType.bookingWindow.value[0]);
               setRangeEndDate(eventType.bookingWindow.value[1]);
             }
           } else {
-            setFutureBookingType('rolling');
-            if (typeof eventType.bookingWindow.value === 'number') {
+            setFutureBookingType("rolling");
+            if (typeof eventType.bookingWindow.value === "number") {
               setRollingDays(eventType.bookingWindow.value.toString());
             }
-            setRollingCalendarDays(eventType.bookingWindow.type === 'calendarDays');
+            setRollingCalendarDays(eventType.bookingWindow.type === "calendarDays");
           }
         }
 
@@ -639,7 +699,10 @@ export default function EventTypeDetail() {
 
         // Load booker layouts
         if (eventType.bookerLayouts) {
-          if (eventType.bookerLayouts.enabledLayouts && Array.isArray(eventType.bookerLayouts.enabledLayouts)) {
+          if (
+            eventType.bookerLayouts.enabledLayouts &&
+            Array.isArray(eventType.bookerLayouts.enabledLayouts)
+          ) {
             setSelectedLayouts(eventType.bookerLayouts.enabledLayouts);
           }
           if (eventType.bookerLayouts.defaultLayout) {
@@ -682,7 +745,7 @@ export default function EventTypeDetail() {
         }
 
         // Load recurring event settings
-        if (eventType.recurrence && !('disabled' in eventType.recurrence)) {
+        if (eventType.recurrence && !("disabled" in eventType.recurrence)) {
           setRecurringEnabled(true);
           setRecurringInterval(eventType.recurrence.interval.toString());
           setRecurringFrequency(eventType.recurrence.frequency);
@@ -692,21 +755,24 @@ export default function EventTypeDetail() {
         // Extract location from event type
         if (eventType.locations && eventType.locations.length > 0) {
           const firstLocation = eventType.locations[0];
-          
+
           // Handle conferencing apps (with integration field)
           if (firstLocation.integration) {
             // Format the integration name (e.g., "google-meet" -> "Google Meet")
             const formattedLocation = formatAppIdToDisplayName(firstLocation.integration);
             setSelectedLocation(formattedLocation);
-          } 
+          }
           // Handle default locations (with type field)
           else if (firstLocation.type) {
             // Map API location types to internal location types
             // Need to distinguish between organizer and attendee types based on presence of fields
             let internalType = firstLocation.type;
-            
+
             // Check if it's an organizer type (has address, link, or phone field)
-            if (firstLocation.type === "address" || (firstLocation.type === "phone" && firstLocation.phone)) {
+            if (
+              firstLocation.type === "address" ||
+              (firstLocation.type === "phone" && firstLocation.phone)
+            ) {
               // Organizer types
               if (firstLocation.type === "address") {
                 internalType = "inPerson"; // Organizer address
@@ -718,20 +784,20 @@ export default function EventTypeDetail() {
             } else {
               // Attendee types - map API types to internal types
               const apiToInternalTypeMap: Record<string, string> = {
-                "attendeeAddress": "attendeeInPerson",
-                "attendeePhone": "phone",
-                "attendeeDefined": "somewhereElse",
+                attendeeAddress: "attendeeInPerson",
+                attendeePhone: "phone",
+                attendeeDefined: "somewhereElse",
               };
-              
+
               if (apiToInternalTypeMap[firstLocation.type]) {
                 internalType = apiToInternalTypeMap[firstLocation.type];
               }
             }
-            
+
             const defaultLocation = defaultLocations.find((loc) => loc.type === internalType);
             if (defaultLocation) {
               setSelectedLocation(defaultLocation.label);
-              
+
               // Populate location input values if they exist
               if (firstLocation.address) {
                 setLocationAddress(firstLocation.address);
@@ -815,7 +881,15 @@ export default function EventTypeDetail() {
     console.log("selectedScheduleDetails:", selectedScheduleDetails);
     console.log("availability:", selectedScheduleDetails.availability);
 
-    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
 
     const daySchedule = daysOfWeek.map((day) => {
       // Try different possible day formats
@@ -874,7 +948,7 @@ export default function EventTypeDetail() {
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
 
       Clipboard.setString(link);
-      Alert.alert("Success", "Link copied to clipboard");
+      Alert.alert("Success", "Link copied!");
     } catch (error) {
       console.error("Failed to copy link:", error);
       Alert.alert("Error", "Failed to copy link. Please try again.");
@@ -940,14 +1014,16 @@ export default function EventTypeDetail() {
       setSaving(true);
 
       // Build location payload if a location is selected
-      let locationsPayload: Array<{
-          type: string;
-          integration?: string;
-          address?: string;
-          link?: string;
-        phone?: string;
-        public?: boolean;
-      }> | undefined;
+      let locationsPayload:
+        | Array<{
+            type: string;
+            integration?: string;
+            address?: string;
+            link?: string;
+            phone?: string;
+            public?: boolean;
+          }>
+        | undefined;
 
       if (selectedLocation) {
         const locationValue = displayNameToLocationValue(selectedLocation);
@@ -959,7 +1035,7 @@ export default function EventTypeDetail() {
 
         // Get existing location data to preserve values (address, link, phone)
         const existingLocation = eventTypeData?.locations?.[0];
-        
+
         // Build location payload based on type
         const locationPayload: {
           type: string;
@@ -1040,7 +1116,7 @@ export default function EventTypeDetail() {
       // Add booking limits if enabled
       if (limitBookingFrequency && frequencyLimits.length > 0) {
         const limitsCount: any = {};
-        frequencyLimits.forEach(limit => {
+        frequencyLimits.forEach((limit) => {
           const unit = parseFrequencyUnit(limit.unit);
           if (unit) {
             limitsCount[unit] = parseInt(limit.value) || 1;
@@ -1053,7 +1129,7 @@ export default function EventTypeDetail() {
 
       if (limitTotalDuration && durationLimits.length > 0) {
         const limitsDuration: any = {};
-        durationLimits.forEach(limit => {
+        durationLimits.forEach((limit) => {
           const unit = parseFrequencyUnit(limit.unit);
           if (unit) {
             limitsDuration[unit] = parseInt(limit.value) || 60;
@@ -1086,14 +1162,14 @@ export default function EventTypeDetail() {
 
       // Add booking window (future bookings limit)
       if (limitFutureBookings) {
-        if (futureBookingType === 'range') {
+        if (futureBookingType === "range") {
           payload.bookingWindow = {
-            type: 'range',
+            type: "range",
             value: [rangeStartDate, rangeEndDate],
           };
         } else {
           payload.bookingWindow = {
-            type: rollingCalendarDays ? 'calendarDays' : 'businessDays',
+            type: rollingCalendarDays ? "calendarDays" : "businessDays",
             value: parseInt(rollingDays),
             rolling: true,
           };
@@ -1214,29 +1290,34 @@ export default function EventTypeDetail() {
               left: 0,
               right: 0,
               zIndex: 1000,
-              paddingHorizontal: 8, // px-2 equivalent
-              '@media (min-width: 768px)': {
-                paddingHorizontal: 16, // md:px-4 equivalent
-              },
+              paddingHorizontal: Platform.OS === "web" ? 16 : 8,
               paddingBottom: 12,
               paddingTop: insets.top + 8,
             },
           ]}
-          glassEffectStyle="clear">
-          <View className="flex-row items-center justify-between min-h-[44px]">
-            <TouchableOpacity className="w-10 h-10 justify-center items-start" onPress={() => router.back()}>
+          glassEffectStyle="clear"
+        >
+          <View className="min-h-[44px] flex-row items-center justify-between">
+            <TouchableOpacity
+              className="h-10 w-10 items-start justify-center"
+              onPress={() => router.back()}
+            >
               <Ionicons name="chevron-back" size={24} color="#000" />
             </TouchableOpacity>
 
-            <Text className="flex-1 text-lg font-semibold text-black text-center mx-2.5" numberOfLines={1}>
+            <Text
+              className="mx-2.5 flex-1 text-center text-lg font-semibold text-black"
+              numberOfLines={1}
+            >
               {id === "new" ? "Create Event Type" : truncateTitle(title)}
             </Text>
 
             <TouchableOpacity
-              className={`px-2 md:px-4 py-2 bg-black rounded-[10px] min-w-[60px] items-center ${saving ? "opacity-60" : ""}`}
+              className={`min-w-[60px] items-center rounded-[10px] bg-black px-2 py-2 md:px-4 ${saving ? "opacity-60" : ""}`}
               onPress={handleSave}
-              disabled={saving}>
-              <Text className="text-white text-base font-semibold">
+              disabled={saving}
+            >
+              <Text className="text-base font-semibold text-white">
                 {id === "new" ? "Create" : "Save"}
               </Text>
             </TouchableOpacity>
@@ -1245,23 +1326,31 @@ export default function EventTypeDetail() {
 
         {/* Tabs */}
         <View
-          className="absolute top-0 left-0 right-0 z-[999] bg-white border-b border-[#C6C6C8] pb-2"
-          style={{ paddingTop: insets.top + 70 }}>
+          className="absolute left-0 right-0 top-0 z-[999] border-b border-[#C6C6C8] bg-white pb-2"
+          style={{ paddingTop: insets.top + 70 }}
+        >
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 12, gap: 2 }}>
+            contentContainerStyle={{ paddingHorizontal: 12, gap: 2 }}
+          >
             {tabs.map((tab) => (
               <TouchableOpacity
                 key={tab.id}
-                className={`px-2 md:px-4 py-2 rounded-[20px] min-w-[80px] items-center ${
+                className={`min-w-[80px] items-center rounded-[20px] px-2 py-2 md:px-4 ${
                   activeTab === tab.id ? "bg-[#EEEFF2]" : ""
                 }`}
-                onPress={() => setActiveTab(tab.id)}>
+                onPress={() => setActiveTab(tab.id)}
+              >
                 <View className="flex-row items-center gap-1.5">
-                  <Ionicons name={tab.icon as any} size={16} color={activeTab === tab.id ? "#000" : "#666"} />
+                  <Ionicons
+                    name={tab.icon as any}
+                    size={16}
+                    color={activeTab === tab.id ? "#000" : "#666"}
+                  />
                   <Text
-                    className={`text-sm font-medium ${activeTab === tab.id ? "text-black font-semibold" : "text-[#666]"}`}>
+                    className={`text-sm font-medium ${activeTab === tab.id ? "font-semibold text-black" : "text-[#666]"}`}
+                  >
                     {tab.label}
                   </Text>
                 </View>
@@ -1275,7 +1364,7 @@ export default function EventTypeDetail() {
           style={{
             flex: 1,
             paddingTop: Platform.OS === "web" ? 120 : 180,
-            paddingBottom: 250
+            paddingBottom: 250,
           }}
           contentContainerStyle={{ padding: 20, paddingBottom: 200 }}
         >
@@ -1314,19 +1403,28 @@ export default function EventTypeDetail() {
             visible={showDurationDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowDurationDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDurationDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[300px] max-w-[90%] max-h-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Available Durations</Text>
+            onRequestClose={() => setShowDurationDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowDurationDropdown(false)}
+            >
+              <View className="max-h-[80%] min-w-[300px] max-w-[90%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Select Available Durations
+                </Text>
                 <ScrollView style={{ maxHeight: 400, marginBottom: 16 }}>
                   {availableDurations.map((duration) => (
                     <TouchableOpacity
                       key={duration}
-                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
+                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                         selectedDurations.includes(duration) ? "bg-[#F0F0F0]" : ""
                       }`}
-                      onPress={() => toggleDurationSelection(duration)}>
-                      <Text className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}>
+                      onPress={() => toggleDurationSelection(duration)}
+                    >
+                      <Text
+                        className={`text-base text-[#333] ${selectedDurations.includes(duration) ? "font-semibold" : ""}`}
+                      >
                         {duration}
                       </Text>
                       {selectedDurations.includes(duration) && (
@@ -1335,8 +1433,11 @@ export default function EventTypeDetail() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-                <TouchableOpacity className="bg-black py-3 px-6 rounded-lg items-center" onPress={() => setShowDurationDropdown(false)}>
-                  <Text className="text-white text-base font-semibold">Done</Text>
+                <TouchableOpacity
+                  className="items-center rounded-lg bg-black px-6 py-3"
+                  onPress={() => setShowDurationDropdown(false)}
+                >
+                  <Text className="text-base font-semibold text-white">Done</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -1347,24 +1448,35 @@ export default function EventTypeDetail() {
             visible={showDefaultDurationDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowDefaultDurationDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDefaultDurationDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Default Duration</Text>
+            onRequestClose={() => setShowDefaultDurationDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowDefaultDurationDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Select Default Duration
+                </Text>
                 {selectedDurations.map((duration) => (
                   <TouchableOpacity
                     key={duration}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       defaultDuration === duration ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setDefaultDuration(duration);
                       setShowDefaultDurationDropdown(false);
-                    }}>
-                    <Text className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}>
+                    }}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${defaultDuration === duration ? "font-semibold" : ""}`}
+                    >
                       {duration}
                     </Text>
-                    {defaultDuration === duration && <Ionicons name="checkmark" size={20} color="#000" />}
+                    {defaultDuration === duration && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1376,27 +1488,36 @@ export default function EventTypeDetail() {
             visible={showScheduleDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowScheduleDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowScheduleDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Schedule</Text>
+            onRequestClose={() => setShowScheduleDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowScheduleDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Select Schedule
+                </Text>
                 {schedules.map((schedule) => (
                   <TouchableOpacity
                     key={schedule.id}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       selectedSchedule?.id === schedule.id ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setSelectedSchedule(schedule);
                       setShowScheduleDropdown(false);
                       fetchScheduleDetails(schedule.id);
-                    }}>
+                    }}
+                  >
                     <View className="flex-1 flex-row items-center justify-between">
-                      <Text className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}>
+                      <Text
+                        className={`text-base text-[#333] ${selectedSchedule?.id === schedule.id ? "font-semibold" : ""}`}
+                      >
                         {schedule.name}
                       </Text>
                       {schedule.isDefault && (
-                        <Text className="text-xs text-[#34C759] font-medium bg-[#E8F5E8] px-1.5 py-0.5 rounded">
+                        <Text className="rounded bg-[#E8F5E8] px-1.5 py-0.5 text-xs font-medium text-[#34C759]">
                           Default
                         </Text>
                       )}
@@ -1415,10 +1536,19 @@ export default function EventTypeDetail() {
             visible={showTimezoneDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowTimezoneDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowTimezoneDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]" style={{ maxHeight: '70%' }}>
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Select Timezone</Text>
+            onRequestClose={() => setShowTimezoneDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowTimezoneDropdown(false)}
+            >
+              <View
+                className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5"
+                style={{ maxHeight: "70%" }}
+              >
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Select Timezone
+                </Text>
                 <ScrollView style={{ maxHeight: 400 }}>
                   {[
                     "America/New_York",
@@ -1436,17 +1566,26 @@ export default function EventTypeDetail() {
                   ].map((tz) => (
                     <TouchableOpacity
                       key={tz}
-                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
-                        selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
+                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
+                        selectedTimezone === tz ||
+                        (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)
+                          ? "bg-[#F0F0F0]"
+                          : "active:bg-[#F0F0F0]"
                       }`}
                       onPress={() => {
                         setSelectedTimezone(tz);
                         setShowTimezoneDropdown(false);
-                      }}>
-                      <Text className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}>
+                      }}
+                    >
+                      <Text
+                        className={`text-base text-[#333] ${selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone) ? "font-semibold" : ""}`}
+                      >
                         {tz}
                       </Text>
-                      {(selectedTimezone === tz || (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)) && <Ionicons name="checkmark" size={20} color="#000" />}
+                      {(selectedTimezone === tz ||
+                        (selectedScheduleDetails?.timeZone === tz && !selectedTimezone)) && (
+                        <Ionicons name="checkmark" size={20} color="#000" />
+                      )}
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -1459,80 +1598,118 @@ export default function EventTypeDetail() {
             visible={showLocationDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowLocationDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowLocationDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 w-[80%] max-w-[350px]" style={{ maxHeight: '70%' }}>
+            onRequestClose={() => setShowLocationDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowLocationDropdown(false)}
+            >
+              <View
+                className="w-[80%] max-w-[350px] rounded-2xl bg-white p-5"
+                style={{ maxHeight: "70%" }}
+              >
                 {conferencingLoading ? (
-                  <Text className="text-base text-[#666] text-center py-4">Loading locations...</Text>
-                ) : (() => {
-                  const groups = getLocationOptions();
-                  if (groups.length === 0) {
-                    return <Text className="text-base text-[#8E8E93] text-center py-4">No locations available</Text>;
-                  }
-                  return (
-                    <ScrollView 
-                      showsVerticalScrollIndicator={true}
-                      style={{ maxHeight: 400 }}
-                      nestedScrollEnabled={true}
-                      contentContainerStyle={{ paddingBottom: 10 }}
-                    >
-                      {groups.map((group) => (
-                        <View key={group.category}>
-                          {/* Section Header */}
-                          <View className="px-2 md:px-4 py-2">
-                            <Text className="text-xs font-normal text-[#666] uppercase tracking-wide">
-                              {group.category}
-                            </Text>
-                          </View>
-                          {/* Section Options */}
-                          {group.options.map((option) => (
-                            <TouchableOpacity
-                              key={option.value}
-                              activeOpacity={0.7}
-                              className={`flex-row justify-between items-center py-2.5 px-2 md:px-4 rounded-lg ${
-                                selectedLocation === option.label ? "bg-[#F0F0F0]" : "active:bg-[#F0F0F0]"
-                              }`}
-                              style={{ marginBottom: 2 }}
-                              onPress={() => {
-                                const newLocation = defaultLocations.find((loc) => loc.label === option.label);
-                                setSelectedLocation(option.label);
-                                setShowLocationDropdown(false);
-                                // Clear input values that are not needed for the new location
-                                if (!newLocation || newLocation.type !== "inPerson") {
-                                  setLocationAddress("");
-                                }
-                                if (!newLocation || newLocation.type !== "link") {
-                                  setLocationLink("");
-                                }
-                                if (!newLocation || newLocation.type !== "userPhone") {
-                                  setLocationPhone("");
-                                }
-                              }}>
-                              <View className="flex-row items-center flex-1">
-                                {option.iconUrl ? (
-                                  <SvgImage
-                                    uri={option.iconUrl}
-                                    width={18}
-                                    height={18}
-                                    style={{ marginRight: 12 }}
-                                  />
-                                ) : (
-                                  <View style={{ width: 18, height: 18, backgroundColor: '#FF6B6B', borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' }}>
-                                    <Text style={{ color: 'white', fontSize: 8, fontWeight: 'bold' }}>?</Text>
-                                  </View>
+                  <Text className="py-4 text-center text-base text-[#666]">
+                    Loading locations...
+                  </Text>
+                ) : (
+                  (() => {
+                    const groups = getLocationOptions();
+                    if (groups.length === 0) {
+                      return (
+                        <Text className="py-4 text-center text-base text-[#8E8E93]">
+                          No locations available
+                        </Text>
+                      );
+                    }
+                    return (
+                      <ScrollView
+                        showsVerticalScrollIndicator={true}
+                        style={{ maxHeight: 400 }}
+                        nestedScrollEnabled={true}
+                        contentContainerStyle={{ paddingBottom: 10 }}
+                      >
+                        {groups.map((group) => (
+                          <View key={group.category}>
+                            {/* Section Header */}
+                            <View className="px-2 py-2 md:px-4">
+                              <Text className="text-xs font-normal uppercase tracking-wide text-[#666]">
+                                {group.category}
+                              </Text>
+                            </View>
+                            {/* Section Options */}
+                            {group.options.map((option) => (
+                              <TouchableOpacity
+                                key={option.value}
+                                activeOpacity={0.7}
+                                className={`flex-row items-center justify-between rounded-lg px-2 py-2.5 md:px-4 ${
+                                  selectedLocation === option.label
+                                    ? "bg-[#F0F0F0]"
+                                    : "active:bg-[#F0F0F0]"
+                                }`}
+                                style={{ marginBottom: 2 }}
+                                onPress={() => {
+                                  const newLocation = defaultLocations.find(
+                                    (loc) => loc.label === option.label
+                                  );
+                                  setSelectedLocation(option.label);
+                                  setShowLocationDropdown(false);
+                                  // Clear input values that are not needed for the new location
+                                  if (!newLocation || newLocation.type !== "inPerson") {
+                                    setLocationAddress("");
+                                  }
+                                  if (!newLocation || newLocation.type !== "link") {
+                                    setLocationLink("");
+                                  }
+                                  if (!newLocation || newLocation.type !== "userPhone") {
+                                    setLocationPhone("");
+                                  }
+                                }}
+                              >
+                                <View className="flex-1 flex-row items-center">
+                                  {option.iconUrl ? (
+                                    <SvgImage
+                                      uri={option.iconUrl}
+                                      width={18}
+                                      height={18}
+                                      style={{ marginRight: 12 }}
+                                    />
+                                  ) : (
+                                    <View
+                                      style={{
+                                        width: 18,
+                                        height: 18,
+                                        backgroundColor: "#FF6B6B",
+                                        borderRadius: 4,
+                                        marginRight: 12,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <Text
+                                        style={{ color: "white", fontSize: 8, fontWeight: "bold" }}
+                                      >
+                                        ?
+                                      </Text>
+                                    </View>
+                                  )}
+                                  <Text
+                                    className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}
+                                  >
+                                    {option.label}
+                                  </Text>
+                                </View>
+                                {selectedLocation === option.label && (
+                                  <Ionicons name="checkmark" size={20} color="#000" />
                                 )}
-                                <Text className={`text-base text-[#333] ${selectedLocation === option.label ? "font-semibold" : ""}`}>
-                                  {option.label}
-                                </Text>
-                              </View>
-                              {selectedLocation === option.label && <Ionicons name="checkmark" size={20} color="#000" />}
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      ))}
-                    </ScrollView>
-                  );
-                })()}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        ))}
+                      </ScrollView>
+                    );
+                  })()
+                )}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1542,24 +1719,35 @@ export default function EventTypeDetail() {
             visible={showBeforeBufferDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowBeforeBufferDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowBeforeBufferDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Before event buffer</Text>
+            onRequestClose={() => setShowBeforeBufferDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowBeforeBufferDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Before event buffer
+                </Text>
                 {bufferTimeOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       beforeEventBuffer === option ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setBeforeEventBuffer(option);
                       setShowBeforeBufferDropdown(false);
-                    }}>
-                    <Text className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}>
+                    }}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${beforeEventBuffer === option ? "font-semibold" : ""}`}
+                    >
                       {option}
                     </Text>
-                    {beforeEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    {beforeEventBuffer === option && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1571,24 +1759,35 @@ export default function EventTypeDetail() {
             visible={showAfterBufferDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowAfterBufferDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowAfterBufferDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">After event buffer</Text>
+            onRequestClose={() => setShowAfterBufferDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowAfterBufferDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  After event buffer
+                </Text>
                 {bufferTimeOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       afterEventBuffer === option ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setAfterEventBuffer(option);
                       setShowAfterBufferDropdown(false);
-                    }}>
-                    <Text className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}>
+                    }}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${afterEventBuffer === option ? "font-semibold" : ""}`}
+                    >
                       {option}
                     </Text>
-                    {afterEventBuffer === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    {afterEventBuffer === option && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1600,24 +1799,35 @@ export default function EventTypeDetail() {
             visible={showMinimumNoticeUnitDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowMinimumNoticeUnitDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Time unit</Text>
+            onRequestClose={() => setShowMinimumNoticeUnitDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowMinimumNoticeUnitDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Time unit
+                </Text>
                 {timeUnitOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       minimumNoticeUnit === option ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setMinimumNoticeUnit(option);
                       setShowMinimumNoticeUnitDropdown(false);
-                    }}>
-                    <Text className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}>
+                    }}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${minimumNoticeUnit === option ? "font-semibold" : ""}`}
+                    >
                       {option}
                     </Text>
-                    {minimumNoticeUnit === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    {minimumNoticeUnit === option && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1629,10 +1839,16 @@ export default function EventTypeDetail() {
             visible={showFrequencyUnitDropdown !== null}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowFrequencyUnitDropdown(null)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowFrequencyUnitDropdown(null)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Frequency unit</Text>
+            onRequestClose={() => setShowFrequencyUnitDropdown(null)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowFrequencyUnitDropdown(null)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Frequency unit
+                </Text>
                 {frequencyUnitOptions.map((option) => {
                   const selectedLimit = frequencyLimits.find(
                     (limit) => limit.id === showFrequencyUnitDropdown
@@ -1641,7 +1857,7 @@ export default function EventTypeDetail() {
                   return (
                     <TouchableOpacity
                       key={option}
-                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
+                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                         isSelected ? "bg-[#F0F0F0]" : ""
                       }`}
                       onPress={() => {
@@ -1649,8 +1865,11 @@ export default function EventTypeDetail() {
                           updateFrequencyLimit(showFrequencyUnitDropdown, "unit", option);
                         }
                         setShowFrequencyUnitDropdown(null);
-                      }}>
-                      <Text className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}>
+                      }}
+                    >
+                      <Text
+                        className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}
+                      >
                         {option}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -1666,17 +1885,25 @@ export default function EventTypeDetail() {
             visible={showDurationUnitDropdown !== null}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowDurationUnitDropdown(null)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowDurationUnitDropdown(null)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Duration unit</Text>
+            onRequestClose={() => setShowDurationUnitDropdown(null)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowDurationUnitDropdown(null)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Duration unit
+                </Text>
                 {durationUnitOptions.map((option) => {
-                  const selectedLimit = durationLimits.find((limit) => limit.id === showDurationUnitDropdown);
+                  const selectedLimit = durationLimits.find(
+                    (limit) => limit.id === showDurationUnitDropdown
+                  );
                   const isSelected = selectedLimit?.unit === option;
                   return (
                     <TouchableOpacity
                       key={option}
-                      className={`flex-row justify-between items-center py-3 px-2 md:px-4 rounded-lg mb-1 ${
+                      className={`mb-1 flex-row items-center justify-between rounded-lg px-2 py-3 md:px-4 ${
                         isSelected ? "bg-[#F0F0F0]" : ""
                       }`}
                       onPress={() => {
@@ -1684,8 +1911,11 @@ export default function EventTypeDetail() {
                           updateDurationLimit(showDurationUnitDropdown, "unit", option);
                         }
                         setShowDurationUnitDropdown(null);
-                      }}>
-                      <Text className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}>
+                      }}
+                    >
+                      <Text
+                        className={`text-base text-[#333] ${isSelected ? "font-semibold" : ""}`}
+                      >
                         {option}
                       </Text>
                       {isSelected && <Ionicons name="checkmark" size={20} color="#000" />}
@@ -1701,24 +1931,35 @@ export default function EventTypeDetail() {
             visible={showSlotIntervalDropdown}
             transparent
             animationType="fade"
-            onRequestClose={() => setShowSlotIntervalDropdown(false)}>
-            <TouchableOpacity className="flex-1 bg-[rgba(0,0,0,0.5)] justify-center items-center" onPress={() => setShowSlotIntervalDropdown(false)}>
-              <View className="bg-white rounded-2xl p-5 min-w-[250px] max-w-[80%]">
-                <Text className="text-lg font-semibold text-[#333] mb-4 text-center">Slot interval</Text>
+            onRequestClose={() => setShowSlotIntervalDropdown(false)}
+          >
+            <TouchableOpacity
+              className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.5)]"
+              onPress={() => setShowSlotIntervalDropdown(false)}
+            >
+              <View className="min-w-[250px] max-w-[80%] rounded-2xl bg-white p-5">
+                <Text className="mb-4 text-center text-lg font-semibold text-[#333]">
+                  Slot interval
+                </Text>
                 {slotIntervalOptions.map((option) => (
                   <TouchableOpacity
                     key={option}
-                    className={`flex-row justify-between items-center py-3 px-4 rounded-lg mb-1 ${
+                    className={`mb-1 flex-row items-center justify-between rounded-lg px-4 py-3 ${
                       slotInterval === option ? "bg-[#F0F0F0]" : ""
                     }`}
                     onPress={() => {
                       setSlotInterval(option);
                       setShowSlotIntervalDropdown(false);
-                    }}>
-                    <Text className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}>
+                    }}
+                  >
+                    <Text
+                      className={`text-base text-[#333] ${slotInterval === option ? "font-semibold" : ""}`}
+                    >
                       {option}
                     </Text>
-                    {slotInterval === option && <Ionicons name="checkmark" size={20} color="#000" />}
+                    {slotInterval === option && (
+                      <Ionicons name="checkmark" size={20} color="#000" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1787,7 +2028,6 @@ export default function EventTypeDetail() {
             />
           )}
 
-
           {activeTab === "advanced" && (
             <AdvancedTab
               calendarEventName={calendarEventName}
@@ -1849,23 +2089,29 @@ export default function EventTypeDetail() {
           )}
 
           {activeTab === "apps" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Connected Apps</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Manage app integrations for this event type.</Text>
+            <View className="rounded-2xl bg-white p-5 shadow-md">
+              <Text className="mb-4 text-lg font-semibold text-[#333]">Connected Apps</Text>
+              <Text className="mb-6 text-base leading-6 text-[#666]">
+                Manage app integrations for this event type.
+              </Text>
             </View>
           )}
 
           {activeTab === "workflows" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Workflows</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Configure automated workflows and actions.</Text>
+            <View className="rounded-2xl bg-white p-5 shadow-md">
+              <Text className="mb-4 text-lg font-semibold text-[#333]">Workflows</Text>
+              <Text className="mb-6 text-base leading-6 text-[#666]">
+                Configure automated workflows and actions.
+              </Text>
             </View>
           )}
 
           {activeTab === "webhooks" && (
-            <View className="bg-white rounded-2xl p-5 shadow-md">
-              <Text className="text-lg font-semibold text-[#333] mb-4">Webhooks</Text>
-              <Text className="text-base text-[#666] leading-6 mb-6">Set up webhook endpoints for event notifications.</Text>
+            <View className="rounded-2xl bg-white p-5 shadow-md">
+              <Text className="mb-4 text-lg font-semibold text-[#333]">Webhooks</Text>
+              <Text className="mb-6 text-base leading-6 text-[#666]">
+                Set up webhook endpoints for event notifications.
+              </Text>
             </View>
           )}
         </ScrollView>
@@ -1884,7 +2130,8 @@ export default function EventTypeDetail() {
             borderTopColor: "#E5E5EA",
             paddingBottom: insets.bottom + 12,
           }}
-          glassEffectStyle="clear">
+          glassEffectStyle="clear"
+        >
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-2">
               <Text className="text-base font-medium text-[#333]">Hidden</Text>
@@ -1897,20 +2144,38 @@ export default function EventTypeDetail() {
             </View>
 
             <View className="flex-row items-center gap-3">
-              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
-                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handlePreview}>
+              <GlassView
+                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
+                glassEffectStyle="clear"
+              >
+                <TouchableOpacity
+                  className="h-11 w-11 items-center justify-center"
+                  onPress={handlePreview}
+                >
                   <Ionicons name="open-outline" size={20} color="#000" />
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
-                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handleCopyLink}>
+              <GlassView
+                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
+                glassEffectStyle="clear"
+              >
+                <TouchableOpacity
+                  className="h-11 w-11 items-center justify-center"
+                  onPress={handleCopyLink}
+                >
                   <Ionicons name="link-outline" size={20} color="#000" />
                 </TouchableOpacity>
               </GlassView>
 
-              <GlassView className="rounded-full overflow-hidden bg-[rgba(255,255,255,0.1)]" glassEffectStyle="clear">
-                <TouchableOpacity className="w-11 h-11 items-center justify-center" onPress={handleDelete}>
+              <GlassView
+                className="overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]"
+                glassEffectStyle="clear"
+              >
+                <TouchableOpacity
+                  className="h-11 w-11 items-center justify-center"
+                  onPress={handleDelete}
+                >
                   <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
               </GlassView>

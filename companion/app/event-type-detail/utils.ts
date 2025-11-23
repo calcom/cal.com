@@ -56,4 +56,3 @@ export const displayNameToLocationValue = (
   const appId = displayName.toLowerCase().replace(/\s+/g, "-");
   return { type: "integration", integration: appId };
 };
-

@@ -34,4 +34,3 @@ export interface GetWebhookResponse {
   status: string;
   data: Webhook;
 }
-

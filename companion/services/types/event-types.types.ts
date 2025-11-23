@@ -36,7 +36,11 @@ export interface RangeWindow {
   value: [string, string]; // ISO date strings
 }
 
-export type BookingWindow = BusinessDaysWindow | CalendarDaysWindow | RangeWindow | { disabled: true };
+export type BookingWindow =
+  | BusinessDaysWindow
+  | CalendarDaysWindow
+  | RangeWindow
+  | { disabled: true };
 
 export interface BookerLayouts {
   enabledLayouts: Array<"month_view" | "week_view" | "column_view">;
@@ -150,7 +154,7 @@ export interface EventType {
   length: number; // Deprecated: use lengthInMinutes instead
   lengthInMinutes?: number; // API returns this field
   lengthInMinutesOptions?: number[];
-  
+
   // Locations
   locations?: Array<{
     type: string;
@@ -161,11 +165,11 @@ export interface EventType {
     credentialId?: number;
     public?: boolean;
   }>;
-  
+
   // Pricing
   price?: number;
   currency?: string;
-  
+
   // Basic settings
   disableGuests?: boolean;
   lockTimeZoneToggleOnBookingPage?: boolean;
@@ -174,14 +178,14 @@ export interface EventType {
   hideCalendarNotes?: boolean;
   successRedirectUrl?: string;
   forwardParamsSuccessRedirect?: boolean;
-  
+
   // Schedule and buffers
   scheduleId?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
-  
+
   // Limits
   bookingLimitsCount?: BookingLimitsCount | { disabled: true };
   bookingLimitsDuration?: BookingLimitsDuration | { disabled: true };
@@ -189,22 +193,22 @@ export interface EventType {
   onlyShowFirstAvailableSlot?: boolean;
   bookingWindow?: BookingWindow;
   offsetStart?: number;
-  
+
   // Advanced
   bookerLayouts?: BookerLayouts;
   confirmationPolicy?: ConfirmationPolicy | { disabled: true };
-  
+
   // Recurring
   recurrence?: Recurrence | { disabled: true };
-  
+
   // Seats
   seats?: Seats | { disabled: true };
-  
+
   // Customization
   bookingFields?: BookingField[];
   hidden?: boolean;
   eventTypeColor?: EventTypeColor;
-  
+
   // Ownership
   userId?: number;
   teamId?: number;
@@ -212,7 +216,7 @@ export interface EventType {
     userId: number;
     isFixed: boolean;
   }>;
-  
+
   // Metadata
   metadata?: Record<string, any>;
 }
@@ -282,4 +286,3 @@ export interface GetEventTypesResponse {
   status: "success";
   data: EventType[];
 }
-

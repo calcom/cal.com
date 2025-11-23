@@ -95,4 +95,3 @@ export function getDefaultLocationIconUrl(locationType: string): string | null {
 export function isDefaultLocation(locationType: string): boolean {
   return defaultLocations.some((loc) => loc.type === locationType);
 }
-

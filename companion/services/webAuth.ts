@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 export interface WebSessionInfo {
   isLoggedIn: boolean;
@@ -10,7 +10,7 @@ export interface WebSessionInfo {
 export class WebAuthService {
   // Check if running on web
   static isWeb(): boolean {
-    return Platform.OS === 'web';
+    return Platform.OS === "web";
   }
 
   // Get cookies from the browser
@@ -18,9 +18,9 @@ export class WebAuthService {
     if (!this.isWeb()) return {};
 
     const cookies: { [key: string]: string } = {};
-    if (typeof document !== 'undefined') {
-      document.cookie.split(';').forEach(cookie => {
-        const [name, value] = cookie.trim().split('=');
+    if (typeof document !== "undefined") {
+      document.cookie.split(";").forEach((cookie) => {
+        const [name, value] = cookie.trim().split("=");
         if (name && value) {
           cookies[name] = decodeURIComponent(value);
         }
@@ -42,15 +42,15 @@ export class WebAuthService {
       // Look for Cal.com authentication cookies
       // Common patterns: next-auth.session-token, __Secure-next-auth.session-token, etc.
       const sessionCookieNames = [
-        'next-auth.session-token',
-        '__Secure-next-auth.session-token',
-        '__Host-next-auth.session-token',
-        'next-auth.csrf-token',
-        'cal-session',
-        'session-token'
+        "next-auth.session-token",
+        "__Secure-next-auth.session-token",
+        "__Host-next-auth.session-token",
+        "next-auth.csrf-token",
+        "cal-session",
+        "session-token",
       ];
 
-      const foundSessionCookie = sessionCookieNames.find(name => cookies[name]);
+      const foundSessionCookie = sessionCookieNames.find((name) => cookies[name]);
 
       if (foundSessionCookie) {
         // Try to validate the session with Cal.com API
@@ -72,11 +72,11 @@ export class WebAuthService {
 
     try {
       // First try to call the NextAuth session endpoint
-      const sessionResponse = await fetch('https://app.cal.com/api/auth/session', {
-        method: 'GET',
-        credentials: 'include', // Include cookies
+      const sessionResponse = await fetch("https://app.cal.com/api/auth/session", {
+        method: "GET",
+        credentials: "include", // Include cookies
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -93,11 +93,11 @@ export class WebAuthService {
       }
 
       // Try the internal Cal.com me endpoint (this might work with cookies)
-      const meResponse = await fetch('https://app.cal.com/api/me', {
-        method: 'GET',
-        credentials: 'include',
+      const meResponse = await fetch("https://app.cal.com/api/me", {
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -113,11 +113,11 @@ export class WebAuthService {
       }
 
       // Try to check if user is logged in by attempting to access a protected page
-      const dashboardResponse = await fetch('https://app.cal.com/api/trpc/viewer.me', {
-        method: 'GET',
-        credentials: 'include',
+      const dashboardResponse = await fetch("https://app.cal.com/api/trpc/viewer.me", {
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -147,24 +147,24 @@ export class WebAuthService {
     try {
       // Some Cal.com implementations might expose tokens via specific endpoints
       // This is a fallback approach - in practice, web sessions might not expose tokens directly
-      
+
       // Check localStorage/sessionStorage for any stored tokens
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const localStorage = window.localStorage;
         const sessionStorage = window.sessionStorage;
 
         const possibleTokenKeys = [
-          'cal-access-token',
-          'cal-auth-token',
-          'next-auth.token',
-          'auth-token',
-          'access-token'
+          "cal-access-token",
+          "cal-auth-token",
+          "next-auth.token",
+          "auth-token",
+          "access-token",
         ];
 
         for (const key of possibleTokenKeys) {
           const localToken = localStorage.getItem(key);
           const sessionToken = sessionStorage.getItem(key);
-          
+
           if (localToken || sessionToken) {
             return {
               accessToken: localToken || sessionToken || undefined,
@@ -186,7 +186,7 @@ export class WebAuthService {
     // For web, redirect directly to Cal.com login
     const currentUrl = window.location.href;
     const loginUrl = `https://app.cal.com/auth/signin?callbackUrl=${encodeURIComponent(currentUrl)}`;
-    
+
     window.location.href = loginUrl;
   }
 }
