@@ -20,10 +20,11 @@ export default defineContentScript({
     sidebarContainer.style.position = 'fixed';
     sidebarContainer.style.top = '0';
     sidebarContainer.style.right = '0';
-    sidebarContainer.style.width = '400px';
+    sidebarContainer.style.pointerEvents = 'none';
+    sidebarContainer.style.width = '100vw';
     sidebarContainer.style.height = '100vh';
     sidebarContainer.style.zIndex = '2147483647';
-    sidebarContainer.style.backgroundColor = 'white';
+    sidebarContainer.style.backgroundColor = 'transparent';
     sidebarContainer.style.border = '1px solid #ccc';
     sidebarContainer.style.borderTop = 'none';
     sidebarContainer.style.borderBottom = 'none';
@@ -32,15 +33,28 @@ export default defineContentScript({
     sidebarContainer.style.transform = 'translateX(100%)';
     sidebarContainer.style.display = 'none';
 
+    // Create iframe container with max width
+    const iframeContainer = document.createElement('div');
+    iframeContainer.style.width = '100%';
+    iframeContainer.style.height = '100%';
+    iframeContainer.style.display = 'flex';
+    iframeContainer.style.justifyContent = 'flex-end';
+    iframeContainer.style.pointerEvents = 'auto';
+    
     // Create iframe
     const iframe = document.createElement('iframe');
     iframe.src = 'http://localhost:8081';
-    iframe.style.width = '100%';
+    iframe.style.width = '250px';
+    iframe.style.maxWidth = '250px';
     iframe.style.height = '100%';
     iframe.style.border = 'none';
     iframe.style.borderRadius = '0';
+    iframe.style.backgroundColor = 'transparent';
+    iframe.style.boxShadow = '-2px 0 10px rgba(0,0,0,0.1)';
+    
+    iframeContainer.appendChild(iframe);
 
-    sidebarContainer.appendChild(iframe);
+    sidebarContainer.appendChild(iframeContainer);
 
     // Create floating buttons container
     const buttonsContainer = document.createElement('div');

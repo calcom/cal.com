@@ -10,7 +10,7 @@ export default function RootLayout() {
   );
 
   return Platform.OS === 'web' ? (
-    <View style={{ width: 400, flex: 1, display: 'flex', flexDirection: 'column' }} className="bg-white">
+    <View className="w-[400px] bg-white self-end flex-1 flex-col border border-gray-200">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {stackContent}
     </View>

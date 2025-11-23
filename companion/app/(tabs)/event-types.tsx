@@ -1356,89 +1356,93 @@ export default function EventTypes() {
                     </ScrollView>
                   </View>
                   
-                  {/* Right Sidebar */}
-                  <View className="w-80 border-l border-gray-200 bg-gray-50">
-                    <View className="px-4 py-3 border-b border-gray-200 bg-white">
-                      <Text className="text-lg font-semibold text-gray-900">Selected Ranges</Text>
-                      <Text className="text-sm text-gray-500">{selectionRanges.length} range{selectionRanges.length !== 1 ? 's' : ''} selected</Text>
-                    </View>
-                    
-                    <ScrollView className="flex-1 px-4 py-2">
-                      {selectionRanges.length === 0 ? (
-                        <View className="flex-1 justify-center items-center py-8">
-                          <Ionicons name="time-outline" size={48} color="#9CA3AF" />
-                          <Text className="text-gray-500 text-center mt-3 text-sm">
-                            Drag on the calendar to select time ranges
-                          </Text>
-                        </View>
-                      ) : (
-                        <View className="space-y-2">
-                          {selectionRanges.map((range, index) => {
-                            const startDay = weekDays[range.startDay];
-                            const endDay = weekDays[range.endDay];
-                            const startTime = formatTime24(range.startHour, range.startMinute);
-                            const endTime = formatTime24(range.endHour, range.endMinute);
-                            
-                            const isSameDay = range.startDay === range.endDay;
-                            const duration = Math.ceil(((range.endDay * 1440 + range.endHour * 60 + range.endMinute) - 
-                                                       (range.startDay * 1440 + range.startHour * 60 + range.startMinute)) / 15) * 15;
-                            const durationHours = Math.floor(duration / 60);
-                            const durationMins = duration % 60;
-                            const durationText = durationHours > 0 ? 
-                              (durationMins > 0 ? `${durationHours}h ${durationMins}m` : `${durationHours}h`) : 
-                              `${durationMins}m`;
-                            
-                            return (
-                              <TouchableOpacity
-                                key={range.id}
-                                className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 mb-2"
-                                onPress={() => removeRange(range.id)}
-                              >
-                                <View className="flex-row items-center justify-between mb-2">
-                                  <Text className="text-sm font-medium text-gray-900">Range {index + 1}</Text>
-                                  <TouchableOpacity onPress={() => removeRange(range.id)}>
-                                    <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                                  </TouchableOpacity>
-                                </View>
-                                
-                                {isSameDay ? (
-                                  <View>
-                                    <Text className="text-sm text-gray-700 font-medium">
-                                      {startDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    </Text>
-                                    <Text className="text-sm text-gray-600">
-                                      {startTime} - {endTime}
-                                    </Text>
+                  {/* Right Sidebar Container - Full width with pointer events disabled */}
+                  <View className="flex-1 max-w-64 self-end" style={{ pointerEvents: 'none' }}>
+                    {/* Actual Sidebar Content - Max width 400px, positioned to right */}
+                    <View 
+                      className="bg-gray-50 border-l border-gray-200 h-full ">
+                      <View className="px-4 py-3 border-b border-gray-200 bg-white">
+                        <Text className="text-lg font-semibold text-gray-900">Selected Ranges</Text>
+                        <Text className="text-sm text-gray-500">{selectionRanges.length} range{selectionRanges.length !== 1 ? 's' : ''} selected</Text>
+                      </View>
+                      
+                      <ScrollView className="flex-1 px-4 py-2">
+                        {selectionRanges.length === 0 ? (
+                          <View className="flex-1 justify-center items-center py-8">
+                            <Ionicons name="time-outline" size={48} color="#9CA3AF" />
+                            <Text className="text-gray-500 text-center mt-3 text-sm">
+                              Drag on the calendar to select time ranges
+                            </Text>
+                          </View>
+                        ) : (
+                          <View className="space-y-2">
+                            {selectionRanges.map((range, index) => {
+                              const startDay = weekDays[range.startDay];
+                              const endDay = weekDays[range.endDay];
+                              const startTime = formatTime24(range.startHour, range.startMinute);
+                              const endTime = formatTime24(range.endHour, range.endMinute);
+                              
+                              const isSameDay = range.startDay === range.endDay;
+                              const duration = Math.ceil(((range.endDay * 1440 + range.endHour * 60 + range.endMinute) - 
+                                                         (range.startDay * 1440 + range.startHour * 60 + range.startMinute)) / 15) * 15;
+                              const durationHours = Math.floor(duration / 60);
+                              const durationMins = duration % 60;
+                              const durationText = durationHours > 0 ? 
+                                (durationMins > 0 ? `${durationHours}h ${durationMins}m` : `${durationHours}h`) : 
+                                `${durationMins}m`;
+                              
+                              return (
+                                <TouchableOpacity
+                                  key={range.id}
+                                  className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-gray-50 mb-2"
+                                  onPress={() => removeRange(range.id)}
+                                >
+                                  <View className="flex-row items-center justify-between mb-2">
+                                    <Text className="text-sm font-medium text-gray-900">Range {index + 1}</Text>
+                                    <TouchableOpacity onPress={() => removeRange(range.id)}>
+                                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                                    </TouchableOpacity>
                                   </View>
-                                ) : (
-                                  <View>
-                                    <Text className="text-sm text-gray-700">
-                                      <Text className="font-medium">
+                                  
+                                  {isSameDay ? (
+                                    <View>
+                                      <Text className="text-sm text-gray-700 font-medium">
                                         {startDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                                       </Text>
-                                      {' '}{startTime}
-                                    </Text>
-                                    <Text className="text-xs text-gray-500">to</Text>
-                                    <Text className="text-sm text-gray-700">
-                                      <Text className="font-medium">
-                                        {endDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                      <Text className="text-sm text-gray-600">
+                                        {startTime} - {endTime}
                                       </Text>
-                                      {' '}{endTime}
-                                    </Text>
+                                    </View>
+                                  ) : (
+                                    <View>
+                                      <Text className="text-sm text-gray-700">
+                                        <Text className="font-medium">
+                                          {startDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                        </Text>
+                                        {' '}{startTime}
+                                      </Text>
+                                      <Text className="text-xs text-gray-500">to</Text>
+                                      <Text className="text-sm text-gray-700">
+                                        <Text className="font-medium">
+                                          {endDay.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                        </Text>
+                                        {' '}{endTime}
+                                      </Text>
+                                    </View>
+                                  )}
+                                  
+                                  <View className="mt-2 flex-row items-center">
+                                    <View className="bg-green-100 px-2 py-1 rounded-full">
+                                      <Text className="text-xs font-medium text-green-800">{durationText}</Text>
+                                    </View>
                                   </View>
-                                )}
-                                
-                                <View className="mt-2 flex-row items-center">
-                                  <View className="bg-green-100 px-2 py-1 rounded-full">
-                                    <Text className="text-xs font-medium text-green-800">{durationText}</Text>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
-                      )}
-                    </ScrollView>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        )}
+                      </ScrollView>
+                    </View>
                   </View>
                 </View>
 
