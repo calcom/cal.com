@@ -130,14 +130,16 @@ const BookerComponent = ({
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
 
+  const columnViewExtraDaysConfig = isTablet
+    ? extraDaysConfig[BookerLayouts.COLUMN_VIEW].tablet
+    : extraDaysConfig[BookerLayouts.COLUMN_VIEW].desktop;
+  
+  const relevantDates = nonEmptyScheduleDays.slice(0, columnViewExtraDaysConfig + 1).join(",");
+
   const calculatedColumnViewExtraDays = useMemo(() => {
     if (layout !== BookerLayouts.COLUMN_VIEW) {
       return columnViewExtraDays.current;
     }
-
-    const columnViewExtraDaysConfig = isTablet
-      ? extraDaysConfig[BookerLayouts.COLUMN_VIEW].tablet
-      : extraDaysConfig[BookerLayouts.COLUMN_VIEW].desktop;
 
     if (nonEmptyScheduleDays.length === 0) {
       return columnViewExtraDaysConfig;
@@ -161,7 +163,15 @@ const BookerComponent = ({
       columnAddonDays;
 
     return calculated;
-  }, [layout, selectedDate, nonEmptyScheduleDays.length, isTablet, columnViewExtraDays]);
+  }, [
+    layout,
+    selectedDate,
+    relevantDates,
+    nonEmptyScheduleDays.length,
+    isTablet,
+    columnViewExtraDays,
+    columnViewExtraDaysConfig,
+  ]);
 
   if (layout === BookerLayouts.COLUMN_VIEW) {
     columnViewExtraDays.current = calculatedColumnViewExtraDays;
