@@ -948,7 +948,7 @@ export default function EventTypeDetail() {
       const link = await CalComAPIService.buildEventTypeLink(eventTypeSlug);
 
       Clipboard.setString(link);
-      Alert.alert("Success", "Link copied to clipboard");
+      Alert.alert("Success", "Link copied!");
     } catch (error) {
       console.error("Failed to copy link:", error);
       Alert.alert("Error", "Failed to copy link. Please try again.");
@@ -1290,10 +1290,7 @@ export default function EventTypeDetail() {
               left: 0,
               right: 0,
               zIndex: 1000,
-              paddingHorizontal: 8, // px-2 equivalent
-              "@media (min-width: 768px)": {
-                paddingHorizontal: 16, // md:px-4 equivalent
-              },
+              paddingHorizontal: Platform.OS === "web" ? 16 : 8,
               paddingBottom: 12,
               paddingTop: insets.top + 8,
             },

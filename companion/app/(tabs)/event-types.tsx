@@ -299,7 +299,7 @@ export default function EventTypes() {
       if (Platform.OS === "web") {
         showToastMessage("Link copied!", eventType.id);
       } else {
-        Alert.alert("Link Copied", "Event type link copied to clipboard");
+        Alert.alert("Link Copied", "Event type link copied!");
       }
     } catch (error) {
       if (Platform.OS === "web") {
