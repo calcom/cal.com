@@ -25,10 +25,6 @@ export default defineContentScript({
     sidebarContainer.style.height = "100vh";
     sidebarContainer.style.zIndex = "2147483647";
     sidebarContainer.style.backgroundColor = "transparent";
-    sidebarContainer.style.border = "1px solid #ccc";
-    sidebarContainer.style.borderTop = "none";
-    sidebarContainer.style.borderBottom = "none";
-    sidebarContainer.style.boxShadow = "-2px 0 10px rgba(0,0,0,0.1)";
     sidebarContainer.style.transition = "transform 0.3s ease-in-out";
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
@@ -39,17 +35,17 @@ export default defineContentScript({
     iframeContainer.style.height = "100%";
     iframeContainer.style.display = "flex";
     iframeContainer.style.justifyContent = "flex-end";
-    iframeContainer.style.pointerEvents = "auto";
+    iframeContainer.style.pointerEvents = "none";
 
     // Create iframe
     const iframe = document.createElement("iframe");
     iframe.src = "http://localhost:8081";
-    iframe.style.width = "400px";
+    iframe.style.width = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "none";
     iframe.style.borderRadius = "0";
-    iframe.style.backgroundColor = "white";
-    iframe.style.boxShadow = "-2px 0 10px rgba(0,0,0,0.1)";
+    iframe.style.backgroundColor = "transparent";
+    iframe.style.pointerEvents = "none";
 
     iframeContainer.appendChild(iframe);
 
@@ -97,7 +93,7 @@ export default defineContentScript({
     closeButton.style.width = "40px";
     closeButton.style.height = "40px";
     closeButton.style.borderRadius = "50%";
-    closeButton.style.border = "1px solid white";
+    closeButton.style.border = "1px solid rgba(255, 255, 255, 0.5)";
     closeButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
     closeButton.style.backdropFilter = "blur(10px)";
     closeButton.style.color = "white";
