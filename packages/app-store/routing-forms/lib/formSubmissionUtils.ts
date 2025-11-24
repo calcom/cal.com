@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { type CreditCheckFn, CreditService } from "@calcom/features/ee/billing/credit-service";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
