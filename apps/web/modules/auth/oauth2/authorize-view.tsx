@@ -24,6 +24,8 @@ export default function Authorize() {
   const client_id = (searchParams?.get("client_id") as string) || "";
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
+  const code_challenge = searchParams?.get("code_challenge") as string;
+  const code_challenge_method = searchParams?.get("code_challenge_method") as string;
 
   const queryString = searchParams?.toString();
 
@@ -169,6 +171,8 @@ export default function Authorize() {
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
+                codeChallenge: code_challenge || undefined,
+                codeChallengeMethod: (code_challenge_method as "S256" | "plain") || undefined,
               });
             }}
             data-testid="allow-button">
