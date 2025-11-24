@@ -3,6 +3,8 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { TeamCreationService } from "@calcom/features/ee/teams/services/TeamCreationService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -58,14 +60,39 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     userRepository
   );
 
-  return await teamCreationService.createTeamsForOrganization({
-    orgId,
-    teamNames: input.teamNames,
-    moveTeams,
-    creationSource,
-    ownerId: organizationOwner.id,
-  });
+  try {
+    return await teamCreationService.createTeamsForOrganization({
+      orgId,
+      teamNames: input.teamNames,
+      moveTeams,
+      creationSource,
+      ownerId: organizationOwner.id,
+    });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      // Only handle errors that TeamCreationService can throw
+      const trpcCode = getTRPCErrorCodeFromTeamCreationError(error.code);
+      throw new TRPCError({
+        code: trpcCode,
+        message: error.message,
+        cause: error,
+      });
+    }
+    throw error;
+  }
 };
+
+function getTRPCErrorCodeFromTeamCreationError(errorCode: ErrorCode): TRPCError["code"] {
+  switch (errorCode) {
+    case ErrorCode.NoOrganizationFound:
+    case ErrorCode.InvalidOrganizationMetadata:
+    case ErrorCode.NoOrganizationSlug:
+    case ErrorCode.TeamSlugMissing:
+      return "BAD_REQUEST";
+    default:
+      return "INTERNAL_SERVER_ERROR";
+  }
+}
 
 class NotAuthorizedError extends TRPCError {
   constructor() {

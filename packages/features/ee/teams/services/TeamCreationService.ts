@@ -3,6 +3,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
@@ -11,8 +13,6 @@ import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["TeamCreationService"] });
 
@@ -160,19 +160,19 @@ export class TeamCreationService {
     const organization = await this.teamRepository.findOrganizationForValidation(orgId);
 
     if (!organization) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_found" });
+      throw ErrorWithCode.Factory.NoOrganizationFound("no_organization_found");
     }
 
     const parseTeams = teamMetadataSchema.safeParse(organization?.metadata);
 
     if (!parseTeams.success) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_organization_metadata" });
+      throw ErrorWithCode.Factory.InvalidOrganizationMetadata("invalid_organization_metadata");
     }
 
     const metadata = parseTeams.success ? parseTeams.data : undefined;
 
     if (!metadata?.requestedSlug && !organization?.slug) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "no_organization_slug" });
+      throw ErrorWithCode.Factory.NoOrganizationSlug("no_organization_slug");
     }
 
     return organization;
@@ -336,10 +336,7 @@ export class TeamCreationService {
       return;
     }
     if (!teamSlug) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "No slug for team. Not adding the redirect",
-      });
+      throw ErrorWithCode.Factory.TeamSlugMissing("No slug for team. Not adding the redirect");
     }
     if (!orgSlug) {
       logger.warn(`No slug for org. Not adding the redirect`);
@@ -362,7 +359,7 @@ export class TeamCreationService {
     }
   }
 
-  private getSubscriptionId(metadata: Prisma.JsonValue): string | undefined {
+  private getSubscriptionId(metadata: unknown): string | undefined {
     const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
     if (parsedMetadata.success) {
       const subscriptionId = parsedMetadata.data?.subscriptionId;

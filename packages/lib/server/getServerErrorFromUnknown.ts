@@ -109,6 +109,10 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.EventTypeNoHosts:
     case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
+    case ErrorCode.NoOrganizationFound:
+    case ErrorCode.InvalidOrganizationMetadata:
+    case ErrorCode.NoOrganizationSlug:
+    case ErrorCode.TeamSlugMissing:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
