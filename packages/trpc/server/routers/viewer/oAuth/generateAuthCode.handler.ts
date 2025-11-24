@@ -26,12 +26,30 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       clientId: true,
       redirectUri: true,
       name: true,
+      clientType: true,
     },
   });
 
   if (!client) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Client ID not valid" });
   }
+
+  // Enforce PKCE for PUBLIC clients
+  if (client.clientType === "PUBLIC") {
+    if (!codeChallenge) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "code_challenge required for public clients",
+      });
+    }
+    if (!codeChallengeMethod || !["S256", "plain"].includes(codeChallengeMethod)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid or missing code_challenge_method for public clients",
+      });
+    }
+  }
+
   const authorizationCode = generateAuthorizationCode();
 
   const team = teamSlug
