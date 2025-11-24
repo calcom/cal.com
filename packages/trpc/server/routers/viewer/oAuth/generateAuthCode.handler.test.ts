@@ -197,8 +197,19 @@ describe("generateAuthCodeHandler", () => {
       });
     });
 
-    it("should reject CONFIDENTIAL client with PKCE", async () => {
+    it("should accept CONFIDENTIAL client with valid PKCE for enhanced security", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
+      prismaMock.accessCode.create.mockResolvedValue({
+        id: 1,
+        code: "test_auth_code",
+        clientId: "confidential_client_456",
+        userId: 1,
+        teamId: null,
+        scopes: [],
+        expiresAt: new Date(),
+        codeChallenge: "test_challenge",
+        codeChallengeMethod: "S256",
+      });
 
       const input = {
         clientId: "confidential_client_456",
@@ -208,17 +219,24 @@ describe("generateAuthCodeHandler", () => {
         codeChallengeMethod: "S256" as const,
       };
 
-      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
-        new TRPCError({
-          code: "BAD_REQUEST",
-          message: "PKCE is not supported for confidential clients. Use client_secret instead.",
-        })
-      );
+      const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
 
-      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+      expect(result.authorizationCode).toBeDefined();
+      expect(prismaMock.accessCode.create).toHaveBeenCalledWith({
+        data: {
+          code: expect.any(String),
+          clientId: "confidential_client_456",
+          userId: 1,
+          teamId: undefined,
+          scopes: [],
+          expiresAt: expect.any(Date),
+          codeChallenge: "test_challenge",
+          codeChallengeMethod: "S256",
+        },
+      });
     });
 
-    it("should reject CONFIDENTIAL client with code_challenge only", async () => {
+    it("should reject CONFIDENTIAL client with code_challenge but missing method", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue(mockConfidentialClient);
 
       const input = {
@@ -232,7 +250,7 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "BAD_REQUEST",
-          message: "PKCE is not supported for confidential clients. Use client_secret instead.",
+          message: "code_challenge_method must be S256 when PKCE is used",
         })
       );
 

@@ -48,11 +48,11 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       });
     }
   } else if (client.clientType === "CONFIDENTIAL") {
-    // Reject PKCE for confidential clients - they use client_secret instead
-    if (codeChallenge || codeChallengeMethod) {
+    // Optional PKCE validation for CONFIDENTIAL clients
+    if (codeChallenge && (!codeChallengeMethod || codeChallengeMethod !== "S256")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "PKCE is not supported for confidential clients. Use client_secret instead.",
+        message: "code_challenge_method must be S256 when PKCE is used",
       });
     }
   }
