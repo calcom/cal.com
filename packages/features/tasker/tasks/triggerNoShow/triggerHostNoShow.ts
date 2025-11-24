@@ -42,19 +42,26 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
-    return sendWebhookPayload(
-      webhook,
-      WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-      booking,
-      maxStartTime,
-      participants,
-      originalRescheduledBooking,
-      host.email
-    );
-  });
+  // Check if this is an internal webhook (automatic tracking without actual webhook)
+  const isInternalWebhook = webhook.id === "internal" || webhook.subscriberUrl === "https://internal.cal.com/no-webhook";
 
-  await Promise.all(hostsNoShowPromises);
+  // Only send webhook payload if there's a real webhook configured
+  if (!isInternalWebhook) {
+    const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
+      return sendWebhookPayload(
+        webhook,
+        WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        booking,
+        maxStartTime,
+        participants,
+        originalRescheduledBooking,
+        host.email
+      );
+    });
 
+    await Promise.all(hostsNoShowPromises);
+  }
+
+  // Always mark hosts as no-show in the database
   await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
 }
