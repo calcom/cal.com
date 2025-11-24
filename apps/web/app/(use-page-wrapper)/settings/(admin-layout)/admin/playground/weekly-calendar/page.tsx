@@ -11,7 +11,13 @@ const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
 };
 
-const getBaseProps = (events: CalendarEvent[], startHour: Hours = 6): CalendarComponentProps => ({
+const getBaseProps = ({
+  events,
+  startHour = 6,
+}: {
+  events: CalendarEvent[];
+  startHour?: Hours;
+}): CalendarComponentProps => ({
   startDate: dayjs("2025-01-06").toDate(), // Monday
   endDate: dayjs("2025-01-12").toDate(), // Sunday
   events,
@@ -118,7 +124,8 @@ const scenarios: Scenario[] = [
     id: "same-start-time",
     title: "Same Start Time, Different Durations",
     description: "Multiple events starting at the same time with varying lengths",
-    expected: "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
+    expected:
+      "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
     startHour: 9,
     events: [
       {
@@ -148,7 +155,8 @@ const scenarios: Scenario[] = [
     id: "four-overlapping",
     title: "Four Overlapping Events",
     description: "Four events that overlap simultaneously",
-    expected: "Events spread across full width with variable widths (40%, ~33%, ~28%, 25%). Last event aligned to right edge. Right edges evenly distributed for maximum scatter.",
+    expected:
+      "Events spread across full width with variable widths (40%, ~33%, ~28%, 25%). Last event aligned to right edge. Right edges evenly distributed for maximum scatter.",
     startHour: 9,
     events: [
       {
@@ -342,7 +350,8 @@ const scenarios: Scenario[] = [
     id: "touching-events",
     title: "Touching Events (Edge Case)",
     description: "Events that touch exactly at boundaries",
-    expected: "Separate groups; no cascade; both at 0% offset. Both should be 100% width. Events touching at 11:00 should not overlap.",
+    expected:
+      "Separate groups; no cascade; both at 0% offset. Both should be 100% width. Events touching at 11:00 should not overlap.",
     startHour: 9,
     events: [
       {
@@ -483,7 +492,7 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
       </div>
 
       <div className="h-[600px] overflow-hidden rounded border">
-        <Calendar {...getBaseProps(scenario.events, scenario.startHour)} />
+        <Calendar {...getBaseProps({ events: scenario.events, startHour: scenario.startHour })} />
       </div>
 
       <button
