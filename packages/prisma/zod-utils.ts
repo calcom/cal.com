@@ -376,6 +376,15 @@ export const userMetadata = z
       })
       .optional(),
     currentOnboardingStep: z.string().optional(),
+    gettingStartedActions: z
+      .object({
+        viewPublicPage: z.boolean().optional().default(false),
+        updateUsername: z.boolean().optional().default(false),
+        addOrEditEvents: z.boolean().optional().default(false),
+        setAvailability: z.boolean().optional().default(false),
+        shareYourCalID: z.boolean().optional().default(false),
+      })
+      .optional(),
     usePhoneForWhatsApp: z.boolean().optional(),
   })
   .nullable();

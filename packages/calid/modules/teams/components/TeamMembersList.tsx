@@ -210,6 +210,8 @@ export function TeamMembersList({
             columnHelper.display({
               id: "select",
               size: 50,
+              minSize: 50,
+              maxSize: 50,
               header: ({ table }) => {
                 const visibleRows = table.getRowModel().rows;
                 const allSelected = visibleRows.length > 0 && visibleRows.every((r) => r.getIsSelected());
@@ -241,6 +243,7 @@ export function TeamMembersList({
         id: "member",
         header: "Team Member",
         size: 500,
+        minSize: 300,
         cell: ({ row }) => {
           const member = row.original;
           const displayName =
@@ -272,6 +275,7 @@ export function TeamMembersList({
       columnHelper.accessor("role", {
         header: "Role",
         size: 300,
+        minSize: 150,
         cell: ({ row }) => {
           const member = row.original;
           const roleDisplay = member.role.toLowerCase();
@@ -295,6 +299,7 @@ export function TeamMembersList({
         id: "lastActiveAt",
         header: "Last Active",
         size: 300,
+        minSize: 150,
         cell: ({ row }) => (
           <span className="text-default text-sm">
             {formatLastActive(
@@ -314,6 +319,7 @@ export function TeamMembersList({
         columnHelper.display({
           id: "actions",
           size: 300,
+          minSize: 100,
           cell: ({ row }) => {
             const member = row.original;
             const isCurrentUser = member.user.id === session?.user?.id;
@@ -444,6 +450,14 @@ export function TeamMembersList({
     overscan: 10,
   });
 
+  // Calculate total minimum width to ensure columns don't shrink below their minimums
+  const totalMinWidth = useMemo(() => {
+    return table.getAllColumns().reduce((sum, column) => {
+      const minSize = (column.columnDef as { minSize?: number }).minSize;
+      return sum + (minSize || column.getSize());
+    }, 0);
+  }, [table]);
+
   const selectedCount = Object.keys(selectedMembers).length;
 
   if (isLoading) {
@@ -492,38 +506,44 @@ export function TeamMembersList({
         className="border-default bg-primary overflow-auto rounded-lg border"
         style={{ height: "600px" }}>
         {/* Table header */}
-        <div className="border-subtle bg-muted sticky top-0 z-10 border-b">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <div key={headerGroup.id} className="flex">
-              {headerGroup.headers.map((header) => (
-                <div
-                  key={header.id}
-                  className="flex items-center px-4 py-3 text-left"
-                  style={{ width: header.getSize() }}>
-                  {header.isPlaceholder ? null : (
-                    <div
-                      className={`flex items-center gap-2 ${
-                        header.column.getCanSort() ? "cursor-pointer select-none" : ""
-                      }`}
-                      onClick={header.column.getToggleSortingHandler()}>
-                      <span className="text-emphasis text-sm font-medium">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+        {table.getHeaderGroups().map((headerGroup) => (
+          <div
+            key={headerGroup.id}
+            className="border-subtle bg-muted sticky top-0 z-10 flex w-full border-b"
+            style={{ minWidth: `${totalMinWidth}px` }}>
+            {headerGroup.headers.map((header) => (
+              <div
+                key={header.id}
+                className="flex flex-1 items-center px-4 py-3 text-left"
+                style={{
+                  minWidth: header.column.columnDef.minSize || header.getSize(),
+                  ...(header.column.id === "select" && {
+                    maxWidth: `${header.column.columnDef.maxSize || 50}px`,
+                  }),
+                }}>
+                {header.isPlaceholder ? null : (
+                  <div
+                    className={`flex items-center gap-2 ${
+                      header.column.getCanSort() ? "cursor-pointer select-none" : ""
+                    }`}
+                    onClick={header.column.getToggleSortingHandler()}>
+                    <span className="text-emphasis text-sm font-medium">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </span>
+                    {header.column.getCanSort() && (
+                      <span className="text-subtle">
+                        {{
+                          asc: "↑",
+                          desc: "↓",
+                        }[header.column.getIsSorted() as string] ?? "↕"}
                       </span>
-                      {header.column.getCanSort() && (
-                        <span className="text-subtle">
-                          {{
-                            asc: "↑",
-                            desc: "↓",
-                          }[header.column.getIsSorted() as string] ?? "↕"}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
 
         {/* Virtual table body */}
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: "relative" }}>
@@ -536,12 +556,18 @@ export function TeamMembersList({
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
+                  minWidth: `${totalMinWidth}px`,
                 }}>
                 {row.getVisibleCells().map((cell) => (
                   <div
                     key={cell.id}
-                    className="flex items-center px-4 py-2"
-                    style={{ width: cell.column.getSize() }}>
+                    className="flex flex-1 items-center px-4 py-2"
+                    style={{
+                      minWidth: cell.column.columnDef.minSize || cell.column.getSize(),
+                      ...(cell.column.id === "select" && {
+                        maxWidth: `${cell.column.columnDef.maxSize || 50}px`,
+                      }),
+                    }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </div>
                 ))}

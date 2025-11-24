@@ -127,7 +127,7 @@ function FormCard({
     <div className="border-subtle w-full rounded-md border">
       <div className="flex flex-col">
         <div className="p-4">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <ToggleGroup
               options={[
                 { label: t("per_day"), value: "perDay" },
@@ -139,7 +139,7 @@ function FormCard({
               onValueChange={(value) => value && onPeriodChange(value)}
             />
             <div className="flex gap-2">
-              <div className="w-64">
+              <div className="w-full min-w-0 sm:w-64">
                 <Input
                   type="text"
                   placeholder={t("search")}
