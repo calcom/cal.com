@@ -281,4 +281,6 @@ export const lucideIconList = new Set([
   "monitor-stop",
   "monitor",
   "badge-percent",
+  "house",
+  "wallpaper",
 ]);

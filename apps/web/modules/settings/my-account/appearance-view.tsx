@@ -22,6 +22,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -419,7 +420,71 @@ const AppearanceView = ({
             </div>
           </Form>
 
-          <div className="border-subtle mb-16 mt-6 rounded-md border p-6">
+          <Form
+            form={headerUrlFormMethods}
+            handleSubmit={(values) => {
+              mutation.mutate(values);
+            }}>
+            <div className="border-subtle mt-6 rounded-md border p-6">
+              <Controller
+                control={headerUrlFormMethods.control}
+                name="metadata.headerUrl"
+                render={({ field: { value, onChange } }) => {
+                  const showRemoveLogoButton = value !== null;
+                  return (
+                    <div className="flex flex-col items-start">
+                      <Label>{t("booking_page_header_background")}</Label>
+                      <span className="text-subtle mb-8 text-sm">
+                        {t("booking_page_header_background_description")}
+                      </span>
+                      <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
+                        {!value ? (
+                          <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
+                        ) : (
+                          <img className="h-full w-full" src={value} />
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <CustomBannerUploader
+                          target="metadata.headerUrl"
+                          id="svg-upload"
+                          buttonMsg={t("upload_image")}
+                          mimeType="image/svg+xml"
+                          height={600}
+                          width={3200}
+                          handleAvatarChange={(newHeaderUrl) => {
+                            onChange(newHeaderUrl);
+                            mutation.mutate({
+                              metadata: { headerUrl: newHeaderUrl },
+                            });
+                          }}
+                          imageSrc={
+                            getPlaceholderHeader(
+                              value,
+                              headerUrlFormMethods.getValues("metadata.headerUrl")
+                            ) ?? undefined
+                          }
+                          triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        />
+                        {showRemoveLogoButton && (
+                          <Button
+                            color="secondary"
+                            onClick={() => {
+                              onChange(null);
+                              mutation.mutate({ metadata: { headerUrl: null } });
+                            }}>
+                            {t("remove")}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          </Form>
+
+          <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("disable_branding")}

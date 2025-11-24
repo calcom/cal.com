@@ -533,6 +533,7 @@ export async function getBookings({
                 "EventType.metadata",
                 "EventType.disableGuests",
                 "EventType.seatsShowAttendees",
+                "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
                 "EventType.customReplyToEmail",
@@ -606,14 +607,18 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
-                "BookingSeat.data",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name", "Attendee.timeZone"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
                 ).as("attendee"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Payment")
+                    .select(["Payment.success", "Payment.amount", "Payment.currency"])
+                    .whereRef("Payment.bookingSeatId", "=", "BookingSeat.id")
+                ).as("payment"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
           ).as("seatsReferences"),

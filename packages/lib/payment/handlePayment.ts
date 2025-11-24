@@ -27,6 +27,8 @@ const handlePayment = async ({
   bookerEmail,
   bookerPhoneNumber,
   isDryRun = false,
+  responses,
+  bookingSeat,
 }: {
   evt: CalendarEvent;
   selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
@@ -49,6 +51,10 @@ const handlePayment = async ({
   bookerEmail: string;
   bookerPhoneNumber?: string | null;
   isDryRun?: boolean;
+  bookingSeat?: {
+    id: number;
+  };
+  response: Prisma.JsonValue;
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
@@ -95,7 +101,8 @@ const handlePayment = async ({
       bookerPhoneNumber,
       selectedEventType.title,
       evt.title,
-      booking.responses
+      booking.responses ?? responses,
+      bookingSeat?.id
     );
   }
 

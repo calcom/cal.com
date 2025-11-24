@@ -497,6 +497,7 @@ async function handler(input: CancelBookingInput) {
     eventType: {
       select: {
         id: true,
+        owner: true,
         recurringEvent: true,
         requiresConfirmation: true,
         metadata: true,

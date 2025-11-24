@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -49,6 +50,7 @@ import { showToast } from "@calcom/ui/toast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
 import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
 import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
@@ -269,7 +271,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     isTabUnconfirmed,
     isBookingFromRoutingForm,
     isDisabledCancelling,
-    isDisabledRescheduling: isDisabledRescheduling && ((hasUserId && !isUserOwner)),
+    isDisabledRescheduling: isDisabledRescheduling && hasUserId && !isUserOwner,
     isCalVideoLocation:
       !booking.location ||
       booking.location === "integrations:daily" ||
@@ -322,6 +324,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const [isCancelInstanceDialogOpen, setIsCancelInstanceDialogOpen] = useState(false);
+  const [isBookingSeatsDialogOpen, setIsBookingSeatsDialogOpen] = useState(false);
   const [isRescheduleInstanceDialogOpen, setIsRescheduleInstanceDialogOpen] = useState(false);
 
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -478,6 +481,9 @@ export default function BookingListItem(booking: BookingItemProps) {
       (date) => new Date(date).getTime() > new Date().getTime()
     );
 
+  const showBookingSeatsDialogButton =
+    isUpcoming && !isCancelled && !isRecurring && isConfirmed && booking.eventType.seatsPerTimeSlot > 1;
+
   return (
     <>
       {isNoShowDialogOpen && (
@@ -538,6 +544,17 @@ export default function BookingListItem(booking: BookingItemProps) {
           recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
         />
       )}
+
+      {showBookingSeatsDialogButton && (
+        <BookingSeatsDialog
+          isOpenDialog={isBookingSeatsDialogOpen}
+          setIsOpenDialog={setIsBookingSeatsDialogOpen}
+          bookingUid={booking.uid}
+          bookingSeats={booking.seatsReferences}
+          userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
+
       {showCancelOrModifyInstanceAction && (
         <RescheduleInstanceDialog
           isOpen={isRescheduleInstanceDialogOpen}
@@ -753,6 +770,15 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
+                    {showBookingSeatsDialogButton && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsBookingSeatsDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("booking_seats")}</span>
+                      </Button>
+                    )}
+
                     {showCancelOrModifyInstanceAction && (
                       <Button
                         color="secondary"
@@ -888,10 +914,18 @@ const BookingItemBadges = ({
       {booking.paid && !booking.payment[0] ? (
         <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
-        <Badge variant="green" data-testid="paid_badge">
-          {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-        </Badge>
+        booking.paid &&
+        (isPrismaObjOrUndefined(booking.metadata)?.paymentStatus === "refunded" ? (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="red" data-testid="refunded_badge">
+            {t("refunded")}
+          </Badge>
+        ) : (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+            {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+          </Badge>
+        ))
       ) : null}
+
       {recurringDates !== undefined && (
         <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip

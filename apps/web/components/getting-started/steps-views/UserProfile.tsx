@@ -71,7 +71,7 @@ const UserProfile = () => {
 
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
-      redirectUrl ? router.push(redirectUrl) : router.push("/event-types");
+      redirectUrl ? router.push(redirectUrl) : router.push("/home");
     },
     onError: (error) => {
       console.error("Mutation failed:", error);

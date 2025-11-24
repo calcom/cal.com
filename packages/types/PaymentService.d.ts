@@ -1,4 +1,4 @@
-import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
+import type { Payment, Prisma, Booking, BookingSeat, PaymentOption } from "@prisma/client";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -26,7 +26,8 @@ export interface IAbstractPaymentService {
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
-    responses?: Prisma.JsonValue
+    responses?: Prisma.JsonValue,
+    bookingSeat?: BookingSeat["id"]
   ): Promise<Payment>;
   /* This method is to collect card details to charge at a later date ex. no-show fees */
   collectCard(
