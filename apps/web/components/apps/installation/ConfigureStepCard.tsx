@@ -22,6 +22,7 @@ import EventTypeAppSettingsWrapper from "@components/apps/installation/EventType
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
 import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import { InstallationCard } from "~/apps/installation/components/InstallationCard";
 
 export type TFormType = {
   id: number;
@@ -32,6 +33,8 @@ export type TFormType = {
 };
 
 export type ConfigureStepCardProps = {
+  title: string;
+  subtitle: string;
   slug: string;
   userName: string;
   categories: AppCategories[];
@@ -93,7 +96,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
           onSubmit({ metadata, locations, bookingFields });
         }}>
         <div>
-          <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
+          <div className="sm:border-subtle bg-default relative border p-4 sm:rounded-md dark:bg-black">
             <div>
               <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{eventType.title}</span>{" "}
               <small className="text-subtle hidden font-normal sm:inline">
@@ -190,7 +193,7 @@ const EventTypeGroup = ({
 };
 
 const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
-  const { loading, formPortalRef, handleSetUpLater } = props;
+  const { title, subtitle, loading, formPortalRef, handleSetUpLater } = props;
   const { t } = useLocale();
   const { control, watch } = useFormContext<TEventTypesForm>();
   const { fields } = useFieldArray({
@@ -227,7 +230,40 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
   }
 
   return createPortal(
-    <div className="mt-8">
+    <InstallationCard
+      title={title}
+      subtitle={subtitle}
+      footer={
+        <>
+          <button form="outer-event-type-form" type="submit" className="hidden" ref={mainForSubmitRef}>
+            Save
+          </button>
+          <Button
+            className="text-md w-full justify-center rounded-[10px]"
+            type="button"
+            data-testid="configure-step-save"
+            onClick={() => {
+              submitRefs.current.forEach((ref) => ref?.click());
+              setSubmit(true);
+            }}
+            loading={loading}>
+            {t("save")}
+          </Button>
+
+          <div className="flex w-full flex-row justify-center">
+            <Button
+              color="minimal"
+              data-testid="set-up-later"
+              onClick={(event) => {
+                event.preventDefault();
+                handleSetUpLater();
+              }}
+              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+              {t("set_up_later")}
+            </Button>
+          </div>
+        </>
+      }>
       {fields.map((group, groupIndex) => (
         <div key={group.fieldId}>
           {eventTypeGroups[groupIndex].eventTypes.some((eventType) => eventType.selected === true) && (
@@ -249,34 +285,7 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
           />
         </div>
       ))}
-      <button form="outer-event-type-form" type="submit" className="hidden" ref={mainForSubmitRef}>
-        Save
-      </button>
-      <Button
-        className="text-md mt-6 w-full justify-center"
-        type="button"
-        data-testid="configure-step-save"
-        onClick={() => {
-          submitRefs.current.forEach((ref) => ref?.click());
-          setSubmit(true);
-        }}
-        loading={loading}>
-        {t("save")}
-      </Button>
-
-      <div className="flex w-full flex-row justify-center">
-        <Button
-          color="minimal"
-          data-testid="set-up-later"
-          onClick={(event) => {
-            event.preventDefault();
-            handleSetUpLater();
-          }}
-          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
-          {t("set_up_later")}
-        </Button>
-      </div>
-    </div>,
+    </InstallationCard>,
     formPortalRef.current
   );
 };

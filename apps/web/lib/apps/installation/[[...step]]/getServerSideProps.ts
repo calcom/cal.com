@@ -334,6 +334,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventTypeGroups,
       teamId: parsedTeamIdParam ?? null,
       userName: user.username,
+      userEmail: session.user.email || "",
       credentialId,
       isConferencing,
       isOrg,

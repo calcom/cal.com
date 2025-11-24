@@ -6,17 +6,17 @@ import type { ReactNode } from "react";
 
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type OnboardingCardProps = {
+type InstallationCardProps = {
   title: string;
   subtitle: string;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
   isLoading?: boolean;
   floatingFooter?: boolean;
   useFitHeight?: boolean;
 };
 
-export const OnboardingCard = ({
+export const InstallationCard = ({
   title,
   subtitle,
   children,
@@ -24,7 +24,7 @@ export const OnboardingCard = ({
   isLoading,
   floatingFooter = false,
   useFitHeight = false,
-}: OnboardingCardProps) => {
+}: InstallationCardProps) => {
   const pathname = usePathname();
 
   // Animation variants for entry and exit
@@ -58,7 +58,7 @@ export const OnboardingCard = ({
             ease: "backOut",
           }}>
           {/* Card Header */}
-          <div className="mb-2 flex w-full gap-1.5 py-2  md:mb-0 md:py-4">
+          <div className="mb-2 flex w-full gap-1.5 pb-2 md:mb-0">
             <div className="flex w-full flex-col gap-2">
               <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
               <p className="text-subtle text-sm leading-tight">{subtitle}</p>
@@ -67,9 +67,9 @@ export const OnboardingCard = ({
 
           {/* Content */}
           <div
-            className={`flex w-full flex-col gap-4 [container-type:size] ${
-              useFitHeight ? "h-fit" : "h-full min-h-0 flex-1"
-            } ${floatingFooter ? "pb-10" : ""}`}>
+            className={`flex w-full flex-col gap-4 ${useFitHeight ? "h-fit" : "h-full min-h-0 flex-1"} ${
+              floatingFooter ? "pb-10" : ""
+            }`}>
             {isLoading ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SkeletonText className="h-40 w-full" />
@@ -83,13 +83,14 @@ export const OnboardingCard = ({
       </AnimatePresence>
 
       {/* Footer */}
-      {floatingFooter ? (
-        <div className="absolute bottom-0 left-0 right-[12px] z-10 flex items-center justify-start rounded-[12px] bg-[rgba(255,255,255,0.01)] p-2 shadow-[0px_12px_32px_-6px_rgba(0,0,0,0.12),0px_0px_0px_1px_rgba(111,107,107,0.1),0px_1px_3px_0px_rgba(63,70,75,0.1)] backdrop-blur-[6px] backdrop-filter">
-          {footer}
-        </div>
-      ) : (
-        <div className="mt-4 flex w-full items-center justify-start py-2">{footer}</div>
-      )}
+      {footer &&
+        (floatingFooter ? (
+          <div className="absolute bottom-0 left-0 right-[12px] z-10 flex items-center justify-start rounded-[12px] bg-[rgba(255,255,255,0.01)] p-2 shadow-[0px_12px_32px_-6px_rgba(0,0,0,0.12),0px_0px_0px_1px_rgba(111,107,107,0.1),0px_1px_3px_0px_rgba(63,70,75,0.1)] backdrop-blur-[6px] backdrop-filter">
+            {footer}
+          </div>
+        ) : (
+          <div className="mt-4 flex w-full items-center justify-start py-2">{footer}</div>
+        ))}
     </div>
   );
 };

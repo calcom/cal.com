@@ -12,8 +12,11 @@ import { Button } from "@calcom/ui/components/button";
 import { ScrollableArea } from "@calcom/ui/components/scrollable";
 
 import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import { InstallationCard } from "~/apps/installation/components/InstallationCard";
 
 type EventTypesCardProps = {
+  title: string;
+  subtitle: string;
   userName: string;
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
   handleSetUpLater: () => void;
@@ -45,7 +48,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   return (
     <div
       data-testid={`select-event-type-${id}`}
-      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
+      className="hover:bg-muted box-border flex min-h-20 w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
       onClick={() => handleSelect()}>
       <input
         id={`${id}`}
@@ -103,7 +106,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
         <p className="block pl-2 text-sm">{props.slug}</p>
       </div>
 
-      <div className="sm:border-subtle bg-default  border dark:bg-black sm:rounded-md">
+      <div className="sm:border-subtle bg-default  border sm:rounded-md dark:bg-black">
         <ScrollableArea className="rounded-md">
           <ul className="border-subtle max-h-97 !static w-full divide-y">
             {fields.length > 0 ? (
@@ -128,6 +131,8 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
 };
 
 export const EventTypesStepCard: FC<EventTypesCardProps> = ({
+  title,
+  subtitle,
   setConfigureStep,
   userName,
   handleSetUpLater,
@@ -143,38 +148,45 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
   const eventTypeGroups = watch("eventTypeGroups") || [];
 
   return (
-    <div>
+    <InstallationCard
+      title={title}
+      subtitle={subtitle}
+      footer={
+        <>
+          <Button
+            className="text-md w-full justify-center rounded-[10px]"
+            data-testid="save-event-types"
+            onClick={() => {
+              setConfigureStep(true);
+            }}
+            disabled={
+              !eventTypeGroups.some((field) =>
+                field.eventTypes.some((eventType) => eventType.selected === true)
+              )
+            }>
+            {t("save")}
+          </Button>
+
+          <div className="flex w-full flex-row justify-center">
+            <Button
+              color="minimal"
+              data-testid="set-up-later"
+              onClick={(event) => {
+                event.preventDefault();
+                handleSetUpLater();
+              }}
+              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+              {t("set_up_later")}
+            </Button>
+          </div>
+        </>
+      }>
       {fields.map(
         (field, index) =>
           !field.isOrganisation && (
             <EventTypeGroup key={field.fieldId} groupIndex={index} userName={userName} {...field} />
           )
       )}
-
-      <Button
-        className="text-md mt-6 w-full justify-center"
-        data-testid="save-event-types"
-        onClick={() => {
-          setConfigureStep(true);
-        }}
-        disabled={
-          !eventTypeGroups.some((field) => field.eventTypes.some((eventType) => eventType.selected === true))
-        }>
-        {t("save")}
-      </Button>
-
-      <div className="flex w-full flex-row justify-center">
-        <Button
-          color="minimal"
-          data-testid="set-up-later"
-          onClick={(event) => {
-            event.preventDefault();
-            handleSetUpLater();
-          }}
-          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
-          {t("set_up_later")}
-        </Button>
-      </div>
-    </div>
+    </InstallationCard>
   );
 };

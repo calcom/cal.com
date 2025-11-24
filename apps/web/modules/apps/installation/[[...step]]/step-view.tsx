@@ -21,16 +21,17 @@ import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Form, Steps } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { HttpError } from "@lib/core/http/error";
+
+import { InstallationLayout } from "~/apps/installation/components/InstallationLayout";
 
 import type { PersonalAccountProps } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
-import { StepHeader } from "@components/apps/installation/StepHeader";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
 
@@ -86,6 +87,7 @@ export type OnboardingPageProps = {
   personalAccount: PersonalAccountProps;
   eventTypeGroups?: TEventTypeGroup[];
   userName: string;
+  userEmail: string;
   credentialId?: number;
   showEventTypesStep: boolean;
   isConferencing: boolean;
@@ -107,6 +109,7 @@ const OnboardingPage = ({
   appMetadata,
   eventTypeGroups,
   userName,
+  userEmail,
   credentialId,
   showEventTypesStep,
   isConferencing,
@@ -230,105 +233,106 @@ const OnboardingPage = ({
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
   };
 
+  const isAccountsStep = currentStep === AppOnboardingSteps.ACCOUNTS_STEP;
+
   return (
-    <div
-      key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
-      data-testid="onboarding">
-      <div className="mx-auto py-6 sm:px-4 md:py-24">
-        <div className="relative">
-          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
-            <Form
-              form={formMethods}
-              id="outer-event-type-form"
-              handleSubmit={async (values) => {
-                let mutationPromises: ReturnType<typeof updateMutation.mutateAsync>[] = [];
-                for (const group of values.eventTypeGroups) {
-                  const promises = group.eventTypes
-                    .filter((eventType) => eventType.selected)
-                    .map((value: TEventType) => {
-                      if (value.metadata) {
-                        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(value.metadata);
-                        // Prevent two payment apps to be enabled
-                        // Ok to cast type here because this metadata will be updated as the event type metadata
-                        if (checkForMultiplePaymentApps(metadata))
-                          throw new Error(t("event_setup_multiple_payment_apps_error"));
-                        if (
-                          value.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
-                          value.seatsPerTimeSlot
-                        ) {
-                          throw new Error(t("seats_and_no_show_fee_error"));
-                        }
-                      }
+    <InstallationLayout
+      userEmail={userEmail}
+      currentStep={stepObj.stepNumber}
+      totalSteps={maxSteps}
+      useFitHeight={isAccountsStep}
+      key={pathname}>
+      <div className={`flex w-full flex-col ${isAccountsStep ? "h-fit" : "h-full min-h-0"}`} ref={formPortalRef}>
+        <Form
+          form={formMethods}
+          id="outer-event-type-form"
+          handleSubmit={async (values) => {
+            let mutationPromises: ReturnType<typeof updateMutation.mutateAsync>[] = [];
+            for (const group of values.eventTypeGroups) {
+              const promises = group.eventTypes
+                .filter((eventType) => eventType.selected)
+                .map((value: TEventType) => {
+                  if (value.metadata) {
+                    const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(value.metadata);
+                    // Prevent two payment apps to be enabled
+                    // Ok to cast type here because this metadata will be updated as the event type metadata
+                    if (checkForMultiplePaymentApps(metadata))
+                      throw new Error(t("event_setup_multiple_payment_apps_error"));
+                    if (
+                      value.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
+                      value.seatsPerTimeSlot
+                    ) {
+                      throw new Error(t("seats_and_no_show_fee_error"));
+                    }
+                  }
 
-                      let updateObject: TUpdateObject = { id: value.id };
-                      if (isConferencing) {
-                        updateObject = {
-                          ...updateObject,
-                          locations: value.locations,
-                          bookingFields: value.bookingFields ? value.bookingFields : undefined,
-                        };
-                      } else {
-                        updateObject = {
-                          ...updateObject,
-                          metadata: value.metadata,
-                        };
-                      }
+                  let updateObject: TUpdateObject = { id: value.id };
+                  if (isConferencing) {
+                    updateObject = {
+                      ...updateObject,
+                      locations: value.locations,
+                      bookingFields: value.bookingFields ? value.bookingFields : undefined,
+                    };
+                  } else {
+                    updateObject = {
+                      ...updateObject,
+                      metadata: value.metadata,
+                    };
+                  }
 
-                      return updateMutation.mutateAsync(updateObject);
-                    });
-                  mutationPromises = [...mutationPromises, ...promises];
-                }
-                try {
-                  await Promise.all(mutationPromises);
-                  router.push("/event-types");
-                } catch (err) {
-                  console.error(err);
-                }
-              }}>
-              <StepHeader
+                  return updateMutation.mutateAsync(updateObject);
+                });
+              mutationPromises = [...mutationPromises, ...promises];
+            }
+            try {
+              await Promise.all(mutationPromises);
+              router.push("/event-types");
+            } catch (err) {
+              console.error(err);
+            }
+          }}>
+          {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
+            <AccountsStepCard
+              title={stepObj.getTitle(appMetadata.name)}
+              subtitle={stepObj.getDescription(appMetadata.name)}
+              teams={teams}
+              personalAccount={personalAccount}
+              onSelect={handleSelectAccount}
+              loading={mutation.isPending}
+              installableOnTeams={installableOnTeams}
+            />
+          )}
+          {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+            eventTypeGroups &&
+            Boolean(eventTypeGroups?.length) && (
+              <EventTypesStepCard
                 title={stepObj.getTitle(appMetadata.name)}
-                subtitle={stepObj.getDescription(appMetadata.name)}>
-                <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
-              </StepHeader>
-              {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
-                <AccountsStepCard
-                  teams={teams}
-                  personalAccount={personalAccount}
-                  onSelect={handleSelectAccount}
-                  loading={mutation.isPending}
-                  installableOnTeams={installableOnTeams}
-                />
-              )}
-              {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
-                eventTypeGroups &&
-                Boolean(eventTypeGroups?.length) && (
-                  <EventTypesStepCard
-                    setConfigureStep={setConfigureStep}
-                    userName={userName}
-                    handleSetUpLater={handleSetUpLater}
-                  />
-                )}
-              {currentStep === AppOnboardingSteps.CONFIGURE_STEP && eventTypeGroups && (
-                <ConfigureStepCard
-                  slug={appMetadata.slug}
-                  categories={appMetadata.categories}
-                  credentialId={credentialId}
-                  userName={userName}
-                  loading={updateMutation.isPending}
-                  formPortalRef={formPortalRef}
-                  setConfigureStep={setConfigureStep}
-                  eventTypeGroups={eventTypeGroups}
-                  handleSetUpLater={handleSetUpLater}
-                  isConferencing={isConferencing}
-                />
-              )}
-            </Form>
-          </div>
-        </div>
+                subtitle={stepObj.getDescription(appMetadata.name)}
+                setConfigureStep={setConfigureStep}
+                userName={userName}
+                handleSetUpLater={handleSetUpLater}
+              />
+            )}
+          {currentStep === AppOnboardingSteps.CONFIGURE_STEP && eventTypeGroups && (
+            <ConfigureStepCard
+              title={stepObj.getTitle(appMetadata.name)}
+              subtitle={stepObj.getDescription(appMetadata.name)}
+              slug={appMetadata.slug}
+              categories={appMetadata.categories}
+              credentialId={credentialId}
+              userName={userName}
+              loading={updateMutation.isPending}
+              formPortalRef={formPortalRef}
+              setConfigureStep={setConfigureStep}
+              eventTypeGroups={eventTypeGroups}
+              handleSetUpLater={handleSetUpLater}
+              isConferencing={isConferencing}
+            />
+          )}
+        </Form>
       </div>
       <Toaster position="bottom-right" />
-    </div>
+    </InstallationLayout>
   );
 };
 
