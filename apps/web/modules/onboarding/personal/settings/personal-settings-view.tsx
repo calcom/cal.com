@@ -110,8 +110,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
 
   return (
     <>
-      <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={1}>
+      <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={2}>
         {/* Left column - Main content */}
         <OnboardingCard
           title={t("add_your_details")}
@@ -139,7 +138,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
             <form
               id="personal-settings-form"
               onSubmit={handleContinue}
-              className="flex w-full flex-col gap-6 px-5">
+              className="flex w-full flex-col gap-6 px-1">
               {/* Profile Picture */}
               <div className="flex w-full flex-col gap-2">
                 <Label className="text-emphasis text-sm font-medium leading-4">{t("profile_picture")}</Label>
@@ -184,6 +183,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               {/* Username */}
               <div className="flex w-full flex-col gap-1.5">
                 <UsernameAvailabilityField
+                  disabled
                   onSuccessMutation={async () => {
                     // Refetch user to get updated username and save to store
                     const updatedUser = await utils.viewer.me.get.fetch();
