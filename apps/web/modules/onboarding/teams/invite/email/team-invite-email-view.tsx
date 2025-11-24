@@ -76,6 +76,8 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
+    const teamIdParam = searchParams.get("teamId");
+    const parsedTeamId = !teamId ? parseInt(teamIdParam, 10) : teamId;
     if (!teamId) {
       showToast(
         t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
