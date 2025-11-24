@@ -55,12 +55,6 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
     await createTeam(store);
   };
 
-  const handleInvite = async () => {
-    // For now, just proceed to create the team
-    // The actual invites will be handled in the email page
-    await createTeam(store);
-  };
-
   return (
     <>
       <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={3}>
@@ -85,14 +79,6 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                     onClick={handleSkip}
                     disabled={isSubmitting}>
                     {t("onboarding_skip_for_now")}
-                  </Button>
-                  <Button
-                    color="primary"
-                    className="rounded-[10px]"
-                    onClick={handleInvite}
-                    disabled={isSubmitting}
-                    loading={isSubmitting}>
-                    {t("invite")}
                   </Button>
                 </div>
               </div>
