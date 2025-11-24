@@ -504,7 +504,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-14 w-14 items-center justify-center rounded-full",
                           isRoundRobin &&
-                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation ? "bg-green-600" : "",
                           !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""
@@ -654,8 +654,22 @@ export default function Success(props: PageProps) {
                               {bookingInfo?.attendees.map((attendee) => (
                                 <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    <div>
+                                      <span data-testid={`attendee-name-${attendee.name}`} className="mr-2">
+                                        {attendee.name}
+                                      </span>
+                                      {attendee.bookingSeat?.payment?.some((p) => p.success) > 0 ? (
+                                        attendee.bookingSeat.payment.some((p) => p.success && !p.refunded) ? (
+                                          <Badge variant="success">{t("paid")}</Badge>
+                                        ) : (
+                                          <Badge variant="destructive">{t("refunded")}</Badge>
+                                        )
+                                      ) : (
+                                        <Badge variant="secondary">{t("unpaid")}</Badge>
+                                      )}
+                                    </div>
                                   )}
+
                                   {attendee.phoneNumber && (
                                     <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
                                       {attendee.phoneNumber}
@@ -745,7 +759,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                    0 ? (
+                                  0 ? (
                                     <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -771,11 +785,7 @@ export default function Success(props: PageProps) {
                           const response = bookingInfo.responses[field.name];
 
                           const isSystemField = SystemField.safeParse(field.name);
-                          if (
-                            isSystemField.success &&
-                            field.name !== TITLE_FIELD
-                          )
-                            return null;
+                          if (isSystemField.success && field.name !== TITLE_FIELD) return null;
 
                           const label = field.label || t(field.defaultLabel);
 
@@ -787,7 +797,7 @@ export default function Success(props: PageProps) {
                                   __html: markdownToSafeHTML(label),
                                 }}
                               />
-                              <div className="col-span-2 mt-3 mb-6 last:mb-0">
+                              <div className="col-span-2 mb-6 mt-3 last:mb-0">
                                 <p
                                   className="text-default break-words"
                                   data-testid="field-response"
@@ -891,10 +901,11 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
-                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                          : ""
-                                          }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                          currentUserEmail
+                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                            : ""
+                                        }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
@@ -1087,7 +1098,7 @@ export default function Success(props: PageProps) {
                               id="email"
                               defaultValue={email}
                               className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black sm:text-sm"
-                              placeholder="rick.astley@cal.com"
+                              placeholder="rick.astley@cal.id"
                             />
                             <Button
                               type="submit"

@@ -42,6 +42,16 @@ const getUserBooking = async (uid: string) => {
           email: true,
           timeZone: true,
           phoneNumber: true,
+          bookingSeat: {
+            select: {
+              payment: {
+                select: {
+                  success: true,
+                  refunded: true,
+                }
+              },
+            },
+          },
         },
         orderBy: {
           id: "asc",
