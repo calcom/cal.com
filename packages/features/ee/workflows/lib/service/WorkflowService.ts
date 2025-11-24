@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { CreditCheckFn } from "@calcom/ee/workflows/lib/reminders/messageDispatcher";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -87,11 +88,13 @@ export class WorkflowService {
     form,
     responseId,
     routedEventTypeId,
+    creditCheckFn,
   }: {
     responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     routedEventTypeId: number | null;
+    creditCheckFn?: CreditCheckFn;
     form: {
       id: string;
       userId: number;
@@ -137,6 +140,7 @@ export class WorkflowService {
       },
       hideBranding,
       workflows: workflowsToTrigger,
+      creditCheckFn,
     });
 
     const workflowsToSchedule: Workflow[] = [];

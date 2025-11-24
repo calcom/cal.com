@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import logger from "@calcom/lib/logger";
@@ -52,6 +53,10 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
 
   if (!shouldTrigger) return;
 
+  const creditService = new CreditService();
+  const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
+    creditService.hasAvailableCredits({ userId, teamId });
+
   try {
     await scheduleWorkflowReminders({
       smsReminderNumber,
@@ -62,6 +67,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
       },
       hideBranding,
       workflows: [workflow as Workflow],
+      creditCheckFn,
     });
   } catch (error) {
     log.error("Error while triggering form submitted no event workflows", JSON.stringify({ error }));
