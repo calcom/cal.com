@@ -92,6 +92,9 @@ test.describe("OAuth Provider", () => {
     // check if user access token is valid
     expect(meData.username.startsWith("test user")).toBe(true);
 
+    // Small delay to ensure new token has different iat timestamp
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // request new token with refresh token
     const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
@@ -175,6 +178,9 @@ test.describe("OAuth Provider", () => {
 
     // Check if team access token is valid
     expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
+
+    // Small delay to ensure new token has different iat timestamp
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // request new token with refresh token
     const refreshTokenForm = new URLSearchParams();
@@ -441,7 +447,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     expect(tokenData.refresh_token).toBeDefined();
 
     // Small delay to ensure new token has different iat timestamp
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Now test refresh token with PKCE
     const refreshTokenForm = new URLSearchParams();
@@ -669,6 +675,9 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     const meData = await meResponse.json();
     expect(meData.username.startsWith("test user conf pkce")).toBe(true);
 
+    // Small delay to ensure new token has different iat timestamp
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Test refresh with both client_secret and code_verifier (enhanced security)
     const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
@@ -801,6 +810,9 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
 
     const tokenData = await tokenResponse.json();
     expect(tokenResponse.status).toBe(200);
+
+    // Small delay to ensure new token has different iat timestamp
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Refresh with ONLY client_secret - should work since PKCE was never used
     const refreshTokenForm = new URLSearchParams();
