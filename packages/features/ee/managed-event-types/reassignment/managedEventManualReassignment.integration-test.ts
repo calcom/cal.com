@@ -405,8 +405,8 @@ describe("managedEventManualReassignment - Integration Tests", () => {
 
     expect(newBooking).toBeTruthy();
     // Verify time is preserved
-    expect(newBooking?.startTime).toBe(startTime);
-    expect(newBooking?.endTime).toBe(endTime);
+    expect(newBooking?.startTime).toEqual(startTime);
+    expect(newBooking?.endTime).toEqual(endTime);
     // Verify attendees are copied
     expect(newBooking?.attendees.length).toBe(1);
     expect(newBooking?.attendees[0].email).toBe("attendee@test.com");

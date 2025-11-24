@@ -16,7 +16,7 @@ const DefaultPagination = {
   skip: 0,
 };
 
-describe("GET /api/bookings", async () => {
+describe("GET /api/bookings", () => {
   let proUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
   let proUserBooking: Awaited<ReturnType<typeof prisma.booking.findFirstOrThrow>>;
   let memberUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
