@@ -60,38 +60,24 @@ export async function handler(req: NextRequest) {
     const teamId = reminder.workflowStep.workflow.teamId;
 
     try {
-      // For seated events, get the correct attendee based on seatReferenceId
-      let targetAttendee = reminder.booking?.attendees[0];
-      if (reminder.seatReferenceId) {
-        const seatAttendeeData = await prisma.bookingSeat.findUnique({
-          where: {
-            referenceUid: reminder.seatReferenceId,
-          },
-          select: {
-            attendee: true,
-          },
-        });
-        if (seatAttendeeData?.attendee) {
-          targetAttendee = seatAttendeeData.attendee;
-        }
-      }
-
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
           ? reminder.workflowStep.sendTo
-          : targetAttendee?.phoneNumber;
+          : reminder.booking?.smsReminderNumber;
 
       const userName =
-        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE ? targetAttendee?.name || "" : "";
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? reminder.booking?.attendees[0].name
+          : "";
 
       const attendeeName =
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
           ? reminder.booking?.user?.name
-          : targetAttendee?.name;
+          : reminder.booking?.attendees[0].name;
 
       const timeZone =
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-          ? targetAttendee?.timeZone
+          ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
       const senderID = getSenderId(sendTo, reminder.workflowStep.sender);
@@ -99,7 +85,7 @@ export async function handler(req: NextRequest) {
       const locale =
         reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-          ? targetAttendee?.locale
+          ? reminder.booking?.attendees[0].locale
           : reminder.booking?.user?.locale;
 
       let message: string | null = reminder.workflowStep.reminderBody || null;
@@ -124,7 +110,7 @@ export async function handler(req: NextRequest) {
 
         const recipientEmail = getWorkflowRecipientEmail({
           action: reminder.workflowStep.action || WorkflowActions.SMS_NUMBER,
-          attendeeEmail: targetAttendee?.email,
+          attendeeEmail: reminder.booking.attendees[0].email,
           organizerEmail: reminder.booking.user?.email,
         });
 
@@ -144,8 +130,8 @@ export async function handler(req: NextRequest) {
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
-          attendeeName: targetAttendee?.name,
-          attendeeEmail: targetAttendee?.email,
+          attendeeName: reminder.booking?.attendees[0].name,
+          attendeeEmail: reminder.booking?.attendees[0].email,
           eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
           eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
           timeZone: timeZone,
@@ -155,12 +141,12 @@ export async function handler(req: NextRequest) {
           meetingUrl,
           cancelLink,
           rescheduleLink,
-          attendeeTimezone: targetAttendee?.timeZone,
+          attendeeTimezone: reminder.booking.attendees[0].timeZone,
           eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
-            targetAttendee?.timeZone
+            reminder.booking.attendees[0].timeZone
           ),
           eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
-            targetAttendee?.timeZone
+            reminder.booking.attendees[0].timeZone
           ),
         };
         const customMessage = customTemplate(
@@ -201,7 +187,7 @@ export async function handler(req: NextRequest) {
           fallbackData:
             reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
               ? {
-                  email: targetAttendee?.email,
+                  email: reminder.booking.attendees[0].email,
                   t: await getTranslation(locale || "en", "common"),
                   replyTo: reminder.booking?.user?.email ?? "",
                   workflowStepId: reminder.workflowStep.id,
