@@ -42,7 +42,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
-    const teamIdParam = searchParams.get("teamId");
+    const teamIdParam = searchParams?.get("teamId");
     if (teamIdParam) {
       const teamId = parseInt(teamIdParam, 10);
       if (!isNaN(teamId)) {
@@ -76,9 +76,9 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
-    const teamIdParam = searchParams.get("teamId");
-    const parsedTeamId = !teamId ? parseInt(teamIdParam, 10) : teamId;
-    if (!teamId) {
+    const teamIdParam = searchParams?.get("teamId");
+    const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
+    if (!parsedTeamId) {
       showToast(
         t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
         "error"
@@ -116,10 +116,6 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       const gettingStartedPath = "/onboarding/personal/settings";
       router.push(gettingStartedPath);
     }
-  };
-
-  const handleBack = () => {
-    router.push("/onboarding/teams/invite");
   };
 
   const handleSkip = async () => {

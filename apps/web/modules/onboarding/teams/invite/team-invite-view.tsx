@@ -32,7 +32,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
 
   // Read teamId from query params and store it (from payment callback)
   useEffect(() => {
-    const teamIdParam = searchParams.get("teamId");
+    const teamIdParam = searchParams?.get("teamId");
     if (teamIdParam) {
       const teamId = parseInt(teamIdParam, 10);
       if (!isNaN(teamId)) {
