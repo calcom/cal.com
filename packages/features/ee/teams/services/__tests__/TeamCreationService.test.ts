@@ -6,11 +6,11 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole, CreationSource, RedirectType } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { TeamCreationService } from "../TeamCreationService";
 
@@ -161,18 +161,19 @@ describe("TeamCreationService - Comprehensive Tests", () => {
     it("should throw NoOrganizationError when organization does not exist", async () => {
       const service = createTeamCreationService();
 
-      await expect(
-        service.createTeamsForOrganization({
+      const error = await service
+        .createTeamsForOrganization({
           orgId: 99999,
           teamNames: ["Team 1"],
           moveTeams: [],
           creationSource: CreationSource.WEBAPP,
           ownerId: 1,
         })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "no_organization_found",
-      });
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.NoOrganizationFound);
+      expect(error.message).toBe("no_organization_found");
     });
 
     it("should throw InvalidMetadataError when organization metadata is invalid", async () => {
@@ -192,18 +193,19 @@ describe("TeamCreationService - Comprehensive Tests", () => {
 
       const service = createTeamCreationService();
 
-      await expect(
-        service.createTeamsForOrganization({
+      const error = await service
+        .createTeamsForOrganization({
           orgId: organization.id,
           teamNames: ["Team 1"],
           moveTeams: [],
           creationSource: CreationSource.WEBAPP,
           ownerId: owner.id,
         })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "invalid_organization_metadata",
-      });
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.InvalidOrganizationMetadata);
+      expect(error.message).toBe("invalid_organization_metadata");
     });
 
     it("should throw NoOrganizationSlugError when organization has no slug or requestedSlug", async () => {
@@ -219,18 +221,19 @@ describe("TeamCreationService - Comprehensive Tests", () => {
 
       const service = createTeamCreationService();
 
-      await expect(
-        service.createTeamsForOrganization({
+      const error = await service
+        .createTeamsForOrganization({
           orgId: organization.id,
           teamNames: ["Team 1"],
           moveTeams: [],
           creationSource: CreationSource.WEBAPP,
           ownerId: owner.id,
         })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "no_organization_slug",
-      });
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.NoOrganizationSlug);
+      expect(error.message).toBe("no_organization_slug");
     });
 
     it("should work when organization has requestedSlug but no slug", async () => {
