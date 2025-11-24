@@ -129,6 +129,10 @@ async function handler(req: NextRequest) {
     scope: accessCode.scopes,
     token_type: "Refresh Token",
     clientId: client_id,
+    ...(client.clientType === "PUBLIC" && {
+      codeChallenge: accessCode.codeChallenge,
+      codeChallengeMethod: accessCode.codeChallengeMethod,
+    }),
   };
 
   const accessTokenExpiresIn = 1800; // 30 minutes

@@ -4,12 +4,13 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
-  const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
+  const { client_id, client_secret, grant_type, refresh_token, code_verifier } = await parseUrlFormData(req);
 
   if (!client_id) {
     return NextResponse.json({ message: "Missing client_id" }, { status: 400 });
@@ -42,9 +43,20 @@ async function handler(req: NextRequest) {
       );
     }
 
+    if (code_verifier) {
+      return NextResponse.json(
+        { message: "code_verifier is not supported for confidential clients. Use client_secret instead." },
+        { status: 400 }
+      );
+    }
+
     const [hashedSecret] = generateSecret(client_secret);
     if (client.clientSecret !== hashedSecret) {
       return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
+    }
+  } else if (client.clientType === "PUBLIC") {
+    if (!code_verifier) {
+      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
     }
   }
 
@@ -75,6 +87,26 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
   }
 
+  // For PUBLIC clients, verify the PKCE code verifier against the stored challenge in the refresh token
+  if (client.clientType === "PUBLIC") {
+    if (!decodedRefreshToken.codeChallenge) {
+      return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
+    }
+
+    if (!code_verifier) {
+      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
+    }
+
+    const method = decodedRefreshToken.codeChallengeMethod || "S256";
+    if (method !== "S256") {
+      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+    }
+
+    if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
+      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+    }
+  }
+
   const accessTokenExpiresIn = 1800; // 30 minutes
 
   const payloadAuthToken: OAuthTokenPayload = {
@@ -91,6 +123,11 @@ async function handler(req: NextRequest) {
     scope: decodedRefreshToken.scope,
     token_type: "Refresh Token",
     clientId: client_id,
+    // Preserve PKCE information for PUBLIC clients to enable future authenticated refresh
+    ...(client.clientType === "PUBLIC" && {
+      codeChallenge: decodedRefreshToken.codeChallenge,
+      codeChallengeMethod: decodedRefreshToken.codeChallengeMethod,
+    }),
   };
 
   const access_token = jwt.sign(payloadAuthToken, secretKey, {
