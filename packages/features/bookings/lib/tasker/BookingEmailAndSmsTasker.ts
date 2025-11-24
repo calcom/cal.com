@@ -1,4 +1,4 @@
-import { BookingActionMap } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import { BookingActionMap, BookingActionType } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -19,20 +19,30 @@ export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> 
   }
 
   public async send(data: {
-    action: string;
+    action: BookingActionType;
     schedulingType: SchedulingType | null;
     payload: BookingEmailAndSmsTaskPayload;
-  }) {
+  }): Promise<{ runId: string }> {
     const { action, schedulingType, payload } = data;
+    let taskResponse: {
+      runId: string;
+    } = { runId: "task-not-found" };
 
     if (action === BookingActionMap.rescheduled) {
       if (schedulingType === "ROUND_ROBIN") return this.safeDispatch("rrReschedule", payload);
-      return this.safeDispatch("reschedule", payload);
+      {
+        taskResponse = await this.safeDispatch("reschedule", payload);
+      }
+    }
+    if (action === BookingActionMap.confirmed) {
+      taskResponse = await this.safeDispatch("confirm", payload);
+    }
+    if (action === BookingActionMap.requested) {
+      taskResponse = await this.safeDispatch("request", payload);
     }
 
-    if (action === BookingActionMap.confirmed) return this.safeDispatch("confirm", payload);
-    if (action === BookingActionMap.requested) return this.safeDispatch("request", payload);
+    this.logger.warn("BookingEmailAndSmsTasker Tasker Send", taskResponse);
 
-    this.logger.warn("Unknown email/SMS action requested.", { action });
+    return taskResponse;
   }
 }
