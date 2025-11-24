@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -8,11 +9,6 @@ import { WorkflowMethods } from "@calcom/prisma/enums";
 import * as twilio from "./providers/twilioProvider";
 
 const log = logger.getSubLogger({ prefix: ["[reminderScheduler]"] });
-
-export type CreditCheckFn = (params: {
-  userId?: number | null;
-  teamId?: number | null;
-}) => Promise<boolean>;
 
 export async function sendSmsOrFallbackEmail(props: {
   twilioData: {
@@ -35,7 +31,7 @@ export async function sendSmsOrFallbackEmail(props: {
   creditCheckFn?: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  
+
   let hasCredits: boolean;
   if (props.creditCheckFn) {
     hasCredits = await props.creditCheckFn({ userId, teamId });
@@ -88,7 +84,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
   creditCheckFn?: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  
+
   let hasCredits: boolean;
   if (props.creditCheckFn) {
     hasCredits = await props.creditCheckFn({ userId, teamId });
