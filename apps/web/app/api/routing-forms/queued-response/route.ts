@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
@@ -44,9 +45,28 @@ export const queuedResponseHandler = async ({
     throw new Error("Form has no fields");
   }
 
-  const response = getResponseToStore({
+  // Get the original response from the queued response
+  // This contains all the fields from the initial router submission
+  const originalResponse = queuedFormResponse.response as FormResponse;
+
+  // Build response from booking page params
+  // This allows users to change values on the booking page
+  const bookingPageResponse = getResponseToStore({
     formFields: serializableForm.fields,
     fieldsResponses: params,
+  });
+
+  // Merge: start with original response and override with booking page values
+  // Only override if the booking page has a non-empty value
+  // This preserves router-only fields (like those without identifiers) that aren't present on the booking page
+  const response: FormResponse = { ...originalResponse };
+  Object.keys(bookingPageResponse).forEach((fieldId) => {
+    const bookingPageValue = bookingPageResponse[fieldId].value;
+    // Only override if the booking page has a non-empty value
+    // This allows router-only fields to be preserved while still allowing user changes on the booking page
+    if (bookingPageValue !== "" && bookingPageValue !== null && bookingPageValue !== undefined) {
+      response[fieldId] = bookingPageResponse[fieldId];
+    }
   });
 
   const formResponse = await formResponseRepo.recordFormResponse({
