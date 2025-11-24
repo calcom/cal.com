@@ -507,7 +507,6 @@ export default function Signup({
                           has_token: !!token,
                           is_org_invite: isOrgInviteByLink,
                           org_slug: orgSlug,
-                          username: username,
                         });
 
                         // eslint-disable-next-line @calcom/eslint/avoid-web-storage

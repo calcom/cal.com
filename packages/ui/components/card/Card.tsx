@@ -135,7 +135,7 @@ export interface BaseCardProps extends CVACardType {
   learnMore?: {
     href: string;
     text: string;
-    onClick?: () => void;
+    onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   mediaLink?: string;
   mediaLinkOnClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
