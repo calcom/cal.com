@@ -225,7 +225,7 @@ export function TodaysMeeting() {
         <h2 className="text-default text-lg font-bold">{t("today_s_meetings")}</h2>
         {!isLoading && (
           <div className="border-default rounded-full border bg-blue-50 px-3 py-1">
-            <span className="text-default text-sm font-medium">
+            <span className="text-default text-sm font-medium dark:text-black">
               {totalMeetings} {totalMeetings === 1 ? t("meeting") : t("meetings")}
             </span>
           </div>
