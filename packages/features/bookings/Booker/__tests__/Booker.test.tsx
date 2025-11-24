@@ -136,6 +136,7 @@ const defaultProps = {
     extraDays: 7,
     columnViewExtraDays: { current: 7 },
     isMobile: false,
+    isTablet: false,
     layout: "MONTH_VIEW",
     hideEventTypeDetails: false,
     isEmbed: false,
