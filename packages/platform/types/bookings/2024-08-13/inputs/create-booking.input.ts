@@ -1,5 +1,5 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
   IsInt,
@@ -239,6 +239,14 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsObject()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || typeof value !== "object") return value;
+    const transformed: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      transformed[key] = val === null ? "" : val;
+    }
+    return transformed;
+  })
   bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
