@@ -9,12 +9,9 @@ export function verifyCodeChallenge(
     const expectedChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
     return expectedChallenge === codeChallenge;
   }
-  if (method === "plain") {
-    return codeVerifier === codeChallenge;
-  }
   return false;
 }
 
 export function isValidCodeChallengeMethod(method: string): boolean {
-  return method === "S256" || method === "plain";
+  return method === "S256";
 }

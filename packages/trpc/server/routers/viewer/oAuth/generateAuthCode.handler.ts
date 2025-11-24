@@ -34,7 +34,6 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Client ID not valid" });
   }
 
-  // Enforce PKCE for PUBLIC clients
   if (client.clientType === "PUBLIC") {
     if (!codeChallenge) {
       throw new TRPCError({
@@ -42,10 +41,18 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
         message: "code_challenge required for public clients",
       });
     }
-    if (!codeChallengeMethod || !["S256", "plain"].includes(codeChallengeMethod)) {
+    if (!codeChallengeMethod || codeChallengeMethod !== "S256") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Invalid or missing code_challenge_method for public clients",
+        message: "code_challenge_method must be S256 for public clients",
+      });
+    }
+  } else if (client.clientType === "CONFIDENTIAL") {
+    // Reject PKCE for confidential clients - they use client_secret instead
+    if (codeChallenge || codeChallengeMethod) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "PKCE is not supported for confidential clients. Use client_secret instead.",
       });
     }
   }

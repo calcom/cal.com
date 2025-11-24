@@ -17,7 +17,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  // First, find the client by client_id to determine client type
   const client = await prisma.oAuthClient.findFirst({
     where: {
       clientId: client_id,
@@ -33,12 +32,17 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // Handle authentication based on client type
   if (client.clientType === "CONFIDENTIAL") {
-    // Confidential client - requires client secret
     if (!client_secret) {
       return NextResponse.json(
         { message: "client_secret required for confidential clients" },
+        { status: 400 }
+      );
+    }
+    // Reject PKCE for confidential clients
+    if (code_verifier) {
+      return NextResponse.json(
+        { message: "code_verifier is not supported for confidential clients. Use client_secret instead." },
         { status: 400 }
       );
     }
@@ -48,7 +52,6 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
     }
   } else if (client.clientType === "PUBLIC") {
-    // Public client - must use PKCE, no client secret
     if (!code_verifier) {
       return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
     }
@@ -92,9 +95,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // PKCE verification
   if (client.clientType === "PUBLIC") {
-    // Public client - must have code challenge
     if (!accessCode.codeChallenge) {
       return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
     }
@@ -103,6 +104,9 @@ async function handler(req: NextRequest) {
     }
 
     const method = accessCode.codeChallengeMethod || "S256";
+    if (method !== "S256") {
+      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+    }
     if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
       return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
     }
