@@ -499,6 +499,14 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withHashedLink(hashedLink?: string | null) {
+    this.event = {
+      ...this.event,
+      hashedLink,
+    };
+    return this;
+  }
+
   build(): CalendarEvent | null {
     // Validate required fields
     if (

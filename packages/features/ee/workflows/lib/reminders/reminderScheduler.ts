@@ -16,7 +16,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { BookingInfo } from "./smsReminderManager";
@@ -287,86 +287,18 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
 
 const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId,
-  userId,
+  userIdsWithNoCredits,
 }: {
   teamId?: number | null;
-  userId?: number | null;
+  userIdsWithNoCredits: number[];
 }) => {
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const { WorkflowReminderRepository } = await import(
+    "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
+  );
 
-  let userIdsWithNoCredits: number[] = userId ? [userId] : [];
-
-  if (teamId) {
-    const teamMembers = await prisma.membership.findMany({
-      where: {
-        teamId,
-        accepted: true,
-      },
-    });
-
-    const creditService = new CreditService();
-
-    userIdsWithNoCredits = (
-      await Promise.all(
-        teamMembers.map(async (member) => {
-          const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
-          return { userId: member.userId, hasCredits };
-        })
-      )
-    )
-      .filter(({ hasCredits }) => !hasCredits)
-      .map(({ userId }) => userId);
-  }
-
-  const scheduledMessages = await prisma.workflowReminder.findMany({
-    where: {
-      workflowStep: {
-        workflow: {
-          OR: [
-            {
-              userId: {
-                in: userIdsWithNoCredits,
-              },
-            },
-            ...(teamId ? [{ teamId }] : []),
-          ],
-        },
-      },
-      scheduled: true,
-      OR: [{ cancelled: false }, { cancelled: null }],
-      referenceId: {
-        not: null,
-      },
-      method: {
-        in: [WorkflowMethods.SMS, WorkflowMethods.WHATSAPP],
-      },
-    },
-    select: {
-      referenceId: true,
-      workflowStep: {
-        select: {
-          action: true,
-        },
-      },
-      scheduledDate: true,
-      uuid: true,
-      id: true,
-      booking: {
-        select: {
-          attendees: {
-            select: {
-              email: true,
-              locale: true,
-            },
-          },
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      },
-    },
+  const scheduledMessages = await WorkflowReminderRepository.findScheduledMessagesToCancel({
+    teamId,
+    userIdsWithNoCredits,
   });
 
   const [twilio, { sendOrScheduleWorkflowEmails }] = await Promise.all([
@@ -397,16 +329,8 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
     })
   );
 
-  await prisma.workflowReminder.updateMany({
-    where: {
-      id: {
-        in: scheduledMessages.map((msg) => msg.id),
-      },
-    },
-    data: {
-      method: WorkflowMethods.EMAIL,
-      referenceId: null,
-    },
+  await WorkflowReminderRepository.updateRemindersToEmail({
+    reminderIds: scheduledMessages.map((msg) => msg.id),
   });
 };
 // Export functions wrapped with withReporting

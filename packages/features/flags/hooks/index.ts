@@ -31,6 +31,7 @@ const initialData: AppFlags = {
   "booker-botid": false,
   "booking-calendar-view": false,
   "booking-email-sms-tasker": false,
+  "bookings-v3": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
