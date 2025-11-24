@@ -122,7 +122,7 @@ test.describe("OAuth Provider", () => {
     expect(validTokenData.username.startsWith("test user")).toBe(true);
   });
 
-  test.only("should create valid access token & refresh token for team", async ({ page, users }) => {
+  test("should create valid access token & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
