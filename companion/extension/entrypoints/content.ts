@@ -46,8 +46,20 @@ export default defineContentScript({
     iframe.style.borderRadius = "0";
     iframe.style.backgroundColor = "transparent";
     iframe.style.pointerEvents = "auto";
+    iframe.style.transition = "width 0.3s ease-in-out";
 
     iframeContainer.appendChild(iframe);
+
+    // Listen for messages from iframe to control width
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "cal-companion-expand") {
+        iframe.style.width = "100%";
+        iframeContainer.style.pointerEvents = "auto";
+      } else if (event.data.type === "cal-companion-collapse") {
+        iframe.style.width = "400px";
+        iframeContainer.style.pointerEvents = "none";
+      }
+    });
 
     sidebarContainer.appendChild(iframeContainer);
 
