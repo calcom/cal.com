@@ -1,5 +1,4 @@
 import { useMemo, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
@@ -22,9 +21,7 @@ export const LargeCalendar = ({
   extraDays: number;
   schedule?: useScheduleForEventReturnType["data"];
   isLoading: boolean;
-  event: {
-    data?: Pick<BookerEvent, "length"> | null;
-  };
+  event: { data?: Pick<BookerEvent, "length"> | null };
 }) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStoreContext((state) => state.setSelectedTimeslot);
@@ -36,30 +33,28 @@ export const LargeCalendar = ({
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
+  // Normalize spacing so calendar works for durations like 25m
+  const normalizeGridCells = () => {
+    const baseInterval = 5; // best universal anchor
+    return 60 / baseInterval; // always integer (12)
+  };
+
   const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
 
   const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
-  const endDate = dayjs(startDate)
-    .add(extraDays - 1, "day")
-    .toDate();
+  const endDate = dayjs(startDate).add(extraDays - 1, "day").toDate();
 
-  // HACK: force rerender when overlay events change
-  // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];
-    return overlayEvents.map((event, id) => {
-      return {
-        id,
-        start: dayjs(event.start).toDate(),
-        end: dayjs(event.end).toDate(),
-        title: "Busy",
-        options: {
-          status: "ACCEPTED",
-        },
-      } as CalendarEvent;
-    });
+    return overlayEvents.map((event, id) => ({
+      id,
+      start: dayjs(event.start).toDate(),
+      end: dayjs(event.end).toDate(),
+      title: "Busy",
+      options: { status: "ACCEPTED" },
+    })) as CalendarEvent[];
   }, [overlayEvents, displayOverlay]);
 
   return (
@@ -73,7 +68,7 @@ export const LargeCalendar = ({
         startDate={startDate}
         endDate={endDate}
         onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
-        gridCellsPerHour={60 / eventDuration}
+        gridCellsPerHour={normalizeGridCells()}
         hoverEventDuration={eventDuration}
         hideHeader
         timezone={timezone}
