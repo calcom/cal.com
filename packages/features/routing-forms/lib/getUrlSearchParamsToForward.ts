@@ -126,7 +126,9 @@ export function getUrlSearchParamsToForward({
     ...paramsFromResponse,
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
-      : null),
+      : typeof formResponseId === "number"
+        ? { ["cal.routedTeamMemberIds"]: "null" }
+        : null),
     ...(typeof formResponseId === "number"
       ? { [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId) }
       : null),
