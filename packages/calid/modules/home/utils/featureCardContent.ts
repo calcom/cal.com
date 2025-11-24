@@ -11,6 +11,12 @@ export type Feature = {
 
 export const newFeatureCardContent: Feature[] = [
   {
+    icon: "credit-card",
+    title: "Multi-Seat Booking",
+    description: "Collect payment from multiple bookers for a single event.",
+    isNew: true,
+  },
+  {
     icon: "paperclip",
     title: "Attachments",
     description: "Allow your bookers to upload attachments to their bookings.",

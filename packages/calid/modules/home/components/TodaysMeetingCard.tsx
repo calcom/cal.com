@@ -220,7 +220,7 @@ export function TodaysMeeting() {
   const totalMeetings = futureMeetings.length;
 
   return (
-    <div className="border-default bg-default flex h-80 w-full flex-col rounded-3xl border px-4 py-6 shadow-md">
+    <div className="border-default bg-default flex h-80 w-full flex-col rounded-md border px-4 py-6">
       <div className="mb-6 flex flex-shrink-0 items-center justify-between">
         <h2 className="text-default text-lg font-bold">{t("today_s_meetings")}</h2>
         {!isLoading && (
@@ -232,7 +232,7 @@ export function TodaysMeeting() {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
         {isLoading ? (
           <Skeleton />
         ) : totalMeetings === 0 ? (

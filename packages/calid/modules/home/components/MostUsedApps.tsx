@@ -67,7 +67,7 @@ export const MostUsedApps = () => {
   ];
 
   return (
-    <div className="border-default bg-default flex h-full w-full flex-col rounded-3xl border px-4 py-6 shadow-md">
+    <div className="border-default bg-default flex h-full w-full flex-col rounded-md border px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-default mb-1 text-lg font-bold">{t("most_used_apps")}</h2>
         <Button
@@ -93,7 +93,7 @@ export const MostUsedApps = () => {
               href={`/apps/${appSlug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-default border-default hover:border-primary flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:scale-105">
+              className="bg-default border-default hover:border-primary flex cursor-pointer items-center gap-3 rounded-md border p-4 transition-all duration-200 hover:scale-105 hover:shadow-md">
               {logo && (
                 <img
                   src={logo}

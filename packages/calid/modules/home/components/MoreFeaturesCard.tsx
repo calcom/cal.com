@@ -3,7 +3,7 @@
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -34,12 +34,12 @@ const Card = ({
 
   return (
     <div
-      className={`bg-default relative flex flex-row gap-4 overflow-hidden rounded-2xl border p-6 transition-all duration-300 ${
-        shouldBeClickable ? "cursor-pointer hover:scale-105" : ""
+      className={`bg-default group relative flex flex-row gap-4 overflow-hidden rounded-md border p-6 transition-all duration-300 ${
+        shouldBeClickable ? "cursor-pointer hover:scale-[1.02] hover:shadow-md" : ""
       }`}
       onClick={shouldBeClickable ? handleClick : undefined}>
       <div className="flex flex-shrink-0 justify-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 transition-transform duration-300 group-hover:scale-110">
           <Icon name={icon} className="h-5 w-5 text-blue-500" />
         </div>
       </div>
@@ -72,38 +72,23 @@ export function MoreFeatures() {
   });
 
   const [row1CardIndex, setRow1CardIndex] = useState(0);
-  const [isSliding, setIsSliding] = useState(false);
-  const [nextCardIndex, setNextCardIndex] = useState(1);
-  const row1CardIndexRef = useRef(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    row1CardIndexRef.current = row1CardIndex;
-  }, [row1CardIndex]);
-
-  useEffect(() => {
-    if (newFeatureCardContent.length === 0) return;
+    if (newFeatureCardContent.length <= 1) return;
 
     const interval = setInterval(() => {
-      setIsSliding(true);
-      const nextIndex = (row1CardIndexRef.current + 1) % newFeatureCardContent.length;
-      setNextCardIndex(nextIndex);
-
+      setIsAnimating(true);
       setTimeout(() => {
-        row1CardIndexRef.current = nextIndex;
-        setRow1CardIndex(nextIndex);
-        setIsSliding(false);
-      }, 600);
-    }, 10000);
+        setRow1CardIndex((prev) => (prev + 1) % newFeatureCardContent.length);
+        setIsAnimating(false);
+      }, 300);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const handleCardClick = (
-    positionIndex: number,
-    currentCardIndex: number,
-    rowType: "row2" | "row3",
-    pageSlug?: string
-  ) => {
+  const handleCardClick = (positionIndex: number, currentCardIndex: number, rowType: "row2" | "row3") => {
     setVisibleCardIndices((prev) => {
       const newIndices = [...prev];
       const allVisibleIndices = prev.filter((idx) => idx !== undefined);
@@ -162,7 +147,7 @@ export function MoreFeatures() {
   }, [visibleCardIndices]);
 
   return (
-    <div className="border-default flex w-full flex-col items-center rounded-3xl border px-4 py-8 shadow-md">
+    <div className="border-default flex w-full flex-col items-center rounded-md border px-4 py-8">
       <div className="flex w-full flex-col gap-4">
         <div className="relative flex w-full items-center justify-between">
           <h2 className="text-default text-lg font-bold">{t("explore_more_features")}</h2>
@@ -175,42 +160,44 @@ export function MoreFeatures() {
             </Button>
           </div>
         </div>
-        <div className="relative w-full overflow-hidden">
-          <div className="invisible">
+        <div className="relative w-full">
+          <div
+            key={row1CardIndex}
+            className={`transition-opacity duration-300 ease-in-out ${
+              isAnimating ? "opacity-0" : "opacity-100"
+            }`}>
             {newFeatureCardContent[row1CardIndex] && (
               <Card
                 {...newFeatureCardContent[row1CardIndex]}
                 isClickable={!!newFeatureCardContent[row1CardIndex].pageSlug}
-              />
-            )}
-          </div>
-          <div
-            className={`duration-600 absolute inset-x-0 top-0 transition-all ease-in-out ${
-              isSliding ? "-translate-x-full opacity-0" : "translate-x-0 opacity-100"
-            }`}
-            style={{ transitionDuration: "600ms" }}>
-            {newFeatureCardContent[row1CardIndex] && (
-              <Card
-                key={`row1-current-${row1CardIndex}`}
-                {...newFeatureCardContent[row1CardIndex]}
-                isClickable={!!newFeatureCardContent[row1CardIndex].pageSlug}
-              />
-            )}
-          </div>
-          <div
-            className={`duration-600 absolute inset-x-0 top-0 transition-all ease-in-out ${
-              isSliding ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-            }`}
-            style={{ transitionDuration: "600ms" }}>
-            {newFeatureCardContent[nextCardIndex] && (
-              <Card
-                key={`row1-next-${nextCardIndex}`}
-                {...newFeatureCardContent[nextCardIndex]}
-                isClickable={!!newFeatureCardContent[nextCardIndex].pageSlug}
               />
             )}
           </div>
         </div>
+        {newFeatureCardContent.length > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            {newFeatureCardContent.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  if (index !== row1CardIndex) {
+                    setIsAnimating(true);
+                    setTimeout(() => {
+                      setRow1CardIndex(index);
+                      setIsAnimating(false);
+                    }, 300);
+                  }
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === row1CardIndex
+                    ? "w-8 bg-blue-500 dark:bg-gray-500"
+                    : "w-2 bg-gray-300 hover:bg-gray-400"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
 
         {rows.row2.length > 0 && (
           <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
@@ -220,7 +207,7 @@ export function MoreFeatures() {
                 <Card
                   key={`row2-${originalIndex}-${positionIndex}`}
                   {...cardProps}
-                  onClick={() => handleCardClick(positionIndex, originalIndex, "row2", cardProps.pageSlug)}
+                  onClick={() => handleCardClick(positionIndex, originalIndex, "row2")}
                   isClickable={true}
                 />
               );
@@ -236,7 +223,7 @@ export function MoreFeatures() {
                 <Card
                   key={`row3-${originalIndex}-${positionIndex}`}
                   {...cardProps}
-                  onClick={() => handleCardClick(positionIndex, originalIndex, "row3", cardProps.pageSlug)}
+                  onClick={() => handleCardClick(positionIndex, originalIndex, "row3")}
                   isClickable={true}
                 />
               );
