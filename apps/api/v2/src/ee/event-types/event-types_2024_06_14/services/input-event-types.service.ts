@@ -39,6 +39,7 @@ import {
   InputBookingField_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
+  supportedIntegrations,
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -542,7 +543,7 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
-    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    const conferencingApps = supportedIntegrations as readonly string[];
     if (!conferencingApps.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
     }
