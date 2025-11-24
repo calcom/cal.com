@@ -1314,7 +1314,6 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div className="flex h-full flex-col">
                     {tabs.map((tab) => {
                       // const { gotoState } = useEmbedGoto(noQueryParamMode);
-                      const embedParams = useEmbedParams(noQueryParamMode);
 
                       if (embedType !== "email") {
                         if (tab.name === "Preview") return null;
@@ -1463,7 +1462,7 @@ export const EmbedDialog = ({
           embedType={currentEmbedType.embedType}
           embedTabName={currentEmbedType.embedTabName}
           embedUrl={embedLink}
-          namespace={embedParams.namespace}
+          namespace="default"
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}

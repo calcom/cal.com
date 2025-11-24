@@ -119,7 +119,7 @@ function CategoryTab({ selectedCategory, categories, onCategoryChange }: Categor
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
               "hover:bg-emphasis rounded-md p-2 text-sm font-medium transition hover:cursor-pointer"
             )}>
-            {cat[0].toUpperCase() + cat.slice(1)}
+            {cat === "crm" ? "CRM" : cat === "onehash" ? "OneHash" : cat[0].toUpperCase() + cat.slice(1)}
           </li>
         ))}
       </ul>

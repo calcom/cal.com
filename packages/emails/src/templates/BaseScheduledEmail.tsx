@@ -44,6 +44,45 @@ export const BaseScheduledEmail = (
     return dayjs(props.calEvent.endTime).tz(timeZone).format(format);
   }
 
+  // Helper function to format cancelled dates
+  function formatCancelledDates() {
+    const exDates = props.calEvent.recurringEvent?.exDates;
+    if (!exDates || exDates.length === 0) {
+      return null;
+    }
+
+    const maxDatesToShow = 5;
+    const datesToDisplay = exDates.slice(0, maxDatesToShow);
+    const hasMoreDates = exDates.length > maxDatesToShow;
+
+    const formattedDates = datesToDisplay.map((dateValue) => {
+      // Handle both Date objects and ISO date strings
+      let date;
+      if (dateValue instanceof Date) {
+        date = dayjs(dateValue).tz(timeZone).locale(locale);
+      } else if (typeof dateValue === "string") {
+        date = dayjs(dateValue).tz(timeZone).locale(locale);
+      } else {
+        // Fallback for any other format
+        date = dayjs(dateValue).tz(timeZone).locale(locale);
+      }
+
+      const timeFormatStr = timeFormat === TimeFormat.TWELVE_HOUR ? "h:mma" : "HH:mm";
+      return `${date.format(`dddd, LL`)} | ${date.format(timeFormatStr)}`;
+    });
+
+    return (
+      <>
+        {formattedDates.map((dateStr, index) => (
+          <div key={index} style={{ textDecoration: "line-through", color: "#6B7280" }}>
+            {dateStr}
+          </div>
+        ))}
+        {hasMoreDates && <div style={{ color: "#6B7280", marginTop: "4px" }}>...</div>}
+      </>
+    );
+  }
+
   const subject = t(props.subject || "confirmed_event_type_subject", {
     eventType: props.calEvent.type,
     name: props.calEvent.team?.name || props.calEvent.organizer.name,
@@ -63,6 +102,10 @@ export const BaseScheduledEmail = (
     );
     rescheduledBy = personWhoRescheduled?.name;
   }
+
+  // Check if this is a recurring event cancellation with specific dates
+  const hasRecurringCancellations =
+    props.calEvent.recurringEvent?.exDates && props.calEvent.recurringEvent.exDates.length > 0;
 
   return (
     <BaseEmailHtml
@@ -123,6 +166,9 @@ export const BaseScheduledEmail = (
       {rescheduledBy && <Info label={t("rescheduled_by")} description={rescheduledBy} withSpacer />}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
+      {hasRecurringCancellations && (
+        <Info label={t("cancelled_occurrences")} description={formatCancelledDates()} withSpacer />
+      )}
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
@@ -153,7 +199,8 @@ export const BaseScheduledEmail = (
                 />
               )
           )
-        : props.calEvent.organizer.phoneNumber && (
+        : props.calEvent.organizer.phoneNumber &&
+          props.calEvent.organizer.usePhoneForWhatsApp && (
             <Info
               label={t("running_late")}
               description={t("connect_with_host")}

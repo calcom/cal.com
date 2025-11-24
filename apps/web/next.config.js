@@ -317,7 +317,7 @@ const nextConfig = {
          * @see https://github.com/calcom/cal.com/pull/11706
          */
         source: "/embed.js",
-        destination: "/embed/embed.js",
+        destination: "/embed-link/embed.js",
       },
       {
         source: "/login",
@@ -386,7 +386,7 @@ const nextConfig = {
       ],
 
       /* TODO: have these files being served from another deployment or CDN {
-        source: "/embed/embed.js",
+        source: "/embed-link/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
     ];
@@ -450,7 +450,7 @@ const nextConfig = {
         ],
       },
       {
-        source: "/embed/embed.js",
+        source: "/embed-link/embed.js",
         headers: [CORP_CROSS_ORIGIN_HEADER],
       },
       {

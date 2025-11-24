@@ -1,7 +1,6 @@
 import { Branding } from "@calid/features/ui/Branding";
-import { Button } from "@calid/features/ui/components/button";
 import { AnimatePresence, LazyMotion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
@@ -29,7 +28,6 @@ import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { DatePicker } from "./components/DatePicker";
 import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
-import { EventTypesPanel } from "./components/EventTypesPanel";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
@@ -164,7 +162,6 @@ const BookerComponent = ({
   } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
-  const [isEventTypesPanelVisible, setIsEventTypesPanelVisible] = useState(false);
 
   const scrollToTimeSlots = () => {
     if (isMobile && !scrolledToTimeslotsOnce.current && timeslotsRef.current) {
@@ -325,17 +322,6 @@ const BookerComponent = ({
 
       {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
 
-      {/* Event Types Panel */}
-      {eventTypes.length > 0 && (
-        <EventTypesPanel
-          eventTypes={eventTypes}
-          username={username}
-          currentEventSlug={eventSlug}
-          isVisible={isEventTypesPanelVisible}
-          onClose={() => setIsEventTypesPanelVisible(false)}
-        />
-      )}
-
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -359,21 +345,6 @@ const BookerComponent = ({
               !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
               `${customClassNames?.bookerContainer}`
             )}>
-            {/* Chevron Left Button - Only show on md and lg screens */}
-            {eventTypes.length > 0 && (
-              <Button
-                variant="icon"
-                color="secondary"
-                StartIcon="chevron-left"
-                size="lg"
-                className="dark:bg-subtle bg-primary absolute -left-12 z-10 hidden h-10 w-10 rounded-full p-4 md:flex lg:flex"
-                style={{
-                  top: "calc(50% - 30px)", // Adjust for branding space at bottom
-                }}
-                onMouseEnter={() => setIsEventTypesPanelVisible(true)}
-                data-testid="event-types-chevron"
-              />
-            )}
             <AnimatePresence>
               {!isInstantMeeting && (
                 <BookerSection
@@ -587,7 +558,7 @@ const BookerComponent = ({
 
           {(!hideBranding || orgBannerUrl) && (
             <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
-              <Branding bannerUrl={orgBannerUrl} />
+              <Branding bannerUrl={orgBannerUrl} size={orgBannerUrl ? "sm" : "xs"} />
             </div>
           )}
         </div>

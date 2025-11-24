@@ -2,11 +2,11 @@ import logger from "./logger";
 import { ProfileRepository } from "./server/repository/profile";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
-type Team = {
-  hideBranding: boolean | null;
-  parent: {
-    hideBranding: boolean | null;
-  } | null;
+type CalIdTeam = {
+  hideTeamBranding: boolean | null;
+  // parent: {
+  //   hideTeamBranding: boolean | null;
+  // } | null;
 };
 
 type Profile = {
@@ -48,14 +48,16 @@ export function shouldHideBrandingForEventUsingProfile({
   team,
 }: {
   owner: UserWithProfile | null;
-  team: Team | null;
+  team: CalIdTeam | null;
   eventTypeId: number;
 }) {
   let hideBranding;
   if (team) {
     hideBranding = resolveHideBranding({
-      entityHideBranding: team.hideBranding ?? null,
-      organizationHideBranding: team.parent?.hideBranding ?? null,
+      entityHideBranding: team.hideTeamBranding ?? null,
+      organizationHideBranding: null,
+
+      // organizationHideBranding: team.parent?.hideTeamBranding ?? null,
     });
   } else if (owner) {
     hideBranding = resolveHideBranding({
@@ -80,7 +82,7 @@ export async function shouldHideBrandingForEvent({
   organizationId,
 }: {
   eventTypeId: number;
-  team: Team | null;
+  team: CalIdTeam | null;
   owner: UserWithoutProfile | null;
   organizationId: number | null;
 }) {
@@ -115,7 +117,13 @@ export async function shouldHideBrandingForEvent({
 /**
  * A convenience wrapper for shouldHideBrandingForEventUsingProfile to use for Team events
  */
-export function shouldHideBrandingForTeamEvent({ eventTypeId, team }: { eventTypeId: number; team: Team }) {
+export function shouldHideBrandingForTeamEvent({
+  eventTypeId,
+  team,
+}: {
+  eventTypeId: number;
+  team: CalIdTeam;
+}) {
   return shouldHideBrandingForEventUsingProfile({
     owner: null,
     team,

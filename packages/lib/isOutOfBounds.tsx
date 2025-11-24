@@ -360,5 +360,6 @@ export default function isOutOfBounds(
     return true;
   }
 
+  log.warn("not out of bounds");
   return false;
 }

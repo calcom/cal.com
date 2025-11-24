@@ -51,6 +51,8 @@ export default function Authorize() {
   const mappedProfiles = data
     ? data
         .filter((profile) => !profile.readOnly)
+        //trim to only first 1 profile (Exclude team specific profiles for now)
+        .slice(0, 1)
         .map((profile) => ({
           label: profile.name || profile.slug || "",
           value: profile.slug || "",
@@ -104,7 +106,8 @@ export default function Authorize() {
         <h1 className="px-5 pb-5 pt-3 text-center text-2xl font-bold tracking-tight">
           {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
         </h1>
-        <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
+        <div className="mb-1 text-sm font-medium">{t("select_account_header")}</div>
+        {/* <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div> */}
         <Select
           isSearchable={true}
           id="account-select"

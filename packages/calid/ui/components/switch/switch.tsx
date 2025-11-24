@@ -7,14 +7,14 @@ import React from "react";
 
 import { Tooltip } from "../tooltip";
 
-const Wrapper = ({ 
-  children, 
-  tooltip, 
+const Wrapper = ({
+  children,
+  tooltip,
   tooltipSide = "top",
   tooltipOffset = 4,
-  tooltipClassName 
-}: { 
-  tooltip?: string; 
+  tooltipClassName,
+}: {
+  tooltip?: string;
   children: React.ReactNode;
   tooltipSide?: "top" | "right" | "bottom" | "left";
   tooltipOffset?: number;
@@ -24,12 +24,7 @@ const Wrapper = ({
     return <>{children}</>;
   }
   return (
-    <Tooltip 
-      content={tooltip} 
-      side={tooltipSide}
-      sideOffset={tooltipOffset}
-      className={tooltipClassName}
-    >
+    <Tooltip content={tooltip} side={tooltipSide} sideOffset={tooltipOffset} className={tooltipClassName}>
       {children}
     </Tooltip>
   );
@@ -68,12 +63,11 @@ export const Switch = (
   } = props;
   const id = useId();
   return (
-    <Wrapper 
+    <Wrapper
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
-      tooltipClassName={tooltipClassName}
-    >
+      tooltipClassName={tooltipClassName}>
       <div
         className={cn(
           "flex h-auto w-fit flex-row items-center",

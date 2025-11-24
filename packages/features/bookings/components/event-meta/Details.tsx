@@ -84,7 +84,7 @@ export const EventMetaBlock = ({
   if (!React.Children.count(children)) return null;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-row">
       <div
         className={classNames(
           "flex items-start justify-start text-sm",
@@ -152,9 +152,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.DURATION:
             return (
               <EventMetaBlock key={block} icon="clock" label={t("duration")} className="items-center">
-                <div className="">
-                  <EventDuration event={event} />
-                </div>
+                <EventDuration event={event} />
               </EventMetaBlock>
             );
 

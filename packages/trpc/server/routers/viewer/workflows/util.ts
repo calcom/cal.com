@@ -864,7 +864,7 @@ export async function getAllWorkflowsFromEventType(
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: eventType?.calIdTeamId ?? null },
+      calIdTeam: { id: eventType?.calIdTeamId ?? null },
       parentId: eventType?.parentId || eventType?.parent?.id || null,
     },
   });

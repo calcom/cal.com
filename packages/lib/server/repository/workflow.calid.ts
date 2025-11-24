@@ -119,8 +119,6 @@ export class CalIdWorkflowRepository {
       },
     });
 
-    console.log("Found verified number: ", verifiedNumbers)
-
     return verifiedNumbers;
   }
 

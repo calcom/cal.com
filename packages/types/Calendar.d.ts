@@ -42,6 +42,7 @@ export type Person = {
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
   phoneNumber?: string | null;
+  usePhoneForWhatsApp?: boolean | null;
 };
 
 export type TeamMember = {
@@ -127,12 +128,67 @@ export interface ConferenceData {
 }
 
 export interface RecurringEvent {
-  dtstart?: Date | undefined;
-  interval: number;
-  count: number;
+  /** The start of the recurrence */
+  dtstart?: Date;
+
+  /** The frequency of the recurrence (DAILY, WEEKLY, etc.) */
   freq: Frequency;
-  until?: Date | undefined;
-  tzid?: string | undefined;
+
+  /** The interval between each recurrence (default 1) */
+  interval?: number;
+
+  /** How many occurrences to generate (mutually exclusive with UNTIL) */
+  count?: number;
+
+  /** End of recurrence (mutually exclusive with COUNT) */
+  until?: Date;
+
+  /** Timezone identifier (e.g. "Asia/Kolkata") */
+  tzid?: string;
+
+  /** Days of the week (e.g. ["MO", "WE", "FR"]) */
+  byDay?: string[];
+
+  /** Month days (e.g. [1, 15, -1] for first, mid, and last day) */
+  byMonthDay?: number[];
+
+  /** Week numbers (1–53) */
+  byWeekNo?: number[];
+
+  /** Year days (1–366 or negative for backwards count) */
+  byYearDay?: number[];
+
+  /** Months (1–12) */
+  byMonth?: number[];
+
+  /** Set positions (e.g. [-1] for last occurrence in a month) */
+  bySetPos?: number[];
+
+  /** Hours (0–23) */
+  byHour?: number[];
+
+  /** Minutes (0–59) */
+  byMinute?: number[];
+
+  /** Seconds (0–59) */
+  bySecond?: number[];
+
+  /** Exception dates (EXDATE) */
+  exDates?: Date[];
+
+  /** Additional recurrence dates (RDATE) */
+  rDates?: Date[];
+
+  /** Whether it’s an all-day recurrence */
+  allDay?: boolean;
+
+  /** Optional human-readable name or ID for linking */
+  uid?: string;
+}
+
+export interface RescheduleInstance {
+  formerTime: string; // ISO 8601 date string
+  newTime: string; // ISO 8601 date string
 }
 
 export type { IntervalLimit, IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -223,6 +279,10 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  bannerUrl?: string | null;
+  // deleteType?: "instance" | "series" | null; //for deleting new recurring booking
+  cancelledDates?: string[] | null; //for deleting new recurring booking
+  rescheduleInstance?: RescheduleInstance;
 }
 
 export interface EntryPoint {
@@ -273,10 +333,16 @@ export interface Calendar {
   updateEvent(
     uid: string,
     event: CalendarServiceEvent,
-    externalCalendarId?: string | null
+    externalCalendarId?: string | null,
+    isRecurringInstanceReschedule?: boolean
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
-  deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
+  deleteEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceCancellation?: boolean
+  ): Promise<unknown>;
 
   getAvailability(
     dateFrom: string,
@@ -308,6 +374,8 @@ export interface Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }): Promise<void>;
+
+  // mapRecurrenceToPayload?(recurringEvent: RecurringEvent): unknown;
 }
 
 /**

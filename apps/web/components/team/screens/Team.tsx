@@ -65,7 +65,7 @@ const Member = ({
         href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}
         className="block">
         <Button
-          className="flex w-full items-center justify-center rounded px-4 py-2 font-medium"
+          className="text-white dark:text-gray-950 flex w-full items-center justify-center rounded px-4 py-2 font-medium"
           brandColor={brandColor}
           darkBrandColor={darkBrandColor}>
           <Icon name="calendar" className="mr-2 h-4 w-4" />

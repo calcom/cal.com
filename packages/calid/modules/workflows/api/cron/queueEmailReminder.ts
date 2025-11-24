@@ -10,7 +10,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { PartialCalIdWorkflowReminder } from "../../config/types";
@@ -22,18 +22,18 @@ import emailReminderTemplate from "../../templates/email/reminder";
 import emailThankYouTemplate from "../../templates/email/thankYouTemplate";
 import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../../utils/getWorkflows";
 
-const removePastNotifications = async (): Promise<void> => {
-  await prisma.calIdWorkflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.EMAIL,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-      scheduled: false,
-      OR: [{ cancelled: null }, { cancelled: false }],
-    },
-  });
-};
+// const removePastNotifications = async (): Promise<void> => {
+//   await prisma.calIdWorkflowReminder.deleteMany({
+//     where: {
+//       method: WorkflowMethods.EMAIL,
+//       scheduledDate: {
+//         lte: dayjs().toISOString(),
+//       },
+//       scheduled: false,
+//       OR: [{ cancelled: null }, { cancelled: false }],
+//     },
+//   });
+// };
 
 const processCancelledNotifications = async (): Promise<void> => {
   const notificationsToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
@@ -458,7 +458,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
     }
 
-    await removePastNotifications();
+    //preventing removal of past notifications
+    // await removePastNotifications();
     await processCancelledNotifications();
 
     const pendingNotifications: PartialCalIdWorkflowReminder[] = await processNotificationScheduling();

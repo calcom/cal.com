@@ -8,7 +8,7 @@ import type { VerticalTabItemProps } from "@calid/features/ui/components/navigat
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -42,11 +42,18 @@ import type { validStatuses } from "~/bookings/lib/validStatuses";
 type BookingListingStatus = (typeof validStatuses)[number];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
+// Updated RecurringInfo type to match new backend structure
 type RecurringInfo = {
-  recurringEventId: string | null;
-  count: number;
+  recurringEventId: string; // Now uses booking.uid instead of separate recurringEventId
+  count: number; // Total occurrences including cancelled
   firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
+  bookings: {
+    CANCELLED: Date[];
+    ACCEPTED: Date[];
+    REJECTED: Date[];
+    PENDING: Date[];
+    AWAITING_HOST: Date[];
+  };
 };
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
@@ -153,7 +160,6 @@ function BookingsContent({ status }: BookingsProps) {
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
-  // const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
   const [showFilters, setShowFilters] = useState(false);
@@ -168,7 +174,6 @@ function BookingsContent({ status }: BookingsProps) {
       userIds,
       attendeeName,
       attendeeEmail,
-      // bookingUid,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -255,21 +260,6 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      // columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
-      //   id: "bookingUid",
-      //   header: t("booking_uid"),
-      //   enableColumnFilter: true,
-      //   enableSorting: false,
-      //   cell: () => null,
-      //   meta: {
-      //     filter: {
-      //       type: ColumnFilterType.TEXT,
-      //       textOptions: {
-      //         allowedOperators: ["equals"],
-      //       },
-      //     },
-      //   },
-      // }),
       columnHelper.display({
         id: "customView",
         cell: (props) => {
@@ -304,41 +294,77 @@ function BookingsContent({ status }: BookingsProps) {
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
-  const flatData = useMemo<RowData[]>(() => {
-    const shownBookings: Record<string, BookingOutput[]> = {};
-    const filterBookings = (booking: BookingOutput) => {
-      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
-        if (!booking.recurringEventId) {
-          return true;
-        }
-        if (
-          shownBookings[booking.recurringEventId] !== undefined &&
-          shownBookings[booking.recurringEventId].length > 0
-        ) {
-          shownBookings[booking.recurringEventId].push(booking);
-          return false;
-        }
-        shownBookings[booking.recurringEventId] = [booking];
-      } else if (status === "upcoming") {
-        return (
-          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
-          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        );
-      }
-      return true;
-    };
+  // Helper function to check if a booking is recurring based on new metadata structure
+  const isRecurringBooking = (booking: BookingOutput): boolean => {
+    const metadata = booking.metadata as Record<string, any> | null;
+    return !!metadata?.recurringEvent;
+  };
 
+  // Helper function to check if a booking instance is cancelled (in exDates)
+  const isBookingInstanceCancelled = (booking: BookingOutput): boolean => {
+    const metadata = booking.metadata as Record<string, any> | null;
+    const recurringEvent = metadata?.recurringEvent;
+
+    if (!recurringEvent || !recurringEvent.exDates) {
+      return false;
+    }
+
+    // Format the booking's start time to compare with exDates
+    const bookingStartDate = dayjs(booking.startTime).format("YYYY-MM-DD");
+
+    // Check if this booking's date is in the exDates array
+    return recurringEvent.exDates.some((exDate: string | Date) => {
+      const exDateFormatted = dayjs(exDate).format("YYYY-MM-DD");
+      return exDateFormatted === bookingStartDate;
+    });
+  };
+
+  // REMOVED: Old filtering logic that grouped by recurringEventId
+  // NEW: All bookings are shown as they are - single record represents entire series
+  // ADDED: Filter out cancelled recurring instances in the upcoming tab
+  const flatData = useMemo<RowData[]>(() => {
+    // For recurring tab, only show bookings that have recurringEvent in metadata
+    if (status === "recurring") {
+      return (
+        query.data?.bookings.filter(isRecurringBooking).map((booking) => ({
+          type: "data" as const,
+          booking,
+          recurringInfo: query.data?.recurringInfo.find((info) => info.recurringEventId === booking.uid),
+          isToday: false,
+        })) || []
+      );
+    }
+
+    // For upcoming, filter out today's bookings AND cancelled recurring instances
+    if (status === "upcoming") {
+      return (
+        query.data?.bookings
+          .filter(
+            (booking) =>
+              dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+                dayjs().tz(user?.timeZone).format("YYYY-MM-DD") &&
+              // Filter out cancelled recurring instances
+              !isBookingInstanceCancelled(booking)
+          )
+          .map((booking) => ({
+            type: "data" as const,
+            booking,
+            recurringInfo: query.data?.recurringInfo.find((info) => info.recurringEventId === booking.uid),
+            isToday: false,
+          })) || []
+      );
+    }
+
+    // For all other statuses, show all bookings
     return (
-      query.data?.bookings.filter(filterBookings).map((booking) => ({
-        type: "data",
+      query.data?.bookings.map((booking) => ({
+        type: "data" as const,
         booking,
-        recurringInfo: query.data?.recurringInfo.find(
-          (info) => info.recurringEventId === booking.recurringEventId
-        ),
+        recurringInfo: query.data?.recurringInfo.find((info) => info.recurringEventId === booking.uid),
         isToday: false,
       })) || []
     );
-  }, [query.data]);
+  }, [query.data, status, user?.timeZone]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
@@ -346,18 +372,18 @@ function BookingsContent({ status }: BookingsProps) {
         .filter(
           (booking: BookingOutput) =>
             dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+              dayjs().tz(user?.timeZone).format("YYYY-MM-DD") &&
+            // Also filter out cancelled recurring instances from today's bookings
+            !isBookingInstanceCancelled(booking)
         )
         .map((booking) => ({
           type: "data" as const,
           booking,
-          recurringInfo: query.data?.recurringInfo.find(
-            (info) => info.recurringEventId === booking.recurringEventId
-          ),
+          recurringInfo: query.data?.recurringInfo.find((info) => info.recurringEventId === booking.uid),
           isToday: true,
         })) ?? []
     );
-  }, [query.data]);
+  }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {
@@ -386,7 +412,6 @@ function BookingsContent({ status }: BookingsProps) {
         attendeeName: false,
         attendeeEmail: false,
         dateRange: false,
-        // bookingUid: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),

@@ -52,7 +52,7 @@ export type SeatedBooking = Prisma.BookingGetPayload<{
   select: {
     uid: true;
     id: true;
-    attendees: { include: { bookingSeat: true } };
+    attendees: { include: { bookingSeat: { include: { payment: true } } } };
     userId: true;
     references: true;
     startTime: true;
@@ -68,6 +68,7 @@ export type HandleSeatsResultBooking =
       appsStatus?: AppsStatus[];
       seatReferenceUid?: string;
       paymentUid?: string;
+      paymentLink?: string;
       message?: string;
       paymentId?: number;
     })

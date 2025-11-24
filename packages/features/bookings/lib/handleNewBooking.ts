@@ -1,3 +1,4 @@
+import { toDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
@@ -92,7 +93,14 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  Person,
+  RecurringEvent,
+  RescheduleInstance,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
@@ -151,6 +159,55 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
 
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
+}
+
+/**
+ * Helper function to process recurring instance reschedule
+ * Updates exDates and rDates in the recurring event metadata
+ */
+function processRecurringInstanceReschedule({
+  recurringEvent,
+  rescheduleInstance,
+}: {
+  recurringEvent: RecurringEvent;
+  rescheduleInstance: RescheduleInstance;
+}): RecurringEvent {
+  const formerTime = toDate(dayjs(rescheduleInstance.formerTime).utc().format());
+  const newTime = toDate(dayjs(rescheduleInstance.newTime).utc().format());
+
+  // Defensive copies with fallback
+  let exDates = Array.isArray(recurringEvent.exDates) ? [...recurringEvent.exDates] : [];
+  let rDates = Array.isArray(recurringEvent.rDates) ? [...recurringEvent.rDates] : [];
+
+  // 1. Remove any accidental duplicates or overlaps
+  // - If newTime exists in exDates → remove it (since it’s now included)
+  exDates = exDates.filter((d) => !isSameUTC(d, newTime));
+  // - If formerTime exists in rDates → remove it (since it’s now excluded)
+  rDates = rDates.filter((d) => !isSameUTC(d, formerTime));
+
+  // 2. Add formerTime to exDates if not already present
+  if (!exDates.some((d) => isSameUTC(d, formerTime))) {
+    exDates.push(formerTime);
+  }
+
+  // 3. Add newTime to rDates if not already present
+  if (!rDates.some((d) => isSameUTC(d, newTime))) {
+    rDates.push(newTime);
+  }
+
+  // 4. Return updated recurring event with cleaned arrays
+  return {
+    ...recurringEvent,
+    exDates,
+    rDates,
+  };
+}
+
+/**
+ * Helper: Safely compare two Date objects in UTC (ignores ms differences)
+ */
+function isSameUTC(a: Date, b: Date): boolean {
+  return dayjs(a).utc().isSame(dayjs(b).utc(), "second");
 }
 
 type BookingDataSchemaGetter =
@@ -415,6 +472,8 @@ async function handler(
     areCalendarEventsEnabled = true,
   } = input;
 
+  const rescheduleInstance: RescheduleInstance | undefined = input.bookingData.rescheduleInstance;
+
   const isPlatformBooking = !!platformClientId;
 
   const eventType = await getEventType({
@@ -457,6 +516,7 @@ async function handler(
     _shouldServeCache,
     ...reqBody
   } = bookingData;
+  const isRecurringTeamBooking = rawBookingData.isRecurringTeamBooking ?? false;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
@@ -578,6 +638,12 @@ async function handler(
         currency: paymentAppData.currency,
         appId: paymentAppData.appId,
       },
+      rescheduleInstance: rescheduleInstance
+        ? {
+            formerTime: rescheduleInstance.formerTime,
+            newTime: rescheduleInstance.newTime,
+          }
+        : undefined,
     })
   );
 
@@ -928,6 +994,20 @@ async function handler(
         fixedUsers: fixedUserPool.map((u) => u.id),
         luckyUserPool: luckyUserPool.map((u) => u.id),
       };
+
+      // For team recurring bookings, the selected lucky user(s) will handle ALL occurrences
+      if (isRecurringTeamBooking && eventType.recurringEvent) {
+        loggerWithEventDetails.debug(
+          "Team recurring booking: Lucky user(s) assigned to entire series",
+          safeStringify({
+            schedulingType: eventType.schedulingType,
+            luckyUsers: luckyUsers.map((u) => u.id),
+            fixedUsers: fixedUserPool.map((u) => u.id),
+            recurringEventFreq: eventType.recurringEvent.freq,
+            recurringEventCount: eventType.recurringEvent.count,
+          })
+        );
+      }
     } else if (
       input.bookingData.allRecurringDates &&
       eventType.schedulingType === SchedulingType.ROUND_ROBIN
@@ -1072,7 +1152,8 @@ async function handler(
     eventType: eventType.title,
     eventName: evtName,
     // we send on behalf of team if >1 round robin attendee | collective
-    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.calIdTeam?.name : null,
+    teamName:
+      eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.calIdTeam?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
@@ -1157,6 +1238,11 @@ async function handler(
         isPrismaObj(organizerUser.metadata) && organizerUser.metadata?.phoneNumber
           ? (organizerUser.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(organizerUser.metadata) &&
+        typeof organizerUser.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (organizerUser.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     })
     .withAttendees(attendeesList)
     .withMetadataAndResponses({
@@ -1181,6 +1267,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withRescheduleInstance(rescheduleInstance) // Add rescheduleInstance to the calendar event if present
     .build();
 
   if (input.bookingData.thirdPartyRecurringEventId) {
@@ -1302,13 +1389,17 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: !!newBooking.paymentUid,
         isDryRun: isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+
+        paymentRequired: bookingResponse.paymentRequired,
+        paymentUid: newBooking.paymentUid,
+        paymentLink: newBooking?.paymentLink,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -1324,11 +1415,33 @@ async function handler(
     }
   }
 
-  if (reqBody.recurringEventId && eventType.recurringEvent) {
-    // Overriding the recurring event configuration count to be the actual number of events booked for
-    // the recurring event (equal or less than recurring event configuration count)
-    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
-    evt.recurringEvent = eventType.recurringEvent;
+  // Handle recurring event metadata
+  if (eventType.recurringEvent) {
+    let recurringEvent: RecurringEvent;
+
+    if (!rescheduleInstance) {
+      // New booking — derive recurring info from event type
+      recurringEvent = {
+        ...eventType.recurringEvent,
+        ...(recurringCount !== undefined && { count: recurringCount }),
+      };
+    } else {
+      // Rescheduling an instance of a recurring event
+      const originalBookingRecurringEvent = isPrismaObjOrUndefined(originalRescheduledBooking?.metadata)
+        ?.recurringEvent as RecurringEvent | undefined;
+
+      recurringEvent = processRecurringInstanceReschedule({
+        recurringEvent: originalBookingRecurringEvent ?? eventType.recurringEvent,
+        rescheduleInstance,
+      });
+    }
+
+    // Apply recurring event metadata to event and request body
+    evt.recurringEvent = recurringEvent;
+    reqBody.metadata = {
+      ...reqBody.metadata,
+      recurringEvent,
+    };
   }
 
   const changedOrganizer =
@@ -1358,6 +1471,7 @@ async function handler(
   let referencesToCreate: PartialReference[] = [];
 
   let booking: CreatedBooking | null = null;
+  let newBookingSeat: BookingSeat | null = null;
 
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
@@ -1412,10 +1526,21 @@ async function handler(
         logger.info(`Booking created`, {
           bookingUid: booking.uid,
           availabilitySnapshot: organizerUserAvailability?.availabilityData,
+          isRecurringTeamBooking,
+          ...(isRecurringTeamBooking && eventType.recurringEvent
+            ? {
+                recurringEventInfo: {
+                  freq: eventType.recurringEvent.freq,
+                  count: eventType.recurringEvent.count,
+                  interval: eventType.recurringEvent.interval,
+                },
+              }
+            : {}),
         });
       }
 
-      // If it's a round robin event, record the reason for the host assignment
+      // Record assignment reason for round robin bookings
+      // For recurring bookings, this records ONCE for the entire series
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
           assignmentReason = await AssignmentReasonRecorder.CRMOwnership({
@@ -1435,6 +1560,19 @@ async function handler(
             isRerouting: !!reroutingFormResponses,
             reroutedByEmail: reqBody.rescheduledBy,
           });
+        }
+
+        // Log assignment details for recurring bookings
+        if (isRecurringTeamBooking && assignmentReason) {
+          loggerWithEventDetails.debug(
+            "Recorded assignment reason for recurring team booking series",
+            safeStringify({
+              bookingId: booking.id,
+              organizerId: organizerUser.id,
+              assignmentReason,
+              schedulingType: eventType.schedulingType,
+            })
+          );
         }
       }
 
@@ -1456,7 +1594,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await prisma.bookingSeat.create({
+        newBookingSeat = await prisma.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
@@ -1977,6 +2115,15 @@ async function handler(
     smsReminderNumber: bookerPhoneNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    // Include rescheduleInstance in webhook payload if present
+    ...(rescheduleInstance
+      ? {
+          rescheduleInstance: {
+            formerTime: rescheduleInstance.formerTime,
+            newTime: rescheduleInstance.newTime,
+          },
+        }
+      : {}),
   };
 
   if (bookingRequiresPayment) {
@@ -2013,7 +2160,6 @@ async function handler(
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
 
-    console.log("Got here for payment", { bookerPhoneNumber });
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
@@ -2023,6 +2169,8 @@ async function handler(
       bookerEmail,
       bookerPhoneNumber,
       isDryRun,
+      responses: reqBody.responses,
+      bookingSeat: newBookingSeat
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

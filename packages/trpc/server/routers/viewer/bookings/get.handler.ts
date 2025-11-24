@@ -1,3 +1,4 @@
+import { generateOccurrencesFromRRule } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { Booking, Prisma, Prisma as PrismaClientType } from "@prisma/client";
 import { sql } from "kysely";
 import type { Kysely } from "kysely";
@@ -56,10 +57,57 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     filters: input.filters,
   });
 
+  // //previously we were passing recurring bookings with no upcoming occurrences as well
+  //   return {
+  //   bookings,
+  //   recurringInfo,
+  //   totalCount,
+  // };
+  // Filter out recurring bookings with no upcoming occurrences
+  const now = new Date();
+  const filteredBookings = bookings.filter((booking) => {
+    const metadata = booking.metadata as Record<string, any> | null;
+
+    // If it's not a recurring booking, keep it
+    if (!metadata?.recurringEvent) {
+      return true;
+    }
+
+    // Find the corresponding recurringInfo entry
+    const recurringEntry = recurringInfo.find((info) => info.recurringEventId === booking.uid);
+
+    if (!recurringEntry) {
+      // If we can't find recurring info, keep the booking to be safe
+      return true;
+    }
+
+    // Check if there are any upcoming occurrences
+    const hasUpcomingOccurrences =
+      recurringEntry.bookings.ACCEPTED.some((date) => date > now) ||
+      recurringEntry.bookings.PENDING.some((date) => date > now) ||
+      recurringEntry.bookings.AWAITING_HOST.some((date) => date > now);
+
+    return hasUpcomingOccurrences;
+  });
+
+  // Also filter the recurringInfo to only include entries with upcoming occurrences
+  const filteredRecurringInfo = recurringInfo.filter((info) => {
+    const hasUpcomingOccurrences =
+      info.bookings.ACCEPTED.some((date) => date > now) ||
+      info.bookings.PENDING.some((date) => date > now) ||
+      info.bookings.AWAITING_HOST.some((date) => date > now);
+
+    return hasUpcomingOccurrences;
+  });
+
+  // Adjust the total count to reflect the filtered bookings
+  const removedBookingsCount = bookings.length - filteredBookings.length;
+  const adjustedTotalCount = Math.max(0, totalCount - removedBookingsCount);
+
   return {
-    bookings,
-    recurringInfo,
-    totalCount,
+    bookings: filteredBookings,
+    recurringInfo: filteredRecurringInfo,
+    totalCount: adjustedTotalCount,
   };
 };
 
@@ -476,6 +524,7 @@ export async function getBookings({
               .select((eb) => [
                 "EventType.slug",
                 "EventType.id",
+                "EventType.userId",
                 "EventType.title",
                 "EventType.eventName",
                 "EventType.price",
@@ -484,6 +533,7 @@ export async function getBookings({
                 "EventType.metadata",
                 "EventType.disableGuests",
                 "EventType.seatsShowAttendees",
+                "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
                 "EventType.customReplyToEmail",
@@ -546,7 +596,7 @@ export async function getBookings({
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select(["users.id", "users.name", "users.email"])
+              .select(["users.id", "users.name", "users.email", "users.username"])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
@@ -557,14 +607,18 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
-                "BookingSeat.data",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name", "Attendee.timeZone"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
                 ).as("attendee"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Payment")
+                    .select(["Payment.success", "Payment.amount", "Payment.currency"])
+                    .whereRef("Payment.bookingSeatId", "=", "BookingSeat.id")
+                ).as("payment"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
           ).as("seatsReferences"),
@@ -581,83 +635,49 @@ export async function getBookings({
         .execute()
     : [];
 
-  const [
-    recurringInfoBasic,
-    recurringInfoExtended,
-    // We need all promises to be successful, so we are not using Promise.allSettled
-  ] = await Promise.all([
-    prisma.booking.groupBy({
-      by: ["recurringEventId"],
-      _min: {
-        startTime: true,
-      },
-      _count: {
-        recurringEventId: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
-        },
-        userId: user.id,
-      },
-    }),
-    prisma.booking.groupBy({
-      by: ["recurringEventId", "status", "startTime"],
-      _min: {
-        startTime: true,
-      },
-      where: {
-        recurringEventId: {
-          not: { equals: null },
-        },
-        userId: user.id,
-      },
-    }),
-  ]);
+  //NEW:  Building recurringInfo from RFC 5545 metadata instead of recurringEventId
+  // now exdates are used to track cancelled occurrences
+  const recurringInfo = plainBookings
+    .filter((booking) => {
+      const metadata = booking.metadata as Record<string, any> | null;
+      return metadata?.recurringEvent;
+    })
+    .map((booking) => {
+      const metadata = booking.metadata as Record<string, any>;
+      const recurringEvent = metadata.recurringEvent;
+      const utcStartTime = booking.startTimeUtc as Date;
 
-  const recurringInfo = recurringInfoBasic.map(
-    (
-      info: (typeof recurringInfoBasic)[number]
-    ): {
-      recurringEventId: string | null;
-      count: number;
-      firstDate: Date | null;
-      bookings: {
-        CANCELLED: Date[];
-        ACCEPTED: Date[];
-        REJECTED: Date[];
-        PENDING: Date[];
-        AWAITING_HOST: Date[];
-      };
-    } => {
-      // Initialize all required BookingStatus keys
-      const bookings: {
+      // Generate occurrences using RRule, with cancelled dates tracked separately
+      const { occurrences, cancelledDates } = generateOccurrencesFromRRule(recurringEvent, utcStartTime);
+
+      // Group occurrences by status
+      const bookingsByStatus: {
         CANCELLED: Date[];
         ACCEPTED: Date[];
         REJECTED: Date[];
         PENDING: Date[];
         AWAITING_HOST: Date[];
       } = {
-        CANCELLED: [],
+        CANCELLED: cancelledDates, // Start with exDates as cancelled
         ACCEPTED: [],
         REJECTED: [],
         PENDING: [],
         AWAITING_HOST: [],
       };
-      recurringInfoExtended.forEach((curr) => {
-        if (curr.recurringEventId === info.recurringEventId && bookings.hasOwnProperty(curr.status)) {
-          // @ts-expect-error: curr.status is a BookingStatus, which matches the keys
-          bookings[curr.status].push(curr.startTime);
-        }
-      });
+
+      // All other occurrences share the same status as the parent booking
+      const status = booking.status as BookingStatus;
+      if (status in bookingsByStatus) {
+        bookingsByStatus[status] = occurrences;
+      }
+
       return {
-        recurringEventId: info.recurringEventId,
-        count: info._count.recurringEventId,
-        firstDate: info._min.startTime,
-        bookings,
+        recurringEventId: booking.uid, // Use booking UID as identifier
+        count: occurrences.length + cancelledDates.length, // Include cancelled in total count
+        firstDate: occurrences[0] || cancelledDates[0] || null,
+        bookings: bookingsByStatus,
       };
-    }
-  );
+    });
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
@@ -932,8 +952,8 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
 
           if (status === "recurring") {
             return and([
-              eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
-              eb("Booking.recurringEventId", "is not", null),
+              // eb(sql`"Booking"."endTime" AT TIME ZONE 'UTC'`, ">=", new Date()),
+              eb(sql`"Booking"."metadata"->>'recurringEvent'`, "is not", null),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
             ]);
           }

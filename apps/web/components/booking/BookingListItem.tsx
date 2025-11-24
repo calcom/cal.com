@@ -1,6 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import {
-  DropdownMenu, // DropdownItem,
+  DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -20,7 +20,6 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-// TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
@@ -36,6 +35,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -45,9 +45,13 @@ import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { showToast } from "@calcom/ui/toast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
+import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
+import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -93,11 +97,9 @@ type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
 type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
 
 function buildParsedBooking(booking: BookingItemProps) {
-  // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
         typeof booking.eventType,
-        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
         "id" | "length" | "title" | "slug" | "schedulingType" | "team"
       >)
     : null;
@@ -113,17 +115,13 @@ function buildParsedBooking(booking: BookingItemProps) {
 }
 
 const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooking => {
-  // We support only team bookings for now for rerouting
-  // Though `routedFromRoutingFormReponse` could be there for a non-team booking, we don't want to support it for now.
-  // Let's not support re-routing for a booking without an event-type for now.
-  // Such a booking has its event-type deleted and there might not be something to reroute to.
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
 export default function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
-  const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { userTimeZone, userTimeFormat, userEmail, userId } = booking.loggedInUser;
   const {
     t,
     i18n: { language },
@@ -150,7 +148,6 @@ export default function BookingListItem(booking: BookingItemProps) {
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       triggerToast(data.message, "success");
-      // Invalidate and refetch the bookings query to update the UI
       await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
@@ -193,7 +190,6 @@ export default function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  // const [expandedBooking, setExpandedBooking] = useState<number | null>(booking.id);
   const { expandedBooking, setExpandedBooking } = booking;
 
   const isUpcoming = dayjs(booking.endTime).tz(userTimeZone) >= dayjs().tz(userTimeZone);
@@ -204,7 +200,10 @@ export default function BookingListItem(booking: BookingItemProps) {
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
   const isRescheduled = booking.fromReschedule !== null;
-  const isRecurring = booking.recurringEventId !== null;
+
+  // NEW: Check if booking is recurring based on metadata
+  const isRecurring = !!parsedBooking.metadata?.recurringEvent;
+
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
@@ -236,12 +235,11 @@ export default function BookingListItem(booking: BookingItemProps) {
       confirmed: confirm,
       reason: rejectionReason,
     };
-    /**
-     * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-     * the "Recurring" tab and "Unconfirmed" tab, to support confirming discretionally in the "Recurring" tab.
-     */
+
+    // NEW: For recurring bookings, we use the booking's own uid since each booking
+    // now represents the full series in metadata
     if ((isTabRecurring || isTabUnconfirmed) && isRecurring) {
-      body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
+      body = Object.assign({}, body, { recurringEventId: booking.uid });
     }
     mutation.mutate(body);
   };
@@ -252,6 +250,10 @@ export default function BookingListItem(booking: BookingItemProps) {
     }
     return booking.seatsReferences[0].referenceUid;
   };
+
+  const hasTeam = booking.eventType?.calIdTeam?.id !== null;
+  const hasUserId = booking.eventType?.userId !== null;
+  const isUserOwner = booking.eventType?.userId === userId;
 
   const actionContext: BookingActionContext = {
     booking,
@@ -268,7 +270,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     isTabUnconfirmed,
     isBookingFromRoutingForm,
     isDisabledCancelling,
-    isDisabledRescheduling,
+    isDisabledRescheduling: isDisabledRescheduling && hasUserId && !isUserOwner,
     isCalVideoLocation:
       !booking.location ||
       booking.location === "integrations:daily" ||
@@ -320,6 +322,10 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetCancellationDialog, setIsOpenCancellationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [isCancelInstanceDialogOpen, setIsCancelInstanceDialogOpen] = useState(false);
+  const [isBookingSeatsDialogOpen, setIsBookingSeatsDialogOpen] = useState(false);
+  const [isRescheduleInstanceDialogOpen, setIsRescheduleInstanceDialogOpen] = useState(false);
+
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       triggerToast(t("location_updated"), "success");
@@ -342,9 +348,6 @@ export default function BookingListItem(booking: BookingItemProps) {
     credentialId,
   }: {
     newLocation: string;
-    /**
-     * It could be set for conferencing locations that support team level installations.
-     */
     credentialId: number | null;
   }) => {
     try {
@@ -358,11 +361,15 @@ export default function BookingListItem(booking: BookingItemProps) {
     }
   };
 
-  // Getting accepted recurring dates to show
-  const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
-    .concat(booking.recurringInfo?.bookings[BookingStatus.CANCELLED])
-    .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
-    .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
+  // NEW: Get recurring dates from recurringInfo generated by backend
+  // This now comes from RRule generation instead of querying multiple booking records
+  const recurringDates = booking.recurringInfo
+    ? [
+        ...booking.recurringInfo.bookings.ACCEPTED,
+        ...booking.recurringInfo.bookings.CANCELLED,
+        ...booking.recurringInfo.bookings.PENDING,
+      ].sort((date1: string, date2: string) => new Date(date1).getTime() - new Date(date2).getTime())
+    : undefined;
 
   const buildBookingLink = () => {
     const urlSearchParams = new URLSearchParams({
@@ -390,15 +397,11 @@ export default function BookingListItem(booking: BookingItemProps) {
     onClick:
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
-        : // : action.id === "reroute"
-        // ? () => setRerouteDialogIsOpen(true)
-        action.id === "change_location"
+        : action.id === "change_location"
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
-        : // : action.id === "reassign"
-          // ? () => setIsOpenReassignDialog(true)
-          undefined,
+        : undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -435,6 +438,51 @@ export default function BookingListItem(booking: BookingItemProps) {
     window.open(href, "_blank");
   };
 
+  const handleCancelInstances = async (selectedDates: Date[]) => {
+    try {
+      showToast("Cancelling selected instances...", "success");
+
+      const response = await fetch("/api/cancel", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: booking.uid,
+          cancellationReason: "Host cancelled selected instances",
+          cancelledBy: booking.user?.email,
+          autoRefund: false,
+          cancelledDates: selectedDates.map((date) => date.toISOString()),
+          // deleteType: "instance",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to cancel instances");
+      }
+
+      showToast(`Excluded ${selectedDates.length} instance(s) from the series`, "success");
+      utils.viewer.bookings.invalidate();
+      setIsCancelInstanceDialogOpen(false);
+    } catch (error) {
+      console.error("Cancel instances error:", error);
+      showToast(error instanceof Error ? error.message : "Failed to cancel instances", "error");
+    }
+  };
+
+  const showCancelOrModifyInstanceAction =
+    isRecurring &&
+    isConfirmed &&
+    isTabRecurring &&
+    !isCancelled &&
+    booking.recurringInfo?.bookings?.[BookingStatus.ACCEPTED]?.some(
+      (date) => new Date(date).getTime() > new Date().getTime()
+    );
+
+  const showBookingSeatsDialogButton =
+    isUpcoming && !isCancelled && !isRecurring && isConfirmed && booking.eventType.seatsPerTimeSlot > 1;
+
   return (
     <>
       {isNoShowDialogOpen && (
@@ -458,6 +506,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         seatReferenceUid={getSeatReferenceUid()}
         bookingUId={booking.uid}
         {...booking}
+        isTabRecurring={isTabRecurring}
       />
 
       {isOpenReassignDialog && (
@@ -465,7 +514,7 @@ export default function BookingListItem(booking: BookingItemProps) {
           isOpenDialog={isOpenReassignDialog}
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
-          teamId={booking.eventType?.team?.id || 0}
+          teamId={booking.eventType?.calIdTeam?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
@@ -475,13 +524,48 @@ export default function BookingListItem(booking: BookingItemProps) {
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
-        teamId={booking.eventType?.team?.id}
+        teamId={booking.eventType?.calIdTeam?.id}
       />
       <AddGuestsDialog
         isOpenDialog={isOpenAddGuestsDialog}
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
+      {showCancelOrModifyInstanceAction && (
+        <CancelInstancesDialog
+          isOpenDialog={isCancelInstanceDialogOpen}
+          setIsOpenDialog={setIsCancelInstanceDialogOpen}
+          bookingUid={booking.uid}
+          eventStartTime={new Date(booking.startTime)}
+          userTimeZone={userTimeZone ?? "UTC"}
+          userTimeFormat={userTimeFormat ?? 24}
+          onSubmitCancelInstances={handleCancelInstances}
+          recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
+        />
+      )}
+
+      {showBookingSeatsDialogButton && (
+        <BookingSeatsDialog
+          isOpenDialog={isBookingSeatsDialogOpen}
+          setIsOpenDialog={setIsBookingSeatsDialogOpen}
+          bookingUid={booking.uid}
+          bookingSeats={booking.seatsReferences}
+          userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
+
+      {showCancelOrModifyInstanceAction && (
+        <RescheduleInstanceDialog
+          isOpen={isRescheduleInstanceDialogOpen}
+          setIsOpen={setIsRescheduleInstanceDialogOpen}
+          recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
+          eventStartTime={new Date(booking.startTime)}
+          eventType={booking.eventType}
+          bookingUid={booking.uid}
+          userTimeZone={userTimeZone ?? "UTC"}
+          userTimeFormat={userTimeFormat ?? 24}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -550,7 +634,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                     })
                   }
                   className={`w-full px-4${isRejected ? " line-through" : ""}`}>
-                  {/* <Link href={bookingLink}> */}
                   {/* Time and Badges for mobile */}
                   <div className="w-full pb-2 pt-4 sm:hidden">
                     <div className="flex w-full items-center justify-between sm:hidden">
@@ -573,9 +656,9 @@ export default function BookingListItem(booking: BookingItemProps) {
                         {t("unconfirmed")}
                       </Badge>
                     )}
-                    {booking.eventType?.team && (
+                    {booking.eventType?.calIdTeam && (
                       <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
-                        {booking.eventType.team.name}
+                        {booking.eventType.calIdTeam.name}
                       </Badge>
                     )}
                     {showPendingPayment && (
@@ -668,8 +751,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-                    {/*Remove reschedule and cancel button from unconfirmed Booking*/}
-                    {!isCancelled && !isPending && !isRejected && (
+                    {!showCancelOrModifyInstanceAction && !!isCancelled && !isPending && !isRejected && (
                       <Button
                         color="secondary"
                         onClick={() => rescheduleBooking(rescheduleEventLink)}
@@ -678,12 +760,39 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {!isCancelled && !isPending && !isRejected  && (
+                    {!isCancelled && !isPending && !isRejected && !isBookingInPast && (
                       <Button
                         color="secondary"
                         onClick={() => setIsOpenCancellationDialog(true)}
                         className="flex items-center space-x-2">
                         <span>{t("cancel")}</span>
+                      </Button>
+                    )}
+
+                    {showBookingSeatsDialogButton && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsBookingSeatsDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("booking_seats")}</span>
+                      </Button>
+                    )}
+
+                    {showCancelOrModifyInstanceAction && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsCancelInstanceDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("cancel_instances")}</span>
+                      </Button>
+                    )}
+
+                    {showCancelOrModifyInstanceAction && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsRescheduleInstanceDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("reschedule_instance")}</span>
                       </Button>
                     )}
 
@@ -711,9 +820,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </DropdownMenu>
                     )}
 
-                    {/* {shouldShowRecurringCancelAction(actionContext) && (
-                  <TableActions actions={[cancelEventAction]} />
-                )} */}
                     {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
                     {isCancelled && booking.rescheduled && (
                       <div className="hidden h-full w-full items-center md:flex">
@@ -753,16 +859,7 @@ export default function BookingListItem(booking: BookingItemProps) {
             </div>
 
             {expandedBooking === booking.id && (
-              <BookingExpandedCard
-                key={booking.id}
-                isHost={true}
-                showExpandedActions={true}
-                setSelectedMeeting={() => {}}
-                setShowMeetingNotes={() => {}}
-                handleMarkNoShow={() => {}}
-                isCurrentTime={() => true}
-                {...booking}
-              />
+              <BookingExpandedCard key={booking.id} isHost={true} showExpandedActions={true} {...booking} />
             )}
           </div>
         </div>
@@ -804,7 +901,7 @@ const BookingItemBadges = ({
           <Badge variant="orange">{t("rescheduled")}</Badge>
         </Tooltip>
       )}
-      {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+      {booking.eventType?.calIdTeam && <Badge variant="gray">{booking.eventType.calIdTeam.name}</Badge>}
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip
           assignmentReason={{
@@ -852,18 +949,22 @@ const RecurringBookingsTooltip = ({
     i18n: { language },
   } = useLocale();
   const now = new Date();
-  const recurringCount = recurringDates.filter((recurringDate) => {
-    return (
-      recurringDate >= now &&
-      !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toString())
-        .includes(recurringDate.toString())
-    );
-  }).length;
+
+  // NEW: Calculate remaining count from generated occurrences, excluding cancelled dates
+  const recurringCount =
+    recurringDates?.filter((recurringDate) => {
+      return (
+        recurringDate.getTime() >= now.getTime() &&
+        !(booking.recurringInfo?.bookings.CANCELLED ?? []).includes(recurringDate)
+      );
+    }).length ?? 0;
+
+  //  Check if booking has recurring metadata
+  const hasRecurringEvent = !!(booking.metadata as Record<string, any> | null)?.recurringEvent;
 
   return (
     (booking.recurringInfo &&
-      booking.eventType?.recurringEvent?.freq &&
+      hasRecurringEvent &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
         booking.listingStatus === "cancelled") && (
@@ -873,9 +974,9 @@ const RecurringBookingsTooltip = ({
               content={recurringDates.map((aDate, key) => {
                 const pastOrCancelled =
                   aDate < now ||
-                  booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toString())
-                    .includes(aDate.toString());
+                  booking.recurringInfo?.bookings.CANCELLED.map((date) => date.toString()).includes(
+                    aDate.toString()
+                  );
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}
@@ -897,7 +998,7 @@ const RecurringBookingsTooltip = ({
                       })}`
                     : getEveryFreqFor({
                         t,
-                        recurringEvent: booking.eventType.recurringEvent,
+                        recurringEvent: (booking.metadata as Record<string, any>)?.recurringEvent,
                         recurringCount: booking.recurringInfo.count,
                       })}
                 </p>

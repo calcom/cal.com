@@ -1,4 +1,13 @@
-import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
+import { buildRRFromRE } from "@calid/features/modules/teams/lib/recurrenceUtil";
+import type {
+  Calendar as OfficeCalendar,
+  User,
+  Event,
+  PatternedRecurrence,
+  RecurrencePatternType,
+  DayOfWeek,
+  WeekIndex,
+} from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
@@ -13,9 +22,11 @@ import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
   CalendarServiceEvent,
+  CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  RecurringEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
@@ -244,28 +255,97 @@ export default class Office365CalendarService implements Calendar {
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
         event.destinationCalendar[0]
       : undefined;
+
     try {
+      this.log.debug("Creating event", {
+        hasRecurringEvent: !!event.recurringEvent,
+        hasExistingRecurringEvent: !!event.existingRecurringEvent,
+      });
+
+      // Handle existing recurring event (booking into an existing series)
+      if (event.existingRecurringEvent && mainHostDestinationCalendar) {
+        this.log.info("Booking into existing recurring event series", {
+          recurringEventId: event.existingRecurringEvent.recurringEventId,
+          startTime: event.startTime,
+        });
+
+        return await this.createRecurringInstanceEvent(
+          event,
+          credentialId,
+          event.existingRecurringEvent.recurringEventId,
+          mainHostDestinationCalendar
+        );
+      }
+
       const eventsUrl = mainHostDestinationCalendar?.externalId
         ? `${await this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : `${await this.getUserEndpoint()}/calendar/events`;
 
+      const translatedEvent = this.translateEvent(event);
+
+      // Add recurrence if this is a recurring event
+      if (event.recurringEvent) {
+        this.log.info("Creating new recurring event series", {
+          freq: event.recurringEvent.freq,
+          interval: event.recurringEvent.interval,
+          count: event.recurringEvent.count,
+        });
+
+        translatedEvent.recurrence = this.mapRecurrenceToOutlookFormat(event.recurringEvent);
+      }
+
       const response = await this.fetcher(eventsUrl, {
         method: "POST",
-        body: JSON.stringify(this.translateEvent(event)),
+        body: JSON.stringify(translatedEvent),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; seriesMasterId?: string }
+      >(response);
 
-      return { ...responseJson, iCalUID: responseJson.iCalUId };
+      this.log.info("Event created successfully", {
+        id: responseJson.id,
+        isRecurring: !!event.recurringEvent,
+        seriesMasterId: responseJson.seriesMasterId,
+      });
+
+      return {
+        ...responseJson,
+        iCalUID: responseJson.iCalUId,
+        // For recurring events, the seriesMasterId is the recurring event ID
+        ...(event.recurringEvent && { thirdPartyRecurringEventId: responseJson.id }),
+      };
     } catch (error) {
-      this.log.error(error);
-
+      this.log.error("Error creating event", { error, event });
       throw error;
     }
   }
 
-  async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceReschedule?: boolean
+  ): Promise<NewCalendarEventType> {
     try {
+      this.log.debug("Updating event", {
+        uid,
+        isRecurringInstanceReschedule,
+        hasRescheduleInstance: !!event.rescheduleInstance,
+      });
+
+      // Handle recurring instance reschedule
+      if (isRecurringInstanceReschedule && event.rescheduleInstance) {
+        this.log.info("Detected recurring instance reschedule request", {
+          uid,
+          formerTime: event.rescheduleInstance.formerTime,
+          newTime: event.rescheduleInstance.newTime,
+        });
+
+        return await this.updateSpecificRecurringInstance(uid, event);
+      }
+
+      // Normal event update logic
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
         body: JSON.stringify(this.translateEvent(event)),
@@ -273,24 +353,51 @@ export default class Office365CalendarService implements Calendar {
 
       const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
 
+      this.log.debug("Event updated successfully", { uid });
+
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
-      this.log.error(error);
-
+      this.log.error("Error updating event", { error, uid });
       throw error;
     }
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(
+    uid: string,
+    event?: CalendarEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceCancellation?: boolean
+  ): Promise<void> {
     try {
+      this.log.info("deleteEvent called", {
+        uid,
+        isRecurringInstanceCancellation,
+        cancelledDatesCount: event?.cancelledDates?.length || 0,
+      });
+
+      // Handle instance-level cancellation
+      if (isRecurringInstanceCancellation && event?.cancelledDates && event.cancelledDates.length > 0) {
+        this.log.info("Processing instance cancellation", {
+          uid,
+          cancelledDatesCount: event.cancelledDates.length,
+        });
+
+        await this.cancelSpecificInstances(uid, event.cancelledDates);
+        return;
+      }
+
+      // Handle full event deletion (default behavior)
+      this.log.info("Deleting entire event", { uid });
+
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "DELETE",
       });
 
       handleErrorsRaw(response);
-    } catch (error) {
-      this.log.error(error);
 
+      this.log.info("Event deleted successfully", { uid });
+    } catch (error) {
+      this.log.error("Error deleting event", { error, uid });
       throw error;
     }
   }
@@ -625,4 +732,422 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  /**
+   * Maps RecurringEvent to Microsoft Graph PatternedRecurrence format
+   */
+  private mapRecurrenceToOutlookFormat(recurringEvent: RecurringEvent): PatternedRecurrence {
+    this.log.debug("Mapping recurring event to Outlook format", { recurringEvent });
+
+    try {
+      // Build RRULE string first to parse frequency and other components
+      const rruleStrings = buildRRFromRE(recurringEvent);
+      const rruleLine = rruleStrings.find((line) => line.startsWith("RRULE:"));
+
+      if (!rruleLine) {
+        throw new Error("No RRULE found in recurring event");
+      }
+
+      // Parse RRULE into key-value pairs
+      const rruleValue = rruleLine.substring(6); // Remove "RRULE:" prefix
+      const rruleParts = rruleValue.split(";").reduce((acc, part) => {
+        const [key, value] = part.split("=");
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      // Map frequency
+      const freqMap: Record<string, RecurrencePatternType> = {
+        DAILY: "daily",
+        WEEKLY: "weekly",
+        MONTHLY: "absoluteMonthly",
+        YEARLY: "absoluteYearly",
+      };
+
+      const pattern: PatternedRecurrence["pattern"] = {
+        type: freqMap[rruleParts.FREQ] || ("daily" as RecurrencePatternType),
+        interval: parseInt(rruleParts.INTERVAL || "1"),
+      };
+
+      // Handle BYDAY (e.g., "MO,WE,FR")
+      if (rruleParts.BYDAY) {
+        const daysMap: Record<string, DayOfWeek> = {
+          MO: "monday",
+          TU: "tuesday",
+          WE: "wednesday",
+          TH: "thursday",
+          FR: "friday",
+          SA: "saturday",
+          SU: "sunday",
+        };
+        pattern.daysOfWeek = rruleParts.BYDAY.split(",").map((day) => daysMap[day.trim()]);
+      }
+
+      // Handle BYMONTHDAY
+      if (rruleParts.BYMONTHDAY) {
+        pattern.dayOfMonth = parseInt(rruleParts.BYMONTHDAY);
+      }
+
+      // Handle BYSETPOS for relative monthly (e.g., "first Monday")
+      if (rruleParts.BYSETPOS && rruleParts.BYDAY) {
+        pattern.type = "relativeMonthly";
+        const indexMap: Record<string, WeekIndex> = {
+          "1": "first",
+          "2": "second",
+          "3": "third",
+          "4": "fourth",
+          "-1": "last",
+        };
+        pattern.index = indexMap[rruleParts.BYSETPOS] || "first";
+      }
+
+      // Handle BYMONTH
+      if (rruleParts.BYMONTH) {
+        pattern.month = parseInt(rruleParts.BYMONTH);
+      }
+
+      // Build range
+      const range: PatternedRecurrence["range"] = {
+        type: "noEnd",
+        startDate: dayjs(recurringEvent.dtstart || new Date())
+          .tz(recurringEvent.tzid || "UTC")
+          .format("YYYY-MM-DD"),
+      };
+
+      if (rruleParts.COUNT) {
+        range.type = "numbered";
+        range.numberOfOccurrences = parseInt(rruleParts.COUNT);
+      } else if (rruleParts.UNTIL) {
+        range.type = "endDate";
+        range.endDate = dayjs(rruleParts.UNTIL).format("YYYY-MM-DD");
+      }
+
+      const recurrence: PatternedRecurrence = {
+        pattern,
+        range,
+      };
+
+      this.log.debug("Generated Outlook recurrence", { recurrence });
+      return recurrence;
+    } catch (error) {
+      this.log.error("Error building Outlook recurrence from recurring event", { error, recurringEvent });
+      throw error;
+    }
+  }
+
+  /**
+   * Cancels specific instances of a recurring event
+   * For Outlook, we delete each individual instance
+   */
+  private async cancelSpecificInstances(uid: string, cancelledDates: string[]): Promise<void> {
+    try {
+      this.log.debug("Cancelling specific instances", {
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+
+      // First, check if this is a recurring event
+      const eventResponse = await this.fetcher(`${await this.getUserEndpoint()}/events/${uid}`);
+      const eventJson = await handleErrorsJson<Event & { seriesMasterId?: string }>(eventResponse);
+
+      if (!eventJson.recurrence && !eventJson.seriesMasterId) {
+        this.log.warn("Event is not recurring, deleting entire event instead", { uid });
+        await this.deleteEvent(uid);
+        return;
+      }
+
+      // Determine the master event ID
+      const masterEventId = eventJson.seriesMasterId || uid;
+
+      this.log.debug("Fetched master recurring event", {
+        masterEventId,
+        hasRecurrence: !!eventJson.recurrence,
+      });
+
+      // For each cancelled date, find and delete the corresponding instance
+      const deletionResults = await Promise.allSettled(
+        cancelledDates.map(async (cancelledDate) => {
+          const cancelledDateTime = new Date(cancelledDate);
+
+          // Fetch instances around this date
+          const searchStart = new Date(cancelledDateTime.getTime() - 24 * 60 * 60 * 1000);
+          const searchEnd = new Date(cancelledDateTime.getTime() + 24 * 60 * 60 * 1000);
+
+          const instancesUrl = `${await this.getUserEndpoint()}/events/${masterEventId}/instances`;
+          const instancesResponse = await this.fetcher(
+            `${instancesUrl}?startDateTime=${searchStart.toISOString()}&endDateTime=${searchEnd.toISOString()}`
+          );
+
+          const instancesJson = await handleErrorsJson<{ value: Event[] }>(instancesResponse);
+
+          // Find the matching instance
+          const targetInstance = instancesJson.value?.find((instance) => {
+            if (!instance.start?.dateTime) return false;
+
+            const cancelledISO = dayjs(cancelledDateTime).utc().format("YYYY-MM-DD");
+
+            // Fallback: match by occurrenceId (super reliable on Outlook)
+            if (instance.occurrenceId?.endsWith(cancelledISO)) {
+              return true;
+            }
+
+            // Extract instance timezone or default to UTC
+            const instanceTz = instance.start.timeZone || "UTC";
+
+            // Parse Outlook datetime in its own timezone, then convert to UTC
+            const instanceUtc = dayjs.tz(instance.start.dateTime, instanceTz).utc();
+
+            const instanceMs = instanceUtc.valueOf();
+            const cancelledMs = dayjs(cancelledDateTime).utc().valueOf();
+
+            // Within 1 minute match
+            return Math.abs(instanceMs - cancelledMs) < 60000;
+          });
+
+          if (!targetInstance || !targetInstance.id) {
+            this.log.warn("Could not find instance to cancel", { cancelledDate });
+            return;
+          }
+
+          // Delete this specific instance
+          this.log.debug("Deleting instance", {
+            instanceId: targetInstance.id,
+            cancelledDate,
+          });
+
+          const deleteResponse = await this.fetcher(
+            `${await this.getUserEndpoint()}/events/${targetInstance.id}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          handleErrorsRaw(deleteResponse);
+
+          return { instanceId: targetInstance.id, cancelledDate };
+        })
+      );
+
+      const successfulDeletions = deletionResults.filter((result) => result.status === "fulfilled").length;
+      const failedDeletions = deletionResults.filter((result) => result.status === "rejected");
+
+      this.log.info("Completed instance cancellations", {
+        uid: masterEventId,
+        totalRequested: cancelledDates.length,
+        successful: successfulDeletions,
+        failed: failedDeletions.length,
+      });
+
+      if (failedDeletions.length > 0) {
+        this.log.warn("Some instance cancellations failed", {
+          failures: failedDeletions.map((f) => (f as PromiseRejectedResult).reason),
+        });
+      }
+    } catch (error) {
+      this.log.error("Error cancelling specific instances", {
+        error,
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a specific recurring instance
+   * For Outlook, we need to fetch the instance and update it directly
+   */
+  private async updateSpecificRecurringInstance(
+    uid: string,
+    event: CalendarServiceEvent
+  ): Promise<NewCalendarEventType> {
+    try {
+      this.log.info("Updating specific recurring instance", {
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+
+      const userEndpoint = await this.getUserEndpoint();
+
+      // Grab event definition for UID to determine if this is master or instance
+      const eventResponse = await this.fetcher(`${userEndpoint}/events/${uid}`);
+      const eventJson = await handleErrorsJson<Event & { seriesMasterId?: string }>(eventResponse);
+
+      let masterEventId: string;
+      let instanceId: string | null = null;
+
+      // If UID itself is an instance
+      if (eventJson.seriesMasterId) {
+        masterEventId = eventJson.seriesMasterId;
+        instanceId = uid;
+      } else if (eventJson.recurrence) {
+        // UID is the master event, we must locate the target instance
+        masterEventId = uid;
+
+        const formerTime = dayjs(event.rescheduleInstance!.formerTime);
+        const searchStart = formerTime.subtract(1, "day").toISOString();
+        const searchEnd = formerTime.add(1, "day").toISOString();
+
+        const instancesUrl = `${userEndpoint}/events/${masterEventId}/instances`;
+        const instancesResponse = await this.fetcher(
+          `${instancesUrl}?startDateTime=${searchStart}&endDateTime=${searchEnd}`
+        );
+
+        const instancesJson = await handleErrorsJson<{ value: Event[] }>(instancesResponse);
+
+        // Attempt match by occurrenceId first (most reliable for Outlook)
+        const formerISODate = formerTime.utc().format("YYYY-MM-DD");
+
+        let targetInstance =
+          instancesJson.value?.find((inst) => inst.occurrenceId?.endsWith(formerISODate)) ?? null;
+
+        // If not found, fallback to timestamp diff
+        if (!targetInstance) {
+          targetInstance =
+            instancesJson.value?.find((instance) => {
+              if (!instance.start?.dateTime) return false;
+
+              const instanceTz = instance.start.timeZone || "UTC";
+              const instanceUtc = dayjs.tz(instance.start.dateTime, instanceTz).utc();
+              const diff = Math.abs(instanceUtc.valueOf() - formerTime.utc().valueOf());
+              return diff < 60000; // within 1 min
+            }) ?? null;
+        }
+
+        if (!targetInstance?.id) {
+          throw new Error(
+            `Could not find instance at ${event.rescheduleInstance!.formerTime} in series ${masterEventId}`
+          );
+        }
+
+        instanceId = targetInstance.id;
+      } else {
+        // Not a recurring event, fallback to normal update
+        this.log.warn("Event is not recurring, performing normal update", { uid });
+        return await this.updateEvent(uid, event);
+      }
+
+      if (!instanceId) {
+        throw new Error("Could not determine instance ID for reschedule");
+      }
+
+      this.log.debug("Updating recurring instance", {
+        masterEventId,
+        instanceId,
+      });
+
+      const updateUrl = `${userEndpoint}/events/${instanceId}`;
+      const translatedEvent = this.translateEvent(event);
+
+      const response = await this.fetcher(updateUrl, {
+        method: "PATCH",
+        body: JSON.stringify(translatedEvent),
+      });
+
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; seriesMasterId?: string }
+      >(response);
+
+      this.log.info("Successfully updated recurring instance", {
+        instanceId,
+        masterEventId,
+        newStart: event.startTime,
+        newEnd: event.endTime,
+      });
+
+      return {
+        ...responseJson,
+        iCalUID: responseJson.iCalUId,
+      };
+    } catch (error) {
+      this.log.error("Error updating specific recurring instance", {
+        error,
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Creates an instance event for an existing recurring series
+   * This creates an exception in the recurring series
+   */
+  private async createRecurringInstanceEvent(
+    event: CalendarServiceEvent,
+    credentialId: number,
+    recurringEventId: string,
+    mainHostDestinationCalendar?: { externalId: string; credentialId: number }
+  ): Promise<NewCalendarEventType> {
+    try {
+      this.log.debug("Creating recurring instance exception", {
+        recurringEventId,
+        startTime: event.startTime,
+      });
+
+      // First, fetch the specific instance we want to modify
+      const instancesUrl = `${await this.getUserEndpoint()}/events/${recurringEventId}/instances`;
+      const instancesResponse = await this.fetcher(
+        `${instancesUrl}?startDateTime=${new Date(event.startTime).toISOString()}&endDateTime=${new Date(
+          event.endTime
+        ).toISOString()}`
+      );
+
+      const instancesJson = await handleErrorsJson<{ value: Event[] }>(instancesResponse);
+
+      if (!instancesJson.value || instancesJson.value.length === 0) {
+        throw new Error("Could not find matching instance in recurring series");
+      }
+
+      // Find the exact instance (compare timestamps)
+      const targetInstance = instancesJson.value.find((instance) => {
+        const instanceStart = new Date(instance.start?.dateTime || "").getTime();
+        const eventStart = new Date(event.startTime).getTime();
+        return Math.abs(instanceStart - eventStart) < 60000; // Within 1 minute
+      });
+
+      if (!targetInstance || !targetInstance.id) {
+        this.log.warn("Could not find exact matching instance, using first instance");
+        if (!instancesJson.value[0]?.id) {
+          throw new Error("No valid instance found");
+        }
+      }
+
+      const instanceId = targetInstance?.id || instancesJson.value[0].id;
+
+      // Update this specific instance to create an exception
+      const updateUrl = `${await this.getUserEndpoint()}/events/${instanceId}`;
+      const translatedEvent = this.translateEvent(event);
+
+      this.log.debug("Updating instance to create exception", { instanceId });
+
+      const response = await this.fetcher(updateUrl, {
+        method: "PATCH",
+        body: JSON.stringify(translatedEvent),
+      });
+
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; seriesMasterId?: string }
+      >(response);
+
+      this.log.info("Recurring instance exception created successfully", {
+        instanceId: responseJson.id,
+        recurringEventId,
+      });
+
+      return {
+        ...responseJson,
+        iCalUID: responseJson.iCalUId,
+        thirdPartyRecurringEventId: recurringEventId,
+      };
+    } catch (error) {
+      this.log.error("Error creating recurring instance exception", {
+        error,
+        recurringEventId,
+      });
+      throw error;
+    }
+  }
 }

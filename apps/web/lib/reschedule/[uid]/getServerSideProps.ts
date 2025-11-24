@@ -1,4 +1,5 @@
 // page can be a server component
+import { validateRecurringInstance } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
@@ -8,15 +9,19 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import { recurringEventSchema } from "@calcom/prisma/zod-utils";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 const querySchema = z.object({
   uid: z.string(),
   seatReferenceUid: z.string().optional(),
   rescheduledBy: z.string().optional(),
+  rescheduleInstanceDate: z.string().optional(),
   allowRescheduleForCancelledBooking: z
     .string()
     .transform((value) => value === "true")
@@ -30,6 +35,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     uid: bookingUid,
     seatReferenceUid,
     rescheduledBy,
+    rescheduleInstanceDate,
     /**
      * This is for the case of request-reschedule where the booking is cancelled
      */
@@ -50,6 +56,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       ...bookingMinimalSelect,
       responses: true,
+      metadata: true,
       eventType: {
         select: {
           users: {
@@ -64,6 +71,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           team: {
             select: {
               parentId: true,
+              slug: true,
+            },
+          },
+          calIdTeam: {
+            select: {
               slug: true,
             },
           },
@@ -119,8 +131,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
   // This comes from query param and thus is considered forced
   const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
-  const isNonRescheduleableBooking =
-    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const isNonRescheduleableBooking = booking.status === BookingStatus.REJECTED;
 
   if (isDisabledRescheduling) {
     return {
@@ -150,6 +161,96 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true;
     };
   }
+
+  // ========================================
+  // RECURRING INSTANCE RESCHEDULE LOGIC
+  // ========================================
+
+  // Check if this is a recurring booking with a specific instance date
+  const recurringEvent = isPrismaObjOrUndefined(booking.metadata)?.recurringEvent as
+    | RecurringEvent
+    | undefined;
+  const isRecurringBooking = recurringEventSchema.safeParse(recurringEvent).success;
+
+  if (isRecurringBooking && rescheduleInstanceDate) {
+    console.log("Processing recurring instance reschedule for:", rescheduleInstanceDate);
+
+    // Parse and validate the instance date
+    let instanceDate: Date;
+    try {
+      instanceDate = new Date(rescheduleInstanceDate);
+      if (isNaN(instanceDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+    } catch (error) {
+      console.error("Failed to parse rescheduleInstanceDate:", rescheduleInstanceDate, error);
+      return {
+        redirect: {
+          destination: `/booking/${uid}?error=invalid-instance-date`,
+          permanent: false,
+        },
+      };
+    }
+
+    // Validate that the instance is part of the recurring event
+    const bookingStartTime = booking.startTime ? new Date(booking.startTime) : new Date();
+    const validation = validateRecurringInstance(recurringEvent, instanceDate, bookingStartTime);
+
+    if (!validation.isValid) {
+      console.error("Invalid recurring instance:", validation.error);
+      return {
+        redirect: {
+          destination: `/booking/${uid}?error=invalid-instance`,
+          permanent: false,
+        },
+      };
+    }
+
+    // Check if the instance is in the past (unless past bookings are allowed)
+    if (validation.isPast && !eventType.allowReschedulingPastBookings) {
+      console.warn("Attempted to reschedule past instance:", rescheduleInstanceDate);
+      return {
+        redirect: {
+          destination: `/booking/${uid}?error=past-instance`,
+          permanent: false,
+        },
+      };
+    }
+
+    // Build the destination URL with instance date parameter
+    const destinationUrlSearchParams = new URLSearchParams();
+
+    destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
+    destinationUrlSearchParams.set("instanceDate", instanceDate.toISOString());
+
+    if (allowRescheduleForCancelledBooking) {
+      destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
+    }
+
+    if (coepFlag) {
+      destinationUrlSearchParams.set("flag.coep", coepFlag as string);
+    }
+
+    const currentUserEmail = rescheduledBy ?? session?.user?.email;
+    if (currentUserEmail) {
+      destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+    }
+
+    console.log("Redirecting to event URL for recurring instance:", eventUrl);
+
+    return {
+      redirect: {
+        destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
+          eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+        }`,
+        permanent: false,
+      },
+    };
+  }
+
+  // ========================================
+  // STANDARD (NON-RECURRING) RESCHEDULE LOGIC
+  // ========================================
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast && !eventType.allowReschedulingPastBookings) {

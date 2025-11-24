@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   }
                   p(cal, ar);
                 };
-            })(window, "https://app.cal.com/embed/embed.js", "init");
+            })(window, "https://app.cal.id/embed-link/embed.js", "init");
 
             Cal("init", { origin: "${WEBAPP_URL}" });
 

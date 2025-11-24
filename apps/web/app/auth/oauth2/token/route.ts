@@ -65,7 +65,7 @@ async function handler(req: NextRequest) {
 
   const payloadAuthToken: OAuthTokenPayload = {
     userId: accessCode.userId,
-    teamId: accessCode.teamId,
+    teamId: accessCode.calIdTeamId,
     scope: accessCode.scopes,
     token_type: "Access Token",
     clientId: client_id,
@@ -73,7 +73,7 @@ async function handler(req: NextRequest) {
 
   const payloadRefreshToken: OAuthTokenPayload = {
     userId: accessCode.userId,
-    teamId: accessCode.teamId,
+    teamId: accessCode.calIdTeamId,
     scope: accessCode.scopes,
     token_type: "Refresh Token",
     clientId: client_id,

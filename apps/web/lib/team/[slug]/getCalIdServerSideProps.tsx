@@ -97,9 +97,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
             },
           },
         },
-        orderBy: {
-          id: "asc",
-        },
+        orderBy: [{ position: "desc" }, { id: "asc" }],
       },
     },
   });
@@ -171,6 +169,20 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       : [],
     descriptionAsSafeHTML: markdownToSafeHTML(type.description || ""),
   }));
+
+  if (
+    processedEventTypes.length === 1 &&
+    processedEventTypes[0].schedulingType === "MANAGED" &&
+    /*search params doesn't have members*/ !context.query.members
+  ) {
+    // If the team has only one event type and it's managed, redirect to the event type page
+    return {
+      redirect: {
+        destination: `/team/${calIdTeam.slug}?members=1`,
+        permanent: false,
+      },
+    } as const;
+  }
 
   const processedMembers = !calIdTeam.isTeamPrivate
     ? calIdTeam.members.map((member) => {

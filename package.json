@@ -22,7 +22,7 @@
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
     "edit-app": "yarn app-store edit",
-    "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
+    "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.id/embed-link/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.id' yarn",
     "publish-embed": "yarn withEmbedPublishEnv workspace @calcom/embed-core build && yarn withEmbedPublishEnv workspace @calcom/embed-snippet build && yarn workspaces foreach --from=\"@calcom/embed*\" npm publish --access=public",
     "delete-app": "yarn app-store delete",
     "create-app-template": "yarn app-store create-template",

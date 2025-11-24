@@ -72,6 +72,54 @@ async function getAssociatedBookingForFormResponse(formResponseId: number) {
   return formResponse?.routedToBookingUid ?? null;
 }
 
+/**
+ * Checks if this is a recurring instance reschedule operation
+ */
+function isRecurringInstanceReschedule(evt: CalendarEvent): boolean {
+  return !!(evt.rescheduleInstance?.formerTime && evt.rescheduleInstance?.newTime);
+}
+
+/**
+ * Update existing booking for recurring instance reschedule
+ * This updates the booking's metadata with new exDates/rDates without creating a new booking
+ */
+async function updateBookingForRecurringInstance(
+  originalBooking: OriginalRescheduledBooking,
+  reqBody: CreateBookingParams["reqBody"]
+) {
+  if (!originalBooking?.id) {
+    throw new Error("Original booking not found for recurring instance reschedule");
+  }
+
+  // Merge the updated recurring event metadata (which includes the new exDates and rDates)
+  // from the calendar event into the booking metadata
+  const updatedMetadata = {
+    ...(typeof originalBooking.metadata === "object" && originalBooking.metadata),
+    ...reqBody.metadata,
+  };
+
+  const updatedBooking = await prisma.booking.update({
+    where: {
+      id: originalBooking.id,
+    },
+    data: {
+      metadata: updatedMetadata,
+      // Update the updatedAt timestamp to reflect the change
+      updatedAt: new Date(),
+    },
+    include: {
+      user: {
+        select: { email: true, name: true, timeZone: true, username: true },
+      },
+      attendees: true,
+      payment: true,
+      references: true,
+    },
+  });
+
+  return updatedBooking;
+}
+
 // Define the function with underscore prefix
 const _createBooking = async ({
   uid,
@@ -87,6 +135,18 @@ const _createBooking = async ({
   tracking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) => {
   updateEventDetails(evt, originalRescheduledBooking);
+
+  // Check if this is a recurring instance reschedule
+  if (isRecurringInstanceReschedule(evt)) {
+    if (!originalRescheduledBooking) {
+      throw new Error("Cannot reschedule recurring instance without original booking");
+    }
+
+    // For recurring instance reschedule, update the existing booking instead of creating a new one
+    return await updateBookingForRecurringInstance(originalRescheduledBooking, reqBody);
+  }
+
+  // Normal booking flow (create new booking)
   const associatedBookingForFormResponse = routingFormResponseId
     ? await getAssociatedBookingForFormResponse(routingFormResponseId)
     : null;
@@ -190,7 +250,7 @@ function getEventTypeRel(eventTypeId: EventTypeId) {
   return eventTypeId ? { connect: { id: eventTypeId } } : {};
 }
 
-function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
+function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">, responses?: Prisma.JsonValue) {
   //if attendee is team member, it should fetch their locale not booker's locale
   //perhaps make email fetch request to see if his locale is stored, else
   const teamMembers = evt?.team?.members ?? [];
@@ -201,6 +261,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
     timeZone: attendee.timeZone,
     locale: attendee.language.locale,
     phoneNumber: attendee.phoneNumber,
+    responses: responses,
   }));
 }
 

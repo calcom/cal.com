@@ -13,8 +13,6 @@ export const getCalEventResponses = ({
   booking,
   responses,
 }: {
-  // If the eventType has been deleted and a booking is Accepted later on, then bookingFields will be null and we can't know the label of fields. So, we should store the label as well in the DB
-  // Also, it is no longer straightforward to identify if a field is system field or not
   bookingFields: z.infer<typeof eventTypeBookingFields> | EventType["bookingFields"] | null;
   booking?: Prisma.BookingGetPayload<{
     select: {
@@ -34,13 +32,13 @@ export const getCalEventResponses = ({
 }) => {
   const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
   const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
-  const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
+
   const backwardCompatibleResponses =
     responses ?? (booking ? getBookingWithResponses(booking).responses : null);
   if (!backwardCompatibleResponses) throw new Error("Couldn't get responses");
 
-  // To set placeholder email for the booking
-  if (!!!backwardCompatibleResponses.email) {
+  // placeholder email
+  if (!backwardCompatibleResponses.email) {
     if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string")
       throw new Error("Both Phone and Email are missing");
 
@@ -48,61 +46,84 @@ export const getCalEventResponses = ({
       backwardCompatibleResponses["attendeePhoneNumber"]
     );
   }
-  //for showing correct Parsed Phone field on Calendar Page
-  const phonefield: Record<string, string> = {
+
+  const PHONE_FIELD_LABELS: Record<string, string> = {
     number_text_notifications: "Phone Number (text notification)",
     phone: "Phone Number",
     phone_number: "Phone Number",
+    attendeePhoneNumber: "Phone Number",
   };
 
-  if (parsedBookingFields) {
-    parsedBookingFields.forEach((field) => {
-      const dynamicLabel = field.defaultLabel ? phonefield[field.defaultLabel] : undefined;
-      const label = dynamicLabel || field.label || field.defaultLabel;
-      if (!label) {
-        //TODO: This error must be thrown while saving event-type as well so that such an event-type can't be saved
-        throw new Error(`Missing label for booking field "${field.name}"`);
-      }
+  const PHONE_KEYS = ["attendeePhoneNumber", "number_text_notifications", "phone_number", "phone"] as const;
 
-      // If the guests field is hidden (disableGuests is set on the event type) don't try and infer guests from attendees list
-      if (field.name == "guests" && field.hidden) {
+  const parsedBookingFields = bookingFields ? eventTypeBookingFields.parse(bookingFields) : null;
+
+  if (parsedBookingFields) {
+    for (const field of parsedBookingFields) {
+      const dynamicLabel = field.defaultLabel ? PHONE_FIELD_LABELS[field.defaultLabel] : undefined;
+      const label = dynamicLabel || field.label || field.defaultLabel;
+      if (!label) throw new Error(`Missing label for booking field "${field.name}"`);
+
+      if (field.name === "guests" && field.hidden) {
         backwardCompatibleResponses[field.name] = [];
       }
 
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        calEventUserFieldsResponses[field.name] = {
-          label,
-          value: backwardCompatibleResponses[field.name],
-          isHidden: !!field.hidden,
-        };
-      }
+      const rawValue = backwardCompatibleResponses[field.name];
+      const finalValue = rawValue === undefined || rawValue === null ? "N/A" : rawValue;
 
-      calEventResponses[field.name] = {
+      const responseValue = {
         label,
-        value: backwardCompatibleResponses[field.name],
+        value: finalValue,
         isHidden: !!field.hidden,
       };
-    });
-  } else {
-    // Alternative way to generate for a booking of whose eventType has been deleted
-    for (const [name, value] of Object.entries(backwardCompatibleResponses)) {
-      const isSystemField = SystemField.safeParse(name);
 
-      // Use name for Label because we don't have access to the label. This will not be needed once we start storing the label along with the response
-      const label = name;
-
-      if (!isSystemField.success) {
-        calEventUserFieldsResponses[name] = {
-          label,
-          value,
-        };
+      if (field.editable === "user" || field.editable === "user-readonly") {
+        calEventUserFieldsResponses[field.name] = responseValue;
       }
 
-      calEventResponses[name] = {
-        label,
-        value,
-      };
+      calEventResponses[field.name] = responseValue;
+    }
+  } else {
+    for (const [name, value] of Object.entries(backwardCompatibleResponses)) {
+      const isSystemField = SystemField.safeParse(name);
+      const label = name;
+
+      const finalValue = value === undefined || value === null ? "N/A" : value;
+
+      const responseValue = { label, value: finalValue };
+
+      if (!isSystemField.success) {
+        calEventUserFieldsResponses[name] = responseValue;
+      }
+
+      calEventResponses[name] = responseValue;
     }
   }
+
+  // Phone number normalization - fallback logic
+  let finalPhone: { label: string; value: any; isHidden: boolean } | undefined;
+
+  for (const key of PHONE_KEYS) {
+    const entry = calEventResponses[key];
+    if (entry?.value != null && entry.value !== "N/A") {
+      finalPhone = {
+        label: entry.label,
+        value: entry.value,
+        isHidden: entry.isHidden ?? false,
+      };
+      break;
+    }
+  }
+
+  // Remove all phone variants
+  for (const key of PHONE_KEYS) {
+    delete calEventResponses[key];
+  }
+
+  // Insert final normalized attendeePhoneNumber
+  if (finalPhone) {
+    calEventResponses.attendeePhoneNumber = finalPhone;
+  }
+
   return { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses };
 };

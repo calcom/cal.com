@@ -57,6 +57,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduledBy") : null;
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
+
+  //  Parse instanceDate for recurring instance reschedule
+  const instanceDate =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("instanceDate") : null;
+
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const timezone = searchParams?.get("cal.tz") || null;
 
@@ -64,11 +69,13 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
+
   useInitializeBookerStore({
     ...props,
     eventId: props.entity.eventTypeId ?? event?.data?.id,
     rescheduleUid,
     rescheduledBy,
+    instanceDate, // Passing instanceDate to store
     bookingUid: bookingUid,
     layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
@@ -158,6 +165,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
   });
+
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,

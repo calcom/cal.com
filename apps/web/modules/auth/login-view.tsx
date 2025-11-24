@@ -24,11 +24,13 @@ import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetr
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
+import WebViewBlocker from "@components/webview-blocker";
 
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
@@ -41,9 +43,15 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
+  <img
+    className="google-icon-premium mr-3 h-5 w-5"
+    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
+    alt="Google"
+  />
 );
+
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -55,6 +63,7 @@ export default function Login({
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
+
   const formSchema = z
     .object({
       email: z
@@ -63,8 +72,8 @@ export default function Login({
         .regex(emailRegex, `${t("enter_valid_email")}`),
       ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
-    // Passthrough other fields like totpCode
     .passthrough();
+
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
   const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
@@ -73,8 +82,6 @@ export default function Login({
   const [lastUsed, setLastUsed] = useLastUsed();
 
   const errorMessages: { [key: string]: string } = {
-    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
-    // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
@@ -87,13 +94,11 @@ export default function Login({
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
-  // If not absolute URL, make it absolute
   if (!/^https?:\/\//.test(callbackUrl)) {
     callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
   }
 
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
-
   callbackUrl = safeCallbackUrl || "";
 
   const TwoFactorFooter = (
@@ -147,14 +152,12 @@ export default function Login({
       redirect: false,
     });
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-    // we're logged in! let's do a hard refresh to the desired url
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
     } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
     else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
-    // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
@@ -169,128 +172,245 @@ export default function Login({
     [error]
   );
 
-  return (
-    <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
-        {/* Welcome Text */}
-        <div className="mb-8 text-center">
-          <h1 className="text-emphasis text-3xl font-bold">
-            {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
-          </h1>
-          {!twoFactorRequired && <p className="text-subtle">{t("sign_in_account")}</p>}
-        </div>
+  const [inWebView, setInWebView] = useState(false);
 
-        <FormProvider {...methods}>
-          {!twoFactorRequired && (
-            <>
-              <div className="mb-4 space-y-2">
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    className="text-subtle bg-primary relative w-full justify-center rounded-md"
-                    disabled={formState.isSubmitting}
-                    data-testid="google"
-                    CustomStartIcon={<GoogleIcon />}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      setLastUsed("google");
-                      await signIn("google", {
-                        callbackUrl,
-                      });
-                    }}>
-                    <span className="sm:hidden">{t("sign_in")}</span>
-                    <span className="hidden sm:inline">{t("signin_with_google")}</span>
-                    {lastUsed === "google" && <LastUsed />}
-                  </Button>
+  useEffect(() => {
+    setInWebView(isWebView());
+  }, []);
+
+  console.log("Form state:", formState.isSubmitting, formState.errors);
+
+  return (
+    <>
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+        * {
+          font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+          font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        .google-btn-premium:hover .google-icon-premium {
+          transform: rotate(-8deg) scale(1.05);
+        }
+
+        .google-icon-premium {
+          transition: transform 0.3s ease-out;
+        }
+
+        .btn-premium-submit {
+          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-premium-submit:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 30px rgba(0, 126, 229, 0.45);
+        }
+
+        .btn-premium-submit:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 5px 20px rgba(0, 126, 229, 0.3);
+        }
+
+        .btn-premium-submit:disabled {
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+      `}</style>
+
+      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+        <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
+          <div className="min-h-[600px]">
+            {/* Left Column - Login Form */}
+            <div className="flex flex-col justify-center p-6 lg:p-12">
+              <div className="fade-in-up center mb-8">
+                <h1 className="text-default mb-2 text-center text-2xl font-bold md:text-left">
+                  {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
+                </h1>
+                {!twoFactorRequired && (
+                  <p className="text-emphasis text-center font-medium sm:text-center md:text-left">
+                    {t("sign_in_account")}
+                  </p>
                 )}
               </div>
 
-              {/* Divider */}
-              {isGoogleLoginEnabled && (
-                <div className="mb-8">
-                  <div className="relative flex items-center">
-                    <div className="flex-grow border-t border-gray-300" />
-                    <span className="text-subtle mx-4 text-sm font-medium uppercase">
-                      {t("or_continue_with_email")}
-                    </span>
-                    <div className="flex-grow border-t border-gray-300" />
+              <FormProvider {...methods}>
+                {/* Social Login Buttons - INSIDE FormProvider */}
+                {!twoFactorRequired && (
+                  <>
+                    <div className="mb-4 space-y-2">
+                      {inWebView ? (
+                        <WebViewBlocker />
+                      ) : (
+                        isGoogleLoginEnabled && (
+                          <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
+                            <Button
+                              color="secondary"
+                              disabled={formState.isSubmitting}
+                              CustomStartIcon={<GoogleIcon />}
+                              className="google-btn-premium w-full justify-center rounded-lg border border-gray-300 px-4 py-3 font-semibold shadow-sm hover:border-gray-400 hover:bg-gray-50"
+                              data-testid="google"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                setLastUsed("google");
+                                await signIn("google", {
+                                  callbackUrl,
+                                });
+                              }}>
+                              <span className="sm:hidden">{t("sign_in")}</span>
+                              <span className="hidden sm:inline">{t("signin_with_google")}</span>
+                            </Button>
+                            {lastUsed === "google" && (
+                              <span className="absolute -top-3 right-2 z-10 rounded-full border border-gray-200 bg-default px-2.5 py-1 text-xs font-semibold text-default">
+                                ⭐ Last Used
+                              </span>
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
+
+                    {/* Divider */}
+                    {isGoogleLoginEnabled && (
+                      <div className="fade-in-up my-2" style={{ animationDelay: "200ms" }}>
+                        <div className="relative flex items-center">
+                          <div className="flex-grow border-t border-gray-200" />
+                          <span className="px-4 text-sm font-medium text-gray-500">{t("or")}</span>
+                          <div className="flex-grow border-t border-gray-200" />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Login Form - Native form element */}
+                <form
+                  onSubmit={methods.handleSubmit(onSubmit)}
+                  noValidate
+                  className="fade-in-up"
+                  style={{ animationDelay: "300ms" }}>
+                  <div>
+                    <input
+                      defaultValue={csrfToken || undefined}
+                      type="hidden"
+                      hidden
+                      {...register("csrfToken")}
+                    />
                   </div>
-                </div>
-              )}
-            </>
-          )}
 
-          {/* Login Form */}
-          <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
-            <div>
-              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
+                  <div className="space-y-6">
+                    <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+                      <EmailField
+                        id="email"
+                        size="lg"
+                        noLabel={true}
+                        variant="floating"
+                        prefixIcon="mail"
+                        defaultValue={totpEmail || (searchParams?.get("email") as string)}
+                        placeholder="Email Id"
+                        required
+                        autoComplete="email"
+                        {...register("email")}
+                      />
+                      <PasswordField
+                        id="password"
+                        size="lg"
+                        variant="floating"
+                        prefixIcon="lock"
+                        autoComplete="current-password"
+                        required={!totpEmail}
+                        {...register("password")}
+                      />
+                      <div className="flex justify-end pt-1">
+                        <Link
+                          href="/auth/forgot-password"
+                          tabIndex={-1}
+                          className="dark:text-emphasis text-sm font-semibold text-[#007ee5] hover:text-[#006ac1] hover:underline">
+                          {t("forgot_password")}
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Two Factor Authentication */}
+                    {twoFactorRequired && !twoFactorLostAccess && <TwoFactor center />}
+                    {twoFactorRequired && twoFactorLostAccess && <BackupCode center />}
+
+                    {/* Error Message */}
+                    {errorMessage && <Alert severity="error" title={errorMessage} />}
+
+                    {/* Sign In Button */}
+
+                    <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
+                      <Button
+                        type="submit"
+                        disabled={formState.isSubmitting}
+                        className="w-full justify-center rounded-lg py-3 font-semibold "
+                        data-testid="submit">
+                        <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
+                      </Button>
+                      {lastUsed === "credentials" && (
+                        <span className="bg-default absolute right-2 -top-3 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-default">
+                          ⭐ Last Used
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </form>
+
+                {/* Footer */}
+                {!twoFactorRequired && process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && (
+                  <div className="fade-in-up mt-6 text-center" style={{ animationDelay: "400ms" }}>
+                    <p className="text-emphasis font-medium">
+                      {t("dont_have_an_account")}{" "}
+                      <Link
+                        href={`${WEBAPP_URL}/signup`}
+                        className="font-semibold text-[#007ee5] hover:text-[#006ac1] hover:underline">
+                        {t("sign_up")}
+                      </Link>
+                    </p>
+                  </div>
+                )}
+
+                {/* Two Factor Footer */}
+                {twoFactorRequired && (
+                  <div className="mt-6 flex flex-col space-y-3">
+                    {!totpEmail ? TwoFactorFooter : ExternalTotpFooter}
+                  </div>
+                )}
+              </FormProvider>
             </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-                <EmailField
-                  id="email"
-                  label={t("email_address")}
-                  defaultValue={totpEmail || (searchParams?.get("email") as string)}
-                  placeholder="john@example.com"
-                  required
-                  autoComplete="email"
-                  {...register("email")}
-                />
-                <PasswordField
-                  id="password"
-                  autoComplete="current-password"
-                  required={!totpEmail}
-                  {...register("password")}
-                />
-                <Link href="/auth/forgot-password" tabIndex={-1} className="text-sm">
-                  {t("forgot_password")}
-                </Link>
-              </div>
 
-              {/* Two Factor Authentication */}
-              {twoFactorRequired ? !twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center /> : null}
-
-              {/* Error Message */}
-              {errorMessage && <Alert severity="error" title={errorMessage} />}
-
-              {/* Sign In Button */}
-              <Button
-                type="submit"
-                disabled={formState.isSubmitting}
-                className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
-                data-testid="submit">
-                <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-brand" />}
-              </Button>
-            </div>
-          </form>
-
-          {/* Footer */}
-          {!twoFactorRequired && process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && (
-            <div className="mt-2 text-center">
-              <p className="text-subtle text-sm">
-                {t("dont_have_an_account")}{" "}
-                <Link
-                  href={`${WEBAPP_URL}/signup`}
-                  className="text-active dark:text-default font-medium hover:underline">
-                  {t("sign_up")}
-                </Link>
-              </p>
-            </div>
-          )}
-
-          {/* Two Factor Footer */}
-          {twoFactorRequired && (
-            <div className="flex flex-col space-y-3">{!totpEmail ? TwoFactorFooter : ExternalTotpFooter}</div>
-          )}
-        </FormProvider>
-      </div>
-      <div className="mt-8">
-        <div className="mb-8 flex justify-center">
-          <Logo small icon />
+            {/* Right Column - Image */}
+          </div>
         </div>
+
+        <div className="mt-8">
+          <div className="mb-4 flex items-center justify-center">
+            <Logo small icon />
+          </div>
+        </div>
+        <AddToHomescreen />
       </div>
-      <AddToHomescreen />
-    </div>
+    </>
   );
 }

@@ -59,7 +59,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     select: {
       uid: true,
       id: true,
-      attendees: { include: { bookingSeat: true } },
+      attendees: { include: { bookingSeat: { include: { payment: true } } } },
       userId: true,
       references: true,
       startTime: true,
