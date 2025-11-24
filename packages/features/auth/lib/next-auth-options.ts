@@ -1121,9 +1121,9 @@ export const getOptions = ({
 
         const isLoginPath = parsedUrl.pathname.includes("/auth/login");
 
-        //   Root domain or login page → redirect to /event-types
+        //   Root domain or login page → redirect to /home
         if (isSameDomain && (isRootPath || isLoginPath)) {
-          return `${baseUrl}/event-types`;
+          return `${baseUrl}/home`;
         }
 
         //  Internal relative path → prefix with baseUrl

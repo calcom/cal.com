@@ -31,6 +31,11 @@ export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
+    name: "home",
+    href: "/home",
+    icon: "house",
+  },
+  {
     name: "event_types_page_title",
     href: "/event-types",
     icon: "scroll-text",
@@ -296,7 +301,7 @@ const IntegrationRequests = () => {
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
   return (
-    <nav className="mt-8 flex-1 md:px-2 lg:px-0">
+    <nav className="mt-10 flex-1 md:px-2 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}

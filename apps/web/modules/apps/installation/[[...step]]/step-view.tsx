@@ -286,7 +286,7 @@ const OnboardingPage = ({
                 }
                 try {
                   await Promise.all(mutationPromises);
-                  router.push("/event-types");
+                  router.push("/home");
                 } catch (err) {
                   console.error(err);
                 }

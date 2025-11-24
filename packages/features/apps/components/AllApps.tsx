@@ -196,7 +196,7 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      <div className="mb-4 flex justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <AppsSearch onChange={(e) => setSearchText(e.target.value)} />
         <CategoryTab
           selectedCategory={selectedCategory}

@@ -24,6 +24,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -440,7 +441,7 @@ const AppearanceView = ({
                   const showRemoveLogoButton = value !== null;
                   return (
                     <div className="flex flex-col items-start">
-                      <Label className="font-semibold">{t("booking_page_header_background")}</Label>
+                      <Label>{t("booking_page_header_background")}</Label>
                       <span className="text-subtle mb-8 text-sm">
                         {t("booking_page_header_background_description")}
                       </span>

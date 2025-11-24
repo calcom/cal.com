@@ -102,7 +102,7 @@ const OnboardingPage = (props: PageProps) => {
   };
   const goToIndex = (index: number) => {
     if (index >= steps.length) {
-      router.push("/event-types");
+      router.push("/home");
       return;
     }
     const newStep = steps[index];
@@ -134,7 +134,7 @@ const OnboardingPage = (props: PageProps) => {
 
       await utils.viewer.me.get.refetch();
 
-      router.push("/event-types");
+      router.push("/home");
     },
     onError: () => {
       triggerToast(t("problem_saving_user_profile"), "error");
