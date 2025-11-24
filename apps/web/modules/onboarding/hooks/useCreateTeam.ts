@@ -5,11 +5,13 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { trpc } from "@calcom/trpc/react";
 
 import type { OnboardingState } from "../store/onboarding-store";
+import { useOnboardingStore } from "../store/onboarding-store";
 
 export function useCreateTeam() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
+  const { setTeamId } = useOnboardingStore();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation();
 
@@ -30,6 +32,7 @@ export function useCreateTeam() {
       const result = await createTeamMutation.mutateAsync({
         name: teamDetails.name,
         slug: teamDetails.slug,
+        bio: teamDetails.bio,
         logo: teamBrand.logo,
         isOnboarding: true,
       });
@@ -41,11 +44,9 @@ export function useCreateTeam() {
       }
 
       if (result.team) {
-        // Not sure we need this flag check - keeping it here for safe keeping as this is called only from v3 onboarding flow
-        const gettingStartedPath = flags["onboarding-v3"]
-          ? "/onboarding/personal/settings"
-          : "/getting-started";
-        router.push(gettingStartedPath);
+        // Store the teamId and redirect to invite flow after team creation
+        setTeamId(result.team.id);
+        router.push("/onboarding/teams/invite");
       }
     } catch (error) {
       console.error("Failed to create team:", error);
