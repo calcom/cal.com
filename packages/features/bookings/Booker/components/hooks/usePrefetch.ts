@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
+import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { getPrefetchMonthCount } from "../../utils/getPrefetchMonthCount";
 import { isPrefetchNextMonthEnabled } from "../../utils/isPrefetchNextMonthEnabled";
