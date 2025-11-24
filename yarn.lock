@@ -2780,7 +2780,6 @@ __metadata:
     ts-loader: ^9.4.3
     ts-node: ^10.9.1
     tsconfig-paths: ^4.1.0
-    typescript: ^5.9.0-beta
     uuid: ^8.3.2
     winston: ^3.13.0
     winston-transport: ^4.7.0
@@ -2812,7 +2811,7 @@ __metadata:
     next-swagger-doc: ^0.3.6
     next-validations: ^0.2.0
     node-mocks-http: ^1.11.0
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
     tzdata: ^1.0.30
     uuid: ^8.3.2
     zod: ^3.22.4
@@ -2834,7 +2833,6 @@ __metadata:
     meow: ^9.0.0
     react: ^18.2.0
     ts-node: ^10.9.1
-    typescript: ^5.9.0-beta
   bin:
     app-store-cli: dist/cli.js
   languageName: unknown
@@ -2903,14 +2901,14 @@ __metadata:
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
     ts-jest: ^29.1.2
-    typescript: ^5.9.0-beta
     vite: ^5.0.10
     vite-plugin-dts: ^3.7.3
     vite-plugin-inspect: ^0.8.4
     vite-plugin-node-polyfills: ^0.22.0
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
-    typescript: ^5.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+    typescript: ^5.1.0
   languageName: unknown
   linkType: soft
 
@@ -2961,7 +2959,7 @@ __metadata:
     react-dom: ^18
     react-select: ^5.8.0
     tailwindcss: ^3.3.0
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3063,7 +3061,6 @@ __metadata:
     prettier-plugin-tailwindcss: ^0.2.5
     tailwind-scrollbar: ^2.0.1
     tailwindcss: ^3.3.3
-    typescript: ^5.9.0-beta
   languageName: unknown
   linkType: soft
 
@@ -3214,7 +3211,7 @@ __metadata:
     npm-run-all: ^4.1.5
     postcss: ^8.4.18
     tailwindcss: ^3.3.3
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
     vite: ^4.1.2
     vite-plugin-environment: ^1.1.3
   languageName: unknown
@@ -3232,11 +3229,11 @@ __metadata:
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^2.2.0
     npm-run-all: ^4.1.5
-    typescript: ^5.9.0-beta
     vite: ^4.5.2
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
+    typescript: ^5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3246,8 +3243,9 @@ __metadata:
   dependencies:
     "@calcom/embed-core": "workspace:*"
     "@calcom/eslint-config": "workspace:*"
-    typescript: ^5.9.0-beta
     vite: ^4.1.2
+  peerDependencies:
+    typescript: ^5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3268,7 +3266,7 @@ __metadata:
     eslint-plugin-react-hooks: 5.2.0
     eslint-plugin-turbo: 2.5.5
     globals: 15.15.0
-    typescript: 5.9.2
+    typescript: 5.9.3
     typescript-eslint: 8.40.0
   languageName: unknown
   linkType: soft
@@ -3281,7 +3279,7 @@ __metadata:
     "@typescript-eslint/parser": ^5.52.0
     "@typescript-eslint/utils": ^5.52.0
     ts-node-maintained: ^10.9.5
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3633,10 +3631,9 @@ __metadata:
     lingo.dev: ^0.111.1
     rrule: ^2.7.1
     sharp: 0.33.5
-    sonner: ^1.7.4
     tsdav: 2.0.3
     tslog: ^4.9.2
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -3802,6 +3799,8 @@ __metadata:
 "@calcom/platform-constants@workspace:*, @calcom/platform-constants@workspace:packages/platform/constants":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
+  dependencies:
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3810,6 +3809,7 @@ __metadata:
   resolution: "@calcom/platform-enums@workspace:packages/platform/enums"
   dependencies:
     "@calcom/platform-constants": "workspace:*"
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3821,7 +3821,7 @@ __metadata:
     "@calcom/lib": "workspace:*"
     "@types/node": ^20.3.1
     "@vitejs/plugin-react": ^4.2.1
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
     vite: ^5.0.12
     vite-plugin-dts: ^3.7.2
     vite-plugin-environment: ^1.1.3
@@ -3837,6 +3837,7 @@ __metadata:
     "@types/express": ^4.17.21
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -3849,6 +3850,7 @@ __metadata:
     "@types/jest": ^29.5.10
     jest: ^29.7.0
     ts-jest: ^29.1.1
+    typescript: 5.9.3
   languageName: unknown
   linkType: soft
 
@@ -4098,8 +4100,12 @@ __metadata:
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
-    typescript: ^5.9.0-beta
     zod: ^3.22.4
+  peerDependencies:
+    next: ^15.4.5
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+    typescript: ^5.1.0
   languageName: unknown
   linkType: soft
 
@@ -4162,17 +4168,18 @@ __metadata:
     fast-glob: ^3.3.2
     fs-extra: ^11.2.0
     lucide-static: ^0.424.0
-    next-seo: ^6.0.0
     node-html-parser: ^6.1.13
-    react: ^18.2.0
     react-colorful: ^5.6.0
     react-day-picker: ^8.10.1
+    react-dom: 18.2.0
     react-hook-form: ^7.43.3
     react-inlinesvg: ^4.1.3
     react-select: ^5.7.0
     tailwind-merge: ^1.13.2
-    typescript: ^5.9.0-beta
     uuid: ^11.1.0
+  peerDependencies:
+    react: ^18.2.0
+    typescript: ^5.1.0
   languageName: unknown
   linkType: soft
 
@@ -4384,7 +4391,7 @@ __metadata:
     ts-node: ^10.9.1
     turbo: ^2.5.5
     turndown: ^7.1.3
-    typescript: ^5.9.0-beta
+    typescript: 5.9.3
     uuid: ^8.3.2
     zod: ^3.22.4
   languageName: unknown
@@ -21287,7 +21294,6 @@ __metadata:
     resize-observer-polyfill: ^1.5.1
     tsc-absolute: ^1.0.0
     turbo: ^2.5.5
-    typescript: 5.9.0-beta
     vitest: ^2.1.9
     vitest-fetch-mock: ^0.3.0
     vitest-mock-extended: ^2.0.2
@@ -39208,7 +39214,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18, react-dom@npm:^18.2.0":
+"react-dom@npm:18.2.0, react-dom@npm:^18, react-dom@npm:^18.2.0":
   version: 18.2.0
   resolution: "react-dom@npm:18.2.0"
   dependencies:
@@ -45192,23 +45198,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.9.0-beta":
-  version: 5.9.0-beta
-  resolution: "typescript@npm:5.9.0-beta"
+"typescript@npm:5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 42564de845d58e611b774b6222eec4aa75eaf88c79dde2b6e4d2366e2e9da344af0cdb1cc5a8fc2300dc8f33a794fafd1f7aa3ffea63caefe61f2745cb471ab8
-  languageName: node
-  linkType: hard
-
-"typescript@npm:5.9.2, typescript@npm:^5.9.0-beta, typescript@npm:^5.9.2":
-  version: 5.9.2
-  resolution: "typescript@npm:5.9.2"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: f619cf6773cfe31409279711afd68cdf0859780006c50bc2a7a0c3227f85dea89a3b97248846326f3a17dad72ea90ec27cf61a8387772c680b2252fd02d8497b
+  checksum: 0d0ffb84f2cd072c3e164c79a2e5a1a1f4f168e84cb2882ff8967b92afe1def6c2a91f6838fb58b168428f9458c57a2ba06a6737711fdd87a256bbe83e9a217f
   languageName: node
   linkType: hard
 
@@ -45222,6 +45218,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^5.9.2":
+  version: 5.9.2
+  resolution: "typescript@npm:5.9.2"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: f619cf6773cfe31409279711afd68cdf0859780006c50bc2a7a0c3227f85dea89a3b97248846326f3a17dad72ea90ec27cf61a8387772c680b2252fd02d8497b
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@5.3.3#~builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=1f5320"
@@ -45232,23 +45238,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@5.9.0-beta#~builtin<compat/typescript>":
-  version: 5.9.0-beta
-  resolution: "typescript@patch:typescript@npm%3A5.9.0-beta#~builtin<compat/typescript>::version=5.9.0-beta&hash=1f5320"
+"typescript@patch:typescript@5.9.3#~builtin<compat/typescript>":
+  version: 5.9.3
+  resolution: "typescript@patch:typescript@npm%3A5.9.3#~builtin<compat/typescript>::version=5.9.3&hash=1f5320"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 4a3a8b55e8b64f01ae92bab8b93771817e716e4956a07fe16d8ce33a0078da11e2ab5402f4ea8db6820dc4dbe13ca5affabfa57da9f7176e753f6e9f80ed79db
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@5.9.2#~builtin<compat/typescript>, typescript@patch:typescript@^5.9.0-beta#~builtin<compat/typescript>, typescript@patch:typescript@^5.9.2#~builtin<compat/typescript>":
-  version: 5.9.2
-  resolution: "typescript@patch:typescript@npm%3A5.9.2#~builtin<compat/typescript>::version=5.9.2&hash=1f5320"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: e42a701947325500008334622321a6ad073f842f5e7d5e7b588a6346b31fdf51d56082b9ce5cef24312ecd3e48d6c0d4d44da7555f65e2feec18cf62ec540385
+  checksum: 8bb8d86819ac86a498eada254cad7fb69c5f74778506c700c2a712daeaff21d3a6f51fd0d534fe16903cb010d1b74f89437a3d02d4d0ff5ca2ba9a4660de8497
   languageName: node
   linkType: hard
 
@@ -45259,6 +45255,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^5.9.2#~builtin<compat/typescript>":
+  version: 5.9.2
+  resolution: "typescript@patch:typescript@npm%3A5.9.2#~builtin<compat/typescript>::version=5.9.2&hash=1f5320"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: e42a701947325500008334622321a6ad073f842f5e7d5e7b588a6346b31fdf51d56082b9ce5cef24312ecd3e48d6c0d4d44da7555f65e2feec18cf62ec540385
   languageName: node
   linkType: hard
 

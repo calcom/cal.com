@@ -17,12 +17,6 @@ vi.mock("framer-motion", () => ({
   useAnimate: () => [null, vi.fn()],
 }));
 
-// Add new mocks
-vi.mock("next-seo", () => ({
-  NextSeo: () => null,
-  LogoJsonLd: () => null,
-}));
-
 vi.mock("@calcom/features/ee/organizations/hooks", () => ({
   useOrgBrandingValues() {
     return {};

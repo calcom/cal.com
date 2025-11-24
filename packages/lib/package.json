@@ -25,7 +25,6 @@
     "lingo.dev": "^0.111.1",
     "rrule": "^2.7.1",
     "sharp": "0.33.5",
-    "sonner": "^1.7.4",
     "tsdav": "2.0.3",
     "tslog": "^4.9.2",
     "uuid": "^8.3.2"
@@ -35,6 +34,6 @@
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
     "@faker-js/faker": "^7.3.0",
-    "typescript": "^5.9.0-beta"
+    "typescript": "5.9.3"
   }
 }

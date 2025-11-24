@@ -23,5 +23,8 @@
   },
   "dependencies": {
     "@calcom/platform-constants": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
   }
 }

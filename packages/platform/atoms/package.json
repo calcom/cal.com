@@ -33,7 +33,6 @@
     "postcss-prefixwrap": "1.46.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.9.0-beta",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-inspect": "^0.8.4",
@@ -88,6 +87,7 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "typescript": "^5.0.0"
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "typescript": "^5.1.0"
   }
 }
