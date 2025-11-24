@@ -2673,7 +2673,7 @@ enum AuditActorType {
 }
 
 model AuditActor {
-  id   String         @id @default(uuid())
+  id   String         @id @default(uuid(7)) @db.Uuid
   type AuditActorType
 
   // References for different actor types (soft references, no FK constraints)
@@ -2714,7 +2714,7 @@ model BookingAudit {
 
   // Actor who performed the action (USER, GUEST, or SYSTEM)
   // Stored in AuditActor table to maintain audit trail even after user deletion
-  actorId String
+  actorId String     @db.Uuid
   // Restrict onDelete to prevent deletion of audit actor if there are any booking audits associated with it
   actor   AuditActor @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
