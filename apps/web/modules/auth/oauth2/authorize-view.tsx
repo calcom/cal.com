@@ -146,7 +146,7 @@ export default function Authorize() {
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
-          <div className="ml-1 ">
+          <div className="ml-1">
             <div className="mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
@@ -172,7 +172,7 @@ export default function Authorize() {
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
                 codeChallenge: code_challenge || undefined,
-                codeChallengeMethod: (code_challenge_method as "S256" | "plain") || undefined,
+                codeChallengeMethod: (code_challenge_method as "S256") || undefined,
               });
             }}
             data-testid="allow-button">
