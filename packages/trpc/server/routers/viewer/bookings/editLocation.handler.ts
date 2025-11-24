@@ -7,6 +7,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
@@ -125,15 +126,26 @@ async function updateBookingLocationInDb({
 async function getAllCredentialsIncludeServiceAccountKey({
   user,
   conferenceCredentialId,
+  bookingOwnerId,
 }: {
   user: { id: number; email: string };
   conferenceCredentialId: number | null;
+  bookingOwnerId: number | null;
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
   let conferenceCredential;
 
   if (conferenceCredentialId) {
+    // Validate that the credential is accessible before fetching it
+    const credentialAccessService = new CredentialAccessService();
+    await credentialAccessService.ensureAccessible({
+      credentialId: conferenceCredentialId,
+      loggedInUserId: user.id,
+      bookingOwnerId,
+    });
+
+    // Now fetch the credential with the key
     conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
       id: conferenceCredentialId,
     });
@@ -266,7 +278,11 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   const eventManager = new EventManager({
     ...ctx.user,
-    credentials: await getAllCredentialsIncludeServiceAccountKey({ user: ctx.user, conferenceCredentialId }),
+    credentials: await getAllCredentialsIncludeServiceAccountKey({
+      user: ctx.user,
+      conferenceCredentialId,
+      bookingOwnerId: booking.userId,
+    }),
   });
 
   const updatedResult = await updateLocationInConnectedAppForBooking({

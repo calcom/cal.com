@@ -1,7 +1,6 @@
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
-import { moduleLoader as cacheModuleLoader } from "@calcom/features/di/modules/Cache";
 import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calcom/features/di/modules/CheckBookingAndDurationLimits";
 import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/di/modules/LuckyUser";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
@@ -20,7 +19,6 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
     prismaClient: prismaModuleLoader,
-    cacheService: cacheModuleLoader,
     checkBookingAndDurationLimitsService: checkBookingAndDurationLimitsModuleLoader,
     bookingRepository: bookingRepositoryModuleLoader,
     luckyUserService: luckyUserServiceModuleLoader,

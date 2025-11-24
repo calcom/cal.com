@@ -23,10 +23,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return redirect;
   }
 
-  const bookingObj = Object.assign({}, booking, {
-    startTime: booking.startTime.toString(),
-    endTime: booking.endTime.toString(),
-  });
+  // Booking Object DTO, we should not expose any sensitive data through getServerSideProps + server components
+  const bookingObj = Object.assign(
+    {},
+    {
+      title: booking.title,
+      startTime: booking.startTime.toString(),
+      endTime: booking.endTime.toString(),
+    }
+  );
 
   return {
     props: {
