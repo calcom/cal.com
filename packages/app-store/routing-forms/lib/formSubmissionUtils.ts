@@ -227,15 +227,13 @@ export async function _onFormSubmission(
           : null;
 
       const creditService = new CreditService();
-      const creditCheckFn: CreditCheckFn = ({ userId, teamId }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
-        creditCheckFn,
+        creditCheckFn: creditService.hasAvailableCredits,
         form: {
           ...form,
           fields: form.fields.map((field) => ({

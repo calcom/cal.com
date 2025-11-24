@@ -392,8 +392,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
       const creditService = new CreditService();
-      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
@@ -408,7 +406,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         },
         hideBranding: !!booking.eventType?.owner?.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
-        creditCheckFn,
+        creditCheckFn: creditService.hasAvailableCredits,
       });
     } catch (error) {
       // Silently fail

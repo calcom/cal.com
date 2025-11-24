@@ -1,4 +1,3 @@
- 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -110,8 +109,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
     try {
       const creditService = new CreditService();
-      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows: workflows,
@@ -135,7 +132,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isConfirmedByDefault: !evt.requiresConfirmation,
         isRescheduleEvent: !!rescheduleUid,
         isNormalBookingOrFirstRecurringSlot: true,
-        creditCheckFn,
+        creditCheckFn: creditService.hasAvailableCredits,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

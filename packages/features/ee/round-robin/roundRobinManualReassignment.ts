@@ -604,8 +604,6 @@ export async function handleWorkflowsUpdate({
   });
 
   const creditService = new CreditService();
-  const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-    creditService.hasAvailableCredits({ userId, teamId });
 
   await scheduleWorkflowReminders({
     workflows: newEventWorkflows,
@@ -617,7 +615,7 @@ export async function handleWorkflowsUpdate({
       bookerUrl,
     },
     hideBranding: !!eventType?.owner?.hideBranding,
-    creditCheckFn,
+    creditCheckFn: creditService.hasAvailableCredits,
   });
 }
 

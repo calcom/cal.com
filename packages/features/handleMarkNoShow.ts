@@ -297,8 +297,6 @@ const handleMarkNoShow = async ({
             };
 
             const creditService = new CreditService();
-            const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-              creditService.hasAvailableCredits({ userId, teamId });
 
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
@@ -306,7 +304,7 @@ const handleMarkNoShow = async ({
               hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
-              creditCheckFn,
+              creditCheckFn: creditService.hasAvailableCredits,
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);

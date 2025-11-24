@@ -362,8 +362,6 @@ export async function handleConfirmation(args: {
       }
 
       const creditService = new CreditService();
-      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows,
@@ -373,7 +371,7 @@ export async function handleConfirmation(args: {
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
-        creditCheckFn,
+        creditCheckFn: creditService.hasAvailableCredits,
       });
     }
   } catch (error) {
@@ -578,8 +576,6 @@ export async function handleConfirmation(args: {
         };
 
         const creditService = new CreditService();
-        const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-          creditService.hasAvailableCredits({ userId, teamId });
 
         await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
           workflows,
@@ -587,7 +583,7 @@ export async function handleConfirmation(args: {
           calendarEvent: calendarEventForWorkflow,
           hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
-          creditCheckFn,
+          creditCheckFn: creditService.hasAvailableCredits,
         });
       } catch (error) {
         log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));

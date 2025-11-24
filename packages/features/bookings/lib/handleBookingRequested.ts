@@ -105,8 +105,6 @@ export async function handleBookingRequested(args: {
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
     if (workflows.length > 0) {
       const creditService = new CreditService();
-      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
@@ -122,7 +120,7 @@ export async function handleBookingRequested(args: {
           },
         },
         triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
-        creditCheckFn,
+        creditCheckFn: creditService.hasAvailableCredits,
       });
     }
   } catch (error) {
