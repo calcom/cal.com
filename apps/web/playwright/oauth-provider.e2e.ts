@@ -122,7 +122,7 @@ test.describe("OAuth Provider", () => {
     expect(validTokenData.username.startsWith("test user")).toBe(true);
   });
 
-  test("should create valid access token & refresh token for team", async ({ page, users }) => {
+  test.only("should create valid access token & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
@@ -132,7 +132,7 @@ test.describe("OAuth Provider", () => {
 
     await page.locator("#account-select").click();
 
-    await page.locator("#react-select-2-option-1").click();
+    await page.locator("#react-select-3-option-1").click();
 
     await page.getByTestId("allow-button").click();
 
@@ -439,6 +439,9 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     expect(tokenResponse.status).toBe(200);
     expect(tokenData.access_token).toBeDefined();
     expect(tokenData.refresh_token).toBeDefined();
+
+    // Small delay to ensure new token has different iat timestamp
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Now test refresh token with PKCE
     const refreshTokenForm = new URLSearchParams();
