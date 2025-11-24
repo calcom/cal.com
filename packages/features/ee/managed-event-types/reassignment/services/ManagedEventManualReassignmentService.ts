@@ -1,4 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import {
   sendReassignedEmailsAndSMS,
@@ -8,7 +10,13 @@ import {
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import {
+  BookingRepository,
+  type ManagedEventReassignmentCreatedBooking,
+  type ManagedEventCancellationResult,
+} from "@calcom/features/bookings/repositories/BookingRepository";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -16,6 +24,8 @@ import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/book
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
+import { APP_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -28,13 +38,11 @@ import {
   ManagedEventReassignmentType,
 } from "@calcom/features/ee/managed-event-types/reassignment/lib/ManagedEventAssignmentReasonRecorder";
 import {
-  buildNewBookingData,
-  buildCancellationData,
-} from "@calcom/features/ee/managed-event-types/reassignment/lib/buildReassignmentBookingData";
-import {
   findTargetChildEventType,
   validateManagedEventReassignment,
 } from "@calcom/features/ee/managed-event-types/reassignment/utils";
+
+const translator = short();
 
 interface ManagedEventManualReassignmentServiceDeps {
   prisma: PrismaClient;
@@ -53,39 +61,6 @@ export interface ManagedEventManualReassignmentParams {
   emailsEnabled?: boolean;
   isAutoReassignment?: boolean;
 }
-
-const REASSIGNMENT_NEW_BOOKING_SELECT = {
-  id: true,
-  uid: true,
-  title: true,
-  description: true,
-  startTime: true,
-  endTime: true,
-  location: true,
-  metadata: true,
-  responses: true,
-  iCalUID: true,
-  iCalSequence: true,
-  smsReminderNumber: true,
-  attendees: {
-    select: {
-      name: true,
-      email: true,
-      timeZone: true,
-      locale: true,
-    },
-    orderBy: {
-      id: "asc",
-    },
-  },
-};
-
-const CANCELLATION_SELECT = {
-  id: true,
-  uid: true,
-  metadata: true,
-  status: true,
-};
 
 export class ManagedEventManualReassignmentService {
   private readonly prisma: PrismaClient;
@@ -169,42 +144,98 @@ export class ManagedEventManualReassignmentService {
       throw new Error("Original booking not found");
     }
 
-    const newBookingData = await buildNewBookingData({
-      originalBooking: originalBookingFull,
-      targetEventType: {
-        id: targetEventTypeDetails.id,
-        title: targetEventTypeDetails.title,
-        eventName: targetEventTypeDetails.eventName,
-        team: targetEventTypeDetails.team,
-      },
-      newUser,
-      reassignedById,
+    const { getTranslation } = await import("@calcom/lib/server/i18n");
+    const newUserT = await getTranslation(newUser.locale ?? "en", "common");
+    const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
+
+    const bookingFields =
+      typeof originalBookingFull.responses === "object" &&
+      originalBookingFull.responses !== null &&
+      !Array.isArray(originalBookingFull.responses)
+        ? (originalBookingFull.responses)
+        : null;
+
+    const newBookingTitle = getEventName({
+      attendeeName: originalBookingFull.attendees[0]?.name || "Nameless",
+      eventType: targetEventTypeDetails.title,
+      eventName: targetEventTypeDetails.eventName,
+      teamName: targetEventTypeDetails.team?.name,
+      host: newUser.name || "Nameless",
+      location: originalBookingFull.location || "",
+      bookingFields,
+      eventDuration: dayjs(originalBookingFull.endTime).diff(originalBookingFull.startTime, "minutes"),
+      t: newUserT,
     });
 
-    const cancellationData = buildCancellationData({
-      originalBooking: originalBookingFull,
-      newUser,
-    });
+    const uidSeed = `${newUser.username || "user"}:${dayjs(originalBookingFull.startTime).utc().format()}:${Date.now()}:reassignment`;
+    const generatedUid = translator.fromUUID(uuidv5(uidSeed, uuidv5.URL));
+
+    const newBookingPlan = {
+      uid: generatedUid,
+      userId: newUser.id,
+      userPrimaryEmail: newUser.email,
+      title: newBookingTitle,
+      description: originalBookingFull.description,
+      startTime: originalBookingFull.startTime,
+      endTime: originalBookingFull.endTime,
+      status: originalBookingFull.status,
+      location: originalBookingFull.location,
+      smsReminderNumber: originalBookingFull.smsReminderNumber,
+      responses: originalBookingFull.responses === null ? undefined : originalBookingFull.responses,
+      customInputs:
+        typeof originalBookingFull.customInputs === "object" &&
+        originalBookingFull.customInputs !== null &&
+        !Array.isArray(originalBookingFull.customInputs)
+          ? (originalBookingFull.customInputs as Record<string, unknown>)
+          : undefined,
+      metadata:
+        typeof originalBookingFull.metadata === "object" && originalBookingFull.metadata !== null
+          ? (originalBookingFull.metadata as Record<string, unknown>)
+          : undefined,
+      idempotencyKey: IdempotencyKeyService.generate({
+        startTime: originalBookingFull.startTime,
+        endTime: originalBookingFull.endTime,
+        userId: newUser.id,
+        reassignedById,
+      }),
+      eventTypeId: targetEventTypeDetails.id,
+      attendees: originalBookingFull.attendees.map((attendee) => ({
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        locale: attendee.locale,
+        phoneNumber: attendee.phoneNumber ?? null,
+      })),
+      paymentId:
+        originalBookingFull.payment.length > 0 && originalBookingFull.payment[0]?.id
+          ? originalBookingFull.payment[0]!.id
+          : undefined,
+      iCalUID: `${generatedUid}@${APP_NAME}`,
+      iCalSequence: 0,
+    };
+
 
     const reassignmentResult = await this.prisma.$transaction(async (tx) => {
-      const cancelledBooking = await this.bookingRepository.cancelBooking(
-        cancellationData.where,
-        cancellationData.data,
-        CANCELLATION_SELECT,
-        tx
-      );
+      const cancelledBooking = await this.bookingRepository.cancelBookingForManagedEventReassignment({
+        bookingId: originalBookingFull.id,
+        cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
+        metadata:
+          typeof originalBookingFull.metadata === "object" && originalBookingFull.metadata !== null
+            ? (originalBookingFull.metadata as Record<string, unknown>)
+            : undefined,
+        tx,
+      });
 
-      const newBooking = await this.bookingRepository.createBooking(
-        newBookingData,
-        REASSIGNMENT_NEW_BOOKING_SELECT,
-        tx
-      );
+      const newBooking = await this.bookingRepository.createBookingForManagedEventReassignment({
+        ...newBookingPlan,
+        tx,
+      });
 
       return { newBooking, cancelledBooking };
     });
 
-    const newBooking = reassignmentResult.newBooking;
-    const cancelledBooking: CancelledBookingResult = reassignmentResult.cancelledBooking;
+    const newBooking: ManagedEventReassignmentCreatedBooking = reassignmentResult.newBooking;
+    const cancelledBooking: ManagedEventCancellationResult = reassignmentResult.cancelledBooking;
 
     reassignLogger.info("Booking duplication completed", {
       originalBookingId: cancelledBooking.id,
@@ -212,10 +243,6 @@ export class ManagedEventManualReassignmentService {
     });
 
     const apps = eventTypeAppMetadataOptionalSchema.parse(targetEventTypeDetails?.metadata?.apps);
-
-    const { getTranslation } = await import("@calcom/lib/server/i18n");
-    const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
-    const newUserT = await getTranslation(newUser.locale ?? "en", "common");
 
     if (originalUser) {
       const originalUserCredentials = await getAllCredentialsIncludeServiceAccountKey(

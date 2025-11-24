@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
-import type { AssignmentReason, AssignmentReasonEnum, PrismaClient } from "@calcom/prisma/client";
+import type { AssignmentReason, AssignmentReasonEnum } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["AssignmentReasonRepository"] });
 
@@ -32,10 +33,16 @@ export class AssignmentReasonRepository {
    * @param bookingId - The booking ID
    * @returns Array of assignment reasons
    */
-  async findByBookingId(bookingId: number): Promise<AssignmentReason[]> {
+  async findByBookingId(bookingId: number): Promise<Omit<AssignmentReason, "id">[]> {
     return this.prismaClient.assignmentReason.findMany({
       where: { bookingId },
       orderBy: { createdAt: "desc" },
+      select: {
+        createdAt: true,
+        bookingId: true,
+        reasonEnum: true,
+        reasonString: true,
+      },
     });
   }
 
@@ -44,10 +51,16 @@ export class AssignmentReasonRepository {
    * @param bookingId - The booking ID
    * @returns The most recent assignment reason or null
    */
-  async findLatestByBookingId(bookingId: number): Promise<AssignmentReason | null> {
+  async findLatestByBookingId(bookingId: number): Promise<Omit<AssignmentReason, "id"> | null> {
     return this.prismaClient.assignmentReason.findFirst({
       where: { bookingId },
       orderBy: { createdAt: "desc" },
+      select: {
+        createdAt: true,
+        bookingId: true,
+        reasonEnum: true,
+        reasonString: true,
+      },
     });
   }
 }

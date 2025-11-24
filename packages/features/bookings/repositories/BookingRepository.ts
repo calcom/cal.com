@@ -6,6 +6,63 @@ import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
 import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+type ManagedEventReassignmentCreateParams = {
+  uid: string;
+  userId: number;
+  userPrimaryEmail: string;
+  title: string;
+  description: string | null;
+  startTime: Date;
+  endTime: Date;
+  status: BookingStatus;
+  location: string | null;
+  smsReminderNumber: string | null;
+  responses?: Prisma.JsonValue | null;
+  customInputs?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  idempotencyKey: string;
+  eventTypeId: number;
+  attendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+    phoneNumber?: string | null;
+  }[];
+  paymentId?: number;
+  iCalUID: string;
+  iCalSequence: number;
+  tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+};
+
+export type ManagedEventReassignmentCreatedBooking = {
+  id: number;
+  uid: string;
+  title: string;
+  description: string | null;
+  startTime: Date;
+  endTime: Date;
+  location: string | null;
+  metadata: Prisma.JsonValue;
+  responses: Prisma.JsonValue;
+  iCalUID: string | null;
+  iCalSequence: number;
+  smsReminderNumber: string | null;
+  attendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+  }[];
+};
+
+export type ManagedEventCancellationResult = {
+  id: number;
+  uid: string;
+  metadata: Prisma.JsonValue;
+  status: BookingStatus;
+};
+
 export type FormResponse = Record<
   // Field ID
   string,
@@ -1492,53 +1549,131 @@ export class BookingRepository {
     });
   }
 
-  /**
-   * Updates a booking with provided data. Pure persistence operation.
-   * Accepts an optional transaction client for use in service-level transactions.
-   */
-  async updateBooking<T extends Prisma.BookingSelect>(
-    where: Prisma.BookingWhereUniqueInput,
-    data: Prisma.BookingUpdateInput,
-    select: T,
-    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
-  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
-    const client = tx ?? this.prismaClient;
-    return client.booking.update({ where, data, select });
-  }
 
   /**
-   * Cancels a booking by setting status to CANCELLED and merging optional additional data.
-   * The status field cannot be overridden - it will always be set to CANCELLED.
-   * Accepts an optional transaction client for use in service-level transactions.
+   * Cancels a booking as part of the Managed Event reassignment flow.
+   * Callers only pass domain data; repository handles persistence details.
    */
-  async cancelBooking<T extends Prisma.BookingSelect>(
-    where: Prisma.BookingWhereUniqueInput,
-    additionalData: Omit<Prisma.BookingUpdateInput, "status">,
-    select: T,
-    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
-  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+  async cancelBookingForManagedEventReassignment({
+    bookingId,
+    cancellationReason,
+    metadata,
+    tx,
+  }: {
+    bookingId: number;
+    cancellationReason: string;
+    metadata?: Record<string, unknown> | null;
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+  }): Promise<ManagedEventCancellationResult> {
     const client = tx ?? this.prismaClient;
     return client.booking.update({
-      where,
+      where: { id: bookingId },
       data: {
-        ...additionalData,
+        cancellationReason,
+        metadata: metadata as unknown as Prisma.InputJsonValue,
         status: BookingStatus.CANCELLED,
       },
-      select,
+      select: {
+        id: true,
+        uid: true,
+        metadata: true,
+        status: true,
+      },
     });
   }
 
   /**
-   * Creates a booking with provided data. Pure persistence operation.
-   * Accepts an optional transaction client for use in service-level transactions.
+   * Creates a booking specifically for Managed Event reassignment flows.
+   * Encapsulates the select shape so callers don't deal with Prisma selections.
    */
-  async createBooking<T extends Prisma.BookingSelect>(
-    data: Prisma.BookingCreateInput,
-    select: T,
-    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
-  ): Promise<Prisma.BookingGetPayload<{ select: T }>> {
+  async createBookingForManagedEventReassignment(
+    params: ManagedEventReassignmentCreateParams
+  ): Promise<ManagedEventReassignmentCreatedBooking> {
+    const {
+      uid,
+      userId,
+      userPrimaryEmail,
+      title,
+      description,
+      startTime,
+      endTime,
+      status,
+      location,
+      smsReminderNumber,
+      responses,
+      customInputs,
+      metadata,
+      idempotencyKey,
+      eventTypeId,
+      attendees,
+      paymentId,
+      iCalUID,
+      iCalSequence,
+      tx,
+    } = params;
     const client = tx ?? this.prismaClient;
-    return client.booking.create({ data, select });
+    return client.booking.create({
+      data: {
+        uid,
+        userPrimaryEmail,
+        title,
+        description,
+        startTime,
+        endTime,
+        status,
+        location,
+        smsReminderNumber,
+        responses: responses ?? undefined,
+        customInputs: customInputs ?? undefined,
+        metadata: metadata ?? undefined,
+        idempotencyKey,
+        iCalUID,
+        iCalSequence,
+        eventType: {
+          connect: { id: eventTypeId },
+        },
+        user: {
+          connect: { id: userId },
+        },
+        attendees: {
+          createMany: {
+            data: attendees.map((attendee) => ({
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              locale: attendee.locale,
+              phoneNumber: attendee.phoneNumber ?? null,
+            })),
+          },
+        },
+        payment: paymentId ? { connect: { id: paymentId } } : undefined,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        metadata: true,
+        responses: true,
+        iCalUID: true,
+        iCalSequence: true,
+        smsReminderNumber: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+          orderBy: {
+            id: "asc" as const,
+          },
+        },
+      },
+    });
   }
 
   async findByIdForTargetEventTypeSearch(bookingId: number) {
