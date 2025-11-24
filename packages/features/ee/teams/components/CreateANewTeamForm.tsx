@@ -152,7 +152,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                 value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true).replace(/\./g, ""), {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");
