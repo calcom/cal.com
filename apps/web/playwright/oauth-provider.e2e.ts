@@ -42,7 +42,6 @@ function generatePKCE() {
 test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
     client = await createTestCLient();
-    publicClient = await createTestPublicClient();
   });
   test("should create valid access token & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
@@ -230,6 +229,9 @@ test.describe("OAuth Provider", () => {
 });
 
 test.describe("OAuth Provider - PKCE (Public Clients)", () => {
+  test.beforeAll(async () => {
+    publicClient = await createTestPublicClient();
+  });
   test("should create valid access token for PUBLIC client with valid PKCE", async ({ page, users }) => {
     const user = await users.create({ username: "test user pkce", name: "test user pkce" });
     await user.apiLogin();
@@ -476,7 +478,10 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
   });
 
   test("should reject PUBLIC client refresh token without code_verifier", async ({ page, users }) => {
-    const user = await users.create({ username: "test user refresh no pkce", name: "test user refresh no pkce" });
+    const user = await users.create({
+      username: "test user refresh no pkce",
+      name: "test user refresh no pkce",
+    });
     await user.apiLogin();
 
     // Generate PKCE values
@@ -535,7 +540,10 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
   });
 
   test("should reject PUBLIC client refresh token with invalid code_verifier", async ({ page, users }) => {
-    const user = await users.create({ username: "test user refresh wrong pkce", name: "test user refresh wrong pkce" });
+    const user = await users.create({
+      username: "test user refresh wrong pkce",
+      name: "test user refresh wrong pkce",
+    });
     await user.apiLogin();
 
     // Generate PKCE values
@@ -677,8 +685,14 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     expect(refreshTokenData.refresh_token).toBeDefined();
   });
 
-  test("should reject CONFIDENTIAL client refresh without code_verifier when PKCE was used", async ({ page, users }) => {
-    const user = await users.create({ username: "test user conf no verifier", name: "test user conf no verifier" });
+  test("should reject CONFIDENTIAL client refresh without code_verifier when PKCE was used", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({
+      username: "test user conf no verifier",
+      name: "test user conf no verifier",
+    });
     await user.apiLogin();
 
     // Generate PKCE values for initial authorization
@@ -736,10 +750,15 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     const refreshTokenData = await refreshTokenResponse.json();
 
     expect(refreshTokenResponse.status).toBe(400);
-    expect(refreshTokenData.message).toBe("code_verifier required when PKCE was used in original authorization");
+    expect(refreshTokenData.message).toBe(
+      "code_verifier required when PKCE was used in original authorization"
+    );
   });
 
-  test("should allow CONFIDENTIAL client refresh with only client_secret when PKCE was NOT used", async ({ page, users }) => {
+  test("should allow CONFIDENTIAL client refresh with only client_secret when PKCE was NOT used", async ({
+    page,
+    users,
+  }) => {
     const user = await users.create({ username: "test user conf no pkce", name: "test user conf no pkce" });
     await user.apiLogin();
 
