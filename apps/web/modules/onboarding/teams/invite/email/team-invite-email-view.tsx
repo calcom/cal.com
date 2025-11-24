@@ -87,6 +87,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
     const invitesWithTeam = data.invites.map((invite) => ({
       email: invite.email,
       role: invite.role,
+      team: teamDetails.name,
     }));
 
     setTeamInvites(invitesWithTeam);
