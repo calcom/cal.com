@@ -237,7 +237,7 @@ export function calculateEventLayouts(
       });
     } else {
       if (groupSize === 1) {
-        const width = floor3(Math.min(widths[0], Rmax));
+        const width = 100;
         layouts.push({
           event: group[0],
           leftOffsetPercent: 0,
