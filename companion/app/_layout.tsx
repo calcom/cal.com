@@ -11,8 +11,14 @@ export default function RootLayout() {
 
   return Platform.OS === "web" ? (
     <View
-      style={{ width: 400, flex: 1, display: "flex", flexDirection: "column" }}
-      className="w-[400px] bg-white self-end flex-1 flex-col border-l border-gray-200"
+      style={{
+        width: 400,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        pointerEvents: "auto",
+      }}
+      className="w-[400px] flex-1 flex-col self-end border-l border-gray-200 bg-white"
     >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {stackContent}

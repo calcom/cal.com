@@ -40,12 +40,12 @@ export default defineContentScript({
     // Create iframe
     const iframe = document.createElement("iframe");
     iframe.src = "http://localhost:8081";
-    iframe.style.width = "100%";
+    iframe.style.width = "400px";
     iframe.style.height = "100%";
     iframe.style.border = "none";
     iframe.style.borderRadius = "0";
     iframe.style.backgroundColor = "transparent";
-    iframe.style.pointerEvents = "none";
+    iframe.style.pointerEvents = "auto";
 
     iframeContainer.appendChild(iframe);
 
