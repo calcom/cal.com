@@ -68,6 +68,7 @@ export const VerifyCodeDialog = ({
     value,
     email,
     verifyCodeWithSessionNotRequired,
+    setVerificationCode,
   ]);
 
   useEffect(() => {
@@ -77,7 +78,8 @@ export const VerifyCodeDialog = ({
     if (hasVerified || error || isPending || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [error, isPending, value, verifyCode, hasVerified]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, isPending, value, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
 

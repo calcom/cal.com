@@ -334,6 +334,17 @@ const WebhookForm = (props: {
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
 
+  const canSubmit = isCreating
+    ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
+    : formMethods.formState.isDirty || changeSecret;
+
+  useEffect(() => {
+    if (isCreating && needsTime && !time && !timeUnit) {
+      formMethods.setValue("time", 5, { shouldDirty: true });
+      formMethods.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
+    }
+  }, [isCreating, needsTime, time, timeUnit, formMethods]);
+
   useEffect(() => {
     if (changeSecret) {
       formMethods.unregister("secret", { keepDefaultValue: false });

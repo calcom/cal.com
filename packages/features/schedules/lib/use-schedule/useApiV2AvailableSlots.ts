@@ -26,7 +26,6 @@ export const useApiV2AvailableSlots = ({
       rest.usernameList,
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
-      rest._shouldServeCache,
       rest.teamMemberEmail,
       rest.embedConnectVersion ?? false,
     ],
