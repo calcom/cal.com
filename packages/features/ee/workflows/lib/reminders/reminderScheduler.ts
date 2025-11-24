@@ -74,6 +74,38 @@ export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   isDryRun?: boolean;
 };
 
+const getReminderPhoneNumber = async (
+  action: WorkflowActions,
+  seatReferenceUid: string | undefined,
+  smsReminderNumber: string | null,
+  stepSendTo: string | null
+) => {
+  const isAttendeeAction =
+    action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE;
+
+  if (!isAttendeeAction) {
+    return stepSendTo;
+  }
+
+  if (seatReferenceUid) {
+    const seatAttendeeData = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+      select: {
+        attendee: {
+          select: {
+            phoneNumber: true,
+          },
+        },
+      },
+    });
+    return seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
+  }
+
+  return smsReminderNumber;
+};
+
 const processWorkflowStep = async (
   workflow: Workflow,
   step: WorkflowStep,
@@ -117,29 +149,12 @@ const processWorkflowStep = async (
   };
 
   if (isSMSAction(step.action)) {
-    let sendTo: string | null = null;
-
-    if (step.action === WorkflowActions.SMS_ATTENDEE) {
-      if (seatReferenceUid) {
-        const seatAttendeeData = await prisma.bookingSeat.findUnique({
-          where: {
-            referenceUid: seatReferenceUid,
-          },
-          select: {
-            attendee: {
-              select: {
-                phoneNumber: true,
-              },
-            },
-          },
-        });
-        sendTo = seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
-      } else {
-        sendTo = smsReminderNumber;
-      }
-    } else {
-      sendTo = step.sendTo;
-    }
+    const sendTo = await getReminderPhoneNumber(
+      step.action,
+      seatReferenceUid,
+      smsReminderNumber,
+      step.sendTo
+    );
 
     await scheduleSMSReminder({
       ...scheduleFunctionParams,
@@ -226,7 +241,12 @@ const processWorkflowStep = async (
       return;
     }
 
-    const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+    const sendTo = await getReminderPhoneNumber(
+      step.action,
+      seatReferenceUid,
+      smsReminderNumber,
+      step.sendTo
+    );
 
     await scheduleWhatsappReminder({
       ...scheduleFunctionParams,
