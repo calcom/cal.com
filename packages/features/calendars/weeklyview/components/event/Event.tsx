@@ -1,6 +1,7 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
+import type { BookingStatus } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -38,6 +39,22 @@ const eventClasses = cva(
   }
 );
 
+// Maps booking status to color classes for the color bar
+// Follows the same pattern as BookingDetailsSheet badge variants
+const getStatusColorClass = (status?: BookingStatus): string | undefined => {
+  if (!status) return undefined;
+
+  const statusColorMap: Record<BookingStatus, string> = {
+    ACCEPTED: "bg-green-500",
+    PENDING: "bg-orange-500",
+    REJECTED: "bg-red-500",
+    CANCELLED: "bg-red-500",
+    AWAITING_HOST: "bg-blue-500",
+  };
+
+  return statusColorMap[status];
+};
+
 export function Event({
   event,
   currentlySelectedEventId,
@@ -49,6 +66,9 @@ export function Event({
   const selected = currentlySelectedEventId === event.id;
   const { options } = event;
 
+  // Use custom color if provided, otherwise derive from status
+  const colorClass = !options?.color ? getStatusColorClass(options?.status) : undefined;
+
   const Component = onEventClick ? "button" : "div";
 
   const dayOfWeek = dayjs(event.start).day();
@@ -57,8 +77,10 @@ export function Event({
   const tooltipContent = (
     <div className="flex min-w-[200px] max-w-[300px] flex-col gap-1 py-1">
       <div className="flex items-start gap-2">
-        {options?.color && (
-          <div className="mt-1 h-3 w-1 shrink-0 rounded-sm" style={{ backgroundColor: options.color }}></div>
+        {(options?.color || colorClass) && (
+          <div
+            className={classNames("mt-1 h-3 w-1 shrink-0 rounded-sm", colorClass)}
+            style={options?.color ? { backgroundColor: options.color } : undefined}></div>
         )}
         <div className="flex-1">
           <div className="font-semibold leading-tight">{event.title}</div>
@@ -98,10 +120,10 @@ export function Event({
         style={{
           transition: "all 100ms ease-out",
         }}>
-        {options?.color && (
+        {(options?.color || colorClass) && (
           <div
-            className="-ml-1.5 mr-1.5 h-full w-[3px] shrink-0"
-            style={{ backgroundColor: options.color }}></div>
+            className={classNames("-ml-1.5 mr-1.5 h-full w-[3px] shrink-0", colorClass)}
+            style={options?.color ? { backgroundColor: options.color } : undefined}></div>
         )}
         <div className={classNames("flex w-full", displayType !== "single-line" && "flex-col py-1")}>
           {displayType === "single-line" && (
