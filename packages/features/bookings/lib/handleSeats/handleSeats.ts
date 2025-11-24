@@ -1,4 +1,5 @@
- import dayjs from "@calcom/dayjs";
+ 
+import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
@@ -150,7 +151,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       metadata,
       eventTypeId,
       status: "ACCEPTED",
-      smsReminderNumber: attendeePhoneNumber || undefined,
+      smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
       rescheduledBy,
     };
 
