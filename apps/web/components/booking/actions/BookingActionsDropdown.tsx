@@ -32,7 +32,6 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
-import { buildBookingLink } from "../../../modules/bookings/lib/buildBookingLink";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
@@ -56,6 +55,12 @@ interface BookingActionsDropdownProps {
    * @default true
    */
   usePortal?: boolean;
+  /**
+   * Context where the dropdown is being used.
+   * - "list": Used in booking list view (hides Confirm and Reject actions)
+   * - "details": Used in booking details view (shows all actions)
+   */
+  context: "list" | "details";
 }
 
 export function BookingActionsDropdown({
@@ -63,6 +68,7 @@ export function BookingActionsDropdown({
   size = "base",
   className,
   usePortal = true,
+  context,
 }: BookingActionsDropdownProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -179,13 +185,6 @@ export function BookingActionsDropdown({
 
   const isBookingFromRoutingForm = !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 
-  // Build booking confirmation link
-  const bookingLink = buildBookingLink({
-    bookingUid: booking.uid,
-    allRemainingBookings: isRecurring,
-    email: booking.attendees?.[0]?.email,
-  });
-
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
@@ -264,9 +263,10 @@ export function BookingActionsDropdown({
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
-  // Get pending actions (accept/reject)
+  // Get pending actions (accept/reject) - only for details context
   const shouldShowPending = shouldShowPendingActions(actionContext);
-  const basePendingActions = shouldShowPending ? getPendingActions(actionContext) : [];
+  const basePendingActions =
+    shouldShowPending && context === "details" ? getPendingActions(actionContext) : [];
   const pendingActions: ActionType[] = basePendingActions.map((action) => ({
     ...action,
     disabled: mutation.isPending,
@@ -589,18 +589,6 @@ export function BookingActionsDropdown({
         </DropdownMenuTrigger>
         <ConditionalPortal>
           <DropdownMenuContent>
-            <DropdownMenuItem className="rounded-lg">
-              <DropdownItem
-                type="button"
-                StartIcon="external-link"
-                href={bookingLink}
-                target="_blank"
-                data-testid="view-booking"
-                onClick={(e) => e.stopPropagation()}>
-                {t("view")}
-              </DropdownItem>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             {pendingActions.length > 0 && (
               <>
                 <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("booking_response")}</DropdownMenuLabel>

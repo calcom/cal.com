@@ -19,7 +19,6 @@ import {
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
@@ -28,11 +27,8 @@ import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalothe
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 import { viewParser } from "~/bookings/lib/viewParser";
 
-import type { RowData, BookingOutput } from "../types";
+import { BookingsListContainer } from "../components/BookingsListContainer";
 
-const BookingsListContainer = dynamic(() =>
-  import("../components/BookingsListContainer").then((mod) => ({ default: mod.BookingsListContainer }))
-);
 const BookingsCalendarContainer = dynamic(() =>
   import("../components/BookingsCalendarContainer").then((mod) => ({
     default: mod.BookingsCalendarContainer,
@@ -45,6 +41,7 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  bookingsV3Enabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -86,11 +83,11 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-function BookingsContent({ status, permissions }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
   // Force view to be "list" if calendar view is disabled
+  const view = bookingsV3Enabled ? _view : "list";
   const { t } = useLocale();
-  const user = useMeQuery().data;
   const searchParams = useSearchParams();
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
@@ -171,114 +168,13 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   );
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
-
-  const groupedBookings = useMemo(() => {
-    if (!query.data?.bookings) {
-      return { today: [], currentMonth: [], monthBuckets: {} };
-    }
-
-    const now = dayjs().tz(user?.timeZone);
-    const today = now.format("YYYY-MM-DD");
-    const currentMonthStart = now.startOf("month");
-    const currentMonthEnd = now.endOf("month");
-
-    const shownBookings: Record<string, BookingOutput[]> = {};
-    const filterBookings = (booking: BookingOutput) => {
-      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
-        if (!booking.recurringEventId) {
-          return true;
-        }
-        if (
-          shownBookings[booking.recurringEventId] !== undefined &&
-          shownBookings[booking.recurringEventId].length > 0
-        ) {
-          shownBookings[booking.recurringEventId].push(booking);
-          return false;
-        }
-        shownBookings[booking.recurringEventId] = [booking];
-      }
-      return true;
-    };
-
-    const todayBookings: RowData[] = [];
-    const currentMonthBookings: RowData[] = [];
-    const monthBuckets: Record<string, RowData[]> = {}; // Key format: "YYYY-MM"
-
-    query.data.bookings.filter(filterBookings).forEach((booking) => {
-      const bookingDate = dayjs(booking.startTime).tz(user?.timeZone);
-      const bookingDateStr = bookingDate.format("YYYY-MM-DD");
-      const monthKey = bookingDate.format("YYYY-MM");
-
-      const rowData: RowData = {
-        type: "data",
-        booking,
-        isToday: bookingDateStr === today,
-        recurringInfo: query.data?.recurringInfo.find(
-          (info) => info.recurringEventId === booking.recurringEventId
-        ),
-      };
-
-      if (bookingDateStr === today) {
-        todayBookings.push(rowData);
-      } else if (bookingDate.isAfter(currentMonthStart) && bookingDate.isBefore(currentMonthEnd)) {
-        currentMonthBookings.push(rowData);
-      } else if (bookingDate.isAfter(currentMonthEnd)) {
-        if (!monthBuckets[monthKey]) {
-          monthBuckets[monthKey] = [];
-        }
-        monthBuckets[monthKey].push(rowData);
-      } else if (bookingDate.isBefore(currentMonthStart)) {
-        // Handle bookings from months before the current month
-        if (!monthBuckets[monthKey]) {
-          monthBuckets[monthKey] = [];
-        }
-        monthBuckets[monthKey].push(rowData);
-      }
-    });
-
-    return { today: todayBookings, currentMonth: currentMonthBookings, monthBuckets };
-  }, [query.data, status, user?.timeZone]);
-
-  const flatData = useMemo<RowData[]>(() => {
-    return [...groupedBookings.today, ...groupedBookings.currentMonth, ...Object.values(groupedBookings.monthBuckets).flat()];
-  }, [groupedBookings]);
-
-  const bookingsToday = useMemo<RowData[]>(() => {
-    return groupedBookings.today;
-  }, [groupedBookings]);
-
-  const finalData = useMemo<RowData[]>(() => {
-    if (status !== "upcoming") {
-      return flatData;
-    }
-
-    const merged: RowData[] = [];
-
-    // Add Today section
-    if (groupedBookings.today.length > 0) {
-      merged.push({ type: "separator", label: t("today") }, ...groupedBookings.today);
-    }
-
-    // Add Current Month section (rest of this month, excluding today)
-    if (groupedBookings.currentMonth.length > 0) {
-      merged.push({ type: "separator", label: t("this_month") }, ...groupedBookings.currentMonth);
-    }
-
-    // Add individual month sections
-    const sortedMonthKeys = Object.keys(groupedBookings.monthBuckets).sort();
-    sortedMonthKeys.forEach((monthKey) => {
-      const bookings = groupedBookings.monthBuckets[monthKey];
-      if (bookings.length > 0) {
-        const monthLabel = dayjs(monthKey, "YYYY-MM").format("MMMM YYYY");
-        merged.push({ type: "separator", label: monthLabel }, ...bookings);
-      }
-    });
-
-    return merged;
-  }, [groupedBookings, status, t, flatData]);
-
   const isPending = query.isPending;
   const totalRowCount = query.data?.totalCount;
+  const hasError = !!query.error;
+
+  const errorView = query.error ? (
+    <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+  ) : undefined;
 
   return (
     <div className="flex flex-col">
@@ -292,30 +188,30 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" ? (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-          ) : (
-            <>
-              {!!bookingsToday.length && status === "upcoming" && (
-                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-              )}
-              {view === "list" ? (
-                <BookingsListContainer
-                  status={status}
-                  permissions={permissions}
-                  data={finalData}
-                  isPending={isPending}
-                  totalRowCount={totalRowCount}
-                />
-              ) : (
-                <BookingsCalendarContainer
-                  status={status}
-                  permissions={permissions}
-                  data={finalData}
-                  isPending={isPending}
-                />
-              )}
-            </>
+          {status === "upcoming" && !isEmpty && (
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+          )}
+          {view === "list" && (
+            <BookingsListContainer
+              status={status}
+              permissions={permissions}
+              data={query.data}
+              isPending={isPending}
+              totalRowCount={totalRowCount}
+              enableDetailsSheet={bookingsV3Enabled}
+              ErrorView={errorView}
+              hasError={hasError}
+            />
+          )}
+          {bookingsV3Enabled && view === "calendar" && (
+            <BookingsCalendarContainer
+              status={status}
+              permissions={permissions}
+              data={query.data}
+              isPending={isPending}
+              ErrorView={errorView}
+              hasError={hasError}
+            />
           )}
         </div>
       </main>

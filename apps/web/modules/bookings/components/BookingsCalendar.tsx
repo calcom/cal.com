@@ -19,12 +19,13 @@ type BookingsCalendarProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
   isPending?: boolean;
-  onOpenDetails: (bookingId: number) => void;
   currentWeekStart: dayjs.Dayjs;
   setCurrentWeekStart: (
     value: dayjs.Dayjs | ((old: dayjs.Dayjs) => dayjs.Dayjs | null) | null
   ) => Promise<URLSearchParams>;
   bookings: BookingOutput[];
+  ErrorView?: React.ReactNode;
+  hasError?: boolean;
 };
 
 const COLUMN_IDS_TO_HIDE = ["dateRange"];
@@ -32,10 +33,11 @@ const COLUMN_IDS_TO_HIDE = ["dateRange"];
 export function BookingsCalendar({
   table,
   isPending = false,
-  onOpenDetails,
   currentWeekStart,
   setCurrentWeekStart,
   bookings,
+  ErrorView,
+  hasError,
 }: BookingsCalendarProps) {
   const { updateFilter } = useDataTable();
 
@@ -72,13 +74,16 @@ export function BookingsCalendar({
           <DataTableSegment.Select />
         </div>
       </div>
-      <BookingsCalendarView
-        bookings={bookings}
-        currentWeekStart={currentWeekStart}
-        onWeekStartChange={handleWeekStartChange}
-        isPending={isPending}
-        onOpenDetails={onOpenDetails}
-      />
+      {hasError && ErrorView ? (
+        ErrorView
+      ) : (
+        <BookingsCalendarView
+          bookings={bookings}
+          currentWeekStart={currentWeekStart}
+          onWeekStartChange={handleWeekStartChange}
+          isPending={isPending}
+        />
+      )}
     </>
   );
 }
