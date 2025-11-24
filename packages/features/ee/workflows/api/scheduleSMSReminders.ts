@@ -60,38 +60,29 @@ export async function handler(req: NextRequest) {
     const teamId = reminder.workflowStep.workflow.teamId;
 
     try {
-      // For SMS_ATTENDEE action, find the correct attendee for seated events
-      let targetAttendee = reminder.booking.attendees[0];
-      if (reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE && reminder.seatReferenceId) {
-        // Find the attendee associated with this seat
-        const seat = await prisma.bookingSeat.findUnique({
+      // For seated events, get the correct attendee based on seatReferenceId
+      let targetAttendee = reminder.booking?.attendees[0];
+      if (reminder.seatReferenceId) {
+        const seatAttendeeData = await prisma.bookingSeat.findUnique({
           where: {
             referenceUid: reminder.seatReferenceId,
           },
-          include: {
+          select: {
             attendee: true,
           },
         });
-        if (seat?.attendee) {
-          // Find the matching attendee in the booking's attendees array by email or phoneNumber
-          targetAttendee =
-            reminder.booking.attendees.find(
-              (a) =>
-                a.email === seat.attendee.email ||
-                (a.phoneNumber && seat.attendee.phoneNumber && a.phoneNumber === seat.attendee.phoneNumber)
-            ) || reminder.booking.attendees[0];
+        if (seatAttendeeData?.attendee) {
+          targetAttendee = seatAttendeeData.attendee;
         }
       }
 
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
           ? reminder.workflowStep.sendTo
-          : reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-          ? targetAttendee?.phoneNumber || reminder.booking?.smsReminderNumber
-          : reminder.booking?.smsReminderNumber;
+          : targetAttendee?.phoneNumber;
 
       const userName =
-        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE ? targetAttendee?.name : "";
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE ? targetAttendee?.name || "" : "";
 
       const attendeeName =
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
@@ -153,8 +144,8 @@ export async function handler(req: NextRequest) {
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
-          attendeeName: targetAttendee?.name || "",
-          attendeeEmail: targetAttendee?.email || "",
+          attendeeName: targetAttendee?.name,
+          attendeeEmail: targetAttendee?.email,
           eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
           eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
           timeZone: timeZone,
@@ -164,9 +155,13 @@ export async function handler(req: NextRequest) {
           meetingUrl,
           cancelLink,
           rescheduleLink,
-          attendeeTimezone: targetAttendee?.timeZone || "",
-          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(targetAttendee?.timeZone || ""),
-          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(targetAttendee?.timeZone || ""),
+          attendeeTimezone: targetAttendee?.timeZone,
+          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
+            targetAttendee?.timeZone
+          ),
+          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
+            targetAttendee?.timeZone
+          ),
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
@@ -206,7 +201,7 @@ export async function handler(req: NextRequest) {
           fallbackData:
             reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
               ? {
-                  email: targetAttendee?.email || "",
+                  email: targetAttendee?.email,
                   t: await getTranslation(locale || "en", "common"),
                   replyTo: reminder.booking?.user?.email ?? "",
                   workflowStepId: reminder.workflowStep.id,
