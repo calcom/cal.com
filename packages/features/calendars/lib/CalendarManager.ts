@@ -504,6 +504,7 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calEvent.responses = null;
     calEvent.userFieldsResponses = null;
     calEvent.additionalNotes = null;
+    calEvent.customInputs = null;
   }
   // Generate the calendar event description
   const calendarEvent: CalendarServiceEvent = {
