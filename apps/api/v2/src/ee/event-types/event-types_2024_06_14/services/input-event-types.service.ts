@@ -568,6 +568,7 @@ export class InputEventTypesService_2024_06_14 {
       "mirotalk-video": "mirotalk",
       "jelly-video": "jelly",
       "jelly-conferencing": "jelly-conferencing",
+      "huddle": "huddle01",
       "element-call-video": "element-call",
       "eightxeight-video": "eightxeight",
       "discord-video": "discord",
