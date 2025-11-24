@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
+import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 
 const log = logger.getSubLogger({ prefix: ["sendAwaitingPaymentEmail"] });
 
@@ -109,6 +109,17 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
       return;
     }
 
+    // Use the first attendee's info for the payment link.
+    // Why "First Attendee" Works:
+    // - For regular bookings: The first attendee in the array is typically the booker (the person who made the booking and is responsible for payment)
+    // - For seated events: After filtering by attendeeSeatId, there's usually only one attendee anyway
+    const primaryAttendee = attendeesToEmail[0];
+
+    if (!primaryAttendee) {
+      log.warn(`No attendees found for booking ${bookingId}, skipping email`);
+      return;
+    }
+
     // Send the awaiting payment email
     await sendAwaitingPaymentEmailAndSMS(
       {
@@ -117,8 +128,8 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
         paymentInfo: {
           link: createPaymentLink({
             paymentUid: paymentRecord.uid,
-            name: booking.user?.name ?? null,
-            email: booking.user?.email ?? null,
+            name: primaryAttendee.name ?? null,
+            email: primaryAttendee.email ?? null,
             date: booking.startTime.toISOString(),
           }),
           paymentOption: paymentRecord.paymentOption || "ON_BOOKING",
@@ -138,4 +149,3 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
     throw error;
   }
 }
-
