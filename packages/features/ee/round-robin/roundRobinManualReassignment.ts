@@ -23,6 +23,11 @@ import {
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import {
+  scheduleSMSReminder,
+  deleteScheduledSMSReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
@@ -475,14 +480,17 @@ export async function handleWorkflowsUpdate({
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
   orgId: number | null;
 }) {
-  const workflowReminders = await prisma.workflowReminder.findMany({
+  // Query for EMAIL_HOST and EMAIL_ATTENDEE workflow reminders
+  const emailWorkflowReminders = await prisma.workflowReminder.findMany({
     where: {
       bookingUid: booking.uid,
       method: WorkflowMethods.EMAIL,
       scheduled: true,
       OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
-        action: WorkflowActions.EMAIL_HOST,
+        action: {
+          in: [WorkflowActions.EMAIL_HOST, WorkflowActions.EMAIL_ATTENDEE],
+        },
         workflow: {
           trigger: {
             in: [
@@ -497,9 +505,11 @@ export async function handleWorkflowsUpdate({
     select: {
       id: true,
       referenceId: true,
+      method: true,
       workflowStep: {
         select: {
           id: true,
+          action: true,
           template: true,
           workflow: {
             select: {
@@ -520,40 +530,213 @@ export async function handleWorkflowsUpdate({
     },
   });
 
+  // Query for SMS_ATTENDEE workflow reminders
+  const smsWorkflowReminders = await prisma.workflowReminder.findMany({
+    where: {
+      bookingUid: booking.uid,
+      method: WorkflowMethods.SMS,
+      scheduled: true,
+      OR: [{ cancelled: false }, { cancelled: null }],
+      workflowStep: {
+        action: WorkflowActions.SMS_ATTENDEE,
+        workflow: {
+          trigger: {
+            in: [
+              WorkflowTriggerEvents.BEFORE_EVENT,
+              WorkflowTriggerEvents.NEW_EVENT,
+              WorkflowTriggerEvents.AFTER_EVENT,
+            ],
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      referenceId: true,
+      method: true,
+      workflowStep: {
+        select: {
+          id: true,
+          action: true,
+          template: true,
+          workflow: {
+            select: {
+              userId: true,
+              teamId: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+            },
+          },
+          reminderBody: true,
+          sender: true,
+          verifiedAt: true,
+        },
+      },
+    },
+  });
+
+  // Query for WHATSAPP_ATTENDEE workflow reminders
+  const whatsappWorkflowReminders = await prisma.workflowReminder.findMany({
+    where: {
+      bookingUid: booking.uid,
+      method: WorkflowMethods.WHATSAPP,
+      scheduled: true,
+      OR: [{ cancelled: false }, { cancelled: null }],
+      workflowStep: {
+        action: WorkflowActions.WHATSAPP_ATTENDEE,
+        workflow: {
+          trigger: {
+            in: [
+              WorkflowTriggerEvents.BEFORE_EVENT,
+              WorkflowTriggerEvents.NEW_EVENT,
+              WorkflowTriggerEvents.AFTER_EVENT,
+            ],
+          },
+        },
+      },
+    },
+    select: {
+      id: true,
+      referenceId: true,
+      method: true,
+      workflowStep: {
+        select: {
+          id: true,
+          action: true,
+          template: true,
+          workflow: {
+            select: {
+              userId: true,
+              teamId: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+            },
+          },
+          reminderBody: true,
+          verifiedAt: true,
+        },
+      },
+    },
+  });
+
   const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
   const bookerUrl = await getBookerBaseUrl(orgId);
 
-  for (const workflowReminder of workflowReminders) {
+  // Get attendee info for attendee workflows
+  const attendeeEmail = evt.attendees?.[0]?.email;
+  const attendeePhone = evt.attendees?.[0]?.phoneNumber;
+
+  // Process EMAIL workflow reminders (EMAIL_HOST and EMAIL_ATTENDEE)
+  for (const workflowReminder of emailWorkflowReminders) {
     const workflowStep = workflowReminder.workflowStep;
 
     if (workflowStep) {
       const workflow = workflowStep.workflow;
-      await scheduleEmailReminder({
+      const isHostAction = workflowStep.action === WorkflowActions.EMAIL_HOST;
+
+      // Determine sendTo based on action type
+      const sendTo = isHostAction ? [newUser.email] : attendeeEmail ? [attendeeEmail] : [];
+
+      if (sendTo.length > 0) {
+        await scheduleEmailReminder({
+          evt: {
+            ...evt,
+            metadata: workflowEventMetadata,
+            eventType,
+            bookerUrl,
+          },
+          action: workflowStep.action as
+            | typeof WorkflowActions.EMAIL_HOST
+            | typeof WorkflowActions.EMAIL_ATTENDEE,
+          triggerEvent: workflow.trigger,
+          timeSpan: {
+            time: workflow.time,
+            timeUnit: workflow.timeUnit,
+          },
+          sendTo,
+          template: workflowStep.template,
+          emailSubject: workflowStep.emailSubject || undefined,
+          emailBody: workflowStep.reminderBody || undefined,
+          sender: workflowStep.sender || SENDER_NAME,
+          hideBranding: true,
+          includeCalendarEvent: workflowStep.includeCalendarEvent,
+          workflowStepId: workflowStep.id,
+          verifiedAt: workflowStep.verifiedAt,
+        });
+      }
+    }
+
+    await deleteScheduledEmailReminder(workflowReminder.id);
+  }
+
+  // Process SMS_ATTENDEE workflow reminders
+  for (const workflowReminder of smsWorkflowReminders) {
+    const workflowStep = workflowReminder.workflowStep;
+
+    if (workflowStep && attendeePhone) {
+      const workflow = workflowStep.workflow;
+
+      await scheduleSMSReminder({
         evt: {
           ...evt,
           metadata: workflowEventMetadata,
           eventType,
           bookerUrl,
         },
-        action: WorkflowActions.EMAIL_HOST,
+        action: WorkflowActions.SMS_ATTENDEE,
         triggerEvent: workflow.trigger,
         timeSpan: {
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: [newUser.email],
+        reminderPhone: attendeePhone,
+        message: workflowStep.reminderBody || "",
         template: workflowStep.template,
-        emailSubject: workflowStep.emailSubject || undefined,
-        emailBody: workflowStep.reminderBody || undefined,
-        sender: workflowStep.sender || SENDER_NAME,
-        hideBranding: true,
-        includeCalendarEvent: workflowStep.includeCalendarEvent,
+        sender: workflowStep.sender,
         workflowStepId: workflowStep.id,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
         verifiedAt: workflowStep.verifiedAt,
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id);
+    await deleteScheduledSMSReminder(workflowReminder.id, workflowReminder.referenceId);
+  }
+
+  // Process WHATSAPP_ATTENDEE workflow reminders
+  for (const workflowReminder of whatsappWorkflowReminders) {
+    const workflowStep = workflowReminder.workflowStep;
+
+    if (workflowStep && attendeePhone) {
+      const workflow = workflowStep.workflow;
+
+      await scheduleWhatsappReminder({
+        evt: {
+          ...evt,
+          metadata: workflowEventMetadata,
+          eventType,
+          bookerUrl,
+        },
+        action: WorkflowActions.WHATSAPP_ATTENDEE,
+        triggerEvent: workflow.trigger,
+        timeSpan: {
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+        },
+        reminderPhone: attendeePhone,
+        message: workflowStep.reminderBody || "",
+        template: workflowStep.template,
+        workflowStepId: workflowStep.id,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
+        verifiedAt: workflowStep.verifiedAt,
+      });
+    }
+
+    // WhatsApp uses the same delete function as SMS since both go through Twilio
+    await deleteScheduledSMSReminder(workflowReminder.id, workflowReminder.referenceId);
   }
 
   // Send new event workflows to new organizer
