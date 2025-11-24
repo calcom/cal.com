@@ -39,7 +39,7 @@ import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMee
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
-import { extraDaysConfig, fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
@@ -103,7 +103,6 @@ const BookerComponent = ({
     hideEventTypeDetails,
     isEmbed,
     bookerLayouts,
-    isTablet,
   } = bookerLayout;
 
   const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
@@ -130,11 +129,7 @@ const BookerComponent = ({
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
 
-  const columnViewExtraDaysConfig = isTablet
-    ? extraDaysConfig[BookerLayouts.COLUMN_VIEW].tablet
-    : extraDaysConfig[BookerLayouts.COLUMN_VIEW].desktop;
-
-  const relevantDates = nonEmptyScheduleDays.slice(0, columnViewExtraDaysConfig + 1).join(",");
+  const relevantDates = nonEmptyScheduleDays.slice(0, extraDays + 1).join(",");
 
   const calculatedColumnViewExtraDays = useMemo(() => {
     if (layout !== BookerLayouts.COLUMN_VIEW) {
@@ -142,20 +137,20 @@ const BookerComponent = ({
     }
 
     if (nonEmptyScheduleDays.length === 0) {
-      return columnViewExtraDaysConfig;
+      return extraDays;
     }
 
     const columnAddonDays =
-      nonEmptyScheduleDays.length < columnViewExtraDaysConfig
-        ? (columnViewExtraDaysConfig - nonEmptyScheduleDays.length + 1) * totalWeekDays
-        : nonEmptyScheduleDays.length === columnViewExtraDaysConfig
+      nonEmptyScheduleDays.length < extraDays
+        ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
+        : nonEmptyScheduleDays.length === extraDays
         ? totalWeekDays
         : 0;
 
-    const columnAvailableSlots = nonEmptyScheduleDays.slice(0, columnViewExtraDaysConfig + 1);
+    const columnAvailableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
 
     if (columnAvailableSlots.length < 2) {
-      return columnViewExtraDaysConfig;
+      return extraDays;
     }
 
     const calculated =
@@ -163,15 +158,7 @@ const BookerComponent = ({
       columnAddonDays;
 
     return calculated;
-  }, [
-    layout,
-    selectedDate,
-    relevantDates,
-    nonEmptyScheduleDays.length,
-    isTablet,
-    columnViewExtraDays,
-    columnViewExtraDaysConfig,
-  ]);
+  }, [layout, selectedDate, relevantDates, nonEmptyScheduleDays.length, extraDays, columnViewExtraDays]);
 
   if (layout === BookerLayouts.COLUMN_VIEW) {
     columnViewExtraDays.current = calculatedColumnViewExtraDays;
