@@ -160,19 +160,19 @@ export class TeamCreationService {
     const organization = await this.teamRepository.findOrganizationForValidation(orgId);
 
     if (!organization) {
-      throw ErrorWithCode.Factory.NoOrganizationFound("no_organization_found");
+      throw new ErrorWithCode(ErrorCode.NoOrganizationFound, "no_organization_found");
     }
 
     const parseTeams = teamMetadataSchema.safeParse(organization?.metadata);
 
     if (!parseTeams.success) {
-      throw ErrorWithCode.Factory.InvalidOrganizationMetadata("invalid_organization_metadata");
+      throw new ErrorWithCode(ErrorCode.InvalidOrganizationMetadata, "invalid_organization_metadata");
     }
 
     const metadata = parseTeams.success ? parseTeams.data : undefined;
 
     if (!metadata?.requestedSlug && !organization?.slug) {
-      throw ErrorWithCode.Factory.NoOrganizationSlug("no_organization_slug");
+      throw new ErrorWithCode(ErrorCode.NoOrganizationSlug, "no_organization_slug");
     }
 
     return organization;
@@ -336,7 +336,7 @@ export class TeamCreationService {
       return;
     }
     if (!teamSlug) {
-      throw ErrorWithCode.Factory.TeamSlugMissing("No slug for team. Not adding the redirect");
+      throw new ErrorWithCode(ErrorCode.TeamSlugMissing, "No slug for team. Not adding the redirect");
     }
     if (!orgSlug) {
       logger.warn(`No slug for org. Not adding the redirect`);
