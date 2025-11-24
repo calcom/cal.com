@@ -39,7 +39,6 @@ async function handler(req: NextRequest) {
         { status: 400 }
       );
     }
-    // Reject PKCE for confidential clients
     if (code_verifier) {
       return NextResponse.json(
         { message: "code_verifier is not supported for confidential clients. Use client_secret instead." },
