@@ -398,7 +398,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     expect(page.url()).toContain("auth/oauth2/authorize");
   });
 
-  test.only("should refresh tokens for PUBLIC client with valid PKCE", async ({ page, users }) => {
+  test("should refresh tokens for PUBLIC client with valid PKCE", async ({ page, users }) => {
     const user = await users.create({ username: "test user refresh", name: "test user refresh" });
     await user.apiLogin();
 
