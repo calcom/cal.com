@@ -288,14 +288,6 @@ export default function Success(props: PageProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  // const telemetry = useTelemetry();
-  /*  useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
-    }
-  }, [telemetry]); */
-
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
