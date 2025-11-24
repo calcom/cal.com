@@ -19,7 +19,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  // First, find the client to determine client type
   const client = await prisma.oAuthClient.findFirst({
     where: {
       clientId: client_id,
@@ -35,9 +34,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // Handle authentication based on client type
   if (client.clientType === "CONFIDENTIAL") {
-    // Confidential client - requires client secret
     if (!client_secret) {
       return NextResponse.json(
         { message: "client_secret required for confidential clients" },
@@ -50,7 +47,6 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
     }
   }
-  // Public clients don't need client_secret validation
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
@@ -60,7 +56,6 @@ async function handler(req: NextRequest) {
   let decodedRefreshToken: OAuthTokenPayload;
 
   try {
-    // Try to get refresh token from form data first (standard), then from Authorization header
     const refreshTokenValue = refresh_token || req.headers.get("authorization")?.split(" ")[1] || "";
 
     if (!refreshTokenValue) {
@@ -76,7 +71,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
   }
 
-  // Verify the refresh token was issued for this client
   if (decodedRefreshToken.clientId !== client_id) {
     return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
   }
