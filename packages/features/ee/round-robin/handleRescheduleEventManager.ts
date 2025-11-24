@@ -165,7 +165,10 @@ export const handleRescheduleEventManager = async ({
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
     if (changedOrganizer) {
-      evt.iCalUID = getICalUID({}) || bookingICalUID;
+      const providerICalUID = evt.iCalUID = Array.isArray(calendarResult?.createdEvent)
+        ? calendarResult?.createdEvent[0]?.iCalUID
+        : calendarResult?.createdEvent?.iCalUID;
+      evt.iCalUID = providerICalUID || getICalUID({});
     } else {
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
