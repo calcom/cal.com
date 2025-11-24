@@ -2,13 +2,12 @@
 title: "Cal Provider"
 ---
 
-Cal Provider is used to setup scheduling within your app. It is used in the root of your app, be it _app.js or or _app.tsx in case of
+Cal Provider is used to setup scheduling within your app. It is used in the root of your app, be it \_app.js or or \_app.tsx in case of
 Next.js or App.js or App.ts in case of React. Here is an example:
 
-
 ```js
+import { CalProvider } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
-import { CalProvider } from '@calcom/atoms';
 
 function MyApp({ Component, pageProps }) {
   const accessToken = "managed-user-access-token";
@@ -18,10 +17,9 @@ function MyApp({ Component, pageProps }) {
       clientId={process.env.CAL_OAUTH_CLIENT_ID ?? ""}
       options={{
         apiUrl: process.env.CAL_API_URL ?? "https://api.cal.com/v2",
-        refreshUrl: process.env.REFRESH_URL
+        refreshUrl: process.env.REFRESH_URL,
       }}
-      accessToken={accessToken}
-    >
+      accessToken={accessToken}>
       <Component {...pageProps} />
     </CalProvider>
   );
@@ -32,11 +30,14 @@ export default MyApp;
 
 Below is a list of props that can be passed to the Cal Provider.
 
-| Name                       | Required | Description                                                                                           |
-|:----------------------------|:----------|:-------------------------------------------------------------------------------------------------------|
-| clientId                   | Yes      | Your OAuth client ID                                                                          |
-| options                    | Yes       | Configuration options - `apiUrl` (should be https://api.cal.com/v2) and `refreshUrl` (URL of endpoint you have to build that to which atoms will send expired access tokens and receive new one in return. Read how to set it up [here](https://cal.com/docs/platform/quickstart#4-backend%3A-setting-up-a-refresh-token-endpoint)) and `readingDirection` (defaults to "ltr" but can also pass "rtl" which will change direction of UI components)                                                 |
-| accessToken                | No       | The access token of your managed user for whom cal handles scheduling.                                                                |
-| autoUpdateTimezone         | No       | Whether to automatically update managed user timezone (default: true)                                          |
-| language                   | No       | Language code (default: "en") - available languages: "en", "de", "fr", "it", "nl", "pt-BR", "es"                                                                          |
-| organizationId             | No       | ID of your organization                                                                                |
+| Name               | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| :----------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| clientId           | Yes      | Your OAuth client ID                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| options            | Yes      | Configuration options - `apiUrl` (should be https://api.cal.com/v2) and `refreshUrl` (URL of endpoint you have to build that to which atoms will send expired access tokens and receive new one in return. Read how to set it up [here](https://cal.com/docs/platform/quickstart#4-backend%3A-setting-up-a-refresh-token-endpoint)) and `readingDirection` (defaults to "ltr" but can also pass "rtl" which will change direction of UI components) |
+| accessToken        | No       | The access token of your managed user for whom cal handles scheduling.                                                                                                                                                                                                                                                                                                                                                                              |
+| autoUpdateTimezone | No       | Whether to automatically update managed user timezone (default: true)                                                                                                                                                                                                                                                                                                                                                                               |
+| language           | No       | Language code (default: "en") - available languages: "en", "de", "fr", "it", "nl", "pt-BR", "es"                                                                                                                                                                                                                                                                                                                                                    |
+| organizationId     | No       | ID of your organization                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| isEmbed            | No       | Only set to `true` when you render the managed `<BookerEmbed />` component. It flags outbound API requests as Cal-hosted embed traffic, which bypasses OAuth client redirects/emails. Keep it `false` for the regular Booker so that your OAuth client settings remain in effect.                                                                                                                                                                   |
+
+> ⚠️ Setting `isEmbed={true}` while using the standard Booker will make the API treat your calls as Cal-managed embed requests. In that mode the backend ignores the OAuth client's redirect, email, and calendar settings and uses the embed defaults instead.

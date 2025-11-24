@@ -108,6 +108,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 @DocsExcludeController(true)
 export class BookingsController_2024_04_15 {
   private readonly logger = new Logger("BookingsController_2024_04_15");
+  private readonly managedEmbedClientId: string;
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
@@ -125,7 +126,9 @@ export class BookingsController_2024_04_15 {
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
     private readonly teamRepository: PrismaTeamRepository
-  ) {}
+  ) {
+    this.managedEmbedClientId = this.config.get<string>("platform.embedOAuthClientId", "");
+  }
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
@@ -533,7 +536,7 @@ export class BookingsController_2024_04_15 {
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
     const res = { ...DEFAULT_PLATFORM_PARAMS };
 
-    if (isEmbed) {
+    if (this.shouldForceEmbedDefaults(isEmbed, clientId)) {
       // embed should ignore oauth client settings and enable emails by default
       return { ...res, arePlatformEmailsEnabled: true, areCalendarEventsEnabled: true };
     }
@@ -554,6 +557,18 @@ export class BookingsController_2024_04_15 {
       this.logger.error(err);
       return res;
     }
+  }
+
+  private shouldForceEmbedDefaults(isEmbed: boolean, clientId: string): boolean {
+    if (!isEmbed) {
+      return false;
+    }
+
+    if (!this.managedEmbedClientId) {
+      return true;
+    }
+
+    return clientId === this.managedEmbedClientId;
   }
 
   private async createNextApiBookingRequest(
