@@ -1,5 +1,17 @@
 ## 1.1.2
 
+## 1.12.1
+
+### Patch Changes
+
+- [#24786](https://github.com/calcom/cal.com/pull/24786) [`e47ddf9`](https://github.com/calcom/cal.com/commit/e47ddf983559816ab7ce9789eee97254124b1a4c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR updates Booker atom to have a new prop called handleCreateRecurringBooking for handling recurring events.
+
+## 1.12.0
+
+### Minor Changes
+
+- [#24709](https://github.com/calcom/cal.com/pull/24709) [`c0530cc`](https://github.com/calcom/cal.com/commit/c0530cc91c145dd2d56d32ff981c8fa49ee382fa) Thanks [@ibex088](https://github.com/ibex088)! - Fix Vite “process is undefined” error by defining process.env in atoms build.
+
 ## 1.11.0
 
 ### Minor Changes

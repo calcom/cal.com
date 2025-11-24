@@ -1,6 +1,6 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
-
+import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
 export const DI_TOKENS = {
@@ -32,8 +32,6 @@ export const DI_TOKENS = {
   INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
   FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
-  CACHE_SERVICE: Symbol("CacheService"),
-  CACHE_SERVICE_MODULE: Symbol("CacheServiceModule"),
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
@@ -63,4 +61,5 @@ export const DI_TOKENS = {
   ...HASHED_LINK_DI_TOKENS,
   // Watchlist service tokens
   ...WATCHLIST_DI_TOKENS,
+  ...ORGANIZATION_DI_TOKENS,
 };

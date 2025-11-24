@@ -8,7 +8,8 @@ import { WatchlistType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Input, Select, Label, TextArea } from "@calcom/ui/components/form";
+import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface CreateBlocklistEntryModalProps {
@@ -80,35 +81,34 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
   };
 
   const typeOptions = [
-    { label: t("email"), value: WatchlistType.EMAIL },
-    { label: t("domain"), value: WatchlistType.DOMAIN },
+    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <Icon name="mail" className="h-4 w-4" /> },
+    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <Icon name="globe" className="h-4 w-4" /> },
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent enableOverflow>
-        <DialogHeader title={t("create_block_entry")} />
+        <DialogHeader title={t("add_to_blocklist")} />
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
               <Label htmlFor="type" className="text-emphasis mb-2 block text-sm font-medium">
-                {t("what_would_you_like_to_block")} <span className="text-destructive">*</span>
+                {t("what_would_you_like_to_block")}
               </Label>
               <Controller
                 name="type"
                 control={control}
                 rules={{ required: t("field_required") }}
                 render={({ field }) => (
-                  <Select
-                    {...field}
-                    options={typeOptions}
-                    onChange={(option) => {
-                      if (option) {
-                        field.onChange(option.value);
+                  <ToggleGroup
+                    value={field.value}
+                    onValueChange={(value) => {
+                      if (value) {
+                        field.onChange(value);
                         setValue("value", "");
                       }
                     }}
-                    value={typeOptions.find((opt) => opt.value === field.value)}
+                    options={typeOptions}
                   />
                 )}
               />
@@ -117,8 +117,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
 
             <div>
               <Label htmlFor="value" className="text-emphasis mb-2 block text-sm font-medium">
-                {watchType === WatchlistType.EMAIL ? t("email_address") : t("domain_name")}{" "}
-                <span className="text-destructive">*</span>
+                {watchType === WatchlistType.EMAIL ? t("email") : t("domain_name")}{" "}
               </Label>
               <Controller
                 name="value"
@@ -139,7 +138,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
 
             <div>
               <Label htmlFor="description" className="text-emphasis mb-2 block text-sm font-medium">
-                {t("description")} <span className="text-subtle font-normal">({t("optional")})</span>
+                {t("description")} <span className="text-muted font-normal">{t("optional")}</span>
               </Label>
               <Controller
                 name="description"
@@ -163,7 +162,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
               type="submit"
               loading={isSubmitting || createWatchlistEntry.isPending}
               disabled={isSubmitting || createWatchlistEntry.isPending}>
-              {t("create_entry")}
+              {t("add_to_blocklist")}
             </Button>
           </DialogFooter>
         </form>
