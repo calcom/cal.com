@@ -32,11 +32,11 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
-import { cancelWorkflowRemindersForReassignment } from "@calcom/features/ee/managed-event-types/reassignment/lib/cancelWorkflowReminders";
 import {
   ManagedEventAssignmentReasonService,
   ManagedEventReassignmentType,
-} from "@calcom/features/ee/managed-event-types/reassignment/lib/ManagedEventAssignmentReasonRecorder";
+} from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventAssignmentReasonRecorder";
+import { ManagedEventWorkflowReminderService } from "./ManagedEventWorkflowReminderService";
 import {
   findTargetChildEventType,
   validateManagedEventReassignment,
@@ -50,6 +50,7 @@ interface ManagedEventManualReassignmentServiceDeps {
   userRepository: UserRepository;
   eventTypeRepository: EventTypeRepository;
   assignmentReasonService: ManagedEventAssignmentReasonService;
+  workflowReminderService: ManagedEventWorkflowReminderService;
 }
 
 export interface ManagedEventManualReassignmentParams {
@@ -68,6 +69,7 @@ export class ManagedEventManualReassignmentService {
   private readonly userRepository: UserRepository;
   private readonly eventTypeRepository: EventTypeRepository;
   private readonly assignmentReasonService: ManagedEventAssignmentReasonService;
+  private readonly workflowReminderService: ManagedEventWorkflowReminderService;
   private readonly log = logger.getSubLogger({ prefix: ["ManagedEventManualReassignmentService"] });
 
   constructor(deps: ManagedEventManualReassignmentServiceDeps) {
@@ -76,6 +78,7 @@ export class ManagedEventManualReassignmentService {
     this.userRepository = deps.userRepository;
     this.eventTypeRepository = deps.eventTypeRepository;
     this.assignmentReasonService = deps.assignmentReasonService;
+    this.workflowReminderService = deps.workflowReminderService;
   }
 
   async execute({
@@ -469,7 +472,7 @@ export class ManagedEventManualReassignmentService {
         reassignLogger.info("Updated booking location and created calendar references", {
           location: bookingLocation,
           referencesCount: referencesToCreate.length,
-          videoCallUrl: bookingMetadataUpdate.videoCallUrl || null,
+          videoCallUrl: bookingMetadataUpdate.videoCallUrl ? "[redacted]" : null,
         });
       } catch (error) {
         reassignLogger.error("Error updating booking location and references", error);
@@ -481,9 +484,9 @@ export class ManagedEventManualReassignmentService {
     }
 
     try {
-      const cancelResult = await cancelWorkflowRemindersForReassignment({
-        workflowReminders: originalBookingFull.workflowReminders,
-      });
+      const cancelResult = await this.workflowReminderService.cancelWorkflowReminders(
+        originalBookingFull.workflowReminders
+      );
       reassignLogger.info(`Cancelled ${cancelResult.cancelledCount} workflow reminders`);
     } catch (error) {
       reassignLogger.error("Error cancelling workflow reminders", error);

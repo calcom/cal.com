@@ -1613,14 +1613,14 @@ export class EventTypeRepository {
             ...userSelectWithSelectedCalendars,
             credentials: {
               select: credentialForCalendarServiceSelect,
-              },
             },
           },
         },
-        take: limit + 1,                 // over-fetch for nextCursor
-        ...(cursor && { skip: 1, cursor: { id: cursor } }),
-        orderBy: { id: "asc" },           // deterministic pagination
-      });
+      },
+      take: limit + 1,                 // over-fetch for nextCursor
+      ...(cursor && { skip: 1, cursor: { id: cursor } }),
+      orderBy: { id: "asc" },           // deterministic pagination
+    });
 
     const [totalCount, rows] = await Promise.all([
       this.prismaClient.eventType.count({ where: eventTypeWhere }),

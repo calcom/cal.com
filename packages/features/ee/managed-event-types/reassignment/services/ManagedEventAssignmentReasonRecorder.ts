@@ -73,9 +73,3 @@ export class ManagedEventAssignmentReasonService {
     };
   }
 }
-
-/**
- * @deprecated Use ManagedEventAssignmentReasonService instead
- * Kept for backward compatibility
- */
-export default class ManagedEventAssignmentReasonRecorder extends ManagedEventAssignmentReasonService {}
