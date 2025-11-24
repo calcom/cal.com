@@ -16,7 +16,7 @@ const DefaultPagination = {
   skip: 0,
 };
 
-describe("GET /api/bookings", () => {
+describe("GET /api/bookings", async () => {
   let proUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
   let proUserBooking: Awaited<ReturnType<typeof prisma.booking.findFirstOrThrow>>;
   let memberUser: Awaited<ReturnType<typeof prisma.user.findFirstOrThrow>>;
@@ -50,8 +50,6 @@ describe("GET /api/bookings", () => {
       },
     });
   });
-  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-  const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
   it("Does not return bookings of other users when user has no permission", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({

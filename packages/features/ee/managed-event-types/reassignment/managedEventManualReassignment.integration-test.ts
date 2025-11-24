@@ -389,15 +389,24 @@ describe("managedEventManualReassignment - Integration Tests", () => {
         eventTypeId: childEventTypes[1].id,
         userId: newUser.id,
       },
-      include: {
-        attendees: true,
+      select: {
+        startTime: true,
+        endTime: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        },
       },
     });
 
     expect(newBooking).toBeTruthy();
     // Verify time is preserved
-    expect(newBooking?.startTime).toEqual(startTime);
-    expect(newBooking?.endTime).toEqual(endTime);
+    expect(newBooking?.startTime).toBe(startTime);
+    expect(newBooking?.endTime).toBe(endTime);
     // Verify attendees are copied
     expect(newBooking?.attendees.length).toBe(1);
     expect(newBooking?.attendees[0].email).toBe("attendee@test.com");

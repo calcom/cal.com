@@ -470,7 +470,6 @@ export class ManagedEventManualReassignmentService {
         });
 
         reassignLogger.info("Updated booking location and created calendar references", {
-          location: bookingLocation,
           referencesCount: referencesToCreate.length,
           videoCallUrl: bookingMetadataUpdate.videoCallUrl ? "[redacted]" : null,
         });
