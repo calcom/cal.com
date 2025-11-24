@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
+    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "dev": "PORT=3003 next dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",

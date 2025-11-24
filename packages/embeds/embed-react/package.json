@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite --port=3101 --open",
-    "build": "rm -rf dist && vite build && cp ./dist/Cal.es.js ./dist/Cal.es.mjs && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "vite build && node -e \"require('fs').copyFileSync('./dist/Cal.es.js','./dist/Cal.es.mjs')\" && tsc --emitDeclarationOnly --declarationDir dist",
     "preview": "vite preview",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
@@ -24,7 +24,7 @@
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-react' && yarn withEmbedPublishEnv build && yarn packaged:tests",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.mjs",

@@ -22,6 +22,8 @@ services:
       - POSTGRES_DB=calendso
     networks:
       - stack
+    ports:
+      - "5450:5432"
 
   redis:
     container_name: redis

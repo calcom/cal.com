@@ -12,13 +12,13 @@
     "directory": "packages/embeds/embed-snippet"
   },
   "scripts": {
-    "build": "rm -rf dist && vite build && tsc --emitDeclarationOnly --declarationDir dist",
+    "build": "vite build && tsc --emitDeclarationOnly --declarationDir dist",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-snippet' && yarn withEmbedPublishEnv build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "files": [
     "dist"

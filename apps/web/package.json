@@ -6,7 +6,7 @@
     "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
+    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "dev": "turbo run copy-app-store-static && next dev --turbopack",
     "dev:scan": "yarn dev & npx --yes react-scan@latest localhost:3000",
     "dev:cron": "npx tsx cron-tester.ts",

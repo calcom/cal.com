@@ -13,9 +13,9 @@
   "scripts": {
     "embed-dev": "yarn workspace @calcom/embed-core dev",
     "embed-web-start": "yarn workspace @calcom/web start",
-    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
+    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && node -e \"require('fs').cpSync('../../../apps/web/public/embed','./dist/embed',{recursive:true})\"",
     "__dev": "yarn tailwind && vite build --mode development",
-    "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) NEXT_PUBLIC_EMBED_VERSION=$(node -p 'require(\"./package.json\").version') yarn __build",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && node -e \"const{execSync:e}=require('child_process');process.env.NEXT_PUBLIC_EMBED_FINGER_PRINT=e('git rev-parse --short HEAD').toString().trim();process.env.NEXT_PUBLIC_EMBED_VERSION=require('./package.json').version;e('yarn __build',{stdio:'inherit',env:process.env})\"",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
     "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css",
@@ -35,7 +35,7 @@
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-core' && yarn withEmbedPublishEnv build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
+    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('../../../apps/web/public/embed',{recursive:true,force:true})\""
   },
   "files": [
     "dist"
