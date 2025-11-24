@@ -1,6 +1,5 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { LuckyUserService } from "@/lib/services/lucky-user.service";
@@ -13,7 +12,6 @@ import type { PrismaClient } from "@calcom/prisma";
 @Injectable()
 export class RegularBookingService extends BaseRegularBookingService {
   constructor(
-    cacheService: CacheService,
     checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService,
     prismaWriteService: PrismaWriteService,
     bookingRepository: PrismaBookingRepository,
@@ -22,7 +20,6 @@ export class RegularBookingService extends BaseRegularBookingService {
     userRepository: PrismaUserRepository
   ) {
     super({
-      cacheService,
       checkBookingAndDurationLimitsService,
       prismaClient: prismaWriteService.prisma as unknown as PrismaClient,
       bookingRepository,
