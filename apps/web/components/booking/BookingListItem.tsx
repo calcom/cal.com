@@ -8,7 +8,6 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,7 +22,6 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -35,11 +33,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
-import { TextAreaField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
-import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -47,13 +43,14 @@ import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTit
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import type { BookingAttendee } from "../../modules/bookings/types";
+import { AcceptBookingButton } from "./AcceptBookingButton";
+import { RejectBookingButton } from "./RejectBookingButton";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
   useBookingActionsStoreContext,
   BookingActionsStoreProvider,
 } from "./actions/BookingActionsStoreProvider";
 import {
-  getPendingActions,
   getCancelEventAction,
   shouldShowPendingActions,
   shouldShowRecurringCancelAction,
@@ -147,31 +144,11 @@ function BookingListItem(booking: BookingItemProps) {
     t,
     i18n: { language },
   } = useLocale();
-  const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
   const attendeeList = booking.attendees.map((attendee) => ({
     ...attendee,
     noShow: attendee.noShow || false,
   }));
-
-  const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
-      } else {
-        showToast(t("booking_confirmation_success"), "success");
-      }
-      utils.viewer.bookings.invalidate();
-      utils.viewer.me.bookingUnconfirmedCount.invalidate();
-    },
-    onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
-      utils.viewer.bookings.invalidate();
-    },
-  });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
@@ -213,22 +190,6 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   const cardCharged = booking?.payment[0]?.success;
 
-  const bookingConfirm = async (confirm: boolean) => {
-    let body = {
-      bookingId: booking.id,
-      confirmed: confirm,
-      reason: rejectionReason,
-    };
-    /**
-     * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-     * the "Recurring" tab and "Unconfirmed" tab, to support confirming discretionally in the "Recurring" tab.
-     */
-    if ((isTabRecurring || isTabUnconfirmed) && isRecurring) {
-      body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
-    }
-    mutation.mutate(body);
-  };
-
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;
   };
@@ -260,18 +221,6 @@ function BookingListItem(booking: BookingItemProps) {
     getSeatReferenceUid,
     t,
   } as BookingActionContext;
-
-  const basePendingActions = getPendingActions(actionContext);
-  const pendingActions: ActionType[] = basePendingActions.map((action) => ({
-    ...action,
-    onClick:
-      action.id === "reject"
-        ? () => setRejectionDialogIsOpen(true)
-        : action.id === "confirm"
-        ? () => bookingConfirm(true)
-        : undefined,
-    disabled: action.disabled || mutation.isPending,
-  })) as ActionType[];
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
@@ -317,219 +266,202 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   return (
-    <>
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <div
-        data-testid="booking-item"
-        data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
-        <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
-            <div className="flex h-full items-center">
-              {eventTypeColor && (
-                <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
-              )}
-              <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
-                <div className="cursor-pointer py-4">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                  {!isPending && (
-                    <div>
-                      {(provider?.label ||
-                        (typeof locationToDisplay === "string" &&
-                          locationToDisplay?.startsWith("https://"))) &&
-                        locationToDisplay.startsWith("http") && (
-                          <a
-                            href={locationToDisplay}
-                            onClick={(e) => e.stopPropagation()}
-                            target="_blank"
-                            title={locationToDisplay}
-                            rel="noreferrer"
-                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                            <div className="flex items-center gap-2">
-                              {provider?.iconUrl && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={provider.iconUrl}
-                                  width={16}
-                                  height={16}
-                                  className="h-4 w-4 rounded-sm"
-                                  alt={`${provider?.label} logo`}
-                                />
-                              )}
-                              {provider?.label
-                                ? t("join_event_location", { eventLocationType: provider?.label })
-                                : t("join_meeting")}
-                            </div>
-                          </a>
-                        )}
-                    </div>
-                  )}
-                </div>
-              </ConditionalLink>
-            </div>
-          </div>
-          <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-            <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
-              {/* Time and Badges for mobile */}
-              <div className="w-full pb-2 pt-4 sm:hidden">
-                <div className="flex w-full items-center justify-between sm:hidden">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle pr-2 text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                </div>
-
-                {isPending && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("unconfirmed")}
-                  </Badge>
-                )}
-                {booking.eventType?.team && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
-                    {booking.eventType.team.name}
-                  </Badge>
-                )}
-                {showPendingPayment && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("pending_payment")}
-                  </Badge>
-                )}
-                {recurringDates !== undefined && (
-                  <div className="text-muted text-sm sm:hidden">
-                    <RecurringBookingsTooltip
-                      userTimeFormat={userTimeFormat}
-                      userTimeZone={userTimeZone}
-                      booking={booking}
-                      recurringDates={recurringDates}
-                    />
-                  </div>
-                )}
-              </div>
-
+    <div
+      data-testid="booking-item"
+      data-today={String(booking.isToday)}
+      className="hover:bg-muted group w-full">
+      <div className="flex flex-col sm:flex-row">
+        <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <div className="flex h-full items-center">
+            {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
+            <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
               <div className="cursor-pointer py-4">
-                <div
-                  title={title}
-                  className={classNames(
-                    "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
-                    isCancelled ? "line-through" : ""
-                  )}>
-                  {title}
-                  <span> </span>
-
-                  {showPendingPayment && (
-                    <Badge className="hidden sm:inline-flex" variant="orange">
-                      {t("pending_payment")}
-                    </Badge>
-                  )}
-                </div>
-                {booking.description && (
-                  <div
-                    className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                    title={booking.description}>
-                    &quot;{booking.description}&quot;
-                  </div>
-                )}
-                {booking.attendees.length !== 0 && (
-                  <DisplayAttendees
-                    attendees={attendeeList}
-                    user={booking.user}
-                    currentEmail={userEmail}
-                    bookingUid={booking.uid}
-                    isBookingInPast={isBookingInPast}
+                <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                <div className="text-subtle text-sm">
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                  <MeetingTimeInTimezones
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
+                    startTime={booking.startTime}
+                    endTime={booking.endTime}
+                    attendees={booking.attendees}
                   />
-                )}
-                {isCancelled && booking.rescheduled && (
-                  <div className="mt-2 inline-block md:hidden">
-                    <RequestSentMessage />
+                </div>
+                {!isPending && (
+                  <div>
+                    {(provider?.label ||
+                      (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                      locationToDisplay.startsWith("http") && (
+                        <a
+                          href={locationToDisplay}
+                          onClick={(e) => e.stopPropagation()}
+                          target="_blank"
+                          title={locationToDisplay}
+                          rel="noreferrer"
+                          className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                          <div className="flex items-center gap-2">
+                            {provider?.iconUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={provider.iconUrl}
+                                width={16}
+                                height={16}
+                                className="h-4 w-4 rounded-sm"
+                                alt={`${provider?.label} logo`}
+                              />
+                            )}
+                            {provider?.label
+                              ? t("join_event_location", { eventLocationType: provider?.label })
+                              : t("join_meeting")}
+                          </div>
+                        </a>
+                      )}
                   </div>
                 )}
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
-            {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
-            {isCancelled && booking.rescheduled && (
-              <div className="hidden items-center md:flex">
-                <RequestSentMessage />
-              </div>
-            )}
-            {shouldShowIndividualReportButton(actionContext) && (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="icon"
-                  color="destructive"
-                  StartIcon={reportActionWithHandler.icon}
-                  onClick={reportActionWithHandler.onClick}
-                  disabled={reportActionWithHandler.disabled}
-                  data-testid={reportActionWithHandler.id}
-                  className="min-h-[34px] min-w-[34px]"
-                  tooltip={reportActionWithHandler.label}
-                />
-              </div>
-            )}
-            <BookingActionsDropdown booking={booking} context="list" />
-          </div>
         </div>
-        <BookingItemBadges
-          booking={booking}
-          isPending={isPending}
-          isRejected={isRejected}
-          recurringDates={recurringDates}
-          userTimeFormat={userTimeFormat}
-          userTimeZone={userTimeZone}
-          isRescheduled={isRescheduled}
-        />
+        <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
+          <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
+            {/* Time and Badges for mobile */}
+            <div className="w-full pb-2 pt-4 sm:hidden">
+              <div className="flex w-full items-center justify-between sm:hidden">
+                <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                <div className="text-subtle pr-2 text-sm">
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                  <MeetingTimeInTimezones
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
+                    startTime={booking.startTime}
+                    endTime={booking.endTime}
+                    attendees={booking.attendees}
+                  />
+                </div>
+              </div>
+
+              {isPending && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
+              {booking.eventType?.team && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                  {booking.eventType.team.name}
+                </Badge>
+              )}
+              {showPendingPayment && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                  {t("pending_payment")}
+                </Badge>
+              )}
+              {recurringDates !== undefined && (
+                <div className="text-muted text-sm sm:hidden">
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="cursor-pointer py-4">
+              <div
+                title={title}
+                className={classNames(
+                  "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
+                  isCancelled ? "line-through" : ""
+                )}>
+                {title}
+                <span> </span>
+
+                {showPendingPayment && (
+                  <Badge className="hidden sm:inline-flex" variant="orange">
+                    {t("pending_payment")}
+                  </Badge>
+                )}
+              </div>
+              {booking.description && (
+                <div
+                  className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                  title={booking.description}>
+                  &quot;{booking.description}&quot;
+                </div>
+              )}
+              {booking.attendees.length !== 0 && (
+                <DisplayAttendees
+                  attendees={attendeeList}
+                  user={booking.user}
+                  currentEmail={userEmail}
+                  bookingUid={booking.uid}
+                  isBookingInPast={isBookingInPast}
+                />
+              )}
+              {isCancelled && booking.rescheduled && (
+                <div className="mt-2 inline-block md:hidden">
+                  <RequestSentMessage />
+                </div>
+              )}
+            </div>
+          </ConditionalLink>
+        </div>
+        <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
+          {shouldShowPendingActions(actionContext) && (
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <RejectBookingButton
+                bookingId={booking.id}
+                recurringEventId={booking.recurringEventId}
+                isRecurring={isRecurring}
+                isTabRecurring={isTabRecurring}
+                isTabUnconfirmed={isTabUnconfirmed}
+              />
+              <AcceptBookingButton
+                bookingId={booking.id}
+                recurringEventId={booking.recurringEventId}
+                isRecurring={isRecurring}
+                isTabRecurring={isTabRecurring}
+                isTabUnconfirmed={isTabUnconfirmed}
+              />
+            </div>
+          )}
+          {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+          {isCancelled && booking.rescheduled && (
+            <div className="hidden items-center md:flex">
+              <RequestSentMessage />
+            </div>
+          )}
+          {shouldShowIndividualReportButton(actionContext) && (
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="icon"
+                color="destructive"
+                StartIcon={reportActionWithHandler.icon}
+                onClick={reportActionWithHandler.onClick}
+                disabled={reportActionWithHandler.disabled}
+                data-testid={reportActionWithHandler.id}
+                className="min-h-[34px] min-w-[34px]"
+                tooltip={reportActionWithHandler.label}
+              />
+            </div>
+          )}
+          <BookingActionsDropdown booking={booking} context="list" />
+        </div>
       </div>
-    </>
+      <BookingItemBadges
+        booking={booking}
+        isPending={isPending}
+        isRejected={isRejected}
+        recurringDates={recurringDates}
+        userTimeFormat={userTimeFormat}
+        userTimeZone={userTimeZone}
+        isRescheduled={isRescheduled}
+      />
+    </div>
   );
 }
 

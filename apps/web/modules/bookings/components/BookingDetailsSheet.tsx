@@ -11,6 +11,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
@@ -29,6 +30,8 @@ import {
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { AcceptBookingButton } from "../../../components/booking/AcceptBookingButton";
+import { RejectBookingButton } from "../../../components/booking/RejectBookingButton";
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
@@ -133,6 +136,7 @@ function BookingDetailsSheetInner({
   };
 
   const statusBadge = getStatusBadge();
+  const isPending = booking.status === BookingStatus.PENDING;
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
@@ -239,11 +243,26 @@ function BookingDetailsSheetInner({
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
           <div className="flex w-full min-w-0 flex-row flex-wrap items-center justify-end gap-2 px-4 pb-4 pt-4">
-            <JoinMeetingButton
-              location={booking.location}
-              metadata={booking.metadata}
-              bookingStatus={booking.status}
-            />
+            {isPending ? (
+              <>
+                <RejectBookingButton
+                  bookingId={booking.id}
+                  recurringEventId={booking.recurringEventId}
+                  isRecurring={!!booking.recurringEventId}
+                />
+                <AcceptBookingButton
+                  bookingId={booking.id}
+                  recurringEventId={booking.recurringEventId}
+                  isRecurring={!!booking.recurringEventId}
+                />
+              </>
+            ) : (
+              <JoinMeetingButton
+                location={booking.location}
+                metadata={booking.metadata}
+                bookingStatus={booking.status}
+              />
+            )}
 
             <BookingActionsDropdown
               booking={{
@@ -283,7 +302,6 @@ function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
 }
 
 function WhoSection({ booking }: { booking: BookingOutput }) {
-  console.log("💡 booking", booking);
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
