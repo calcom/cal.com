@@ -26,7 +26,7 @@ const content: Record<GatedFeatures, FeatureContent> = {
       "compliance_check",
       "and_more_features",
     ],
-    learnMoreUrl: "https://go.cal.com/enterprise",
+    learnMoreUrl: "https://cal.com/enterprise",
     ctaUrl: "/settings/organizations/new",
   },
 };
@@ -64,10 +64,12 @@ export function GatedFeaturesModal() {
             </ul>
           </div>
         </div>
-        <div className="w-full bg-muted border-subtle flex items-center justify-end rounded-b-2xl border-t px-6 py-5 gap-2">
+        <div className="w-full bg-muted border-subtle flex items-center justify-between rounded-b-2xl border-t px-6 py-5">
           <Button color="minimal" onClick={close}>{t("dismiss")}</Button>
-          <Button color="secondary" target="_blank" href={learnMoreUrl}>{t("learn_more")}</Button>
-          <Button color="primary" href={ctaUrl}>{t("upgrade")}</Button>
+          <div className="flex gap-2">
+            <Button color="secondary" target="_blank" href={learnMoreUrl}>{t("learn_more")}</Button>
+            <Button color="primary" href={ctaUrl}>{t("upgrade")}</Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

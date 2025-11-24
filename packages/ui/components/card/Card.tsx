@@ -251,22 +251,22 @@ export function Card({
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <>
-              {learnMore.onClick ? (
+              {learnMore.href ? (
+                <LinkComponent
+                  href={learnMore.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </LinkComponent>
+              ) : learnMore.onClick ? (
                 <button
                   color="minimal"
                   onClick={learnMore.onClick}
                   className={classNames("text-default text-xs font-medium", buttonClassName)}>
                   {learnMore.text}
                 </button>
-              ) : learnMore.href ? (
-                <LinkComponent
-                  href={learnMore.href}
-                  target="_blank"
-                  color="minimal"
-                  rel="noreferrer"
-                  className={classNames("text-default text-xs font-medium", buttonClassName)}>
-                  {learnMore.text}
-                </LinkComponent>
               ) : undefined}
             </>
           )}

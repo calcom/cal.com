@@ -242,15 +242,11 @@ function Tips() {
                   description={t(tip.description)}
                   learnMore={
                     isTopTip
-                      ? tip.onClick
-                        ? {
-                          text: t("learn_more"),
-                          onClick: tip.onClick,
-                        }
-                        : {
-                          href: tip.href,
-                          text: t("learn_more"),
-                        }
+                      ? {
+                        href: tip.href,
+                        text: t("learn_more"),
+                        onClick: tip.onClick,
+                      }
                       : undefined
                   }
                   actionButton={
