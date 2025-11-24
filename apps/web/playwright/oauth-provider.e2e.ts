@@ -16,7 +16,7 @@ let client: {
   redirectUri: string;
   orginalSecret: string;
   name: string;
-  clientSecret: string;
+  clientSecret: string | null;
   logo: string | null;
 };
 
