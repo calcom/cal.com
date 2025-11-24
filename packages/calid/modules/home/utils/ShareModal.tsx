@@ -12,6 +12,8 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -140,6 +142,7 @@ const SocialIcon = ({ name }: { name: string }) => {
 };
 
 export function ShareModal({ isOpen, onClose, shareUrl }: ShareModalProps) {
+  const { t } = useLocale();
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);
     triggerToast("Link copied!", "success");
@@ -157,8 +160,8 @@ export function ShareModal({ isOpen, onClose, shareUrl }: ShareModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent size="md" showCloseButton>
         <DialogHeader>
-          <DialogTitle>Share Now</DialogTitle>
-          <DialogDescription>Choose your preferred platform</DialogDescription>
+          <DialogTitle>{t("share_now")}</DialogTitle>
+          <DialogDescription>{t("choose_platform")}</DialogDescription>
         </DialogHeader>
         <div className="mt-6 space-y-6">
           <div className="space-y-3">
@@ -174,7 +177,7 @@ export function ShareModal({ isOpen, onClose, shareUrl }: ShareModalProps) {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Icon name="share-2" className="h-5 w-5" />
-              <h3 className="text-sm font-medium">Share on Social Platforms</h3>
+              <h3 className="text-sm font-medium">{t("share_on_social_platforms")}</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {socialPlatforms.map((platform) => (

@@ -3651,5 +3651,8 @@
   "meetings": "Meetings",
   "later_today": "Later Today",
   "most_used_apps": "Most used apps",
-  "view_all_apps": "View all apps"
+  "view_all_apps": "View all apps",
+  "share_now": "Share now",
+  "choose_platform": "Choose your preferred platform",
+  "share_on_social_platforms": "Share on social platforms"
 }
