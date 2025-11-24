@@ -37,16 +37,16 @@ describe("BillingService - Permission Checks", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(false);
+            vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(false);
 
-      await expect(
-        service.generatePhoneNumberCheckoutSession({
-          userId: 1,
-          teamId: 42,
-          agentId: "agent-123",
-          workflowId: "workflow-123",
-        })
-      ).rejects.toThrow("Insufficient permission to create phone numbers for team 42.");
+            await expect(
+              service.generatePhoneNumberCheckoutSession({
+                userId: 1,
+                teamId: 42,
+                agentId: "agent-123",
+                workflowId: "workflow-123",
+              })
+            ).rejects.toThrow("Insufficient permission to create phone numbers for team 42.");
 
       expect(mocks.mockPermissionService.checkPermission).toHaveBeenCalledWith({
         userId: 1,
@@ -61,15 +61,15 @@ describe("BillingService - Permission Checks", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(false);
+            vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(false);
 
-      await expect(
-        service.cancelPhoneNumberSubscription({
-          phoneNumberId: 1,
-          userId: 1,
-          teamId: 42,
-        })
-      ).rejects.toThrow("Insufficient permission to delete phone numbers for team 42.");
+            await expect(
+              service.cancelPhoneNumberSubscription({
+                phoneNumberId: 1,
+                userId: 1,
+                teamId: 42,
+              })
+            ).rejects.toThrow("Insufficient permission to delete phone numbers for team 42.");
 
       expect(mocks.mockPermissionService.checkPermission).toHaveBeenCalledWith({
         userId: 1,
@@ -104,7 +104,7 @@ describe("BillingService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to delete phone number +1234567890.");
 
-      expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
+      expect(mocks.mockPermissionService.checkPermission).not.toHaveBeenCalled();
 
       expect(mocks.mockPhoneNumberRepository.updateSubscriptionStatus).not.toHaveBeenCalled();
     });
@@ -114,7 +114,7 @@ describe("BillingService - Permission Checks", () => {
     it("should deny when phone number does not belong to the team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
 
       vi.mocked(mocks.mockPhoneNumberRepository.findById).mockResolvedValue(
         createMockPhoneNumberRecord({

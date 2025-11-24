@@ -41,7 +41,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(false);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(false);
       
       vi.mocked(mocks.mockAgentRepository.findByIdWithUserAccess).mockResolvedValue(
         createMockDatabaseAgent({ id: "db-agent-123", teamId: 42 })
@@ -73,7 +73,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should allow when permissionCheckService returns true", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockAgentRepository.findByIdWithUserAccess).mockResolvedValue(
         createMockDatabaseAgent({ id: "db-agent-123", providerAgentId: "agent-123", teamId: 42 })
@@ -110,7 +110,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(false);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(false);
 
       await expect(
         service.deletePhoneNumber({
@@ -135,7 +135,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should allow when permissionCheckService returns true", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -184,7 +184,7 @@ describe("PhoneNumberService - Permission Checks", () => {
         deleteFromDB: false,
       });
 
-      expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
+      expect(mocks.mockPermissionService.checkPermission).not.toHaveBeenCalled();
 
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -209,7 +209,7 @@ describe("PhoneNumberService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to delete phone number +1234567890.");
 
-      expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
+      expect(mocks.mockPermissionService.checkPermission).not.toHaveBeenCalled();
 
       expect(mocks.mockRetellRepository.deletePhoneNumber).not.toHaveBeenCalled();
     });
@@ -219,7 +219,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when phone number does not belong to the team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -254,7 +254,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should allow when phone number belongs to the team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -289,7 +289,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when permissionCheckService returns false", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(false);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(false);
 
       await expect(
         service.updatePhoneNumberWithAgents({
@@ -314,7 +314,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should allow when permissionCheckService returns true", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -360,7 +360,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when agent belongs to a different team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -423,7 +423,7 @@ describe("PhoneNumberService - Permission Checks", () => {
         inboundAgentId: "inbound-agent-123",
       });
 
-      expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
+      expect(mocks.mockPermissionService.checkPermission).not.toHaveBeenCalled();
 
       expect(mocks.mockPhoneNumberRepository.updateAgents).toHaveBeenCalledWith({
         id: 1,
@@ -452,7 +452,7 @@ describe("PhoneNumberService - Permission Checks", () => {
         })
       ).rejects.toThrow("Insufficient permission to update phone number +1234567890.");
 
-      expect(mocks.mockPermissionService.checkPermissions).not.toHaveBeenCalled();
+      expect(mocks.mockPermissionService.checkPermission).not.toHaveBeenCalled();
 
       expect(mocks.mockPhoneNumberRepository.updateAgents).not.toHaveBeenCalled();
     });
@@ -462,7 +462,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should deny when phone number does not belong to the team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
@@ -497,7 +497,7 @@ describe("PhoneNumberService - Permission Checks", () => {
     it("should allow when phone number belongs to the team", async () => {
       const { service, mocks } = buildService();
       
-      vi.mocked(mocks.mockPermissionService.checkPermissions).mockResolvedValue(true);
+      vi.mocked(mocks.mockPermissionService.checkPermission).mockResolvedValue(true);
       
       vi.mocked(mocks.mockPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(
         createMockPhoneNumberRecord({
