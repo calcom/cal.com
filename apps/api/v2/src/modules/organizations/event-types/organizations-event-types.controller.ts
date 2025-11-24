@@ -159,7 +159,10 @@ export class OrganizationsEventTypesController {
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
-  @ApiOperation({ summary: "Get team event types" })
+  @ApiOperation({
+    summary: "Get team event types",
+    description: "Event types are returned ordered by creation date, newest to oldest (by ID descending).",
+  })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -191,7 +194,10 @@ export class OrganizationsEventTypesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/event-types")
-  @ApiOperation({ summary: "Get all team event types" })
+  @ApiOperation({
+    summary: "Get all team event types",
+    description: "Event types are returned ordered by creation date, newest to oldest (by ID descending).",
+  })
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination

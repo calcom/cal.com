@@ -155,6 +155,8 @@ export class EventTypesController_2024_06_14 {
     summary: "Get all event types",
     description: `Hidden event types are returned only if authentication is provided and it belongs to the event type owner.
       
+      Event types are returned ordered by creation date, newest to oldest (by ID descending).
+      
       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })

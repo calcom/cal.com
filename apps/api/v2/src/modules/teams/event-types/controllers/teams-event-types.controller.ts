@@ -136,7 +136,10 @@ export class TeamsEventTypesController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get a team event type" })
+  @ApiOperation({
+    summary: "Get a team event type",
+    description: "Event types are returned ordered by creation date, newest to oldest (by ID descending).",
+  })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14

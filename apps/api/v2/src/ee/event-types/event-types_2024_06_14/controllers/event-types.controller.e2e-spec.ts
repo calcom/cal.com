@@ -653,6 +653,12 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(2);
 
+      // Verify ordering: event types are returned newest to oldest (by id descending)
+      // hiddenEventType was created after eventType, so it should have a higher ID and appear first
+      expect(responseBody.data[0].id).toBeGreaterThan(responseBody.data[1].id);
+      expect(responseBody.data[0].id).toEqual(hiddenEventType.id);
+      expect(responseBody.data[1].id).toEqual(eventType.id);
+
       const fetchedEventType = responseBody.data?.find((et) => et.id === eventType.id);
       const fetchedHiddenEventType = responseBody.data?.find((et) => et.id === hiddenEventType.id);
 
