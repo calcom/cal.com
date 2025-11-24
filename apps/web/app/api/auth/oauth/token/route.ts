@@ -39,12 +39,6 @@ async function handler(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (code_verifier) {
-      return NextResponse.json(
-        { message: "code_verifier is not supported for confidential clients. Use client_secret instead." },
-        { status: 400 }
-      );
-    }
 
     const [hashedSecret] = generateSecret(client_secret);
     if (client.clientSecret !== hashedSecret) {
@@ -94,6 +88,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  // PKCE verification: Mandatory for PUBLIC clients, optional for CONFIDENTIAL clients
   if (client.clientType === "PUBLIC") {
     if (!accessCode.codeChallenge) {
       return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
@@ -102,6 +97,15 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
     }
 
+    const method = accessCode.codeChallengeMethod || "S256";
+    if (method !== "S256") {
+      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+    }
+    if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
+      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+    }
+  } else if (client.clientType === "CONFIDENTIAL" && code_verifier && accessCode.codeChallenge) {
+    // Optional PKCE verification for CONFIDENTIAL clients (defense in depth)
     const method = accessCode.codeChallengeMethod || "S256";
     if (method !== "S256") {
       return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
@@ -129,7 +133,8 @@ async function handler(req: NextRequest) {
     scope: accessCode.scopes,
     token_type: "Refresh Token",
     clientId: client_id,
-    ...(client.clientType === "PUBLIC" && {
+    // Include PKCE information for clients that used PKCE (PUBLIC mandatory, CONFIDENTIAL optional)
+    ...(accessCode.codeChallenge && {
       codeChallenge: accessCode.codeChallenge,
       codeChallengeMethod: accessCode.codeChallengeMethod,
     }),

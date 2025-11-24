@@ -595,6 +595,210 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
   });
 });
 
+test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Security)", () => {
+  test("should accept CONFIDENTIAL client with PKCE for defense in depth", async ({ page, users }) => {
+    const user = await users.create({ username: "test user conf pkce", name: "test user conf pkce" });
+    await user.apiLogin();
+
+    // Generate PKCE values
+    const pkce = generatePKCE();
+
+    // Authorization request with PKCE challenge (even for CONFIDENTIAL client)
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&code_challenge=${pkce.codeChallenge}&code_challenge_method=${pkce.codeChallengeMethod}`
+    );
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction(() => {
+      return window.location.href.startsWith("https://example.com");
+    });
+
+    const url = new URL(page.url());
+    const code = url.searchParams.get("code");
+
+    // Token exchange with both client_secret AND code_verifier (dual authentication)
+    const tokenForm = new URLSearchParams();
+    tokenForm.append("code", code ?? "");
+    tokenForm.append("client_id", client.clientId);
+    tokenForm.append("client_secret", client.orginalSecret);
+    tokenForm.append("grant_type", "authorization_code");
+    tokenForm.append("redirect_uri", client.redirectUri);
+    tokenForm.append("code_verifier", pkce.codeVerifier);
+
+    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
+      body: tokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    expect(tokenResponse.status).toBe(200);
+    expect(tokenData.access_token).toBeDefined();
+    expect(tokenData.token_type).toBe("bearer");
+    expect(tokenData.refresh_token).toBeDefined();
+    expect(tokenData.expires_in).toBe(1800);
+
+    // Verify token works
+    const meResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    const meData = await meResponse.json();
+    expect(meData.username.startsWith("test user conf pkce")).toBe(true);
+
+    // Test refresh with both client_secret and code_verifier (enhanced security)
+    const refreshTokenForm = new URLSearchParams();
+    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
+    refreshTokenForm.append("client_id", client.clientId);
+    refreshTokenForm.append("client_secret", client.orginalSecret);
+    refreshTokenForm.append("grant_type", "refresh_token");
+    refreshTokenForm.append("code_verifier", pkce.codeVerifier);
+
+    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
+      body: refreshTokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const refreshTokenData = await refreshTokenResponse.json();
+
+    expect(refreshTokenResponse.status).toBe(200);
+    expect(refreshTokenData.access_token).toBeDefined();
+    expect(refreshTokenData.access_token).not.toBe(tokenData.access_token); // New token
+    expect(refreshTokenData.refresh_token).toBeDefined();
+  });
+
+  test("should reject CONFIDENTIAL client refresh without code_verifier when PKCE was used", async ({ page, users }) => {
+    const user = await users.create({ username: "test user conf no verifier", name: "test user conf no verifier" });
+    await user.apiLogin();
+
+    // Generate PKCE values for initial authorization
+    const pkce = generatePKCE();
+
+    // Authorization with PKCE
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&code_challenge=${pkce.codeChallenge}&code_challenge_method=${pkce.codeChallengeMethod}`
+    );
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction(() => {
+      return window.location.href.startsWith("https://example.com");
+    });
+
+    const url = new URL(page.url());
+    const code = url.searchParams.get("code");
+
+    // Token exchange with both credentials
+    const tokenForm = new URLSearchParams();
+    tokenForm.append("code", code ?? "");
+    tokenForm.append("client_id", client.clientId);
+    tokenForm.append("client_secret", client.orginalSecret);
+    tokenForm.append("grant_type", "authorization_code");
+    tokenForm.append("redirect_uri", client.redirectUri);
+    tokenForm.append("code_verifier", pkce.codeVerifier);
+
+    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
+      body: tokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+    expect(tokenResponse.status).toBe(200);
+
+    // Test refresh with ONLY client_secret (no code_verifier) - should FAIL since PKCE was used originally
+    const refreshTokenForm = new URLSearchParams();
+    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
+    refreshTokenForm.append("client_id", client.clientId);
+    refreshTokenForm.append("client_secret", client.orginalSecret);
+    refreshTokenForm.append("grant_type", "refresh_token");
+    // Intentionally not providing code_verifier
+
+    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
+      body: refreshTokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const refreshTokenData = await refreshTokenResponse.json();
+
+    expect(refreshTokenResponse.status).toBe(400);
+    expect(refreshTokenData.message).toBe("code_verifier required when PKCE was used in original authorization");
+  });
+
+  test("should allow CONFIDENTIAL client refresh with only client_secret when PKCE was NOT used", async ({ page, users }) => {
+    const user = await users.create({ username: "test user conf no pkce", name: "test user conf no pkce" });
+    await user.apiLogin();
+
+    // Authorization WITHOUT PKCE challenge (traditional CONFIDENTIAL client flow)
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+    );
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction(() => {
+      return window.location.href.startsWith("https://example.com");
+    });
+
+    const url = new URL(page.url());
+    const code = url.searchParams.get("code");
+
+    // Token exchange with ONLY client_secret (no PKCE)
+    const tokenForm = new URLSearchParams();
+    tokenForm.append("code", code ?? "");
+    tokenForm.append("client_id", client.clientId);
+    tokenForm.append("client_secret", client.orginalSecret);
+    tokenForm.append("grant_type", "authorization_code");
+    tokenForm.append("redirect_uri", client.redirectUri);
+
+    const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
+      body: tokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+    expect(tokenResponse.status).toBe(200);
+
+    // Refresh with ONLY client_secret - should work since PKCE was never used
+    const refreshTokenForm = new URLSearchParams();
+    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
+    refreshTokenForm.append("client_id", client.clientId);
+    refreshTokenForm.append("client_secret", client.orginalSecret);
+    refreshTokenForm.append("grant_type", "refresh_token");
+
+    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
+      body: refreshTokenForm.toString(),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    const refreshTokenData = await refreshTokenResponse.json();
+
+    expect(refreshTokenResponse.status).toBe(200);
+    expect(refreshTokenData.access_token).toBeDefined();
+    expect(refreshTokenData.access_token).not.toBe(tokenData.access_token);
+    expect(refreshTokenData.token_type).toBe("bearer");
+  });
+});
+
 const createTestCLient = async () => {
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");

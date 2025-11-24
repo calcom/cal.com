@@ -363,11 +363,24 @@ describe("POST /api/auth/oauth/token", () => {
       expect(data.message).toBe("Invalid client_secret");
     });
 
-    it("should reject CONFIDENTIAL client with code_verifier", async () => {
+    it("should accept CONFIDENTIAL client with code_verifier for enhanced security", async () => {
+      const mockAccessCodeWithPKCE = {
+        userId: 1,
+        teamId: null,
+        scopes: [] as const,
+        codeChallenge: "test_challenge",
+        codeChallengeMethod: "S256",
+      } as const;
+
       prismaMock.oAuthClient.findFirst.mockResolvedValue(
         mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>
       );
+      prismaMock.accessCode.findFirst.mockResolvedValue(
+        mockAccessCodeWithPKCE as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
+      );
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
       mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
+      mockVerifyCodeChallenge.mockReturnValue(true);
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
@@ -383,10 +396,53 @@ describe("POST /api/auth/oauth/token", () => {
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.message).toBe(
-        "code_verifier is not supported for confidential clients. Use client_secret instead."
+      expect(response.status).toBe(200);
+      expect(data).toEqual({
+        access_token: "mock_jwt_token",
+        token_type: "bearer",
+        refresh_token: "mock_jwt_token",
+        expires_in: 1800,
+      });
+
+      expect(mockGenerateSecret).toHaveBeenCalledWith("plain_secret");
+      expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("test_verifier", "test_challenge", "S256");
+    });
+
+    it("should reject CONFIDENTIAL client with invalid code_verifier", async () => {
+      const mockAccessCodeWithPKCE = {
+        userId: 1,
+        teamId: null,
+        scopes: [] as const,
+        codeChallenge: "test_challenge",
+        codeChallengeMethod: "S256",
+      } as const;
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(
+        mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>
       );
+      prismaMock.accessCode.findFirst.mockResolvedValue(
+        mockAccessCodeWithPKCE as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
+      );
+      mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
+      mockVerifyCodeChallenge.mockReturnValue(false);
+
+      const tokenRequest = createTokenRequest({
+        grant_type: "authorization_code",
+        code: "test_auth_code",
+        client_id: "confidential_client_456",
+        client_secret: "plain_secret",
+        redirect_uri: "https://app.example.com/callback",
+        code_verifier: "wrong_verifier",
+      });
+
+      const response = await POST(tokenRequest, { params: Promise.resolve({}) });
+      expect(response).toBeDefined();
+      if (!response) throw new Error("Response is undefined");
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.message).toBe("Invalid code_verifier");
+      expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("wrong_verifier", "test_challenge", "S256");
     });
   });
 

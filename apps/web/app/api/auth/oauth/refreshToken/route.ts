@@ -43,13 +43,6 @@ async function handler(req: NextRequest) {
       );
     }
 
-    if (code_verifier) {
-      return NextResponse.json(
-        { message: "code_verifier is not supported for confidential clients. Use client_secret instead." },
-        { status: 400 }
-      );
-    }
-
     const [hashedSecret] = generateSecret(client_secret);
     if (client.clientSecret !== hashedSecret) {
       return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
@@ -87,7 +80,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
   }
 
-  // For PUBLIC clients, verify the PKCE code verifier against the stored challenge in the refresh token
+  // PKCE verification: Mandatory for PUBLIC clients, optional for CONFIDENTIAL clients
   if (client.clientType === "PUBLIC") {
     if (!decodedRefreshToken.codeChallenge) {
       return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
@@ -95,6 +88,20 @@ async function handler(req: NextRequest) {
 
     if (!code_verifier) {
       return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
+    }
+
+    const method = decodedRefreshToken.codeChallengeMethod || "S256";
+    if (method !== "S256") {
+      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+    }
+
+    if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
+      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+    }
+  } else if (client.clientType === "CONFIDENTIAL" && decodedRefreshToken.codeChallenge) {
+    // CONFIDENTIAL clients that used PKCE must provide code_verifier for refresh (consistent security model)
+    if (!code_verifier) {
+      return NextResponse.json({ message: "code_verifier required when PKCE was used in original authorization" }, { status: 400 });
     }
 
     const method = decodedRefreshToken.codeChallengeMethod || "S256";
@@ -123,8 +130,8 @@ async function handler(req: NextRequest) {
     scope: decodedRefreshToken.scope,
     token_type: "Refresh Token",
     clientId: client_id,
-    // Preserve PKCE information for PUBLIC clients to enable future authenticated refresh
-    ...(client.clientType === "PUBLIC" && {
+    // Preserve PKCE information for any client that used PKCE originally
+    ...(decodedRefreshToken.codeChallenge && {
       codeChallenge: decodedRefreshToken.codeChallenge,
       codeChallengeMethod: decodedRefreshToken.codeChallengeMethod,
     }),
