@@ -55,7 +55,9 @@ const createNewSeat = async (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <=
       seatedBooking.attendees.filter(
-        (attendee) => !!attendee.bookingSeat && (attendee.bookingSeat?.payment?.success ?? true)
+        (attendee) =>
+          !!attendee.bookingSeat &&
+          (attendee.bookingSeat?.payment?.some((p) => !p.success && p.refunded) ?? true)
       ).length
   ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });

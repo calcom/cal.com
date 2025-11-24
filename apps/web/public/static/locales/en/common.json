@@ -195,6 +195,7 @@
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
+  "unpaid": "Not Paid",
   "refunded": "Refunded",
   "payment": "Payment",
   "missing_card_fields": "Missing card fields",
