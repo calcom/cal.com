@@ -90,7 +90,7 @@ export default function CreateEventTypeForm({
                 !isPlatform ? (
                   <Tooltip
                     content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                    <span className="max-w-24 md:max-w-56">
+                    <span className="text-default max-w-24 md:max-w-56">
                       {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </span>
                   </Tooltip>

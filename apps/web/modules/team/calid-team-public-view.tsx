@@ -129,7 +129,12 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                       eventType: type,
                     });
                   }}>
-                  <Button variant="button" brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} type="button" size="base">
+                  <Button
+                    variant="button"
+                    brandColor={team.brandColor}
+                    darkBrandColor={team.darkBrandColor}
+                    type="button"
+                    size="base">
                     {t("schedule")}
                   </Button>
                 </Link>
@@ -209,8 +214,6 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           )}
         </div>
 
-        <DividerWithText showMembers={showMembers.isOn} />
-
         {team.isOrganization ? (
           !teamOrOrgIsPrivate ? (
             <SubTeams />
@@ -229,7 +232,12 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
                   </h2>
                 </div>
               ) : (
-                <Team members={team.members} teamName={team.name} brandColor={team.brandColor} darkBrandColor={team.darkBrandColor} />
+                <Team
+                  members={team.members}
+                  teamName={team.name}
+                  brandColor={team.brandColor}
+                  darkBrandColor={team.darkBrandColor}
+                />
               ))}
             {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
               <div
@@ -273,22 +281,9 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         )}
 
         <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-          <Branding />
+          <Branding size="xs" />
         </div>
       </main>
-    </div>
-  );
-}
-
-function DividerWithText({ showMembers }: { showMembers: boolean }) {
-  const { t } = useLocale();
-  return (
-    <div className="mb-2 flex items-center justify-center">
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
-      <span className="text-subtle mx-4 whitespace-nowrap text-sm font-medium">
-        {showMembers ? t("choose_a_team_member") : t("choose_a_meeting_type")}
-      </span>
-      <div className="bg-subtle h-px w-1/5 max-w-32 flex-none" />
     </div>
   );
 }

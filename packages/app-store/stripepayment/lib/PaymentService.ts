@@ -1,4 +1,4 @@
-import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
+import type { Booking, BookingSeat, Payment, PaymentOption, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -70,7 +70,8 @@ export class PaymentService implements IAbstractPaymentService {
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
-    responses?: Prisma.JsonValue
+    responses?: Prisma.JsonValue,
+    bookingSeat?: BookingSeat["id"]
   ) {
     try {
       // Ensure that the payment service can support the passed payment option
@@ -153,6 +154,13 @@ export class PaymentService implements IAbstractPaymentService {
               id: bookingId,
             },
           },
+          bookingSeat: bookingSeat
+            ? {
+                connect: {
+                  id: bookingSeat,
+                },
+              }
+            : undefined,
           amount: payment.amount,
           currency: payment.currency,
           externalId: paymentIntent.id,

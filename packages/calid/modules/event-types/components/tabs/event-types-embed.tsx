@@ -707,8 +707,8 @@ const CodeModalContent = ({
             onClick={() => setActiveCodeTab(tab.key as "html" | "react")}
             className={`flex-1 rounded-lg border-2 px-3 py-3 text-center transition-all sm:px-6 ${
               activeCodeTab === tab.key
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-active bg-primary/10 text-primary"
+                : "border-gray-200 dark:border-gray-500 hover:border-gray-300"
             }`}>
             <span className="text-xs font-medium sm:text-sm">{tab.label}</span>
           </button>
@@ -892,7 +892,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
       config: {
         layout: "month_view",
       },
-      buttonText: "Book my Cal",
+      buttonText: "Book my Cal ID",
       hideButtonIcon: false,
       buttonPosition: "bottom-right",
       buttonColor: "#000000",
@@ -1048,7 +1048,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                             <div>
                               <Label className="mb-2 block text-sm font-medium">Button text</Label>
                               <TextField
-                                value={previewState.floatingPopup.buttonText || "Book my Cal"}
+                                value={previewState.floatingPopup.buttonText || "Book my Cal ID"}
                                 onChange={(e) =>
                                   updatePreviewState({
                                     floatingPopup: {

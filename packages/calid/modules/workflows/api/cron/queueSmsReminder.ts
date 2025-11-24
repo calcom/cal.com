@@ -24,6 +24,7 @@ const fetchPendingNotifications = async () => {
       scheduled: false,
       scheduledDate: {
         lte: dayjs().add(7, "day").toISOString(),
+        gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],
     },
@@ -181,27 +182,27 @@ const processNotificationQueue = async (): Promise<number> => {
   return pendingNotifications.length;
 };
 
-const removeExpiredNotifications = async (): Promise<void> => {
-  await prisma.calIdWorkflowReminder.deleteMany({
-    where: {
-      OR: [
-        {
-          method: WorkflowMethods.SMS,
-          scheduledDate: {
-            lte: dayjs().toISOString(),
-          },
-          scheduled: false,
-          OR: [{ cancelled: null }, { cancelled: false }],
-        },
-        {
-          retryCount: {
-            gt: 1,
-          },
-        },
-      ],
-    },
-  });
-};
+// const removeExpiredNotifications = async (): Promise<void> => {
+//   await prisma.calIdWorkflowReminder.deleteMany({
+//     where: {
+//       OR: [
+//         {
+//           method: WorkflowMethods.SMS,
+//           scheduledDate: {
+//             lte: dayjs().toISOString(),
+//           },
+//           scheduled: false,
+//           OR: [{ cancelled: null }, { cancelled: false }],
+//         },
+//         {
+//           retryCount: {
+//             gt: 1,
+//           },
+//         },
+//       ],
+//     },
+//   });
+// };
 
 const executeCancellationProcess = async (): Promise<void> => {
   const messagesToCancel = await prisma.calIdWorkflowReminder.findMany({
@@ -211,6 +212,7 @@ const executeCancellationProcess = async (): Promise<void> => {
       cancelled: true,
       scheduledDate: {
         lte: dayjs().add(1, "hour").toISOString(),
+        gte: dayjs().toISOString(),
       },
     },
   });
@@ -249,7 +251,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
     }
 
-    await removeExpiredNotifications();
+    //preventing removal of expired notifications
+    // await removeExpiredNotifications();
     await executeCancellationProcess();
 
     const scheduledMessagesCount = await processNotificationQueue();

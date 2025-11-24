@@ -216,11 +216,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      console.log("=======>createMeeting: ");
-
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      console.log("urllllllllllll: ", url);
-      console.log("translateEvent(event): ", translateEvent(event));
       const resultString = await auth
         .requestRaw({
           url,
@@ -232,6 +228,8 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         .then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
+
+      console.log("__resultObject", resultObject);
 
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({

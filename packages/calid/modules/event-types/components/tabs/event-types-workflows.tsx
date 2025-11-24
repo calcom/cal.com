@@ -152,7 +152,7 @@ const WorkflowListItem = React.memo(
 
     return (
       <div
-        className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6"
+        className="border-border w-full overflow-hidden rounded-md border p-6 px-3 md:p-6"
         style={
           isActive
             ? {

@@ -1,7 +1,4 @@
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import { useEffect } from "react";
 import type { z } from "zod";
 
@@ -345,7 +342,7 @@ export const Components: Record<FieldType, Component> = {
         <div>
           {options.map((option, i) => {
             return (
-              <label key={i} className="block">
+              <label key={i} className="flex items-center text-sm">
                 <Checkbox
                   disabled={readOnly}
                   onCheckedChange={(checked) => {

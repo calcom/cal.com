@@ -42,9 +42,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // usually functions that are used in getServerSideProps are tree shaken from client bundle
   // but not in case when they are exported. So we have to dynamically load them, or to copy paste them to the /future/page.
 
-  const { getRecurringBookings, handleSeatsEventTypeOnBooking, getEventTypesFromDB } = await import(
-    "@lib/booking"
-  );
+  const { handleSeatsEventTypeOnBooking, getEventTypesFromDB } = await import("@lib/booking");
 
   const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
@@ -134,8 +132,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    bannerUrl: eventTypeRaw.owner?.bannerUrl ?? eventTypeRaw.team?.bannerUrl ?? null,
-    faviconUrl: eventTypeRaw.owner?.faviconUrl ?? eventTypeRaw.team?.faviconUrl ?? null,
+    bannerUrl: eventTypeRaw.owner?.bannerUrl ?? eventTypeRaw.calIdTeam?.bannerUrl ?? null,
+    faviconUrl: eventTypeRaw.owner?.faviconUrl ?? null,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
@@ -153,12 +151,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const profile = {
-    name: eventType.team?.name || eventType.users[0]?.name || null,
-    email: eventType.team ? null : eventType.users[0].email || null,
-    theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
-    slug: eventType.team?.slug || eventType.users[0]?.username || null,
+    name: eventType.calIdTeam?.name || eventType.users[0]?.name || null,
+    email: eventType.calIdTeam ? null : eventType.users[0].email || null,
+    theme: (!eventType.calIdTeam?.name && eventType.users[0]?.theme) || null,
+    brandColor: eventType.calIdTeam ? null : eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.calIdTeam ? null : eventType.users[0].darkBrandColor || null,
+    slug: eventType.calIdTeam?.slug || eventType.users[0]?.username || null,
   };
 
   const userId = session?.user?.id;
@@ -224,7 +222,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+  const internalNotes = await getInternalNotePresets(
+    eventType.calIdTeam?.id ?? eventType.parent?.calIdTeamId ?? null
+  );
 
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
@@ -237,16 +237,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       orgSlug: currentOrgDomain,
-      themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
+      themeBasis: eventType.calIdTeam ? eventType.calIdTeam.slug : eventType.users[0]?.username,
       hideBranding: await shouldHideBrandingForEvent({
         eventTypeId: eventType.id,
-        team: eventType.team,
+        team: eventType.calIdTeam,
         owner: eventType.users[0] ?? null,
         organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
       }),
       profile,
       eventType,
-      recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       previousBooking: sanitizedPreviousBooking,

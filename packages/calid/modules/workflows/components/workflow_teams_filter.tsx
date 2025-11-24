@@ -1,15 +1,15 @@
 "use client";
 
+import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { HorizontalTabItem } from "@calid/features/ui/components/navigation";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useMemo } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 import { filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import classNames from "@calcom/ui/classNames";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { AnimatedPopover } from "@calcom/ui/components/popover";
 
 import type { CalIdTeamProfile } from "../config/types";
 
@@ -19,130 +19,91 @@ interface TeamsFilterProps {
 
 export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
   const session = useSession();
-  const { t } = useLocale();
-  const {
-    data: query,
-    pushItemToKey,
-    removeItemByKeyAndValue,
-    setQuery,
-    removeByKey,
-  } = useTypedQuery(filterQuerySchema);
+  const { data: query } = useTypedQuery(filterQuerySchema);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const userId = session.data?.user.id || 0;
-  const user = session.data?.user.name || "";
-  const userName = session.data?.user.username;
-  const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
+  const user = session.data?.user;
+  const userId = user?.id || 0;
 
-  // Filter out teams without IDs and memoize
-  const teams = useMemo(() => profiles.filter((profile) => !!profile.id), [profiles]);
-
-  // Determine if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return !!(query.userIds?.length || query.calIdTeamIds?.length);
-  }, [query.userIds?.length, query.calIdTeamIds?.length]);
-
-  // Check if user is selected (normalize to array for consistent checking)
-  const isUserSelected = useMemo(() => {
-    return query.userIds?.includes(userId) || false;
-  }, [query.userIds, userId]);
-
-  // Get selected team IDs (normalized to array)
-  const selectedTeamIds = useMemo(() => {
-    return query.calIdTeamIds || [];
-  }, [query.calIdTeamIds]);
-
-  const handleUserToggle = useCallback(
-    (isChecked: boolean) => {
-      if (isChecked) {
-        setQuery("userIds", [userId]);
-      } else {
-        removeByKey("userIds");
-      }
-    },
-    [userId, setQuery, removeByKey]
+  // Memoize user data
+  const userData = useMemo(
+    () => ({
+      displayName: user?.name || "Personal",
+      avatar: getUserAvatarUrl({ avatarUrl: user?.avatarUrl ?? null }),
+    }),
+    [user?.name, user?.avatarUrl]
   );
 
-  const handleTeamToggle = useCallback(
-    (teamId: number, isChecked: boolean) => {
-      if (isChecked) {
-        pushItemToKey("calIdTeamIds", teamId);
-      } else {
-        removeItemByKeyAndValue("calIdTeamIds", teamId);
-      }
-    },
-    [pushItemToKey, removeItemByKeyAndValue]
+  // Filter and sort teams once
+  const teams = useMemo(
+    () => profiles.filter((profile) => !!profile.id).sort((a, b) => a.name.localeCompare(b.name)),
+    [profiles]
   );
 
-  const UserFilterItem = ({ disabled = false }: { disabled?: boolean }) => (
-    <div className="item-center bg-muted hover:bg-emphasis flex px-4 transition hover:cursor-pointer">
-      <Avatar imageSrc={userAvatar || ""} size="sm" alt={`${user} Avatar`} className="self-center" asChild />
-      <label
-        htmlFor="yourWorkflows"
-        className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
-        {userName ?? "Personal"}
-      </label>
-      <input
-        id="yourWorkflows"
-        type="checkbox"
-        className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition"
-        checked={disabled ? true : isUserSelected}
-        onChange={disabled ? undefined : (e) => handleUserToggle(e.target.checked)}
-        disabled={disabled}
-      />
+  // Determine selected filter
+  const selectedFilter = useMemo(() => {
+    if (query.calIdTeamIds?.length === 1) {
+      return { type: "team" as const, id: query.calIdTeamIds[0] };
+    }
+    return { type: "user" as const, id: userId };
+  }, [query.calIdTeamIds, userId]);
+
+  // Navigation handlers
+  const handleUserClick = useCallback(() => {
+    router.push(`${pathname}?userIds=${userId}`);
+  }, [pathname, router, userId]);
+
+  const handleTeamClick = useCallback(
+    (teamId: number) => {
+      router.push(`${pathname}?calIdTeamIds=${teamId}`);
+    },
+    [pathname, router]
+  );
+
+  // Build tabs
+  const personalTab: HorizontalTabItemProps = useMemo(
+    () => ({
+      name: userData.displayName,
+      href: "#",
+      avatar: userData.avatar,
+      isActive: selectedFilter.type === "user",
+      onClick: handleUserClick,
+    }),
+    [userData, selectedFilter.type, handleUserClick]
+  );
+
+  const teamTabs: HorizontalTabItemProps[] = useMemo(
+    () =>
+      teams.map((profile) => ({
+        name: profile.name ?? "Team",
+        href: "#",
+        avatar: getPlaceholderAvatar(profile.logoUrl, profile.name),
+        isActive: selectedFilter.type === "team" && selectedFilter.id === profile.id,
+        onClick: () => handleTeamClick(profile.id || 0),
+      })),
+    [teams, selectedFilter, handleTeamClick]
+  );
+
+  // Shared nav component
+  const navContent = (
+    <div className="flex min-w-max space-x-1">
+      <HorizontalTabItem {...personalTab} />
+      {teamTabs.length > 0 && <div className="bg-subtle mx-2 h-6 w-0.5 self-center sm:mx-3" />}
+      {teamTabs.map((tab) => (
+        <HorizontalTabItem {...tab} key={tab.name} />
+      ))}
     </div>
   );
 
-  // If no profiles, show simplified filter with just user
-  if (!profiles.length) {
-    return (
-      <AnimatedPopover text={t("all")}>
-        <UserFilterItem disabled />
-      </AnimatedPopover>
-    );
-  }
-
-  const filterValue = hasActiveFilters
-    ? selectedTeamIds.length > 0
-      ? selectedTeamIds.length === 1 && !isUserSelected
-        ? teams.find((e) => e.id === selectedTeamIds[0]).name
-        : t("workflow_filter_text", {
-            filter: isUserSelected ? "Personal" : teams.find((e) => e.id === selectedTeamIds[0]).name,
-            count: isUserSelected ? selectedTeamIds.length : selectedTeamIds.length - 1,
-          })
-      : t("you")
-    : t("all");
-
   return (
-    <div className={classNames(hasActiveFilters ? "w-[100px]" : "w-16")}>
-      <AnimatedPopover text={hasActiveFilters ? filterValue : t("all")}>
-        <UserFilterItem />
-        {teams.map((profile) => (
-          <div
-            className="item-center hover:bg-emphasis bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
-            key={profile.id}>
-            <Avatar
-              imageSrc={profile.logoUrl || ""}
-              size="sm"
-              alt={`${profile.slug} Avatar`}
-              className="self-center"
-              asChild
-            />
-            <label
-              htmlFor={`team-${profile.id}`}
-              className="text-default ml-2 mr-auto select-none self-center truncate text-sm font-medium hover:cursor-pointer">
-              {profile.name}
-            </label>
-            <input
-              id={`team-${profile.id}`}
-              name={`team-${profile.id}`}
-              type="checkbox"
-              checked={selectedTeamIds.includes(profile.id || 0)}
-              onChange={(e) => handleTeamToggle(profile.id || 0, e.target.checked)}
-              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition"
-            />
-          </div>
-        ))}
-      </AnimatedPopover>
+    <div className="mb-4 w-full">
+      <nav
+        className="no-scrollbar border-muted scrollbar-hide flex overflow-x-auto border-b pb-0"
+        aria-label="Tabs"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        {navContent}
+      </nav>
     </div>
   );
 };

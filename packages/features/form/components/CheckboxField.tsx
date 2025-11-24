@@ -14,6 +14,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
   ({ label, description, informationIconText, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
+
     return (
       <div className="block items-center sm:flex">
         {label && (

@@ -2,6 +2,8 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
+import { ZCalIdAddGuestsSchema } from "./calid/addGuests.schema";
+import { ZCalIdGetInputSchema } from "./calid/get.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZExportInputSchema } from "./export.schema";
@@ -12,8 +14,6 @@ import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { ZSaveNoteInputSchema } from "./saveNotes.schema";
 import { bookingsProcedure } from "./util";
-import { ZCalIdAddGuestsSchema } from "./calid/addGuests.schema";
-import { ZCalIdGetInputSchema } from "./calid/get.schema";
 
 type BookingsRouterHandlerCache = {
   get?: typeof import("./get.handler").getHandler;

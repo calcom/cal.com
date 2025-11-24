@@ -242,6 +242,16 @@ const _getCurrentSeats = async (
       attendees: {
         select: {
           email: true,
+          bookingSeat: {
+            select: {
+              payment: {
+                select: {
+                  success: true,
+                  refunded: true
+                }
+              }
+            }
+          },
         },
       },
     },
@@ -252,11 +262,13 @@ const _getCurrentSeats = async (
       ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
       : booking.attendees;
 
+    const paidAttendees = attendees.filter((attendee) => ((attendee?.bookingSeat?.payment?.some((p) => p.success && !p.refunded) ?? true)))
+
     return {
       uid: booking.uid,
       startTime: booking.startTime,
       _count: {
-        attendees: attendees.length,
+        attendees: paidAttendees.length,
       },
     };
   });

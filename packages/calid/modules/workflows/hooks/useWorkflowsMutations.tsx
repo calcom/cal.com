@@ -241,11 +241,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
     },
     [t]
   );
-
-  const handleTeamSelect = useCallback((teamId?: number) => {
-    router.replace(`/workflows/templates${teamId ? `?teamId=${teamId}` : ""}`);
-  });
-
   return {
     mutations: {
       create: createMutation,
@@ -258,7 +253,6 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
       handleWorkflowToggle,
       handleWorkflowDuplicate,
       handleCopyLink,
-      handleTeamSelect,
       handleUpdateWorkflowFromBuilderTemplate,
     },
   };

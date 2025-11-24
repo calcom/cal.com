@@ -221,7 +221,12 @@ const OnboardingPage = (props: PageProps) => {
                 </p>
               ))}
             </header>
-            <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} nextStep={goToNextStep} />
+            <Steps
+              maxSteps={steps.length}
+              currentStep={currentStepIndex + 1}
+              nextStep={goToNextStep}
+              goToStep={goToIndex} // Add this prop
+            />{" "}
           </div>
           <StepCard>
             <Suspense fallback={<Icon name="loader-circle" />}>

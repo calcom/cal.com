@@ -59,8 +59,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   };
 
   return (
-    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+    <div className="bg-auth-default flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="bg-default border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         {isRequestExpired ? (
           <Expired />
         ) : success ? (
@@ -80,16 +80,22 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
               <input name="csrfToken" type="hidden" defaultValue={csrfToken} hidden />
               <div className="text-left">
                 <PasswordField
-                  {...formMethods.register("new_password", {
-                    minLength: {
-                      message: t("password_hint_min"),
-                      value: 7, // We don't have user here so we can't check if they are admin or not
-                    },
-                    pattern: {
-                      message: "Should contain a number, uppercase and lowercase letters",
-                      value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                    },
-                  })}
+                  variant="floating"
+                  showStrengthMeter={true}
+                  showStrengthColors={true}
+                  showRequirements={true}
+                  size="lg"
+                  {...formMethods.register("new_password")}
+                  // {...formMethods.register("new_password", {
+                  //   minLength: {
+                  //     message: t("password_hint_min"),
+                  //     value: 7, // We don't have user here so we can't check if they are admin or not
+                  //   },
+                  //   pattern: {
+                  //     message: "Should contain a number, uppercase and lowercase letters",
+                  //     value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                  //   },
+                  // })}
                   label={t("new_password")}
                 />
               </div>
@@ -98,8 +104,8 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
                 loading={loading}
                 color="primary"
                 type="submit"
-                disabled={loading || isEmpty}
-                className="w-full justify-center py-3 bg-active dark:bg-gray-200 border-active dark:border-default">
+                disabled={loading || isEmpty || !formMethods.getValues("new_password")}
+                className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200">
                 {t("reset_password")}
               </Button>
             </Form>

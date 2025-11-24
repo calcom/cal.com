@@ -1,4 +1,4 @@
-import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import type { CalIdWorkflowType } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -18,6 +18,7 @@ import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager"
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -26,7 +27,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
@@ -36,7 +37,7 @@ const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
   evt: CalendarEvent;
-  recurringEventId?: string;
+  recurringEventId?: string; // DEPRECATED: No longer used, kept for API compatibility
   prisma: PrismaClient;
   bookingId: number;
   booking: {
@@ -61,8 +62,9 @@ export async function handleConfirmation(args: {
         calIdTeamId?: number | null;
       } | null;
       calIdWorkflows?: {
-        workflow: CalIdWorkflow;
+        workflow: CalIdWorkflowType;
       }[];
+      calIdTeamId?: number | null;
     } | null;
     calIdTeamId?: number | null;
     metadata?: Prisma.JsonValue;
@@ -78,7 +80,7 @@ export async function handleConfirmation(args: {
   const {
     user,
     evt,
-    recurringEventId,
+    recurringEventId, // DEPRECATED: Ignored in new implementation
     prisma,
     bookingId,
     booking,
@@ -86,9 +88,21 @@ export async function handleConfirmation(args: {
     emailsEnabled = true,
     platformClientParams,
   } = args;
+
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
+
+  const bookingRecurringEvent = isPrismaObjOrUndefined(booking.metadata)?.recurringEvent as
+    | RecurringEvent
+    | undefined;
+  const hasRecurringPattern = !!bookingRecurringEvent;
+
+  // Add recurring event to calendar event if present
+  if (hasRecurringPattern) {
+    evt.recurringEvent = bookingRecurringEvent;
+  }
+
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
   const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
@@ -96,7 +110,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
-  console.log("handleConfirmation results", safeStringify(results));
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
@@ -106,7 +119,6 @@ export async function handleConfirmation(args: {
     log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
   } else {
     if (results.length) {
-      // TODO: Handle created event metadata more elegantly
       metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
       metadata.conferenceData = results[0].createdEvent?.conferenceData;
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
@@ -145,7 +157,8 @@ export async function handleConfirmation(args: {
       log.error(error);
     }
   }
-  let updatedBookings: {
+
+  const updatedBookings: {
     id: number;
     description: string | null;
     location: string | null;
@@ -184,143 +197,68 @@ export async function handleConfirmation(args: {
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
   const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
-  if (recurringEventId) {
-    // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
-    // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
-    const unconfirmedRecurringBookings = await prisma.booking.findMany({
-      where: {
-        recurringEventId,
-        status: BookingStatus.PENDING,
+  const updatedBooking = await prisma.booking.update({
+    where: {
+      id: bookingId,
+    },
+    data: {
+      status: BookingStatus.ACCEPTED,
+      references: {
+        create: scheduleResult.referencesToCreate,
       },
-    });
-
-    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
-      prisma.booking.update({
-        where: {
-          id: recurringBooking.id,
-        },
-        data: {
-          status: BookingStatus.ACCEPTED,
-          references: {
-            create: scheduleResult.referencesToCreate,
-          },
-          paid,
-          metadata: {
-            ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl: meetingUrl,
-          },
-        },
+      metadata: {
+        ...(typeof booking.metadata === "object" ? booking.metadata : {}),
+        videoCallUrl: meetingUrl,
+      },
+    },
+    select: {
+      eventType: {
         select: {
-          eventType: {
+          slug: true,
+          bookingFields: true,
+          schedulingType: true,
+          owner: {
             select: {
-              slug: true,
-              bookingFields: true,
-              schedulingType: true,
-              hosts: {
+              hideBranding: true,
+            },
+          },
+          hosts: {
+            select: {
+              user: {
                 select: {
-                  user: {
+                  email: true,
+                  destinationCalendar: {
                     select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
+                      primaryEmail: true,
                     },
                   },
                 },
               },
-              owner: {
-                select: {
-                  hideBranding: true,
-                },
-              },
             },
           },
-          description: true,
-          cancellationReason: true,
-          attendees: true,
-          responses: true,
-          location: true,
-          title: true,
-          uid: true,
-          startTime: true,
-          metadata: true,
-          endTime: true,
-          smsReminderNumber: true,
-          customInputs: true,
-          id: true,
         },
-      })
-    );
+      },
+      uid: true,
+      startTime: true,
+      responses: true,
+      title: true,
+      metadata: true,
+      cancellationReason: true,
+      endTime: true,
+      smsReminderNumber: true,
+      description: true,
+      attendees: true,
+      location: true,
+      customInputs: true,
+      id: true,
+    },
+  });
 
-    const updatedBookingsResult = await Promise.all(updateBookingsPromise);
-    updatedBookings = updatedBookings.concat(updatedBookingsResult);
-  } else {
-    // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
-    // Should perform update on booking (confirm) -> then trigger the rest handlers
-    const updatedBooking = await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        status: BookingStatus.ACCEPTED,
-        references: {
-          create: scheduleResult.referencesToCreate,
-        },
-        metadata: {
-          ...(typeof booking.metadata === "object" ? booking.metadata : {}),
-          videoCallUrl: meetingUrl,
-        },
-      },
-      select: {
-        eventType: {
-          select: {
-            slug: true,
-            bookingFields: true,
-            schedulingType: true,
-            owner: {
-              select: {
-                hideBranding: true,
-              },
-            },
-            hosts: {
-              select: {
-                user: {
-                  select: {
-                    email: true,
-                    destinationCalendar: {
-                      select: {
-                        primaryEmail: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        uid: true,
-        startTime: true,
-        responses: true,
-        title: true,
-        metadata: true,
-        cancellationReason: true,
-        endTime: true,
-        smsReminderNumber: true,
-        description: true,
-        attendees: true,
-        location: true,
-        customInputs: true,
-        id: true,
-      },
-    });
-    updatedBookings.push(updatedBooking);
-  }
+  updatedBookings.push(updatedBooking);
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: eventType?.teamId ?? null },
+      calIdTeam: { id: eventType?.calIdTeamId ?? null },
       parentId: eventType?.parentId ?? null,
     },
   });
@@ -333,7 +271,7 @@ export async function handleConfirmation(args: {
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
-  //Workflows - set reminders for confirmed events
+  // Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
@@ -348,6 +286,11 @@ export async function handleConfirmation(args: {
         },
         bookerUrl,
       };
+
+      if (hasRecurringPattern) {
+        evtOfBooking.recurringEvent = bookingRecurringEvent;
+      }
+
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
@@ -363,10 +306,15 @@ export async function handleConfirmation(args: {
           !emailsEnabled && Boolean(platformClientParams?.platformClientId)
         );
       }
+      const bookingResponse = isPrismaObjOrUndefined(updatedBookings[index]?.responses);
+      const attendeePhoneNumber = (bookingResponse?.attendeePhoneNumber ||
+        bookingResponse?.smsReminderNumber ||
+        bookingResponse?.phone ||
+        null) as string | null;
 
       await scheduleWorkflowReminders({
         workflows,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        smsReminderNumber: attendeePhoneNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
@@ -374,9 +322,11 @@ export async function handleConfirmation(args: {
     }
   } catch (error) {
     // Silently fail
-    console.error(error);
+
+    console.error("error", error);
   }
 
+  // Webhooks and scheduled triggers
   try {
     const subscribersBookingCreated = await getWebhooks({
       userId,

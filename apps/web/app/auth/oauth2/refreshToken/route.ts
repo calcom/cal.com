@@ -58,11 +58,23 @@ async function handler(req: NextRequest) {
     clientId: client_id,
   };
 
+  const refreshTokenPayload: OAuthTokenPayload = {
+    userId: decodedRefreshToken.userId,
+    teamId: decodedRefreshToken.teamId,
+    scope: decodedRefreshToken.scope,
+    token_type: "Refresh Token",
+    clientId: client_id,
+  };
+
   const access_token = jwt.sign(payload, secretKey, {
     expiresIn: 1800, // 30 min
   });
 
-  return NextResponse.json({ access_token }, { status: 200 });
+  const refresh_token = jwt.sign(refreshTokenPayload, secretKey, {
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+  });
+
+  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(handler);

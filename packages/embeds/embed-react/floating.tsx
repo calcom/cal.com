@@ -12,7 +12,7 @@ function App() {
     (async function () {
       const cal = await getCalApi({
         namespace: "floating",
-        embedJsUrl: "http://localhost:3000/embed/embed.js",
+        embedJsUrl: "http://localhost:3000/embed-link/embed.js",
       });
       cal("floatingButton", {
         calLink: "pro",

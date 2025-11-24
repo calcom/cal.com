@@ -32,10 +32,11 @@ export class CombinedAuthStrategy {
     private prisma: PrismaClient,
     private config: {
       apiKeyPrefix: string;
+      jwt_secret: string;
     }
   ) {
     this.apiKeyStrategy = new ApiKeyStrategy(prisma, config.apiKeyPrefix);
-    this.accessTokenStrategy = new AccessTokenStrategy(prisma);
+    this.accessTokenStrategy = new AccessTokenStrategy(prisma, config.jwt_secret);
   }
 
   async authenticate(

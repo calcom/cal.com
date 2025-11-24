@@ -1,5 +1,4 @@
 import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
-import { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
@@ -15,7 +14,6 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -28,7 +26,7 @@ import {
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -49,7 +47,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
   const {
     bookingId,
-    recurringEventId,
+    recurringEventId, // DEPRECATED: No longer used, kept for API compatibility
     reason: rejectionReason,
     confirmed,
     emailsEnabled,
@@ -119,6 +117,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               name: true,
             },
           },
+          calIdWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
+            },
+          },
         },
       },
       location: true,
@@ -150,7 +155,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    // teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     teamId: booking.eventType?.calIdTeamId,
     bookingUserId: booking.userId,
     userRole: user.role,
@@ -252,6 +256,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         isPrismaObj(booking.user?.metadata) && booking.user?.metadata?.phoneNumber
           ? (booking.user?.metadata?.phoneNumber as string)
           : undefined,
+      usePhoneForWhatsApp:
+        isPrismaObj(booking.user?.metadata) &&
+        typeof booking.user?.metadata?.usePhoneForWhatsApp === "boolean"
+          ? (booking.user?.metadata?.usePhoneForWhatsApp as boolean)
+          : false,
     },
     attendees: attendeesList,
     location: booking.location ?? "",
@@ -282,39 +291,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
-  if (recurringEventId) {
-    if (
-      !(await prisma.booking.findFirst({
-        where: {
-          recurringEventId,
-          id: booking.id,
-        },
-        select: {
-          id: true,
-        },
-      }))
-    ) {
-      // FIXME: It might be best to retrieve recurringEventId from the booking itself.
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Recurring event id doesn't belong to the booking",
-      });
-    }
-  }
-  if (recurringEventId && recurringEvent) {
-    const groupedRecurringBookings = await prisma.booking.groupBy({
-      where: {
-        recurringEventId: booking.recurringEventId,
-      },
-      by: [Prisma.BookingScalarFieldEnum.recurringEventId],
-      _count: true,
-    });
-    // Overriding the recurring event configuration count to be the actual number of events booked for
-    // the recurring event (equal or less than recurring event configuration count)
-    recurringEvent.count = groupedRecurringBookings[0]._count;
-    // count changed, parsing again to get the new value in
-    evt.recurringEvent = parseRecurringEvent(recurringEvent);
+  const bookingRecurringEvent = isPrismaObjOrUndefined(booking.metadata)?.recurringEvent as
+    | RecurringEvent
+    | undefined;
+
+  // Add recurring event to evt if present
+  if (bookingRecurringEvent) {
+    evt.recurringEvent = bookingRecurringEvent;
   }
 
   if (confirmed) {
@@ -335,7 +318,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     await handleConfirmation({
       user: { ...user, credentials: allCredentials },
       evt,
-      recurringEventId,
+      recurringEventId: recurringEventId ?? undefined, // DEPRECATED: Ignored in handleConfirmation
       prisma,
       bookingId,
       booking,
@@ -347,7 +330,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         userId: user.id,
         booking: {
           hostName: user.name ?? "Cal User",
-          // bookingLocation: booking.location,
           bookingLocation: evt.location ?? "N/A",
           bookingEventType: booking.eventType?.title ?? "N/A",
           bookingStartTime: evt.startTime,
@@ -360,40 +342,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   } else {
     evt.rejectionReason = rejectionReason;
-    if (recurringEventId) {
-      // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
-      // bookings as rejected.
-      await prisma.booking.updateMany({
-        where: {
-          recurringEventId,
-          status: BookingStatus.PENDING,
-        },
-        data: {
-          status: BookingStatus.REJECTED,
-          rejectionReason,
-        },
-      });
-    } else {
-      // handle refunds
-      if (!!booking.payment.length) {
-        await processPaymentRefund({
-          booking: booking,
-          // teamId: booking.eventType?.teamId,
-          teamId: booking.eventType?.calIdTeamId,
-        });
-      }
-      // end handle refunds.
 
-      await prisma.booking.update({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          status: BookingStatus.REJECTED,
-          rejectionReason,
-        },
+    // Handle refunds
+    if (!!booking.payment.length) {
+      await processPaymentRefund({
+        booking: booking,
+        teamId: booking.eventType?.calIdTeamId,
       });
     }
+
+    // Update booking status to REJECTED
+    await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.REJECTED,
+        rejectionReason,
+      },
+    });
 
     if (emailsEnabled) {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
@@ -437,7 +404,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
-  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
+  const message = `Booking ${confirmed ? "confirmed" : "rejected"}`;
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
@@ -485,18 +452,6 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
   }
 
   // Check if the user is an admin/owner of the team the booking belongs to
-  // if (teamId) {
-  //   const membership = await prisma.membership.findFirst({
-  //     where: {
-  //       userId: loggedInUserId,
-  //       teamId: teamId,
-  //       role: {
-  //         in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  //       },
-  //     },
-  //   });
-  //   if (membership) return;
-  // }
   if (teamId) {
     const membership = await prisma.calIdMembership.findFirst({
       where: {

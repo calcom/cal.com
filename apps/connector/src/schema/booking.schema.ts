@@ -120,7 +120,8 @@ export const createBookingBodySchema = z
         guests: z.array(z.string().email()).optional().default([]).describe("Array of guest email addresses"),
         notes: z.string().optional().describe("Additional notes or comments from the booker"),
       })
-      .describe("Booking form responses containing attendee details"),
+      .describe("Booking form responses containing attendee details")
+      .passthrough(),
 
     // User/team identification
     // user: z.string().optional().describe("Username for the booking (e.g., 'john doe')"),
@@ -276,6 +277,11 @@ const calIdTeamSchema = z
     slug: z.string(),
   })
   .nullable();
+
+const eventTypeColorSchema = z.object({
+  darkEventTypeColor: z.string().optional().nullable(),
+  lightEventTypeColor: z.string().optional().nullable(),
+});
 
 const eventTypeSchema = z.object({
   id: z.number().optional(),

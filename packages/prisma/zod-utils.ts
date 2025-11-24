@@ -308,6 +308,10 @@ export const bookingCancelSchema = z.object({
     .nullable(),
   autoRefund: z.boolean(),
   fromApi: z.boolean().optional().default(false),
+
+  //for cancelling specific instances of a recurring booking
+  cancelledDates: z.array(z.string()).optional(), //ISO date strings
+  deleteType: z.union([z.literal("series"), z.literal("instance")]).optional(),
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({
@@ -381,6 +385,7 @@ export const userMetadata = z
         shareYourCalID: z.boolean().optional().default(false),
       })
       .optional(),
+    usePhoneForWhatsApp: z.boolean().optional(),
   })
   .nullable();
 
@@ -424,12 +429,38 @@ export const teamMetadataSchema = z
   .partial()
   .nullable();
 
+const dateFromString = z.preprocess((arg) => {
+  if (typeof arg === "string" || arg instanceof String) return new Date(arg as string);
+  return arg;
+}, z.date());
+export const recurringEventSchema = z.object({
+  dtstart: z.date().optional(),
+  freq: z.number(), // Could also use z.enum(["DAILY","WEEKLY",...]) if you have Frequency enum
+  interval: z.number().optional(),
+  count: z.number().optional(),
+  until: dateFromString.optional(),
+  tzid: z.string().optional(),
+  byDay: z.array(z.string()).optional(),
+  byMonthDay: z.array(z.number()).optional(),
+  byWeekNo: z.array(z.number()).optional(),
+  byYearDay: z.array(z.number()).optional(),
+  byMonth: z.array(z.number()).optional(),
+  bySetPos: z.array(z.number()).optional(),
+  byHour: z.array(z.number()).optional(),
+  byMinute: z.array(z.number()).optional(),
+  bySecond: z.array(z.number()).optional(),
+  exDates: z.array(dateFromString).optional(),
+  rDates: z.array(dateFromString).optional(),
+  allDay: z.boolean().optional(),
+  uid: z.string().optional(),
+});
+
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
     meetingNote: z.string().optional(),
+    recurringEvent: recurringEventSchema.optional(),
   })
-  .and(z.record(z.string()))
   .nullable()
   .describe("BookingMetadata");
 

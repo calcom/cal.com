@@ -4,7 +4,6 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
-import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomBannerUploader, CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
@@ -17,7 +16,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -90,12 +88,6 @@ const AppearanceView = ({
   const userThemeFormMethods = useForm({
     defaultValues: {
       theme: user.theme,
-    },
-  });
-
-  const headerUrlFormMethods = useForm({
-    defaultValues: {
-      metadata: user.metadata as z.infer<typeof userMetadata>,
     },
   });
 
@@ -545,9 +537,10 @@ const AppearanceView = ({
                           <div className="flex items-center gap-3">
                             <div className="w-[105px]">
                               <CustomBannerUploader
-                                height={100}
-                                width={400}
+                                // height={400}
+                                // width={400}
                                 target="logo"
+                                fieldName="Logo"
                                 // uploadInstruction={t("org_logo_instructions", { height: 100, width: 400 })}
                                 id="logo-upload"
                                 buttonMsg={t("upload_logo")}
@@ -620,6 +613,7 @@ const AppearanceView = ({
                               <div className="flex  gap-2">
                                 <CustomImageUploader
                                   target="avatar"
+                                  fieldName="favicon"
                                   id="avatar-upload"
                                   buttonMsg={t("upload_favicon")}
                                   handleAvatarChange={(newAvatar) => {

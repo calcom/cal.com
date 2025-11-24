@@ -51,7 +51,7 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       "data-testid": "conferencing",
     },
     {
-      name: "crm",
+      name: "CRM",
       href: getHref(baseURL, "crm", useQueryParam),
       icon: "contact",
       "data-testid": "crm",
@@ -69,7 +69,7 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       "data-testid": "payment",
     },
     {
-      name: "onehash",
+      name: "OneHash",
       href: getHref(baseURL, "onehash", useQueryParam),
       icon: "layout-dashboard",
       "data-testid": "onehash",

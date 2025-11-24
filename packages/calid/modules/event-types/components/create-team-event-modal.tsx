@@ -129,7 +129,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
             <div className="flex">
               <Tooltip
                 content={!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : t("username")}>
-                <span className="inline-flex max-w-32 items-center overflow-hidden rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 pr-8 text-xs text-gray-500">
+                <span className="text-emphasis bg-emphasis inline-flex max-w-32 items-center overflow-hidden rounded-l-md border  border-r-0 border-gray-300 px-3 pr-8 text-xs">
                   /{!isManagedEventType ? `${teamSlug || teamName.toLowerCase()}` : t("username")}/
                 </span>
               </Tooltip>
@@ -142,7 +142,7 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
               />
             </div>
             {formState.errors.slug && <p className="text-xs text-red-500">{formState.errors.slug.message}</p>}
-            {isManagedEventType && <p className="text-xs text-gray-600">{t("managed_event_about")}</p>}
+            {isManagedEventType && <p className="text-default text-xs">{t("managed_event_about")}</p>}
           </div>
 
           {/* Assignment/Scheduling Type */}
@@ -156,34 +156,34 @@ export const CreateTeamEventModal: React.FC<CreateTeamEventModalProps> = ({
               value={watchedSchedulingType || SchedulingType.COLLECTIVE}
               onValueChange={handleSchedulingTypeChange}
               className="space-y-3">
-              <div className="flex items-start space-x-3 rounded-md border p-3 transition-colors hover:bg-gray-50">
+              <div className="hover:bg-emphasis flex items-start space-x-3 rounded-md border p-3 transition-colors">
                 <RadioGroupItem value={SchedulingType.COLLECTIVE} id="collective" className="mt-0.5" />
                 <div className="flex-1">
                   <Label htmlFor="collective" className="cursor-pointer text-sm font-medium">
                     {t("collective")}
                   </Label>
-                  <p className="mt-1 text-xs text-gray-600">{t("collective_description")}</p>
+                  <p className="text-default mt-1 text-xs">{t("collective_description")}</p>
                 </div>
               </div>
 
-              <div className="flex items-start space-x-3 rounded-md border p-3 transition-colors hover:bg-gray-50">
+              <div className="hover:bg-emphasis flex items-start space-x-3 rounded-md border p-3 transition-colors">
                 <RadioGroupItem value={SchedulingType.ROUND_ROBIN} id="round-robin" className="mt-0.5" />
                 <div className="flex-1">
                   <Label htmlFor="round-robin" className="cursor-pointer text-sm font-medium">
                     {t("round_robin")}
                   </Label>
-                  <p className="mt-1 text-xs text-gray-600">{t("round_robin_description")}</p>
+                  <p className="text-default mt-1 text-xs">{t("round_robin_description")}</p>
                 </div>
               </div>
 
               {isTeamAdminOrOwner && (
-                <div className="flex items-start space-x-3 rounded-md border p-3 transition-colors hover:bg-gray-50">
+                <div className="hover:bg-emphasis flex items-start space-x-3 rounded-md border p-3 transition-colors">
                   <RadioGroupItem value={SchedulingType.MANAGED} id="managed" className="mt-0.5" />
                   <div className="flex-1">
                     <Label htmlFor="managed" className="cursor-pointer text-sm font-medium">
                       {t("managed_event")}
                     </Label>
-                    <p className="mt-1 text-xs text-gray-600">{t("managed_event_description")}</p>
+                    <p className="text-default mt-1 text-xs">{t("managed_event_description")}</p>
                   </div>
                 </div>
               )}

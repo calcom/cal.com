@@ -71,7 +71,7 @@ const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
   { name: "Workflows", icon: "workflow", href: `${currentPath}?tabName=workflows` },
   { name: "Webhooks", icon: "webhook", href: `${currentPath}?tabName=webhooks` },
   // { name: "Instant", icon: "bell", href: `${currentPath}?tabName=instant` },
-  // { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
+  { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
   // { name: "AI", icon: "sparkles", href: `${currentPath}?tabName=ai` },
   { name: "Embed", icon: "clipboard", href: `${currentPath}?tabName=embed` },
 ];

@@ -2,23 +2,32 @@ import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import {
+  RECAPTCHA_KEY_HIGH,
+  RECAPTCHA_KEY_LOW,
+  RECAPTCHA_KEY_MEDIUM,
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
+} from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { Time } from "@calcom/lib/timeFormat";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
+import {type Timezone} from "../../types.ts"
 import { useBookerStore } from "../../store";
 import { formatEventFromTime } from "../../utils/dates";
-import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
@@ -63,28 +72,37 @@ export const BookEventForm = ({
   confirmButtonDisabled,
   classNames,
   billingAddressRequired = false,
+  timezone
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations" | "captchaType"
+    > | null;
   };
   billingAddressRequired: boolean;
+  timezone: Timezone;
 }) => {
   const eventType = eventQuery.data;
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const instanceDate = useBookerStore((state) => state.instanceDate); // For determining reschedule type
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-  const { timeFormat, timezone } = useBookerTime();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
 
-  console.log("Billing address required: ", billingAddressRequired);
+  // reCAPTCHA ref for invisible captcha
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+
+  // Determine if this is a recurring instance reschedule
+  const isRecurringInstanceReschedule = Boolean(rescheduleUid && instanceDate);
 
   useEffect(() => {
     if (eventType && billingAddressRequired) {
@@ -123,13 +141,60 @@ export const BookEventForm = ({
           }
         );
     }
-  }, [eventType]);
+  }, [eventType, billingAddressRequired]);
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
+
+  // Map captcha types to reCAPTCHA keys
+  const reCaptchaMap = {
+    LOW: RECAPTCHA_KEY_LOW,
+    MEDIUM: RECAPTCHA_KEY_MEDIUM,
+    HIGH: RECAPTCHA_KEY_HIGH,
+  };
+
+  const recaptchaKey = eventType?.captchaType
+    ? reCaptchaMap[eventType.captchaType as keyof typeof reCaptchaMap]
+    : undefined;
+
+  // Handle form submission with reCAPTCHA verification
+  const handleFormSubmit = async () => {
+    // If reCAPTCHA is configured for this event, verify it first
+    if (recaptchaRef.current && eventType?.captchaType) {
+      try {
+        const token = await recaptchaRef.current.executeAsync();
+        recaptchaRef.current.reset();
+
+        if (token) {
+          const response = await fetch("/api/verify-recaptcha", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              type: eventType.captchaType as keyof typeof reCaptchaMap,
+            }),
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            onSubmit();
+          } else {
+            console.error("reCAPTCHA verification failed", data.error);
+            // Optionally show an error to the user here
+          }
+        }
+      } catch (error) {
+        console.error("reCAPTCHA error:", error);
+        // Optionally show an error to the user here
+      }
+    } else {
+      // No reCAPTCHA configured, proceed directly
+      onSubmit();
+    }
+  };
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
@@ -163,7 +228,7 @@ export const BookEventForm = ({
           setFormValues(values);
         }}
         form={bookingForm}
-        handleSubmit={onSubmit}
+        handleSubmit={handleFormSubmit}
         noValidate>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
@@ -184,8 +249,8 @@ export const BookEventForm = ({
                 dataError: errors.dataErrors,
                 t,
                 responseVercelIdHeader,
-                timeFormat,
-                timezone,
+                timeFormat: "h:mma" as TimeFormat,
+                timezone: "UTC",
                 language: i18n.language,
               })}
             />
@@ -294,7 +359,9 @@ export const BookEventForm = ({
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>
                 {rescheduleUid && bookingData
-                  ? t("reschedule")
+                  ? isRecurringInstanceReschedule
+                    ? t("reschedule_instance")
+                    : t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
                   ? isPaidEvent
                     ? t("pay_and_book")
@@ -304,6 +371,8 @@ export const BookEventForm = ({
             </>
           )}
         </div>
+        {/* Render invisible reCAPTCHA if configured */}
+        {recaptchaKey && <ReCAPTCHA ref={recaptchaRef} sitekey={recaptchaKey} size="invisible" />}
       </Form>
       {children}
     </div>

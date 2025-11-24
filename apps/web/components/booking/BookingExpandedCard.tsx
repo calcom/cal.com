@@ -21,10 +21,6 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][
 export type BookingItemProps = BookingItem & {
   isHost: boolean;
   showExpandedActions: boolean;
-  setSelectedMeeting: (booking: BookingItemProps | null) => void;
-  setShowMeetingNotes: (show: boolean) => void;
-  handleMarkNoShow: () => void;
-  isCurrentTime: (time: Date) => boolean;
 };
 
 export function BookingExpandedCard(props: BookingItemProps) {
@@ -32,9 +28,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const utils = trpc.useUtils();
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
-
-  console.log("Responses are: ", responses);
-  console.log("props are: ", props);
 
   const defaultFields = [
     "name",
@@ -51,19 +44,20 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const customFields = {};
 
-  if (responses["attendeePhoneNumber"] !== undefined) {
-    customFields["Phone Number"] = responses["attendeePhoneNumber"];
-  }
-  for (const key in bookingFields) {
-    if (bookingFields[key]?.label && !defaultFields.includes(key)) {
-      // @ts-ignore
-      if (responses[bookingFields[key].name] !== undefined) {
-        customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+  if (responses) {
+    if (responses["attendeePhoneNumber"] !== undefined) {
+      customFields["Phone Number"] = responses["attendeePhoneNumber"];
+    }
+
+    for (const key in bookingFields) {
+      if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+        // @ts-ignore
+        if (responses[bookingFields[key].name] !== undefined) {
+          customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+        }
       }
     }
   }
-
-  console.log("Custom fields are: ", customFields);
 
   const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
@@ -106,8 +100,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   });
 
   const { copyToClipboard } = useCopy();
-  const setSelectedMeeting = (booking: BookingItemProps | null) => {};
-  const setShowMeetingNotes = (show: boolean) => {};
 
   const handleMarkNoShow = () => {
     if (attendeeList.length === 1) {
@@ -120,8 +112,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
     }
     setIsNoShowDialogOpen(true);
   };
-
-  const isCurrentTime = (time: Date) => true;
 
   const firstAttendee = props.attendees[0];
 
@@ -138,7 +128,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.phone as string | undefined;
+  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.attendeePhoneNumber as string | undefined;
   const openWhatsAppChat = (phoneNumber: string) => {
     const width = 800;
     const height = 600;

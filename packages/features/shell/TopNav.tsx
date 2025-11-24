@@ -43,7 +43,7 @@ function TopNav() {
           {(!user?.metadata?.isProUser?.yearClaimed || user?.metadata?.isProUser?.yearClaimed < 2) && (
             <button className="offer-moving-bg flex-shrink-0 rounded-md px-2 py-1">
               <Link href="/claim" className="block">
-                <span className="text-default whitespace-nowrap text-sm">Get Pro</span>
+                <span className="text-default whitespace-nowrap text-sm">Claim Pro</span>
               </Link>
             </button>
           )}

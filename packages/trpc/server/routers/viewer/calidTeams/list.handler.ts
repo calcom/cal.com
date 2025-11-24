@@ -36,6 +36,6 @@ export const listCalidTeamsHandler = async ({ ctx }: ListTeamOptions) => {
     role: membership.role,
     acceptedInvitation: membership.acceptedInvitation,
     ...team,
-    innviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-calIdTeamId-${team.id}`),
+    inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-calIdTeamId-${team.id}`),
   }));
 };
