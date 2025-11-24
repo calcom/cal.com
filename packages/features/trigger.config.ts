@@ -2,7 +2,7 @@ import { defineConfig } from "@trigger.dev/sdk";
 
 export default defineConfig({
   // Your project ref from the Trigger.dev dashboard
-  project: "proj_klpqoyhxnkrxlceolbfy", // e.g., "proj_abc123"
+  project: process.env.TRIGGER_DEV_PROJECT_REF ?? "", // e.g., "proj_abc123"
 
   // Directories containing your tasks
   dirs: ["./bookings/lib/tasker/trigger/notifications"], // Customize based on your project structure
