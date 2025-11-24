@@ -677,18 +677,6 @@ export class BookingRepository {
       select: {
         ...bookingMinimalSelect,
         uid: true,
-        user: {
-          select: {
-            credentials: true,
-          },
-        },
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            meetingUrl: true,
-          },
-        },
       },
     });
   }
