@@ -2,6 +2,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import type { OnboardingState } from "../store/onboarding-store";
@@ -11,9 +13,10 @@ export function useCreateTeam() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
-  const { setTeamId } = useOnboardingStore();
+  const { setTeamId, teamId } = useOnboardingStore();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation();
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const createTeam = async (store: OnboardingState) => {
     setIsSubmitting(true);
@@ -56,9 +59,72 @@ export function useCreateTeam() {
     }
   };
 
+  const inviteMembers = async (
+    invites: Array<{ email: string; role: "MEMBER" | "ADMIN" }>,
+    language: string
+  ) => {
+    if (!teamId) {
+      throw new Error("Team ID is required to invite members");
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Filter and validate invites
+      const validInvites = invites.filter((invite) => invite.email && invite.email.trim().length > 0);
+
+      if (validInvites.length === 0) {
+        throw new Error("At least one valid email address is required");
+      }
+
+      // Group invites by role and send separate requests for each role
+      // This is necessary because the schema validation expects array of strings when using bulk invites
+      const invitesByRole = validInvites.reduce((acc, invite) => {
+        const role = invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER;
+        if (!acc[role]) {
+          acc[role] = [];
+        }
+        acc[role].push(invite.email.trim().toLowerCase());
+        return acc;
+      }, {} as Record<MembershipRole, string[]>);
+
+      // Send invites for each role group
+      await Promise.all(
+        Object.entries(invitesByRole).map(([role, emails]) =>
+          inviteMemberMutation.mutateAsync({
+            teamId,
+            usernameOrEmail: emails, // Array of strings, not objects
+            role: role as MembershipRole,
+            language,
+            creationSource: CreationSource.WEBAPP,
+          })
+        )
+      );
+
+      // Redirect to personal settings after successful invite
+      const gettingStartedPath = flags["onboarding-v3"]
+        ? "/onboarding/personal/settings"
+        : "/getting-started";
+      router.push(gettingStartedPath);
+    } catch (error) {
+      console.error("Failed to invite members:", error);
+      // Extract error message from TRPC error
+      if (error && typeof error === "object" && "message" in error) {
+        throw new Error(error.message as string);
+      }
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Failed to invite members. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return {
     createTeam,
+    inviteMembers,
     isSubmitting,
-    error: createTeamMutation.error,
+    error: createTeamMutation.error || inviteMemberMutation.error,
   };
 }

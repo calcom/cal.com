@@ -109,16 +109,18 @@ export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // as well, otherwise the URL won't be valid.
 export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=`;
 export const SEO_IMG_OGIMG_VIDEO = `${CAL_URL}/video-og-image.png`;
-export const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
+export const IS_STRIPE_ENABLED =
+  true ||
+  !!(
+    process.env.STRIPE_CLIENT_ID &&
+    process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+    process.env.STRIPE_PRIVATE_KEY
+  );
 /** This has correct value only server side. When you want to use client side, go for IS_TEAM_BILLING_ENABLED_CLIENT. I think we should use the _CLIENT one only everywhere so that it works reliably everywhere on client as well as server  */
-export const IS_TEAM_BILLING_ENABLED = !!(IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES);
+export const IS_TEAM_BILLING_ENABLED = true || !!(IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES);
 
 export const IS_TEAM_BILLING_ENABLED_CLIENT =
-  !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+  true || (!!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES);
 
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const API_NAME_LENGTH_MAX_LIMIT = 80;

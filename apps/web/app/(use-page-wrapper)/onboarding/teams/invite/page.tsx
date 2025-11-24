@@ -19,15 +19,21 @@ export const generateMetadata = async () => {
   );
 };
 
-const ServerPage = async () => {
+const ServerPage = async ({ searchParams }: { searchParams: Promise<{ teamId?: string }> }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
 
+  const params = await searchParams;
+  const teamId = params?.teamId;
+
   if (session.user.role !== "ADMIN") {
-    return redirect("/onboarding/teams/invite/email");
+    const redirectUrl = teamId
+      ? `/onboarding/teams/invite/email?teamId=${teamId}`
+      : "/onboarding/teams/invite/email";
+    return redirect(redirectUrl);
   }
 
   const userEmail = session.user.email || "";
