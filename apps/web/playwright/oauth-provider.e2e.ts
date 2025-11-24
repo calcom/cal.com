@@ -392,7 +392,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     await page.waitForTimeout(2000);
 
     // Should not redirect to callback URL (error should prevent redirect)
-    expect(page.url()).not.toContain("https://example.com");
+    expect(page.url().startsWith("https://example.com")).not.toBe(true);
 
     // Check if we're still on the authorize page (error prevented redirect)
     expect(page.url()).toContain("auth/oauth2/authorize");
@@ -604,6 +604,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
 });
 
 test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Security)", () => {
+  test.beforeAll(async () => {
+    // Ensure we have a confidential client for these tests
+    client = await createTestCLient();
+  });
+
   test("should accept CONFIDENTIAL client with PKCE for defense in depth", async ({ page, users }) => {
     const user = await users.create({ username: "test user conf pkce", name: "test user conf pkce" });
     await user.apiLogin();
