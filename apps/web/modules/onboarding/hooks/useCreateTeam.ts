@@ -49,7 +49,7 @@ export function useCreateTeam() {
       if (result.team) {
         // Store the teamId and redirect to invite flow after team creation
         setTeamId(result.team.id);
-        router.push("/onboarding/teams/invite");
+        router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
       }
     } catch (error) {
       console.error("Failed to create team:", error);
