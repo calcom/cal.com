@@ -62,7 +62,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     });
   }
 
-  if (!bookingToReschedule.userId) {
+  if (!bookingToReschedule.userId || !bookingToReschedule.user) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
