@@ -21,11 +21,7 @@ export const usePrefetch = ({ date, month, bookerLayout, bookerState }: UsePrefe
   const monthAfterAdding1Month = dayjs(date).add(1, "month").month();
   const monthAfterAddingExtraDays = dayjs(date).add(bookerLayout.extraDays, "day").month();
 
-  // We use a buffer to ensure we prefetch next month if the slots might extend into it.
-  // Since column view shows a number of *slots*, not days, we might need more days than 'extraDays'
-  // if there are unavailable days (like weekends).
-  // Adding 7 days (1 week) buffer covers most cases where weekends/holidays push the needed dates into next month.
-  // This prevents oscillation where fetching more data shrinks columnViewExtraDays, causing us to stop fetching, which expands it again.
+  // Add extra week buffer for column view to handle weekends/unavailable days
   const columnViewExtraDays =
     bookerLayout.layout === BookerLayouts.COLUMN_VIEW
       ? Math.max(bookerLayout.columnViewExtraDays.current, bookerLayout.extraDays + 7)
