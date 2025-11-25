@@ -28,6 +28,10 @@ export type AppFlags = {
   "tiered-support-chat": boolean;
   "calendar-subscription-cache": boolean;
   "calendar-subscription-sync": boolean;
+  "onboarding-v3": boolean;
+  "booker-botid": boolean;
+  "booking-calendar-view": boolean;
+  "bookings-v3": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

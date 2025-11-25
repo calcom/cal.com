@@ -285,7 +285,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Create a new agent
    */
-  createAgent(params: {
+  createOutboundAgent(params: {
     name?: string;
     userId: number;
     teamId?: number;
@@ -294,6 +294,22 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     beginMessage?: string;
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    providerAgentId: string;
+    message: string;
+  }>;
+
+  /**
+   * Create a new inbound agent
+   */
+  createInboundAgent(params: {
+    name?: string;
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId: number;
     userTimeZone: string;
   }): Promise<{
     id: string;
@@ -315,6 +331,8 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
     language?: string;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }>;
 
   /**

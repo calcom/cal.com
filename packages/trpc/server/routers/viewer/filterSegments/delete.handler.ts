@@ -1,5 +1,5 @@
-import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSegment";
-import type { TDeleteFilterSegmentInputSchema } from "@calcom/lib/server/repository/filterSegment.type";
+import { FilterSegmentRepository } from "@calcom/features/data-table/repositories/filterSegment";
+import type { TDeleteFilterSegmentInputSchema } from "@calcom/features/data-table/repositories/filterSegment.type";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 export const deleteFilterSegmentHandler = async ({

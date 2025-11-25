@@ -371,6 +371,11 @@ Cal("init", "popupRescheduleWithRescheduleUidParam", {
   origin: origin,
 });
 
+Cal("init", "popupCancelBooking", {
+  debug: true,
+  origin: origin,
+});
+
 Cal("init", "popupAutoTheme", {
   debug: true,
   origin: origin,
@@ -629,6 +634,24 @@ const bookingSuccessfulV2Callback = (e: EmbedEvent<"bookingSuccessfulV2">) => {
 Cal("on", {
   action: "bookingSuccessfulV2",
   callback: bookingSuccessfulV2Callback,
+});
+
+const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
+  const data = e.detail.data;
+  console.log("availabilityLoaded", {
+    eventId: data.eventId,
+    eventSlug: data.eventSlug,
+  });
+
+  Cal("off", {
+    action: "availabilityLoaded",
+    callback: availabilityLoadedCallback,
+  });
+};
+
+Cal("on", {
+  action: "availabilityLoaded",
+  callback: availabilityLoadedCallback,
 });
 
 if (only === "all" || only === "ns:skeletonDemo") {

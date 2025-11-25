@@ -165,6 +165,18 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_organizer_locale"),
         },
         {
+          name: "organizer.username",
+          variable: "{{organizer.username}}",
+          type: "String",
+          description: t("webhook_organizer_username"),
+        },
+        {
+          name: "organizer.usernameInOrg",
+          variable: "{{organizer.usernameInOrg}}",
+          type: "String",
+          description: t("webhook_organizer_username_in_org"),
+        },
+        {
           name: "attendees.0.name",
           variable: "{{attendees.0.name}}",
           type: "String",
@@ -177,8 +189,8 @@ function getWebhookVariables(t: (key: string) => string) {
           description: t("webhook_attendee_email"),
         },
         {
-          name: "attendees.0.timezone",
-          variable: "{{attendees.0.timezone}}",
+          name: "attendees.0.timeZone",
+          variable: "{{attendees.0.timeZone}}",
           type: "String",
           description: t("webhook_attendee_timezone"),
         },
@@ -279,13 +291,20 @@ const WebhookForm = (props: {
     },
   });
 
-  const showTimeSection = formMethods
-    .watch("eventTriggers")
-    ?.find(
-      (trigger) =>
-        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    );
+  const triggers = formMethods.watch("eventTriggers") || [];
+  const subscriberUrl = formMethods.watch("subscriberUrl");
+  const time = formMethods.watch("time");
+  const timeUnit = formMethods.watch("timeUnit");
+
+  const isCreating = !props?.webhook?.id;
+  const needsTime = triggers.some(
+    (t) =>
+      t === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+      t === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
+  const hasTime = !!time && !!timeUnit;
+  const hasUrl = !!subscriberUrl;
+  const showTimeSection = needsTime;
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
@@ -316,6 +335,17 @@ const WebhookForm = (props: {
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
+
+  const canSubmit = isCreating
+    ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
+    : formMethods.formState.isDirty || changeSecret;
+
+  useEffect(() => {
+    if (isCreating && needsTime && !time && !timeUnit) {
+      formMethods.setValue("time", 5, { shouldDirty: true });
+      formMethods.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
+    }
+  }, [isCreating, needsTime, time, timeUnit, formMethods]);
 
   useEffect(() => {
     if (changeSecret) {
@@ -573,7 +603,7 @@ const WebhookForm = (props: {
         <Button
           type="submit"
           data-testid="create_webhook"
-          disabled={!formMethods.formState.isDirty && !changeSecret}
+          disabled={!canSubmit}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>

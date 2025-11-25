@@ -85,10 +85,10 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle w-full rounded-md border">
+    <div className="w-full rounded-md">
       <div className="flex flex-col">
         <div className="p-4">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between gap-2">
             <ToggleGroup
               options={[
                 { label: t("per_day"), value: "perDay" },
@@ -99,8 +99,8 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
               value={selectedPeriod}
               onValueChange={(value) => value && onPeriodChange(value as "perDay" | "perWeek" | "perMonth")}
             />
-            <div className="flex gap-2">
-              <div className="w-64">
+            <div className="flex items-center gap-2">
+              <div className="max-w-64">
                 <Input
                   type="text"
                   placeholder={t("search")}
@@ -293,7 +293,7 @@ export function RoutedToPerPeriod() {
                 <TableHeader className="bg-subtle sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
-                    {uniquePeriods.map((period, index) => {
+                    {uniquePeriods.map((period) => {
                       const date = period;
                       const today = new Date();
 
@@ -313,10 +313,10 @@ export function RoutedToPerPeriod() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="relative">
-                  {processedData.map((row, index) => {
+                  {processedData.map((row) => {
                     return (
                       <TableRow key={row.id} className="divide-muted divide-x">
-                        <TableCell className="bg-default w-[200px]">
+                        <TableCell className="w-[200px]">
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="flex cursor-pointer items-center gap-2">

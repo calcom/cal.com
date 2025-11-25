@@ -1,33 +1,53 @@
-import { startSpan } from "@sentry/nextjs";
+import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
-import type { Watchlist } from "../watchlist.model";
-import { WatchlistRepository } from "../watchlist.repository";
+import type { SpanFn } from "../lib/telemetry";
+import { normalizeEmail } from "../lib/utils/normalization";
 
-/**
- * Controllers use Presenters to convert the data to a UI-friendly format just before
- * returning it to the "consumer". This helps us ship less JavaScript to the client (logic
- * and libraries to convert the data), helps prevent leaking any sensitive properties, like
- * emails or hashed passwords, and also helps us slim down the amount of data we're sending
- * back to the client.
- */
-function presenter(watchlistedEmail: Watchlist | null) {
-  return startSpan({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
-    return !!watchlistedEmail;
-  });
+interface CheckEmailBlockedParams {
+  email: string;
+  organizationId?: number | null;
+  span?: SpanFn;
+}
+
+function presenter(isBlocked: boolean, span?: SpanFn): Promise<boolean> {
+  if (!span) {
+    return Promise.resolve(isBlocked);
+  }
+  return span({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => isBlocked);
 }
 
 /**
- * Controllers perform authentication checks and input validation before passing the input
- * to the specific use cases. Controllers orchestrate Use Cases. They don't implement any
- * logic, but define the whole operations using use cases.
+ * Controllers perform auth/validation and orchestrate use-cases.
+ * Uses DI container for proper dependency management.
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
-  email: string
-): Promise<ReturnType<typeof presenter>> {
-  return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
-    const lowercasedEmail = email.toLowerCase();
-    const watchlistRepository = new WatchlistRepository();
-    const watchlistedEmail = await watchlistRepository.getBlockedEmailInWatchlist(lowercasedEmail);
-    return presenter(watchlistedEmail);
-  });
+  params: CheckEmailBlockedParams
+): Promise<boolean> {
+  const { email, organizationId, span } = params;
+
+  const execute = async () => {
+    const normalizedEmail = normalizeEmail(email);
+
+    const watchlist = await getWatchlistFeature();
+
+    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail);
+    if (globalResult.isBlocked) {
+      return presenter(true, span);
+    }
+
+    if (organizationId != null) {
+      const orgResult = await watchlist.orgBlocking.isBlocked(normalizedEmail, organizationId);
+      if (orgResult.isBlocked) {
+        return presenter(true, span);
+      }
+    }
+
+    return presenter(false, span);
+  };
+
+  if (!span) {
+    return execute();
+  }
+
+  return span({ name: "checkIfEmailInWatchlist Controller" }, execute);
 }

@@ -27,6 +27,7 @@ export type VerticalTabItemProps = {
   iconClassName?: string;
   onClick?: (name: string) => void;
   isActive?: boolean;
+  isBadged?: boolean;
   "data-testid"?: string;
 };
 
