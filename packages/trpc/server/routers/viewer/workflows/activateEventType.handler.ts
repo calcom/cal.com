@@ -316,8 +316,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
       const creditService = new CreditService();
-      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
-        creditService.hasAvailableCredits({ userId, teamId });
 
       for (const booking of bookingsForReminders) {
         // eventTypeId is technically nullable but we know it will be there
@@ -425,7 +423,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
-              creditCheckFn,
+              creditCheckFn: creditService.hasAvailableCredits,
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -443,7 +441,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
-              creditCheckFn,
+              creditCheckFn: creditService.hasAvailableCredits,
             });
           } else if (booking.smsReminderNumber) {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -463,7 +461,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
-                creditCheckFn,
+                creditCheckFn: creditService.hasAvailableCredits,
               });
             } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
               await scheduleWhatsappReminder({
@@ -482,7 +480,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
-                creditCheckFn,
+                creditCheckFn: creditService.hasAvailableCredits,
               });
             }
           }
