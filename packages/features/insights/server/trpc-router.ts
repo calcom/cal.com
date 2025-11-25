@@ -15,8 +15,10 @@ import {
   routedToPerPeriodCsvInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -213,17 +215,8 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
       }
     }
 
-    const membershipOrg = await ctx.insightsDb.membership.findFirst({
-      where: {
-        userId: ctx.user.id,
-        teamId: ctx.user.organizationId,
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-    if (!membershipOrg) {
+    const hasOrgAccess = await checkInsightsPermission(ctx.user.id, ctx.user.organizationId);
+    if (!hasOrgAccess) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     isOwnerAdminOfParentTeam = true;
@@ -246,6 +239,16 @@ const userSelect = {
   username: true,
   avatarUrl: true,
 };
+
+async function checkInsightsPermission(userId: number, teamId: number): Promise<boolean> {
+  const permissionCheckService = new PermissionCheckService();
+  return await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission: "insights.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+}
 
 const emptyResponseBookingKPIStats = {
   empty: true,
@@ -651,7 +654,8 @@ export const insightsRouter = router({
       return result;
     }
 
-    // Look if user it's admin/owner in multiple teams
+    // Look if user has insights access in multiple teams
+    // This includes both traditional ADMIN/OWNER roles and PBAC custom roles with insights.read permission
     const belongsToTeams = await ctx.insightsDb.membership.findMany({
       where: {
         team: {
@@ -659,14 +663,6 @@ export const insightsRouter = router({
         },
         accepted: true,
         userId: user.id,
-        OR: [
-          {
-            role: "ADMIN",
-          },
-          {
-            role: "OWNER",
-          },
-        ],
       },
       include: {
         team: {
@@ -685,9 +681,18 @@ export const insightsRouter = router({
       return [];
     }
 
-    const result: IResultTeamList[] = belongsToTeams.map((membership) => {
-      return { ...membership.team };
-    });
+    // Filter teams to only include those where the user has insights.read permission
+    // This properly handles both PBAC permissions and traditional role-based access
+    const teamsWithAccess = await Promise.all(
+      belongsToTeams.map(async (membership) => {
+        const hasAccess = await checkInsightsPermission(user.id, membership.team.id);
+        return hasAccess ? membership.team : null;
+      })
+    );
+
+    const result: IResultTeamList[] = teamsWithAccess
+      .filter((team): team is NonNullable<typeof team> => team !== null)
+      .map((team) => ({ ...team }));
 
     return result;
   }),
