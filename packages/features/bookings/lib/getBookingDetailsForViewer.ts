@@ -59,6 +59,61 @@ type BookingFieldBase = {
   defaultLabel?: string;
 };
 
+// Type for the processed eventType that getCalendarLinks expects
+// This ensures the eventType returned from the shared service is compatible
+type ProcessedEventType = {
+  id: number;
+  title: string;
+  description: string | null;
+  length: number;
+  eventName: string | null;
+  recurringEvent: Prisma.JsonObject | null;
+  isDynamic: boolean;
+  team: {
+    id: number;
+    slug: string | null;
+    name: string | null;
+    hideBranding: boolean;
+    brandColor: string | null;
+    darkBrandColor: string | null;
+    theme: string | null;
+    parent: {
+      hideBranding: boolean;
+      brandColor: string | null;
+      darkBrandColor: string | null;
+      theme: string | null;
+    } | null;
+    createdByOAuthClientId: string | null;
+  } | null;
+  users: UserSelect[];
+  hosts: { user: UserSelect }[];
+  seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
+  seatsShowAvailabilityCount: boolean | null;
+  hideOrganizerEmail: boolean | null;
+  periodStartDate: string | null;
+  periodEndDate: string | null;
+  metadata: ReturnType<typeof eventTypeMetaDataSchemaWithTypedApps.parse>;
+  customInputs: ReturnType<typeof customInputSchema.array.prototype.parse>;
+  bookingFields: {
+    name: string;
+    type: string;
+    hidden?: boolean;
+    label: string;
+    defaultLabel: string;
+  }[];
+  parent: {
+    teamId: number | null;
+    team: {
+      hideBranding: boolean;
+      parent: {
+        hideBranding: boolean;
+      } | null;
+    } | null;
+  } | null;
+  [key: string]: unknown;
+};
+
 // Base type for event type data - uses structural typing to be compatible with both
 // getEventTypesFromDB return type and DefaultEvent
 type EventTypeBase = {
@@ -379,7 +434,7 @@ export async function getBookingDetailsForViewer(
 
   return {
     profile,
-    eventType,
+    eventType: eventType as ProcessedEventType,
     recurringBookings,
     dynamicEventName: bookingInfo?.eventType?.eventName || "",
     bookingInfo,
