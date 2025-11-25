@@ -8,6 +8,7 @@ import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsRemin
 import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
   getSmsReminderNumberField,
@@ -738,6 +739,10 @@ export async function scheduleBookingReminders(
 
   const bookerUrl = await getBookerBaseUrl(isOrg ? teamId : null);
 
+  const creditService = new CreditService();
+  const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
+    creditService.hasAvailableCredits({ userId, teamId });
+
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     const promiseScheduleReminders = bookings.map(async (booking) => {
@@ -841,6 +846,7 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
+          creditCheckFn,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -858,6 +864,7 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
+          creditCheckFn,
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -877,6 +884,7 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
+            creditCheckFn,
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
@@ -895,6 +903,7 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
+            creditCheckFn,
           });
         }
       } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {

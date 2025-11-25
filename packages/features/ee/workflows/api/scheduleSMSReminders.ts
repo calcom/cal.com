@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
@@ -22,7 +23,8 @@ import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";
 
-export async function handler(req: NextRequest) {
+export function makeHandler(deps: { creditCheckFn?: CreditCheckFn } = {}) {
+  return async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -193,6 +195,7 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
+          creditCheckFn: deps.creditCheckFn,
         });
 
         if (scheduledNotification) {
@@ -238,4 +241,7 @@ export async function handler(req: NextRequest) {
   }
 
   return NextResponse.json({ message: "SMS scheduled" }, { status: 200 });
+  };
 }
+
+export const handler = makeHandler();

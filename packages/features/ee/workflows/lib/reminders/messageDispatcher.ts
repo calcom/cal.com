@@ -36,6 +36,7 @@ export async function sendSmsOrFallbackEmail(props: {
   if (props.creditCheckFn) {
     hasCredits = await props.creditCheckFn({ userId, teamId });
   } else {
+    log.warn("[messageDispatcher] creditCheckFn missing; using fallback dynamic import");
     const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
     const creditService = new CreditService();
     hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
@@ -89,6 +90,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
   if (props.creditCheckFn) {
     hasCredits = await props.creditCheckFn({ userId, teamId });
   } else {
+    log.warn("[messageDispatcher] creditCheckFn missing; using fallback dynamic import");
     const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
     const creditService = new CreditService();
     hasCredits = await creditService.hasAvailableCredits({ userId, teamId });

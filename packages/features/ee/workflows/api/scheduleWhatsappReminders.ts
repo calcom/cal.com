@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -17,7 +18,8 @@ import {
   getContentVariablesForTemplate,
 } from "../lib/reminders/templates/whatsapp/ContentSidMapping";
 
-export async function handler(req: NextRequest) {
+export function makeHandler(deps: { creditCheckFn?: CreditCheckFn } = {}) {
+  return async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -124,6 +126,7 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
+          creditCheckFn: deps.creditCheckFn,
         });
 
         if (scheduledNotification) {
@@ -158,4 +161,7 @@ export async function handler(req: NextRequest) {
   }
 
   return NextResponse.json({ message: "WHATSAPP scheduled" }, { status: 200 });
+  };
 }
+
+export const handler = makeHandler();

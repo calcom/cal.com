@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
@@ -37,6 +38,10 @@ const handleSendingSMS = async ({
       rateLimitingType: "sms",
     });
 
+    const creditService = new CreditService();
+    const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
+      creditService.hasAvailableCredits({ userId, teamId });
+
     const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
       twilioData: {
         phoneNumber: reminderPhone,
@@ -45,6 +50,7 @@ const handleSendingSMS = async ({
         ...(teamId ? { teamId } : { userId: organizerUserId }),
         bookingUid,
       },
+      creditCheckFn,
     });
 
     return smsOrFallbackEmail;

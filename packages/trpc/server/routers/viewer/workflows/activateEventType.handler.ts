@@ -1,3 +1,4 @@
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -314,6 +315,10 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
+      const creditService = new CreditService();
+      const creditCheckFn = ({ userId, teamId }: { userId?: number | null; teamId?: number | null }) =>
+        creditService.hasAvailableCredits({ userId, teamId });
+
       for (const booking of bookingsForReminders) {
         // eventTypeId is technically nullable but we know it will be there
         const bookingEventType = activeOnEventTypes.get(booking.eventTypeId!);
@@ -360,7 +365,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             let sendTo: string[] = [];
 
             switch (step.action) {
-              case WorkflowActions.EMAIL_HOST:
+              case WorkflowActions.EMAIL_HOST: {
                 sendTo = [bookingInfo.organizer?.email];
                 const schedulingType = bookingInfo.eventType?.schedulingType;
                 const hosts = bookingInfo.eventType.hosts
@@ -376,6 +381,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                   sendTo = sendTo.concat(hosts);
                 }
                 break;
+              }
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees
                   .map((attendee) => attendee.email)
@@ -419,6 +425,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
+              creditCheckFn,
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -436,6 +443,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
+              creditCheckFn,
             });
           } else if (booking.smsReminderNumber) {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -455,6 +463,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
+                creditCheckFn,
               });
             } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
               await scheduleWhatsappReminder({
@@ -473,6 +482,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
+                creditCheckFn,
               });
             }
           }
