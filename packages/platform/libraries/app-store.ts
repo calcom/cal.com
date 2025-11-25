@@ -32,7 +32,10 @@ export type { CredentialPayload } from "@calcom/types/Credential";
 
 export { addDelegationCredential };
 
-export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
+export {
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  enrichUsersWithDelegationCredentials,
+} from "@calcom/app-store/delegationCredential";
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export {
   CalendarAppError,
