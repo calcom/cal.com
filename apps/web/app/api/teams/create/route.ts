@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import {
+  getBillingProviderService,
+  getTeamBillingServiceFactory,
+} from "@calcom/features/ee/billing/di/containers/Billing";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -91,9 +93,11 @@ async function getHandler(req: NextRequest) {
   });
 
   if (checkoutSession && subscription) {
-    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(subscription);
-    const internalBillingService = new InternalTeamBilling(team);
-    await internalBillingService.saveTeamBilling({
+    const billingProviderService = getBillingProviderService();
+    const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
+    await teamBillingService.saveTeamBilling({
       teamId: team.id,
       subscriptionId: subscription.id,
       subscriptionItemId: subscription.items.data[0].id,
@@ -109,8 +113,10 @@ async function getHandler(req: NextRequest) {
   const isOnboarding = checkoutSessionMetadata.isOnboarding === "true";
 
   if (isOnboarding) {
-    // Redirect to event-types for onboarding flow
-    return NextResponse.redirect(new URL("/onboarding/personal/settings", WEBAPP_URL), {
+    // Redirect to invite flow after payment for onboarding with teamId as query param
+    const inviteUrl = new URL("/onboarding/teams/invite", WEBAPP_URL);
+    inviteUrl.searchParams.set("teamId", team.id.toString());
+    return NextResponse.redirect(inviteUrl, {
       status: 302,
     });
   }
