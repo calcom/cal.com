@@ -8,7 +8,7 @@ import {
   eventTypeAppMetadataOptionalSchema,
 } from "@calcom/app-store/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -298,10 +298,11 @@ const handleDeleteCredential = async ({
               },
             });
 
-            await prisma.bookingReference.deleteMany({
+            await prisma.bookingReference.updateMany({
               where: {
                 bookingId: booking.id,
               },
+              data: { deleted: true },
             });
 
             const attendeesListPromises = booking.attendees.map(async (attendee) => {

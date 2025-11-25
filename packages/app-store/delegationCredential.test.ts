@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -20,15 +20,12 @@ import {
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./delegationCredential";
 
-// Mock OrganizationRepository
-vi.mock("@calcom/lib/server/repository/organization", () => ({
-  OrganizationRepository: {
-    findByMemberEmail: vi.fn(),
-  },
+vi.mock("@calcom/prisma", () => ({
+  prisma: {},
 }));
 
 // Mock DelegationCredentialRepository
-vi.mock("@calcom/lib/server/repository/delegationCredential", () => ({
+vi.mock("@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository", () => ({
   DelegationCredentialRepository: {
     findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey: vi.fn(),
     findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey: vi.fn(),
@@ -187,7 +184,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {

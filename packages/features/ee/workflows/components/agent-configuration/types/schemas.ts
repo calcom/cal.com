@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { z } from "zod";
 
 export const agentSchema = z.object({
@@ -7,6 +7,7 @@ export const agentSchema = z.object({
   numberToCall: z.string().optional(),
   language: z.string().optional(),
   voiceId: z.string().optional(),
+  outboundEventTypeId: z.number().optional(),
   generalTools: z
     .array(
       z.object({

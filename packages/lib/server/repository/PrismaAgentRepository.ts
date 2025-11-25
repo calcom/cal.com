@@ -9,6 +9,7 @@ interface _AgentRawResult {
   userId: number;
   teamId: number | null;
   inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   createdAt: Date;
   updatedAt: Date;
   user_id?: number;
@@ -101,6 +102,7 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "inboundEventTypeId",
+        "outboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -140,6 +142,7 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "inboundEventTypeId",
+        "outboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -162,6 +165,7 @@ export class PrismaAgentRepository {
         userId: true,
         teamId: true,
         inboundEventTypeId: true,
+        outboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -181,8 +185,15 @@ export class PrismaAgentRepository {
         userId: true,
         teamId: true,
         inboundEventTypeId: true,
+        outboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
       },
       where: {
         providerAgentId,
@@ -246,6 +257,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -306,6 +318,7 @@ export class PrismaAgentRepository {
       userId: agent.userId,
       teamId: agent.teamId,
       inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
@@ -366,6 +379,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -408,6 +422,7 @@ export class PrismaAgentRepository {
       userId: agent.userId,
       teamId: agent.teamId,
       inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
@@ -454,15 +469,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  async findByIdWithAdminAccess({
-    id,
-    userId,
-    teamId,
-  }: {
-    id: string;
-    userId: number;
-    teamId?: number;
-  }) {
+  async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
@@ -492,7 +499,8 @@ export class PrismaAgentRepository {
         "teamId",
         "createdAt",
         "updatedAt",
-        "inboundEventTypeId"
+        "inboundEventTypeId",
+        "outboundEventTypeId"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
@@ -524,6 +532,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt"
       FROM "Agent" a
@@ -570,13 +579,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  async linkInboundAgentToWorkflow({
-    workflowStepId,
-    agentId,
-  }: {
-    workflowStepId: number;
-    agentId: string;
-  }) {
+  async linkInboundAgentToWorkflow({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
     return await this.prismaClient.workflowStep.update({
       where: {
         id: workflowStepId,
@@ -598,13 +601,18 @@ export class PrismaAgentRepository {
     });
   }
 
-  async canManageTeamResources({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }): Promise<boolean> {
+  async updateOutboundEventTypeId({ agentId, eventTypeId }: { agentId: string; eventTypeId: number }) {
+    return await this.prismaClient.agent.update({
+      where: {
+        id: agentId,
+      },
+      data: {
+        outboundEventTypeId: eventTypeId,
+      },
+    });
+  }
+
+  async canManageTeamResources({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
     const result = await this.prismaClient.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Membership"
@@ -615,5 +623,28 @@ export class PrismaAgentRepository {
     `;
 
     return Number(result[0].count) > 0;
+  }
+
+  async findAgentWithPhoneNumbers(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: {
+        id: true,
+        outboundPhoneNumbers: {
+          select: {
+            id: true,
+            phoneNumber: true,
+            subscriptionStatus: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findProviderAgentIdById(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: { providerAgentId: true },
+    });
   }
 }

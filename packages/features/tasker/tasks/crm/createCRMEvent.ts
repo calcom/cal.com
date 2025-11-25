@@ -106,6 +106,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const existingBookingReferences = await prisma.bookingReference.findMany({
       where: {
         bookingId: booking.id,
+        deleted: null,
       },
     });
 

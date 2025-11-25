@@ -53,16 +53,23 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
   if (orgId) {
     const isOrgAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
-    const [features, rolePermissions, organizationPermissions] = await Promise.all([
-      getTeamFeatures(orgId),
-      getCachedResourcePermissions(userId, orgId, Resource.Role),
-      getCachedResourcePermissions(userId, orgId, Resource.Organization),
-    ]);
+    const features = await getTeamFeatures(orgId);
 
     if (features) {
       teamFeatures = {
         [orgId]: features,
       };
+    }
+
+    // Check if PBAC feature is enabled
+    const isPbacEnabled = features?.pbac === true;
+
+    if (isPbacEnabled) {
+      // Only fetch and apply PBAC permissions if the feature is enabled
+      const [rolePermissions, organizationPermissions] = await Promise.all([
+        getCachedResourcePermissions(userId, orgId, Resource.Role),
+        getCachedResourcePermissions(userId, orgId, Resource.Organization),
+      ]);
 
       // Check if user has permission to read roles
       const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
@@ -71,7 +78,8 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
       canUpdateOrganization = orgActions[CrudAction.Update] ?? isOrgAdminOrOwner;
     } else {
-      canViewRoles = false;
+      // Fall back to legacy permissions when PBAC is not enabled or features not loaded
+      canViewRoles = features ? isOrgAdminOrOwner : false;
       canViewOrganizationBilling = isOrgAdminOrOwner;
       canUpdateOrganization = isOrgAdminOrOwner;
     }

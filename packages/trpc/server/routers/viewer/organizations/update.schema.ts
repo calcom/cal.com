@@ -35,6 +35,8 @@ export const ZUpdateInputSchema = z.object({
   allowSEOIndexing: z.boolean().optional(),
   orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
   disablePhoneOnlySMSNotifications: z.boolean().optional(),
+  disableAutofillOnBookingPage: z.boolean().optional(),
+  orgAutoJoinOnSignup: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

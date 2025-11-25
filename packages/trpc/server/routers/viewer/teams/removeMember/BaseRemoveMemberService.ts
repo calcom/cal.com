@@ -1,4 +1,4 @@
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 
 import type {
   IRemoveMemberService,

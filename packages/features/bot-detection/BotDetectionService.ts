@@ -1,10 +1,10 @@
 import { checkBotId } from "botid/server";
 import type { IncomingHttpHeaders } from "http";
 
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 
 interface BotDetectionConfig {
   eventTypeId?: number;
@@ -31,6 +31,10 @@ export class BotDetectionService {
     // If no eventTypeId provided, skip bot detection
     if (!eventTypeId) {
       return;
+    }
+
+    if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
+      throw new Error(`Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`);
     }
 
     // Fetch only the teamId from the event type

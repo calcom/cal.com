@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
 import prisma from "@calcom/prisma";
 
@@ -8,6 +8,30 @@ import {
 } from "../../../lib/utils/retrieveScopedAccessibleUsers";
 
 describe("retrieveScopedAccessibleUsers tests", () => {
+  beforeAll(async () => {
+    const acmeOrg = await prisma.team.findFirst({
+      where: {
+        slug: "acme",
+        isOrganization: true,
+      },
+    });
+
+    if (acmeOrg) {
+      await prisma.organizationSettings.upsert({
+        where: {
+          organizationId: acmeOrg.id,
+        },
+        update: {
+          isAdminAPIEnabled: true,
+        },
+        create: {
+          organizationId: acmeOrg.id,
+          orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
+        },
+      });
+    }
+  });
   describe("getAccessibleUsers", () => {
     it("Does not return members when only admin user ID is supplied", async () => {
       const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });

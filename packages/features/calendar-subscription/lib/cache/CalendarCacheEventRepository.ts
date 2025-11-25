@@ -83,9 +83,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
   async deleteStale() {
     return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
-        end: {
-          lte: new Date(),
-        },
+        end: { lte: new Date() },
       },
     });
   }

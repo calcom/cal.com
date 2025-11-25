@@ -126,9 +126,7 @@ export function ImportNumberDialog({
 
             <div className="bg-muted rounded-xl p-1">
               <div className="flex items-center justify-between p-2">
-                <Label className="text-emphasis mb-0 text-sm font-medium leading-none">
-                  {t("advanced")}
-                </Label>
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-none">{t("advanced")}</Label>
                 <Switch size="sm" checked={showAdvancedFields} onCheckedChange={setShowAdvancedFields} />
               </div>
 

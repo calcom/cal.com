@@ -1,8 +1,9 @@
 import type { TFunction } from "i18next";
 
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CreditUsageType } from "@calcom/prisma/enums";
 
-import { renderEmail } from "..";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class CreditBalanceLimitReachedEmail extends BaseEmail {
@@ -16,17 +17,21 @@ export default class CreditBalanceLimitReachedEmail extends BaseEmail {
     id: number;
     name: string;
   };
+  creditFor?: CreditUsageType;
 
   constructor({
     user,
     team,
+    creditFor,
   }: {
     user: { id: number; name: string | null; email: string; t: TFunction };
     team?: { id: number; name: string | null };
+    creditFor?: CreditUsageType;
   }) {
     super();
     this.user = { ...user, name: user.name || "" };
     this.team = team ? { ...team, name: team.name || "" } : undefined;
+    this.creditFor = creditFor;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -39,6 +44,7 @@ export default class CreditBalanceLimitReachedEmail extends BaseEmail {
       html: await renderEmail("CreditBalanceLimitReachedEmail", {
         team: this.team,
         user: this.user,
+        creditFor: this.creditFor,
       }),
       text: this.getTextBody(),
     };

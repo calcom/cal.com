@@ -1,16 +1,16 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
+import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
+import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
@@ -94,12 +94,24 @@ async function cancelAttendeeSeat(
         });
 
         if (credential) {
+          const videoCallReference = bookingToDelete.references.find((reference) =>
+            reference.type.includes("_video")
+          );
+
+          if (videoCallReference) {
+            evt.videoCallData = {
+              type: videoCallReference.type,
+              id: videoCallReference.meetingId,
+              password: videoCallReference?.meetingPassword,
+              url: videoCallReference.meetingUrl,
+            };
+          }
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
             calendarDescription: getRichDescription(evt),
           };
-          if (reference.type.includes("_video")) {
+          if (reference.type.includes("_video") && reference.type !== "google_meet_video") {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
@@ -116,7 +128,7 @@ async function cancelAttendeeSeat(
 
     try {
       await Promise.all(integrationsToUpdate);
-    } catch (error) {
+    } catch {
       // Shouldn't stop code execution if integrations fail
       // as integrations was already updated
     }

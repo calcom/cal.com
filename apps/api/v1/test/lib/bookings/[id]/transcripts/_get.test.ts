@@ -5,8 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
-import { buildBooking } from "@calcom/lib/test/builder";
 import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/features/conferencing/lib/videoClient";
+import { buildBooking } from "@calcom/lib/test/builder";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 

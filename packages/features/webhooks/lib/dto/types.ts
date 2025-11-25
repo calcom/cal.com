@@ -1,5 +1,5 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -331,6 +331,12 @@ export interface AfterGuestsNoShowDTO extends BaseEventDTO {
   };
 }
 
+export interface DelegationCredentialErrorDTO
+  extends BaseEventDTO,
+    Pick<DelegationCredentialErrorPayloadType, "error" | "credential" | "user"> {
+  triggerEvent: typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+}
+
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
@@ -349,7 +355,8 @@ export type WebhookEventDTO =
   | MeetingEndedDTO
   | InstantMeetingDTO
   | AfterHostsNoShowDTO
-  | AfterGuestsNoShowDTO;
+  | AfterGuestsNoShowDTO
+  | DelegationCredentialErrorDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {
@@ -479,6 +486,24 @@ export type OOOEntryPayloadType = {
       email?: string;
     } | null;
     uuid: string;
+  };
+};
+
+export type DelegationCredentialErrorPayloadType = {
+  error: {
+    type: string;
+    message: string;
+  };
+  credential: {
+    id: number;
+    type: string;
+    appId: string;
+    delegationCredentialId?: string;
+  };
+  user: {
+    id: number;
+    email: string;
+    organizationId?: number;
   };
 };
 

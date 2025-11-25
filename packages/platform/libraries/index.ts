@@ -1,4 +1,5 @@
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
@@ -11,7 +12,6 @@ import {
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
-import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
@@ -127,5 +127,4 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
-export { TeamService } from "@calcom/lib/server/service/teamService";
-export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+export { TeamService } from "@calcom/features/ee/teams/services/teamService";

@@ -113,10 +113,14 @@ test("multiple duration selection updates event length correctly", async ({ page
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     await page.fill('[name="eventName"]', "{Event duration} event btwn {Organiser} {Scheduler}");
     await page.locator('[data-testid="update-eventtype"]').click();
-    await page.waitForResponse("/api/trpc/eventTypes/heavy/update?batch=1");
+    await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
   });
 
   await page.goto(`/${user.username}/multiple-duration`);
+
+  await page.waitForURL((url) => {
+    return url.searchParams.get("overlayCalendar") === "true";
+  });
 
   await page.locator('[data-testid="multiple-choice-30mins"]').waitFor({ state: "visible" });
 
@@ -128,6 +132,7 @@ test("multiple duration selection updates event length correctly", async ({ page
 
   await test.step("book with 90min duration and verify title", async () => {
     await page.getByTestId("multiple-choice-90mins").click();
+    await page.locator('[data-testid="time"]').nth(0).waitFor({ state: "visible" });
 
     const duration90 = page.getByTestId("multiple-choice-90mins");
     const activeState = await duration90.getAttribute("data-active");
@@ -193,9 +198,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

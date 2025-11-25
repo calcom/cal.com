@@ -3,9 +3,9 @@ import type {
   InsightsRoutingServicePublicOptions,
   InsightsRoutingServiceFilterOptions,
   InsightsRoutingBaseService,
-} from "@calcom/lib/server/service/InsightsRoutingBaseService";
-import type { InsightsRoutingService } from "@calcom/lib/server/service/InsightsRoutingDIService";
-import { prismaModule } from "@calcom/prisma/prisma.module";
+} from "@calcom/features/insights/services/InsightsRoutingBaseService";
+import type { InsightsRoutingService } from "@calcom/features/insights/services/InsightsRoutingDIService";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 
 import { createContainer } from "../di";
 import { insightsRoutingModule } from "../modules/InsightsRouting";

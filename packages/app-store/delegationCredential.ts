@@ -3,6 +3,10 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -10,10 +14,6 @@ import {
 } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -616,44 +616,9 @@ export async function findUniqueDelegationCalendarCredential({
 }
 
 /**
- * CredentialForCalendarCache is different from CredentialForCalendarService in the sense that CredentialForCalendarCache.id is greater than 0 and CredentialForCalendarService.id is -1
- * Thus it is a Credential from DB and and also a Delegation User Credential(when CredentialForCalendarCache.delegatedTo is not null)
- */
-export async function getCredentialForCalendarCache({ credentialId }: { credentialId: number }) {
-  const credential = await CredentialRepository.findByIdIncludeDelegationCredential({
-    id: credentialId,
-  });
-
-  let credentialForCalendarService;
-
-  if (credential?.delegationCredential) {
-    if (!credential.userId) {
-      throw new Error(`Credential ${credentialId} doesn't have a user`);
-    }
-    const delegationCredential = await findUniqueDelegationCalendarCredential({
-      userId: credential.userId,
-      delegationCredentialId: credential.delegationCredential.id,
-    });
-
-    if (!delegationCredential) {
-      credentialForCalendarService = null;
-    } else {
-      // We prepare a credential that is in-db(in contrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
-      credentialForCalendarService = {
-        ...delegationCredential,
-        id: credential.id,
-      };
-    }
-  } else {
-    credentialForCalendarService = buildNonDelegationCredential(credential);
-  }
-  return credentialForCalendarService;
-}
-
-/**
  * It includes in-memory DelegationCredential credentials as well.
  */
-export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<User, "id" | "email">) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,

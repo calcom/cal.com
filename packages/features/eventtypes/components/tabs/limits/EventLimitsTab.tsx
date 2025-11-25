@@ -7,6 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -29,10 +30,10 @@ import {
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Icon } from "@calcom/ui/components/icon";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -251,36 +252,37 @@ function RollingLimitRadioItem({
         </div>
         <div className="-ml-6 flex flex-col py-2">
           <div className="flex items-center">
-          <CheckboxField
-            checked={!!rollingExcludeUnavailableDays}
-            disabled={isDisabled}
-            description={t("always_show_x_days", {
-              x: periodDaysWatch,
-            })}
-            onChange={(e) => {
-              const isChecked = e.target.checked;
-              formMethods.setValue(
-                "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
-              );
-              formMethods.setValue(
-                "periodType",
-                getPeriodTypeFromUiValue({
-                  value: PeriodType.ROLLING,
-                  rollingExcludeUnavailableDays: isChecked,
-                }),
-                { shouldDirty: true }
-              );
-            }}
-          />
-          <Tooltip content={t("always_show_x_days_description", {
-              x: periodDaysWatch,
-            })}>
-            <Icon
-              name="info"
-              className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+            <CheckboxField
+              checked={!!rollingExcludeUnavailableDays}
+              disabled={isDisabled}
+              description={t("always_show_x_days", {
+                x: periodDaysWatch,
+              })}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                formMethods.setValue(
+                  "periodDays",
+                  Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
+                );
+                formMethods.setValue(
+                  "periodType",
+                  getPeriodTypeFromUiValue({
+                    value: PeriodType.ROLLING,
+                    rollingExcludeUnavailableDays: isChecked,
+                  }),
+                  { shouldDirty: true }
+                );
+              }}
             />
-          </Tooltip>
+            <Tooltip
+              content={t("always_show_x_days_description", {
+                x: periodDaysWatch,
+              })}>
+              <Icon
+                name="info"
+                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+              />
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -593,7 +595,13 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
               title={t("limit_booking_frequency")}
               {...bookingLimitsLocked}
-              description={t("limit_booking_frequency_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="limit_booking_frequency_description"
+                  href="https://cal.com/help/event-types/booking-frequency"
+                />
+              }
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
@@ -724,7 +732,13 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               childrenClassName={classNames("lg:ml-0", customClassNames?.futureBookingLimit?.children)}
               descriptionClassName={customClassNames?.futureBookingLimit?.description}
               title={t("limit_future_bookings")}
-              description={t("limit_future_bookings_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="limit_future_bookings_description"
+                  href="https://cal.com/help/event-types/limit-future-bookings"
+                />
+              }
               {...periodTypeLocked}
               checked={isChecked}
               onCheckedChange={(isEnabled) => {

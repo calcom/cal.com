@@ -6,6 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -59,7 +60,6 @@ export default function RequiresConfirmationController({
     if (!requiresConfirmation) {
       formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
   const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
@@ -99,15 +99,22 @@ export default function RequiresConfirmationController({
               data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
-              description={t("requires_confirmation_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="requires_confirmation_description"
+                  href="https://cal.com/help/event-types/how-to-requires"
+                />
+              }
               checked={requiresConfirmation}
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
+                } else {
+                  formMethods.setValue("requiresConfirmationWillBlockSlot", true, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
               }}>
@@ -128,6 +135,9 @@ export default function RequiresConfirmationController({
                         shouldDirty: true,
                       });
                       setRequiresConfirmationSetup(undefined);
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     } else if (val === "notice") {
                       formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
@@ -136,6 +146,9 @@ export default function RequiresConfirmationController({
                         requiresConfirmationSetup || defaultRequiresConfirmationSetup,
                         { shouldDirty: true }
                       );
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     }
                   }}>
                   <div

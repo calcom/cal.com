@@ -9,8 +9,6 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
-import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +18,6 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { AssignmentReason } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -48,39 +45,22 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
-import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
-import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
-import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import { ReassignDialog } from "@components/dialog/ReassignDialog";
-import { RerouteDialog } from "@components/dialog/RerouteDialog";
-import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
-
+import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
+import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
+import {
+  useBookingActionsStoreContext,
+  BookingActionsStoreProvider,
+} from "./actions/BookingActionsStoreProvider";
 import {
   getPendingActions,
   getCancelEventAction,
-  getEditEventActions,
-  getAfterEventActions,
   shouldShowPendingActions,
-  shouldShowEditActions,
   shouldShowRecurringCancelAction,
+  shouldShowIndividualReportButton,
   type BookingActionContext,
-} from "./bookingActions";
-
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
-
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
-
-export type BookingItemProps = BookingItem & {
-  listingStatus: BookingListingStatus;
-  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
-  isToday: boolean;
-};
+  getReportAction,
+} from "./actions/bookingActions";
+import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
@@ -117,10 +97,51 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
+const ConditionalLink = ({
+  children,
+  onClick,
+  bookingLink,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  bookingLink: string;
+  className?: string;
+}) => {
+  const { t } = useLocale();
+
+  if (onClick) {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick();
+      }
+    };
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        className={className}
+        aria-label={t("view_booking_details")}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Link href={bookingLink} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { onClick } = booking;
   const {
     t,
     i18n: { language },
@@ -128,11 +149,6 @@ function BookingListItem(booking: BookingItemProps) {
   const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
-  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
-  const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
-  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
-  const cardCharged = booking?.payment[0]?.success;
 
   const attendeeList = booking.attendees.map((attendee) => {
     return {
@@ -142,17 +158,6 @@ function BookingListItem(booking: BookingItemProps) {
       noShow: attendee.noShow || false,
       phoneNumber: attendee.phoneNumber,
     };
-  });
-
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(data.message, "success");
-      // Invalidate and refetch the bookings query to update the UI
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
   });
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
@@ -181,6 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isPending = booking.status === BookingStatus.PENDING;
   const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
+
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
@@ -209,6 +215,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const cardCharged = booking?.payment[0]?.success;
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -288,48 +295,6 @@ function BookingListItem(booking: BookingItemProps) {
     .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
-  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
-  const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
-  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
-    onSuccess: () => {
-      showToast(t("location_updated"), "success");
-      setIsOpenLocationDialog(false);
-      utils.viewer.bookings.invalidate();
-    },
-    onError: (e) => {
-      const errorMessages: Record<string, string> = {
-        UNAUTHORIZED: t("you_are_unauthorized_to_make_this_change_to_the_booking"),
-        BAD_REQUEST: e.message,
-      };
-
-      const message = errorMessages[e.data?.code as string] || t("location_update_failed");
-      showToast(message, "error");
-    },
-  });
-
-  const saveLocation = async ({
-    newLocation,
-    credentialId,
-  }: {
-    newLocation: string;
-    /**
-     * It could be set for conferencing locations that support team level installations.
-     */
-    credentialId: number | null;
-  }) => {
-    try {
-      await setLocationMutation.mutateAsync({
-        bookingId: booking.id,
-        newLocation,
-        credentialId,
-      });
-    } catch {
-      // Errors are shown through the mutation onError handler
-    }
-  };
 
   // Getting accepted recurring dates to show
   const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
@@ -337,132 +302,26 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const buildBookingLink = () => {
-    const urlSearchParams = new URLSearchParams({
-      allRemainingBookings: isTabRecurring.toString(),
-    });
-    if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
-    return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
-  };
-
-  const bookingLink = buildBookingLink();
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isTabRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
 
   const title = booking.title;
 
-  const isCalVideoLocation =
-    !booking.location ||
-    booking.location === "integrations:daily" ||
-    (typeof booking.location === "string" && booking.location.trim() === "");
-
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
-  const baseEditEventActions = getEditEventActions(actionContext);
-  const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
-    ...action,
-    onClick:
-      action.id === "reschedule_request"
-        ? () => setIsOpenRescheduleDialog(true)
-        : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
-        : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
-  })) as ActionType[];
+  const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
 
-  const baseAfterEventActions = getAfterEventActions(actionContext);
-  const afterEventActions: ActionType[] = baseAfterEventActions.map((action) => ({
-    ...action,
-    onClick:
-      action.id === "view_recordings"
-        ? () => setViewRecordingsDialogIsOpen(true)
-        : action.id === "meeting_session_details"
-        ? () => setMeetingSessionDetailsDialogIsOpen(true)
-        : action.id === "charge_card"
-        ? () => setChargeCardDialogIsOpen(true)
-        : action.id === "no_show"
-        ? () => {
-            if (attendeeList.length === 1) {
-              const attendee = attendeeList[0];
-              noShowMutation.mutate({
-                bookingUid: booking.uid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-              return;
-            }
-            setIsNoShowDialogOpen(true);
-          }
-        : undefined,
-    disabled:
-      action.disabled ||
-      (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
-      (action.id === "view_recordings" && !booking.isRecorded),
-  })) as ActionType[];
+  const reportAction = getReportAction(actionContext);
+  const reportActionWithHandler = {
+    ...reportAction,
+    onClick: () => setIsOpenReportDialog(true),
+  };
 
   return (
     <>
-      <RescheduleDialog
-        isOpenDialog={isOpenRescheduleDialog}
-        setIsOpenDialog={setIsOpenRescheduleDialog}
-        bookingUId={booking.uid}
-      />
-      {isOpenReassignDialog && (
-        <ReassignDialog
-          isOpenDialog={isOpenReassignDialog}
-          setIsOpenDialog={setIsOpenReassignDialog}
-          bookingId={booking.id}
-          teamId={booking.eventType?.team?.id || 0}
-          bookingFromRoutingForm={isBookingFromRoutingForm}
-        />
-      )}
-      <EditLocationDialog
-        booking={booking}
-        saveLocation={saveLocation}
-        isOpenDialog={isOpenSetLocationDialog}
-        setShowLocationModal={setIsOpenLocationDialog}
-        teamId={booking.eventType?.team?.id}
-      />
-      <AddGuestsDialog
-        isOpenDialog={isOpenAddGuestsDialog}
-        setIsOpenDialog={setIsOpenAddGuestsDialog}
-        bookingId={booking.id}
-      />
-      {booking.paid && booking.payment[0] && (
-        <ChargeCardDialog
-          isOpenDialog={chargeCardDialogIsOpen}
-          setIsOpenDialog={setChargeCardDialogIsOpen}
-          bookingId={booking.id}
-          paymentAmount={booking.payment[0].amount}
-          paymentCurrency={booking.payment[0].currency}
-        />
-      )}
-      {isCalVideoLocation && (
-        <ViewRecordingsDialog
-          booking={booking}
-          isOpenDialog={viewRecordingsDialogIsOpen}
-          setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={userTimeFormat ?? null}
-        />
-      )}
-      {isCalVideoLocation && meetingSessionDetailsDialogIsOpen && (
-        <MeetingSessionDetailsDialog
-          booking={booking}
-          isOpenDialog={meetingSessionDetailsDialogIsOpen}
-          setIsOpenDialog={setMeetingSessionDetailsDialogIsOpen}
-          timeFormat={userTimeFormat ?? null}
-        />
-      )}
-      {isNoShowDialogOpen && (
-        <NoShowAttendeesDialog
-          bookingUid={booking.uid}
-          attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
-        />
-      )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -502,7 +361,7 @@ function BookingListItem(booking: BookingItemProps) {
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
               )}
-              <Link href={bookingLink} className="ml-3">
+              <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
                 <div className="cursor-pointer py-4">
                   <div className="text-emphasis text-sm leading-6">{startTime}</div>
                   <div className="text-subtle text-sm">
@@ -531,8 +390,11 @@ function BookingListItem(booking: BookingItemProps) {
                             className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={provider.iconUrl}
+                                  width={16}
+                                  height={16}
                                   className="h-4 w-4 rounded-sm"
                                   alt={`${provider?.label} logo`}
                                 />
@@ -546,11 +408,11 @@ function BookingListItem(booking: BookingItemProps) {
                     </div>
                   )}
                 </div>
-              </Link>
+              </ConditionalLink>
             </div>
           </div>
           <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-            <Link href={bookingLink}>
+            <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
               {/* Time and Badges for mobile */}
               <div className="w-full pb-2 pt-4 sm:hidden">
                 <div className="flex w-full items-center justify-between sm:hidden">
@@ -599,7 +461,7 @@ function BookingListItem(booking: BookingItemProps) {
                 <div
                   title={title}
                   className={classNames(
-                    "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
+                    "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
                     isCancelled ? "line-through" : ""
                   )}>
                   {title}
@@ -633,81 +495,27 @@ function BookingListItem(booking: BookingItemProps) {
                   </div>
                 )}
               </div>
-            </Link>
+            </ConditionalLink>
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            {shouldShowEditActions(actionContext) && (
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    color="secondary"
-                    variant="icon"
-                    StartIcon="ellipsis"
-                    data-testid="booking-actions-dropdown"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-                    {editEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          disabled={action.disabled}
-                          onClick={action.onClick}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-                    {afterEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          onClick={action.onClick}
-                          disabled={action.disabled}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="rounded-lg"
-                      key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
-                      <DropdownItem
-                        type="button"
-                        color={cancelEventAction.color}
-                        StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
-                        onClick={cancelEventAction.onClick}
-                        disabled={cancelEventAction.disabled}
-                        data-bookingid={cancelEventAction.bookingId}
-                        data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                        {cancelEventAction.label}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenuPortal>
-              </Dropdown>
-            )}
+            <BookingActionsDropdown booking={booking} context="list" />
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {shouldShowIndividualReportButton(actionContext) && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="icon"
+                  color="destructive"
+                  StartIcon={reportActionWithHandler.icon}
+                  onClick={reportActionWithHandler.onClick}
+                  disabled={reportActionWithHandler.disabled}
+                  data-testid={reportActionWithHandler.id}
+                  className="min-h-[34px] min-w-[34px]"
+                  tooltip={reportActionWithHandler.label}
+                />
+              </div>
+            )}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
@@ -725,14 +533,6 @@ function BookingListItem(booking: BookingItemProps) {
           isRescheduled={isRescheduled}
         />
       </div>
-
-      {isBookingFromRoutingForm && (
-        <RerouteDialog
-          isOpenDialog={rerouteDialogIsOpen}
-          setIsOpenDialog={setRerouteDialogIsOpen}
-          booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
-        />
-      )}
     </>
   );
 }
@@ -775,6 +575,24 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+      )}
+      {booking.report && (
+        <Tooltip
+          content={
+            <div className="text-xs">
+              {(() => {
+                const reasonKey = `report_reason_${booking.report.reason.toLowerCase()}`;
+                const reasonText = t(reasonKey);
+                return booking.report.description
+                  ? `${reasonText}: ${booking.report.description}`
+                  : reasonText;
+              })()}
+            </div>
+          }>
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="red">
+            {t("reported")}
+          </Badge>
+        </Tooltip>
       )}
       {booking.paid && !booking.payment[0] ? (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
@@ -828,7 +646,7 @@ const RecurringBookingsTooltip = ({
 
   return (
     (booking.recurringInfo &&
-      booking.eventType?.recurringEvent?.freq &&
+      booking.eventType?.recurringEvent?.freq != null &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
         booking.listingStatus === "cancelled") && (
@@ -1099,76 +917,6 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   );
 };
 
-const NoShowAttendeesDialog = ({
-  attendees,
-  isOpen,
-  setIsOpen,
-  bookingUid,
-}: {
-  attendees: AttendeeProps[];
-  isOpen: boolean;
-  setIsOpen: (value: boolean) => void;
-  bookingUid: string;
-}) => {
-  const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
-
-  const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
-        )
-      );
-      showToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
-
-  return (
-    <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
-      <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {noShowAttendees.map((attendee) => (
-          <form
-            key={attendee.id}
-            onSubmit={(e) => {
-              e.preventDefault();
-              noShowMutation.mutate({
-                bookingUid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-            }}>
-            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
-              <span className="text-emphasis flex flex-col text-sm">
-                {attendee.name}
-                {attendee.email && <span className="text-muted">({attendee.email})</span>}
-              </span>
-              <Button color="minimal" type="submit" StartIcon={attendee.noShow ? "eye-off" : "eye"}>
-                {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
-              </Button>
-            </div>
-          </form>
-        ))}
-        <DialogFooter noSticky>
-          <DialogClose>{t("done")}</DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
 const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { t } = useLocale();
@@ -1291,4 +1039,13 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
   );
 };
 
-export default BookingListItem;
+// Wrap BookingListItem with BookingActionsStoreProvider to provide isolated store for each booking
+const BookingListItemWithProvider = (props: BookingItemProps) => {
+  return (
+    <BookingActionsStoreProvider>
+      <BookingListItem {...props} />
+    </BookingActionsStoreProvider>
+  );
+};
+
+export default BookingListItemWithProvider;
