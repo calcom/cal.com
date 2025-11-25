@@ -13,6 +13,11 @@ interface AccessCode {
   codeChallengeMethod?: string | null;
 }
 
+interface RefreshTokenPayload {
+  codeChallenge?: string | null;
+  codeChallengeMethod?: string | null;
+}
+
 export class OAuthService {
   static validateClient(
     client: OAuthClient,
@@ -74,6 +79,49 @@ export class OAuthService {
         return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
       }
       if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
+        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+      }
+    }
+
+    return null;
+  }
+
+  static verifyPKCEForRefreshToken(
+    client: OAuthClient,
+    decodedRefreshToken: RefreshTokenPayload,
+    code_verifier?: string
+  ): NextResponse | null {
+    if (client.clientType === "PUBLIC") {
+      if (!decodedRefreshToken.codeChallenge) {
+        return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
+      }
+
+      if (!code_verifier) {
+        return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
+      }
+
+      const method = decodedRefreshToken.codeChallengeMethod || "S256";
+      if (method !== "S256") {
+        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+      }
+
+      if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
+        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
+      }
+    } else if (client.clientType === "CONFIDENTIAL" && decodedRefreshToken.codeChallenge) {
+      if (!code_verifier) {
+        return NextResponse.json(
+          { message: "code_verifier required when PKCE was used in original authorization" },
+          { status: 400 }
+        );
+      }
+
+      const method = decodedRefreshToken.codeChallengeMethod || "S256";
+      if (method !== "S256") {
+        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
+      }
+
+      if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
         return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
       }
     }
