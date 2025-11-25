@@ -151,7 +151,7 @@ describe("updateHandler - Permission Check Tests", () => {
       expect(prisma.team.update).not.toHaveBeenCalled();
     });
 
-    it("should handle user with no id by passing 0", async () => {
+    it("should throw UNAUTHORIZED when user has no id", async () => {
       const userWithoutId = {
         id: undefined,
         organizationId: 100,
@@ -162,8 +162,6 @@ describe("updateHandler - Permission Check Tests", () => {
         name: "Updated Team",
       };
 
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-
       vi.mocked(prisma.team.findUnique).mockResolvedValue({
         id: 50,
         parentId: 100,
@@ -172,32 +170,17 @@ describe("updateHandler - Permission Check Tests", () => {
         rrTimestampBasis: RRTimestampBasis.CREATED_AT,
       } as any);
 
-      vi.mocked(prisma.team.update).mockResolvedValue({
-        id: 50,
-        name: "Updated Team",
-        bio: null,
-        slug: "test-team",
-        theme: null,
-        brandColor: null,
-        darkBrandColor: null,
-        logoUrl: null,
-        bookingLimits: null,
-        includeManagedEventsInLimits: null,
-        rrResetInterval: null,
-        rrTimestampBasis: RRTimestampBasis.CREATED_AT,
-      } as any);
-
-      await updateHandler({
-        ctx: { user: userWithoutId },
-        input,
+      await expect(
+        updateHandler({
+          ctx: { user: userWithoutId },
+          input,
+        })
+      ).rejects.toMatchObject({
+        code: "UNAUTHORIZED",
       });
 
-      expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
-        userId: 0,
-        teamId: input.id,
-        permission: "team.update",
-        fallbackRoles: expect.any(Array),
-      });
+      expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
+      expect(prisma.team.update).not.toHaveBeenCalled();
     });
   });
 
