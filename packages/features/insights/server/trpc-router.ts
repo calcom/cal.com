@@ -654,8 +654,21 @@ export const insightsRouter = router({
       return result;
     }
 
-    // Look if user has insights access in multiple teams
-    // This includes both traditional ADMIN/OWNER roles and PBAC custom roles with insights.read permission
+    // Get all team IDs where user has insights.read permission in a single optimized query
+    // This properly handles both PBAC permissions and traditional role-based access
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithAccess = await permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
+    if (teamIdsWithAccess.length === 0) {
+      return [];
+    }
+
+    // Fetch only teams where user has both membership AND insights access
+    // This avoids fetching unnecessary team data by filtering at the database level
     const belongsToTeams = await ctx.insightsDb.membership.findMany({
       where: {
         team: {
@@ -663,6 +676,7 @@ export const insightsRouter = router({
         },
         accepted: true,
         userId: user.id,
+        teamId: { in: teamIdsWithAccess },
       },
       include: {
         team: {
@@ -677,23 +691,7 @@ export const insightsRouter = router({
       },
     });
 
-    if (belongsToTeams.length === 0) {
-      return [];
-    }
-
-    // Get all team IDs where user has insights.read permission in a single optimized query
-    // This avoids N+1 queries by fetching all permissions at once
-    const permissionCheckService = new PermissionCheckService();
-    const teamIdsWithAccess = await permissionCheckService.getTeamIdsWithPermission({
-      userId: user.id,
-      permission: "insights.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-
-    // Filter to only teams where user has access
-    const result: IResultTeamList[] = belongsToTeams
-      .filter((membership) => teamIdsWithAccess.includes(membership.team.id))
-      .map((membership) => ({ ...membership.team }));
+    const result: IResultTeamList[] = belongsToTeams.map((membership) => ({ ...membership.team }));
 
     return result;
   }),
