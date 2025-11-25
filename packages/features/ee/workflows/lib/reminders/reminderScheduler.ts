@@ -73,7 +73,7 @@ type ProcessWorkflowStepParams = (
 export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
-  creditCheckFn?: CreditCheckFn;
+  creditCheckFn: CreditCheckFn;
 };
 
 const processWorkflowStep = async (
@@ -87,7 +87,7 @@ const processWorkflowStep = async (
     seatReferenceUid,
     formData,
   }: ProcessWorkflowStepParams,
-  creditCheckFn?: CreditCheckFn
+  creditCheckFn: CreditCheckFn
 ) => {
   if (!step?.verifiedAt) return;
 
@@ -276,10 +276,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  creditCheckFn: CreditCheckFn;
 }
 
 const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt, workflows, hideBranding, creditCheckFn } = args;
 
   if (!workflows.length) return;
 
@@ -287,11 +288,16 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        smsReminderNumber,
-        hideBranding,
-        calendarEvent: evt,
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          smsReminderNumber,
+          hideBranding,
+          calendarEvent: evt,
+        },
+        creditCheckFn
+      );
     }
   }
 };

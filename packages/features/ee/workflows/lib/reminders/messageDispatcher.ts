@@ -28,19 +28,11 @@ export async function sendSmsOrFallbackEmail(props: {
     t: TFunction;
     replyTo: string;
   };
-  creditCheckFn?: CreditCheckFn;
+  creditCheckFn: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
 
-  let hasCredits: boolean;
-  if (props.creditCheckFn) {
-    hasCredits = await props.creditCheckFn({ userId, teamId });
-  } else {
-    log.warn("[messageDispatcher] creditCheckFn missing; using fallback dynamic import");
-    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-    const creditService = new CreditService();
-    hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-  }
+  const hasCredits = await props.creditCheckFn({ userId, teamId });
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;
@@ -82,19 +74,11 @@ export async function scheduleSmsOrFallbackEmail(props: {
     replyTo: string;
     workflowStepId?: number;
   };
-  creditCheckFn?: CreditCheckFn;
+  creditCheckFn: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
 
-  let hasCredits: boolean;
-  if (props.creditCheckFn) {
-    hasCredits = await props.creditCheckFn({ userId, teamId });
-  } else {
-    log.warn("[messageDispatcher] creditCheckFn missing; using fallback dynamic import");
-    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-    const creditService = new CreditService();
-    hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-  }
+  const hasCredits = await props.creditCheckFn({ userId, teamId });
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;

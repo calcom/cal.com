@@ -90,7 +90,7 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
-  creditCheckFn?: CreditCheckFn;
+  creditCheckFn: CreditCheckFn;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
