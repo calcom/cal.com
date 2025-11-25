@@ -85,7 +85,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       onSubmit={onCreateWebhook}
       apps={installedApps?.items.map((app) => app.slug)}
       versionSelector={(formMethods) => (
-        <SettingsHeader
+        <SettingsHeaderWithBackButton
           title={t("add_webhook")}
           description={t("add_webhook_description", { appName: APP_NAME })}
           borderInShellHeader={true}

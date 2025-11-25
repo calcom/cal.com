@@ -296,13 +296,20 @@ const WebhookForm = (props: {
 
   formMethods.register("version");
 
-  const showTimeSection = formMethods
-    .watch("eventTriggers")
-    ?.find(
-      (trigger) =>
-        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    );
+  const triggers = formMethods.watch("eventTriggers") || [];
+  const subscriberUrl = formMethods.watch("subscriberUrl");
+  const time = formMethods.watch("time");
+  const timeUnit = formMethods.watch("timeUnit");
+
+  const isCreating = !props?.webhook?.id;
+  const needsTime = triggers.some(
+    (t) =>
+      t === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+      t === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
+  const hasTime = !!time && !!timeUnit;
+  const hasUrl = !!subscriberUrl;
+  const showTimeSection = needsTime;
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
@@ -603,7 +610,7 @@ const WebhookForm = (props: {
           <Button
             type="submit"
             data-testid="create_webhook"
-            disabled={!formMethods.formState.isDirty && !changeSecret}
+            disabled={canSubmit}
             loading={formMethods.formState.isSubmitting}>
             {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>

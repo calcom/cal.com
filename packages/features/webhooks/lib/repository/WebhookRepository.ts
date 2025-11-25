@@ -293,6 +293,7 @@ export class WebhookRepository implements IWebhookRepository {
         time: true,
         timeUnit: true,
         appId: true,
+        version: true,
       },
     });
   }
