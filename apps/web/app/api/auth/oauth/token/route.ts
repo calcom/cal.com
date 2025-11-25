@@ -104,8 +104,14 @@ async function handler(req: NextRequest) {
     if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
       return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
     }
-  } else if (client.clientType === "CONFIDENTIAL" && code_verifier && accessCode.codeChallenge) {
-    // Optional PKCE verification for CONFIDENTIAL clients (defense in depth)
+  } else if (client.clientType === "CONFIDENTIAL" && accessCode.codeChallenge) {
+    // Optional PKCE verification for CONFIDENTIAL clients
+    if (!code_verifier) {
+      return NextResponse.json(
+        { message: "code_verifier required if PKCE was used in original authorization" },
+        { status: 400 }
+      );
+    }
     const method = accessCode.codeChallengeMethod || "S256";
     if (method !== "S256") {
       return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
