@@ -38,9 +38,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
+  if (!ctx.user?.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   const permissionCheckService = new PermissionCheckService();
   const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
-    userId: ctx.user?.id || 0,
+    userId: ctx.user.id,
     teamId: input.id,
     permission: "team.update",
     fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
