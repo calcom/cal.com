@@ -94,7 +94,7 @@ export class WorkflowService {
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     routedEventTypeId: number | null;
-    creditCheckFn?: CreditCheckFn;
+    creditCheckFn: CreditCheckFn;
     form: {
       id: string;
       userId: number;
