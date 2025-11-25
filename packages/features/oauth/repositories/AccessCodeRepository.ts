@@ -1,17 +1,9 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-interface AccessCodeData {
-  userId: number;
-  teamId: number | null;
-  scopes: string[];
-  codeChallenge: string | null;
-  codeChallengeMethod: string | null;
-}
-
 export class AccessCodeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async findValidCode(code: string, clientId: string): Promise<AccessCodeData | null> {
+  async findValidCode(code: string, clientId: string) {
     return await this.prisma.accessCode.findFirst({
       where: {
         code: code,
@@ -30,7 +22,7 @@ export class AccessCodeRepository {
     });
   }
 
-  async deleteExpiredAndUsedCodes(code: string, clientId: string): Promise<void> {
+  async deleteExpiredAndUsedCodes(code: string, clientId: string) {
     await this.prisma.accessCode.deleteMany({
       where: {
         OR: [
