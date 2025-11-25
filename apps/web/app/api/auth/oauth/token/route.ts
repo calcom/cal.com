@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
+import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
@@ -20,16 +22,10 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  const client = await prisma.oAuthClient.findFirst({
-    where: {
-      clientId: client_id,
-    },
-    select: {
-      redirectUri: true,
-      clientSecret: true,
-      clientType: true,
-    },
-  });
+  const oAuthClientRepository = new OAuthClientRepository(prisma);
+  const accessCodeRepository = new AccessCodeRepository(prisma);
+
+  const client = await oAuthClientRepository.findByClientId(client_id);
 
   if (!client || client.redirectUri !== redirect_uri) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -40,39 +36,10 @@ async function handler(req: NextRequest) {
     return validationError;
   }
 
-  const accessCode = await prisma.accessCode.findFirst({
-    where: {
-      code: code,
-      clientId: client_id,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-    select: {
-      userId: true,
-      teamId: true,
-      scopes: true,
-      codeChallenge: true,
-      codeChallengeMethod: true,
-    },
-  });
+  const accessCode = await accessCodeRepository.findValidCode(code, client_id);
 
   // Delete all expired accessCodes + the one that is used here
-  await prisma.accessCode.deleteMany({
-    where: {
-      OR: [
-        {
-          expiresAt: {
-            lt: new Date(),
-          },
-        },
-        {
-          code: code,
-          clientId: client_id,
-        },
-      ],
-    },
-  });
+  await accessCodeRepository.deleteExpiredAndUsedCodes(code, client_id);
 
   if (!accessCode) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

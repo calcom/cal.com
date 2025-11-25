@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
@@ -23,16 +24,9 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  const client = await prisma.oAuthClient.findFirst({
-    where: {
-      clientId: client_id,
-    },
-    select: {
-      redirectUri: true,
-      clientSecret: true,
-      clientType: true,
-    },
-  });
+  const oAuthClientRepository = new OAuthClientRepository(prisma);
+
+  const client = await oAuthClientRepository.findByClientId(client_id);
 
   if (!client) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
