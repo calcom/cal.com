@@ -3,17 +3,13 @@ import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/app-store/delegationCredential";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import {
   eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
@@ -29,6 +25,10 @@ import type {
   CreateBookingMeta,
   BookingHandlerInput,
 } from "@calcom/features/bookings/lib/dto/types";
+import {
+  getDefaultConferencingAppLocation,
+  getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+} from "@calcom/features/bookings/lib/getDefaultConferencingAppLocation";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -80,7 +80,6 @@ import {
   WorkflowTriggerEvents,
   CreationSource,
 } from "@calcom/prisma/enums";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
@@ -1172,26 +1171,16 @@ async function handler(
     }
   }
 
-  const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
-    credentials: firstUser.credentials,
-  });
-
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
-    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
-    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
-    if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
-      locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-          organizerMetadata?.defaultConferencingApp?.appLink;
-      }
-    } else if (organizationDefaultLocation) {
-      locationBodyString = organizationDefaultLocation;
-    } else {
-      locationBodyString = "integrations:daily";
-    }
+    locationBodyString = getDefaultConferencingAppLocation(organizerUser.metadata, firstUser.credentials);
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+      getOrganizerOrFirstDynamicGroupMemberDefaultLocationUrl(
+        organizerUser.metadata,
+        isManagedEventType,
+        isTeamEventType,
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+      );
   }
 
   const invitee: Invitee = [
@@ -1261,9 +1250,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   tracingLogger.info("locationBodyString", locationBodyString);
@@ -1309,8 +1298,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1931,14 +1920,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2237,8 +2226,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingFlowConfig = {
@@ -2331,9 +2320,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2630,7 +2619,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
