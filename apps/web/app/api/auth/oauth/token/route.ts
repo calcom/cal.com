@@ -4,15 +4,18 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { verifyCodeChallenge } from "@calcom/lib/pkce";
+import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } = await parseUrlFormData(
     req
   );
+
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
+  }
   if (grant_type !== "authorization_code") {
     return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
@@ -32,22 +35,9 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  if (client.clientType === "CONFIDENTIAL") {
-    if (!client_secret) {
-      return NextResponse.json(
-        { message: "client_secret required for confidential clients" },
-        { status: 400 }
-      );
-    }
-
-    const [hashedSecret] = generateSecret(client_secret);
-    if (client.clientSecret !== hashedSecret) {
-      return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
-    }
-  } else if (client.clientType === "PUBLIC") {
-    if (!code_verifier) {
-      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
-    }
+  const validationError = OAuthService.validateClient(client, client_secret, code_verifier);
+  if (validationError) {
+    return validationError;
   }
 
   const accessCode = await prisma.accessCode.findFirst({
@@ -88,41 +78,11 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // PKCE verification: Mandatory for PUBLIC clients, optional for CONFIDENTIAL clients
-  if (client.clientType === "PUBLIC") {
-    if (!accessCode.codeChallenge) {
-      return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
-    }
-    if (!code_verifier) {
-      return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
-    }
+  const pkceError = OAuthService.verifyPKCE(client, accessCode, code_verifier);
+  if (pkceError) {
+    return pkceError;
+  }
 
-    const method = accessCode.codeChallengeMethod || "S256";
-    if (method !== "S256") {
-      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-    }
-    if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
-      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-    }
-  } else if (client.clientType === "CONFIDENTIAL" && accessCode.codeChallenge) {
-    // Optional PKCE verification for CONFIDENTIAL clients
-    if (!code_verifier) {
-      return NextResponse.json(
-        { message: "code_verifier required if PKCE was used in original authorization" },
-        { status: 400 }
-      );
-    }
-    const method = accessCode.codeChallengeMethod || "S256";
-    if (method !== "S256") {
-      return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-    }
-    if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
-      return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-    }
-  }
-  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
-  }
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
 
   const payloadAuthToken: OAuthTokenPayload = {
@@ -156,7 +116,6 @@ async function handler(req: NextRequest) {
     expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
-  // @see https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
   return NextResponse.json(
     { access_token, token_type: "bearer", refresh_token, expires_in: accessTokenExpiresIn },
     {
