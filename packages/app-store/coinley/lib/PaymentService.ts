@@ -57,17 +57,15 @@ export class PaymentService implements IAbstractPaymentService {
       this.credentials = appKeysSchema.parse(credentials.key);
 
       // Initialize Coinley API client
-      // Note: axios requires /api path explicitly (unlike SDK which adds it automatically)
-      const baseURL = this.credentials.api_url.endsWith('/api')
-        ? this.credentials.api_url
-        : `${this.credentials.api_url}/api`;
+      // API URL is configured via environment variable - not user-provided
+      const baseURL = process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
+      const apiBaseURL = baseURL.endsWith('/api') ? baseURL : `${baseURL}/api`;
 
       this.client = axios.create({
-        baseURL,
+        baseURL: apiBaseURL,
         headers: {
           "Content-Type": "application/json",
-          "X-API-Key": this.credentials.api_key,
-          "X-API-Secret": this.credentials.api_secret,
+          "X-Public-Key": this.credentials.public_key,
         },
         timeout: 30000,
       });
@@ -132,10 +130,9 @@ export class PaymentService implements IAbstractPaymentService {
 
       const paymentIntent = response.data;
 
-      // Calculate fee (0.5% + $0.10)
-      const feePercentage = 0.005;
-      const feeFixed = 10; // cents
-      const fee = Math.round(payment.amount * feePercentage) + feeFixed;
+      // Calculate fee (1.5% of transaction)
+      const feePercentage = 0.015;
+      const fee = Math.round(payment.amount * feePercentage);
 
       // Store payment in database
       const storedPayment = await prisma.payment.create({

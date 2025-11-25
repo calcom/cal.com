@@ -23,24 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Validate request body
-    const { api_key, api_secret } = req.body;
-
-    // Always use API URL from environment variable (users should not configure this)
-    // Note: SDK adds /api path automatically, so base URL should not include it
-    const api_url = process.env.COINLEY_API_URL;
-
-    if (!api_url) {
-      return res.status(500).json({
-        message: "Server configuration error: COINLEY_API_URL environment variable not set"
-      });
-    }
+    const { public_key } = req.body;
 
     // Validate credentials using Zod schema
+    // Note: API URL is hardcoded in the Coinley SDK - users don't provide it
     // Note: Wallet addresses are configured in Coinley merchant dashboard, not during installation
     const credentials = appKeysSchema.parse({
-      api_key,
-      api_secret,
-      api_url,
+      public_key,
     });
 
     // Check if credential already exists for this user

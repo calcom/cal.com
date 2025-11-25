@@ -61,13 +61,11 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
 
   // Get credentials from paymentPageProps
   const credentials = paymentPageProps.appCredentials as {
-    api_key: string;
-    api_secret: string;
-    api_url?: string;
+    public_key: string;
   } | null;
 
-  // Note: SDK adds /api path automatically, so base URL should not include it
-  const apiUrl = credentials?.api_url || "https://talented-mercy-production.up.railway.app";
+  // API URL is hardcoded - users don't provide it
+  const apiUrl = process.env.NEXT_PUBLIC_COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
 
   // Payment configuration for SDK (memoized to prevent re-renders)
   const paymentConfig = useMemo(() => {
@@ -220,7 +218,7 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
   // Load Coinley CDN script and initialize (moved to top level before conditional returns)
   useEffect(() => {
     // Only initialize if we have all required data and haven't already opened
-    if (!credentials || !credentials.api_key || !credentials.api_secret || !paymentConfig || hasOpened || isProcessing) {
+    if (!credentials || !credentials.public_key || !paymentConfig || hasOpened || isProcessing) {
       return;
     }
 
@@ -247,8 +245,7 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
         try {
           const CoinleyVanillaConstructor = (window as unknown as { CoinleyVanilla: new (...args: unknown[]) => unknown }).CoinleyVanilla;
           coinleyInstanceRef.current = new CoinleyVanillaConstructor({
-            apiKey: credentials.api_key,
-            apiSecret: credentials.api_secret,
+            publicKey: credentials.public_key,
             apiUrl: apiUrl,
             theme: "light",
             debug: true,
@@ -315,8 +312,8 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
     );
   }
 
-  if (!credentials || !credentials.api_key || !credentials.api_secret) {
-    console.error("[Coinley] Missing API credentials");
+  if (!credentials || !credentials.public_key) {
+    console.error("[Coinley] Missing public key");
     return (
       <>
         <p className="mt-3 text-center text-red-600">

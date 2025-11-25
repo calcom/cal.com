@@ -9,10 +9,7 @@ import { useRouter } from "next/navigation";
 export default function InstallAppButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [credentials, setCredentials] = useState({
-    api_key: "",
-    api_secret: "",
-  });
+  const [publicKey, setPublicKey] = useState("");
 
   const handleInstall = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +21,7 @@ export default function InstallAppButton() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({ public_key: publicKey }),
       });
 
       const data = await response.json();
@@ -57,40 +54,27 @@ export default function InstallAppButton() {
 
       <form onSubmit={handleInstall} className="space-y-4">
         <div>
-          <Label htmlFor="api_key">API Key</Label>
+          <Label htmlFor="public_key">Public Key</Label>
           <TextField
-            id="api_key"
+            id="public_key"
             type="text"
-            placeholder="Your Coinley API Key"
-            value={credentials.api_key}
-            onChange={(e) => setCredentials({ ...credentials, api_key: e.target.value })}
+            placeholder="pk_your_public_key_here"
+            value={publicKey}
+            onChange={(e) => setPublicKey(e.target.value)}
             required
             className="mt-1"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Get your API key from{" "}
+            Get your public key from{" "}
             <a
-              href="https://hub.coinley.io/dashboard/api-keys"
+              href="https://merchant.coinley.io/settings"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline">
-              Coinley Dashboard
+              Coinley Settings
             </a>
+            {" "}(starts with pk_)
           </p>
-        </div>
-
-        <div>
-          <Label htmlFor="api_secret">API Secret</Label>
-          <TextField
-            id="api_secret"
-            type="password"
-            placeholder="Your Coinley API Secret"
-            value={credentials.api_secret}
-            onChange={(e) => setCredentials({ ...credentials, api_secret: e.target.value })}
-            required
-            className="mt-1"
-          />
-          <p className="text-xs text-gray-500 mt-1">Keep this secret secure. Never share it publicly.</p>
         </div>
 
         <div className="flex gap-2">
@@ -105,7 +89,7 @@ export default function InstallAppButton() {
         <ul className="mt-2 space-y-1 text-sm text-blue-800">
           <li>✓ Configure your wallet addresses in the{" "}
             <a
-              href="https://hub.coinley.io/dashboard"
+              href="https://merchant.coinley.io/dashboard"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium underline">
@@ -113,7 +97,7 @@ export default function InstallAppButton() {
             </a>
           </li>
           <li>✓ Add wallet addresses for each network you want to support (Ethereum, BSC, Polygon, etc.)</li>
-          <li>✓ Generate your API key and secret from the API Keys section</li>
+          <li>✓ Generate your public key from the API Keys section (it's safe to share)</li>
         </ul>
       </div>
 
@@ -122,7 +106,7 @@ export default function InstallAppButton() {
         <ul className="mt-2 space-y-1 text-sm text-gray-700">
           <li>✓ Accept crypto payments directly to your wallet</li>
           <li>✓ No intermediaries - you control your funds</li>
-          <li>✓ Support for 8+ blockchains and 50+ tokens</li>
+          <li>✓ Support for USDT and USDC on 8 EVM blockchains</li>
           <li>✓ Lower fees than traditional payment processors</li>
           <li>✓ Instant settlement - no waiting for payouts</li>
         </ul>

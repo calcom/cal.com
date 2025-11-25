@@ -73,7 +73,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           type="number"
           required
           className="block w-full rounded-sm pl-2 text-sm"
-          placeholder="Price"
+          placeholder={t("price")}
           data-testid="coinley-price-input"
           onChange={(e) => {
             const value = Number(e.target.value);
@@ -108,7 +108,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 
       <div className="mt-4 w-60">
         <label className="text-default mb-1 block text-sm font-medium" htmlFor="payment-option">
-          Payment option
+          {t("payment_option")}
         </label>
         <Select<Option>
           data-testid="coinley-payment-option-select"
@@ -135,17 +135,17 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         <Alert
           className="mt-2"
           severity="info"
-          title="Supported Cryptocurrencies"
+          title={t("coinley_supported_cryptocurrencies")}
           message={
             <div className="space-y-2 text-sm">
               <p>
-                <strong>Stablecoins:</strong> USDT, USDC
+                <strong>{t("coinley_stablecoins")}:</strong> USDT, USDC
               </p>
               <p>
-                <strong>Networks:</strong> Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
+                <strong>{t("coinley_networks")}:</strong> Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
               </p>
               <p className="mt-2 text-xs text-gray-600">
-                Customers can pay with USDT or USDC on any supported network. Payments are verified on-chain.
+                {t("coinley_payment_info")}
               </p>
             </div>
           }

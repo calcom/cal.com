@@ -14,15 +14,15 @@ Accept cryptocurrency payments directly to your wallet with Coinley. The easiest
 - Celo
 - Base
 
-**Multiple Cryptocurrencies** - Support for USDT, USDC, DAI, ETH, BNB, MATIC, and more.
+**Stablecoins Only** - Support for USDT and USDC across 8 EVM networks (Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base). No volatility risk.
 
-**Lower Fees** - Only 0.5% + $0.10 per transaction. Much lower than traditional payment processors.
+**Competitive Fees** - Only 1.5% per transaction. Lower than most payment processors, with automatic fee splitting via smart contracts.
 
-**Instant Settlement** - No 7-day holds. Funds are available in your wallet immediately after blockchain confirmation.
+**Instant Settlement** - No 7-day holds. Funds arrive in your wallet immediately after blockchain confirmation (typically 1-5 minutes).
 
-**Automatic Refunds** - Blockchain-based refund processing when bookings are cancelled.
+**Non-Custodial** - Payments go directly to your wallet via smart contracts. You maintain full control of your funds.
 
-**Real-time Tracking** - Monitor all transactions on blockchain explorers. Complete transparency.
+**Real-time Tracking** - Monitor all transactions on blockchain explorers with complete transparency.
 
 ## Perfect For
 

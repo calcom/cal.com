@@ -1,31 +1,31 @@
 # Coinley Payment Integration
 
-Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support for USDT and USDC stablecoins across 9+ blockchains.
+Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support for USDT and USDC stablecoins across 8 EVM blockchains.
 
 ## Features
 
-- 🔐 **Direct to Wallet** - Payments go directly to your wallet, no intermediaries
-- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base, Solana
-- 💰 **Multiple Currencies** - USDT, USDC
-- 🚀 **Instant Settlement** - No waiting for payouts
-- 💵 **Low Fees** - 0.5% + $0.10 per transaction
-- 🔄 **Automatic Refunds** - Blockchain-based refund processing
+- 🔐 **Direct to Wallet** - Payments go directly to your wallet via smart contracts, no intermediaries
+- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base (Solana coming soon)
+- 💰 **Stablecoins Only** - USDT and USDC supported across 8 EVM networks
+- 🚀 **Instant Settlement** - Funds arrive after blockchain confirmation (typically 1-5 minutes)
+- 💵 **Competitive Fees** - 1.5% per transaction with automatic smart contract splitting
+- 🔄 **Non-Custodial** - You maintain full control of your funds
 - 📊 **Real-time Monitoring** - Track transactions on blockchain explorers
 
 ## Installation
 
-### 1. Get Coinley API Credentials
+### 1. Get Coinley Public Key
 
 1. Sign up at [https://merchant.coinley.io](https://merchant.coinley.io)
-2. Go to Dashboard → API Keys
-3. Create a new API key
-4. Copy your API Key and API Secret
+2. Go to Settings page at [https://merchant.coinley.io/settings](https://merchant.coinley.io/settings)
+3. Copy your public key (starts with `pk_`)
+4. Your public key is safe to store in Cal.com as it's read-only
 
 ### 2. **IMPORTANT: Configure Merchant Wallets First**
 
 ⚠️ **Before installing in Cal.com**, you must configure your wallet addresses in the Coinley dashboard:
 
-1. Go to [https://hub.coinley.io/dashboard/wallets](https://hub.coinley.io/dashboard/wallets)
+1. Go to [https://merchant.coinley.io/dashboard/wallets](https://merchant.coinley.io/dashboard/wallets)
 2. Add wallet addresses for each blockchain you want to support:
    - Ethereum (ETH)
    - BSC (Binance Smart Chain)
@@ -35,23 +35,23 @@ Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support f
 
 **Note:** Wallet addresses are configured in your Coinley merchant account, NOT during Cal.com installation. The Coinley backend automatically uses the correct wallet based on the blockchain network selected by your customers.
 
-### 3. Configure Environment Variables (Server Deployment Only)
+### 3. Configure Environment Variables (Optional - Self-Hosting Only)
 
-Add to your `.env.appStore` file if self-hosting Cal.com:
+If self-hosting Cal.com and want to use a custom Coinley API URL, add to your `.env.appStore`:
 
 ```bash
-COINLEY_API_URL=https://hub.coinley.io
-COINLEY_WEBHOOK_SECRET=your_webhook_secret
+COINLEY_API_URL=https://talented-mercy-production.up.railway.app
+NEXT_PUBLIC_COINLEY_API_URL=https://talented-mercy-production.up.railway.app
 ```
 
-**Note:** API Key and API Secret are entered during installation in Step 4, not in environment variables.
+**Note:** The public key is entered during installation in Step 4, not in environment variables.
 
 ### 4. Install in Cal.com
 
 1. Go to Cal.com App Store → Payment Apps
 2. Find "Coinley Crypto Payments"
 3. Click "Install"
-4. Enter your **API Key** and **API Secret** (from Step 1)
+4. Enter your **Public Key** (from Step 1)
 5. Click "Connect Coinley"
 
 The integration will automatically use the wallet addresses you configured in Step 2.
@@ -120,7 +120,7 @@ Refunds are sent back to the same wallet that made the original payment.
 | Setting | Description | Default |
 |---------|-------------|---------|
 | Price | Amount to charge (USD equivalent) | Required |
-| Currency | Cryptocurrency (USDT, USDC, DAI, etc.) | USDT |
+| Currency | Stablecoin (USDT or USDC) | USDT |
 | Network | Blockchain network | Ethereum |
 | Allow Network Selection | Let customers choose blockchain | Yes |
 | Allow Currency Selection | Let customers choose token | Yes |
@@ -142,12 +142,10 @@ Refunds are sent back to the same wallet that made the original payment.
 
 ### Supported Currencies
 
-- **USDT** (Tether) - Most widely used stablecoin
-- **USDC** (USD Coin) - Circle-backed stablecoin
-- **DAI** - Decentralized stablecoin
-- **ETH** - Ethereum native token
-- **BNB** - Binance token
-- **MATIC** - Polygon native token
+- **USDT** (Tether) - Most widely used stablecoin, available on all 8 EVM networks
+- **USDC** (USD Coin) - Circle-backed stablecoin, available on all 8 EVM networks
+
+**Note:** Only stablecoins are supported to eliminate price volatility. Native tokens (ETH, BNB, MATIC) are not supported.
 
 ## Security
 

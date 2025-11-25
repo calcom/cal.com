@@ -63,15 +63,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const credentials = appKeysSchema.parse(credential.key);
 
     // Verify payment status with Coinley API
-    const apiUrl = credentials.api_url.endsWith("/api")
-      ? credentials.api_url
-      : `${credentials.api_url}/api`;
+    // API URL is configured via environment variable
+    const baseURL = process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
+    const apiUrl = baseURL.endsWith("/api") ? baseURL : `${baseURL}/api`;
 
     try {
       const verifyResponse = await axios.get(`${apiUrl}/payments/${paymentId}`, {
         headers: {
-          "X-API-Key": credentials.api_key,
-          "X-API-Secret": credentials.api_secret,
+          "X-Public-Key": credentials.public_key,
         },
         timeout: 10000,
       });
