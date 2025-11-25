@@ -509,17 +509,7 @@ export default class EventManager {
         ? reference.thirdPartyRecurringEventId
         : reference.uid;
 
-    // Log a warning if bookingRefUid is empty - this can happen when calendar event creation
-    // failed (e.g., 404 from Google Calendar) but a booking reference was still created with an empty uid.
-    // The calendar service's error handling will treat the resulting 404 as non-fatal.
-    if (!bookingRefUid) {
-      log.warn(
-        "deleteCalendarEventForBookingReference: bookingRefUid is empty; deleteEvent may fail with 404",
-        safeStringify({ reference, event: getPiiFreeCalendarEvent(event) })
-      );
-    }
-
-    const calendarCredential= await this.getCredentialAndWarnIfNotFound(
+    const calendarCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
       this.calendarCredentials,
       credentialType,
