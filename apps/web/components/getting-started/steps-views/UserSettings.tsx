@@ -2,12 +2,6 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
-import {
-  usePhoneNumberField,
-  PhoneNumberField,
-  isStrictlyValidNumber,
-} from "@calid/features/ui/components/input/phone-number-field";
-import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,7 +10,6 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import { PHONE_NUMBER_VERIFICATION_ENABLED } from "@calcom/lib/constants";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { designationTypes, professionTypeAndEventTypes, customEvents } from "@calcom/lib/customEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,11 +24,10 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
-  isPhoneFieldMandatory: boolean;
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep, isPhoneFieldMandatory } = props;
+  const { nextStep } = props;
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
@@ -48,42 +40,17 @@ const UserSettings = (props: IUserSettingsProps) => {
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    metadata: z.object({
-      phoneNumber: isPhoneFieldMandatory
-        ? z
-            .string()
-            .min(1, { message: t("phone_number_required") })
-            .refine(
-              (val) => {
-                //return isValidPhoneNumber(val);
-                return isStrictlyValidNumber(val);
-              },
-              { message: t("invalid_phone_number") }
-            )
-        : z.string().refine(
-            (val) => {
-              // return val === "" || isValidPhoneNumber(val);
-              return val === "" || isStrictlyValidNumber(val);
-            },
-            { message: t("invalid_phone_number") }
-          ),
-    }),
   });
 
   const defaultValues = {
     username: user?.username || "",
     name: user?.name || "",
-    metadata: {
-      phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
-    },
   };
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-    getValues,
     control,
   } = useForm<z.infer<typeof userSettingsSchema>>({
     defaultValues: defaultValues,
@@ -98,7 +65,6 @@ const UserSettings = (props: IUserSettingsProps) => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
     (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "founder"
   );
-  const [numberVerified, _setNumberVerified] = useState(false);
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -136,43 +102,17 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  const { getValue: getPhoneValue, setValue: setPhoneValue } = usePhoneNumberField(
-    { getValues, setValue },
-    defaultValues,
-    "metadata.phoneNumber"
-  );
 
   const onSubmit = handleSubmit((data) => {
-    if (
-      isPhoneFieldMandatory &&
-      data.metadata.phoneNumber &&
-      (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
-    ) {
-      triggerToast(t("phone_verification_required"), "error");
-      return;
-    }
-
     mutation.mutate({
       metadata: {
         currentOnboardingStep: "connected-calendar",
-        phoneNumber: isPhoneFieldMandatory ? data.metadata.phoneNumber : "",
       },
       name: data.name,
       username: data.username,
       timeZone: selectedTimeZone,
     });
   });
-
-  const handlePhoneDelete = () => {
-    mutation.mutate({
-      metadata: {
-        currentOnboardingStep: "connected-calendar",
-      },
-      name: getValues("name"),
-      username: getValues("username"),
-      timeZone: selectedTimeZone,
-    });
-  };
 
   return (
     <form onSubmit={onSubmit} className=" space-y-6">
@@ -209,20 +149,6 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
-      {isPhoneFieldMandatory && (
-        <PhoneNumberField
-          getValue={getPhoneValue}
-          setValue={setPhoneValue}
-          getValues={getValues}
-          defaultValues={defaultValues}
-          isRequired={isPhoneFieldMandatory}
-          allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
-          hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
-          errorMessage={errors.metadata?.phoneNumber?.message}
-          onDeleteNumber={handlePhoneDelete}
-          isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-        />
-      )}
 
       {/* Designation select field */}
       <div className="w-full">
