@@ -1051,13 +1051,15 @@ export default function EventTypes() {
         animationType="fade"
         onRequestClose={handleCloseCreateModal}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 items-center justify-center"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={handleCloseCreateModal}
         >
-          <View
+          <TouchableOpacity
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 20 },
@@ -1174,8 +1176,8 @@ export default function EventTypes() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </FullScreenModal>
 
       {/* Action Modal for Web Platform */}
