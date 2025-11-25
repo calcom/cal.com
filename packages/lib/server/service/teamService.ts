@@ -129,7 +129,7 @@ export class TeamService {
 
     // Step 4: Clean up any final, non-critical external state.
     if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
-      deleteDomain(deletedTeam.slug);
+      await deleteDomain(deletedTeam.slug);
     }
 
     return deletedTeam;
