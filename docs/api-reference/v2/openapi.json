@@ -27400,14 +27400,6 @@
             "type": "string",
             "nullable": true
           },
-          "avatarUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
           "timeFormat": {
             "type": "number"
           },
@@ -27434,8 +27426,6 @@
           "username",
           "email",
           "name",
-          "avatarUrl",
-          "bio",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
