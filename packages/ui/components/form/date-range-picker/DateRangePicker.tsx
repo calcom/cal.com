@@ -45,19 +45,14 @@ export function DatePickerWithRange({
       }
     } else {
       // for Limit Future Booking and other date range selections (no past dates)
-      if (!dates.startDate) {
+      // Airbnb-style: when both dates are set, any click starts a new range
+      if (!dates.startDate || dates.endDate) {
+        // No start date OR both dates set -> start fresh
         onDatesChange({ startDate: date, endDate: undefined });
-      } else if (!dates.endDate) {
+      } else {
+        // Have start but no end -> complete the range (swap if needed)
         if (date < dates.startDate) {
           onDatesChange({ startDate: date, endDate: dates.startDate });
-        } else {
-          onDatesChange({ startDate: dates.startDate, endDate: date });
-        }
-      } else {
-        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
-          onDatesChange({ startDate: date, endDate: undefined });
-        } else if (date < dates.startDate) {
-          onDatesChange({ startDate: date, endDate: undefined });
         } else {
           onDatesChange({ startDate: dates.startDate, endDate: date });
         }
