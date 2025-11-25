@@ -134,6 +134,22 @@ export class MembershipRepository {
     });
   }
 
+  static async findAcceptedMembershipsByUserIdsInTeam({
+    userIds,
+    teamId,
+  }: {
+    userIds: number[];
+    teamId: number;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        userId: { in: userIds },
+        accepted: true,
+        teamId,
+      },
+    });
+  }
+
   static async createMany(data: IMembership[]) {
     return await prisma.membership.createMany({
       data: data.map((item) => ({
