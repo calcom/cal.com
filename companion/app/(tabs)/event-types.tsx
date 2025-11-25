@@ -26,6 +26,7 @@ import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { Tooltip } from "../../components/Tooltip";
+import { FullScreenModal } from "../../components/FullScreenModal";
 import { slugify } from "../../utils/slugify";
 
 export default function EventTypes() {
@@ -477,7 +478,7 @@ export default function EventTypes() {
         (buttonIndex) => {
           switch (buttonIndex) {
             case 1: // New Event Type
-              setShowCreateModal(true);
+              handleOpenCreateModal();
               break;
             case 2: // One-off meeting
               handleOneOffMeeting();
@@ -494,13 +495,30 @@ export default function EventTypes() {
     // Fallback for Android
     Alert.alert("New", "Choose what to create", [
       { text: "Cancel", style: "cancel" },
-      { text: "New Event Type", onPress: () => setShowCreateModal(true) },
+      { text: "New Event Type", onPress: handleOpenCreateModal },
       { text: "One-off meeting", onPress: handleOneOffMeeting },
     ]);
   };
 
   const handleOneOffMeeting = () => {
     setShowOneOffModal(true);
+  };
+
+  const handleCloseOneOffModal = () => {
+    setShowOneOffModal(false);
+  };
+
+  const handleOpenCreateModal = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+    setNewEventTitle("");
+    setNewEventSlug("");
+    setNewEventDescription("");
+    setNewEventDuration("15");
+    setIsSlugManuallyEdited(false);
   };
 
   // Calendar helper functions
@@ -676,7 +694,7 @@ export default function EventTypes() {
         {
           text: "OK",
           onPress: () => {
-            setShowOneOffModal(false);
+            handleCloseOneOffModal();
             setSelectionRanges([]);
           },
         },
@@ -781,12 +799,7 @@ export default function EventTypes() {
       });
 
       // Close modal and reset form
-      setShowCreateModal(false);
-      setNewEventTitle("");
-      setNewEventSlug("");
-      setNewEventDescription("");
-      setNewEventDuration("15");
-      setIsSlugManuallyEdited(false);
+      handleCloseCreateModal();
 
       // Refresh the list
       await fetchEventTypes();
@@ -1017,19 +1030,20 @@ export default function EventTypes() {
       </ScrollView>
 
       {/* Create Event Type Modal */}
-      <Modal
+      <FullScreenModal
         visible={showCreateModal}
-        transparent
         animationType="fade"
-        onRequestClose={() => setShowCreateModal(false)}
+        onRequestClose={handleCloseCreateModal}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 items-center justify-center"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={handleCloseCreateModal}
         >
-          <View
-            className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+          <TouchableOpacity
+            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 20 },
@@ -1132,14 +1146,7 @@ export default function EventTypes() {
               <View className="flex-row justify-end gap-2 space-x-2">
                 <TouchableOpacity
                   className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
-                  onPress={() => {
-                    setShowCreateModal(false);
-                    setNewEventTitle("");
-                    setNewEventSlug("");
-                    setNewEventDescription("");
-                    setNewEventDuration("15");
-                    setIsSlugManuallyEdited(false);
-                  }}
+                  onPress={handleCloseCreateModal}
                   disabled={creating}
                 >
                   <Text className="text-base font-medium text-[#374151]">Close</Text>
@@ -1153,14 +1160,13 @@ export default function EventTypes() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
 
       {/* Action Modal for Web Platform */}
-      <Modal
+      <FullScreenModal
         visible={showActionModal}
-        transparent
         animationType="fade"
         onRequestClose={() => {
           setShowActionModal(false);
@@ -1252,12 +1258,11 @@ export default function EventTypes() {
             )}
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* New Menu Modal for Web Platform */}
-      <Modal
+      <FullScreenModal
         visible={showNewModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowNewModal(false)}
       >
@@ -1283,7 +1288,10 @@ export default function EventTypes() {
               <TouchableOpacity
                 onPress={() => {
                   setShowNewModal(false);
-                  setShowCreateModal(true);
+                  // Small delay to ensure the "New" modal closes before opening create modal
+                  setTimeout(() => {
+                    handleOpenCreateModal();
+                  }, 100);
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
               >
@@ -1318,14 +1326,14 @@ export default function EventTypes() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* One-off Meeting Modal */}
-      <Modal
+      <FullScreenModal
         visible={showOneOffModal}
         transparent={Platform.OS !== "web"}
         animationType="fade"
-        onRequestClose={() => setShowOneOffModal(false)}
+        onRequestClose={handleCloseOneOffModal}
       >
         <View
           className={
@@ -1340,6 +1348,7 @@ export default function EventTypes() {
                   right: 0,
                   bottom: 0,
                   zIndex: 50,
+                  pointerEvents: "auto",
                 }
               : {}
           }
@@ -1371,7 +1380,7 @@ export default function EventTypes() {
                           <Text className="text-sm text-gray-600">Clear</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          onPress={() => setShowOneOffModal(false)}
+                          onPress={handleCloseOneOffModal}
                           className="rounded-full p-2 hover:bg-gray-100"
                         >
                           <Ionicons name="close" size={24} color="#6B7280" />
@@ -1693,7 +1702,7 @@ export default function EventTypes() {
                       <View className="flex-row justify-end gap-3">
                         <TouchableOpacity
                           className="rounded bg-gray-100 px-4 py-2 hover:bg-gray-200"
-                          onPress={() => setShowOneOffModal(false)}
+                          onPress={handleCloseOneOffModal}
                         >
                           <Text className="font-medium text-gray-700">Cancel</Text>
                         </TouchableOpacity>
@@ -1728,7 +1737,7 @@ export default function EventTypes() {
                           <Text className="text-lg font-semibold text-gray-900">
                             Schedule Meeting
                           </Text>
-                          <TouchableOpacity onPress={() => setShowOneOffModal(false)}>
+                          <TouchableOpacity onPress={handleCloseOneOffModal}>
                             <Ionicons name="close" size={24} color="#6B7280" />
                           </TouchableOpacity>
                         </View>
@@ -1858,12 +1867,11 @@ export default function EventTypes() {
                 );
               })()}
         </View>
-      </Modal>
+      </FullScreenModal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <FullScreenModal
         visible={showDeleteModal}
-        transparent
         animationType="fade"
         onRequestClose={() => {
           if (!isDeleting) {
@@ -1922,7 +1930,7 @@ export default function EventTypes() {
             </View>
           </View>
         </View>
-      </Modal>
+      </FullScreenModal>
 
       {/* Toast for Web Platform */}
       {showToast && (

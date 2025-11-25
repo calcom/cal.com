@@ -21,6 +21,7 @@ import type { NativeSyntheticEvent } from "react-native";
 
 import { CalComAPIService, Booking, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
+import { FullScreenModal } from "../../components/FullScreenModal";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
@@ -980,9 +981,8 @@ export default function Bookings() {
       </View>
 
       {/* Filter Modal */}
-      <Modal
+      <FullScreenModal
         visible={showFilterModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowFilterModal(false)}
       >
@@ -1035,12 +1035,11 @@ export default function Bookings() {
             )}
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* Booking Actions Modal */}
-      <Modal
+      <FullScreenModal
         visible={showBookingActionsModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowBookingActionsModal(false)}
       >
@@ -1249,7 +1248,7 @@ export default function Bookings() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
     </View>
   );
 }

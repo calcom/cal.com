@@ -25,7 +25,7 @@ export default defineContentScript({
     sidebarContainer.style.height = "100vh";
     sidebarContainer.style.zIndex = "2147483647";
     sidebarContainer.style.backgroundColor = "transparent";
-    sidebarContainer.style.transition = "transform 0.3s ease-in-out";
+    sidebarContainer.style.transition = "none";
     sidebarContainer.style.transform = "translateX(100%)";
     sidebarContainer.style.display = "none";
 
@@ -46,8 +46,33 @@ export default defineContentScript({
     iframe.style.borderRadius = "0";
     iframe.style.backgroundColor = "transparent";
     iframe.style.pointerEvents = "auto";
+    iframe.style.transition = "none";
 
     iframeContainer.appendChild(iframe);
+
+    // Listen for messages from iframe to control width
+    window.addEventListener("message", (event) => {
+      // Security: Only accept messages from our iframe's origin
+      // This prevents malicious scripts on the host page from manipulating the companion
+      const iframeOrigin = new URL(iframe.src).origin;
+      if (event.source !== iframe.contentWindow || event.origin !== iframeOrigin) {
+        return;
+      }
+
+      if (event.data.type === "cal-companion-expand") {
+        // Disable transition for instant expansion
+        iframe.style.transition = "none";
+        iframe.style.width = "100%";
+        iframeContainer.style.pointerEvents = "auto";
+        iframeContainer.style.justifyContent = "center";
+      } else if (event.data.type === "cal-companion-collapse") {
+        // Disable transition for instant collapse
+        iframe.style.transition = "none";
+        iframe.style.width = "400px";
+        iframeContainer.style.pointerEvents = "none";
+        iframeContainer.style.justifyContent = "flex-end";
+      }
+    });
 
     sidebarContainer.appendChild(iframeContainer);
 
@@ -61,7 +86,7 @@ export default defineContentScript({
     buttonsContainer.style.flexDirection = "column";
     buttonsContainer.style.gap = "8px";
     buttonsContainer.style.zIndex = "2147483648";
-    buttonsContainer.style.transition = "right 0.3s ease-in-out";
+    buttonsContainer.style.transition = "none";
     buttonsContainer.style.display = "none";
 
     // Create toggle button

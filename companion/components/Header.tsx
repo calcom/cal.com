@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, UserProfile } from "../services/calcom";
 import { CalComLogo } from "./CalComLogo";
+import { FullScreenModal } from "./FullScreenModal";
 
 export function Header() {
   const router = useRouter();
@@ -167,9 +168,8 @@ export function Header() {
       </View>
 
       {/* Profile Menu Modal */}
-      <Modal
+      <FullScreenModal
         visible={showProfileModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowProfileModal(false)}
       >
@@ -293,7 +293,7 @@ export function Header() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
     </>
   );
 }

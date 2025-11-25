@@ -18,6 +18,7 @@ import {
 
 import { CalComAPIService, Schedule } from "../../services/calcom";
 import { Header } from "../../components/Header";
+import { FullScreenModal } from "../../components/FullScreenModal";
 
 export default function Availability() {
   const router = useRouter();
@@ -467,19 +468,20 @@ export default function Availability() {
       </View>
 
       {/* Create Schedule Modal */}
-      <Modal
+      <FullScreenModal
         visible={showCreateModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowCreateModal(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 items-center justify-center"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowCreateModal(false)}
         >
-          <View
+          <TouchableOpacity
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 20 },
@@ -533,14 +535,13 @@ export default function Availability() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
 
       {/* Schedule Actions Modal */}
-      <Modal
+      <FullScreenModal
         visible={showActionsModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowActionsModal(false)}
       >
@@ -631,12 +632,11 @@ export default function Availability() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <FullScreenModal
         visible={showDeleteModal}
-        transparent
         animationType="fade"
         onRequestClose={() => !deleting && setShowDeleteModal(false)}
       >
@@ -679,7 +679,7 @@ export default function Availability() {
             </View>
           </View>
         </View>
-      </Modal>
+      </FullScreenModal>
     </View>
   );
 }

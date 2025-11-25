@@ -9,14 +9,13 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, Booking } from "../services/calcom";
 import { SvgImage } from "../components/SvgImage";
+import { FullScreenModal } from "../components/FullScreenModal";
 import { getAppIconUrl } from "../utils/getAppIconUrl";
 import { getDefaultLocationIconUrl, defaultLocations } from "../utils/defaultLocations";
 
@@ -471,7 +470,11 @@ export default function BookingDetail() {
       </View>
 
       {/* Booking Actions Modal */}
-      <Modal visible={showActionsModal} transparent animationType="fade">
+      <FullScreenModal
+        visible={showActionsModal}
+        animationType="fade"
+        onRequestClose={() => setShowActionsModal(false)}
+      >
         <TouchableOpacity
           className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
           activeOpacity={1}
@@ -653,22 +656,23 @@ export default function BookingDetail() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* Reschedule Modal */}
-      <Modal
+      <FullScreenModal
         visible={showRescheduleModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowRescheduleModal(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1 items-center justify-center"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowRescheduleModal(false)}
         >
-          <View
+          <TouchableOpacity
             className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 20 },
@@ -735,9 +739,9 @@ export default function BookingDetail() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
     </>
   );
 }
