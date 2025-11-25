@@ -25,6 +25,7 @@ import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
+import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
@@ -106,6 +107,8 @@ export function BookingActionsDropdown({
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
   const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
+  const isCancelDialogOpen = useBookingActionsStoreContext((state) => state.isCancelDialogOpen);
+  const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
 
   const cardCharged = booking?.payment[0]?.success;
 
@@ -188,6 +191,9 @@ export function BookingActionsDropdown({
   const userEmail = booking.loggedInUser.userEmail;
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
+
+  // Check if the logged-in user is the host/owner of the booking
+  const isHost = booking.loggedInUser.userId === booking.user?.id;
 
   const isCalVideoLocation =
     !booking.location ||
@@ -511,6 +517,39 @@ export function BookingActionsDropdown({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CancelBookingDialog
+        isOpenDialog={isCancelDialogOpen}
+        setIsOpenDialog={setIsCancelDialogOpen}
+        booking={{
+          uid: booking.uid,
+          id: booking.id,
+          title: booking.title,
+          startTime: new Date(booking.startTime),
+          payment: booking.payment,
+        }}
+        profile={{
+          name: booking.user?.name || null,
+          slug: booking.user?.username || null,
+        }}
+        recurringEvent={booking.eventType?.recurringEvent || null}
+        team={booking.eventType?.team?.name}
+        teamId={booking.eventType?.team?.id}
+        allRemainingBookings={isTabRecurring && isRecurring}
+        seatReferenceUid={getSeatReferenceUid()}
+        currentUserEmail={booking.loggedInUser.userEmail}
+        bookingCancelledEventProps={{
+          booking: booking,
+          organizer: {
+            name: booking.user?.name || "Nameless",
+            email: booking.userPrimaryEmail || booking.user?.email || "Email-less",
+            timeZone: booking.user?.timeZone,
+          },
+          eventType: booking.eventType,
+        }}
+        isHost={isHost}
+        internalNotePresets={[]}
+        eventTypeMetadata={booking.eventType?.metadata}
+      />
       {isBookingFromRoutingForm &&
         parsedBooking.eventType &&
         parsedBooking.eventType.id !== undefined &&
@@ -685,10 +724,9 @@ export function BookingActionsDropdown({
                 type="button"
                 color={cancelEventAction.color}
                 StartIcon={cancelEventAction.icon}
-                href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
                 onClick={(e) => {
                   e.stopPropagation();
-                  cancelEventAction.onClick?.(e);
+                  setIsCancelDialogOpen(true);
                 }}
                 disabled={cancelEventAction.disabled}
                 data-bookingid={cancelEventAction.bookingId}

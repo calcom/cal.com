@@ -7,9 +7,11 @@ import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -106,6 +108,8 @@ type Props = {
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   eventTypeMetadata?: Record<string, unknown> | null;
+  className?: string;
+  showErrorAsToast?: boolean;
 };
 
 export default function CancelBooking(props: Props) {
@@ -168,12 +172,11 @@ export default function CancelBooking(props: Props) {
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-     
   }, []);
 
   return (
-    <>
-      {error && (
+    <div className={props.className}>
+      {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <Icon name="x" className="h-6 w-6 text-red-600" />
@@ -298,12 +301,17 @@ export default function CancelBooking(props: Props) {
                   } else {
                     const data = await res.json();
                     setLoading(false);
-                    setError(
+                    const errorMessage =
                       data.message ||
-                        `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                          "please_try_again"
-                        )}`
-                    );
+                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                        "please_try_again"
+                      )}`;
+
+                    if (props.showErrorAsToast) {
+                      showToast(errorMessage, "error");
+                    } else {
+                      setError(errorMessage);
+                    }
                   }
                 }}
                 loading={loading}>
@@ -313,6 +321,6 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

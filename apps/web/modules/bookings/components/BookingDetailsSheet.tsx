@@ -208,10 +208,10 @@ function BookingDetailsSheetInner({
           </div>
         </SheetHeader>
 
-        <SheetBody className="flex flex-col gap-6">
-          <div className="flex flex-col gap-6">
+        <SheetBody className="-mt-3">
+          <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <SheetTitle className="text-emphasis flex items-center gap-2 text-xl font-semibold">
+              <SheetTitle className="text-emphasis flex items-center gap-3 text-xl font-semibold">
                 <div className="bg-emphasis w-[2px] flex-shrink-0 self-stretch rounded-lg"></div>
                 <span>{booking.title}</span>
               </SheetTitle>
