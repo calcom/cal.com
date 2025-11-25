@@ -4,7 +4,10 @@ import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingDetailsForViewer } from "@calcom/features/bookings/lib/getBookingDetailsForViewer";
+import {
+  getBookingDetailsForViewer,
+  type GetEventTypesFromDBFn,
+} from "@calcom/features/bookings/lib/getBookingDetailsForViewer";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -55,6 +58,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!parsedQuery.success) return { notFound: true } as const;
   const { uid, seatReferenceUid, eventTypeSlug } = parsedQuery.data;
 
+  // Cast getEventTypesFromDB to the expected type - the branded bookingFields array
+  // from getBookingFieldsWithSystemFields is structurally compatible with the base type
+  const getEventTypesFromDBTyped = getEventTypesFromDB as GetEventTypesFromDBFn;
+
   const bookingDetails = await getBookingDetailsForViewer(
     {
       prisma,
@@ -64,7 +71,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userId: session?.user?.id ?? null,
     },
     {
-      getEventTypesFromDB,
+      getEventTypesFromDB: getEventTypesFromDBTyped,
       handleSeatsEventTypeOnBooking,
       getRecurringBookings,
     }
