@@ -27,8 +27,6 @@ export const getDetailsHandler = async ({ ctx, input }: GetDetailsOptions) => {
       seatReferenceUid,
       eventTypeSlug,
       userId: user.id,
-      userEmail: user.email,
-      userOrgId: user.organizationId,
     },
     {
       getEventTypesFromDB,

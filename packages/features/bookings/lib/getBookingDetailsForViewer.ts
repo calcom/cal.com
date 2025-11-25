@@ -54,8 +54,71 @@ type BookingInfoType = Partial<
   }>
 >;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GetEventTypesFromDBFn = (id: number) => Promise<any>;
+// Base type for event type data - uses structural typing to be compatible with both
+// getEventTypesFromDB return type and DefaultEvent
+type EventTypeBase = {
+  id: number;
+  title: string;
+  description: string | null;
+  length: number;
+  eventName: string | null;
+  recurringEvent: Prisma.JsonValue;
+  requiresConfirmation: boolean;
+  userId: number | null;
+  successRedirectUrl: string | null;
+  customInputs: Prisma.JsonValue;
+  locations: Prisma.JsonValue;
+  price: number;
+  currency: string;
+  bookingFields: readonly BookingField[];
+  hideOrganizerEmail: boolean | null;
+  seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
+  seatsShowAvailabilityCount: boolean | null;
+  periodStartDate: Date | null;
+  periodEndDate: Date | null;
+  metadata: Prisma.JsonValue;
+  owner: UserSelect | null;
+  users: UserSelect[];
+  hosts: { user: UserSelect }[];
+  team: {
+    id: number;
+    slug: string | null;
+    name: string | null;
+    hideBranding: boolean;
+    brandColor: string | null;
+    darkBrandColor: string | null;
+    theme: string | null;
+    parent: {
+      hideBranding: boolean;
+      brandColor: string | null;
+      darkBrandColor: string | null;
+      theme: string | null;
+    } | null;
+    createdByOAuthClientId: string | null;
+  } | null;
+  profile: {
+    organizationId: number | null;
+    organization: {
+      brandColor: string | null;
+      darkBrandColor: string | null;
+      theme: string | null;
+    } | null;
+  } | null;
+  parent: {
+    teamId: number | null;
+    team: {
+      hideBranding: boolean;
+      parent: {
+        hideBranding: boolean;
+      } | null;
+    } | null;
+  } | null;
+  isDynamic: boolean;
+};
+
+// The function type accepts any event type that extends the base structure
+type GetEventTypesFromDBFn = (id: number) => Promise<(EventTypeBase & Record<string, unknown>) | null | undefined>;
 type HandleSeatsEventTypeOnBookingFn = (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -167,10 +230,44 @@ export async function getBookingDetailsForViewer(
     }),
   };
 
+  const eventTypeForBranding = {
+    team: eventTypeRaw.team
+      ? {
+          name: eventTypeRaw.team.name ?? undefined,
+          brandColor: eventTypeRaw.team.brandColor,
+          darkBrandColor: eventTypeRaw.team.darkBrandColor,
+          theme: eventTypeRaw.team.theme,
+          parent: eventTypeRaw.team.parent
+            ? {
+                brandColor: eventTypeRaw.team.parent.brandColor,
+                darkBrandColor: eventTypeRaw.team.parent.darkBrandColor,
+                theme: eventTypeRaw.team.theme,
+              }
+            : null,
+        }
+      : null,
+    profile: eventTypeRaw.profile
+      ? {
+          organization: eventTypeRaw.profile.organization
+            ? {
+                brandColor: eventTypeRaw.profile.organization.brandColor,
+                darkBrandColor: eventTypeRaw.profile.organization.darkBrandColor,
+                theme: eventTypeRaw.profile.organization.theme,
+              }
+            : null,
+        }
+      : null,
+    users: eventTypeRaw.users.map((user) => ({
+      theme: user.theme,
+      brandColor: user.brandColor,
+      darkBrandColor: user.darkBrandColor,
+    })),
+  };
+
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
-    ...getBrandingForEventType({ eventType: eventTypeRaw }),
+    ...getBrandingForEventType({ eventType: eventTypeForBranding }),
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
