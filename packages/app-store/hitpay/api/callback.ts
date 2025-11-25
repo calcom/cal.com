@@ -30,21 +30,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       booking: {
         select: {
           uid: true,
+          userId: true,
           user: {
             select: {
               email: true,
               username: true,
-              credentials: {
-                where: {
-                  type: "hitpay_payment",
-                },
-              },
             },
           },
           responses: true,
           eventType: {
             select: {
               slug: true,
+              teamId: true,
             },
           },
         },
@@ -55,7 +52,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!payment) {
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
-  const key = payment.booking?.user?.credentials?.[0].key;
+
+  const credential = await prisma.credential.findFirst({
+    where: {
+      type: "hitpay_payment",
+      ...(payment.booking?.eventType?.teamId
+        ? { teamId: payment.booking.eventType.teamId }
+        : { userId: payment.booking?.userId }),
+    },
+  });
+
+  const key = credential?.key;
   if (!key) {
     throw new HttpCode({ statusCode: 204, message: "Credential not found" });
   }

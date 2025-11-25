@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -614,7 +615,16 @@ function FieldEditDialog({
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto">
-            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
+            <DialogHeader
+              title={t("add_a_booking_question")}
+              subtitle={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="booking_questions_description"
+                  href="https://cal.com/help/event-types/booking-questions"
+                />
+              }
+            />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
