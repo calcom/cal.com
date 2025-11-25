@@ -2,6 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
+import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -25,8 +26,12 @@ import {
   ERROR_STATUS,
   SUCCESS_STATUS,
   VERSION_2024_08_13,
+  VERSION_2024_06_14,
 } from "@calcom/platform-constants";
+import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
+import { CreateEventTypeInput_2024_06_14, GetBookingOutput_2024_08_13 } from "@calcom/platform-types";
+import { Booking } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 
 type TestUser = {
@@ -97,25 +102,217 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         .expect(401);
     });
 
-    it("should allow booking organizer to update location to a new link", async () => {
-      const newLocation = `https://organizer-updated-${randomString()}.example.com`;
-      const { bookingUid } = await createBooking();
+    describe("can update booking with different locations", () => {
+      const address = "123 Main St";
+      const link = "https://cal.com/join/123456";
+      const phone = "+37121999999";
 
-      const response = await request(app.getHttpServer())
-        .patch(`/v2/bookings/${bookingUid}/location`)
-        .send({ location: newLocation })
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
-        .expect(200);
+      let booking: Booking;
+      let bookingId: number;
+      let bookingUid: string;
+      let eventTypeWithAllLocationsId: number;
 
-      const responseBody: UpdateBookingLocationOutput_2024_08_13 = response.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      if (!responseDataIsBooking(responseBody.data)) {
-        throw new Error(
-          "Invalid response data - expected booking but received array of possibly recurring bookings"
-        );
-      }
-      expect(responseBody.data.location).toEqual(newLocation);
+      beforeAll(async () => {
+        const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
+          title: "book using any location",
+          slug: "book-using-any-location",
+          lengthInMinutes: 15,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+            {
+              type: "address",
+              address: "123 Main St",
+              public: true,
+            },
+            {
+              type: "link",
+              link: "https://cal.com/join/123456",
+              public: true,
+            },
+            {
+              type: "phone",
+              phone: "+37121999999",
+              public: true,
+            },
+            {
+              type: "attendeeAddress",
+            },
+            {
+              type: "attendeePhone",
+            },
+            {
+              type: "attendeeDefined",
+            },
+          ],
+        };
+
+        const eventTypeResponse = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(eventTypeBody)
+          .expect(201);
+        const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
+        const createdEventType = eventTypeResponseBody.data;
+
+        expect(createdEventType).toHaveProperty("id");
+        expect(createdEventType.locations).toHaveLength(7);
+        expect(createdEventType.locations).toEqual(eventTypeBody.locations);
+
+        eventTypeWithAllLocationsId = createdEventType.id;
+
+        booking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${randomString(10)}`,
+          title: "booking title",
+          startTime: "2048-08-14T09:00:00.000Z",
+          endTime: "2048-08-14T10:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeWithAllLocationsId,
+            },
+          },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: {
+            connect: {
+              id: testSetup.organizer.id,
+            },
+          },
+        });
+        bookingUid = booking.uid;
+        bookingId = booking.id;
+      });
+
+      it("can update location to type address", async () => {
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "address",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(address);
+      });
+
+      it("can update location to type link", async () => {
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "link",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(link);
+      });
+
+      it("can update location to type phone", async () => {
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "phone",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(phone);
+      });
+
+      it("can update location to type attendeeAddress", async () => {
+        const attendeeAddress = "123 Example St, City, Valhalla";
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "attendeeAddress",
+            address: attendeeAddress,
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(attendeeAddress);
+      });
+
+      it("can update location to type attendeePhone", async () => {
+        const attendeePhone = "+37120993151";
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "attendeePhone",
+            phone: attendeePhone,
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(attendeePhone);
+      });
+
+      it("can update location to type attendeeDefined", async () => {
+        const attendeeDefinedLocation = "namek 100";
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "attendeeDefined",
+            location: attendeeDefinedLocation,
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
+      });
+
+      afterAll(async () => {
+        if (responseDataIsBooking(booking)) {
+          await bookingsRepositoryFixture.deleteById(bookingId);
+        } else {
+          throw new Error("Unexpected response data type");
+        }
+      });
     });
 
     it("should return booking unchanged when no location payload is provided", async () => {
