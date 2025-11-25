@@ -52,6 +52,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return new HttpError({
       statusCode,
       message: cause.message,
+      cause,
       data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
@@ -67,6 +68,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return new HttpError({
       statusCode: 500,
       message: "Unexpected error, please reach out for our customer support.",
+      cause,
       data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
@@ -89,18 +91,15 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     });
   }
   if (cause instanceof HttpError) {
-    const redactedCause = redactError(cause);
     const originalData = cause.data;
-    return {
-      ...redactedCause,
-      name: cause.name,
+    return new HttpError({
+      statusCode: cause.statusCode,
       message: cause.message ?? "",
       cause: cause.cause,
       url: cause.url,
-      statusCode: cause.statusCode,
       method: cause.method,
       data: traceId ? { ...originalData, ...tracedData, traceId } : originalData,
-    };
+    });
   }
   if (cause instanceof Error) {
     const statusCode = getStatusCode(cause);
