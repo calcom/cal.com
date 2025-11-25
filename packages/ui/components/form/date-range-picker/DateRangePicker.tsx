@@ -114,7 +114,12 @@ export function DatePickerWithRange({
             align="start"
             sideOffset={4}
             side={strictlyBottom ? "bottom" : undefined}
-            avoidCollisions={!strictlyBottom}>
+            avoidCollisions={!strictlyBottom}
+            onInteractOutside={(event) => {
+              if (dates?.startDate && !dates?.endDate) {
+                event.preventDefault();
+              }}}
+            >
             {calendar}
           </Popover.Content>
         </Popover.Portal>
