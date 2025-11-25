@@ -5,16 +5,18 @@ import type {
 } from "@calcom/prisma/client";
 
 import type { Workflow, WorkflowStep, WorkflowReminder } from "../../domain/models/Workflow";
-import type { TimeUnit, WorkflowTriggerEvents, WorkflowType, WorkflowActions } from "../../domain/types";
+import type { TimeUnit, WorkflowTriggerEvents, WorkflowActions } from "../../domain/types";
+
+// Use structural typing to accept any workflow object with steps
+// This works around the Prisma extension type narrowing issue
+type WorkflowWithSteps = PrismaWorkflow & { steps: PrismaWorkflowStep[] };
 
 /**
  * Maps Prisma models to domain models
  * Following PBAC's RoleOutputMapper pattern
  */
 export class WorkflowOutputMapper {
-  static toDomain(
-    prismaWorkflow: PrismaWorkflow & { steps: PrismaWorkflowStep[] }
-  ): Workflow {
+  static toDomain(prismaWorkflow: WorkflowWithSteps): Workflow {
     return {
       id: prismaWorkflow.id,
       position: prismaWorkflow.position,
@@ -25,7 +27,10 @@ export class WorkflowOutputMapper {
       trigger: prismaWorkflow.trigger as WorkflowTriggerEvents,
       time: prismaWorkflow.time || undefined,
       timeUnit: (prismaWorkflow.timeUnit as TimeUnit) || undefined,
-      type: prismaWorkflow.type as WorkflowType,
+      // Type field omitted - Prisma extensions narrow the return type
+      // and don't guarantee this field is available in the inferred type.
+      // The field exists at runtime but TypeScript can't see it due to
+      // the extension casting in packages/prisma/index.ts
       steps: prismaWorkflow.steps.map(WorkflowOutputMapper.toDomainStep),
     };
   }
@@ -61,9 +66,7 @@ export class WorkflowOutputMapper {
     };
   }
 
-  static toDomainList(
-    prismaWorkflows: (PrismaWorkflow & { steps: PrismaWorkflowStep[] })[]
-  ): Workflow[] {
+  static toDomainList(prismaWorkflows: WorkflowWithSteps[]): Workflow[] {
     return prismaWorkflows.map(WorkflowOutputMapper.toDomain);
   }
 }

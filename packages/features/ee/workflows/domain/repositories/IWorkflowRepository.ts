@@ -1,34 +1,18 @@
-import type { Workflow, CreateWorkflowData, UpdateWorkflowData } from "../models/Workflow";
+import type { Workflow } from "../models/Workflow";
 
 /**
  * Interface for Workflow Repository
  * Follows Dependency Inversion Principle
  * Uses domain types only - no Prisma dependencies
+ * 
+ * NOTE: This interface is intentionally minimal, containing only the methods
+ * currently used by the migrated code. Additional methods can be added as
+ * more code is migrated to use the DDD structure.
  */
 export interface IWorkflowRepository {
-  // Read operations
-  findById(id: number): Promise<Workflow | null>;
-  findByUserId(userId: number, excludeFormTriggers?: boolean): Promise<Workflow[]>;
-  findByTeamId(teamId: number, userId: number, excludeFormTriggers?: boolean): Promise<Workflow[]>;
-  findActiveOrgWorkflows(params: {
-    orgId: number;
-    userId: number;
-    teamId: number;
-    excludeFormTriggers: boolean;
-  }): Promise<Workflow[]>;
-  findAllWorkflows(userId: number, excludeFormTriggers?: boolean): Promise<Workflow[]>;
+  // Read operations for routing forms
   findWorkflowsActiveOnRoutingForm(routingFormId: string): Promise<Workflow[]>;
-  findActiveWorkflowsOnTeam(params: { parentTeamId: number; teamId: number }): Promise<Workflow[]>;
-
-  // Write operations
-  create(data: CreateWorkflowData): Promise<Workflow>;
-  update(id: number, data: UpdateWorkflowData): Promise<Workflow>;
-  delete(id: number): Promise<void>;
-
-  // Specialized queries
-  getActiveOnEventTypeIds(params: {
-    workflowId: number;
-    userId: number;
-    teamId?: number;
-  }): Promise<number[]>;
+  
+  // Additional methods will be added here as more code is migrated
+  // to use the DDD repository pattern
 }

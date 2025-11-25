@@ -12,7 +12,7 @@ export interface Workflow {
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
-  type: WorkflowType;
+  type?: WorkflowType;
   steps: WorkflowStep[];
 }
 
