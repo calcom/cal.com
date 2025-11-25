@@ -502,26 +502,14 @@ export default function EventTypes() {
 
   const handleOneOffMeeting = () => {
     setShowOneOffModal(true);
-    // Expand iframe to full width when modal opens
-    if (Platform.OS === "web" && typeof window !== "undefined" && window.parent) {
-      window.parent.postMessage({ type: "cal-companion-expand" }, "*");
-    }
   };
 
   const handleCloseOneOffModal = () => {
     setShowOneOffModal(false);
-    // Collapse iframe back to sidebar width
-    if (Platform.OS === "web" && typeof window !== "undefined" && window.parent) {
-      window.parent.postMessage({ type: "cal-companion-collapse" }, "*");
-    }
   };
 
   const handleOpenCreateModal = () => {
     setShowCreateModal(true);
-    // Expand iframe for create modal
-    if (Platform.OS === "web" && typeof window !== "undefined" && window.parent) {
-      window.parent.postMessage({ type: "cal-companion-expand" }, "*");
-    }
   };
 
   const handleCloseCreateModal = () => {
@@ -531,10 +519,6 @@ export default function EventTypes() {
     setNewEventDescription("");
     setNewEventDuration("15");
     setIsSlugManuallyEdited(false);
-    // Collapse iframe
-    if (Platform.OS === "web" && typeof window !== "undefined" && window.parent) {
-      window.parent.postMessage({ type: "cal-companion-collapse" }, "*");
-    }
   };
 
   // Calendar helper functions
@@ -1057,7 +1041,7 @@ export default function EventTypes() {
           onPress={handleCloseCreateModal}
         >
           <TouchableOpacity
-            className="w-[90%] max-w-[500px] rounded-2xl bg-white"
+            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
             style={{
@@ -1304,7 +1288,10 @@ export default function EventTypes() {
               <TouchableOpacity
                 onPress={() => {
                   setShowNewModal(false);
-                  handleOpenCreateModal();
+                  // Small delay to ensure the "New" modal closes before opening create modal
+                  setTimeout(() => {
+                    handleOpenCreateModal();
+                  }, 100);
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
               >

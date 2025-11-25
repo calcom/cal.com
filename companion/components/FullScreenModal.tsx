@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Modal, ModalProps, Platform } from "react-native";
+import { Modal, ModalProps, Platform, View } from "react-native";
 
 interface FullScreenModalProps extends ModalProps {
   visible: boolean;
