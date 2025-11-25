@@ -131,7 +131,6 @@ test.describe("OAuth Provider", () => {
     );
 
     await page.locator("#account-select").click();
-    await page.pause();
     const teamOption = page
       .locator('[id*="react-select-"][id*="-option-"]')
       .filter({ hasText: /Team/i })
