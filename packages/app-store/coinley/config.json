@@ -9,6 +9,7 @@
   "publisher": "Coinley Labs",
   "email": "support@coinley.io",
   "description": "Accept cryptocurrency payments directly to your wallet. Support for USDT, USDC, and more across multiple blockchains.",
+  "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": false,
   "imageSrc": "icon.svg",

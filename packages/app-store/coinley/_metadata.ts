@@ -13,6 +13,7 @@ export const metadata = {
   title: "Coinley Crypto Payments",
   type: "coinley_payment",
   variant: "payment",
+  extendsFeature: "EventType",
   url: "https://coinley.io",
   verified: true,
   rating: 5,
