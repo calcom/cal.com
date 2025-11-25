@@ -1,15 +1,10 @@
 "use client";
 
-import { WizardLayout } from "@calcom/ui/components/layout";
-
 import AddNewTeamMembers from "./_components/OnboardMembersView";
+import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
 
 export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <WizardLayout currentStep={4} maxSteps={5}>
-      {children}
-    </WizardLayout>
-  );
+  return <OrganizationWizardLayout currentStep={4}>{children}</OrganizationWizardLayout>;
 };
 
 export default AddNewTeamMembers;

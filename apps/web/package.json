@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.9.1",
+  "version": "5.9.5",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -112,7 +112,6 @@
     "next": "15.5.4",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
-    "next-collect": "^0.2.1",
     "next-i18next": "^15.4.2",
     "next-seo": "^6.0.0",
     "next-themes": "^0.2.0",
