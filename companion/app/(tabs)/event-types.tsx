@@ -26,6 +26,7 @@ import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { CalComAPIService, EventType } from "../../services/calcom";
 import { Header } from "../../components/Header";
 import { Tooltip } from "../../components/Tooltip";
+import { FullScreenModal } from "../../components/FullScreenModal";
 import { slugify } from "../../utils/slugify";
 
 export default function EventTypes() {
@@ -1045,9 +1046,8 @@ export default function EventTypes() {
       </ScrollView>
 
       {/* Create Event Type Modal */}
-      <Modal
+      <FullScreenModal
         visible={showCreateModal}
-        transparent
         animationType="fade"
         onRequestClose={handleCloseCreateModal}
       >
@@ -1176,12 +1176,11 @@ export default function EventTypes() {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </FullScreenModal>
 
       {/* Action Modal for Web Platform */}
-      <Modal
+      <FullScreenModal
         visible={showActionModal}
-        transparent
         animationType="fade"
         onRequestClose={() => {
           setShowActionModal(false);
@@ -1273,12 +1272,11 @@ export default function EventTypes() {
             )}
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* New Menu Modal for Web Platform */}
-      <Modal
+      <FullScreenModal
         visible={showNewModal}
-        transparent
         animationType="fade"
         onRequestClose={() => setShowNewModal(false)}
       >
@@ -1339,10 +1337,10 @@ export default function EventTypes() {
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </FullScreenModal>
 
       {/* One-off Meeting Modal */}
-      <Modal
+      <FullScreenModal
         visible={showOneOffModal}
         transparent={Platform.OS !== "web"}
         animationType="fade"
@@ -1880,12 +1878,11 @@ export default function EventTypes() {
                 );
               })()}
         </View>
-      </Modal>
+      </FullScreenModal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <FullScreenModal
         visible={showDeleteModal}
-        transparent
         animationType="fade"
         onRequestClose={() => {
           if (!isDeleting) {
@@ -1944,7 +1941,7 @@ export default function EventTypes() {
             </View>
           </View>
         </View>
-      </Modal>
+      </FullScreenModal>
 
       {/* Toast for Web Platform */}
       {showToast && (
