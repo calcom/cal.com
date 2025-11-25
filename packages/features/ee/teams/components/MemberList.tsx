@@ -498,7 +498,7 @@ function MemberListContent(props: Props) {
                     <Tooltip content={t("view_public_page")}>
                       <Button
                         target="_blank"
-                        href={user.username ? `/${user.username}` : undefined}
+                        href={user.username ? `${user.bookerUrl}/${user.username}` : undefined}
                         disabled={!user.username}
                         color="secondary"
                         className={classNames(!editMode ? "rounded-r-md" : "")}
