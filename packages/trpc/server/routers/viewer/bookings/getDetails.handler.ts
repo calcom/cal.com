@@ -1,4 +1,7 @@
-import { getBookingDetailsForViewer } from "@calcom/features/bookings/lib/getBookingDetailsForViewer";
+import {
+  getBookingDetailsForViewer,
+  type GetEventTypesFromDBFn,
+} from "@calcom/features/bookings/lib/getBookingDetailsForViewer";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -20,6 +23,10 @@ export const getDetailsHandler = async ({ ctx, input }: GetDetailsOptions) => {
     "@calcom/web/lib/booking"
   );
 
+  // Cast getEventTypesFromDB to the expected type - the branded bookingFields array
+  // from getBookingFieldsWithSystemFields is structurally compatible with the base type
+  const getEventTypesFromDBTyped = getEventTypesFromDB as GetEventTypesFromDBFn;
+
   const result = await getBookingDetailsForViewer(
     {
       prisma,
@@ -29,7 +36,7 @@ export const getDetailsHandler = async ({ ctx, input }: GetDetailsOptions) => {
       userId: user.id,
     },
     {
-      getEventTypesFromDB,
+      getEventTypesFromDB: getEventTypesFromDBTyped,
       handleSeatsEventTypeOnBooking,
       getRecurringBookings,
     }

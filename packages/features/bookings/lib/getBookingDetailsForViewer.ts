@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
@@ -8,7 +6,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { customInputSchema } from "@calcom/prisma/zod-utils";
 
 import { BookingRepository } from "../repositories/BookingRepository";
 import getBookingInfo from "./getBookingInfo";
@@ -34,8 +32,6 @@ type UserSelect = {
   isPlatformManaged: boolean;
 };
 
-type BookingField = z.infer<typeof eventTypeBookingFields>[number];
-
 type BookingInfoType = Partial<
   Prisma.BookingGetPayload<{
     include: {
@@ -54,30 +50,50 @@ type BookingInfoType = Partial<
   }>
 >;
 
+// Booking field type - minimal type for the fields we need to access
+type BookingFieldBase = {
+  name: string;
+  type: string;
+  hidden?: boolean;
+  label?: string;
+  defaultLabel?: string;
+};
+
 // Base type for event type data - uses structural typing to be compatible with both
 // getEventTypesFromDB return type and DefaultEvent
 type EventTypeBase = {
   id: number;
   title: string;
   description: string | null;
+  interfaceLanguage?: string | null;
   length: number;
   eventName: string | null;
   recurringEvent: Prisma.JsonValue;
   requiresConfirmation: boolean;
+  canSendCalVideoTranscriptionEmails?: boolean;
   userId: number | null;
   successRedirectUrl: string | null;
   customInputs: Prisma.JsonValue;
   locations: Prisma.JsonValue;
   price: number;
   currency: string;
-  bookingFields: readonly BookingField[];
+  // Using readonly array to accept both regular arrays and branded arrays (covariant)
+  bookingFields: readonly BookingFieldBase[];
+  allowReschedulingPastBookings?: boolean;
   hideOrganizerEmail: boolean | null;
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
+  disableGuests?: boolean;
+  timeZone?: string | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
+  schedulingType?: string | null;
   periodStartDate: Date | null;
   periodEndDate: Date | null;
   metadata: Prisma.JsonValue;
+  teamId?: number | null;
+  workflows?: unknown[];
   owner: UserSelect | null;
   users: UserSelect[];
   hosts: { user: UserSelect }[];
@@ -117,8 +133,11 @@ type EventTypeBase = {
   isDynamic: boolean;
 };
 
-// The function type accepts any event type that extends the base structure
-type GetEventTypesFromDBFn = (id: number) => Promise<(EventTypeBase & Record<string, unknown>) | null | undefined>;
+// The function type - uses a callback pattern to accept any function that returns a compatible event type
+// The bookingFields type is intentionally loose to accept both regular arrays and branded arrays from getBookingFieldsWithSystemFields
+export type GetEventTypesFromDBFn = (
+  id: number
+) => Promise<(Omit<EventTypeBase, "bookingFields"> & { bookingFields: readonly BookingFieldBase[] } & Record<string, unknown>) | null | undefined>;
 type HandleSeatsEventTypeOnBookingFn = (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -220,7 +239,7 @@ export async function getBookingDetailsForViewer(
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
     hideOrganizerEmail: eventTypeRaw.hideOrganizerEmail,
-    bookingFields: eventTypeRaw.bookingFields.map((field: BookingField) => {
+    bookingFields: eventTypeRaw.bookingFields.map((field: BookingFieldBase) => {
       return {
         ...field,
         label: field.type === "boolean" ? markdownToSafeHTML(field.label || "") : field.label || "",
@@ -324,7 +343,7 @@ export async function getBookingDetailsForViewer(
 
   if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
-      const field = eventTypeRaw.bookingFields.find((field: BookingField) => field.name === key);
+      const field = eventTypeRaw.bookingFields.find((field: BookingFieldBase) => field.name === key);
       if (field && !!field.hidden) {
         delete bookingInfo.responses[key];
       }
