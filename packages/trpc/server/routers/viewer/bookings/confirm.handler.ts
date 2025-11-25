@@ -406,7 +406,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         },
         hideBranding: !!booking.eventType?.owner?.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
-        creditCheckFn: creditService.hasAvailableCredits,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     } catch (error) {
       // Silently fail
