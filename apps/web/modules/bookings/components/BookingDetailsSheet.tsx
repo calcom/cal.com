@@ -211,12 +211,13 @@ function BookingDetailsSheetInner({
         <SheetBody className="flex flex-col gap-6">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
-              <SheetTitle className="text-2xl font-semibold">{booking.title}</SheetTitle>
-              <p className="text-subtle text-sm">
-                {startTime.format("dddd, MMMM D, YYYY h:mma")} - {endTime.format("h:mma")} (
-                {userTimeZone || startTime.format("Z")})
-              </p>
+              <SheetTitle className="text-emphasis flex items-center gap-2 text-xl font-semibold">
+                <div className="bg-emphasis w-[2px] flex-shrink-0 self-stretch rounded-lg"></div>
+                <span>{booking.title}</span>
+              </SheetTitle>
             </div>
+
+            <WhenSection startTime={startTime} endTime={endTime} timeZone={userTimeZone} />
 
             <RescheduleRequestMessage booking={booking} />
 
@@ -284,6 +285,28 @@ function BookingDetailsSheetInner({
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function WhenSection({
+  startTime,
+  endTime,
+  timeZone,
+}: {
+  startTime: dayjs.Dayjs;
+  endTime: dayjs.Dayjs;
+  timeZone?: string;
+}) {
+  const { t } = useLocale();
+  return (
+    <Section title={t("when")}>
+      <div className="text-default flex flex-col text-sm">
+        <span>{startTime.format("dddd, MMMM D, YYYY")}</span>
+        <span>
+          {startTime.format("h:mma")} - {endTime.format("h:mma")} ({timeZone || startTime.format("Z")})
+        </span>
+      </div>
+    </Section>
   );
 }
 
