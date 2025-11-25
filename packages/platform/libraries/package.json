@@ -93,6 +93,11 @@
       "import": "./dist/pbac.js",
       "require": "./dist/pbac.cjs",
       "types": "./dist/pbac.d.ts"
+    },
+    "./locations": {
+      "import": "./dist/locations.js",
+      "require": "./dist/locations.cjs",
+      "types": "./dist/locations.d.ts"
     }
   },
   "typesVersions": {
@@ -132,6 +137,9 @@
       ],
       "pbac": [
         "dist/pbac.d.ts"
+      ],
+      "locations": [
+        "dist/locations.d.ts"
       ]
     }
   }
