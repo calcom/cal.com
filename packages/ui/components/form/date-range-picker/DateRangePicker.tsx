@@ -36,12 +36,17 @@ export function DatePickerWithRange({
   function handleDayClick(date: Date) {
     if (allowPastDates) {
       // for Out of Office (past dates allowed)
-      if (dates?.endDate) {
+      // Airbnb-style: when both dates are set, any click starts a new range
+      if (!dates?.startDate || dates?.endDate) {
+        // No start date OR both dates set -> start fresh
         onDatesChange({ startDate: date, endDate: undefined });
       } else {
-        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
-        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
-        onDatesChange({ startDate, endDate });
+        // Have start but no end -> complete the range (swap if needed)
+        if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: dates.startDate });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
       }
     } else {
       // for Limit Future Booking and other date range selections (no past dates)
