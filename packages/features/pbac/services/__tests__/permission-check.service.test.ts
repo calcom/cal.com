@@ -534,6 +534,46 @@ describe("PermissionCheckService", () => {
         fallbackRoles: [],
       });
     });
+
+    it("should include child teams where user has org-level fallback roles", async () => {
+      // User is ADMIN in org (teamId: 100) but MEMBER in child team (teamId: 1)
+      // Should get access to child team via org-level ADMIN role
+      const expectedTeamIds = [1, 100]; // Child team + org team
+      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+    });
+
+    it("should include child teams where user has org-level PBAC permissions", async () => {
+      // User has PBAC permission in org (teamId: 100) but not in child team (teamId: 1)
+      // Should get access to child team via org-level PBAC permission
+      const expectedTeamIds = [1, 100]; // Child team + org team
+      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "insights.read",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+    });
   });
 
   describe("getTeamIdsWithPermissions", () => {
@@ -596,6 +636,48 @@ describe("PermissionCheckService", () => {
         userId: 1,
         permissions,
         fallbackRoles: [],
+      });
+    });
+
+    it("should include child teams where user has org-level fallback roles", async () => {
+      // User is ADMIN in org (teamId: 100) but MEMBER in child team (teamId: 1)
+      // Should get access to child team via org-level ADMIN role
+      const permissions: PermissionString[] = ["insights.read", "insights.create"];
+      const expectedTeamIds = [1, 2, 100]; // Child teams + org team
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+    });
+
+    it("should include child teams where user has org-level PBAC permissions", async () => {
+      // User has PBAC permissions in org (teamId: 100) but not in child team (teamId: 1)
+      // Should get access to child team via org-level PBAC permissions
+      const permissions: PermissionString[] = ["insights.read", "insights.create"];
+      const expectedTeamIds = [1, 2, 100]; // Child teams + org team
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: ["ADMIN", "OWNER"],
       });
     });
   });
