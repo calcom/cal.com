@@ -1014,9 +1014,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredentialForCalendarService(
-    event: CalendarEvent
-  ): CredentialForCalendarService | undefined {
+  private getVideoCredentialByCalendarEvent(event: CalendarEvent): CredentialForCalendarService | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -1060,7 +1058,7 @@ export default class EventManager {
    * @private
    */
   private async createVideoEvent(event: CalendarEvent) {
-    const credential = this.getVideoCredentialForCalendarService(event);
+    const credential = this.getVideoCredentialByCalendarEvent(event);
     if (credential) {
       return createMeeting(credential, event);
     } else {
@@ -1220,7 +1218,7 @@ export default class EventManager {
    * @private
    */
   private async updateVideoEvent(event: CalendarEvent, booking: PartialBooking) {
-    const credential = this.getVideoCredentialForCalendarService(event);
+    const credential = this.getVideoCredentialByCalendarEvent(event);
 
     if (credential) {
       const bookingRef = booking ? booking.references.filter((ref) => ref.type === credential.type)[0] : null;
