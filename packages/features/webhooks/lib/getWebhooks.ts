@@ -22,6 +22,7 @@ const webhookSelect = {
   time: true,
   timeUnit: true,
   eventTriggers: true,
+  version: true,
 } satisfies Prisma.WebhookSelect;
 
 export type GetWebhooksReturnType = Prisma.WebhookGetPayload<{

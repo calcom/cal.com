@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -29,6 +29,7 @@ type WebhookProps = {
   secret: string | null;
   eventTypeId: number | null;
   teamId: number | null;
+  version: WebhookVersion;
 };
 
 export default function WebhookListItem(props: {
@@ -94,6 +95,13 @@ export default function WebhookListItem(props: {
               {t("readonly")}
             </Badge>
           )}
+          <Tooltip content={t("webhook_version")}>
+            <div className="flex items-center">
+              <Badge variant="blue" className="ml-2">
+                {webhook.version.replace("V_", "").replace(/_/g, "-")}
+              </Badge>
+            </div>
+          </Tooltip>
         </div>
         <Tooltip content={t("triggers_when")}>
           <div className="flex w-4/5 flex-wrap">
