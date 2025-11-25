@@ -1,29 +1,44 @@
-// import { cookies, headers } from "next/headers";
-// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-// import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
+import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 
-const Page = async () => {
-  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  // const user = session?.user;
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { getCachedWorkflowsFilteredList } from "@lib/cache/workflows";
 
-  // const filters = getTeamsFiltersFromQuery({ ...searchParams, ...params });
+import { revalidateWorkflowsListAction } from "./actions";
 
-  // let filteredList;
-  // try {
-  //   filteredList = await WorkflowRepository.getFilteredList({
-  //     userId: user?.id,
-  //     input: {
-  //       filters,
-  //     },
-  //   });
-  // } catch (err) {}
+export const generateMetadata = async () =>
+  await _generateMetadata(
+    (t) => t("workflows"),
+    (t) => t("workflows_to_automate_notifications"),
+    undefined,
+    undefined,
+    "/workflows"
+  );
+
+type PageSearchParams = Record<string, string | string[] | undefined>;
+
+const Page = async ({ searchParams }: { searchParams: PageSearchParams }) => {
+  const req = buildLegacyRequest(headers(), cookies());
+  const session = await getServerSession({ req });
+
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+
+  const filters = getTeamsFiltersFromQuery(searchParams);
+  const hasValidLicense = Boolean(session?.hasValidLicense);
+  const initialData = await getCachedWorkflowsFilteredList(session.user.id, filters);
 
   return (
     <LegacyPage
-    //  filteredList={filteredList}
+      initialData={initialData}
+      hasValidLicense={hasValidLicense}
+      onRevalidate={revalidateWorkflowsListAction}
     />
   );
 };
