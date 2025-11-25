@@ -47,7 +47,7 @@ export function EmailInviteForm({
   const { register, watch, setValue } = useFormContext();
 
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex h-full w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
         {showTeamSelect ? (
           <div className="grid grid-cols-2">
@@ -59,7 +59,7 @@ export function EmailInviteForm({
             </Label>
           </div>
         ) : (
-          <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
+          <Label className="text-emphasis mb-0 text-sm font-medium">{t("email")}</Label>
         )}
 
         <div

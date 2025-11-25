@@ -52,7 +52,7 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
     <div
       ref={containerNavRef}
       className={classNames(
-        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8",
+        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b",
         borderColor === "subtle" ? "border-b-subtle" : "border-b-default",
         showBorder && (borderColor === "subtle" ? "border-r-subtle border-r" : "border-r-default border-r")
       )}>

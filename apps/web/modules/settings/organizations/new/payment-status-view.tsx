@@ -1,15 +1,11 @@
 "use client";
 
-import { WizardLayout } from "@calcom/ui/components/layout";
-
 import PaymentStatusView from "~/settings/organizations/new/_components/PaymentStatusView";
 
+import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
+
 export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <WizardLayout currentStep={5} maxSteps={5}>
-      {children}
-    </WizardLayout>
-  );
+  return <OrganizationWizardLayout currentStep={5}>{children}</OrganizationWizardLayout>;
 };
 
 export default PaymentStatusView;

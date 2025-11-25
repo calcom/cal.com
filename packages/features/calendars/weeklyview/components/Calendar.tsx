@@ -34,6 +34,7 @@ function CalendarInner(props: CalendarComponentProps) {
   const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
+  const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -74,7 +75,7 @@ function CalendarInner(props: CalendarComponentProps) {
               borderColor={borderColor}
             />
             <div className="relative flex flex-auto">
-              <CurrentTime timezone={timezone} />
+              <CurrentTime timezone={timezone} scrollToCurrentTime={scrollToCurrentTime} />
               <div
                 className={classNames(
                   "bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",

@@ -10,9 +10,7 @@ import { uuid } from "short-uuid";
 import { deriveOrgNameFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
 import { deriveSlugFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -33,7 +31,6 @@ export const CreateANewPlatformForm = () => {
 const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
@@ -53,7 +50,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
 
   const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
     onSuccess: async (data) => {
-      telemetry.event(telemetryEventTypes.org_created);
+      // telemetry.event(telemetryEventTypes.org_created);
       // This is necessary so that server token has the updated upId
       await session.update({
         upId: data.upId,

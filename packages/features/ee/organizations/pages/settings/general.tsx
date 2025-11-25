@@ -20,6 +20,7 @@ import { Select } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { DisableAutofillOnBookingPageSwitch } from "../components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
@@ -94,6 +95,7 @@ const OrgGeneralView = ({
           <LockEventTypeSwitch currentOrg={currentOrg} />
           <NoSlotsNotificationSwitch currentOrg={currentOrg} />
           <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} />
+          <DisableAutofillOnBookingPageSwitch currentOrg={currentOrg} />
         </>
       )}
     </LicenseRequired>

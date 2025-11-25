@@ -60,7 +60,6 @@ export default function RequiresConfirmationController({
     if (!requiresConfirmation) {
       formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
   const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
@@ -111,10 +110,11 @@ export default function RequiresConfirmationController({
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
+                } else {
+                  formMethods.setValue("requiresConfirmationWillBlockSlot", true, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
               }}>
@@ -135,6 +135,9 @@ export default function RequiresConfirmationController({
                         shouldDirty: true,
                       });
                       setRequiresConfirmationSetup(undefined);
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     } else if (val === "notice") {
                       formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
@@ -143,6 +146,9 @@ export default function RequiresConfirmationController({
                         requiresConfirmationSetup || defaultRequiresConfirmationSetup,
                         { shouldDirty: true }
                       );
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     }
                   }}>
                   <div

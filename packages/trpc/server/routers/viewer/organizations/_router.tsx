@@ -1,3 +1,4 @@
+import type { NextApiRequest } from "next";
 import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
@@ -77,9 +78,9 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./checkIfOrgNeedsUpgrade.handler");
     return handler(opts);
   }),
-  publish: authedProcedure.mutation(async (opts) => {
+  publish: authedProcedure.mutation(async ({ ctx }) => {
     const { default: handler } = await import("./publish.handler");
-    return handler(opts);
+    return handler({ ctx: { ...ctx, req: ctx.req as NextApiRequest } });
   }),
   setPassword: authedProcedure.input(ZSetPasswordSchema).mutation(async (opts) => {
     const { default: handler } = await import("./setPassword.handler");

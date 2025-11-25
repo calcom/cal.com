@@ -29,64 +29,90 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
-import { buildBookingLink } from "../lib/buildBookingLink";
+import {
+  useBookingDetailsSheetStore,
+  useBookingDetailsSheetStoreApi,
+} from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
+import { JoinMeetingButton } from "./JoinMeetingButton";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
-  booking: BookingOutput | null;
-  isOpen: boolean;
-  onClose: () => void;
   userTimeZone?: string;
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
-  onPrevious?: () => void;
-  hasPrevious?: boolean;
-  onNext?: () => void;
-  hasNext?: boolean;
 }
 
-interface BookingDetailsSheetInnerProps extends Omit<BookingDetailsSheetProps, "booking"> {
-  booking: BookingOutput;
-}
-
-export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
-  if (!props.booking) return null;
-
-  return (
-    <BookingActionsStoreProvider>
-      <BookingDetailsSheetInner {...props} booking={props.booking} />
-    </BookingActionsStoreProvider>
-  );
-}
-
-function BookingDetailsSheetInner({
-  booking,
-  isOpen,
-  onClose,
+export function BookingDetailsSheet({
   userTimeZone,
   userTimeFormat,
   userId,
   userEmail,
-  onPrevious,
-  hasPrevious = false,
-  onNext,
-  hasNext = false,
+}: BookingDetailsSheetProps) {
+  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+
+  // Return null if no booking is selected (sheet is closed)
+  if (!booking) return null;
+
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner
+        booking={booking}
+        userTimeZone={userTimeZone}
+        userTimeFormat={userTimeFormat}
+        userId={userId}
+        userEmail={userEmail}
+      />
+    </BookingActionsStoreProvider>
+  );
+}
+
+interface BookingDetailsSheetInnerProps {
+  booking: BookingOutput;
+  userTimeZone?: string;
+  userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
+}
+
+function BookingDetailsSheetInner({
+  booking,
+  userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
 
+  // Get navigation state directly from the store
+  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
+  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+
+  const handleClose = () => {
+    setSelectedBookingId(null);
+  };
+
+  const storeApi = useBookingDetailsSheetStoreApi();
+
+  const handleNext = () => {
+    const nextId = storeApi.getState().getNextBookingId();
+    if (nextId !== null) {
+      setSelectedBookingId(nextId);
+    }
+  };
+
+  const handlePrevious = () => {
+    const prevId = storeApi.getState().getPreviousBookingId();
+    if (prevId !== null) {
+      setSelectedBookingId(prevId);
+    }
+  };
+
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
-
-  // Build booking confirmation link
-  const isRecurring = booking.recurringEventId !== null;
-  const bookingLink = buildBookingLink({
-    bookingUid: booking.uid,
-    allRemainingBookings: isRecurring,
-    email: booking.attendees?.[0]?.email,
-  });
 
   const getStatusBadge = () => {
     switch (booking.status) {
@@ -108,14 +134,6 @@ function BookingDetailsSheetInner({
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
 
-  // Get conference link info for Join button
-  const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
-    location: booking.location,
-    videoCallUrl: bookingMetadata?.videoCallUrl,
-    t,
-    bookingStatus: booking.status,
-  });
-
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
@@ -131,7 +149,7 @@ function BookingDetailsSheetInner({
     : [];
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader
           showCloseButton={false}
@@ -144,7 +162,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasPrevious}
                 onClick={(e) => {
                   e.preventDefault();
-                  onPrevious?.();
+                  handlePrevious();
                 }}
               />
               <Button
@@ -154,7 +172,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasNext}
                 onClick={(e) => {
                   e.preventDefault();
-                  onNext?.();
+                  handleNext();
                 }}
               />
             </div>
@@ -183,6 +201,8 @@ function BookingDetailsSheetInner({
               </p>
             </div>
 
+            <RescheduleRequestMessage booking={booking} />
+
             <WhoSection booking={booking} />
 
             <WhereSection booking={booking} meta={bookingMetadata} />
@@ -203,53 +223,53 @@ function BookingDetailsSheetInner({
         </SheetBody>
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
-          <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
-            {isLocationURL && locationToDisplay && (
-              <>
-                <Button
-                  color="secondary"
-                  size="sm"
-                  href={locationToDisplay}
-                  target="_blank"
-                  className="flex items-center gap-2">
-                  {provider?.iconUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={provider.iconUrl}
-                      className="h-4 w-4 flex-shrink-0 rounded-sm"
-                      alt={`${provider.label} logo`}
-                    />
-                  )}
-                  {provider?.label
-                    ? t("join_event_location", { eventLocationType: provider.label })
-                    : t("join_meeting")}
-                </Button>
-                <div className="border-subtle h-3 w-px border-r" />
-              </>
-            )}
-            <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
-              {t("view")}
+          <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
+            <Button color="secondary" StartIcon="x" onClick={handleClose}>
+              {t("close")}
             </Button>
-            <BookingActionsDropdown
-              context="booking-details-sheet"
-              size="sm"
-              booking={{
-                ...booking,
-                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
-                recurringInfo: undefined,
-                loggedInUser: {
-                  userId,
-                  userTimeZone,
-                  userTimeFormat: userTimeFormat ?? null,
-                  userEmail,
-                },
-                isToday: false,
-              }}
-            />
+
+            <div className="flex gap-2">
+              <JoinMeetingButton
+                location={booking.location}
+                metadata={booking.metadata}
+                bookingStatus={booking.status}
+              />
+
+              <BookingActionsDropdown
+                booking={{
+                  ...booking,
+                  listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                  recurringInfo: undefined,
+                  loggedInUser: {
+                    userId,
+                    userTimeZone,
+                    userTimeFormat: userTimeFormat ?? null,
+                    userEmail,
+                  },
+                  isToday: false,
+                }}
+                usePortal={false}
+                context="details"
+              />
+            </div>
           </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  if (booking.status !== "CANCELLED" || !booking.rescheduled) {
+    return null;
+  }
+
+  return (
+    <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+      {t("reschedule_request_sent")}
+    </Badge>
   );
 }
 

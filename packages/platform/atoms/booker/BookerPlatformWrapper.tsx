@@ -303,7 +303,7 @@ const BookerPlatformWrapperComponent = (
       Boolean(month) &&
       Boolean(timezone) &&
       !event?.isPending &&
-      Boolean(event?.data?.id),
+      event?.data?.id != null,
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
