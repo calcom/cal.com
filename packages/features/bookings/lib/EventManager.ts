@@ -509,7 +509,7 @@ export default class EventManager {
         ? reference.thirdPartyRecurringEventId
         : reference.uid;
 
-    const calendarCredential = await this.getCalendarCredentialAndWarnIfNotFound(
+    const calendarCredential = await this.getCalendarCredential(
       credentialId,
       credentialType,
       reference.delegationCredentialId
@@ -529,14 +529,14 @@ export default class EventManager {
     log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
     const { uid: bookingRefUid, credentialId } = reference;
 
-    const videoCredential = await this.getVideoCredentialAndWarnIfNotFound(credentialId, reference.type);
+    const videoCredential = await this.getVideoCredential(credentialId, reference.type);
 
     if (videoCredential) {
       await deleteMeeting(videoCredential, bookingRefUid);
     }
   }
 
-  private async getVideoCredentialAndWarnIfNotFound(
+  private async getVideoCredential(
     credentialId: number | null | undefined,
     type: string
   ): Promise<CredentialForCalendarService | null | undefined> {
@@ -553,7 +553,7 @@ export default class EventManager {
 
     if (!foundCredential) {
       log.error(
-        "getVideoCredentialAndWarnIfNotFound: Could not find video credential",
+        "getVideoCredential: Could not find video credential",
         safeStringify({
           credentialId,
           type,
@@ -565,7 +565,7 @@ export default class EventManager {
     return foundCredential;
   }
 
-  private async getCalendarCredentialAndWarnIfNotFound(
+  private async getCalendarCredential(
     credentialId: number | null | undefined,
     type: string,
     delegationCredentialId?: string | null
@@ -585,7 +585,7 @@ export default class EventManager {
 
     if (!foundCredential) {
       log.error(
-        "getCalendarCredentialAndWarnIfNotFound: Could not find calendar credential",
+        "getCalendarCredential: Could not find calendar credential",
         safeStringify({
           credentialId,
           type,

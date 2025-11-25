@@ -512,7 +512,7 @@ describe("EventManager credential lookup methods", () => {
     vi.clearAllMocks();
   });
 
-  describe("getVideoCredentialAndWarnIfNotFound", () => {
+  describe("getVideoCredential", () => {
     it("returns a cached credential when credentialId matches", async () => {
       const videoCredential = buildVideoCredential({ id: 42, type: "zoom_video" });
       eventManager = new EventManager({
@@ -520,7 +520,7 @@ describe("EventManager credential lookup methods", () => {
         destinationCalendar: null,
       });
 
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(42, "zoom_video");
+      const result = await (eventManager as any).getVideoCredential(42, "zoom_video");
 
       expect(result).toMatchObject({ id: 42, type: "zoom_video" });
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
@@ -534,7 +534,7 @@ describe("EventManager credential lookup methods", () => {
       });
       mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(dbCredential as any);
 
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(7, "zoom_video");
+      const result = await (eventManager as any).getVideoCredential(7, "zoom_video");
 
       expect(result).toEqual(dbCredential);
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({ id: 7 });
@@ -547,14 +547,14 @@ describe("EventManager credential lookup methods", () => {
         destinationCalendar: null,
       });
 
-      const result = await (eventManager as any).getVideoCredentialAndWarnIfNotFound(null, "zoom_video");
+      const result = await (eventManager as any).getVideoCredential(null, "zoom_video");
 
       expect(result).toMatchObject({ type: "zoom_video" });
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
     });
   });
 
-  describe("getCalendarCredentialAndWarnIfNotFound", () => {
+  describe("getCalendarCredential", () => {
     it("prefers delegation credentials when delegationCredentialId is provided", async () => {
       const delegatedCredential = buildCalendarCredential({
         id: 10,
@@ -565,7 +565,7 @@ describe("EventManager credential lookup methods", () => {
         destinationCalendar: null,
       });
 
-      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
+      const result = await (eventManager as any).getCalendarCredential(
         99,
         "google_calendar",
         "delegation-123"
@@ -583,7 +583,7 @@ describe("EventManager credential lookup methods", () => {
       });
       mockedCredentialRepository.findCredentialForCalendarServiceById.mockResolvedValue(dbCredential as any);
 
-      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(5, "google_calendar");
+      const result = await (eventManager as any).getCalendarCredential(5, "google_calendar");
 
       expect(result).toEqual(dbCredential);
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).toHaveBeenCalledWith({ id: 5 });
@@ -596,10 +596,7 @@ describe("EventManager credential lookup methods", () => {
         destinationCalendar: null,
       });
 
-      const result = await (eventManager as any).getCalendarCredentialAndWarnIfNotFound(
-        null,
-        "google_calendar"
-      );
+      const result = await (eventManager as any).getCalendarCredential(null, "google_calendar");
 
       expect(result).toMatchObject({ id: 22, type: "google_calendar" });
       expect(mockedCredentialRepository.findCredentialForCalendarServiceById).not.toHaveBeenCalled();
