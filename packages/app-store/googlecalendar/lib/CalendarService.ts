@@ -376,6 +376,8 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    const defaultReminder = await this.getReminderDuration();
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -388,9 +390,23 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: defaultReminder
+        ? {
+            useDefault: false,
+            overrides: [
+              {
+                method: "popup",
+                minutes: defaultReminder,
+              },
+              {
+                method: "email",
+                minutes: defaultReminder,
+              },
+            ],
+          }
+        : {
+            useDefault: true,
+          },
       guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
