@@ -6,13 +6,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 
-import { SUPPORTED_CURRENCIES } from "../zod";
-
-const currencyOptions = [
-  { label: "USDT (Tether)", value: "USDT" },
-  { label: "USDC (USD Coin)", value: "USDC" },
-];
-
 const paymentOptions = [
   { label: "on_booking_paid", value: "ON_BOOKING" },
   { label: "hold_charge_card_on_booking_and_charge_on_event", value: "HOLD" },
@@ -26,11 +19,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   eventType,
 }) => {
   const price = getAppData("price");
-  const currency = getAppData("currency") || "USDT";
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    currencyOptions.find((c) => c.value === currency) || currencyOptions[0]
-  );
-
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
@@ -43,9 +31,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 
   useEffect(() => {
     if (requirePayment) {
-      if (!getAppData("currency")) {
-        setAppData("currency", "USDT");
-      }
+      // Currency is selected by user in payment modal (USDT or USDC)
       if (!getAppData("paymentOption")) {
         setAppData("paymentOption", "ON_BOOKING");
       }
@@ -66,8 +52,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         <TextField
           label="Price"
           labelSrOnly
-          addOnLeading=""
-          addOnSuffix={currency}
+          addOnLeading="$"
+          addOnSuffix="USD"
           step="0.01"
           min="0.01"
           type="number"
@@ -79,32 +65,13 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             const value = Number(e.target.value);
             // Store price in cents for consistency with other payment apps
             setAppData("price", Math.round(value * 100));
-            if (selectedCurrency) {
-              setAppData("currency", selectedCurrency.value);
-            }
           }}
           value={price > 0 ? price / 100 : undefined}
         />
       </div>
-      <div className="mt-5 w-60">
-        <label className="text-default mb-1 block text-sm font-medium" htmlFor="currency">
-          {t("currency")}
-        </label>
-        <Select
-          variant="default"
-          data-testid="coinley-currency-select"
-          options={currencyOptions}
-          value={selectedCurrency}
-          className="text-black"
-          defaultValue={selectedCurrency}
-          onChange={(e) => {
-            if (e) {
-              setSelectedCurrency(e);
-              setAppData("currency", e.value);
-            }
-          }}
-        />
-      </div>
+      <p className="text-default mt-1 text-xs text-gray-500">
+        Customers can choose to pay with USDT or USDC in the payment modal
+      </p>
 
       <div className="mt-4 w-60">
         <label className="text-default mb-1 block text-sm font-medium" htmlFor="payment-option">
