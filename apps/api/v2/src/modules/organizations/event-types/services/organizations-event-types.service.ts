@@ -11,7 +11,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 import { createEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()

@@ -714,7 +714,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
   const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
-  const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
+  const teamSlug = eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams.toString());

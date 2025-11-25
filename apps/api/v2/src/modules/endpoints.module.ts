@@ -43,7 +43,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
   ],
 })
 export class EndpointsModule implements NestModule {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   configure(_consumer: MiddlewareConsumer) {
     // TODO: apply ratelimits
   }
