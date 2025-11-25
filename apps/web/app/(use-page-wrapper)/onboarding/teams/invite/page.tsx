@@ -7,6 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+import { TeamInviteEmailView } from "~/onboarding/teams/invite/email/team-invite-email-view";
 import { TeamInviteView } from "~/onboarding/teams/invite/team-invite-view";
 
 export const generateMetadata = async () => {
@@ -26,11 +27,12 @@ const ServerPage = async () => {
     return redirect("/auth/login");
   }
 
-  if (session.user.role !== "ADMIN") {
-    return redirect("/onboarding/teams/invite/email");
-  }
-
   const userEmail = session.user.email || "";
+
+  // If user is not ADMIN, show the email view directly instead of redirecting
+  if (session.user.role !== "ADMIN") {
+    return <TeamInviteEmailView userEmail={userEmail} />;
+  }
 
   return <TeamInviteView userEmail={userEmail} />;
 };
