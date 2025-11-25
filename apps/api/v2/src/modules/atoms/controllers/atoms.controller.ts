@@ -14,12 +14,15 @@ import {
   Version,
   VERSION_NEUTRAL,
   Query,
+  Req,
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
+import type { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 import { FindTeamMembersMatchingAttributeResponseDto } from "../outputs/find-team-members-matching-attribute.output";
+import { GetCountryCodeResponseDto } from "../outputs/get-country-code.output";
 
 /*
 Endpoints used only by platform atoms, reusing code from other modules, data is already formatted and ready to be used by frontend atoms
@@ -57,6 +60,19 @@ export class AtomsController {
     return {
       status: SUCCESS_STATUS,
       data: result,
+    };
+  }
+
+  @Get("/country-code")
+  @Version(VERSION_NEUTRAL)
+  async getCountryCode(@Req() req: Request): Promise<GetCountryCodeResponseDto> {
+    const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "";
+    
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        countryCode: Array.isArray(countryCode) ? countryCode[0] : countryCode,
+      },
     };
   }
 }

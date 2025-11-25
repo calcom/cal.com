@@ -63,6 +63,7 @@
     "./globals.min.css": "./globals.min.css",
     "./hooks/bookings/useHandleBookEvent": "./hooks/bookings/useHandleBookEvent.ts",
     "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",
+    "./hooks/useCountryCode": "./hooks/useCountryCode.ts",
     "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
     "./hooks/useIsPlatformBookerEmbed": "./hooks/useIsPlatformBookerEmbed.ts",
     "./hooks/event-types/private/useEventTypeById": "./hooks/event-types/private/useEventTypeById.ts",

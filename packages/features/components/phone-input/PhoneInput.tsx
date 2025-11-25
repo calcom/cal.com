@@ -1,12 +1,10 @@
 "use client";
 
-import { isSupportedCountry } from "libphonenumber-js";
 import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
-import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 
 export type PhoneInputProps = {
@@ -30,9 +28,9 @@ function BasePhoneInput({
   value,
   inputStyle,
   flagButtonStyle,
+  defaultCountry = "us",
   ...rest
-}: Omit<PhoneInputProps, "defaultCountry">) {
-  const defaultCountry = useDefaultCountry();
+}: PhoneInputProps) {
 
   // This is to trigger validation on prefill value changes
   useEffect(() => {
@@ -48,7 +46,6 @@ function BasePhoneInput({
     if (value !== sanitized) {
       onChange(sanitized);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -90,30 +87,5 @@ function BasePhoneInput({
     />
   );
 }
-
-const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
-  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: false,
-  });
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      const data = query.data;
-      if (!data?.countryCode) {
-        return;
-      }
-
-      isSupportedCountry(data?.countryCode)
-        ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
-    },
-    [query.data]
-  );
-
-  return defaultCountry;
-};
 
 export default BasePhoneInput;
