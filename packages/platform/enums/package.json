@@ -17,7 +17,7 @@
   },
   "scripts": {
     "test": "jest ./tests",
-    "build": "tsc --build --force tsconfig.json",
+    "build": "node -e \"require('fs').rmSync('./dist',{recursive:true,force:true})\" && tsc --build tsconfig.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
   },
