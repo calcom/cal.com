@@ -31,7 +31,6 @@ function BasePhoneInput({
   defaultCountry = "us",
   ...rest
 }: PhoneInputProps) {
-
   // This is to trigger validation on prefill value changes
   useEffect(() => {
     if (!value) return;

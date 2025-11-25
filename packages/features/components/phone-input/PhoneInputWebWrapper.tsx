@@ -25,7 +25,8 @@ export function PhoneInputWebWrapper(props: Omit<PhoneInputProps, "defaultCountr
       if (isSupportedCountry(data.countryCode)) {
         setDefaultCountry(data.countryCode.toLowerCase());
       } else {
-        setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+        const browserCountry = navigator.language.split("-").pop()?.toLowerCase();
+        setDefaultCountry(browserCountry && isSupportedCountry(browserCountry) ? browserCountry : "us");
       }
     },
     [query.data]
