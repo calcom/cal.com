@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
+    "build": "NODE_OPTIONS='--max_old_space_size=12288' npx rimraf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify",
     "publish-npm": "yarn build && npm publish --access public",
     "test": "jest",
     "dev-on": "node scripts/dev-on.js",

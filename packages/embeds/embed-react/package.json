@@ -24,7 +24,7 @@
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-react' && yarn withEmbedPublishEnv build && yarn packaged:tests",
     "embed-web-start": "yarn workspace @calcom/web start",
     "embed-dev": "yarn workspace @calcom/embed-react dev",
-    "clean": "node -e \"require('fs').rmSync('.turbo',{recursive:true,force:true});require('fs').rmSync('node_modules',{recursive:true,force:true});require('fs').rmSync('dist',{recursive:true,force:true})\""
+    "clean": "npx rimraf .turbo node_modules dist"
   },
   "main": "./dist/Cal.umd.js",
   "module": "./dist/Cal.es.mjs",
