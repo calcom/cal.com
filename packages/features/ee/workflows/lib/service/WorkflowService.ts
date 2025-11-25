@@ -5,7 +5,8 @@ import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/re
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository as LegacyWorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository as DomainWorkflowRepository } from "@calcom/features/ee/workflows/infrastructure/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -15,6 +16,8 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
+  private readonly workflowRepository = new DomainWorkflowRepository(prisma);
+  
   static _beforeAfterEventTriggers: WorkflowTriggerEvents[] = [
     WorkflowTriggerEvents.AFTER_EVENT,
     WorkflowTriggerEvents.BEFORE_EVENT,
@@ -25,16 +28,25 @@ export class WorkflowService {
     userId: number | null;
     teamId: number | null;
   }) {
-    const routingFormWorkflows = await WorkflowRepository.findWorkflowsActiveOnRoutingForm({
-      routingFormId: routingForm.id,
-    });
+    const service = new WorkflowService();
+    return service._getAllWorkflowsFromRoutingForm(routingForm);
+  }
+
+  private async _getAllWorkflowsFromRoutingForm(routingForm: {
+    id: string;
+    userId: number | null;
+    teamId: number | null;
+  }) {
+    const routingFormWorkflows = await this.workflowRepository.findWorkflowsActiveOnRoutingForm(
+      routingForm.id
+    );
 
     const teamId = routingForm.teamId;
     const userId = routingForm.userId;
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
     const allWorkflows = await getAllWorkflows({
-      entityWorkflows: routingFormWorkflows,
+      entityWorkflows: routingFormWorkflows as Workflow[],
       userId,
       teamId,
       orgId,
@@ -50,7 +62,7 @@ export class WorkflowService {
     const team = await teamRepository.findById({ id: teamId });
 
     if (team?.parentId) {
-      const activeWorkflowsOnTeam = await WorkflowRepository.findActiveWorkflowsOnTeam({
+      const activeWorkflowsOnTeam = await LegacyWorkflowRepository.findActiveWorkflowsOnTeam({
         parentTeamId: team.parentId,
         teamId: team.id,
       });
@@ -71,12 +83,12 @@ export class WorkflowService {
             .filter((activeOn) => activeOn.teamId !== team.id)
             .map((activeOn) => activeOn.teamId);
         }
-        const remindersToDelete = await WorkflowRepository.getRemindersFromRemovedTeams(
+        const remindersToDelete = await LegacyWorkflowRepository.getRemindersFromRemovedTeams(
           [team.id],
           workflowSteps,
           remainingActiveOnIds
         );
-        await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
+        await LegacyWorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
   }

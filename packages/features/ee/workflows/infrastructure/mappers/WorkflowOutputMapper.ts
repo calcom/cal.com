@@ -5,7 +5,7 @@ import type {
 } from "@calcom/prisma/client";
 
 import type { Workflow, WorkflowStep, WorkflowReminder } from "../../domain/models/Workflow";
-import type { TimeUnit, WorkflowTriggerEvents, WorkflowType } from "../../domain/types";
+import type { TimeUnit, WorkflowTriggerEvents, WorkflowType, WorkflowActions } from "../../domain/types";
 
 /**
  * Maps Prisma models to domain models
@@ -34,7 +34,7 @@ export class WorkflowOutputMapper {
     return {
       id: prismaStep.id,
       stepNumber: prismaStep.stepNumber,
-      action: prismaStep.action,
+      action: prismaStep.action as WorkflowActions,
       workflowId: prismaStep.workflowId,
       sendTo: prismaStep.sendTo || undefined,
       reminderBody: prismaStep.reminderBody || undefined,
@@ -42,7 +42,6 @@ export class WorkflowOutputMapper {
       template: prismaStep.template,
       includeCalendarEvent: prismaStep.includeCalendarEvent,
       sender: prismaStep.sender || undefined,
-      senderName: prismaStep.senderName || undefined,
       numberRequired: prismaStep.numberRequired || undefined,
       numberVerificationPending: prismaStep.numberVerificationPending,
     };

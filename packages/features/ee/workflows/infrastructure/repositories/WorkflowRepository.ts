@@ -1,4 +1,3 @@
-import type { PrismaClient } from "@calcom/prisma/client";
 import {
   TimeUnit as PrismaTimeUnit,
   WorkflowTriggerEvents as PrismaWorkflowTriggerEvents,
@@ -15,13 +14,16 @@ const FORM_TRIGGER_WORKFLOW_EVENTS = [
   PrismaWorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
 ];
 
+// Use typeof to match the actual prisma instance type with extensions
+type WorkflowPrisma = typeof db;
+
 /**
  * Infrastructure implementation of IWorkflowRepository
  * Handles Prisma interactions and maps to domain models
  * Following PBAC's RoleRepository pattern
  */
 export class WorkflowRepository implements IWorkflowRepository {
-  constructor(private readonly prisma: PrismaClient = db) {}
+  constructor(private readonly prisma: WorkflowPrisma = db) {}
 
   private readonly includeSteps = {
     steps: {
@@ -34,7 +36,23 @@ export class WorkflowRepository implements IWorkflowRepository {
   async findById(id: number): Promise<Workflow | null> {
     const result = await this.prisma.workflow.findUnique({
       where: { id },
-      include: this.includeSteps,
+      select: {
+        id: true,
+        position: true,
+        name: true,
+        userId: true,
+        teamId: true,
+        isActiveOnAll: true,
+        trigger: true,
+        time: true,
+        timeUnit: true,
+        type: true,
+        steps: {
+          orderBy: {
+            stepNumber: "asc" as const,
+          },
+        },
+      },
     });
     return result ? WorkflowOutputMapper.toDomain(result) : null;
   }

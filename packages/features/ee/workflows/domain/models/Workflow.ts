@@ -1,4 +1,4 @@
-import type { TimeUnit, WorkflowTriggerEvents, WorkflowType } from "../types";
+import type { TimeUnit, WorkflowTriggerEvents, WorkflowType, WorkflowActions } from "../types";
 
 // Domain model - independent of Prisma
 // Represents a workflow in the business domain
@@ -19,7 +19,7 @@ export interface Workflow {
 export interface WorkflowStep {
   id: number;
   stepNumber: number;
-  action: string;
+  action: WorkflowActions;
   workflowId: number;
   sendTo?: string;
   reminderBody?: string;
@@ -28,7 +28,6 @@ export interface WorkflowStep {
   workflowReminders?: WorkflowReminder[];
   includeCalendarEvent: boolean;
   sender?: string;
-  senderName?: string;
   numberRequired?: boolean;
   numberVerificationPending: boolean;
 }
@@ -67,7 +66,7 @@ export interface UpdateWorkflowData {
 
 export interface CreateWorkflowStepData {
   stepNumber: number;
-  action: string;
+  action: WorkflowActions;
   workflowId: number;
   sendTo?: string;
   reminderBody?: string;
@@ -75,6 +74,5 @@ export interface CreateWorkflowStepData {
   template: string;
   includeCalendarEvent?: boolean;
   sender?: string;
-  senderName?: string;
   numberRequired?: boolean;
 }
