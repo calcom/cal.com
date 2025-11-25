@@ -11,11 +11,12 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
-  Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CalComAPIService, Schedule, ScheduleAvailability } from "../services/calcom";
+import { CalComAPIService, Schedule } from "../services/calcom";
+import { ScheduleAvailability } from "../services/types";
+import { FullScreenModal } from "../components/FullScreenModal";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_ABBREVIATIONS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -732,9 +733,21 @@ export default function AvailabilityDetail() {
       </View>
 
       {/* Timezone Modal */}
-      <Modal visible={showTimezoneModal} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[80%] rounded-t-3xl bg-white p-4">
+      <FullScreenModal
+        visible={showTimezoneModal}
+        animationType="fade"
+        onRequestClose={() => setShowTimezoneModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowTimezoneModal(false)}
+        >
+          <TouchableOpacity
+            className="max-h-[80%] w-[90%] max-w-[500px] rounded-2xl bg-white p-4"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-[#333]">Select Timezone</Text>
               <TouchableOpacity onPress={() => setShowTimezoneModal(false)}>
@@ -755,14 +768,26 @@ export default function AvailabilityDetail() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
 
       {/* Time Picker Modal */}
-      <Modal visible={!!showTimePicker} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[80%] rounded-t-3xl bg-white p-4">
+      <FullScreenModal
+        visible={!!showTimePicker}
+        animationType="fade"
+        onRequestClose={() => setShowTimePicker(null)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowTimePicker(null)}
+        >
+          <TouchableOpacity
+            className="max-h-[80%] w-[90%] max-w-[500px] rounded-2xl bg-white p-4"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-[#333]">
                 Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
@@ -808,14 +833,26 @@ export default function AvailabilityDetail() {
                 );
               })}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
 
       {/* Override Modal */}
-      <Modal visible={showOverrideModal} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[90%] rounded-t-3xl bg-white p-6">
+      <FullScreenModal
+        visible={showOverrideModal}
+        animationType="fade"
+        onRequestClose={() => setShowOverrideModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowOverrideModal(false)}
+        >
+          <TouchableOpacity
+            className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white p-6"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-[#333]">
                 {editingOverride !== null ? "Edit Override" : "Add Override"}
@@ -894,14 +931,26 @@ export default function AvailabilityDetail() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
 
       {/* Override Time Picker Modal */}
-      <Modal visible={!!showOverrideTimePicker} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[60%] rounded-t-3xl bg-white p-6">
+      <FullScreenModal
+        visible={!!showOverrideTimePicker}
+        animationType="fade"
+        onRequestClose={() => setShowOverrideTimePicker(null)}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-black/50 p-2 md:p-4"
+          activeOpacity={1}
+          onPress={() => setShowOverrideTimePicker(null)}
+        >
+          <TouchableOpacity
+            className="max-h-[60%] w-[90%] max-w-[500px] rounded-2xl bg-white p-6"
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View className="mb-4 flex-row items-center justify-between">
               <Text className="text-xl font-bold text-[#333]">
                 Select {showOverrideTimePicker?.type === "start" ? "Start" : "End"} Time
@@ -937,9 +986,9 @@ export default function AvailabilityDetail() {
                 );
               })}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </FullScreenModal>
     </>
   );
 }
