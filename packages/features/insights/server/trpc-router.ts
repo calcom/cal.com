@@ -681,18 +681,19 @@ export const insightsRouter = router({
       return [];
     }
 
-    // Filter teams to only include those where the user has insights.read permission
-    // This properly handles both PBAC permissions and traditional role-based access
-    const teamsWithAccess = await Promise.all(
-      belongsToTeams.map(async (membership) => {
-        const hasAccess = await checkInsightsPermission(user.id, membership.team.id);
-        return hasAccess ? membership.team : null;
-      })
-    );
+    // Get all team IDs where user has insights.read permission in a single optimized query
+    // This avoids N+1 queries by fetching all permissions at once
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithAccess = await permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
 
-    const result: IResultTeamList[] = teamsWithAccess
-      .filter((team): team is NonNullable<typeof team> => team !== null)
-      .map((team) => ({ ...team }));
+    // Filter to only teams where user has access
+    const result: IResultTeamList[] = belongsToTeams
+      .filter((membership) => teamIdsWithAccess.includes(membership.team.id))
+      .map((membership) => ({ ...membership.team }));
 
     return result;
   }),
