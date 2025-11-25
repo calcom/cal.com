@@ -118,7 +118,7 @@ export default function Authorize() {
           options={mappedProfiles}
         />
         <div className="mb-4 mt-5 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
-        <ul className="space-y-4 text-sm">
+        <ul className="stack-y-4 text-sm">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
             {t("associate_with_cal_account", { clientName: client.name })}

@@ -640,18 +640,6 @@ export class BookingRepository {
       select: {
         ...bookingMinimalSelect,
         uid: true,
-        user: {
-          select: {
-            credentials: true,
-          },
-        },
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            meetingUrl: true,
-          },
-        },
       },
     });
   }
@@ -1380,6 +1368,91 @@ export class BookingRepository {
           },
         },
         responses: updatedResponses,
+      },
+    });
+  }
+
+  findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
+    return this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        status: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            teamId: true,
+            parentId: true,
+            slug: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            bookingFields: true,
+            metadata: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        attendees: true,
+        references: true,
+        customInputs: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        workflowReminders: true,
+        responses: true,
+        iCalUID: true,
+      },
+    });
+  }
+
+  async updateBookingStatus({
+    bookingId,
+    status,
+    cancellationReason,
+    cancelledBy,
+    rescheduledBy,
+    rescheduled,
+  }: {
+    bookingId: number;
+    status?: BookingStatus;
+    cancellationReason?: string;
+    cancelledBy?: string;
+    rescheduledBy?: string;
+    rescheduled?: boolean;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        ...(status !== undefined && { status }),
+        ...(rescheduled !== undefined && { rescheduled }),
+        ...(cancellationReason !== undefined && { cancellationReason }),
+        ...(cancelledBy !== undefined && { cancelledBy }),
+        ...(rescheduledBy !== undefined && { rescheduledBy }),
+        updatedAt: new Date().toISOString(),
       },
     });
   }

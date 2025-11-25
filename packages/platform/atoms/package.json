@@ -19,6 +19,8 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "@tailwindcss/cli": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.3.1",
     "@types/react": "18.0.26",
@@ -48,7 +50,8 @@
   "exports": {
     ".": {
       "import": "./dist/cal-atoms.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/cal-atoms.umd.cjs"
     },
     "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper.tsx",
     "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper.tsx",
@@ -83,11 +86,11 @@
     "marked": "^15.0.3",
     "react-use": "^17.4.2",
     "tailwind-merge": "^1.13.2",
-    "tailwindcss": "^3.3.3",
-    "tailwindcss-animate": "^1.0.6"
+    "tailwindcss": "^4"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "main": "./dist/cal-atoms.umd.cjs"
 }
