@@ -21,6 +21,7 @@ import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWatchlistEntryInputSchema } from "./createWatchlistEntry.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
+import { ZDeleteOrganizationInput } from "./deleteOrganization.schema";
 import { ZDeleteWatchlistEntryInputSchema } from "./deleteWatchlistEntry.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
@@ -140,6 +141,10 @@ export const viewerOrganizationsRouter = router({
   }),
   deleteTeam: authedOrgAdminProcedure.input(ZDeleteTeamInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./deleteTeam.handler");
+    return handler(opts);
+  }),
+  deleteOrganization: authedProcedure.input(ZDeleteOrganizationInput).mutation(async (opts) => {
+    const { default: handler } = await import("./deleteOrganization.handler");
     return handler(opts);
   }),
 
