@@ -1,12 +1,11 @@
-import superjson from "superjson";
-
 import { initTRPC } from "@trpc/server";
 
+import { transformer } from "../utils/transformer";
 import type { createContextInner } from "./createContext";
 import { errorFormatter } from "./errorFormatter";
 
 export const tRPCContext = initTRPC.context<typeof createContextInner>().create({
-  transformer: superjson,
+  transformer,
   errorFormatter,
 });
 
