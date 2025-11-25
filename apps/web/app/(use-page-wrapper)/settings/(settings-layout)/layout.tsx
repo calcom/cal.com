@@ -72,8 +72,9 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       ]);
 
       // Check if user has permission to read roles
+      // Fall back to legacy admin/owner check if no PBAC permissions are set
       const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
-      canViewRoles = roleActions[CrudAction.Read] ?? false;
+      canViewRoles = roleActions[CrudAction.Read] ?? isOrgAdminOrOwner;
       const orgActions = PermissionMapper.toActionMap(organizationPermissions, Resource.Organization);
       canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
       canUpdateOrganization = orgActions[CrudAction.Update] ?? isOrgAdminOrOwner;

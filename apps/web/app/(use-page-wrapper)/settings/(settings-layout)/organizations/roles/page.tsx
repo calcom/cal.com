@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
@@ -106,12 +107,14 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
+  // Fall back to legacy admin/owner check if no PBAC permissions are set
   const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session.user.org?.role);
 
-  const canCreate = roleActions[CrudAction.Create] ?? false;
-  const canRead = roleActions[CrudAction.Read] ?? false;
-  const canUpdate = roleActions[CrudAction.Update] ?? false;
-  const canDelete = roleActions[CrudAction.Delete] ?? false;
+  const canCreate = roleActions[CrudAction.Create] ?? isOrgAdminOrOwner;
+  const canRead = roleActions[CrudAction.Read] ?? isOrgAdminOrOwner;
+  const canUpdate = roleActions[CrudAction.Update] ?? isOrgAdminOrOwner;
+  const canDelete = roleActions[CrudAction.Delete] ?? isOrgAdminOrOwner;
 
   if (!canRead) {
     return notFound();
