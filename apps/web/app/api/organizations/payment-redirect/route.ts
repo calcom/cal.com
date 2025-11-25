@@ -43,7 +43,10 @@ async function getHandler(req: NextRequest) {
 
     // If onboarding-v3 is enabled AND organizationOnboardingId exists, redirect to onboarding flow
     if (isOnboardingV3Enabled && organizationOnboardingId) {
-      const redirectUrl = new URL(`/onboarding/personal?${params.toString()}`, WEBAPP_URL).toString();
+      const redirectUrl = new URL(
+        `/onboarding/personal/settings?${params.toString()}`,
+        WEBAPP_URL
+      ).toString();
       return NextResponse.redirect(redirectUrl);
     }
 
