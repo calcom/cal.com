@@ -220,6 +220,8 @@ function BookingDetailsSheetInner({
 
             <RescheduleRequestMessage booking={booking} />
 
+            <DescriptionSection booking={booking} />
+
             <WhoSection booking={booking} />
 
             <WhereSection booking={booking} meta={bookingMetadata} />
@@ -236,8 +238,6 @@ function BookingDetailsSheetInner({
               customResponses={customResponses}
               bookingFields={booking.eventType?.bookingFields}
             />
-
-            <DescriptionSection booking={booking} />
           </div>
         </SheetBody>
 
