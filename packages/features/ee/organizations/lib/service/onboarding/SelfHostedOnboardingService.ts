@@ -28,7 +28,7 @@ const teamsSchema = orgOnboardingTeamsSchema;
 /**
  * Handles organization onboarding when billing is disabled (self-hosted admin flow).
  *
- * Flow:
+* Flow:
  * 1. Create onboarding record
  * 2. Store teams/invites in database
  * 3. Immediately create organization, teams, and invite members
@@ -46,8 +46,12 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       })
     );
 
-    // Step 1: Filter and normalize teams/invites
-    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
+    // Step 1: Build and validate teams/invites (includes conflict slug detection)
+    const { teamsData, invitedMembersData } = await this.buildTeamsAndInvites(
+      input.slug,
+      input.teams,
+      input.invitedMembers
+    );
 
     // Step 2: Create onboarding record with ALL data at once
     const organizationOnboarding = await this.createOnboardingRecord({
