@@ -9,6 +9,7 @@ import {
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -143,8 +144,52 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return organizationOnboarding;
   }
 
-  protected filterTeamsAndInvites(teams: TeamInput[] = [], invitedMembers: InvitedMemberInput[] = []) {
-    const teamsData = teams
+  private async ensureConflictingSlugTeamIsMigrated(
+    orgSlug: string,
+    teams: TeamInput[] = []
+  ): Promise<TeamInput[]> {
+    const teamRepository = new TeamRepository(prisma);
+    const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId: this.user.id });
+
+    const conflictingTeam = ownedTeams.find((team) => team.slug === orgSlug);
+
+    if (!conflictingTeam) {
+      return teams;
+    }
+
+    const existingTeam = teams.find((t) => t.id === conflictingTeam.id);
+
+    if (existingTeam) {
+      if (existingTeam.isBeingMigrated) {
+        return teams;
+      }
+
+      return teams.map((team) =>
+        team.id === conflictingTeam.id
+          ? { ...team, isBeingMigrated: true }
+          : team
+      );
+    }
+
+    return [
+      ...teams,
+      {
+        id: conflictingTeam.id,
+        name: conflictingTeam.name,
+        isBeingMigrated: true,
+        slug: conflictingTeam.slug,
+      },
+    ];
+  }
+
+  protected async buildTeamsAndInvites(
+    orgSlug: string,
+    teams: TeamInput[] = [],
+    invitedMembers: InvitedMemberInput[] = []
+  ) {
+    const enrichedTeams = await this.ensureConflictingSlugTeamIsMigrated(orgSlug, teams);
+
+    const teamsData = enrichedTeams
       .filter((team) => team.name.trim().length > 0)
       .map((team) => ({
         id: team.id === -1 ? -1 : team.id,
