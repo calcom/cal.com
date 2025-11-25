@@ -47,10 +47,10 @@ const buildResultPayload = async (
 
 const isRejected = <T>(x: PromiseSettledResult<T>): x is PromiseRejectedResult => x.status === "rejected";
 
-const logFailedResults = <T>(results: PromiseSettledResult<T>[]) => {
-  const failed = results.filter(isRejected);
-  if (failed.length === 0) return;
-  const failedMessage = failed.map((r) => String(r.reason));
+const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+  const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
+  if (failed.length < 1) return;
+  const failedMessage = failed.map((r) => r.reason);
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
