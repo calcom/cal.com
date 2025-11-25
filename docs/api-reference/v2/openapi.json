@@ -9943,7 +9943,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
         "summary": "Get Cal Video real time transcript download links for the booking",
-        "description": "Fetches all the transcripts download links for the booking `:bookingUid`\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": "Fetches all the transcript download links for the booking `:bookingUid`\n\n    <Note>\n    Transcripts are generated when clicking \"Transcribe\" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.\n\n    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.\n    </Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -27400,6 +27400,14 @@
             "type": "string",
             "nullable": true
           },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -27426,6 +27434,8 @@
           "username",
           "email",
           "name",
+          "avatarUrl",
+          "bio",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
