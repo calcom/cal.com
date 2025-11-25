@@ -71,25 +71,13 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     });
   }
   if (isPrismaError(cause)) {
-    const prismaError = getServerErrorFromPrismaError(cause);
-    return new HttpError({
-      statusCode: prismaError.statusCode,
-      message: prismaError.message,
-      cause: prismaError.cause,
-      data: traceId ? { ...tracedData, ...prismaError.data, traceId } : prismaError.data,
-    });
+    return getServerErrorFromPrismaError(cause, traceId, tracedData);
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
   if (parsedStripeError.success) {
     const stripeErrorObj = new Error(parsedStripeError.data.message || "Stripe error");
     stripeErrorObj.name = parsedStripeError.data.type || "StripeInvalidRequestError";
-    const stripeError = getHttpError({ statusCode: 400, cause: stripeErrorObj });
-    return new HttpError({
-      statusCode: stripeError.statusCode,
-      message: stripeError.message,
-      cause: stripeError.cause,
-      data: traceId ? { ...tracedData, ...stripeError.data, traceId } : stripeError.data,
-    });
+    return getHttpError({ statusCode: 400, cause: stripeErrorObj, traceId, tracedData });
   }
   if (cause instanceof ErrorWithCode) {
     const statusCode = getStatusCode(cause);
@@ -116,17 +104,14 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   if (cause instanceof Error) {
     const statusCode = getStatusCode(cause);
-    const error = getHttpError({ statusCode, cause });
-    return new HttpError({
-      statusCode: error.statusCode,
-      message: error.message,
-      cause: error.cause,
-      data: traceId ? { ...tracedData, ...error.data, traceId } : error.data,
-    });
+    return getHttpError({ statusCode, cause, traceId, tracedData });
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new HttpError({
+      statusCode: 500,
+      message: cause,
+      data: traceId ? { ...tracedData, traceId } : undefined,
+    });
   }
 
   return new HttpError({
@@ -177,14 +162,33 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
   }
 }
 
-function getHttpError<T extends Error>({ statusCode, cause }: { statusCode: number; cause: T }) {
+function getHttpError<T extends Error>({
+  statusCode,
+  cause,
+  traceId,
+  tracedData,
+}: {
+  statusCode: number;
+  cause: T;
+  traceId?: string;
+  tracedData?: Record<string, unknown>;
+}) {
   const redacted = redactError(cause);
-  return new HttpError({ statusCode, message: redacted.message, cause: redacted });
+  return new HttpError({
+    statusCode,
+    message: redacted.message,
+    cause: redacted,
+    data: traceId ? { ...tracedData, traceId } : undefined,
+  });
 }
 
-function getServerErrorFromPrismaError(cause: Prisma.PrismaClientKnownRequestError) {
+function getServerErrorFromPrismaError(
+  cause: Prisma.PrismaClientKnownRequestError,
+  traceId?: string,
+  tracedData?: Record<string, unknown>
+) {
   if (cause.code === "P2025") {
-    return getHttpError({ statusCode: 404, cause });
+    return getHttpError({ statusCode: 404, cause, traceId, tracedData });
   }
-  return getHttpError({ statusCode: 400, cause });
+  return getHttpError({ statusCode: 400, cause, traceId, tracedData });
 }
