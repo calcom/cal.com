@@ -342,14 +342,14 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium">
+                <p className="text-emphasis truncate text-sm font-medium leading-[1.2]">
                   {booking.user.name || booking.user.email}
                 </p>
-                <Badge variant="blue" size="sm">
+                <Badge variant="purple" size="sm" className="capitalize">
                   {t("host")}
                 </Badge>
               </div>
-              <p className="text-default truncate text-sm">{booking.user.email}</p>
+              <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
             </div>
           </div>
         )}
