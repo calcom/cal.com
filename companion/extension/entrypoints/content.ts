@@ -52,6 +52,13 @@ export default defineContentScript({
 
     // Listen for messages from iframe to control width
     window.addEventListener("message", (event) => {
+      // Security: Only accept messages from our iframe's origin
+      // This prevents malicious scripts on the host page from manipulating the companion
+      const iframeOrigin = new URL(iframe.src).origin;
+      if (event.source !== iframe.contentWindow || event.origin !== iframeOrigin) {
+        return;
+      }
+
       if (event.data.type === "cal-companion-expand") {
         // Disable transition for instant expansion
         iframe.style.transition = "none";
