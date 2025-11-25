@@ -120,7 +120,7 @@ export async function handleBookingRequested(args: {
           },
         },
         triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
-        creditCheckFn: creditService.hasAvailableCredits,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     }
   } catch (error) {

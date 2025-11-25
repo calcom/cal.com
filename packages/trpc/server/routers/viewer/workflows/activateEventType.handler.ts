@@ -422,7 +422,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
-              creditCheckFn: creditService.hasAvailableCredits,
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -440,7 +440,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
-              creditCheckFn: creditService.hasAvailableCredits,
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } else if (booking.smsReminderNumber) {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -460,7 +460,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
-                creditCheckFn: creditService.hasAvailableCredits,
+                creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
               });
             } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
               await scheduleWhatsappReminder({
@@ -479,7 +479,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
-                creditCheckFn: creditService.hasAvailableCredits,
+                creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
               });
             }
           }

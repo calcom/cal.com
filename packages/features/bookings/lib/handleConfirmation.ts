@@ -371,7 +371,7 @@ export async function handleConfirmation(args: {
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
-        creditCheckFn: creditService.hasAvailableCredits,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     }
   } catch (error) {
@@ -583,7 +583,7 @@ export async function handleConfirmation(args: {
           calendarEvent: calendarEventForWorkflow,
           hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
-          creditCheckFn: creditService.hasAvailableCredits,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } catch (error) {
         log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));

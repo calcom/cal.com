@@ -2388,7 +2388,7 @@ async function handler(
           seatReferenceUid: evt.attendeeSeatId,
           isDryRun,
           triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
-          creditCheckFn: creditService.hasAvailableCredits,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       }
     } catch (error) {
@@ -2569,7 +2569,7 @@ async function handler(
       isConfirmedByDefault,
       isNormalBookingOrFirstRecurringSlot,
       isRescheduleEvent: !!rescheduleUid,
-      creditCheckFn: creditService.hasAvailableCredits,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
   } catch (error) {
     tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

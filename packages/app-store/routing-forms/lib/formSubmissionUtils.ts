@@ -233,7 +233,7 @@ export async function _onFormSubmission(
         responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
-        creditCheckFn: creditService.hasAvailableCredits,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         form: {
           ...form,
           fields: form.fields.map((field) => ({

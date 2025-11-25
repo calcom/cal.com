@@ -132,7 +132,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isConfirmedByDefault: !evt.requiresConfirmation,
         isRescheduleEvent: !!rescheduleUid,
         isNormalBookingOrFirstRecurringSlot: true,
-        creditCheckFn: creditService.hasAvailableCredits,
+        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

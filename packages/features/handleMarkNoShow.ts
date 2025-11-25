@@ -304,7 +304,7 @@ const handleMarkNoShow = async ({
               hideBranding: booking.eventType.owner?.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
-              creditCheckFn: creditService.hasAvailableCredits,
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } catch (error) {
             logger.error("Error while scheduling workflow reminders for booking no-show updated", error);

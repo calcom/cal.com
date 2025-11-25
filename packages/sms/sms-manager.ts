@@ -48,7 +48,7 @@ const handleSendingSMS = async ({
         ...(teamId ? { teamId } : { userId: organizerUserId }),
         bookingUid,
       },
-      creditCheckFn: creditService.hasAvailableCredits,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
 
     return smsOrFallbackEmail;

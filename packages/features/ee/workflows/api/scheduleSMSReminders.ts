@@ -196,7 +196,7 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
-          creditCheckFn: creditService.hasAvailableCredits,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
 
         if (scheduledNotification) {

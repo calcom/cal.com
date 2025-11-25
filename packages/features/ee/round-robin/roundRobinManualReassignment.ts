@@ -615,7 +615,7 @@ export async function handleWorkflowsUpdate({
       bookerUrl,
     },
     hideBranding: !!eventType?.owner?.hideBranding,
-    creditCheckFn: creditService.hasAvailableCredits,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 }
 

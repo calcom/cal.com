@@ -65,7 +65,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
       },
       hideBranding,
       workflows: [workflow as Workflow],
-      creditCheckFn: creditService.hasAvailableCredits,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
   } catch (error) {
     log.error("Error while triggering form submitted no event workflows", JSON.stringify({ error }));

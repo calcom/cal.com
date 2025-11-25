@@ -844,7 +844,7 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
-          creditCheckFn: creditService.hasAvailableCredits,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -862,7 +862,7 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
-          creditCheckFn: creditService.hasAvailableCredits,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -882,7 +882,7 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
-            creditCheckFn: creditService.hasAvailableCredits,
+            creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
@@ -901,7 +901,7 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
-            creditCheckFn: creditService.hasAvailableCredits,
+            creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
           });
         }
       } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {

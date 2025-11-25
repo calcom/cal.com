@@ -374,7 +374,7 @@ async function handler(input: CancelBookingInput) {
       },
     },
     hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
-    creditCheckFn: creditService.hasAvailableCredits,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 
   let updatedBookings: {
