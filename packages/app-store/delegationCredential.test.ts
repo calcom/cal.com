@@ -6,7 +6,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -20,11 +20,8 @@ import {
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./delegationCredential";
 
-// Mock OrganizationRepository
-vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => ({
-  OrganizationRepository: {
-    findByMemberEmail: vi.fn(),
-  },
+vi.mock("@calcom/prisma", () => ({
+  prisma: {},
 }));
 
 // Mock DelegationCredentialRepository
@@ -188,7 +185,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {

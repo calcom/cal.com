@@ -10,6 +10,7 @@ import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -49,10 +50,12 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  isOnboarding,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  isOnboarding?: boolean;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -98,6 +101,7 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
     },
   });
   return session;
@@ -195,6 +199,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
         teamId,
         dubCustomerId: userId,
       },
+      ...(isOrg && ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
     },
   });
   return { url: session.url };

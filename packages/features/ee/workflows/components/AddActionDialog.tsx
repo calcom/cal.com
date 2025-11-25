@@ -40,6 +40,7 @@ interface IAddActionDialog {
     needsCredits: boolean;
     creditsTeamId?: number;
     isOrganization?: boolean;
+    needsTeamsUpgrade?: boolean;
   }[];
 }
 
@@ -170,7 +171,16 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       menuPlacement="bottom"
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
-                      options={actionOptions}
+                      options={actionOptions.map((option) => ({
+                        label: option.label,
+                        value: option.value,
+                        needsTeamsUpgrade: option.needsTeamsUpgrade,
+                      }))}
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: WorkflowActions;
+                        needsTeamsUpgrade?: boolean;
+                      }) => !!option.needsTeamsUpgrade}
                     />
                   );
                 }}

@@ -14,25 +14,42 @@ import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
-  const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] =
+  const [setRecurringEventCount, recurringEventCount, setRecurringEventCountQueryParam, recurringEventCountQueryParam] =
     useBookerStoreContext((state) => [
       state.setRecurringEventCount,
       state.recurringEventCount,
-      state.setOccurenceCount,
-      state.occurenceCount,
+      state.setRecurringEventCountQueryParam,
+      state.recurringEventCountQueryParam,
     ]);
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const bookerState = useBookerStoreContext((state) => state.state);
   const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
-  // Set initial value in booker store.
+
+  const validateAndSetRecurringEventCount = (value: number | string) => {
+    const inputValue = parseInt(value as string);
+    const isValid =
+      !isNaN(inputValue) && inputValue >= 1 && maxOccurences !== null && inputValue <= maxOccurences;
+
+    if (isValid) {
+      setRecurringEventCount(inputValue);
+      setWarning(false);
+    } else {
+      setRecurringEventCount(maxOccurences);
+      setWarning(true);
+    }
+  };
+
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
-    setOccurenceCount(occurenceCount || event.recurringEvent.count);
-    setRecurringEventCount(recurringEventCount || event.recurringEvent.count);
-    if (occurenceCount && (occurenceCount > event.recurringEvent.count || occurenceCount < 1))
-      setWarning(true);
-  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, setOccurenceCount, occurenceCount]);
+
+    if (recurringEventCountQueryParam) {
+      validateAndSetRecurringEventCount(recurringEventCountQueryParam);
+    } else {
+      setRecurringEventCount(maxOccurences);
+      setRecurringEventCountQueryParam(maxOccurences);
+    }
+  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, recurringEventCountQueryParam]);
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
@@ -72,23 +89,12 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         type="number"
         min="1"
         max={event.recurringEvent.count}
-        defaultValue={occurenceCount || event.recurringEvent.count}
+        defaultValue={recurringEventCountQueryParam || event.recurringEvent.count}
         data-testid="occurrence-input"
         onChange={(event) => {
-          const pattern = /^(?=.*[0-9])\S+$/;
           const inputValue = parseInt(event.target.value);
-          setOccurenceCount(inputValue);
-          if (
-            !pattern.test(event.target.value) ||
-            inputValue < 1 ||
-            (maxOccurences && inputValue > maxOccurences)
-          ) {
-            setWarning(true);
-            setRecurringEventCount(maxOccurences);
-          } else {
-            setWarning(false);
-            setRecurringEventCount(inputValue);
-          }
+          setRecurringEventCountQueryParam(inputValue);
+          validateAndSetRecurringEventCount(event.target.value);
         }}
       />
 
