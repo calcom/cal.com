@@ -363,7 +363,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             let sendTo: string[] = [];
 
             switch (step.action) {
-              case WorkflowActions.EMAIL_HOST: {
+              case WorkflowActions.EMAIL_HOST:
                 sendTo = [bookingInfo.organizer?.email];
                 const schedulingType = bookingInfo.eventType?.schedulingType;
                 const hosts = bookingInfo.eventType.hosts
@@ -379,7 +379,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                   sendTo = sendTo.concat(hosts);
                 }
                 break;
-              }
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees
                   .map((attendee) => attendee.email)
