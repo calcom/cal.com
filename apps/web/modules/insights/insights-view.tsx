@@ -10,6 +10,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import type { FilterType } from "@calcom/types/data-table";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
@@ -53,13 +54,13 @@ export default function InsightsPage({ timeZone }: { timeZone: string }) {
   );
 }
 
-const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const createdAtColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "createdAt",
   title: "createdAt",
   type: ColumnFilterType.DATE_RANGE,
 };
 
-const startTimeColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const startTimeColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "startTime",
   title: "startTime",
   type: ColumnFilterType.DATE_RANGE,
