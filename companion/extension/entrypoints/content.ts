@@ -1403,6 +1403,10 @@ export default defineContentScript({
               console.log(`Cal.com: Removing ${allActionBars.length} action bar(s) before send`);
               allActionBars.forEach((bar) => {
                 try {
+                  // Call cleanup function to remove event listeners before removing DOM node
+                  if ((bar as any).__cleanup) {
+                    (bar as any).__cleanup();
+                  }
                   bar.remove();
                 } catch (error) {
                   console.warn("Cal.com: Failed to remove action bar:", error);
@@ -1924,27 +1928,41 @@ export default defineContentScript({
               }
             };
 
-            // Before appending, remove any existing action bars for this chip
+            // Before appending, clean up orphaned or duplicate action bars for THIS chip only
             // (happens when Google changes duration - creates new chip, but old action bar still floating)
             const existingOverlayBars = document.querySelectorAll(".cal-companion-action-bar");
             existingOverlayBars.forEach((bar) => {
               const barScheduleId = bar.getAttribute("data-schedule-id");
-              // Remove old action bars with different schedule IDs but same position
-              // OR remove if it's for the same chip (schedule ID matches)
-              if (barScheduleId !== scheduleId || barScheduleId === scheduleId) {
+
+              // Only remove action bars that:
+              // 1. Belong to THIS chip (same schedule ID) - we're about to create a new one
+              // 2. OR their chip no longer exists (orphaned)
+              if (barScheduleId === scheduleId) {
+                // This bar belongs to the current chip - remove it (we'll create a fresh one)
                 try {
-                  // Check if this is an old bar by seeing if its chip still exists
+                  if ((bar as any).__cleanup) {
+                    (bar as any).__cleanup();
+                  }
+                  bar.remove();
+                } catch (e) {
+                  // Ignore removal errors
+                }
+              } else {
+                // This bar belongs to a different chip - check if that chip still exists
+                try {
                   const chipForBar = document.querySelector(
                     `.gmail_chip.gmail_ad_hoc_v2_content[data-ad-hoc-schedule-id="${barScheduleId}"]`
                   );
-                  if (!chipForBar || barScheduleId !== scheduleId) {
+                  if (!chipForBar) {
+                    // Chip is gone, this is an orphaned action bar - remove it
                     if ((bar as any).__cleanup) {
                       (bar as any).__cleanup();
                     }
                     bar.remove();
                   }
+                  // Else: chip exists, keep this action bar (belongs to another chip)
                 } catch (e) {
-                  // Ignore removal errors
+                  // Ignore errors when checking
                 }
               }
             });
