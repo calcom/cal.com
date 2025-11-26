@@ -123,7 +123,15 @@ export class QualifiedHostsService {
     const fixedHosts = normalizedHosts.filter(isFixedHost);
     const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
 
-    if (routingFormResponse && routedTeamMemberIds && routedTeamMemberIds.length === 0) {
+    if (routingFormResponse && routedTeamMemberIds?.length === 0) {
+      // If there's a contact owner, return only the contact owner
+      if (contactOwnerEmail) {
+        const contactOwnerHost = roundRobinHosts.find((host) => host.user.email === contactOwnerEmail);
+        if (contactOwnerHost) {
+          return { qualifiedRRHosts: [contactOwnerHost], fixedHosts };
+        }
+      }
+      // No contact owner or contact owner not found - return empty
       return { qualifiedRRHosts: [], fixedHosts: [] };
     }
 
