@@ -7,8 +7,20 @@ import type { NextRequest } from "next/server";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { isValidOAuthTokenHeader, VALID_REQ_CONTENT_TYPE } from "app/api/isValidOAuthTokenHeader";
 
 async function handler(req: NextRequest) {
+  const isValidReqContentType = isValidOAuthTokenHeader(req)
+  if (!isValidReqContentType) {
+    return NextResponse.json(
+      {
+        error: "invalid_request",
+        error_description: `content-type must be ${VALID_REQ_CONTENT_TYPE}`,
+      },
+      { status: 400, headers: { "Cache-Control": "no-store", "Pragma": "no-cache" } }
+    );
+  }
+
   const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
 
   if (!client_id || !client_secret) {
@@ -74,7 +86,14 @@ async function handler(req: NextRequest) {
     expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
-  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
+  return NextResponse.json({ access_token, refresh_token }, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8",
+      "Cache-Control": "no-store",
+      Pragma: "no-cache",
+    },
+  });
 }
 
 export const POST = defaultResponderForAppDir(handler);
