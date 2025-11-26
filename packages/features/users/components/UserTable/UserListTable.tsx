@@ -450,16 +450,18 @@ function UserListTableContent({
 
           const permissionsForUser = {
             canEdit:
-              (permissionsRaw.canEdit || permissions?.canEditAttributesForUser) && user.accepted && !isSelf,
-            canRemove: permissionsRaw.canRemove && !isSelf,
+              ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
+              user.accepted &&
+              !isSelf,
+            canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
             canImpersonate:
               user.accepted &&
               !user.disableImpersonation &&
               !isSelf &&
               !!org?.canAdminImpersonate &&
-              permissionsRaw.canImpersonate,
+              (permissionsRaw.canImpersonate ?? false),
             canLeave: user.accepted && isSelf,
-            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
+            canResendInvitation: (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
           };
 
           return (
