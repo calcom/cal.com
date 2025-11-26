@@ -28,7 +28,6 @@ export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: Ev
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
   }).format(startDate);
 
-  // Only lowercase for 12-hour format (AM/PM), preserve capitalization for 24-hour format (e.g., German "Uhr")
   if (timeFormat === TimeFormat.TWELVE_HOUR) {
     formattedTime = formattedTime.toLowerCase();
   }
@@ -59,7 +58,6 @@ export const formatEventFromToTime = ({
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
   }).formatRange(startDate, endDate);
 
-  // Only lowercase for 12-hour format (AM/PM), preserve capitalization for 24-hour format (e.g., German "Uhr")
   if (timeFormat === TimeFormat.TWELVE_HOUR) {
     formattedTime = formattedTime.toLowerCase();
   }
