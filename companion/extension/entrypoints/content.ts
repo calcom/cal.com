@@ -1595,6 +1595,34 @@ export default defineContentScript({
               }
             };
 
+            // Before appending, remove any existing action bars for this chip
+            // (happens when Google changes duration - creates new chip, but old action bar still floating)
+            const existingOverlayBars = document.querySelectorAll(".cal-companion-action-bar");
+            existingOverlayBars.forEach((bar) => {
+              const barScheduleId = bar.getAttribute("data-schedule-id");
+              // Remove old action bars with different schedule IDs but same position
+              // OR remove if it's for the same chip (schedule ID matches)
+              if (barScheduleId !== scheduleId || barScheduleId === scheduleId) {
+                try {
+                  // Check if this is an old bar by seeing if its chip still exists
+                  const chipForBar = document.querySelector(
+                    `.gmail_chip.gmail_ad_hoc_v2_content[data-ad-hoc-schedule-id="${barScheduleId}"]`
+                  );
+                  if (!chipForBar || barScheduleId !== scheduleId) {
+                    console.log(
+                      `Cal.com: Removing old action bar (schedule: ${barScheduleId?.slice(0, 20)}...)`
+                    );
+                    if ((bar as any).__cleanup) {
+                      (bar as any).__cleanup();
+                    }
+                    bar.remove();
+                  }
+                } catch (e) {
+                  // Ignore removal errors
+                }
+              }
+            });
+
             // Append to document.body (outside email content, like Grammarly)
             console.log("Cal.com: Appending action bar to document.body");
             document.body.appendChild(actionBar);
