@@ -38,7 +38,9 @@ export type DataTablePropsFromWrapper<TData> = {
   className?: string;
   containerClassName?: string;
   headerClassName?: string;
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
   paginationMode?: "infinite" | "standard";
   hasWrapperContext?: boolean;
   hideSeparatorsOnSort?: boolean;
@@ -68,6 +70,8 @@ export function DataTable<TData>({
   containerClassName,
   headerClassName,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   paginationMode = "infinite",
   hasWrapperContext = false,
   hideSeparatorsOnSort = true,
@@ -114,7 +118,7 @@ export function DataTable<TData>({
   return (
     <div
       className={classNames(
-        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        !hasWrapperContext ? "grid" : "bg-cal-muted grid rounded-xl px-0.5 pb-0.5",
         className
       )}
       style={{
@@ -149,7 +153,7 @@ export function DataTable<TData>({
         <TableNew
           className={classNames(
             "data-table grid border-0",
-            !hasWrapperContext && "bg-muted rounded-xl px-0.5 pb-0.5"
+            !hasWrapperContext && "bg-cal-muted rounded-xl px-0.5 pb-0.5"
           )}
           style={{
             ...columnSizingVars,
@@ -170,7 +174,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
-                        "bg-muted",
+                        "bg-cal-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -180,9 +184,9 @@ export function DataTable<TData>({
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
                             "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "!opacity-75"
+                            header.column.getIsResizing() && "opacity-75!"
                           )}>
-                          <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          <div className="bg-inverted mx-auto h-full w-px" />
                         </div>
                       )}
                     </TableHead>
@@ -203,6 +207,8 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              rowTestId={rowTestId}
+              rowDataAttributes={rowDataAttributes}
               hideSeparatorsOnSort={hideSeparatorsOnSort}
               hideSeparatorsOnFilter={hideSeparatorsOnFilter}
               separatorClassName={separatorClassName}
@@ -219,6 +225,8 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              rowTestId={rowTestId}
+              rowDataAttributes={rowDataAttributes}
               hideSeparatorsOnSort={hideSeparatorsOnSort}
               hideSeparatorsOnFilter={hideSeparatorsOnFilter}
               separatorClassName={separatorClassName}
@@ -244,6 +252,8 @@ const MemoizedTableBody = memo(
     prev.onRowMouseclick === next.onRowMouseclick &&
     prev.paginationMode === next.paginationMode &&
     prev.rowClassName === next.rowClassName &&
+    prev.rowTestId === next.rowTestId &&
+    prev.rowDataAttributes === next.rowDataAttributes &&
     prev.hideSeparatorsOnSort === next.hideSeparatorsOnSort &&
     prev.hideSeparatorsOnFilter === next.hideSeparatorsOnFilter &&
     prev.separatorClassName === next.separatorClassName &&
@@ -259,7 +269,9 @@ type DataTableBodyProps<TData> = {
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
   paginationMode?: "infinite" | "standard";
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
+  rowTestId?: string | ((row: Row<TData>) => string | undefined);
+  rowDataAttributes?: (row: Row<TData>) => Record<string, string> | undefined;
   hideSeparatorsOnSort?: boolean;
   hideSeparatorsOnFilter?: boolean;
   separatorClassName?: string;
@@ -275,7 +287,7 @@ function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRo
   return (
     <div
       className={classNames(
-        "bg-muted text-emphasis w-full px-3 py-2 font-semibold",
+        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
         separator.className,
         className
       )}>
@@ -294,6 +306,8 @@ function DataTableBody<TData>({
   onRowMouseclick,
   paginationMode,
   rowClassName,
+  rowTestId,
+  rowDataAttributes,
   hideSeparatorsOnSort = true,
   hideSeparatorsOnFilter = false,
   separatorClassName,
@@ -374,10 +388,16 @@ function DataTableBody<TData>({
           );
         }
 
+        const computedRowTestId = typeof rowTestId === "function" ? rowTestId(row) : rowTestId;
+        const computedRowClassName = typeof rowClassName === "function" ? rowClassName(row) : rowClassName;
+        const computedDataAttributes = rowDataAttributes?.(row);
+
         return (
           <TableRow
             ref={virtualItem ? (node) => filteredRowVirtualizer.measureElement(node) : undefined}
             key={row.id}
+            data-testid={computedRowTestId}
+            {...computedDataAttributes}
             data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
             onClick={(e) => {
@@ -396,7 +416,7 @@ function DataTableBody<TData>({
                 width: "100%",
               }),
             }}
-            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", computedRowClassName)}>
             {row.getVisibleCells().map((cell) => {
               const column = cell.column;
               return (
@@ -409,10 +429,10 @@ function DataTableBody<TData>({
                     width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                   }}
                   className={classNames(
-                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
+                    "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                     variant === "compact" && "p-0",
                     column.getIsPinned() &&
-                      "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                      "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
                   )}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
@@ -435,7 +455,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
   if (!canSort && !canHide) {
     if (typeof header.column.columnDef.header === "string") {
       return (
-        <div className="truncate px-2 py-1" title={header.column.columnDef.header}>
+        <div className="truncate" title={header.column.columnDef.header}>
           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
         </div>
       );
@@ -451,7 +471,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
           type="button"
           className={classNames(
             "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
-            open && "bg-muted"
+            open && "bg-cal-muted"
           )}>
           <div
             className="text-default truncate text-sm leading-none"
