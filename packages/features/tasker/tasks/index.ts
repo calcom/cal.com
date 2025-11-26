@@ -27,6 +27,8 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
   sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
+  scanSuccessRedirectUrl: () =>
+    import("./scanSuccessRedirectUrl").then((module) => module.scanSuccessRedirectUrl),
   sendAnalyticsEvent: () =>
     import("./analytics/sendAnalyticsEvent").then((module) => module.sendAnalyticsEvent),
   executeAIPhoneCall: () => import("./executeAIPhoneCall").then((module) => module.executeAIPhoneCall),

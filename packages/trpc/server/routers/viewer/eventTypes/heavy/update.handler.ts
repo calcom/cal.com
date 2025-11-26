@@ -690,6 +690,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     return acc;
   }, {});
 
+  // Scan successRedirectUrl for toxic links if it was set or changed
+  if (rest.successRedirectUrl && rest.successRedirectUrl.length > 0) {
+    await tasker.create("scanSuccessRedirectUrl", {
+      eventTypeId: id,
+      successRedirectUrl: rest.successRedirectUrl,
+      userId: ctx.user.id,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
