@@ -51,11 +51,20 @@ const shuffle = (
   booking.endTime = endTime.toISOString();
   booking.createdAt = startTime.subtract(1, "day").toISOString();
 
-  // Pick a random status
-  const randomStatusIndex = Math.floor(Math.random() * Object.keys(BookingStatus).length);
-  const statusKey = Object.keys(BookingStatus)[randomStatusIndex];
-
-  booking.status = BookingStatus[statusKey];
+  // Pick a random status from valid statuses for seed data.
+  // AWAITING_HOST is excluded because it requires special handling:
+  // - userId must be NULL (not assigned until host joins)
+  // - Requires InstantMeetingToken to be created
+  // - Only used for actual instant meetings via InstantBookingCreateService
+  // See: packages/features/bookings/lib/service/InstantBookingCreateService.ts
+  const validStatusesForSeed = [
+    BookingStatus.ACCEPTED,
+    BookingStatus.PENDING,
+    BookingStatus.CANCELLED,
+    BookingStatus.REJECTED,
+  ];
+  const randomStatusIndex = Math.floor(Math.random() * validStatusesForSeed.length);
+  booking.status = validStatusesForSeed[randomStatusIndex];
 
   booking.rescheduled = Math.random() > 0.5 && Math.random() > 0.5 && Math.random() > 0.5;
 
