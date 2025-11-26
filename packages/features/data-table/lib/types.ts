@@ -1,19 +1,15 @@
 import type { SortingState, ColumnSort } from "@tanstack/react-table";
 import { z } from "zod";
 
-import type { IconName } from "@calcom/ui/components/icon";
+import type { TextFilterOperator } from "@calcom/types/data-table";
+export type { ColumnFilterMeta, FilterableColumn } from "@calcom/types/data-table";
+import { ColumnFilterType } from "@calcom/types/data-table";
 
 export type { SortingState } from "@tanstack/react-table";
 
 export const SYSTEM_SEGMENT_PREFIX = "system_";
 
-export enum ColumnFilterType {
-  SINGLE_SELECT = "ss",
-  MULTI_SELECT = "ms",
-  TEXT = "t",
-  NUMBER = "n",
-  DATE_RANGE = "dr",
-}
+export { ColumnFilterType };
 
 export const textFilterOperators = [
   "equals",
@@ -25,8 +21,6 @@ export const textFilterOperators = [
   "isEmpty",
   "isNotEmpty",
 ] as const;
-
-export type TextFilterOperator = (typeof textFilterOperators)[number];
 
 export const ZTextFilterOperator = z.enum(textFilterOperators);
 
@@ -123,48 +117,6 @@ export type TextFilterOptions = {
   allowedOperators?: TextFilterOperator[];
   placeholder?: string;
 };
-
-export type ColumnFilterMeta =
-  | {
-      type: ColumnFilterType.DATE_RANGE;
-      icon?: IconName;
-      dateRangeOptions?: DateRangeFilterOptions;
-    }
-  | {
-      type: ColumnFilterType.TEXT;
-      icon?: IconName;
-      textOptions?: TextFilterOptions;
-    }
-  | {
-      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE | ColumnFilterType.TEXT>;
-      icon?: IconName;
-    };
-
-export type FilterableColumn = {
-  id: string;
-  title: string;
-  icon?: IconName;
-} & (
-  | {
-      type: ColumnFilterType.SINGLE_SELECT;
-      options: FacetedValue[];
-    }
-  | {
-      type: ColumnFilterType.MULTI_SELECT;
-      options: FacetedValue[];
-    }
-  | {
-      type: ColumnFilterType.TEXT;
-      textOptions?: TextFilterOptions;
-    }
-  | {
-      type: ColumnFilterType.NUMBER;
-    }
-  | {
-      type: ColumnFilterType.DATE_RANGE;
-      dateRangeOptions?: DateRangeFilterOptions;
-    }
-);
 
 export type ColumnFilter = {
   id: string;
