@@ -48,14 +48,15 @@ async function cancelAttendeeSeat(
   if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
   if (!bookingToDelete.userId) {
-    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User not found");
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "User not found");
   }
 
   const seatReference = bookingToDelete.seatsReferences.find(
     (reference) => reference.referenceUid === seatReferenceUid
   );
 
-  if (!seatReference) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User not a part of this booking");
+  if (!seatReference)
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "User not a part of this booking");
 
   await Promise.all([
     prisma.bookingSeat.delete({

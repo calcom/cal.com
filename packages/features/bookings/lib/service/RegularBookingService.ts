@@ -596,7 +596,7 @@ async function handler(
     });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "recurring_event_seats_error", {
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "recurring_event_seats_error", {
       traceId: traceContext.traceId,
     });
   }
