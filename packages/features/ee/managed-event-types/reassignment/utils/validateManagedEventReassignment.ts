@@ -1,8 +1,9 @@
-import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 interface ValidateReassignmentParams {
   bookingId: number;
+  bookingRepository: BookingRepository;
 }
 
 interface ValidateReassignmentResult {
@@ -15,6 +16,8 @@ interface ValidateReassignmentResult {
   };
 }
 
+
+
 /**
  * Validates that a booking can be reassigned
  * 
@@ -24,17 +27,10 @@ interface ValidateReassignmentResult {
  */
 export async function validateManagedEventReassignment({
   bookingId,
+  bookingRepository,
 }: ValidateReassignmentParams): Promise<ValidateReassignmentResult> {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    select: {
-      id: true,
-      status: true,
-      recurringEventId: true,
-      startTime: true,
-      endTime: true,
-    },
-  });
+
+  const booking = await bookingRepository.findByIdForReassignmentValidation(bookingId);
 
   if (!booking) {
     throw new Error("Booking not found");

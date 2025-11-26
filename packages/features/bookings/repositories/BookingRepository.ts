@@ -1664,6 +1664,40 @@ export class BookingRepository {
     });
   }
 
+  /**
+   * Wraps the cancel+create operations for managed events in a single transaction.
+   */
+  async ManagedEventReassignmentTransaction({
+    bookingId,
+    cancellationReason,
+    metadata,
+    newBookingPlan,
+  }: {
+    bookingId: number;
+    cancellationReason: string;
+    metadata?: Record<string, unknown> | null;
+    newBookingPlan: Omit<ManagedEventReassignmentCreateParams, "tx">;
+  }): Promise<{
+    newBooking: ManagedEventReassignmentCreatedBooking;
+    cancelledBooking: ManagedEventCancellationResult;
+  }> {
+    return this.prismaClient.$transaction(async (tx) => {
+      const cancelledBooking = await this.cancelBookingForManagedEventReassignment({
+        bookingId,
+        cancellationReason,
+        metadata,
+        tx,
+      });
+
+      const newBooking = await this.createBookingForManagedEventReassignment({
+        ...newBookingPlan,
+        tx,
+      });
+
+      return { newBooking, cancelledBooking };
+    });
+  }
+
   async findByIdForTargetEventTypeSearch(bookingId: number) {
     return this.prismaClient.booking.findUnique({
       where: { id: bookingId },
@@ -1683,6 +1717,19 @@ export class BookingRepository {
         id: true,
         eventTypeId: true,
         userId: true,
+      },
+    });
+  }
+
+  async findByIdForReassignmentValidation(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        status: true,
+        recurringEventId: true,
+        startTime: true,
+        endTime: true,
       },
     });
   }
