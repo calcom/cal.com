@@ -253,6 +253,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
       return window.location.href.startsWith("https://example.com");
     });
 
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
+
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
@@ -311,6 +316,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
       return window.location.href.startsWith("https://example.com");
     });
 
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
+
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
@@ -352,6 +362,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
+
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
@@ -418,6 +433,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
+
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
@@ -500,6 +520,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
       return window.location.href.startsWith("https://example.com");
     });
 
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
+
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
@@ -562,6 +587,11 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
+
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
@@ -628,6 +658,11 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
+
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
@@ -715,6 +750,11 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
       return window.location.href.startsWith("https://example.com");
     });
 
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
+
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
@@ -776,6 +816,11 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     await page.waitForFunction(() => {
       return window.location.href.startsWith("https://example.com");
     });
+
+    // Assert URL to catch unexpected redirects
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
+    expect(page.url()).toContain("code=");
+    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
