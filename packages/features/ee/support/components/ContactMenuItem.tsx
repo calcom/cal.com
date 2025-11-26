@@ -37,7 +37,7 @@ export default function ContactMenuItem(props: ContactMenuItem) {
         {t("community_support")}{" "}
         <Icon
           name="external-link"
-          className="group-hover:text-subtle text-muted ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
+          className="group-hover:text-subtle text-muted ml-1 mt-px h-4 w-4 shrink-0 ltr:mr-3"
         />
       </a>
     </>
