@@ -78,7 +78,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const { user: u, ...formWithoutUser } = form;
+  const { user: _u, ...formWithoutUser } = form;
 
   const formWithoutProfileInfo = {
     ...formWithoutUser,
@@ -129,24 +129,42 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       teamId: form.teamId,
     });
 
-    if (!membership) {
+    let isParentOrgAdmin = false;
+    if (!membership && form.team?.parentId) {
+      const parentOrgMembership = await MembershipRepository.getAdminOrOwnerMembership(
+        user.id,
+        form.team.parentId
+      );
+      isParentOrgAdmin = !!parentOrgMembership;
+    }
+
+    if (!membership && !isParentOrgAdmin) {
       return {
         notFound: true,
       };
     }
 
-    permissions = await getResourcePermissions({
-      userId: user.id,
-      teamId: form.teamId,
-      resource: Resource.RoutingForm,
-      userRole: membership.role,
-      fallbackRoles: {
-        read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
-        create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-        update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-        delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-      },
-    });
+    if (!membership && isParentOrgAdmin) {
+      permissions = {
+        canCreate: true,
+        canRead: true,
+        canEdit: true,
+        canDelete: true,
+      };
+    } else if (membership) {
+      permissions = await getResourcePermissions({
+        userId: user.id,
+        teamId: form.teamId,
+        resource: Resource.RoutingForm,
+        userRole: membership.role,
+        fallbackRoles: {
+          read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
+          create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      });
+    }
   }
 
   return {
