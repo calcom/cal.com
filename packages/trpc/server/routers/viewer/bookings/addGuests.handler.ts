@@ -5,8 +5,11 @@ import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEma
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -21,7 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -31,8 +34,9 @@ type AddGuestsOptions = {
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
 };
-
-type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
+type Booking = NonNullable<
+  Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendarAndBranding"]>>
+>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
@@ -80,7 +84,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
 async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
-  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendarAndBranding(bookingId);
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
@@ -325,12 +329,40 @@ async function sendGuestNotifications(
   booking: Booking,
   uniqueGuests: string[]
 ): Promise<void> {
+  const eventTypeId = booking.eventTypeId;
+  let hideBranding = false;
+  if (eventTypeId) {
+    const team = booking.eventType?.team
+      ? {
+          hideBranding: booking.eventType.team.hideBranding,
+          parent: booking.eventType.team.parent ?? null,
+        }
+      : null;
+
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId,
+      team,
+      owner: booking.eventType?.owner ?? null,
+      organizationId: orgId ?? null,
+    });
+  }
+
+  const evtWithBranding = { ...evt, hideBranding };
+
   const emailsAndSmsHandler = new BookingEmailSmsHandler({
     logger: logger,
   });
 
   await emailsAndSmsHandler.handleAddGuests({
-    evt,
+    evt: evtWithBranding,
     eventType: {
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
       schedulingType: booking.eventType?.schedulingType || null,

@@ -391,6 +391,7 @@ export class PaymentService implements IAbstractPaymentService {
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...event,
+        hideBranding: event.hideBranding ?? false,
         attendees: attendeesToEmail,
         paymentInfo: {
           link: createPaymentLink({

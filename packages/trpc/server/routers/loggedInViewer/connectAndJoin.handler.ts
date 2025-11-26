@@ -1,6 +1,9 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -115,7 +118,12 @@ export const Handler = async ({ ctx, input }: Options) => {
       eventType: {
         select: {
           id: true,
-          owner: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
           teamId: true,
           title: true,
           slug: true,
@@ -135,6 +143,13 @@ export const Handler = async ({ ctx, input }: Options) => {
             select: {
               id: true,
               name: true,
+              parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -186,10 +201,25 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   const attendeesList = await Promise.all(attendeesListPromises);
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: updatedBooking.eventType?.teamId ?? null },
+      parentId: updatedBooking?.eventType?.parentId ?? null,
+    },
+  });
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: updatedBooking.userId, teamId });
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: updatedBooking.eventTypeId ?? 0,
+    team: updatedBooking.eventType?.team ?? null,
+    owner: updatedBooking.eventType?.team ? null : updatedBooking.eventType?.owner ?? null,
+    organizationId: orgId ?? null,
+  });
+
   const evt: CalendarEvent = {
     type: updatedBooking?.eventType?.slug as string,
     title: updatedBooking.title,
     description: updatedBooking.description,
+    hideBranding: hideBranding,
     ...getCalEventResponses({
       bookingFields: eventType?.bookingFields ?? null,
       booking: updatedBooking,
@@ -227,6 +257,7 @@ export const Handler = async ({ ctx, input }: Options) => {
   await sendScheduledEmailsAndSMS(
     {
       ...evt,
+      hideBranding: hideBranding,
     },
     undefined,
     false,
