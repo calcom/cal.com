@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -221,7 +222,9 @@ function BookingDetailsSheetInner({
 
             <RescheduleRequestMessage booking={booking} />
 
-            <DescriptionSection booking={booking} />
+            <RescheduleInfoSection booking={booking} />
+
+            <WhatSection booking={booking} />
 
             <WhoSection booking={booking} />
 
@@ -570,7 +573,46 @@ function CustomQuestionsSection({
   );
 }
 
-function DescriptionSection({ booking }: { booking: BookingOutput }) {
+function RescheduleInfoSection({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  const isCancelled = booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const isRescheduled = booking.status === BookingStatus.ACCEPTED;
+
+  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const shouldShowCancellationReason = cancellationReason && isCancelled;
+  const shouldShowRescheduleReason = cancellationReason && isRescheduled;
+  const shouldShowRescheduler = booking.rescheduler && isRescheduled;
+
+  return (
+    <>
+      {shouldShowCancellationReason && (
+        <Section title={t("reason")}>
+          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+        </Section>
+      )}
+      {shouldShowRescheduleReason && (
+        <Section title={t("reschedule_reason")}>
+          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+        </Section>
+      )}
+      {shouldShowRescheduler && (
+        <Section title={t("rescheduled_by")}>
+          <div className="flex flex-col gap-1">
+            <p className="text-default text-sm">{booking.rescheduler}</p>
+            {booking.fromReschedule && (
+              <Link className="text-default text-sm underline" href={`/booking/${booking.fromReschedule}`}>
+                {t("original_booking")}
+              </Link>
+            )}
+          </div>
+        </Section>
+      )}
+    </>
+  );
+}
+
+function WhatSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
   if (!booking.description) {
@@ -578,7 +620,7 @@ function DescriptionSection({ booking }: { booking: BookingOutput }) {
   }
 
   return (
-    <Section title={t("description")}>
+    <Section title={t("what")}>
       <p className="text-default whitespace-pre-wrap text-sm">{booking.description}</p>
     </Section>
   );

@@ -497,6 +497,8 @@ export async function getBookings({
           "Booking.fromReschedule",
           "Booking.rescheduled",
           "Booking.isRecorded",
+          "Booking.cancellationReason",
+          "Booking.rejectionReason",
           jsonObjectFrom(
             eb
               .selectFrom("App_RoutingForms_FormResponse")
