@@ -22,17 +22,16 @@ export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: Ev
     dateStyle: "full",
   }).format(startDate);
 
-  let formattedTime = new Intl.DateTimeFormat(language, {
+  const formattedTime = new Intl.DateTimeFormat(language, {
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
   }).format(startDate);
 
-  if (timeFormat === TimeFormat.TWELVE_HOUR) {
-    formattedTime = formattedTime.toLowerCase();
-  }
-
-  return { date: formattedDate, time: formattedTime };
+  return {
+    date: formattedDate,
+    time: timeFormat === TimeFormat.TWELVE_HOUR ? formattedTime.toLowerCase() : formattedTime,
+  };
 };
 
 export const formatEventFromToTime = ({
@@ -52,17 +51,16 @@ export const formatEventFromToTime = ({
     dateStyle: "full",
   }).formatRange(startDate, endDate);
 
-  let formattedTime = new Intl.DateTimeFormat(language, {
+  const formattedTime = new Intl.DateTimeFormat(language, {
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
   }).formatRange(startDate, endDate);
 
-  if (timeFormat === TimeFormat.TWELVE_HOUR) {
-    formattedTime = formattedTime.toLowerCase();
-  }
-
-  return { date: formattedDate, time: formattedTime };
+  return {
+    date: formattedDate,
+    time: timeFormat === TimeFormat.TWELVE_HOUR ? formattedTime.toLowerCase() : formattedTime,
+  };
 };
 
 export const FromToTime = (props: EventFromToTime) => {
