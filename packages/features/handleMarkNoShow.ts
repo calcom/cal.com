@@ -45,8 +45,6 @@ const buildResultPayload = async (
   };
 };
 
-const isRejected = <T>(x: PromiseSettledResult<T>): x is PromiseRejectedResult => x.status === "rejected";
-
 const logFailedResults = (results: PromiseSettledResult<any>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
