@@ -1,10 +1,6 @@
 import type { IconName } from "@calcom/ui/components/icon/icon-names";
 
-export type FilterTypeSingleSelect = "ss";
-export type FilterTypeMultiSelect = "ms";
-export type FilterTypeText = "t";
-export type FilterTypeNumber = "n";
-export type FilterTypeDateRange = "dr";
+export type FilterType = "ss" | "ms" | "t" | "n" | "dr";
 
 export type TextFilterOperator = "equals" | "notEquals" | "contains" | "notContains" | "startsWith" | "endsWith" | "isEmpty" | "isNotEmpty";
 
@@ -20,17 +16,17 @@ export type DateRangeFilterOptions = {
 
 export type ColumnFilterMeta =
   | {
-      type: FilterTypeDateRange;
+      type: Extract<FilterType, "dr">;
       icon?: IconName;
       dateRangeOptions?: DateRangeFilterOptions;
     }
   | {
-      type: FilterTypeText;
+      type: Extract<FilterType, "t">;
       icon?: IconName;
       textOptions?: TextFilterOptions;
     }
   | {
-      type?: FilterTypeMultiSelect | FilterTypeNumber | FilterTypeSingleSelect;
+      type?: Extract<FilterType, "ms" | "n" | "ss">;
       icon?: IconName;
     };
 
@@ -40,22 +36,22 @@ export type FilterableColumn = {
     icon?: IconName;
 } & (
     | {
-        type: FilterTypeSingleSelect;
+        type: Extract<FilterType, "ss">;
         options: FacetedValue[];
     }
     | {
-        type: FilterTypeMultiSelect;
+        type: Extract<FilterType, "ms">;
         options: FacetedValue[];
     }
     | {
-        type: FilterTypeText;
+        type: Extract<FilterType, "t">;
         textOptions?: TextFilterOptions;
     }
     | {
-        type: FilterTypeNumber;
+        type: Extract<FilterType, "n">;
     }
     | {
-        type: FilterTypeDateRange;
+        type: Extract<FilterType, "dr">;
         dateRangeOptions?: DateRangeFilterOptions;
     }
 );
