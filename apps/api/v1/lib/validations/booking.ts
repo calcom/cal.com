@@ -113,6 +113,8 @@ export const schemaBookingReadPublic = Booking.extend({
     )
     .optional(),
   responses: z.record(z.any()).nullable(),
+  // timeZone is added via extend since it doesn't exist in BookingSchema
+  timeZone: z.string().nullish(),
 }).pick({
   id: true,
   userId: true,
