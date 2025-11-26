@@ -6,7 +6,7 @@ import {
 } from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
 import { scheduleMandatoryReminder } from "@calid/features/modules/workflows/utils/scheduleMandatoryReminder";
-import type { DestinationCalendar, User } from "@prisma/client";
+import type { DestinationCalendar, User, BookingSeat } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -1592,6 +1592,14 @@ async function handler(
               attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
         );
 
+
+        const currentEventAttendee = evt.attendees.find(
+          (attendee) =>
+            attendee.email === input.bookingData.responses.email ||
+            (input.bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+        );
+
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
         newBookingSeat = await prisma.bookingSeat.create({
@@ -1614,6 +1622,12 @@ async function handler(
             },
           },
         });
+
+        if (currentEventAttendee) {
+          currentEventAttendee!.bookingSeat = newBookingSeat;
+        }
+
+        console.log("Setting booking seat: ", JSON.stringify(currentEventAttendee));
         evt.attendeeSeatId = uniqueAttendeeId;
       }
     } else {
@@ -2170,7 +2184,7 @@ async function handler(
       bookerPhoneNumber,
       isDryRun,
       responses: reqBody.responses,
-      bookingSeat: newBookingSeat
+      bookingSeat: newBookingSeat,
     });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

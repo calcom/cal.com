@@ -204,6 +204,14 @@ const createNewSeat = async (
       },
     });
 
+    const currentEventAttendee = evt.attendees.find(
+      (attendee) =>
+        attendee.email === inviteeToAdd.email ||
+        (inviteeToAdd.attendeePhoneNumber && attendee.phoneNumber === inviteeToAdd.attendeePhoneNumber)
+    );
+
+    currentEventAttendee.bookingSeat = bookingSeat;
+
     console.log("Attendee Seat:", bookingSeat);
 
     const payment = await handlePayment({
