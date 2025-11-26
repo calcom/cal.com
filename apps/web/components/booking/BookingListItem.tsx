@@ -323,8 +323,8 @@ function BookingListItem(booking: BookingItemProps) {
             </ConditionalLink>
           </div>
         </div>
-        <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-          <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
+        <div data-testid="title-and-attendees" className={`flex-1 px-4${isRejected ? "line-through" : ""}`}>
+          <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="flex h-full flex-col">
             {/* Time and Badges for mobile */}
             <div className="w-full pb-2 pt-4 sm:hidden">
               <div className="flex w-full items-center justify-between sm:hidden">
@@ -409,7 +409,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </ConditionalLink>
         </div>
-        <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
+        <div className="flex flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-shrink-0 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
           {shouldShowPendingActions(actionContext) && (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <RejectBookingButton
