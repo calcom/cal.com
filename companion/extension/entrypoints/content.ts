@@ -1398,8 +1398,9 @@ export default defineContentScript({
        */
       function setupAutoRemoveOnSend() {
         try {
-          // Helper function to remove all action bars
+          // Helper function to remove all action bars and marked Google chips
           const removeAllActionBars = () => {
+            // Remove action bars
             const allActionBars = document.querySelectorAll(".cal-companion-action-bar");
             if (allActionBars.length > 0) {
               console.log(`Cal.com: Removing ${allActionBars.length} action bar(s) before send`);
@@ -1412,6 +1413,23 @@ export default defineContentScript({
                   bar.remove();
                 } catch (error) {
                   console.warn("Cal.com: Failed to remove action bar:", error);
+                }
+              });
+            }
+
+            // Remove Google chips that were marked for removal (user used Cal.com)
+            const markedChips = document.querySelectorAll(
+              '.gmail_chip[data-calcom-remove-on-send="true"]'
+            );
+            if (markedChips.length > 0) {
+              console.log(
+                `Cal.com: Removing ${markedChips.length} Google chip(s) before send (user used Cal.com)`
+              );
+              markedChips.forEach((chip) => {
+                try {
+                  chip.remove();
+                } catch (error) {
+                  console.warn("Cal.com: Failed to remove Google chip:", error);
                 }
               });
             }
@@ -1839,6 +1857,9 @@ export default defineContentScript({
               if (inserted) {
                 showGmailNotification("Cal.com embed inserted!", "success");
                 console.log("Cal.com: ✅ Email embed inserted successfully");
+
+                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
+                chipElement.setAttribute("data-calcom-remove-on-send", "true");
               } else {
                 showGmailNotification("Failed to insert embed", "error");
               }
@@ -2523,6 +2544,9 @@ export default defineContentScript({
               if (inserted) {
                 showGmailNotification("Cal.com link inserted!", "success");
                 backdrop.remove();
+
+                // Mark chip for removal on send (don't remove yet - keep it visible for user reference)
+                chipElement.setAttribute("data-calcom-remove-on-send", "true");
               } else {
                 showGmailNotification("Failed to insert link", "error");
               }
