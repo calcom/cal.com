@@ -1315,30 +1315,23 @@ export default defineContentScript({
           const composeBody = chipElement.closest('[contenteditable="true"]');
 
           if (!composeBody) {
-            console.log(
-              "Cal.com: Chip not in editable compose area, skipping (likely in sent/inbox)"
-            );
+            // Silently skip - chip not in compose area (likely in sent/inbox)
             return;
           }
 
-          console.log("Cal.com: Chip is in compose area, proceeding...");
-
-          console.log("Cal.com: Parsing chip...");
           const parsedData = parseGoogleChip(chipElement);
-          console.log("Cal.com: Parsed data:", parsedData);
 
           if (!parsedData || parsedData.slots.length === 0) {
-            console.warn("Cal.com: No parsed data or no slots found");
+            // Silently skip - chip not fully loaded or invalid
             return;
           }
 
           console.log(
-            `Cal.com: Found ${parsedData.slots.length} slots, duration: ${parsedData.detectedDuration}min`
+            `Cal.com: ✅ Google chip detected - ${parsedData.slots.length} slot${parsedData.slots.length > 1 ? "s" : ""} (${parsedData.detectedDuration}min)`
           );
 
           // Safely check for parent element
           if (!chipElement.parentElement) {
-            console.warn("Cal.com: Chip has no parent element");
             return;
           }
 
@@ -1361,13 +1354,11 @@ export default defineContentScript({
               return;
             }
             // Something changed - remove old action bar and create new one
-            console.log(
-              `Cal.com: Chip changed - Schedule: ${existingScheduleId?.slice(0, 20)}...→${scheduleId?.slice(0, 20)}..., Duration: ${existingDuration}→${parsedData.detectedDuration}min`
-            );
+            console.log(`Cal.com: 🔄 Chip updated - ${parsedData.detectedDuration}min`);
             try {
               existingActionBar.remove();
             } catch (e) {
-              console.warn("Cal.com: Failed to remove existing action bar:", e);
+              // Silently ignore removal errors
             }
           }
 
@@ -1382,19 +1373,17 @@ export default defineContentScript({
 
               // Check if schedule ID changed (this changes when time range or duration changes)
               if (currentScheduleId && newScheduleId && currentScheduleId !== newScheduleId) {
-                console.log(
-                  `Cal.com: Schedule ID changed - ${currentScheduleId.slice(0, 20)}...→${newScheduleId.slice(0, 20)}...`
-                );
+                console.log(`Cal.com: 🔄 Time range/duration changed`);
                 try {
                   actionBar?.remove();
                   // Recreate action bar with new data
                   handleGoogleChipDetected(chipElement);
                 } catch (e) {
-                  console.warn("Cal.com: Failed to recreate action bar:", e);
+                  // Silently ignore recreation errors
                 }
               }
             } catch (error) {
-              console.warn("Cal.com: Error in chip mutation observer:", error);
+              // Silently ignore observer errors - expected during DOM updates
             }
           });
 
@@ -1406,7 +1395,7 @@ export default defineContentScript({
               attributeFilter: ["data-ad-hoc-v2-params"],
             });
           } catch (error) {
-            console.warn("Cal.com: Failed to observe chip mutations:", error);
+            // Silently ignore observer setup errors
           }
 
           // Create our own action bar below the chip
@@ -1555,9 +1544,8 @@ export default defineContentScript({
                 (actionBar as any).__cleanup();
               }
               actionBar.remove();
-              console.log("Cal.com: Action bar manually closed");
             } catch (error) {
-              console.warn("Cal.com: Failed to remove action bar:", error);
+              // Silently ignore removal errors
             }
           });
 
@@ -1574,13 +1562,11 @@ export default defineContentScript({
               try {
                 if (!document.body.contains(chipElement)) {
                   // Chip removed, clean up
-                  console.log("Cal.com: Chip removed, removing action bar");
                   actionBar.remove();
                   return;
                 }
 
                 const chipRect = chipElement.getBoundingClientRect();
-                console.log("Cal.com: Chip rect:", chipRect);
 
                 // Position below the chip with 8px gap
                 const top = chipRect.bottom + window.scrollY + 8;
@@ -1588,10 +1574,8 @@ export default defineContentScript({
 
                 actionBar.style.top = `${top}px`;
                 actionBar.style.left = `${left}px`;
-
-                console.log(`Cal.com: Action bar positioned at top: ${top}px, left: ${left}px`);
               } catch (error) {
-                console.error("Cal.com: Failed to position action bar:", error);
+                // Silently ignore positioning errors
               }
             };
 
@@ -1609,9 +1593,6 @@ export default defineContentScript({
                     `.gmail_chip.gmail_ad_hoc_v2_content[data-ad-hoc-schedule-id="${barScheduleId}"]`
                   );
                   if (!chipForBar || barScheduleId !== scheduleId) {
-                    console.log(
-                      `Cal.com: Removing old action bar (schedule: ${barScheduleId?.slice(0, 20)}...)`
-                    );
                     if ((bar as any).__cleanup) {
                       (bar as any).__cleanup();
                     }
@@ -1624,13 +1605,10 @@ export default defineContentScript({
             });
 
             // Append to document.body (outside email content, like Grammarly)
-            console.log("Cal.com: Appending action bar to document.body");
             document.body.appendChild(actionBar);
-            console.log("Cal.com: Action bar appended, element:", actionBar);
 
             // Initial positioning with slight delay to ensure chip is rendered
             setTimeout(() => {
-              console.log("Cal.com: Running initial positioning");
               positionActionBar();
             }, 100);
 
@@ -2239,16 +2217,19 @@ export default defineContentScript({
             return null;
           }
 
-          // Get schedule ID - if this is missing, Gmail structure likely changed
+          // Get schedule ID - if this is missing, this might not be a valid chip
           const scheduleId = chipElement.getAttribute("data-ad-hoc-schedule-id");
-          console.log("Cal.com: Schedule ID:", scheduleId);
-          console.log("Cal.com: Chip element:", chipElement);
-          console.log("Cal.com: Chip HTML:", chipElement.outerHTML.substring(0, 500));
 
           if (!scheduleId) {
-            console.warn("Cal.com: No schedule ID found - Gmail structure may have changed");
+            // Silently return - this is likely not a fully-loaded chip
+            // (happens frequently during Gmail DOM updates)
             return null;
           }
+
+          console.log(
+            "Cal.com: Valid chip detected - Schedule ID:",
+            scheduleId?.slice(0, 20) + "..."
+          );
 
           // Parse timezone (non-critical - fallback to UTC if structure changed)
           let timezone = "UTC";
