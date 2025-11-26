@@ -407,14 +407,20 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     // Clicking allow should fail because PUBLIC clients require PKCE
     await page.getByTestId("allow-button").click();
 
-    // Wait a bit to see if error toast appears or redirect happens
-    await page.waitForTimeout(2000);
+    // Wait for redirect to callback URL with error parameters
+    await page.waitForFunction(() => {
+      return window.location.href.startsWith("https://example.com");
+    });
 
-    // Should not redirect to callback URL (error should prevent redirect)
-    expect(page.url().startsWith("https://example.com")).not.toBe(true);
+    // Should redirect to callback URL with error parameters (OAuth2 error redirect)
+    await expect(page).toHaveURL(/^https:\/\/example\.com/);
 
-    // Check if we're still on the authorize page (error prevented redirect)
-    expect(page.url()).toContain("auth/oauth2/authorize");
+    const url = new URL(page.url());
+    expect(url.searchParams.get("error")).toBe("invalid_request");
+    expect(url.searchParams.get("error_description")).toBe("code_challenge required for public clients");
+    expect(url.searchParams.get("state")).toBe("1234");
+    // Should not contain authorization code
+    expect(url.searchParams.get("code")).toBeNull();
   });
 
   test("should refresh tokens for PUBLIC client with valid PKCE", async ({ page, users }) => {
