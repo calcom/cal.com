@@ -1,19 +1,18 @@
 import { randomBytes } from "crypto";
 
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
-import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
-import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -77,10 +76,7 @@ export class TeamService {
       if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
       return {
         token: existingToken.token,
-        inviteLink: await TeamService.buildInviteLink(
-          existingToken.token,
-          isOrganizationOrATeamInOrganization
-        ),
+        inviteLink: TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
       };
     }
 
@@ -97,18 +93,14 @@ export class TeamService {
 
     return {
       token,
-      inviteLink: await TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
+      inviteLink: TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
     };
   }
 
-  private static async buildInviteLink(token: string, isOrgContext: boolean): Promise<string> {
+  private static buildInviteLink(token: string, isOrgContext: boolean): string {
     const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    if (!isOrgContext) {
-      return teamInviteLink;
-    }
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
-    return orgInviteLink;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+    return isOrgContext ? orgInviteLink : teamInviteLink;
   }
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
@@ -118,10 +110,8 @@ export class TeamService {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
-    // const teamBilling = await TeamBillingService.findAndInit(id);
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(id);
-    await teamBillingService.cancel();
+    const teamBilling = await TeamBilling.findAndInit(id);
+    await teamBilling.cancel();
 
     // Step 2: Clean up internal, related data like workflow reminders.
     try {
@@ -139,7 +129,7 @@ export class TeamService {
 
     // Step 4: Clean up any final, non-critical external state.
     if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
-      deleteDomain(deletedTeam.slug);
+      await deleteDomain(deletedTeam.slug);
     }
 
     return deletedTeam;
@@ -169,11 +159,9 @@ export class TeamService {
     }
 
     await Promise.all(deleteMembershipPromises);
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
-    const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
-      teamBillingService.updateQuantity()
-    );
+
+    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
+    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
   }
 
@@ -222,9 +210,8 @@ export class TeamService {
       } else throw e;
     }
 
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(verificationToken.teamId);
-    await teamBillingService.updateQuantity();
+    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
+    await teamBilling.updateQuantity();
 
     return verificationToken.team.name;
   }
@@ -284,48 +271,22 @@ export class TeamService {
   }
   static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
-      await prisma.$transaction(async (tx) => {
-        const ownerCount = await tx.membership.count({
-          where: {
-            teamId,
-            role: MembershipRole.OWNER,
-            accepted: true,
-          },
-        });
-
-        const userMembership = await tx.membership.findUnique({
-          where: {
-            userId_teamId: { userId, teamId },
-          },
-          select: {
-            role: true,
-          },
-        });
-
-        if (userMembership?.role === MembershipRole.OWNER && ownerCount <= 1) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Cannot leave team as the last owner",
-          });
-        }
-
-        const membership = await tx.membership.delete({
-          where: {
-            userId_teamId: { userId, teamId },
-          },
-          select: {
-            team: true,
-          },
-        });
-
-        if (membership.team.parentId) {
-          await tx.membership.delete({
-            where: {
-              userId_teamId: { userId, teamId: membership.team.parentId },
-            },
-          });
-        }
+      const membership = await prisma.membership.delete({
+        where: {
+          userId_teamId: { userId, teamId },
+        },
+        select: {
+          team: true,
+        },
       });
+
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
+          where: {
+            userId_teamId: { userId, teamId: membership.team.parentId },
+          },
+        });
+      }
     } catch (e) {
       log.error("Failed to leave team membership", e);
       throw e;
@@ -384,9 +345,8 @@ export class TeamService {
   }
 
   static async publish(teamId: number) {
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
-    return teamBillingService.publish();
+    const teamBilling = await TeamBilling.findAndInit(teamId);
+    return teamBilling.publish();
   }
 
   private static async removeMember({
@@ -500,7 +460,7 @@ export class TeamService {
     });
 
     if (user.username && user.movedToProfileId === profileToDelete?.id) {
-      log.debug("Cleaning up tempOrgRedirect for user", user.username);
+      log.debug("Cleaning up tempOrgRedirect for user");
       await prisma.tempOrgRedirect.deleteMany({
         where: {
           from: user.username,

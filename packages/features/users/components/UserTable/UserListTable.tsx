@@ -171,6 +171,8 @@ function UserListTableContent({
     }
   );
 
+  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
+  const _totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
@@ -449,7 +451,7 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
+            canEdit: user.accepted && (permissionsRaw.canEdit || (isSelf && adminOrOwner)),
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
               user.accepted &&
