@@ -58,6 +58,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -93,6 +94,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -145,6 +147,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -197,6 +200,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -225,6 +229,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -269,6 +274,7 @@ describe("getUrlSearchParamsToForward", () => {
       query2: "value2",
       "cal.routingFormResponseId": "1",
       "cal.skipContactOwner": "true",
+      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -422,6 +428,7 @@ describe("getUrlSearchParamsToForward", () => {
       const searchParams = new URLSearchParams("?query1=value1&query2=value2");
       const expectedParams = {
         "cal.routingFormResponseId": "0",
+        "cal.routedTeamMemberIds": "null",
         query1: "value1",
         query2: "value2",
       };
