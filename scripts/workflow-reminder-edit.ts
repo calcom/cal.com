@@ -242,7 +242,7 @@ const smsWorkflowRemindersEdit = async () => {
 };
 
 const getWorkflowReminders = async ({
-  emailWorkflowStepIds,
+  workflowStepIds,
   batchSize,
   cursor,
 }: {
@@ -257,7 +257,7 @@ const getWorkflowReminders = async ({
         gte: new Date(),
       },
       workflowStepId: {
-        in: emailWorkflowStepIds,
+        in: workflowStepIds,
       },
       scheduled: true,
       booking: {
