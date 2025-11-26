@@ -790,7 +790,7 @@ export const downloadLinkSchema = z.object({
 });
 
 // All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+export const allManagedEventTypeProps = {
   title: true,
   description: true,
   interfaceLanguage: true,
@@ -860,7 +860,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   maxLeadThreshold: true,
   customReplyToEmail: true,
   bookingRequiresAuthentication: true,
-};
+} as const satisfies { [k in keyof Omit<Prisma.EventTypeSelect, "id">]?: true };
 
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
