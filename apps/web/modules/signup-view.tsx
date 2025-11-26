@@ -268,7 +268,7 @@ export default function Signup({
           />
         </svg>
       ) : (
-        <span className="mr-2 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+        <span className="mr-2 h-1.5 w-1.5 rounded-full bg-gray-400" />
       )}
       {label}
     </p>
@@ -477,9 +477,7 @@ export default function Signup({
                       !!formMethods.formState.errors.email ||
                       !watchedEmail ||
                       !watchedPassword ||
-                      (CLOUDFLARE_SITE_ID &&
-                        !process.env.NEXT_PUBLIC_IS_E2E &&
-                        !watchedCfToken) ||
+                      (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watchedCfToken) ||
                       isSubmitting
                     }>
                     {t("create_account")}

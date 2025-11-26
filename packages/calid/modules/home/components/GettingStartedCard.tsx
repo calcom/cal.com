@@ -190,7 +190,7 @@ export function GettingStarted({
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} shareUrl={shareUrl} />
       <div className="border-default flex w-full flex-col items-center overflow-hidden rounded-md border px-4 py-6 sm:py-8">
         <div className="mb-4 sm:mb-8">
-          <h2 className="text-default text-center text-lg font-bold">{t("get_started")}</h2>
+          <h2 className="text-default text-center text-lg font-bold">{t("lets_get_you_started")}</h2>
         </div>
 
         {isLoading ? (

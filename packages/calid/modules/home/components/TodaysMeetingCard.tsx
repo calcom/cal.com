@@ -205,6 +205,10 @@ export function TodaysMeeting() {
 
   const now = useMemo(() => new Date(), []);
 
+  const pastMeetings = useMemo(() => {
+    return todaysMeetings.filter((meeting) => meeting.startTime < now);
+  }, [todaysMeetings, now]);
+
   const futureMeetings = useMemo(() => {
     return todaysMeetings.filter((meeting) => meeting.startTime >= now);
   }, [todaysMeetings, now]);
@@ -217,7 +221,7 @@ export function TodaysMeeting() {
     return futureMeetings.slice(1);
   }, [futureMeetings]);
 
-  const totalMeetings = futureMeetings.length;
+  const totalMeetings = todaysMeetings.length;
 
   return (
     <div className="border-default bg-default flex h-80 w-full flex-col rounded-md border px-4 py-6">
@@ -259,6 +263,19 @@ export function TodaysMeeting() {
                 </h3>
                 <div className="flex flex-col gap-3">
                   {laterMeetings.map((meeting) => (
+                    <MeetingItem key={meeting.id} meeting={meeting} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {pastMeetings.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <h3 className="text-default text-subtle text-xs font-medium uppercase tracking-wide">
+                  {t("earlier_today")}
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {pastMeetings.map((meeting) => (
                     <MeetingItem key={meeting.id} meeting={meeting} />
                   ))}
                 </div>
