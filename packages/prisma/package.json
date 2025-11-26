@@ -43,8 +43,5 @@
     "client",
     "zod",
     "zod-utils.ts"
-  ],
-  "prisma": {
-    "seed": "yarn seed-basic"
-  }
+  ]
 }
