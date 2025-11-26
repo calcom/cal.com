@@ -449,7 +449,8 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
+            canEdit:
+              (permissionsRaw.canEdit || permissions?.canEditAttributesForUser) && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
               user.accepted &&
@@ -633,7 +634,7 @@ function UserListTableContent({
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                {(permissions?.canEditAttributesForUser ?? adminOrOwner) && (
                   <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 )}
                 {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
@@ -655,7 +656,14 @@ function UserListTableContent({
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
-      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && (
+        <EditUserSheet
+          dispatch={dispatch}
+          state={state}
+          canEditAttributesForUser={permissions?.canEditAttributesForUser}
+          canChangeMemberRole={permissions?.canChangeMemberRole ?? adminOrOwner}
+        />
+      )}
 
       {ctaContainerRef.current &&
         createPortal(
