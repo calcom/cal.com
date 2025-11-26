@@ -157,12 +157,13 @@ export default function Authorize() {
             className="mr-2"
             color="minimal"
             onClick={() => {
+              const separator = client.redirectUri.includes("?") ? "&" : "?";
               const params = new URLSearchParams();
               params.set("error", "access_denied");
               if (state) {
                 params.set("state", state);
               }
-              window.location.href = `${client.redirectUri}?${params.toString()}`;
+              window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
             }}>
             {t("go_back")}
           </Button>
