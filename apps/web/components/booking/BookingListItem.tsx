@@ -269,9 +269,9 @@ function BookingListItem(booking: BookingItemProps) {
     <div
       data-testid="booking-item"
       data-today={String(booking.isToday)}
-      className="hover:bg-muted group w-full">
+      className="hover:bg-cal-muted group w-full">
       <div className="flex flex-col sm:flex-row">
-        <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+        <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
           <div className="flex h-full items-center">
             {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
             <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
