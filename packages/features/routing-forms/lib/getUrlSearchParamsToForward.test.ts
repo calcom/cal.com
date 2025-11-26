@@ -274,7 +274,7 @@ describe("getUrlSearchParamsToForward", () => {
       query2: "value2",
       "cal.routingFormResponseId": "1",
       "cal.skipContactOwner": "true",
-      "cal.routedTeamMemberIds": "null",
+      "cal.routedTeamMemberIds": "",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -379,7 +379,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should add cal.routedTeamMemberIds with null value when there's a routing form response but no routed team members found", () => {
+  it("should add cal.routedTeamMemberIds with empty value when attribute routing is used but finds no matches", () => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -408,7 +408,7 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
+      "cal.routedTeamMemberIds": "",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -418,7 +418,8 @@ describe("getUrlSearchParamsToForward", () => {
       teamMembersMatchingAttributeLogic: null, // null means no routed team members found
       formResponseId: 1,
       queuedFormResponseId: null,
-      attributeRoutingConfig: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      attributeRoutingConfig: { some: "config" } as any, // attribute routing is configured
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
