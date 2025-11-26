@@ -71,11 +71,13 @@ export function EditForm({
   avatarUrl,
   domainUrl,
   dispatch,
+  canEditAttributesForUser,
 }: {
   selectedUser: RouterOutputs["viewer"]["organizations"]["getUser"];
   avatarUrl: string;
   domainUrl: string;
   dispatch: Dispatch<UserTableAction>;
+  canEditAttributesForUser?: boolean;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
   const [mutationLoading, setMutationLoading] = useState(false);
@@ -249,8 +251,12 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
-          <Divider />
-          <AttributesList selectedUserId={selectedUser?.id} />
+          {canEditAttributesForUser && (
+            <>
+              <Divider />
+              <AttributesList selectedUserId={selectedUser?.id} />
+            </>
+          )}
         </SheetBody>
         <SheetFooter>
           <Button
