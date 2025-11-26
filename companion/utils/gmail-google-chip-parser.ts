@@ -33,15 +33,37 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
       return null;
     }
 
-    // 2. Parse timezone from the table content
-    const timezoneText = chipElement.querySelector("td")?.textContent?.trim() || "";
-    const timezoneMatch = timezoneText.match(/^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/);
-
+    // 2. Parse timezone - first try to get IANA timezone from data attribute
     let timezone = "UTC";
     let timezoneOffset = "GMT+00:00";
 
+    // Try to get IANA timezone from data-ad-hoc-v2-params
+    const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
+    if (paramsAttr) {
+      // The timezone is at the end of the params string, like: "Asia/Kolkata"
+      // Try multiple patterns as Gmail might format it differently
+      let tzMatch = paramsAttr.match(/&quot;([^&]+)&quot;\]/);
+
+      // Also try without HTML entities
+      if (!tzMatch) {
+        tzMatch = paramsAttr.match(/"([^"]+)"\]/);
+      }
+
+      // Also try with escaped quotes
+      if (!tzMatch) {
+        tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
+      }
+
+      if (tzMatch && tzMatch[1]) {
+        timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
+      }
+    }
+
+    // Also get the display timezone offset from the UI text
+    const timezoneText = chipElement.querySelector("td")?.textContent?.trim() || "";
+    const timezoneMatch = timezoneText.match(/^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/);
+
     if (timezoneMatch) {
-      timezone = timezoneMatch[2].trim(); // e.g., "Kolkata"
       timezoneOffset = timezoneMatch[3].trim(); // e.g., "GMT+05:30"
     }
 
@@ -75,16 +97,18 @@ export function parseGoogleChip(chipElement: HTMLElement): ParsedGoogleChip | nu
       const startDate = new Date(parseInt(slotStartTime, 10));
       const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
-      // Format date and time
+      // Format date and time using the chip's timezone for consistency
       const dateOptions: Intl.DateTimeFormatOptions = {
         weekday: "short",
         day: "numeric",
         month: "long",
+        timeZone: timezone, // Use chip's timezone
       };
       const timeOptions: Intl.DateTimeFormatOptions = {
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
+        timeZone: timezone, // Use chip's timezone
       };
 
       const date = startDate.toLocaleDateString("en-US", dateOptions);
