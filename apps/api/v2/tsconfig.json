@@ -14,7 +14,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@calcom/prisma/client": ["../../../packages/prisma/generated/prisma/client"],
+      "@calcom/prisma/client": ["../../../packages/prisma/client"],
       "@calcom/prisma/enums": ["../../../packages/prisma/enums"],
       "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
       "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],

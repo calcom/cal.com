@@ -8,23 +8,22 @@ datasource db {
 }
 
 generator client {
-  provider            = "prisma-client"
+  provider            = "prisma-client-js"
   previewFeatures     = ["views"]
-  output              = "./generated/prisma"
   engineType          = "client"
   moduleFormat        = "cjs"
   importFileExtension = ""
 }
 
 generator zod {
-  provider                 = "zod-prisma-types"
+  provider                 = "node ./zod-generator.js"
   output                   = "./zod"
   useMultipleFiles         = true
   createInputTypes         = false
   addIncludeType           = false
   addSelectType            = false
   validateWhereUniqueInput = false
-  prismaClientPath         = "../../generated/prisma/client"
+  prismaClientPath         = "@prisma/client"
   moduleFormat             = "cjs"
   /// createRelationValuesTypes = true
 }
