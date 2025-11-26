@@ -191,9 +191,9 @@ function BookingDetailsSheetInner({
           </div>
         </SheetHeader>
 
-        <SheetBody className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-1">
+        <SheetBody className="stack-y-6">
+          <div className="stack-y-6">
+            <div className="stack-y-1">
               <SheetTitle className="text-2xl font-semibold">{booking.title}</SheetTitle>
               <p className="text-subtle text-sm">
                 {startTime.format("dddd, MMMM D, YYYY h:mma")} - {endTime.format("h:mma")} (
@@ -277,7 +277,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="space-y-4">
+      <div className="stack-y-4">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
@@ -340,12 +340,12 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={provider.iconUrl}
-            className="h-4 w-4 flex-shrink-0 rounded-sm"
+            className="h-4 w-4 shrink-0 rounded-sm"
             alt={`${provider?.label} logo`}
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-default flex-shrink-0">{provider?.label}:</span>
+          <span className="text-default shrink-0">{provider?.label}:</span>
           <a
             href={locationToDisplay}
             target="_blank"
@@ -502,7 +502,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={classNames("space-y-1", className)}>
+    <div className={classNames("stack-y-1", className)}>
       <h3 className="text-subtle text-xs font-semibold">{title}</h3>
       {children}
     </div>

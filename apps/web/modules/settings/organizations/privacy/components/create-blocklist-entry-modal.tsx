@@ -90,7 +90,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
       <DialogContent enableOverflow>
         <DialogHeader title={t("add_to_blocklist")} />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+          <div className="stack-y-4">
             <div>
               <Label htmlFor="type" className="text-emphasis mb-2 block text-sm font-medium">
                 {t("what_would_you_like_to_block")}

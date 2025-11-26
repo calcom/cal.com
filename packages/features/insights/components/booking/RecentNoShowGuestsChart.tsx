@@ -46,7 +46,7 @@ export const RecentNoShowGuestsChart = () => {
                 <div className="flex w-full items-center justify-between">
                   <div className="flex gap-2">
                     <div className="bg-subtle h-16 w-[2px] shrink-0 rounded-sm" />
-                    <div className="flex flex-col space-y-1">
+                    <div className="flex flex-col stack-y-1">
                       <p className="text-sm font-medium">{item.guestName}</p>
                       <div className="text-subtle text-sm leading-tight">
                         <p>{item.eventTypeName}</p>
