@@ -9,6 +9,7 @@ import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
 import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import itTranslations from "@calcom/web/public/static/locales/it/common.json";
 import nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
@@ -28,6 +29,7 @@ import type {
   ptBrTranslationKeys,
   deTranslationKeys,
   esTranslationKeys,
+  itTranslationKeys,
   nlTranslationKeys,
   i18nProps,
 } from "./languages";
@@ -60,7 +62,7 @@ export function BaseCalProvider({
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 
-  const { data: me } = useMe();
+  const { data: me } = useMe(isEmbed);
 
   const { mutateAsync } = useUpdateUserTimezone();
 
@@ -224,6 +226,8 @@ function getTranslation(key: string, language: CalProviderLanguagesType) {
       return deTranslations[key as deTranslationKeys];
     case "es":
       return esTranslations[key as esTranslationKeys];
+    case "it":
+      return itTranslations[key as itTranslationKeys];
     case "nl":
       return nlTranslations[key as nlTranslationKeys];
     default:

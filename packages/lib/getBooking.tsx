@@ -1,9 +1,6 @@
-import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
-
-import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 type BookingSelect = {
   description: true;
@@ -88,7 +85,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
   return booking;
 }
 
-export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
+export type GetBookingType = Awaited<ReturnType<typeof getBooking>>;
 
 export const getBookingWithResponses = <
   T extends Prisma.BookingGetPayload<{
@@ -101,8 +98,8 @@ export const getBookingWithResponses = <
 ) => {
   return {
     ...booking,
-    responses: bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
-  } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
+    responses: booking.responses || getResponsesFromOldBooking(booking),
+  } as Omit<T, "responses"> & { responses: Record<string, any> };
 };
 
 export default getBooking;

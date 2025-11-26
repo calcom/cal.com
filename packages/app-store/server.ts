@@ -1,16 +1,14 @@
-import type { Prisma } from "@prisma/client";
 import type { TFunction } from "i18next";
 
+import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import {
-  buildNonDelegationCredentials,
-  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
-} from "@calcom/lib/delegationCredential/server";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import getEnabledAppsFromCredentials from "./_utils/getEnabledAppsFromCredentials";
 import { defaultLocations } from "./locations";
 
 export async function getLocationGroupedOptions(
@@ -26,6 +24,7 @@ export async function getLocationGroupedOptions(
       icon?: string;
       slug?: string;
       credentialId?: number;
+      supportsCustomLabel?: boolean;
     }[]
   > = {};
 
@@ -145,6 +144,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     } else {
@@ -153,6 +153,7 @@ export async function getLocationGroupedOptions(
           label: l.label,
           value: l.type,
           icon: l.iconUrl,
+          supportsCustomLabel: l.supportsCustomLabel,
         },
       ];
     }

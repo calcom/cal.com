@@ -20,13 +20,9 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  CreateBookingInput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
+import { CreateBookingInput_2024_08_13, GetBookingOutput_2024_08_13, GetSeatedBookingOutput_2024_08_13 } from "@calcom/platform-types";
 import { BookingOutput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
+import type { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking fields", () => {
@@ -117,6 +113,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           slug: seatedEventTypeSlug,
           length: 60,
           seatsPerTimeSlot: 3,
+          seatsShowAttendees: true,
         },
         user.id
       );
@@ -853,7 +850,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     describe("Booking Field Type Validation", () => {
       const basePayload = {
-        start: "2025-06-19T11:00:00.000Z",
+        start: new Date(Date.UTC(2030, 5, 19, 11, 0, 0)).toISOString(),
         attendee: {
           name: "Charlie TypeTest",
           email: "charlie.typetest@example.com",
@@ -1160,6 +1157,31 @@ describe("Bookings Endpoints 2024-08-13", () => {
         expect(response.body.error.message).toBe(
           `One or more invalid options for booking field '${fieldName}'. Allowed options are: blue, red.`
         );
+      });
+
+      it("should transform null values to empty strings in bookingFieldsResponses", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFields.id,
+          bookingFieldsResponses: {
+            "favorite-movie": "The Matrix",
+            rescheduleReason: null,
+            notes: null,
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(201);
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+
+        if (responseDataIsBooking(response.body.data)) {
+          const data: BookingOutput_2024_08_13 = response.body.data;
+          expect(data.bookingFieldsResponses.notes).toBe("");
+          expect(data.bookingFieldsResponses.rescheduleReason).toBe("");
+          expect(data.bookingFieldsResponses["favorite-movie"]).toBe("The Matrix");
+        }
       });
     });
 

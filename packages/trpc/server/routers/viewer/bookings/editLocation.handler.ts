@@ -1,18 +1,19 @@
 import type { z } from "zod";
 
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
+import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
@@ -87,6 +88,7 @@ async function updateBookingLocationInDb({
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
 }) {
+  const isSeatedEvent = !!evt.seatsPerTimeSlot;
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
@@ -97,6 +99,13 @@ async function updateBookingLocationInDb({
       ...(credentialId && credentialId > 0 ? { credentialId } : {}),
     };
   });
+  const responses = {
+    ...(typeof booking.responses === "object" && booking.responses),
+    location: {
+      value: evt.location,
+      optionValue: "",
+    },
+  };
 
   const bookingRepository = new BookingRepository(prisma);
   await bookingRepository.updateLocationById({
@@ -108,13 +117,7 @@ async function updateBookingLocationInDb({
         ...bookingMetadataUpdate,
       },
       referencesToCreate,
-      responses: {
-        ...(typeof booking.responses === "object" && booking.responses),
-        location: {
-          value: evt.location,
-          optionValue: "",
-        },
-      },
+      ...(!isSeatedEvent ? { responses } : {}),
       iCalSequence: (evt.iCalSequence || 0) + 1,
     },
   });
@@ -123,15 +126,26 @@ async function updateBookingLocationInDb({
 async function getAllCredentialsIncludeServiceAccountKey({
   user,
   conferenceCredentialId,
+  bookingOwnerId,
 }: {
   user: { id: number; email: string };
   conferenceCredentialId: number | null;
+  bookingOwnerId: number | null;
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
   let conferenceCredential;
 
   if (conferenceCredentialId) {
+    // Validate that the credential is accessible before fetching it
+    const credentialAccessService = new CredentialAccessService();
+    await credentialAccessService.ensureAccessible({
+      credentialId: conferenceCredentialId,
+      loggedInUserId: user.id,
+      bookingOwnerId,
+    });
+
+    // Now fetch the credential with the key
     conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
       id: conferenceCredentialId,
     });
@@ -264,7 +278,11 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   const eventManager = new EventManager({
     ...ctx.user,
-    credentials: await getAllCredentialsIncludeServiceAccountKey({ user: ctx.user, conferenceCredentialId }),
+    credentials: await getAllCredentialsIncludeServiceAccountKey({
+      user: ctx.user,
+      conferenceCredentialId,
+      bookingOwnerId: booking.userId,
+    }),
   });
 
   const updatedResult = await updateLocationInConnectedAppForBooking({

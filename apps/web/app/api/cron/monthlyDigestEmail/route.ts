@@ -1,14 +1,14 @@
-import type { Prisma } from "@prisma/client";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
+import { sendMonthlyDigestEmail } from "@calcom/emails/workflow-email-service";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),
@@ -295,7 +295,7 @@ async function postHandler(request: NextRequest) {
 
           // Only send email if user has allowed to receive monthly digest emails
           if (owner.receiveMonthlyDigestEmail) {
-            await sendMonthlyDigestEmails({
+            await sendMonthlyDigestEmail({
               ...EventData,
               admin: { email: owner?.email ?? "", name: owner?.name ?? "" },
               language: t,

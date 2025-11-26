@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -14,6 +16,10 @@ vi.mock("../../domain/mappers/PermissionMapper", () => ({
   PermissionMapper: {
     toActionMap: vi.fn(),
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
 }));
 
 describe("getResourcePermissions", () => {
@@ -35,7 +41,9 @@ describe("getResourcePermissions", () => {
       getResourcePermissions: vi.fn(),
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(FeaturesRepository).mockImplementation(() => mockFeaturesRepository as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(PermissionCheckService).mockImplementation(() => mockPermissionCheckService as any);
   });
 
@@ -160,6 +168,7 @@ describe("getResourcePermissions", () => {
         [CrudAction.Update]: true,
         [CrudAction.Delete]: false,
         [CrudAction.Create]: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await getResourcePermissions({
@@ -191,6 +200,7 @@ describe("getResourcePermissions", () => {
       vi.mocked(PermissionMapper.toActionMap).mockReturnValue({
         [CrudAction.Read]: null,
         [CrudAction.Update]: undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await getResourcePermissions({
@@ -221,6 +231,7 @@ describe("getResourcePermissions", () => {
         [CrudAction.Create]: true,
         [CrudAction.Update]: true,
         [CrudAction.Delete]: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       const result = await getResourcePermissions({

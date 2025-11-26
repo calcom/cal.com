@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -10,9 +9,8 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 
@@ -21,14 +19,13 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 interface IUserSettingsProps {
   nextStep: () => void;
   hideUsername?: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
 const UserSettings = (props: IUserSettingsProps) => {
-  const { nextStep } = props;
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
+  const { nextStep, user } = props;
   const { t } = useLocale();
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
-  const telemetry = useTelemetry();
   const userSettingsSchema = z.object({
     name: z
       .string()
@@ -49,9 +46,9 @@ const UserSettings = (props: IUserSettingsProps) => {
     resolver: zodResolver(userSettingsSchema),
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
-  }, [telemetry]);
+  }, [telemetry]);*/
 
   const utils = trpc.useUtils();
   const onSuccess = async () => {
@@ -71,7 +68,7 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         {/* Username textfield: when not coming from signup */}
         {!props.hideUsername && <UsernameAvailabilityField />}
 
@@ -87,6 +84,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             id="name"
             name="name"
             type="text"
+            placeholder="John Doe"
             autoComplete="off"
             autoCorrect="off"
           />
@@ -120,7 +118,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
-        {t("next_step_text")}
+        {t("connect_your_calendar")}
       </Button>
     </form>
   );

@@ -1,3 +1,4 @@
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 
@@ -44,9 +45,9 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             gridTemplateRows: "70px auto",
           }}
           className={classNames(
-            "bg-default dark:bg-muted text-default flex min-h-full w-full flex-col items-center sm:transition-[width] sm:duration-300"
+            "bg-default dark:bg-cal-muted text-default flex min-h-full w-full flex-col items-center sm:transition-[width] sm:duration-300"
           )}>
-          <div className="bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]">
+          <div className="bg-default dark:bg-cal-muted sticky top-0 z-10 [grid-area:header]">
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
           <div className="sticky top-0 z-10 ps-6">
@@ -63,5 +64,9 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
 };
 
 export const Troubleshooter = ({ month }: TroubleshooterProps) => {
-  return <TroubleshooterComponent month={month} />;
+  return (
+    <BookerStoreProvider>
+      <TroubleshooterComponent month={month} />
+    </BookerStoreProvider>
+  );
 };

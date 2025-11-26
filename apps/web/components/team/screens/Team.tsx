@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 
@@ -30,15 +30,15 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
     <Link
       key={member.id}
       href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
-      <div className="bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
+      <div className="bg-default hover:bg-cal-muted border-subtle group flex min-h-full flex-col stack-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
-        <section className="mt-2 line-clamp-4 w-full space-y-1">
+        <section className="mt-2 line-clamp-4 w-full stack-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 text-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
                 />

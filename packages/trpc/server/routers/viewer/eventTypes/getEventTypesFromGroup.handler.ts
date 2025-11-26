@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";

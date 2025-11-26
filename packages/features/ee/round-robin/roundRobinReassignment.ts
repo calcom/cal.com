@@ -1,31 +1,33 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import {
+  enrichHostsWithDelegationCredentials,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+} from "@calcom/app-store/delegationCredential";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
-} from "@calcom/emails";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+} from "@calcom/emails/email-manager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import {
-  enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
-} from "@calcom/lib/delegationCredential/server";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -89,6 +91,13 @@ export const roundRobinReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    logger.error(
+      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
@@ -98,6 +107,7 @@ export const roundRobinReassignment = async ({
         weight: 100,
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
+        groupId: null,
       }));
 
   if (eventType.hosts.length === 0) {
@@ -145,8 +155,8 @@ export const roundRobinReassignment = async ({
     },
     roundRobinReassignLogger
   );
-
-  const reassignedRRHost = await getLuckyUser({
+  const luckyUserService = getLuckyUserService();
+  const reassignedRRHost = await luckyUserService.getLuckyUser({
     availableUsers,
     eventType,
     allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
@@ -197,7 +207,7 @@ export const roundRobinReassignment = async ({
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
 
-    const responseSchema = getBookingResponsesSchema({
+    const responseSchema = getBookingResponsesPartialSchema({
       bookingFields: eventType.bookingFields,
       view: "reschedule",
     });
@@ -244,6 +254,7 @@ export const roundRobinReassignment = async ({
         userId: reassignedRRHost.id,
         userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
+        reassignById: reassignedById,
         idempotencyKey: IdempotencyKeyService.generate({
           startTime: booking.startTime,
           endTime: booking.endTime,
@@ -312,6 +323,7 @@ export const roundRobinReassignment = async ({
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -329,6 +341,12 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
+  if (hasOrganizerChanged) {
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
   const credentials = await prisma.credential.findMany({
     where: {
       userId: organizer.id,
@@ -346,6 +364,42 @@ export const roundRobinReassignment = async ({
     user: { ...organizer, credentials },
   });
 
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+
+  // remove the event and meeting using the old host's credentials
+  if (hasOrganizerChanged && originalOrganizer.id !== reassignedRRHost.id) {
+    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+      originalOrganizer,
+      eventType
+    );
+    const originalHostEventManager = new EventManager(
+      { ...originalOrganizer, credentials: previousHostCredentials },
+      apps
+    );
+
+    const originalOrganizerT = await getTranslation(originalOrganizer.locale || "en", "common");
+
+    const deletionEvent: CalendarEvent = {
+      ...evt,
+      organizer: {
+        id: originalOrganizer.id,
+        name: originalOrganizer.name || "",
+        email: originalOrganizer.email,
+        username: originalOrganizer.username || undefined,
+        timeZone: originalOrganizer.timeZone,
+        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+      },
+      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+      title: booking.title,
+    };
+
+    await originalHostEventManager.deleteEventsAndMeetings({
+      event: deletionEvent,
+      bookingReferences: booking.references,
+    });
+  }
+
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
@@ -362,7 +416,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {
@@ -377,6 +431,11 @@ export const roundRobinReassignment = async ({
           language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
         },
       ],
+      reassigned: {
+        name: reassignedRRHost.name,
+        email: reassignedRRHost.email,
+        byUser: originalOrganizer.name || undefined,
+      },
     });
   }
 
@@ -412,9 +471,9 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendRoundRobinCancelledEmailsAndSMS(
-        cancelledRRHostEvt,
-        [
+      await sendRoundRobinReassignedEmailsAndSMS({
+        calEvent: cancelledRRHostEvt,
+        members: [
           {
             ...previousRRHost,
             name: previousRRHost.name || "",
@@ -423,9 +482,9 @@ export const roundRobinReassignment = async ({
             language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
           },
         ],
-        eventType?.metadata as EventTypeMetadata,
-        { name: reassignedRRHost.name, email: reassignedRRHost.email }
-      );
+        reassignedTo: { name: reassignedRRHost.name, email: reassignedRRHost.email },
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+      });
     }
   }
 
@@ -435,6 +494,7 @@ export const roundRobinReassignment = async ({
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
 

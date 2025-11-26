@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -56,7 +56,7 @@ const _determineRequiresConfirmation = async (
   const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
 
   if (requiresConfirmationForFreeEmail) {
-    requiresConfirmation = await checkIfFreeEmailDomain(bookerEmail);
+    requiresConfirmation = await checkIfFreeEmailDomain({ email: bookerEmail });
   }
 
   if (rcThreshold) {

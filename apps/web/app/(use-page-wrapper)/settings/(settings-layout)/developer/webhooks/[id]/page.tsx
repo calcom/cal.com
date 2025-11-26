@@ -1,11 +1,10 @@
 import type { PageProps } from "app/_types";
-import { getTranslate, _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
+import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
 import { APP_NAME } from "@calcom/lib/constants";
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -16,33 +15,21 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     `/settings/developer/webhooks/${(await params).id}`
   );
 
-const getCachedWebhook = (id?: string) => {
-  const fn = unstable_cache(
-    async () => {
-      return await WebhookRepository.findByWebhookId(id);
-    },
-    undefined,
-    { revalidate: 3600, tags: [`viewer.webhook.get:${id}`] }
-  );
-
-  return fn();
-};
-
 const Page = async ({ params: _params }: PageProps) => {
   const t = await getTranslate();
   const params = await _params;
   const id = typeof params?.id === "string" ? params.id : undefined;
 
-  const webhook = await getCachedWebhook(id);
+  const webhookRepository = WebhookRepository.getInstance();
+  const webhook = await webhookRepository.findByWebhookId(id);
 
   return (
-    <SettingsHeader
+    <SettingsHeaderWithBackButton
       title={t("edit_webhook")}
       description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton>
+      borderInShellHeader={true}>
       <EditWebhookView webhook={webhook} />
-    </SettingsHeader>
+    </SettingsHeaderWithBackButton>
   );
 };
 

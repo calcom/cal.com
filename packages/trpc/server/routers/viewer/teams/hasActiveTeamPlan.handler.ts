@@ -1,27 +1,30 @@
-import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import type { THasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 
 type HasActiveTeamPlanOptions = {
   ctx: {
     user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
+  input: THasActiveTeamPlanInputSchema;
 };
 
-export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
+export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlanOptions) => {
   if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
 
-  const teams = await prisma.team.findMany({
-    where: {
-      members: {
-        some: {
-          userId: ctx.user.id,
-          accepted: true,
-        },
-      },
-    },
-  });
+  const whereClause: Prisma.MembershipWhereInput = { userId: ctx.user.id, accepted: true };
+
+  if (input?.ownerOnly) {
+    whereClause.role = "OWNER";
+  }
+
+  const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, whereClause);
 
   if (!teams.length) return { isActive: false, isTrial: false };
 
@@ -34,13 +37,19 @@ export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions
         return { isActive: true, isTrial: false };
       }
     }
-    const teamBillingService = new InternalTeamBilling(team);
+
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus === "active" || subscriptionStatus === "past_due") {
+    if (
+      subscriptionStatus === SubscriptionStatus.ACTIVE ||
+      subscriptionStatus === SubscriptionStatus.PAST_DUE
+    ) {
       return { isActive: true, isTrial: false };
     }
-    if (subscriptionStatus === "trialing") {
+    if (subscriptionStatus === SubscriptionStatus.TRIALING) {
       isTrial = true;
     }
   }

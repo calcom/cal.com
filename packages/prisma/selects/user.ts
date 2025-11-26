@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export const availabilityUserSelect = {
   id: true,
@@ -10,6 +10,7 @@ export const availabilityUserSelect = {
   endTime: true,
   timeFormat: true,
   defaultScheduleId: true,
+  isPlatformManaged: true,
   // Relationships
   schedules: {
     select: {
@@ -42,17 +43,15 @@ export const baseUserSelect = {
 } satisfies Prisma.UserSelect;
 
 export const userSelect = {
-  select: {
-    name: true,
-    allowDynamicBooking: true,
-    destinationCalendar: true,
-    locale: true,
-    hideBranding: true,
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    metadata: true,
-    locked: true,
-    ...availabilityUserSelect,
-  },
-} satisfies Prisma.UserArgs;
+  name: true,
+  allowDynamicBooking: true,
+  destinationCalendar: true,
+  locale: true,
+  hideBranding: true,
+  theme: true,
+  brandColor: true,
+  darkBrandColor: true,
+  metadata: true,
+  locked: true,
+  ...availabilityUserSelect,
+} satisfies Prisma.UserSelect;

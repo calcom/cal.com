@@ -46,7 +46,7 @@ export function WizardForm({
   defaultStep = 1,
   disableNavigation = false,
 }: WizardFormProps) {
-  const { currentStep, maxSteps, nextStep, prevStep, isFirstStep, isLastStep } = useWizardState(
+  const { currentStep, maxSteps, nextStep, goToStep, prevStep, isFirstStep, isLastStep } = useWizardState(
     defaultStep,
     steps.length
   );
@@ -71,10 +71,9 @@ export function WizardForm({
             <Steps
               maxSteps={maxSteps}
               currentStep={currentStep}
-              nextStep={nextStep}
+              navigateToStep={goToStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
-              disableNavigation={disableNavigation}
             />
           )}
         </div>

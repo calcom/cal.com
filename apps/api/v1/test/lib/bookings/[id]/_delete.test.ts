@@ -25,7 +25,7 @@ beforeEach(() => {
     id: userId,
     email: "test@example.com",
     name: "Test User",
-  });
+  } as any);
 });
 
 afterEach(() => {

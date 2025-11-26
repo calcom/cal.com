@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -67,7 +67,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     value: number;
     label: string;
     avatarUrl: string | null;
-  }[] = !!currentlyEditingOutOfOfficeEntry
+  }[] = currentlyEditingOutOfOfficeEntry
     ? [
         {
           value: currentlyEditingOutOfOfficeEntry.forUserId || -1,
@@ -236,7 +236,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                     />
                     <div
                       className={`scroll-bar bg-default mt-2 flex ${
-                        !!currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
+                        currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
                       } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
                       {oooMemberListOptions.map((member) => (
                         <label
@@ -348,7 +348,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               />
             </div>
 
-            <div className="bg-muted my-4 rounded-xl p-5">
+            <div className="bg-cal-muted my-4 rounded-xl p-5">
               <div className="flex flex-row">
                 <Switch
                   disabled={!hasTeamPlan}

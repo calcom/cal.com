@@ -22,7 +22,8 @@ export const generateMetadata = async () =>
 
 const getCachedApiKeys = unstable_cache(
   async (userId: number) => {
-    return await PrismaApiKeyRepository.findApiKeysFromUserId({ userId });
+    const apiKeyRepository = await PrismaApiKeyRepository.withGlobalPrisma();
+    return await apiKeyRepository.findApiKeysFromUserId({ userId });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.apiKeys.list"] } // Cache for 1 hour

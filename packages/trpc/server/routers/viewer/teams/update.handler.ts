@@ -1,14 +1,14 @@
-import type { Prisma } from "@prisma/client";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole, RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -23,30 +23,49 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
-  const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
-
-  if (!isOrgAdmin) {
-    if (!(await isTeamAdmin(ctx.user?.id, input.id))) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-  }
-
-  if (input.slug) {
-    const userConflict = await prisma.team.findMany({
-      where: {
-        slug: input.slug,
-      },
-    });
-    if (userConflict.some((t) => t.id !== input.id)) return;
-  }
-
   const prevTeam = await prisma.team.findUnique({
     where: {
       id: input.id,
     },
+    select: {
+      id: true,
+      parentId: true,
+      slug: true,
+      metadata: true,
+      rrTimestampBasis: true,
+    },
   });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+  if (!ctx.user?.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const permissionCheckService = new PermissionCheckService();
+  const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: input.id,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasTeamUpdatePermission) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  if (input.slug) {
+    const orgId = ctx.user.organizationId;
+    const teamRepository = new TeamRepository(prisma);
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
+      slug: input.slug,
+      teamId: input.id,
+      parentId: orgId,
+    });
+    if (!isSlugAvailable) {
+      throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
+    }
+  }
 
   if (input.bookingLimits) {
     const isValid = validateIntervalLimitOrder(input.bookingLimits);
@@ -95,7 +114,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.slug = input.slug;
 
     // If we save slug, we don't need the requestedSlug anymore
-    const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+    const metadataParse = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
     if (metadataParse.success) {
       const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
       data.metadata = {

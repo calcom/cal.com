@@ -1,13 +1,12 @@
+import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
 import { APP_NAME } from "@calcom/lib/constants";
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -20,29 +19,16 @@ export const generateMetadata = async () =>
     "/settings/developer/webhooks"
   );
 
-const getCachedWebhooksList = unstable_cache(
-  async ({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) => {
-    return await WebhookRepository.getAllWebhooksByUserId({
-      userId,
-      userRole,
-    });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.webhook.getByViewer"] }
-);
-
 const WebhooksViewServerWrapper = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
 
-  const isAdmin = session.user.role === UserPermissionRole.ADMIN;
-  const userRole = session.user.role !== "INACTIVE_ADMIN" ? session.user.role : undefined;
+  const caller = await createRouterCaller(webhookRouter);
+  const data = await caller.getByViewer();
 
-  const data = await getCachedWebhooksList({ userId: session.user.id, userRole });
-
-  return <WebhooksView data={data} isAdmin={isAdmin} />;
+  return <WebhooksView data={data} />;
 };
 
 export default WebhooksViewServerWrapper;

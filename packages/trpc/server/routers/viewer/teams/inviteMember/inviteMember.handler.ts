@@ -1,12 +1,12 @@
 import { type TFunction } from "i18next";
 
-import { TeamBilling } from "@calcom/ee/billing/teams";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -228,8 +228,9 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  const teamBilling = TeamBilling.init(team);
-  await teamBilling.updateQuantity();
+  const teamBillingServiceFactory = getTeamBillingServiceFactory();
+  const teamBillingService = teamBillingServiceFactory.init(team);
+  await teamBillingService.updateQuantity();
 
   return {
     // TODO: Better rename it to invitations only maybe?

@@ -29,7 +29,7 @@ function AvailabiltyItem() {
 export function AvailabiltySchedulesContainer() {
   const { t } = useLocale();
   return (
-    <div className="flex flex-col space-y-3">
+    <div className="flex flex-col stack-y-3">
       <p className="text-sm font-medium leading-none">{t("availabilty_schedules")}</p>
       <AvailabiltyItem />
       <Button color="secondary" className="justify-center gap-2">

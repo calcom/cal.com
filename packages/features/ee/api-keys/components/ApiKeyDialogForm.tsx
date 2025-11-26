@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { API_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -56,6 +57,18 @@ export default function ApiKeyDialogForm({
       note: defaultValues?.note || "",
       neverExpires: defaultValues?.neverExpires || false,
       expiresAt: defaultValues?.expiresAt || dayjs().add(30, "day").toDate(),
+    },
+    mode: "onChange",
+    criteriaMode: "all",
+    resolver: (values) => {
+      const errors: { note?: { type: string; message: string } } = {};
+      if (values.note && values.note.length > API_NAME_LENGTH_MAX_LIMIT) {
+        errors.note = {
+          type: "maxLength",
+          message: t("api_key_name_too_long", { max: API_NAME_LENGTH_MAX_LIMIT }),
+        };
+      }
+      return { values, errors };
     },
   });
   const watchNeverExpires = form.watch("neverExpires");
@@ -128,7 +141,6 @@ export default function ApiKeyDialogForm({
           form={form}
           handleSubmit={async (event) => {
             if (defaultValues) {
-              console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
               const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
@@ -139,13 +151,13 @@ export default function ApiKeyDialogForm({
               setSuccessfulNewApiKeyModal(true);
             }
           }}
-          className="space-y-4">
+          className="stack-y-4">
           <div className="mb-4 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
             {IS_CALCOM ? (
-              <div className="mt-4 block gap-2 sm:flex">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle")}
                 </div>
@@ -166,7 +178,7 @@ export default function ApiKeyDialogForm({
             <Controller
               name="note"
               control={form.control}
-              render={({ field: { onChange, value } }) => (
+              render={({ field: { value } }) => (
                 <TextField
                   name="note"
                   label={t("personal_note")}
@@ -183,7 +195,7 @@ export default function ApiKeyDialogForm({
           {!defaultValues && (
             <div className="flex flex-col">
               <div className="flex justify-between py-2">
-                <span className="text-default block text-sm font-medium">{t("expire_date")}</span>
+                <span className="text-default flex items-center text-sm font-medium">{t("expire_date")}</span>
                 <Controller
                   name="neverExpires"
                   control={form.control}
@@ -199,7 +211,7 @@ export default function ApiKeyDialogForm({
               </div>
               <Controller
                 name="expiresAt"
-                render={({ field: { onChange, value } }) => {
+                render={({ field: { onChange } }) => {
                   const defaultValue = expiresAtOptions[1];
 
                   return (

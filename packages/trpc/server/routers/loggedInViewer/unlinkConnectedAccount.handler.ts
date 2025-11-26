@@ -2,11 +2,14 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type UpdateProfileOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+      identityProvider: IdentityProvider;
+      identityProviderId: string | null;
+    };
     res?: NextApiResponse | GetServerSidePropsContext["res"];
   };
 };
@@ -16,12 +19,16 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
   // Unlink the account
   const CalComAdapter = (await import("@calcom/features/auth/lib/next-auth-custom-adapter")).default;
   const calcomAdapter = CalComAdapter(prisma);
+  const provider = user.identityProvider.toLocaleLowerCase();
   // If it fails to delete, don't stop because the users login data might not be present
   try {
-    await calcomAdapter.unlinkAccount({
-      provider: user.identityProvider.toLocaleLowerCase(),
-      providerAccountId: user.identityProviderId || "",
-    });
+    // if fn doesn't exist, do nothing.
+    if (calcomAdapter.unlinkAccount) {
+      await calcomAdapter.unlinkAccount({
+        provider,
+        providerAccountId: user.identityProviderId || "",
+      });
+    }
   } catch {
     // Fail silently if we don't have a record in the account table
   }
@@ -35,6 +42,9 @@ const unlinkConnectedAccount = async ({ ctx }: UpdateProfileOptions) => {
     data: {
       identityProvider: IdentityProvider.CAL,
       identityProviderId: null,
+    },
+    select: {
+      id: true,
     },
   });
   if (!_user) return { message: "account_unlinked_error" };

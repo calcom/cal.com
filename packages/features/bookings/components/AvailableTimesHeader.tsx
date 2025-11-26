@@ -2,12 +2,12 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
-import { useBookerStore } from "../Booker/store";
 import { TimeFormatToggle } from "./TimeFormatToggle";
 
 type AvailableTimesHeaderProps = {
@@ -28,7 +28,7 @@ export const AvailableTimesHeader = ({
   customClassNames,
 }: AvailableTimesHeaderProps) => {
   const { t, i18n } = useLocale();
-  const [layout] = useBookerStore((state) => [state.layout], shallow);
+  const [layout] = useBookerStoreContext((state) => [state.layout], shallow);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const isToday = dayjs().isSame(date, "day");
@@ -36,7 +36,7 @@ export const AvailableTimesHeader = ({
   return (
     <header
       className={classNames(
-        `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
+        `dark:bg-cal-muted dark:before:bg-cal-muted mb-3 flex w-full flex-row items-center font-medium`,
         "bg-default before:bg-default",
         customClassNames?.availableTimeSlotsHeaderContainer
       )}>

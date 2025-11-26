@@ -1,9 +1,9 @@
 import type z from "zod";
 
 import { slugify } from "@calcom/lib/slugify";
-import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod/custom/booking";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { bookingCreateSchemaLegacyPropsForApi } from "../bookingCreateBodySchema";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
 type CustomInputs = z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];

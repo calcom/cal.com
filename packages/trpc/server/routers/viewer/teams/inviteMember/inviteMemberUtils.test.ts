@@ -1,7 +1,6 @@
-import { describe, it, vi, expect } from "vitest";
+import { describe, it, vi, expect, beforeEach } from "vitest";
 
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -17,11 +16,21 @@ import {
   canBeInvited,
   getAutoJoinStatus,
   checkInputEmailIsValid,
+  createMemberships,
 } from "./utils";
 
-vi.mock("@calcom/lib/server/queries/teams", () => {
+const { mockCreateMany } = vi.hoisted(() => {
+  const mockCreateManyFn = vi.fn();
+  return { mockCreateMany: mockCreateManyFn };
+});
+
+vi.mock("@calcom/prisma", () => {
   return {
-    isTeamAdmin: vi.fn(),
+    prisma: {
+      membership: {
+        createMany: mockCreateMany,
+      },
+    },
   };
 });
 
@@ -32,39 +41,32 @@ vi.mock("@calcom/lib/server/queries/organisations", () => {
   };
 });
 
-const mockedReturnSuccessCheckPerms = {
-  accepted: true,
-  disableImpersonation: false,
-  id: 1,
-  role: MembershipRole.ADMIN,
-  userId: 1,
-  teamId: 1,
-  team: {
-    id: 1,
-    name: "Team A",
-    slug: null,
-    logo: null,
-    appLogo: null,
-    appIconLogo: null,
-    bio: null,
-    hideBranding: false,
-    hideBookATeamMember: false,
-    createdAt: new Date(),
-    brandColor: "#292929",
-    darkBrandColor: "#fafafa",
-    timeZone: "Europe/London",
-    weekStart: "Sunday",
-    theme: null,
-    timeFormat: null,
-    metadata: null,
-    parentId: null,
-    parent: null,
-    isPrivate: false,
-    logoUrl: "",
-    calVideoLogo: "",
-    isOrganization: false,
-  },
-};
+vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
+  return {
+    PermissionCheckService: vi.fn(),
+  };
+});
+
+vi.mock("@calcom/lib/logger", () => {
+  const mockSubLogger = {
+    debug: vi.fn(),
+    error: vi.fn(),
+    log: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    getSubLogger: vi.fn(() => mockSubLogger),
+  };
+  return {
+    default: {
+      getSubLogger: vi.fn(() => mockSubLogger),
+      error: vi.fn(),
+      debug: vi.fn(),
+      log: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+    },
+  };
+});
 
 const mockedRegularTeam: TeamWithParent = {
   id: 1,
@@ -95,6 +97,11 @@ const mockedRegularTeam: TeamWithParent = {
   smsLockState: "LOCKED",
   createdByOAuthClientId: null,
   smsLockReviewedByAdmin: false,
+  hideTeamProfileLink: false,
+  rrResetInterval: null,
+  rrTimestampBasis: "CREATED_AT",
+  bookingLimits: null,
+  includeManagedEventsInLimits: false,
 };
 
 const mockedSubTeam = {
@@ -128,27 +135,45 @@ const userInTeamNotAccepted: UserWithMembership = {
 describe("Invite Member Utils", () => {
   describe("ensureAtleastAdminPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
-      vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
+      const mockCheckPermission = vi.fn().mockResolvedValue(false);
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () =>
+          ({
+            checkPermission: mockCheckPermission,
+          } as any)
+      );
+
       await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow(
         "UNAUTHORIZED"
       );
+
+      expect(mockCheckPermission).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 1,
+        permission: "organization.invite",
+        fallbackRoles: ["OWNER", "ADMIN"],
+      });
     });
 
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
-      vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
+      const mockCheckPermission = vi.fn().mockResolvedValue(true);
+      vi.mocked(PermissionCheckService).mockImplementation(
+        () =>
+          ({
+            checkPermission: mockCheckPermission,
+          } as any)
+      );
+
       await expect(
         ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })
       ).resolves.not.toThrow();
-    });
 
-    it("It should throw an error if the user is not an admin of the team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow("UNAUTHORIZED");
-    });
-
-    it("It should NOT throw an error if the user is an admin of a team", async () => {
-      vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
+      expect(mockCheckPermission).toHaveBeenCalledWith({
+        userId: 1,
+        teamId: 1,
+        permission: "organization.invite",
+        fallbackRoles: ["OWNER", "ADMIN"],
+      });
     });
   });
 
@@ -263,9 +288,13 @@ describe("Invite Member Utils", () => {
           adminGetsNoSlotsNotification: false,
           isAdminReviewed: false,
           isAdminAPIEnabled: false,
+          allowSEOIndexing: false,
+          orgProfileRedirectsToVerifiedDomain: false,
+          disablePhoneOnlySMSNotifications: false,
         },
         slug: "abc",
         parent: null,
+        isOrganization: true,
       };
       const result = getOrgState(true, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
@@ -293,6 +322,9 @@ describe("Invite Member Utils", () => {
             adminGetsNoSlotsNotification: false,
             isAdminReviewed: false,
             isAdminAPIEnabled: false,
+            allowSEOIndexing: false,
+            orgProfileRedirectsToVerifiedDomain: false,
+            disablePhoneOnlySMSNotifications: false,
           },
         },
       };
@@ -410,6 +442,7 @@ describe("Invite Member Utils", () => {
         ...mockedRegularTeam,
         parentId: null,
         id: inviteeOrgId,
+        isOrganization: true,
       };
       expect(canBeInvited(inviteeWithOrg, organization)).toBe(INVITE_STATUS.USER_ALREADY_INVITED_OR_MEMBER);
     });
@@ -445,10 +478,31 @@ describe("Invite Member Utils", () => {
       const organization = {
         ...mockedRegularTeam,
         id: organizationIdBeingInvitedTo,
+        isOrganization: true,
       };
       expect(canBeInvited(inviteeWithOrg, organization)).toBe(
         INVITE_STATUS.USER_MEMBER_OF_OTHER_ORGANIZATION
       );
+    });
+
+    it("should return CAN_BE_INVITED if the user being invited has a profile with the organization already", () => {
+      const organizationId = 3;
+      const inviteeWithOrg: UserWithMembership = {
+        ...invitee,
+        profiles: [
+          getSampleProfile({
+            organizationId: organizationId,
+          }),
+        ],
+        teams: [],
+      };
+
+      const organization = {
+        ...mockedRegularTeam,
+        id: organizationId,
+        isOrganization: true,
+      };
+      expect(canBeInvited(inviteeWithOrg, organization)).toBe(INVITE_STATUS.CAN_BE_INVITED);
     });
 
     it("should return USER_MEMBER_OF_OTHER_ORGANIZATION if the invitee is being invited to a sub-team in an organization but he belongs to another organization", () => {
@@ -584,6 +638,178 @@ describe("Invite Member Utils", () => {
         needToCreateOrgMembership: false,
         needToCreateProfile: false,
       });
+    });
+  });
+
+  describe("createMemberships - Privilege Escalation Prevention", () => {
+    beforeEach(() => {
+      mockCreateMany.mockClear();
+      mockCreateMany.mockResolvedValue({ count: 0 });
+    });
+
+    it("should NOT escalate privilege when attacker has OWNER role in unrelated team", async () => {
+      const attackerTeamId = 999; // Attacker's personal team
+      const victimTeamId = 100; // Victim team being invited to
+      const victimOrgId = 200; // Parent organization of victim team
+
+      const attacker: UserWithMembership & {
+        newRole: MembershipRole;
+        needToCreateOrgMembership: boolean | null;
+      } = {
+        ...mockUser,
+        id: 1,
+        email: "attacker@example.com",
+        username: "attacker",
+        teams: [
+          // Attacker controls this - OWNER role in their personal team (first in array)
+          { teamId: attackerTeamId, userId: 1, accepted: true, role: MembershipRole.OWNER },
+          // Some other unrelated membership
+          { teamId: 50, userId: 1, accepted: true, role: MembershipRole.MEMBER },
+        ],
+        newRole: MembershipRole.MEMBER, // Inviter wants to invite as MEMBER
+        needToCreateOrgMembership: true,
+      };
+
+      await createMemberships({
+        teamId: victimTeamId,
+        language: "en",
+        invitees: [attacker],
+        parentId: victimOrgId,
+        accepted: false,
+      });
+
+      // Verify createMany was called
+      expect(mockCreateMany).toHaveBeenCalledTimes(1);
+
+      // Get the data that was passed to createMany
+      const callArgs = mockCreateMany.mock.calls[0][0];
+      const createdMemberships = callArgs.data;
+
+      // Should create 2 memberships: one for team, one for org
+      expect(createdMemberships).toHaveLength(2);
+
+      // Check team membership - should be MEMBER (inviter's choice), NOT OWNER
+      const teamMembership = createdMemberships.find((m: any) => m.teamId === victimTeamId);
+      expect(teamMembership).toBeDefined();
+      expect(teamMembership.role).toBe(MembershipRole.MEMBER);
+      expect(teamMembership.userId).toBe(attacker.id);
+      expect(teamMembership.accepted).toBe(false);
+
+      // Check org membership
+      const orgMembership = createdMemberships.find((m: any) => m.teamId === victimOrgId);
+      expect(orgMembership).toBeDefined();
+      expect(orgMembership.role).toBe(MembershipRole.MEMBER);
+    });
+
+    it("should preserve ADMIN role when user is already ADMIN in parent organization", async () => {
+      const teamId = 100;
+      const parentOrgId = 200;
+
+      const existingAdmin: UserWithMembership & {
+        newRole: MembershipRole;
+        needToCreateOrgMembership: boolean | null;
+      } = {
+        ...mockUser,
+        id: 2,
+        email: "admin@example.com",
+        username: "admin",
+        teams: [
+          // User is already ADMIN in the parent org
+          { teamId: parentOrgId, userId: 2, accepted: true, role: MembershipRole.ADMIN },
+        ],
+        newRole: MembershipRole.MEMBER, // Inviter wants MEMBER, but should preserve ADMIN
+        needToCreateOrgMembership: false, // Already has org membership
+      };
+
+      await createMemberships({
+        teamId,
+        language: "en",
+        invitees: [existingAdmin],
+        parentId: parentOrgId,
+        accepted: true,
+      });
+
+      const callArgs = mockCreateMany.mock.calls[0][0];
+      const createdMemberships = callArgs.data;
+
+      // Should only create team membership (org membership already exists)
+      expect(createdMemberships).toHaveLength(1);
+
+      // Should preserve ADMIN role since user is ADMIN in parent org
+      const teamMembership = createdMemberships.find((m: any) => m.teamId === teamId);
+      expect(teamMembership.role).toBe(MembershipRole.ADMIN);
+    });
+
+    it("should use inviter's role when user has no membership in parent organization", async () => {
+      const teamId = 100;
+      const parentOrgId = 200;
+      const unrelatedTeamId = 999;
+
+      const user: UserWithMembership & {
+        newRole: MembershipRole;
+        needToCreateOrgMembership: boolean | null;
+      } = {
+        ...mockUser,
+        id: 3,
+        email: "user@example.com",
+        username: "user",
+        teams: [
+          // User has OWNER in unrelated team, but NOT in parent org
+          { teamId: unrelatedTeamId, userId: 3, accepted: true, role: MembershipRole.OWNER },
+        ],
+        newRole: MembershipRole.MEMBER,
+        needToCreateOrgMembership: true,
+      };
+
+      await createMemberships({
+        teamId,
+        language: "en",
+        invitees: [user],
+        parentId: parentOrgId,
+        accepted: false,
+      });
+
+      const callArgs = mockCreateMany.mock.calls[0][0];
+      const createdMemberships = callArgs.data;
+
+      const teamMembership = createdMemberships.find((m: any) => m.teamId === teamId);
+      // Should use inviter's chosen role (MEMBER), not OWNER from unrelated team
+      expect(teamMembership.role).toBe(MembershipRole.MEMBER);
+    });
+
+    it("should use inviter's role when inviting to team without parent organization", async () => {
+      const teamId = 100;
+
+      const user: UserWithMembership & {
+        newRole: MembershipRole;
+        needToCreateOrgMembership: boolean | null;
+      } = {
+        ...mockUser,
+        id: 4,
+        email: "user2@example.com",
+        username: "user2",
+        teams: [
+          // User has OWNER in unrelated team
+          { teamId: 999, userId: 4, accepted: true, role: MembershipRole.OWNER },
+        ],
+        newRole: MembershipRole.MEMBER,
+        needToCreateOrgMembership: null,
+      };
+
+      await createMemberships({
+        teamId,
+        language: "en",
+        invitees: [user],
+        parentId: null, // No parent org
+        accepted: false,
+      });
+
+      const callArgs = mockCreateMany.mock.calls[0][0];
+      const createdMemberships = callArgs.data;
+
+      expect(createdMemberships).toHaveLength(1);
+      // Should use inviter's chosen role when no parentId
+      expect(createdMemberships[0].role).toBe(MembershipRole.MEMBER);
     });
   });
 });

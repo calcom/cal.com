@@ -1,26 +1,25 @@
-import type { User as UserType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { User as UserType } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
-  eventTypeMetaDataSchemaWithTypedApps,
   bookerLayoutOptions,
   bookerLayouts as bookerLayoutsSchema,
   customInputSchema,
@@ -45,6 +44,11 @@ const userSelect = {
       name: true,
       slug: true,
       bannerUrl: true,
+      organizationSettings: {
+        select: {
+          disableAutofillOnBookingPage: true,
+        },
+      },
     },
   },
   defaultScheduleId: true,
@@ -106,9 +110,19 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            organizationSettings: {
+              select: {
+                disableAutofillOnBookingPage: true,
+              },
+            },
           },
         },
         isPrivate: true,
+        organizationSettings: {
+          select: {
+            disableAutofillOnBookingPage: true,
+          },
+        },
       },
     },
     successRedirectUrl: true,
@@ -155,6 +169,17 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     rescheduleWithSameRoundRobinHost: true,
     restrictionScheduleId: true,
     useBookerTimezone: true
+    parent: {
+      select: {
+        team: {
+          select: {
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    },
   } satisfies Prisma.EventTypeSelect;
 };
 
@@ -565,301 +590,9 @@ export const getPublicEvent = async (
   };
 };
 
-// A cleaner version of `getPublicEvent` that uses various helper functions like `processEventDataShared` and `getEventTypeHosts`
-// There is still a lot of room for improvement, but it's a good starting point.
-// For example, currently we have logic for all user / team / org / platform logic in this function.
-// We should break this down into more dedicated functions.
-const getPublicEventRefactored = async (
-  username: string,
-  eventSlug: string,
-  isTeamEvent: boolean | undefined,
-  org: string | null,
-  prisma: PrismaClient,
-  fromRedirectOfNonOrgLink: boolean,
-  currentUserId?: number,
-  fetchAllUsers = false
-) => {
-  const usernameList = getUsernameList(username);
-  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
-  // In case of dynamic group event, we fetch user's data and use the default event.
-  if (usernameList.length > 1) {
-    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
-      usernameList,
-      orgSlug: org,
-    });
-    const users = usersInOrgContext;
+const eventData = getPublicEventSelect(true);
 
-    const defaultEvent = getDefaultEvent(eventSlug);
-    let locations = defaultEvent.locations ? (defaultEvent.locations as LocationObject[]) : [];
-
-    // Get the preferred location type from the first user
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
-    const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
-
-    if (preferedLocationType?.appSlug) {
-      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
-      const appType = foundApp?.appData?.location?.type;
-      if (appType) {
-        // Replace the location with the preferred location type
-        // This will still be default to daily if the app is not found
-        locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
-      }
-    }
-
-    const defaultEventBookerLayouts = {
-      enabledLayouts: [...bookerLayoutOptions],
-      defaultLayout: BookerLayouts.MONTH_VIEW,
-    } as BookerLayoutSettings;
-    const disableBookingTitle = !defaultEvent.isDynamic;
-    const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
-
-    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
-    if (org) {
-      orgDetails = await prisma.team.findFirstOrThrow({
-        where: {
-          slug: org,
-        },
-        select: {
-          logoUrl: true,
-          name: true,
-        },
-      });
-    }
-
-    return {
-      ...defaultEvent,
-      bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
-      // Clears meta data since we don't want to send this in the public api.
-      subsetOfUsers: users.map((user) => ({
-        ...user,
-        metadata: undefined,
-        bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
-      })),
-      users: fetchAllUsers
-        ? users.map((user) => ({
-            ...user,
-            metadata: undefined,
-            bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
-          }))
-        : undefined,
-      locations: privacyFilteredLocations(locations),
-      profile: {
-        weekStart: users[0].weekStart,
-        brandColor: users[0].brandColor,
-        darkBrandColor: users[0].darkBrandColor,
-        theme: null,
-        bookerLayouts: bookerLayoutsSchema.parse(
-          firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
-        ),
-        ...(orgDetails
-          ? {
-              image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
-              name: orgDetails?.name,
-              username: org,
-            }
-          : {}),
-      },
-      entity: {
-        considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
-        fromRedirectOfNonOrgLink,
-        orgSlug: org,
-        name: unPublishedOrgUser?.profile?.organization?.name ?? null,
-        teamSlug: null,
-        logoUrl: null,
-        hideProfileLink: false,
-      },
-      isInstantEvent: false,
-      instantMeetingParameters: [],
-      showInstantEventConnectNowModal: false,
-      autoTranslateDescriptionEnabled: false,
-      fieldTranslations: [],
-    };
-  }
-
-  const usersOrTeamQuery = isTeamEvent
-    ? {
-        team: {
-          ...getSlugOrRequestedSlug(username),
-          parent: orgQuery,
-        },
-      }
-    : {
-        users: {
-          some: {
-            ...(orgQuery
-              ? {
-                  profiles: {
-                    some: {
-                      organization: orgQuery,
-                      username: username,
-                    },
-                  },
-                }
-              : {
-                  username,
-                  profiles: { none: {} },
-                }),
-          },
-        },
-        team: null,
-      };
-
-  // In case it's not a group event, it's either a single user or a team, and we query that data.
-  let event = await prisma.eventType.findFirst({
-    where: {
-      slug: eventSlug,
-      ...usersOrTeamQuery,
-    },
-    select: getPublicEventSelect(fetchAllUsers),
-  });
-
-  // If no event was found, check for platform org user event
-  if (!event && !orgQuery) {
-    event = await prisma.eventType.findFirst({
-      where: {
-        slug: eventSlug,
-        users: {
-          some: {
-            username,
-            isPlatformManaged: false,
-            profiles: {
-              some: {
-                organization: {
-                  isPlatform: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      select: getPublicEventSelect(fetchAllUsers),
-    });
-  }
-
-  if (!event) return null;
-
-  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
-  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const { subsetOfHosts, hosts } = await getEventTypeHosts({
-    hosts: event.hosts,
-    fetchAllUsers,
-    prisma,
-  });
-
-  const eventWithUserProfiles = {
-    ...event,
-    owner: event.owner
-      ? await new UserRepository(prisma).enrichUserWithItsProfile({
-          user: event.owner,
-        })
-      : null,
-    subsetOfHosts,
-    hosts,
-  };
-
-  let users =
-    (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
-    (await getOwnerFromUsersArray(prisma, event.id));
-
-  if (users === null) {
-    throw new Error(`EventType ${event.id} has no owner or users.`);
-  }
-  //In case the event schedule is not defined ,use the event owner's default schedule
-  if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
-    const eventOwnerDefaultSchedule = await prisma.schedule.findUnique({
-      where: {
-        id: eventWithUserProfiles.owner?.defaultScheduleId,
-      },
-      select: {
-        id: true,
-        timeZone: true,
-      },
-    });
-    eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
-  }
-
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
-  if (org) {
-    orgDetails = await prisma.team.findFirst({
-      where: {
-        slug: org,
-        parentId: null,
-      },
-      select: {
-        logoUrl: true,
-        name: true,
-      },
-    });
-  }
-
-  const isTeamAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.teamId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
-
-  const isOrgAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.team?.parentId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
-
-  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
-    users = [];
-  }
-
-  const eventDataShared = await processEventDataShared({
-    eventData: event,
-    metadata: eventMetaData,
-    prisma,
-  });
-
-  return {
-    ...eventDataShared,
-    // getPublicEvent-specific overrides
-    owner: eventWithUserProfiles.owner,
-    subsetOfHosts,
-    hosts,
-    // Sets user data on profile object for easier access
-    profile: getProfileFromEvent(eventWithUserProfiles),
-    subsetOfUsers: users,
-    users: fetchAllUsers ? users : undefined,
-    entity: {
-      fromRedirectOfNonOrgLink,
-      considerUnpublished:
-        !fromRedirectOfNonOrgLink &&
-        (eventWithUserProfiles.team?.slug === null ||
-          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-          eventWithUserProfiles.team?.parent?.slug === null),
-      orgSlug: org,
-      teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
-      name:
-        (eventWithUserProfiles.owner?.profile?.organization?.name ||
-          eventWithUserProfiles.team?.parent?.name ||
-          eventWithUserProfiles.team?.name) ??
-        null,
-      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
-      ...(orgDetails
-        ? {
-            logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
-            name: orgDetails?.name,
-          }
-        : {}),
-    },
-  };
-};
-
-const eventData = {
-  select: getPublicEventSelect(true),
-} satisfies Prisma.EventTypeArgs;
-
-type Event = Prisma.EventTypeGetPayload<typeof eventData>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
@@ -868,10 +601,11 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
 
 export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
-  const nonTeamprofile = hosts?.[0]?.user || owner;
-  const profile = team || nonTeamprofile;
+  const nonTeamProfile = hosts?.[0]?.user || owner;
+  const profile = team || nonTeamProfile;
   if (!profile) throw new Error("Event has no owner");
 
+  const styleProfile = team || event.parent?.team || nonTeamProfile;
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
@@ -884,11 +618,11 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
     image: team
       ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
-          avatarUrl: nonTeamprofile?.avatarUrl,
+          avatarUrl: nonTeamProfile?.avatarUrl,
         }),
-    brandColor: profile.brandColor,
-    darkBrandColor: profile.darkBrandColor,
-    theme: profile.theme,
+    brandColor: styleProfile.brandColor,
+    darkBrandColor: styleProfile.darkBrandColor,
+    theme: styleProfile.theme,
     bookerLayouts: bookerLayoutsSchema.parse(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
@@ -918,7 +652,7 @@ export async function getUsersFromEvent(
 ) {
   const { team, hosts, subsetOfHosts, owner, id } = event;
   if (team) {
-    const eventHosts = !!hosts?.length ? hosts : subsetOfHosts;
+    const eventHosts = hosts?.length ? hosts : subsetOfHosts;
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)

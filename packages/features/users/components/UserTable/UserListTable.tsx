@@ -3,6 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
@@ -22,12 +23,12 @@ import {
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
-  downloadAsCsv,
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/lib/csvUtils";
+} from "@calcom/features/users/lib/UserListTableUtils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -50,7 +51,7 @@ import { EditUserSheet } from "./EditSheet/EditUserSheet";
 import { ImpersonationMemberModal } from "./ImpersonationMemberModal";
 import { InviteMemberModal } from "./InviteMemberModal";
 import { TableActions } from "./UserTableActions";
-import type { UserTableState, UserTableAction, UserTableUser } from "./types";
+import type { UserTableState, UserTableAction, UserTableUser, MemberPermissions } from "./types";
 
 const initialState: UserTableState = {
   changeMemberRole: {
@@ -122,17 +123,26 @@ export type UserListTableProps = {
       }[];
     }[];
   };
+  permissions?: MemberPermissions;
 };
 
 export function UserListTable(props: UserListTableProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
+function UserListTableContent({
+  org,
+  attributes,
+  teams,
+  facetedTeamValues,
+  permissions,
+}: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -161,19 +171,18 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
     }
   );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
 
   const memorisedColumns = useMemo(() => {
-    const permissions = {
-      canEdit: adminOrOwner,
-      canRemove: adminOrOwner,
-      canResendInvitation: adminOrOwner,
-      canImpersonate: false,
+    // Use PBAC permissions if available, otherwise fall back to role-based check
+    const tablePermissions = {
+      canEdit: permissions?.canChangeMemberRole ?? adminOrOwner,
+      canRemove: permissions?.canRemove ?? adminOrOwner,
+      canResendInvitation: permissions?.canInvite ?? adminOrOwner,
+      canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
     const generateAttributeColumns = () => {
       if (!attributes?.length) {
@@ -378,9 +387,6 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
@@ -394,9 +400,6 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
@@ -410,9 +413,6 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         meta: {
           filter: {
             type: ColumnFilterType.DATE_RANGE,
-            dateRangeOptions: {
-              endOfDay: true,
-            },
           },
         },
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
@@ -445,14 +445,18 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         size: 80,
         cell: ({ row }) => {
           const user = row.original;
-          const permissionsRaw = permissions;
+          const permissionsRaw = tablePermissions;
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
-              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
+              user.accepted &&
+              !user.disableImpersonation &&
+              !isSelf &&
+              !!org?.canAdminImpersonate &&
+              permissionsRaw.canImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
@@ -470,7 +474,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
     ];
 
     return cols;
-  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate]);
+  }, [session?.user.id, adminOrOwner, dispatch, domain, attributes, org?.canAdminImpersonate, permissions]);
 
   const table = useReactTable({
     data: flatData,
@@ -511,7 +515,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                 value: team.name,
               }))
             );
-          default:
+          default: {
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
               return convertFacetedValuesToMap(
@@ -522,6 +526,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               );
             }
             return new Map();
+          }
         }
       }
       return new Map();
@@ -608,18 +613,18 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
+          <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
               <>
-                {adminOrOwner && <TeamListBulkAction table={table} />}
+                {permissions?.canChangeMemberRole && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -628,11 +633,15 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
-                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
+                )}
+                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                  <EventTypesList table={table} orgTeams={teams} />
+                )}
               </>
             ) : null}
-            {adminOrOwner && (
+            {(permissions?.canRemove ?? adminOrOwner) && (
               <DeleteBulkUsers
                 users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
                 onRemove={() => table.toggleAllPageRowsSelected(false)}
@@ -660,7 +669,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
-            {adminOrOwner && (
+            {(permissions?.canInvite ?? adminOrOwner) && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"

@@ -13,6 +13,7 @@ import { DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -44,6 +45,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
     onSuccess: async (data) => {
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
+      revalidateTeamsList();
       onSuccess(data);
     },
 
@@ -145,7 +147,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                 value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true).replace(/\./g, ""), {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");

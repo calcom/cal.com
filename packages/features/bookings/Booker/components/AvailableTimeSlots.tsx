@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
@@ -13,7 +14,6 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
-import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
@@ -49,6 +49,7 @@ type AvailableTimeSlotsProps = {
    */
   unavailableTimeSlots: string[];
   confirmButtonDisabled?: boolean;
+  onAvailableTimeSlotSelect: (time: string) => void;
 };
 
 /**
@@ -72,17 +73,17 @@ export const AvailableTimeSlots = ({
   unavailableTimeSlots,
   confirmButtonDisabled,
   confirmStepClassNames,
+  onAvailableTimeSlotSelect,
   ...props
 }: AvailableTimeSlotsProps) => {
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
-  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
-  const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
+  const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
-  const [layout] = useBookerStore((state) => [state.layout]);
+  const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
@@ -146,7 +147,9 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
-      setSelectedTimeslot(time);
+
+      onAvailableTimeSlotSelect(time);
+
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);
@@ -156,12 +159,12 @@ export const AvailableTimeSlots = ({
     [
       onSubmit,
       setSeatedEventData,
-      setSelectedTimeslot,
       skipConfirmStep,
       showAvailableSeatsCount,
       unavailableTimeSlots,
       schedule,
       setTentativeSelectedTimeslots,
+      onAvailableTimeSlotSelect,
     ]
   );
 
@@ -211,7 +214,7 @@ export const AvailableTimeSlots = ({
       <div
         ref={containerRef}
         className={classNames(
-          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
+          limitHeight && "scroll-bar grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>
@@ -220,7 +223,7 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
+            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden!">
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}
                 customClassNames={customClassNames?.availableTimes}

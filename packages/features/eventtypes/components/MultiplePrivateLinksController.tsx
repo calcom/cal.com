@@ -294,6 +294,20 @@ export const MultiplePrivateLinksController = ({
                       />
                       <div className="ml-2 flex items-center">
                         {!isExpired && (
+                          <Tooltip content={t("preview")}>
+                            <Button
+                              type="button"
+                              color="minimal"
+                              variant="icon"
+                              StartIcon="external-link"
+                              data-testid="private-link-preview"
+                              href={singleUseURL}
+                              target="_blank"
+                              rel="noreferrer"
+                            />
+                          </Tooltip>
+                        )}
+                        {!isExpired && (
                           <Button
                             type="button"
                             color="minimal"
@@ -334,9 +348,9 @@ export const MultiplePrivateLinksController = ({
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent title={t("link_settings")} type="creation">
-          <div className="mb-4 space-y-4">
+          <div className="mb-4 stack-y-4">
             <RadioArea.Group
-              className="space-y-2"
+              className="stack-y-2"
               value={selectedType}
               data-testid="private-link-radio-group"
               onValueChange={(value: "time" | "usage") => {

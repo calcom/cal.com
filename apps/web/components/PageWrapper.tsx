@@ -9,6 +9,7 @@ import Script from "next/script";
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { IconSprites } from "@calcom/ui/components/icon";
 
@@ -23,7 +24,7 @@ export interface CalPageWrapper {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -64,7 +65,7 @@ function PageWrapper(props: AppProps) {
         // Set canonical to https://cal.com or self-hosted URL
         canonical={
           IS_CALCOM
-            ? buildCanonical({ path, origin: "https://cal.com" }) // cal.com & .dev
+            ? buildCanonical({ path, origin: getCalcomUrl() }) // cal.com & .dev
             : buildCanonical({ path, origin: WEBAPP_URL }) // self-hosted
         }
         {...seoConfig.defaultNextSeo}
@@ -79,7 +80,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-inter: ${interFont.style.fontFamily};
+          --font-sans: ${interFont.style.fontFamily};
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>

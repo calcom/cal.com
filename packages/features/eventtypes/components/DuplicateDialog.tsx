@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { EventTypeDuplicateInput } from "@calcom/features/eventtypes/lib/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +14,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
@@ -70,7 +70,7 @@ const DuplicateDialog = () => {
     }
   }, [searchParams?.get("dialog")]);
 
-  const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
+  const duplicateMutation = trpc.viewer.eventTypesHeavy.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}`);
 
@@ -93,6 +93,13 @@ const DuplicateDialog = () => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+        return;
+      }
+
+      if (err.data?.code === "CONFLICT") {
+        const message = t("duplicate_event_slug_conflict");
+        showToast(message, "error");
+        return;
       }
 
       if (err.data?.code === "INTERNAL_SERVER_ERROR" || err.data?.code === "BAD_REQUEST") {
@@ -117,7 +124,7 @@ const DuplicateDialog = () => {
           handleSubmit={(values) => {
             duplicateMutation.mutate(values);
           }}>
-          <div className="-mt-2 space-y-5">
+          <div className="-mt-2 stack-y-5">
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}
@@ -151,6 +158,9 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
+                 onChange={(e) => {
+                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                }}
               />
             )}
 

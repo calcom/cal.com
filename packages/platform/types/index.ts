@@ -7,6 +7,7 @@ export * from "./bookings";
 export * from "./billing";
 export * from "./schedules";
 export * from "./event-types";
+export * from "./event-types/inputs/private-link.input";
 export * from "./organizations";
 export * from "./teams";
 export * from "./embed";

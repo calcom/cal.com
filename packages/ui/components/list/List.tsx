@@ -49,7 +49,7 @@ export function ListItem(props: ListItemProps) {
         // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
         props.className,
-        (props.onClick || href) && "hover:bg-muted"
+        (props.onClick || href) && "hover:bg-cal-muted"
       ),
       "data-testid": "list-item",
     },
@@ -70,11 +70,20 @@ export type ListLinkItemProps = {
   heading: string;
   subHeading: string;
   disabled?: boolean;
+  readOnly?: boolean;
   actions?: JSX.Element;
 } & JSX.IntrinsicElements["li"];
 
 export function ListLinkItem(props: ListLinkItemProps) {
-  const { href, heading = "", children, disabled = false, actions = <div />, className = "" } = props;
+  const {
+    href,
+    heading = "",
+    children,
+    disabled = false,
+    readOnly = false,
+    actions = <div />,
+    className = "",
+  } = props;
   const { t } = useLocale();
   let subHeading = props.subHeading;
   if (!subHeading) {
@@ -86,18 +95,18 @@ export function ListLinkItem(props: ListLinkItemProps) {
       className={classNames(
         "group flex w-full items-center justify-between p-5 pb-4",
         className,
-        disabled ? "hover:bg-muted" : ""
+        disabled ? "hover:bg-cal-muted" : ""
       )}>
       <Link
         passHref
         href={href}
         className={classNames(
-          "text-default flex-grow truncate text-sm",
+          "text-default grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <div className="flex items-center">
           <h1 className="text-sm font-semibold leading-none">{heading}</h1>
-          {disabled && (
+          {readOnly && (
             <Badge data-testid="badge" variant="gray" className="ml-2">
               {t("readonly")}
             </Badge>

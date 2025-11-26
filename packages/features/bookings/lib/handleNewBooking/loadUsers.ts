@@ -1,16 +1,15 @@
-import { Prisma } from "@prisma/client";
-
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
-} from "@calcom/lib/bookings/getRoutedUsers";
+} from "@calcom/features/users/lib/getRoutedUsers";
+import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -85,12 +84,13 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     eventType,
     hosts: hosts ?? fallbackHosts,
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
     ...user,
     isFixed,
     priority,
     weight,
     createdAt,
+    groupId,
   }));
 };
 
@@ -100,7 +100,7 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   }
   return findUsersByUsername({
     usernameList: dynamicUserList,
-    orgSlug: !!currentOrgDomain ? currentOrgDomain : null,
+    orgSlug: currentOrgDomain ? currentOrgDomain : null,
   });
 };
 
@@ -124,7 +124,7 @@ export const findUsersByUsername = async ({
     await prisma.user.findMany({
       where,
       select: {
-        ...userSelect.select,
+        ...userSelect,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },

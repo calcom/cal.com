@@ -1,21 +1,74 @@
 import { get } from "@vercel/edge-config";
-import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
+import { HttpError } from "@calcom/lib/http-error";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch (error) {
+  } catch {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
+export const POST_METHODS_ALLOWED_API_ROUTES = [
+  "/api/auth/forgot-password",
+  "/api/auth/oauth/me",
+  "/api/auth/oauth/refreshToken",
+  "/api/auth/oauth/token",
+  "/api/auth/reset-password",
+  "/api/auth/saml/callback",
+  "/api/auth/saml/token",
+  "/api/auth/setup",
+  "/api/auth/signup",
+  "/api/auth/two-factor/totp/disable",
+  "/api/auth/two-factor/totp/enable",
+  "/api/auth/two-factor/totp/setup",
+  "/api/auth/session",
+  "/api/availability/calendar",
+  "/api/cancel",
+  "/api/cron/bookingReminder",
+  "/api/cron/calendar-cache-cleanup",
+  "/api/cron/changeTimeZone",
+  "/api/cron/checkSmsPrices",
+  "/api/cron/downgradeUsers",
+  "/api/cron/monthlyDigestEmail",
+  "/api/cron/syncAppMeta",
+  "/api/cron/webhookTriggers",
+  "/api/cron/workflows/scheduleEmailReminders",
+  "/api/cron/workflows/scheduleSMSReminders",
+  "/api/cron/workflows/scheduleWhatsappReminders",
+  "/api/get-inbound-dynamic-variables",
+  "/api/integrations/", // for /api/integrations/[...args] and webhooks
+  "/api/recorded-daily-video",
+  "/api/router",
+  "/api/routing-forms/queued-response",
+  "/api/scim/v2.0/", // /api/scim/v2.0/[...directory]
+  "/api/support/conversation",
+  "/api/sync/helpscout",
+  "/api/twilio/webhook",
+  "/api/username",
+  "/api/verify-booking-token",
+  "/api/video/guest-session",
+  "/api/webhook/app-credential",
+  "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
+  "/api/webhooks/retell-ai",
+  "/api/workflows/sms/user-response",
+  "/api/trpc/", // for tRPC
+  "/api/auth/callback/", // for NextAuth
+  "/api/book/event",
+  "/api/book/instant-event",
+  "/api/book/recurring-event",
+  "/availability",
+];
+
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
@@ -30,13 +83,47 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
-export function checkStaticFiles(pathname: string) {
-  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
-  // Skip Next.js internal paths (_next) and static assets
-  if (pathname.startsWith("/_next") || hasFileExtension) {
-    return NextResponse.next();
+// Vercel/Edge rejects non‑ASCII header values (see: https://github.com/vercel/next.js/issues/85631)
+const isAscii = (s: string) => {
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x7f) return false;
+  return true;
+};
+const stripNonAscii = (s: string) => {
+  let out = "";
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) <= 0x7f) out += s[i];
+  return out;
+};
+const sanitizeRequestHeaders = (headers: Iterable<[string, string]>): Headers => {
+  const out = new Headers();
+  for (const [name, raw] of Array.from(headers)) {
+    if (!isAscii(name)) continue;
+    let value = raw;
+    if (!isAscii(value)) {
+      // Heuristic: if the string contains common mojibake markers (Ã: 0xC3, Â: 0xC2),
+      // prefer a simple strip (avoids introducing spurious ASCII letters like 'A').
+      let hasMojibakeMarker = false;
+      for (let i = 0; i < value.length; i++) {
+        const code = value.charCodeAt(i);
+        if (code === 0xc3 || code === 0xc2) {
+          hasMojibakeMarker = true;
+          break;
+        }
+      }
+
+      if (hasMojibakeMarker) {
+        value = stripNonAscii(value);
+      } else {
+        try {
+          value = stripNonAscii(value.normalize("NFKD"));
+        } catch {
+          value = stripNonAscii(value);
+        }
+      }
+    }
+    if (value) out.set(name, value);
   }
-}
+  return out;
+};
 
 const isPagePathRequest = (url: URL) => {
   const isNonPagePathPrefix = /^\/(?:_next|api)\//;
@@ -50,31 +137,25 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const postCheckResult = checkPostMethod(req);
-  if (postCheckResult) return postCheckResult;
+  const requestorIp = getIP(req);
+  try {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "common",
+      identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
+    });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return new NextResponse(error.message, { status: error.statusCode });
+    }
+    throw error;
+  }
 
-  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
-  if (isStaticFile) return isStaticFile;
+  // const postCheckResult = checkPostMethod(req);
+  // if (postCheckResult) return postCheckResult;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
-
-  if (!url.pathname.startsWith("/api")) {
-    //
-    // NOTE: When tRPC hits an error a 500 is returned, when this is received
-    //       by the application the user is automatically redirected to /auth/login.
-    //
-    //     - For this reason our matchers are sufficient for an app-wide maintenance page.
-    //
-    // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      reqWithEnrichedHeaders.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(reqWithEnrichedHeaders.nextUrl);
-    }
-  }
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
   if (routingFormRewriteResponse) {
@@ -104,7 +185,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const res = NextResponse.next({
     request: {
-      headers: requestHeaders,
+      headers: sanitizeRequestHeaders(requestHeaders),
     },
   });
 
@@ -184,27 +265,8 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
-  // https://github.com/vercel/next.js/discussions/42458
-  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
-  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
-  matcher: [
-    // Routes to enforce CSP
-    "/auth/login",
-    "/login",
-    // Routes to set cookies
-    "/apps/installed",
-    "/auth/logout",
-    // Embed Routes,
-    "/:path*/embed",
-    // API routes
-    "/api/auth/signup",
-  ],
+  runtime: "nodejs",
+  matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
 };
 
-export default collectEvents({
-  middleware,
-  ...nextCollectBasicSettings,
-  cookieName: "__clnds",
-  extend: extendEventData,
-});
+export default middleware;

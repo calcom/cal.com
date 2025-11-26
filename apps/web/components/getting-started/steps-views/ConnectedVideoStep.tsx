@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { List } from "@calcom/ui/components/list";
@@ -12,10 +15,16 @@ import { StepConnectionLoader } from "../components/StepConnectionLoader";
 interface ConnectedAppStepProps {
   nextStep: () => void;
   isPageLoading: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
-const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep, isPageLoading } = props;
+const ConnectedVideoStepInner = ({
+  setAnyInstalledVideoApps,
+  user,
+}: {
+  setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
+  user: RouterOutputs["viewer"]["me"]["get"];
+}) => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -30,47 +39,59 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
-  const { data } = useMeQuery();
-  const { t } = useLocale();
-
-  const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
 
+  useEffect(() => {
+    setAnyInstalledVideoApps(Boolean(hasAnyInstalledVideoApps));
+  }, [hasAnyInstalledVideoApps, setAnyInstalledVideoApps]);
+
+  if (isPending) {
+    return <StepConnectionLoader />;
+  }
+
+  const result = userMetadata.safeParse(user.metadata);
+  if (!result.success) {
+    return <StepConnectionLoader />;
+  }
+  const { data: metadata } = result;
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
-    <>
-      {!isPending && (
-        <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
-          {queryConnectedVideoApps?.items &&
-            queryConnectedVideoApps?.items.map((item) => {
-              if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
-              return (
-                <li key={item.name}>
-                  {item.name && item.logo && (
-                    <AppConnectionItem
-                      type={item.type}
-                      title={item.name}
-                      isDefault={item.slug === defaultConferencingApp}
-                      description={item.description}
-                      dependencyData={item.dependencyData}
-                      logo={item.logo}
-                      slug={item.slug}
-                      installed={item.userCredentialIds.length > 0}
-                      defaultInstall={
-                        !defaultConferencingApp && item.appData?.location?.linkType === "dynamic"
-                      }
-                    />
-                  )}
-                </li>
-              );
-            })}
-        </List>
-      )}
+    <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y overflow-y-scroll! rounded-md border p-0 sm:mx-0">
+      {queryConnectedVideoApps?.items &&
+        queryConnectedVideoApps?.items.map((item) => {
+          if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
+          return (
+            <li key={item.name}>
+              {item.name && item.logo && (
+                <AppConnectionItem
+                  type={item.type}
+                  title={item.name}
+                  isDefault={item.slug === defaultConferencingApp}
+                  description={item.description}
+                  dependencyData={item.dependencyData}
+                  logo={item.logo}
+                  slug={item.slug}
+                  installed={item.userCredentialIds.length > 0}
+                  defaultInstall={!defaultConferencingApp && item.appData?.location?.linkType === "dynamic"}
+                />
+              )}
+            </li>
+          );
+        })}
+    </List>
+  );
+};
 
-      {isPending && <StepConnectionLoader />}
+const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
+  const { nextStep, isPageLoading, user } = props;
+  const { t } = useLocale();
+  const [hasAnyInstalledVideoApps, setAnyInstalledVideoApps] = useState(false);
+  return (
+    <>
+      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} user={user} />
       <Button
         EndIcon="arrow-right"
         data-testid="save-video-button"
@@ -81,7 +102,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         disabled={!hasAnyInstalledVideoApps}
         loading={isPageLoading}
         onClick={() => nextStep()}>
-        {t("next_step_text")}
+        {t("set_availability")}
       </Button>
     </>
   );

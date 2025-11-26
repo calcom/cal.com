@@ -29,8 +29,11 @@ interface RouteConfig {
     value: string;
   };
   isFallback?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   queryValue?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attributesQueryValue?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fallbackAttributesQueryValue?: any;
 }
 
@@ -129,6 +132,7 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
     const teamEventsConfig = config.attributeRouting.teamEvents;
 
     // Create team events
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const teamEvents: { [key: string]: any } = {};
     for (const eventConfig of teamEventsConfig) {
       const eventType = await createRoundRobinTeamEventType({
@@ -149,10 +153,8 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
       throw new Error("Attributes not found");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const skillAttribute = attributes.find((attr) => attr.name === "Skills")!;
-    const locationAttribute = attributes.find((attr) => attr.name === "Location")!;
-
-    console.log("Attributes", JSON.stringify(attributes, null, 2));
 
     const javascriptEventRoute = {
       id: "8a898988-89ab-4cde-b012-31823f708642",
@@ -316,41 +318,44 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
             queryValue: { id: "814899aa-4567-489a-bcde-f1823f708646", type: "group" },
           },
         ],
-        fields: config.form?.fields || [
-          {
-            id: form.formFieldLocation.id,
-            type: "select",
-            label: "Location",
-            options: formFieldLocationOptions,
-            required: true,
-          },
-          {
-            id: form.formFieldSkills.id,
-            type: "multiselect",
-            label: "skills",
-            options: formFieldSkillsOptions,
-            required: true,
-          },
-          {
-            id: form.formFieldEmail.id,
-            type: "email",
-            label: "Email",
-            required: true,
-          },
-          {
-            id: form.formFieldName.id,
-            identifier: "name",
-            type: "text",
-            label: "Name",
-            required: false,
-          },
-          {
-            id: form.formFieldRating.id,
-            type: "number",
-            label: "Rating",
-            required: false,
-          },
-        ],
+        fields: (
+          config.form?.fields ||
+          ([
+            {
+              id: form.formFieldLocation.id,
+              type: "select",
+              label: "Location",
+              options: formFieldLocationOptions,
+              required: true,
+            },
+            {
+              id: form.formFieldSkills.id,
+              type: "multiselect",
+              label: "skills",
+              options: formFieldSkillsOptions,
+              required: true,
+            },
+            {
+              id: form.formFieldEmail.id,
+              type: "email",
+              label: "Email",
+              required: true,
+            },
+            {
+              id: form.formFieldName.id,
+              identifier: "name",
+              type: "text",
+              label: "Name",
+              required: false,
+            },
+            {
+              id: form.formFieldRating.id,
+              type: "number",
+              label: "Rating",
+              required: false,
+            },
+          ] satisfies FieldConfig[])
+        ).map((field) => ({ ...field })),
         team: {
           connect: {
             id: teamId,
@@ -379,172 +384,178 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
 
     const form = await prisma.app_RoutingForms_Form.create({
       data: {
-        routes: config.form?.routes || [
-          {
-            id: "8a898988-89ab-4cde-b012-31823f708642",
-            action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
-            queryValue: {
+        routes: (
+          config.form?.routes ||
+          ([
+            {
               id: "8a898988-89ab-4cde-b012-31823f708642",
-              type: "group",
-              children1: {
-                "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
-                  type: "rule",
-                  properties: {
-                    field: "c4296635-9f12-47b1-8153-c3a854649182",
-                    value: ["event-routing"],
-                    operator: "equal",
-                    valueSrc: ["value"],
-                    valueType: ["text"],
+              action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
+              queryValue: {
+                id: "8a898988-89ab-4cde-b012-31823f708642",
+                type: "group",
+                children1: {
+                  "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
+                    type: "rule",
+                    properties: {
+                      field: "c4296635-9f12-47b1-8153-c3a854649182",
+                      value: ["event-routing"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
                   },
                 },
               },
             },
-          },
-          {
-            id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-            action: { type: "customPageMessage", value: "Custom Page Result" },
-            queryValue: {
+            {
               id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-              type: "group",
-              children1: {
-                "b99b8a89-89ab-4cde-b012-31823f718ff5": {
-                  type: "rule",
-                  properties: {
-                    field: "c4296635-9f12-47b1-8153-c3a854649182",
-                    value: ["custom-page"],
-                    operator: "equal",
-                    valueSrc: ["value"],
-                    valueType: ["text"],
+              action: { type: "customPageMessage", value: "Custom Page Result" },
+              queryValue: {
+                id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+                type: "group",
+                children1: {
+                  "b99b8a89-89ab-4cde-b012-31823f718ff5": {
+                    type: "rule",
+                    properties: {
+                      field: "c4296635-9f12-47b1-8153-c3a854649182",
+                      value: ["custom-page"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
                   },
                 },
               },
             },
-          },
-          {
-            id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-            action: { type: "externalRedirectUrl", value: `${WEBAPP_URL}/pro` },
-            queryValue: {
+            {
               id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-              type: "group",
-              children1: {
-                "998b9b9a-0123-4456-b89a-b1823f7232b9": {
-                  type: "rule",
-                  properties: {
-                    field: "c4296635-9f12-47b1-8153-c3a854649182",
-                    value: ["external-redirect"],
-                    operator: "equal",
-                    valueSrc: ["value"],
-                    valueType: ["text"],
+              action: { type: "externalRedirectUrl", value: `${WEBAPP_URL}/pro` },
+              queryValue: {
+                id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+                type: "group",
+                children1: {
+                  "998b9b9a-0123-4456-b89a-b1823f7232b9": {
+                    type: "rule",
+                    properties: {
+                      field: "c4296635-9f12-47b1-8153-c3a854649182",
+                      value: ["external-redirect"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
                   },
                 },
               },
             },
-          },
-          {
-            id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-            action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
-            queryValue: {
+            {
               id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-              type: "group",
-              children1: {
-                "b98a8abb-cdef-4012-b456-718262343d27": {
-                  type: "rule",
-                  properties: {
-                    field: multiSelectLegacyFieldUuid,
-                    value: [["Option-2"]],
-                    operator: "multiselect_equals",
-                    valueSrc: ["value"],
-                    valueType: ["multiselect"],
+              action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
+              queryValue: {
+                id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                type: "group",
+                children1: {
+                  "b98a8abb-cdef-4012-b456-718262343d27": {
+                    type: "rule",
+                    properties: {
+                      field: multiSelectLegacyFieldUuid,
+                      value: [["Option-2"]],
+                      operator: "multiselect_equals",
+                      valueSrc: ["value"],
+                      valueType: ["multiselect"],
+                    },
                   },
                 },
               },
             },
-          },
-          {
-            id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
-            action: { type: "customPageMessage", value: "Multiselect chosen" },
-            queryValue: {
-              id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-              type: "group",
-              children1: {
-                "b98a8abb-cdef-4012-b456-718262343d27": {
-                  type: "rule",
-                  properties: {
-                    field: multiSelectFieldUuid,
-                    value: [[multiSelectOption2Uuid]],
-                    operator: "multiselect_equals",
-                    valueSrc: ["value"],
-                    valueType: ["multiselect"],
+            {
+              id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
+              action: { type: "customPageMessage", value: "Multiselect chosen" },
+              queryValue: {
+                id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                type: "group",
+                children1: {
+                  "b98a8abb-cdef-4012-b456-718262343d27": {
+                    type: "rule",
+                    properties: {
+                      field: multiSelectFieldUuid,
+                      value: [[multiSelectOption2Uuid]],
+                      operator: "multiselect_equals",
+                      valueSrc: ["value"],
+                      valueType: ["multiselect"],
+                    },
                   },
                 },
               },
             },
-          },
-          {
-            id: "898899aa-4567-489a-bcde-f1823f708646",
-            action: { type: "customPageMessage", value: "Fallback Message" },
-            isFallback: true,
-            queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
-          },
-        ],
-        fields: config.form?.fields || [
-          {
-            id: "c4296635-9f12-47b1-8153-c3a854649182",
-            type: "text",
-            label: "Test field",
-            required: true,
-          },
-          {
-            id: multiSelectLegacyFieldUuid,
-            type: "multiselect",
-            label: "Multi Select(with Legacy `selectText`)",
-            identifier: "multi",
-            selectText: "Option-1\nOption-2",
-            required: false,
-          },
-          {
-            id: multiSelectFieldUuid,
-            type: "multiselect",
-            label: "Multi Select",
-            identifier: "multi-new-format",
-            options: [
-              {
-                id: multiSelectOption1Uuid,
-                label: "Option-1",
-              },
-              {
-                id: multiSelectOption2Uuid,
-                label: "Option-2",
-              },
-            ],
-            required: false,
-          },
-          {
-            id: legacySelectFieldUuid,
-            type: "select",
-            label: "Legacy Select",
-            identifier: "test-select",
-            selectText: "Option-1\nOption-2",
-            required: false,
-          },
-          {
-            id: selectFieldUuid,
-            type: "select",
-            label: "Select",
-            identifier: "test-select-new-format",
-            options: [
-              {
-                id: selectOption1Uuid,
-                label: "Option-1",
-              },
-              {
-                id: selectOption2Uuid,
-                label: "Option-2",
-              },
-            ],
-            required: false,
-          },
-        ],
+            {
+              id: "898899aa-4567-489a-bcde-f1823f708646",
+              action: { type: "customPageMessage", value: "Fallback Message" },
+              isFallback: true,
+              queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+            },
+          ] satisfies RouteConfig[])
+        ).map((field) => ({ ...field })),
+        fields: (
+          config.form?.fields ||
+          ([
+            {
+              id: "c4296635-9f12-47b1-8153-c3a854649182",
+              type: "text",
+              label: "Test field",
+              required: true,
+            },
+            {
+              id: multiSelectLegacyFieldUuid,
+              type: "multiselect",
+              label: "Multi Select(with Legacy `selectText`)",
+              identifier: "multi",
+              selectText: "Option-1\nOption-2",
+              required: false,
+            },
+            {
+              id: multiSelectFieldUuid,
+              type: "multiselect",
+              label: "Multi Select",
+              identifier: "multi-new-format",
+              options: [
+                {
+                  id: multiSelectOption1Uuid,
+                  label: "Option-1",
+                },
+                {
+                  id: multiSelectOption2Uuid,
+                  label: "Option-2",
+                },
+              ],
+              required: false,
+            },
+            {
+              id: legacySelectFieldUuid,
+              type: "select",
+              label: "Legacy Select",
+              identifier: "test-select",
+              selectText: "Option-1\nOption-2",
+              required: false,
+            },
+            {
+              id: selectFieldUuid,
+              type: "select",
+              label: "Select",
+              identifier: "test-select-new-format",
+              options: [
+                {
+                  id: selectOption1Uuid,
+                  label: "Option-1",
+                },
+                {
+                  id: selectOption2Uuid,
+                  label: "Option-2",
+                },
+              ],
+              required: false,
+            },
+          ] satisfies FieldConfig[])
+        ).map((field) => ({ ...field })),
         user: {
           connect: {
             id: userId,

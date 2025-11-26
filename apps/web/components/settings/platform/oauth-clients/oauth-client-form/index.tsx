@@ -124,7 +124,7 @@ export const OAuthClientForm = ({
                   <TextField
                     type="url"
                     required={index === 0}
-                    className="w-[100%]"
+                    className="w-full"
                     label=""
                     disabled={isFormDisabled}
                     {...register(`redirectUris.${index}.uri` as const)}
@@ -137,7 +137,7 @@ export const OAuthClientForm = ({
                     color="minimal"
                     variant="icon"
                     StartIcon="plus"
-                    className="text-default mx-2 mb-2"
+                    className="text-default mx-2"
                     disabled={isFormDisabled}
                     onClick={() => {
                       append({ uri: "" });
@@ -150,7 +150,7 @@ export const OAuthClientForm = ({
                       color="destructive"
                       variant="icon"
                       StartIcon="trash"
-                      className="text-default mx-2 mb-2"
+                      className="text-default mx-2"
                       disabled={isFormDisabled}
                       onClick={() => {
                         remove(index);
@@ -197,7 +197,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -208,7 +208,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking cancel redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingCancelRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -219,7 +219,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking reschedule redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingRescheduleRedirectUri")}
               disabled={isFormDisabled}
             />

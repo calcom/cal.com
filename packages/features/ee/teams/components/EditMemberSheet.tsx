@@ -20,7 +20,7 @@ import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { updateRoleInCache } from "./MemberChangeRoleModal";
+import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
 
 const formSchema = z.object({
@@ -142,6 +142,14 @@ export function EditMemberSheet({
       await utils.viewer.teams.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);
+
+      dispatch({
+        type: "EDIT_USER_SHEET",
+        payload: {
+          showModal: true,
+          user: getUpdatedUser(selectedUser, role, customRoles),
+        },
+      });
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -181,7 +189,7 @@ export function EditMemberSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-cal-muted">
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
@@ -208,8 +216,8 @@ export function EditMemberSheet({
                 </Skeleton>
               </div>
             </SheetHeader>
-            <SheetBody className="flex flex-col space-y-4 p-4">
-              <div className="mb-4 flex flex-col space-y-4">
+            <SheetBody className="flex flex-col stack-y-4 p-4">
+              <div className="mb-4 flex flex-col stack-y-4">
                 <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                 <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
                 <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />

@@ -54,7 +54,7 @@ function getWorkspacePlatformOptions(workspacePlatforms: WorkspacePlatform[]) {
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+      <div className="divide-subtle border-subtle stack-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -174,7 +174,7 @@ function CreateDelegationDialog({
         serviceAccountKey: validatedKey.data,
       });
     } catch (e) {
-      console.log("error", e);
+      console.error(e);
       form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
       return;
     }
@@ -247,7 +247,7 @@ function DelegationFormFields({
   const { t } = useLocale();
   const form = useFormContext();
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <TextField label={t("domain")} {...form.register("domain")} />
       <Controller
         name="workspacePlatformSlug"
@@ -405,7 +405,7 @@ function DelegationCredentialList() {
     <div>
       {!!delegations?.length ? (
         <>
-          <ul className="space-y-2 [&>*:last-child]:rounded-b-xl">
+          <ul className="stack-y-2 [&>*:last-child]:rounded-b-xl">
             {delegations.map(
               (delegation) =>
                 delegation && (
@@ -474,7 +474,7 @@ function MembersThatWillBeAffectedOnDisablingDelegationCredential({
         <div>{t("loading")}</div>
       ) : affectedMembers?.length ? (
         <>
-          <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+          <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
             {affectedMembers.slice(0, 5).map((m) => (
               <li className="text-muted text-sm" key={m.email}>
                 {m.name ? `${m.name} (${m.email})` : m.email}

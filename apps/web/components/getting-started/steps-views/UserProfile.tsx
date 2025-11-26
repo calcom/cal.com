@@ -5,11 +5,11 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { md } from "@calcom/lib/markdownIt";
-import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Editor } from "@calcom/ui/components/editor";
@@ -21,8 +21,11 @@ type FormData = {
   bio: string;
 };
 
-const UserProfile = () => {
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
+interface UserProfileProps {
+  user: RouterOutputs["viewer"]["me"]["get"];
+}
+
+const UserProfile = ({ user }: UserProfileProps) => {
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
@@ -33,8 +36,7 @@ const UserProfile = () => {
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useUtils();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
-  const telemetry = useTelemetry();
+  const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
   const [firstRender, setFirstRender] = useState(true);
 
   // Create a separate mutation for avatar updates
@@ -76,7 +78,7 @@ const UserProfile = () => {
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
 
-    telemetry.event(telemetryEventTypes.onboardingFinished);
+    // telemetry.event(telemetryEventTypes.onboardingFinished);
 
     mutation.mutate({
       bio,
@@ -160,7 +162,7 @@ const UserProfile = () => {
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
-        {t("finish")}
+        {t("finish_and_start")}
       </Button>
     </form>
   );

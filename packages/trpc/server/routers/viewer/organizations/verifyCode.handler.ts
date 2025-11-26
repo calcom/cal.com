@@ -3,12 +3,12 @@ import { createHash } from "crypto";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 type VerifyCodeOptions = {
   ctx: {
@@ -18,9 +18,22 @@ type VerifyCodeOptions = {
 };
 
 export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
-  const { email, code } = input;
-  const { user } = ctx;
+  return verifyCode({
+    user: ctx.user,
+    email: input.email,
+    code: input.code,
+  });
+};
 
+export const verifyCode = async ({
+  user,
+  email,
+  code,
+}: {
+  user?: Pick<NonNullable<TrpcSessionUser>, "role">;
+  email?: string;
+  code?: string;
+}) => {
   if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
   if (!IS_PRODUCTION || process.env.NEXT_PUBLIC_IS_E2E) {

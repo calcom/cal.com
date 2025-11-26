@@ -1,6 +1,5 @@
-import type { AppCategories, Prisma } from "@prisma/client";
-
 import type { Tag } from "@calcom/app-store/types";
+import type { AppCategories, Prisma } from "@calcom/prisma/client";
 
 type CommonProperties = {
   default?: false;

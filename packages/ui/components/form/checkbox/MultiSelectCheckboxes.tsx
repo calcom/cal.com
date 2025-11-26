@@ -126,6 +126,7 @@ export default function MultiSelectCheckboxes({
       }}
       variant="checkbox"
       options={allOptions.length > 1 ? allOptions : []}
+      innerClassNames={{ valueContainer: "font-medium", option: "font-medium" }}
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}

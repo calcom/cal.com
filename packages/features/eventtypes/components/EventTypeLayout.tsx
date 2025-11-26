@@ -96,10 +96,11 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  const teamId = eventType.team?.id;
 
   return (
     <Shell
-      backPath="/event-types"
+      backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={
@@ -108,7 +109,7 @@ function EventTypeSingleLayout({
             <>
               <div
                 className={classNames(
-                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md transition",
+                  "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
                   formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
                 )}>
@@ -275,7 +276,11 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={<Icon name="loader" />}>
+      <Suspense fallback={
+        <div className="flex h-64 items-center justify-center">
+          <Icon name="loader" className="h-5 w-5 animate-spin" />
+        </div>
+      }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs

@@ -1,10 +1,10 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import {
   ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
 } from "@calcom/lib/constants";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -71,10 +71,12 @@ export default function TeamList(props: Props) {
                   <Card
                     icon={<Icon name="building" className="h-5 w-5 text-red-700" />}
                     variant="basic"
-                    title={t("You have a lot of teams")}
-                    description={t(
-                      "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
-                    )}
+                    title={props.teams.length === 1 ? t("you_have_one_team") : t("You have a lot of teams")}
+                    description={
+                      props.teams.length === 1
+                        ? t("consider_consolidating_one_team_org")
+                        : t("consider_consolidating_multi_team_org")
+                    }
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),

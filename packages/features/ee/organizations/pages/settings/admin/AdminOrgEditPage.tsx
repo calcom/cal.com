@@ -1,16 +1,16 @@
 "use client";
 
-import type { Team } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Team } from "@calcom/prisma/client";
 import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 type FormValues = {
@@ -61,7 +61,7 @@ export const OrgForm = ({
   };
 
   return (
-    <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
+    <Form form={form} className="stack-y-4" handleSubmit={onSubmit}>
       <TextField label="Name" placeholder="example" required {...form.register("name")} />
       <TextField label="Slug" placeholder="example" required {...form.register("slug")} />
       <p className="text-default mt-2 text-sm">

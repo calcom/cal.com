@@ -17,7 +17,7 @@ export const ProgressToast = ({ message, progress, onClose, toastId }: ProgressT
   const defaultMessage = t("downloading");
 
   return (
-    <div className="animate-fade-in-up bg-subtle shadow-elevation-low border-subtle mb-2 flex h-auto flex-col space-y-2 rounded-lg border px-3 py-2.5 text-sm font-semibold md:max-w-sm">
+    <div className="animate-fade-in-up bg-subtle shadow-elevation-low border-subtle mb-2 flex h-auto flex-col stack-y-2 rounded-lg border px-3 py-2.5 text-sm font-semibold md:max-w-sm">
       <div className="flex items-center gap-2">
         <span className="mt-0.5">
           <Icon name="file-down" className="h-4 w-4" />

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -45,7 +45,7 @@ export const EventDuration = ({
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const isPlatform = useIsPlatform();
-  const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
+  const [selectedDuration, setSelectedDuration, state] = useBookerStoreContext((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
     state.state,
@@ -101,7 +101,7 @@ export const EventDuration = ({
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
             <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
-          <div className="to-default flex h-9 w-5 bg-gradient-to-l from-transparent" />
+          <div className="to-default flex h-9 w-5 bg-linear-to-l from-transparent" />
         </button>
       )}
       <ul
@@ -127,7 +127,7 @@ export const EventDuration = ({
       </ul>
       {rightVisible && (
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex">
-          <div className="to-default flex h-9 w-5 bg-gradient-to-r from-transparent" />
+          <div className="to-default flex h-9 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
             <Icon name="chevron-right" className="text-subtle h-4 w-4" />
           </div>

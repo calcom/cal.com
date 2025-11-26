@@ -128,6 +128,7 @@ export function EventTypeTabs(eventTypeId: number) {
       <EventTypeSettings
         id={eventTypeId}
         allowDelete={true}
+        tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
         onSuccess={(eventType) => {
           console.log("EventType settings updated successfully", eventType);
         }}
@@ -135,11 +136,24 @@ export function EventTypeTabs(eventTypeId: number) {
           console.log("Form state changed:", formState);
           // Access form data: formState.isDirty, formState.dirtyFields, formState.values
         }}
-        customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
+        customClassNames={{ atomsWrapper: "w-[70vw]! m-auto!" }}
       />
     </>
   );
 }
+```
+
+To show only specific tabs, remove the ones you don't want from the array:
+
+```js
+// Example: Show only setup, limits, and availability tabs
+<EventTypeSettings
+  id={eventTypeId}
+  tabs={["setup", "limits", "availability"]}
+  onSuccess={(eventType) => {
+    console.log("EventType settings updated successfully", eventType);
+  }}
+/>
 ```
 
 If the `eventTypeId` is of a team event type id, then only the owner or admin of the team can update the event type settings. That means
@@ -176,7 +190,7 @@ Below is a list of props that can be passed to the event type settings atom.
 | Name         | Required | Description                                                                                               |
 |:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
 | id | Yes       | The event type id obtained at the time of event type creation     
-| tabs | No       | The tabs you want the event type settings to display                                                  |  
+| tabs | No       | Array of tabs to display in the event type settings. Possible values: `["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]`. Remove any tabs you don't want to show. |  
 | onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
 | onError   | No       | Callback function to handles errors at the time of event type update |
 | onFormStateChange | No       | Callback function that triggers when the form state changes, providing access to isDirty, dirtyFields, and current form values |
@@ -218,7 +232,16 @@ export function EventTypeWithValidation(eventTypeId: number) {
   };
 
   const handleSubmit = () => {
-    eventTypeRef.current?.handleFormSubmit();
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        // Additional success handling logic here
+        console.log('Event type updated successfully');
+      },
+      onError: (error) => {
+        // Additional error handling logic here
+        console.error('Error updating event type:', error);
+      }
+    });
   };
 
   return (
@@ -243,6 +266,20 @@ export function EventTypeWithValidation(eventTypeId: number) {
 |:-------|:------------|
 | validateForm | Validates the current event type form state and returns a promise with validation results. |
 | handleFormSubmit | Programmatically submits the event type form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
+
+### Callbacks
+
+The `handleFormSubmit` method accepts an optional callbacks object with the following properties:
+
+```typescript
+type EventTypeFormCallbacks = {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+};
+```
+
+- **onSuccess**: Called when the form submission is successful. This allows you to execute additional logic after a successful update.
+- **onError**: Called when an error occurs during form submission. The error parameter contains details about what went wrong, allowing you to handle specific error cases or display custom error messages.
 
 The `validateForm` method returns an `EventTypeFormValidationResult` object with:
 - `isValid`: Boolean indicating if the form passed validation
@@ -309,7 +346,7 @@ Below video shows a demonstration of the all the options you get in the advanced
     <iframe
       height="315"
       style={{ width: "100%", maxWidth: "560px" }}
-      src="https://www.loom.com/embed/e0121b51920544eea92251dba99245fa?sid=ac627de7-5673-41b4-aa78-c6c9e439bdb5"
+      src="https://www.loom.com/embed/7a03c4a453ca401ab787b2db98728f31?sid=8cdc6398-0017-41c8-a0a1-8fa31f80616c"
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen="true"

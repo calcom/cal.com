@@ -7,7 +7,7 @@ import { Injectable } from "@nestjs/common";
 import { ScheduleRepository, UpdateScheduleResponse } from "@calcom/platform-libraries/schedules";
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
 import { UpdateAtomScheduleDto } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class SchedulesAtomsService {

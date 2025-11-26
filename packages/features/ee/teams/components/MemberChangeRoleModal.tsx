@@ -9,9 +9,30 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 
+import type { User } from "./MemberList";
+
 type MembershipRoleOption = {
   label: string;
   value: MembershipRole;
+};
+
+export const getUpdatedUser = (
+  member: User,
+  role: MembershipRole | string,
+  customRoles: { id: string; name: string }[] | undefined
+) => {
+  const isTraditionalRole = Object.values(MembershipRole).includes(role as MembershipRole);
+
+  // Find the new custom role object if assigning a custom role
+  const newCustomRole =
+    !isTraditionalRole && customRoles ? customRoles.find((cr) => cr.id === role) || null : null;
+
+  return {
+    ...member,
+    role: isTraditionalRole ? (role as MembershipRole) : member.role,
+    customRoleId: isTraditionalRole ? null : (role as string),
+    customRole: newCustomRole,
+  };
 };
 
 export const updateRoleInCache = ({
@@ -49,18 +70,7 @@ export const updateRoleInCache = ({
           ...page,
           members: page.members.map((member) => {
             if (member.id === memberId) {
-              const isTraditionalRole = Object.values(MembershipRole).includes(role as MembershipRole);
-
-              // Find the new custom role object if assigning a custom role
-              const newCustomRole =
-                !isTraditionalRole && customRoles ? customRoles.find((cr) => cr.id === role) || null : null;
-
-              return {
-                ...member,
-                role: isTraditionalRole ? (role as MembershipRole) : member.role,
-                customRoleId: isTraditionalRole ? null : (role as string),
-                customRole: newCustomRole,
-              };
+              return getUpdatedUser(member, role, customRoles);
             }
             return member;
           }),
@@ -149,7 +159,7 @@ export default function MemberChangeRoleModal(props: {
           <div className="mb-4 sm:flex sm:items-start">
             <div className="text-center sm:text-left">
               <h3
-                className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
+                className="text-emphasis !font-cal text-semibold text-xl font-medium"
                 id="modal-title">
                 {t("change_member_role")}
               </h3>

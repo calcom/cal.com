@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
-import { CreditsBadge, UpgradeTeamsBadge } from "../../badge";
+import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
 import type { SelectProps } from "./types";
 
@@ -19,7 +19,7 @@ export const InputComponent = <
     <reactSelectComponents.Input
       // disables our default form focus highlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 !text-default dark:!text-white",
+        "focus:ring-0 focus:ring-offset-0 !text-default dark:text-white!",
         inputClassName
       )}
       {...props}
@@ -32,7 +32,9 @@ type ExtendedOption = {
   label: string;
   needsTeamsUpgrade?: boolean;
   needsCredits?: boolean;
+  isCalAi?: boolean;
   creditsTeamId?: number;
+  isOrganization?: boolean;
 };
 
 export const OptionComponent = <
@@ -47,12 +49,22 @@ export const OptionComponent = <
     <reactSelectComponents.Option {...props}>
       <div className="flex items-center justify-between">
         <span className="w-full" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
+          {(props.data as unknown as ExtendedOption).isCalAi ? (
+            <Badge startIcon="sparkles" variant="purple" className="mr-1 hidden md:inline-flex">
+              Cal.ai
+            </Badge>
+          ) : (
+            <></>
+          )}
           {props.label || <>&nbsp;</>}
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
           <UpgradeTeamsBadge checkForActiveStatus={true} />
         ) : (props.data as unknown as ExtendedOption).needsCredits ? (
-          <CreditsBadge teamId={(props.data as unknown as ExtendedOption).creditsTeamId} />
+          <CreditsBadge
+            teamId={(props.data as unknown as ExtendedOption).creditsTeamId}
+            isOrganization={(props.data as unknown as ExtendedOption).isOrganization}
+          />
         ) : (
           <></>
         )}

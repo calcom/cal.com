@@ -1,4 +1,4 @@
-import DailyVideoApiAdapter from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,17 @@ export const getMeetingInformationHandler = async ({ ctx: _ctx, input }: GetMeet
   const { roomName } = input;
 
   try {
-    const videoApiAdapter = DailyVideoApiAdapter();
+    const dailyVideoAdapterImport = VideoApiAdapterMap["dailyvideo"];
+    if (!dailyVideoAdapterImport) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Daily video adapter not available",
+      });
+    }
+
+    const dailyVideoAdapterModule = await dailyVideoAdapterImport;
+    const videoApiAdapter = dailyVideoAdapterModule.default();
+
     if (!videoApiAdapter || !videoApiAdapter.getMeetingInformation) {
       throw new TRPCError({
         code: "BAD_REQUEST",

@@ -1,4 +1,3 @@
-import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
@@ -14,6 +13,7 @@ import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -175,7 +175,7 @@ export default function InstantEventController({
                         />
                         <div>
                           <Label>{t("only_show_if_parameter_set")}</Label>
-                          <div className="space-y-2">
+                          <div className="stack-y-2">
                             {parameters.map((parameter, index) => (
                               <div key={index} className="flex gap-2">
                                 <TextField
@@ -364,6 +364,11 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                         onEditWebhook={() => {
                           setEditModalOpen(true);
                           setWebhookToEdit(webhook);
+                        }}
+                        // TODO (SEAN): Implement Permissions here when we have event-types PR merged
+                        permissions={{
+                          canEditWebhook: !webhookLockedStatus.disabled,
+                          canDeleteWebhook: !webhookLockedStatus.disabled,
                         }}
                       />
                     );

@@ -6,6 +6,7 @@ import { shallow } from "zustand/shallow";
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
@@ -19,7 +20,6 @@ import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
-import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 import { useBookerTime } from "./hooks/useBookerTime";
 
@@ -54,6 +54,8 @@ export const EventMeta = ({
   locale,
   timeZones,
   children,
+  selectedTimeslot,
+  roundRobinHideOrgAndTeam,
 }: {
   event?: Pick<
     BookerEvent,
@@ -90,16 +92,17 @@ export const EventMeta = ({
   locale?: string | null;
   timeZones?: Timezone[];
   children?: React.ReactNode;
+  selectedTimeslot: string | null;
+  roundRobinHideOrgAndTeam?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
-  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
-  const bookerState = useBookerStore((state) => state.state);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const [seatedEventData, setSeatedEventData] = useBookerStore(
+  const [setBookerStoreTimezone] = useBookerStoreContext((state) => [state.setTimezone], shallow);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const bookerState = useBookerStoreContext((state) => state.state);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
@@ -167,6 +170,7 @@ export const EventMeta = ({
             profile={event.profile}
             entity={event.entity}
             isPrivateLink={isPrivateLink}
+            roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
@@ -174,7 +178,7 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4">
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
@@ -183,7 +187,7 @@ export const EventMeta = ({
               />
             </EventMetaBlock>
           )}
-          <div className="space-y-4 font-medium rtl:-mr-2">
+          <div className="stack-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon="calendar">
                 {t("former_time")}
@@ -219,7 +223,7 @@ export const EventMeta = ({
                 <>{timezone}</>
               ) : (
                 <span
-                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%+35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}
                   data-testid="event-meta-current-timezone">
@@ -229,8 +233,8 @@ export const EventMeta = ({
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () =>
-                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
-                      menu: () => "!w-64 max-w-[90vw] mb-1 ",
+                        "min-h-0! p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
+                      menu: () => "w-64! max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",

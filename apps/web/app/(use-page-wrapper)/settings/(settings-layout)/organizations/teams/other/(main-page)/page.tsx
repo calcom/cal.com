@@ -1,13 +1,11 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/components/OtherTeamsListing";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -20,17 +18,18 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await validateUserHasOrg();
 
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
   const organizationId = session?.user?.org?.id;
+  const organizationRepository = getOrganizationRepository();
   const otherTeams = organizationId
-    ? await OrganizationRepository.findTeamsInOrgIamNotPartOf({
-        userId: session?.user.id,
-        parentId: organizationId,
-      })
+    ? await organizationRepository.findTeamsInOrgIamNotPartOf({
+      userId: session?.user.id,
+      parentId: organizationId,
+    })
     : [];
 
   return (

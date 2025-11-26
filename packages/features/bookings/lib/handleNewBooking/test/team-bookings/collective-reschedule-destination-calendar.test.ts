@@ -24,6 +24,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { getNewBookingHandler } from "../getNewBookingHandler";
+
 export type CustomNextApiRequest = NextApiRequest & Request;
 
 export type CustomNextApiResponse = NextApiResponse & Response;
@@ -46,7 +48,7 @@ describe("handleNewBooking", () => {
         4. Verify both hosts have the booking in their calendars
     `,
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
 
         const booker = getBooker({
           email: "booker@example.com",
@@ -136,11 +138,7 @@ describe("handleNewBooking", () => {
                 status: BookingStatus.ACCEPTED,
                 startTime: `${plus1DateString}T05:00:00.000Z`,
                 endTime: `${plus1DateString}T05:30:00.000Z`,
-                users: [
-                  {
-                    id: 101, // organizer
-                  },
-                ],
+                userId: 101,
                 references: [
                   {
                     type: appStoreMetadata.dailyvideo.type,
@@ -176,7 +174,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const organizerCalendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const organizerCalendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           update: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_2",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID_2",

@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
+export const CreateNewWebhookButton = () => {
   const router = useRouter();
   const { t } = useLocale();
   const createFunction = (teamId?: number, platform?: boolean) => {
@@ -20,10 +21,13 @@ export const CreateNewWebhookButton = ({ isAdmin }: { isAdmin: boolean }) => {
     <CreateButtonWithTeamsList
       color="secondary"
       subtitle={t("create_for").toUpperCase()}
-      isAdmin={isAdmin}
       createFunction={createFunction}
       data-testid="new_webhook"
       includeOrg={true}
+      withPermission={{
+        permission: "webhook.create",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      }}
     />
   );
 };

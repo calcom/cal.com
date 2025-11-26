@@ -1,3 +1,5 @@
+import type { NextApiRequest } from "next";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
@@ -13,6 +15,7 @@ import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.s
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
+import { ZHasActiveTeamPlanInputSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
@@ -33,9 +36,6 @@ import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
-const NAMESPACE = "teams";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
-
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetSchema).query(async (opts) => {
@@ -52,9 +52,9 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./list.handler");
     return handler(opts);
   }),
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     const { default: handler } = await import("./create.handler");
-    return handler(opts);
+    return handler({ ctx: { ...ctx, req: ctx.req as NextApiRequest }, input });
   }),
   // Allows team owner to update team metadata
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
@@ -187,7 +187,7 @@ export const viewerTeamsRouter = router({
       const { default: handler } = await import("./updateInternalNotesPresets.handler");
       return handler({ ctx, input });
     }),
-  hasActiveTeamPlan: authedProcedure.query(async (opts) => {
+  hasActiveTeamPlan: authedProcedure.input(ZHasActiveTeamPlanInputSchema).query(async (opts) => {
     const { default: handler } = await import("./hasActiveTeamPlan.handler");
     return handler(opts);
   }),

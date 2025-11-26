@@ -48,7 +48,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
   return (
     <div className="border-subtle flex h-12 items-center border-b px-3 py-1 last:border-b-0">
       <Avatar size="sm" imageSrc={member.avatar} alt={member.label} className="min-w-10" />
-      <span className="text-emphasis ml-3 flex-grow text-sm">{member.label}</span>
+      <span className="text-emphasis ml-3 grow text-sm">{member.label}</span>
       <div className="ml-auto flex h-full items-center">
         {isEditing ? (
           <div className="flex h-full items-center">
@@ -58,7 +58,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
                 type="number"
                 min="0"
                 inputMode="numeric"
-                className="bg-muted border-default text-emphasis h-7 w-12 rounded-l-sm border px-2 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="bg-cal-muted border-default text-emphasis h-7 w-12 rounded-l-sm border px-2 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 defaultValue={member.weight ?? 100}
                 onBlur={(e) => {
                   const newWeight = parseInt(e.target.value);
@@ -81,7 +81,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
                   }
                 }}
               />
-              <span className="text-default border-default bg-muted flex h-7 items-center rounded-r-sm border border-l-0 px-2 text-sm">
+              <span className="text-default border-default bg-cal-muted flex h-7 items-center rounded-r-sm border border-l-0 px-2 text-sm">
                 %
               </span>
             </div>
@@ -143,7 +143,9 @@ export const EditWeightsForAllTeamMembers = ({
 
   const handleSave = () => {
     // Create a map of existing hosts for easy lookup
-    const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+    const existingHostsMap = new Map(
+      value.filter((host) => !host.isFixed).map((host) => [host.userId.toString(), host])
+    );
 
     // Create the updated value by processing all team members
     const updatedValue = teamMembers
@@ -156,6 +158,7 @@ export const EditWeightsForAllTeamMembers = ({
           isFixed: existingHost?.isFixed ?? false,
           priority: existingHost?.priority ?? 0,
           weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+          groupId: existingHost?.groupId ?? null,
         };
       })
       .filter(Boolean) as Host[];
@@ -238,7 +241,10 @@ export const EditWeightsForAllTeamMembers = ({
       )
       .filter((member) => {
         // When assignAllTeamMembers is false, only include members that exist in value array
-        return assignAllTeamMembers || value.some((host) => host.userId === parseInt(member.value, 10));
+        return (
+          assignAllTeamMembers ||
+          value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10))
+        );
       });
   }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
 
@@ -274,7 +280,7 @@ export const EditWeightsForAllTeamMembers = ({
               </div>
             </SheetHeader>
 
-            <SheetBody className="mt-4 flex h-full flex-col space-y-6 p-1">
+            <SheetBody className="mt-4 flex h-full flex-col stack-y-6 p-1">
               <div className="flex justify-start gap-2">
                 <label className={buttonClasses({ color: "secondary" })}>
                   <Icon name="upload" className="mr-2 h-4 w-4" />
@@ -315,7 +321,7 @@ export const EditWeightsForAllTeamMembers = ({
                     <Icon name="chevron-down" className="h-4 w-4" />
                   </button>
                   {isErrorsExpanded && (
-                    <div className="mt-2 space-y-2">
+                    <div className="mt-2 stack-y-2">
                       {uploadErrors.map((error, index) => (
                         <div
                           key={index}

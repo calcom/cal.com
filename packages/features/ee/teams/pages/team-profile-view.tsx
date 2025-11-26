@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,11 +10,11 @@ import { z } from "zod";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
+import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -23,6 +22,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import type { Prisma } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -66,7 +66,7 @@ type FormValues = z.infer<typeof teamProfileFormSchema>;
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
+      <div className="border-subtle stack-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -174,7 +174,7 @@ const ProfileView = () => {
         <TeamProfileForm team={team} teamId={teamId} />
       ) : (
         <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
-          <div className="flex-grow">
+          <div className="grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
               <p className="text-default text-sm">{team?.name}</p>
@@ -183,7 +183,7 @@ const ProfileView = () => {
               <>
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
@@ -466,7 +466,12 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
+        <Button
+          color="primary"
+          type="submit"
+          loading={mutation.isPending}
+          disabled={isDisabled}
+          data-testid="update-team-profile">
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

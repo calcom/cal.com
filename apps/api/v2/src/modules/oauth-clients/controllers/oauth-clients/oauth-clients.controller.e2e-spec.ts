@@ -10,7 +10,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -34,8 +33,12 @@ import {
   SCHEDULE_WRITE,
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
-import type { CreateOAuthClientInput, UpdateOAuthClientInput } from "@calcom/platform-types";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import type {
+  CreateOAuthClientInput,
+  UpdateOAuthClientInput,
+  ApiSuccessResponse,
+} from "@calcom/platform-types";
+import type { Membership, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("OAuth Clients Endpoints", () => {
   describe("User Not Authenticated", () => {

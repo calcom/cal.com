@@ -1,4 +1,4 @@
-import { sendCustomWorkflowEmail } from "@calcom/emails";
+import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { WorkflowEmailData } from "@calcom/emails/templates/workflow-email";
 import tasker from "@calcom/features/tasker";
 

@@ -271,21 +271,21 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstField=456&Test Field Number=456&Test Field Single Selection=456&Test Field Multiple Selection=456&Test Field Multiple Selection=789&Test Field Phone=456&Test Field Email=456@example.com";
+        "firstField=456&Test-Field-Number=456&Test-Field-Single-Selection=456&Test-Field-Multiple-Selection=456&Test-Field-Multiple-Selection=789&Test-Field-Phone=456&Test-Field-Email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
-      await page.fill('[data-testid="form-field-Test Field Long Text"]', "manual-fill");
+      await page.fill('[data-testid="form-field-Test-Field-Long-Text"]', "manual-fill");
 
       await expect(page.locator('[data-testid="form-field-firstField"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Number"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
-      // expect(await page.locator(`[data-testid="form-field-Test Field Select"]`).inputValue()).toBe("456");
-      // expect(await page.locator(`[data-testid="form-field-Test Field MultiSelect"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-Select"]`).inputValue()).toBe("456");
+      // expect(await page.locator(`[data-testid="form-field-Test-Field-MultiSelect"]`).inputValue()).toBe("456");
 
-      await expect(page.locator('[data-testid="form-field-Test Field Phone"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-Test Field Email"]')).toHaveValue(
+      await expect(page.locator('[data-testid="form-field-Test-Field-Phone"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-Test-Field-Email"]')).toHaveValue(
         "456@example.com"
       );
 
@@ -300,12 +300,12 @@ test.describe("Routing Forms", () => {
       expect(url.searchParams.get("firstField")).toBe("456");
 
       // All other params come from prefill URL
-      expect(url.searchParams.get("Test Field Number")).toBe("456");
-      expect(url.searchParams.get("Test Field Long Text")).toBe("manual-fill");
-      expect(url.searchParams.get("Test Field Multiple Selection")).toBe("456");
-      expect(url.searchParams.getAll("Test Field Multiple Selection")).toMatchObject(["456", "789"]);
-      expect(url.searchParams.get("Test Field Phone")).toBe("456");
-      expect(url.searchParams.get("Test Field Email")).toBe("456@example.com");
+      expect(url.searchParams.get("Test-Field-Number")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Long-Text")).toBe("manual-fill");
+      expect(url.searchParams.get("Test-Field-Multiple-Selection")).toBe("456");
+      expect(url.searchParams.getAll("Test-Field-Multiple-Selection")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("Test-Field-Phone")).toBe("456");
+      expect(url.searchParams.get("Test-Field-Email")).toBe("456@example.com");
     });
 
     // TODO: How to install the app just once?
@@ -407,52 +407,6 @@ test.describe("Routing Forms", () => {
 
       // Log back in to view form responses.
       await user.apiLogin();
-
-      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
-
-      const headerEls = page.locator("[data-testid='reporting-header'] th");
-
-      // Wait for the headers to be visible(will automaically wait for getting response from backend) along with it the rows are rendered.
-      await headerEls.first().waitFor();
-
-      const numHeaderEls = await headerEls.count();
-      const headers = [];
-      for (let i = 0; i < numHeaderEls; i++) {
-        headers.push(await headerEls.nth(i).innerText());
-      }
-
-      const responses = [];
-      const responseRows = page.locator("[data-testid='reporting-row']");
-      const numResponseRows = await responseRows.count();
-      for (let i = 0; i < numResponseRows; i++) {
-        const rowLocator = responseRows.nth(i).locator("td");
-        const numRowEls = await rowLocator.count();
-        const rowResponses = [];
-        for (let j = 0; j < numRowEls; j++) {
-          rowResponses.push(await rowLocator.nth(j).innerText());
-        }
-        responses.push(rowResponses);
-      }
-
-      expect(headers).toEqual([
-        "Test field",
-        "Multi Select(with Legacy `selectText`)",
-        "Multi Select",
-        "Legacy Select",
-        "Select",
-        // TODO: Find a way to incorporate Routed To and Booked At into the report
-        // @see https://github.com/calcom/cal.com/pull/17229
-        "Routed To",
-        "Assignment Reason",
-        "Booked At",
-        "Submitted At",
-      ]);
-      /* Last two columns are "Routed To" and "Booked At" */
-      expect(responses).toEqual([
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-      ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
 
@@ -993,8 +947,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
@@ -1011,8 +963,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });

@@ -17,7 +17,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
-  const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
+  const [_isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
   const eventTypeRef = useRef<EventSettingsFromRef>(null);
 
@@ -31,7 +31,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   };
 
   const handleSubmit = () => {
-    eventTypeRef.current?.handleFormSubmit();
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        console.log("Event type updated successfully");
+        // Additional success handling logic here
+      },
+      onError: (error) => {
+        console.error("Error updating event type:", error);
+        // Additional error handling logic here
+      },
+    });
   };
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
@@ -64,13 +73,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="event-type-card"
                     onClick={() => {
                       setEventTypeId(event.id);
                       setIsTeamEvent(false);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
                     key={event.id}>
-                    <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                    <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
                   </div>
@@ -92,13 +102,14 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
                 return (
                   <div
+                    data-testid="team-event-type-card"
                     onClick={() => {
                       setEventTypeId(event.id);
                       setIsTeamEvent(true);
                     }}
                     className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
                     key={event.id}>
-                    <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                    <h1 className="text-lg font-semibold">{event.title}</h1>
                     <p>{`/${event.slug}`}</p>
                     <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
                   </div>
@@ -108,10 +119,10 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           </div>
         )}
         {eventTypeId && (
-          <div>
+          <div data-testid="event-type-settings-atom">
             <EventTypeSettings
               customClassNames={{
-                atomsWrapper: "!w-[50vw] !m-auto",
+                atomsWrapper: "w-[50vw]! m-auto!",
 
                 eventAdvancedTab: {
                   destinationCalendar: {
@@ -567,8 +578,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
-                    intervalLimitContainer: "space-y-2",
+                    children: "stack-y-4",
+                    intervalLimitContainer: "stack-y-2",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
                       limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -589,13 +600,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                   },
                   totalDurationLimit: {
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     intervalLimitItem: {
                       addLimitButton: "text-purple-500 hover:bg-purple-200 rounded-md",
                       limitText: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -616,7 +627,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     rollingLimit: {
                       container: "flex items-center space-x-2",
                       textField: "border border-purple-300 rounded-md text-purple-900 bg-white",
@@ -641,7 +652,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     container: "border border-purple-200 bg-purple-100 rounded-lg",
                     label: "text-purple-700",
                     description: "text-purple-500",
-                    children: "space-y-4",
+                    children: "stack-y-4",
                     offsetInput: {
                       container: "flex items-center space-x-2",
                       label: "text-purple-700",
@@ -680,7 +691,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                       addOn: "text-purple-500",
                     },
                     multipleDuration: {
-                      container: "space-y-2",
+                      container: "stack-y-2",
                       availableDurationsSelect: {
                         container: "mb-4",
                         label: "text-purple-700",
@@ -740,7 +751,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               allowDelete={true}
               id={eventTypeId}
               tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
-              onSuccess={(eventType) => {
+              onSuccess={(_eventType) => {
                 setEventTypeId(null);
                 refetch();
                 refetchTeamEvents();
@@ -776,7 +787,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!eventTypeId && (
           <div className="mt-8 flex flex-row items-center justify-center gap-24">
-            <div className="flex w-[30vw] flex-col gap-2">
+            <div data-testid="create-event-type-atom" className="flex w-[30vw] flex-col gap-2">
               <h1 className="font-semibold">Create Event Type</h1>
               <CreateEventType
                 customClassNames={{
@@ -789,7 +800,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               />
             </div>
 
-            <div className="flex w-[30vw] flex-col gap-2">
+            <div data-testid="create-team-event-type-atom" className="flex w-[30vw] flex-col gap-2">
               <h1 className="font-semibold">Create Team Event Type</h1>
               {teams?.[0]?.id && (
                 <CreateEventType

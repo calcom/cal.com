@@ -1,5 +1,6 @@
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
 
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
@@ -24,10 +25,9 @@ import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider"
 
 declare global {
   interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
+    Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -42,6 +42,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -55,13 +56,24 @@ export function UserDropdown({ small }: UserDropdownProps) {
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSupportAfterClose, setOpenSupportAfterClose] = useState(false);
 
-  const handleHelpClick = () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
+  const handleHelpClick = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setOpenSupportAfterClose(true);
     setMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (!menuOpen && openSupportAfterClose) {
+      setTimeout(() => {
+        window.Support?.open();
+      }, 0);
+      setOpenSupportAfterClose(false);
+    }
+  }, [menuOpen, openSupportAfterClose]);
 
   // Prevent rendering dropdown if user isn't available.
   // We don't want to show nameless user.
@@ -81,7 +93,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           <span
             className={classNames(
               small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full"
+              "relative shrink-0 rounded-full"
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
@@ -92,20 +104,20 @@ export function UserDropdown({ small }: UserDropdownProps) {
             <span
               className={classNames(
                 "border-muted absolute -bottom-1 -right-1 rounded-full border bg-green-500",
-                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 -right-0 h-2 w-2"
+                small ? "-bottom-0.5 -right-0.5 h-2.5 w-2.5" : "-bottom-0.5 right-0 h-2 w-2"
               )}
             />
           </span>
           {!small && (
-            <span className="flex flex-grow items-center gap-2">
-              <span className="w-24 flex-shrink-0 text-sm leading-none">
+            <span className="flex grow items-center gap-2">
+              <span className="w-24 shrink-0 text-sm leading-none">
                 <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
                   {isPending ? "Loading..." : user?.name ?? "Nameless User"}
                 </span>
               </span>
               <Icon
                 name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
+                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
                 aria-hidden="true"
               />
             </span>

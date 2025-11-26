@@ -1,11 +1,10 @@
-import type { Attendee } from "@prisma/client";
-
-// eslint-disable-next-line no-restricted-imports
+ 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
-import { deleteMeeting } from "@calcom/lib/videoClient";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
+import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
+import type { Attendee } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

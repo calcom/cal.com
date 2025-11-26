@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
@@ -13,7 +13,6 @@ import type {
   CrudAction,
   CustomAction,
 } from "../domain/types/permission-registry";
-import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
@@ -72,26 +71,13 @@ export class PermissionCheckService {
         teamActions.forEach((action) => actions.add(action));
       }
 
-      // Get org-level permissions as fallback
-      if (membership?.team?.parentId && orgMembership?.customRoleId) {
+      // Get org-level permissions (works even without team membership)
+      if (orgMembership?.customRoleId) {
         const orgActions = await this.repository.getResourcePermissionsByRoleId(
           orgMembership.customRoleId,
           resource
         );
         orgActions.forEach((action) => actions.add(action));
-      }
-
-      // Check if user has "manage" permission - if so, grant all actions for this resource
-      if (actions.has("manage" as CrudAction)) {
-        // Get all possible actions for this resource from the permission registry
-        const resourceConfig = PERMISSION_REGISTRY[resource];
-        if (resourceConfig) {
-          const allActions = Object.keys(filterResourceConfig(resourceConfig)) as (
-            | CrudAction
-            | CustomAction
-          )[];
-          allActions.forEach((action) => actions.add(action));
-        }
       }
 
       return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
@@ -122,28 +108,43 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        return this.hasPermission({ membershipId: membership.id }, permission);
+        // Check if user has permission through team or org membership
+        return this.hasPermission({ userId, teamId }, permission);
       }
 
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // Fallback to role-based check - use highest role between team and org membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      let effectiveRole: MembershipRole | null = membership?.role ?? null;
+
+      // Check if team has parent org and get org membership
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        
+        // Use the highest role between team and org
+        if (orgMembership) {
+          effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
+        }
+      }
+
+      if (!effectiveRole) {
+        return false;
+      }
+
+      return this.checkFallbackRoles(effectiveRole, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -171,28 +172,43 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-        userId,
-        teamId,
-      });
-
-      if (!membership) return false;
-
       const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
 
       if (isPBACEnabled) {
-        if (!membership.customRoleId) {
-          this.logger.info(`PBAC is enabled for ${teamId} but no custom role is set on membership relation`);
-          return false;
-        }
-
-        return this.hasPermissions({ membershipId: membership.id }, permissions);
+        // Check if user has permissions through team or org membership
+        return this.hasPermissions({ userId, teamId }, permissions);
       }
 
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // Fallback to role-based check - use highest role between team and org membership
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        userId,
+        teamId,
+      });
+
+      let effectiveRole: MembershipRole | null = membership?.role ?? null;
+
+      // Check if team has parent org and get org membership
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        
+        // Use the highest role between team and org
+        if (orgMembership) {
+          effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
+        }
+      }
+
+      if (!effectiveRole) {
+        return false;
+      }
+
+      return this.checkFallbackRoles(effectiveRole, fallbackRoles);
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -212,22 +228,11 @@ export class PermissionCheckService {
         permission
       );
       if (hasTeamPermission) return true;
-
-      // Check if user has manage permission for this resource
-      const [resource] = permission.split(".");
-      const managePermission = `${resource}.manage` as PermissionString;
-      const hasManagePermission = await this.repository.checkRolePermission(
-        membership.customRoleId,
-        managePermission
-      );
-      if (hasManagePermission) return true;
     }
 
     // If no team permission, check org-level permissions
     if (orgMembership?.customRoleId) {
-      const [resource] = permission.split(".");
-      const managePermission = `${resource}.manage` as PermissionString;
-      return this.repository.checkRolePermission(orgMembership.customRoleId, managePermission);
+      return this.repository.checkRolePermission(orgMembership.customRoleId, permission);
     }
 
     return false;
@@ -237,11 +242,6 @@ export class PermissionCheckService {
    * Internal method to check multiple permissions for a specific role
    */
   private async hasPermissions(query: PermissionCheck, permissions: PermissionString[]): Promise<boolean> {
-    // Return false for empty permissions array to prevent privilege escalation
-    if (permissions.length === 0) {
-      return false;
-    }
-
     const { membership, orgMembership } = await this.getMembership(query);
 
     // First check team-level permissions
@@ -251,61 +251,11 @@ export class PermissionCheckService {
         permissions
       );
       if (hasTeamPermissions) return true;
-
-      // Check if user has manage permissions for all requested resources
-      const resourcesWithManage = new Set<string>();
-      for (const permission of permissions) {
-        const [resource] = permission.split(".");
-        if (!resourcesWithManage.has(resource)) {
-          const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
-            membership.customRoleId,
-            managePermission
-          );
-          if (hasManagePermission) {
-            resourcesWithManage.add(resource);
-          }
-        }
-      }
-
-      // Check if all requested permissions are covered by manage permissions
-      const allPermissionsCovered = permissions.every((permission) => {
-        const [resource] = permission.split(".");
-        return resourcesWithManage.has(resource);
-      });
-
-      if (allPermissionsCovered) return true;
     }
 
     // If no team permissions, check org-level permissions
     if (orgMembership?.customRoleId) {
-      const hasOrgPermissions = await this.repository.checkRolePermissions(
-        orgMembership.customRoleId,
-        permissions
-      );
-      if (hasOrgPermissions) return true;
-
-      // Check if user has manage permissions for all requested resources at org level
-      const resourcesWithManage = new Set<string>();
-      for (const permission of permissions) {
-        const [resource] = permission.split(".");
-        if (!resourcesWithManage.has(resource)) {
-          const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
-            orgMembership.customRoleId,
-            managePermission
-          );
-          if (hasManagePermission) {
-            resourcesWithManage.add(resource);
-          }
-        }
-      }
-
-      // Check if all requested permissions are covered by manage permissions
-      return permissions.every((permission) => {
-        const [resource] = permission.split(".");
-        return resourcesWithManage.has(resource);
-      });
+      return this.repository.checkRolePermissions(orgMembership.customRoleId, permissions);
     }
 
     return false;
@@ -321,8 +271,16 @@ export class PermissionCheckService {
       membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
+    // Get org membership either through the team membership or directly from teamId
     if (membership?.team.parentId) {
+      // User has team membership, check org through that
       orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
+    } else if (query.userId && query.teamId) {
+      // No team membership, but check if team belongs to an org
+      const team = await this.repository.getTeamById(query.teamId);
+      if (team?.parentId) {
+        orgMembership = await this.repository.getOrgMembership(query.userId, team.parentId);
+      }
     }
 
     return { membership, orgMembership };
@@ -332,10 +290,34 @@ export class PermissionCheckService {
     return allowedRoles.includes(userRole);
   }
 
+  private getHighestRole(
+    role1: MembershipRole | null,
+    role2: MembershipRole | null
+  ): MembershipRole | null {
+    if (!role1) return role2;
+    if (!role2) return role1;
+
+    const roleHierarchy: Record<MembershipRole, number> = {
+      OWNER: 3,
+      ADMIN: 2,
+      MEMBER: 1,
+    };
+
+    return roleHierarchy[role1] >= roleHierarchy[role2] ? role1 : role2;
+  }
+
   /**
    * Gets all team IDs where the user has a specific permission
    */
-  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
+  async getTeamIdsWithPermission({
+    userId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermission(permission);
       if (!validationResult.isValid) {
@@ -343,7 +325,7 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermission(userId, permission);
+      return await this.repository.getTeamIdsWithPermission({ userId, permission, fallbackRoles });
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -353,7 +335,15 @@ export class PermissionCheckService {
   /**
    * Gets all team IDs where the user has all of the specified permissions
    */
-  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+  async getTeamIdsWithPermissions({
+    userId,
+    permissions,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermissions(permissions);
       if (!validationResult.isValid) {
@@ -361,7 +351,7 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermissions(userId, permissions);
+      return await this.repository.getTeamIdsWithPermissions({ userId, permissions, fallbackRoles });
     } catch (error) {
       this.logger.error(error);
       return [];

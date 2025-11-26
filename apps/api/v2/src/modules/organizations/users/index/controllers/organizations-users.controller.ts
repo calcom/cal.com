@@ -42,7 +42,7 @@ import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { Team } from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",

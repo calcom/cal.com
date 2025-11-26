@@ -141,6 +141,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
             <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
               {availabilities.schedules.map((schedule) => (
                 <ScheduleListItem
+                  redirectUrl={`/availability/${schedule.id}`}
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
                     timeZone: user?.timeZone,
@@ -156,7 +157,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
               ))}
             </ul>
           </div>
-          <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
+          <div className="text-default mb-16 mt-4 block text-center text-sm">
             {t("temporarily_out_of_office")}{" "}
             <Link href="settings/my-account/out-of-office" className="underline">
               {t("add_a_redirect")}

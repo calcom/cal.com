@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 export const ZUpdateInputSchema = z.object({
   name: z.string().optional(),
@@ -28,13 +28,15 @@ export const ZUpdateInputSchema = z.object({
   timeZone: timeZoneSchema.optional(),
   weekStart: z.string().optional(),
   timeFormat: z.number().optional(),
-  metadata: teamMetadataSchema.unwrap().optional(),
+  metadata: teamMetadataStrictSchema.unwrap().optional(),
   lockEventTypeCreation: z.boolean().optional(),
   lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
   adminGetsNoSlotsNotification: z.boolean().optional(),
   allowSEOIndexing: z.boolean().optional(),
   orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
   disablePhoneOnlySMSNotifications: z.boolean().optional(),
+  disableAutofillOnBookingPage: z.boolean().optional(),
+  orgAutoJoinOnSignup: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

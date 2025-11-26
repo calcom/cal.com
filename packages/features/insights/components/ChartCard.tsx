@@ -1,10 +1,12 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useMemo, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
+import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+type PanelCardProps = React.ComponentProps<typeof PanelCard>;
 
 type LegendItem = {
   label: string;
@@ -14,46 +16,37 @@ type LegendItem = {
 export type LegendSize = "sm" | "default";
 
 export function ChartCard({
-  title,
-  subtitle,
-  cta,
   legend,
   legendSize,
-  children,
-}: {
-  title: string | React.ReactNode;
-  subtitle?: string;
-  cta?: { label: string; onClick: () => void };
+  enabledLegend,
+  onSeriesToggle,
+  ...panelCardProps
+}: PanelCardProps & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
-  children: React.ReactNode;
+  enabledLegend?: Array<LegendItem>;
+  onSeriesToggle?: (label: string) => void;
 }) {
+  const legendComponent =
+    legend && legend.length > 0 ? (
+      <Legend items={legend} size={legendSize} enabledItems={enabledLegend} onItemToggle={onSeriesToggle} />
+    ) : null;
+
   return (
-    <div className="bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1 pb-1">
-      <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
-        {typeof title === "string" ? (
-          <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+    <PanelCard
+      {...panelCardProps}
+      headerContent={
+        panelCardProps.headerContent ? (
+          <div className="flex items-center gap-2">
+            {panelCardProps.headerContent}
+            {legendComponent}
+          </div>
         ) : (
-          title
-        )}
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
-          {legend && legend.length > 0 && <Legend items={legend} size={legendSize} />}
-          {cta && (
-            <Button className="shrink-0" color="secondary" onClick={cta.onClick}>
-              {cta.label}
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="bg-default border-muted w-full grow gap-3 rounded-xl border">
-        {subtitle && (
-          <h3 className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
-            {subtitle}
-          </h3>
-        )}
-        {children}
-      </div>
-    </div>
+          legendComponent
+        )
+      }>
+      {panelCardProps.children}
+    </PanelCard>
   );
 }
 
@@ -72,34 +65,60 @@ export function ChartCardItem({
         "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
         className
       )}>
-      <div className="text-sm font-medium">{children}</div>
+      <div className="grow text-sm font-medium">{children}</div>
       {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
   );
 }
 
-function Legend({ items, size = "default" }: { items: LegendItem[]; size?: LegendSize }) {
+function Legend({
+  items,
+  size = "default",
+  enabledItems,
+  onItemToggle,
+}: {
+  items: LegendItem[];
+  size?: LegendSize;
+  enabledItems?: LegendItem[];
+  onItemToggle?: (label: string) => void;
+}) {
+  const enabledSet = useMemo(() => new Set((enabledItems ?? []).map((i) => i.label)), [enabledItems]);
+  const isClickable = Boolean(onItemToggle);
+
   return (
     <div className="bg-default flex items-center gap-2 rounded-lg px-1.5 py-1">
-      {items.map((item, index) => (
-        <Fragment key={item.label}>
-          <div
-            className="relative flex items-center gap-2 rounded-md px-1.5 py-0.5"
-            style={{ backgroundColor: `${item.color}33` }}>
-            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-            <Tooltip content={item.label}>
-              <p
-                className={classNames(
-                  "text-default truncate py-0.5 text-sm font-medium leading-none",
-                  size === "sm" ? "w-16" : ""
-                )}>
-                {item.label}
-              </p>
-            </Tooltip>
-          </div>
-          {index < items.length - 1 && <div className="bg-muted h-5 w-[1px]" />}
-        </Fragment>
-      ))}
+      {items.map((item, index) => {
+        const isEnabled = enabledItems ? enabledSet.has(item.label) : true;
+
+        return (
+          <Fragment key={item.label}>
+            <button
+              type="button"
+              className={classNames(
+                "relative flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-opacity",
+                isClickable && "cursor-pointer hover:bg-gray-100",
+                !isEnabled && "opacity-25"
+              )}
+              style={{ backgroundColor: `${item.color}33` }}
+              aria-pressed={isClickable ? isEnabled : undefined}
+              aria-label={`Toggle ${item.label}`}
+              disabled={!isClickable}
+              onClick={isClickable ? () => onItemToggle?.(item.label) : undefined}>
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <Tooltip content={item.label}>
+                <span
+                  className={classNames(
+                    "text-default truncate py-0.5 text-sm font-medium leading-none",
+                    size === "sm" ? "w-16" : ""
+                  )}>
+                  {item.label}
+                </span>
+              </Tooltip>
+            </button>
+            {index < items.length - 1 && <div className="bg-cal-muted h-5 w-px" />}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }

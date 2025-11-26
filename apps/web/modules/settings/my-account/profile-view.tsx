@@ -12,6 +12,7 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
@@ -46,6 +47,8 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
+import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
+
 interface DeleteAccountValues {
   totpCode: string;
 }
@@ -72,7 +75,8 @@ type Props = {
 const ProfileView = ({ user }: Props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { update } = useSession();
+  const session = useSession();
+  const { update } = session;
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -138,6 +142,7 @@ const ProfileView = ({ user }: Props) => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
@@ -250,6 +255,14 @@ const ProfileView = ({ user }: Props) => {
     ],
   };
 
+  // Check if user should see company email alert
+  const shouldShowCompanyEmailAlert =
+    !isCompanyEmailAlertDismissed &&
+    !session.data?.user?.org?.id &&
+    !user.organization?.id &&
+    userEmail &&
+    isCompanyEmail(userEmail);
+
   return (
     <SettingsHeader
       title={t("profile")}
@@ -300,6 +313,12 @@ const ProfileView = ({ user }: Props) => {
         }
         isCALIdentityProvider={isCALIdentityProvider}
       />
+
+      {shouldShowCompanyEmailAlert && (
+        <div className="mt-6">
+          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
+        </div>
+      )}
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
@@ -511,12 +530,12 @@ const ProfileForm = ({
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    email: emailSchema,
+    email: emailSchema.toLowerCase(),
     bio: z.string(),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
-        email: emailSchema,
+        email: emailSchema.toLowerCase(),
         emailVerified: z.union([z.string(), z.null()]).optional(),
         emailPrimary: z.boolean().optional(),
       })
@@ -639,7 +658,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <Icon name="info" className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -700,7 +719,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col stack-y-4">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo
