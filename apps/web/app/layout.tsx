@@ -15,7 +15,7 @@ import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -115,8 +115,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
       </head>
@@ -125,19 +125,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         style={
           isEmbed
             ? {
-              background: "transparent",
-              // Keep the embed hidden till parent initializes and
-              // - gives it the appropriate styles if UI instruction is there.
-              // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-              // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-              visibility: "hidden",
-              // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
-              opacity: 0,
-            }
+                background: "transparent",
+                // Keep the embed hidden till parent initializes and
+                // - gives it the appropriate styles if UI instruction is there.
+                // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+                visibility: "hidden",
+                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+                opacity: 0,
+              }
             : {
-              visibility: "visible",
-              opacity: 1,
-            }
+                visibility: "visible",
+                opacity: 1,
+              }
         }>
         <IconSprites />
         <SpeculationRules
