@@ -61,7 +61,7 @@ export const OrgForm = ({
   };
 
   return (
-    <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
+    <Form form={form} className="stack-y-4" handleSubmit={onSubmit}>
       <TextField label="Name" placeholder="example" required {...form.register("name")} />
       <TextField label="Slug" placeholder="example" required {...form.register("slug")} />
       <p className="text-default mt-2 text-sm">
