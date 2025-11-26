@@ -241,7 +241,13 @@ export class TeamService {
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
 
-    await TeamService.cleanupFilterSegmentsWithRemovedUser(userId, team.id);
+    const cleanupTeamIds = [team.id];
+    if (isOrg) {
+      const childTeamIds = await TeamService.getAllChildTeamIds(team.id);
+      cleanupTeamIds.push(...childTeamIds);
+    }
+
+    await TeamService.cleanupFilterSegmentsWithRemovedUser(userId, cleanupTeamIds);
 
     return { membership };
   }
@@ -435,12 +441,47 @@ export class TeamService {
     await TeamService.cleanupFilterSegmentsWithRemovedUser(membership.userId, teamId);
   }
 
-  private static async cleanupFilterSegmentsWithRemovedUser(userId: number, teamId: number) {
+  private static async getAllChildTeamIds(teamId: number): Promise<number[]> {
+    const descendantTeamIds: number[] = [];
+    let parentIds: number[] = [teamId];
+
+    while (parentIds.length > 0) {
+      const children = await prisma.team.findMany({
+        where: {
+          parentId: {
+            in: parentIds,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!children.length) {
+        break;
+      }
+
+      const childIds = children.map((child) => child.id);
+      descendantTeamIds.push(...childIds);
+      parentIds = childIds;
+    }
+
+    return descendantTeamIds;
+  }
+
+  private static async cleanupFilterSegmentsWithRemovedUser(userId: number, teamIds: number | number[]) {
+    const targetTeamIds = Array.isArray(teamIds) ? teamIds : [teamIds];
+    const uniqueTeamIds = Array.from(new Set(targetTeamIds.filter((id) => typeof id === "number")));
+    if (uniqueTeamIds.length === 0) {
+      return;
+    }
     try {
       const filterSegments = await prisma.filterSegment.findMany({
         where: {
           scope: "TEAM",
-          teamId: teamId,
+          teamId: {
+            in: uniqueTeamIds,
+          },
         },
         select: {
           id: true,
