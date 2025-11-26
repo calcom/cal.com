@@ -73,6 +73,7 @@ describe("confirmHandler", () => {
             location: "integrations:daily",
             attendees: [attendeeUser],
             responses: { name: attendeeUser.name, email: attendeeUser.email, notes: "Sensitive information" },
+            user: { id: organizer.id },
           },
         ],
         organizer,

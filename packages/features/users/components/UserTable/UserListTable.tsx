@@ -449,16 +449,19 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
-            canRemove: permissionsRaw.canRemove && !isSelf,
+            canEdit:
+              ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
+              user.accepted &&
+              !isSelf,
+            canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
             canImpersonate:
               user.accepted &&
               !user.disableImpersonation &&
               !isSelf &&
               !!org?.canAdminImpersonate &&
-              permissionsRaw.canImpersonate,
+              (permissionsRaw.canImpersonate ?? false),
             canLeave: user.accepted && isSelf,
-            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
+            canResendInvitation: (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
           };
 
           return (
@@ -633,7 +636,7 @@ function UserListTableContent({
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                {(permissions?.canEditAttributesForUser ?? adminOrOwner) && (
                   <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 )}
                 {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
@@ -655,7 +658,15 @@ function UserListTableContent({
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
-      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && (
+        <EditUserSheet
+          dispatch={dispatch}
+          state={state}
+          canViewAttributes={permissions?.canViewAttributes}
+          canEditAttributesForUser={permissions?.canEditAttributesForUser}
+          canChangeMemberRole={permissions?.canChangeMemberRole ?? adminOrOwner}
+        />
+      )}
 
       {ctaContainerRef.current &&
         createPortal(
