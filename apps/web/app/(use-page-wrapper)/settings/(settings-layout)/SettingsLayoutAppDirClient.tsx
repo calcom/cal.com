@@ -14,7 +14,7 @@ import type { OrganizationBranding } from "@calcom/features/ee/organizations/con
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
-import { AVATAR_FALLBACK, HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -22,6 +22,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
@@ -43,7 +44,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing" },
         { name: "appearance", href: "/settings/my-account/appearance" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office" },
-        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
+        {
+          name: "push_notifications",
+          href: "/settings/my-account/push-notifications",
+        },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -143,7 +147,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "organizations", href: "/settings/admin/organizations" },
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
-        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        {
+          name: "Workspace Platforms",
+          href: "/settings/admin/workspace-platforms",
+        },
         { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
@@ -151,15 +158,24 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 
   tabs.find((tab) => {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-      tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
+      tab.children?.push({
+        name: "sso_configuration",
+        href: "/settings/security/sso",
+      });
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
+      tab.children?.push({
+        name: "create_org",
+        href: "/settings/organizations/new",
+      });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
+      tab.children?.push({
+        name: "create_license_key",
+        href: "/settings/license-key/new",
+      });
     }
   });
 
@@ -193,7 +209,9 @@ const useTabs = ({
   permissions?: SettingsPermissions;
 }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
+  const { data: user } = trpc.viewer.me.get.useQuery({
+    includePasswordAdded: true,
+  });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -452,7 +470,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      className="me-5 h-7 w-auto px-2!"
+                      className="me-5 px-2! h-7 w-auto"
                       disableChevron
                     />
                   )}
@@ -460,7 +478,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className="me-5 h-7 w-auto px-2!"
+                    className="me-5 px-2! h-7 w-auto"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -481,7 +499,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto px-2!"
+                        className="me-5 px-2! h-7 w-auto"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -491,7 +509,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
-                            className="me-5 h-7 w-auto px-2!"
+                            className="me-5 px-2! h-7 w-auto"
                             disableChevron
                           />
                         </>
@@ -500,7 +518,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto px-2!"
+                        className="me-5 px-2! h-7 w-auto"
                         disableChevron
                       />
                     </>
@@ -576,9 +594,12 @@ const SettingsSidebarContainer = ({
 
   return (
     <nav
-      style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+      style={{
+        maxHeight: `calc(100vh - ${bannersHeight}px)`,
+        top: `${bannersHeight}px`,
+      }}
       className={classNames(
-        "no-scrollbar bg-cal-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col stack-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -601,15 +622,11 @@ const SettingsSidebarContainer = ({
                         />
                       )}
                       {!tab.icon && tab?.avatar && (
-                        <Image
-                          width={16}
-                          height={16}
-                          className="rounded-full ltr:mr-3 rtl:ml-3"
-                          src={tab.avatar}
+                        <Avatar
+                          size="xs"
+                          imageSrc={tab.avatar}
                           alt="Organization Logo"
-                          onError={(error) => {
-                            error.currentTarget.src = AVATAR_FALLBACK;
-                          }}
+                          className="ltr:mr-3 rtl:ml-3"
                         />
                       )}
                       <Skeleton
@@ -629,7 +646,7 @@ const SettingsSidebarContainer = ({
                           isExternalLink={child.isExternalLink}
                           href={child.href || "/"}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`h-7 w-fit px-2! ${
+                          className={`px-2! h-7 w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -671,7 +688,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto px-2!"
+                        className="me-5 px-2! h-7 w-auto"
                         icon="plus"
                         disableChevron
                       />
@@ -775,14 +792,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto px-2!"
+                                  className="me-5 px-2! h-7 w-auto"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto px-2!"
+                                  className="me-5 px-2! h-7 w-auto"
                                   disableChevron
                                 />
                                 <>
@@ -884,7 +901,7 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 *:flex-1">
+      <div className="*:flex-1 flex flex-1">
         <div
           className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
