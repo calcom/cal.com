@@ -162,14 +162,16 @@ function Field({
                     <SelectField
                       maxMenuHeight={200}
                       styles={{
-                        singleValue: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
-                        option: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
+                        singleValue: (baseStyles) =>
+                          ({
+                            ...baseStyles,
+                            fontSize: "14px",
+                          }) as import("react-select").CSSObjectWithLabel,
+                        option: (baseStyles) =>
+                          ({
+                            ...baseStyles,
+                            fontSize: "14px",
+                          }) as import("react-select").CSSObjectWithLabel,
                       }}
                       label="Type"
                       isDisabled={!!router}

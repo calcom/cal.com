@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import type { CSSObjectWithLabel } from "react-select";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
@@ -54,7 +55,7 @@ export const DestinationCalendarSelector = ({
 
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: `${selected.name} ` || "",
+        label: selected.name ? `${selected.name} ` : "",
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
@@ -104,23 +105,24 @@ export const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          singleValue: (styles) => ({
-            ...styles,
-            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
-          }),
-          control: (defaultStyles) => {
-            return {
+          placeholder: (styles) =>
+            ({
+              ...styles,
+              ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
+            }) as CSSObjectWithLabel,
+          singleValue: (styles) =>
+            ({
+              ...styles,
+              ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
+            }) as CSSObjectWithLabel,
+          control: (defaultStyles) =>
+            ({
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
                 maxWidth,
               },
-            };
-          },
+            }) as CSSObjectWithLabel,
         }}
         isSearchable={false}
         className={classNames(

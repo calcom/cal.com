@@ -413,12 +413,13 @@ const WebhookForm = (props: {
                   grow
                   options={translatedTriggerOptions}
                   isMulti
-                  styles={{
-                    indicatorsContainer: (base) => ({
-                      ...base,
-                      alignItems: "flex-start",
-                    }),
-                  }}
+                    styles={{
+                      indicatorsContainer: (base) =>
+                        ({
+                          ...base,
+                          alignItems: "flex-start",
+                        }) as import("react-select").CSSObjectWithLabel,
+                    }}
                   value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));

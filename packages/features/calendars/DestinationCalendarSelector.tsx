@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import type { OptionProps, SingleValueProps } from "react-select";
+import type { CSSObjectWithLabel, OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -99,7 +99,7 @@ const DestinationCalendarSelector = ({
 
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: `${selected.name} ` || "",
+        label: selected.name ? `${selected.name} ` : "",
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
@@ -148,17 +148,16 @@ const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          control: (defaultStyles) => {
-            return {
+          placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }) as CSSObjectWithLabel,
+          singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }) as CSSObjectWithLabel,
+          control: (defaultStyles) =>
+            ({
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
                 maxWidth,
               },
-            };
-          },
+            }) as CSSObjectWithLabel,
         }}
         isSearchable={false}
         className={classNames(

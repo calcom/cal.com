@@ -217,14 +217,16 @@ export default function ApiKeyDialogForm({
                   return (
                     <SelectField
                       styles={{
-                        singleValue: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
-                        option: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
+                        singleValue: (baseStyles) =>
+                          ({
+                            ...baseStyles,
+                            fontSize: "14px",
+                          }) as import("react-select").CSSObjectWithLabel,
+                        option: (baseStyles) =>
+                          ({
+                            ...baseStyles,
+                            fontSize: "14px",
+                          }) as import("react-select").CSSObjectWithLabel,
                       }}
                       isDisabled={watchNeverExpires || !!defaultValues}
                       containerClassName="data-testid-field-type"
