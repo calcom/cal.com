@@ -3,7 +3,14 @@ import { z } from "zod";
 
 import type { TextFilterOperator } from "@calcom/types/data-table";
 export type { ColumnFilterMeta, FilterableColumn } from "@calcom/types/data-table";
-import { ColumnFilterType } from "@calcom/types/data-table";
+
+enum ColumnFilterType {
+  SINGLE_SELECT = "ss",
+  MULTI_SELECT = "ms",
+  TEXT = "t",
+  NUMBER = "n",
+  DATE_RANGE = "dr",
+}
 
 export type { SortingState } from "@tanstack/react-table";
 

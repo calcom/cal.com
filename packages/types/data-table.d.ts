@@ -1,12 +1,10 @@
 import type { IconName } from "@calcom/ui/components/icon/icon-names";
 
-export enum ColumnFilterType {
-  SINGLE_SELECT = "ss",
-  MULTI_SELECT = "ms",
-  TEXT = "t",
-  NUMBER = "n",
-  DATE_RANGE = "dr",
-}
+export type FilterTypeSingleSelect = "ss";
+export type FilterTypeMultiSelect = "ms";
+export type FilterTypeText = "t";
+export type FilterTypeNumber = "n";
+export type FilterTypeDateRange = "dr";
 
 export type TextFilterOperator = "equals" | "notEquals" | "contains" | "notContains" | "startsWith" | "endsWith" | "isEmpty" | "isNotEmpty";
 
@@ -22,17 +20,17 @@ export type DateRangeFilterOptions = {
 
 export type ColumnFilterMeta =
   | {
-      type: ColumnFilterType.DATE_RANGE;
+      type: FilterTypeDateRange;
       icon?: IconName;
       dateRangeOptions?: DateRangeFilterOptions;
     }
   | {
-      type: ColumnFilterType.TEXT;
+      type: FilterTypeText;
       icon?: IconName;
       textOptions?: TextFilterOptions;
     }
   | {
-      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE | ColumnFilterType.TEXT>;
+      type?: FilterTypeMultiSelect | FilterTypeNumber | FilterTypeSingleSelect;
       icon?: IconName;
     };
 
@@ -42,22 +40,22 @@ export type FilterableColumn = {
     icon?: IconName;
 } & (
     | {
-        type: ColumnFilterType.SINGLE_SELECT;
+        type: FilterTypeSingleSelect;
         options: FacetedValue[];
     }
     | {
-        type: ColumnFilterType.MULTI_SELECT;
+        type: FilterTypeMultiSelect;
         options: FacetedValue[];
     }
     | {
-        type: ColumnFilterType.TEXT;
+        type: FilterTypeText;
         textOptions?: TextFilterOptions;
     }
     | {
-        type: ColumnFilterType.NUMBER;
+        type: FilterTypeNumber;
     }
     | {
-        type: ColumnFilterType.DATE_RANGE;
+        type: FilterTypeDateRange;
         dateRangeOptions?: DateRangeFilterOptions;
     }
 );
