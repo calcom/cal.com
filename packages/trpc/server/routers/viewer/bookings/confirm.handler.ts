@@ -45,7 +45,6 @@ type ConfirmOptions = {
 };
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
-  const { user } = ctx;
   const {
     bookingId,
     recurringEventId,
@@ -140,12 +139,17 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     },
   });
 
+  const user = booking.user;
+  if (!user) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking must have an organizer" });
+  }
+
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
-    loggedInUserId: user.id,
+    loggedInUserId: ctx.user.id,
     teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
-    userRole: user.role,
+    userRole: ctx.user.role,
   });
 
   // Do not move this before authorization check.
