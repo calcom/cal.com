@@ -660,6 +660,7 @@ function UserListTableContent({
         <EditUserSheet
           dispatch={dispatch}
           state={state}
+          canViewAttributes={permissions?.canViewAttributes}
           canEditAttributesForUser={permissions?.canEditAttributesForUser}
           canChangeMemberRole={permissions?.canChangeMemberRole ?? adminOrOwner}
         />

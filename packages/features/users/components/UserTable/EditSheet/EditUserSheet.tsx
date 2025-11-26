@@ -23,11 +23,13 @@ function removeProtocol(url: string) {
 export function EditUserSheet({
   state,
   dispatch,
+  canViewAttributes,
   canEditAttributesForUser,
   canChangeMemberRole,
 }: {
   state: UserTableState;
   dispatch: Dispatch<UserTableAction>;
+  canViewAttributes?: boolean;
   canEditAttributesForUser?: boolean;
   canChangeMemberRole?: boolean;
 }) {
@@ -51,7 +53,7 @@ export function EditUserSheet({
         userId: selectedUser?.id,
       },
       {
-        enabled: !!selectedUser?.id,
+        enabled: !!selectedUser?.id && !!canViewAttributes,
       }
     );
 
@@ -112,7 +114,7 @@ export function EditUserSheet({
                       icon="calendar"
                     />
                   </div>
-                  {usersAttributes && usersAttributes?.length > 0 && (
+                  {canViewAttributes && usersAttributes && usersAttributes?.length > 0 && (
                     <div className="mt-4 flex flex-col">
                       <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
                       <div className="stack-y-4 flex flex-col">

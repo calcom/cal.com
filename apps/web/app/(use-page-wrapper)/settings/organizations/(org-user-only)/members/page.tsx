@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { Resource, CustomAction, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
@@ -103,8 +103,11 @@ const Page = async () => {
       teamId: session.user.profile.organizationId,
       resource: Resource.Attributes,
       userRole: session.user.org.role,
-      actions: [CustomAction.EditUsers],
+      actions: [CrudAction.Read, CustomAction.EditUsers],
       fallbackRoles: {
+        [CrudAction.Read]: {
+          roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
         [CustomAction.EditUsers]: {
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
@@ -121,6 +124,7 @@ const Page = async () => {
     canChangeMemberRole: orgPermissions[CustomAction.ChangeMemberRole],
     canRemove: orgPermissions[CustomAction.Remove],
     canImpersonate: orgPermissions[CustomAction.Impersonate],
+    canViewAttributes: attributesPermissions[CrudAction.Read],
     canEditAttributesForUser: attributesPermissions[CustomAction.EditUsers],
   };
 
