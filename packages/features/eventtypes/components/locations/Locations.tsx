@@ -30,7 +30,6 @@ export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["loc
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
-
 type LocationsProps = {
   team: { id: number } | null;
   destinationCalendar: TDestinationCalendar;
@@ -168,7 +167,7 @@ const Locations: React.FC<LocationsProps> = ({
 
   return (
     <div className={classNames("w-full", customClassNames?.container)}>
-      <ul ref={animationRef} className={classNames("space-y-2")}>
+      <ul ref={animationRef} className={classNames("stack-y-2")}>
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
@@ -246,7 +245,7 @@ const Locations: React.FC<LocationsProps> = ({
                       <Icon
                         name="x"
                         className={classNames(
-                          "border-l-1 hover:text-emphasis text-subtle h-4 w-4",
+                          "border-l hover:text-emphasis text-subtle h-4 w-4",
                           customClassNames?.removeLocationIcon
                         )}
                       />
@@ -265,7 +264,7 @@ const Locations: React.FC<LocationsProps> = ({
                   customClassNames={customClassNames}
                 />
               ) : eventLocationType?.organizerInputType ? (
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 stack-y-2">
                   <div className="w-full">
                     <div className="flex gap-2">
                       <div className="flex items-center justify-center">

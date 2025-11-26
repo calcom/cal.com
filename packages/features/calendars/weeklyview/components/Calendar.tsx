@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { useCalendarStore } from "../state/store";
+import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
@@ -16,7 +16,7 @@ import { HorizontalLines } from "./horizontalLines";
 import { Spinner } from "./spinner/Spinner";
 import { VerticalLines } from "./verticalLines";
 
-export function Calendar(props: CalendarComponentProps) {
+function CalendarInner(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
@@ -34,6 +34,7 @@ export function Calendar(props: CalendarComponentProps) {
   const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
+  const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -44,7 +45,7 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initalise State on initial mount
+  // Initalise State on initial mount and when props change
   useEffect(() => {
     initialState(props);
   }, [props, initialState]);
@@ -63,7 +64,7 @@ export function Calendar(props: CalendarComponentProps) {
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
+          className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
@@ -74,10 +75,10 @@ export function Calendar(props: CalendarComponentProps) {
               borderColor={borderColor}
             />
             <div className="relative flex flex-auto">
-              <CurrentTime timezone={timezone} />
+              <CurrentTime timezone={timezone} scrollToCurrentTime={scrollToCurrentTime} />
               <div
                 className={classNames(
-                  "bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
+                  "bg-default dark:bg-cal-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
                   showBorder &&
                     (borderColor === "subtle"
                       ? "border-subtle border-l border-r"
@@ -167,6 +168,27 @@ export function Calendar(props: CalendarComponentProps) {
         </div>
       </div>
     </MobileNotSupported>
+  );
+}
+
+export function Calendar(props: CalendarComponentProps) {
+  const storeRef = useRef<ReturnType<typeof createCalendarStore> | null>(null);
+
+  if (!storeRef.current) {
+    storeRef.current = createCalendarStore();
+    storeRef.current.getState().initState(props);
+  }
+
+  useEffect(() => {
+    if (storeRef.current) {
+      storeRef.current.getState().initState(props);
+    }
+  }, [props]);
+
+  return (
+    <CalendarStoreContext.Provider value={storeRef.current}>
+      <CalendarInner {...props} />
+    </CalendarStoreContext.Provider>
   );
 }
 

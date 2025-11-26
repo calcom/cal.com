@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
 import React, { cloneElement } from "react";
 import { Toaster } from "sonner";
@@ -17,7 +17,6 @@ import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { CalAiBanner } from "./CalAiBanner";
 import { DynamicModals } from "./DynamicModals";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -28,7 +27,6 @@ import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
-  const pathname = usePathname();
 
   useFormbricks();
 
@@ -177,7 +175,7 @@ export function ShellMain(props: LayoutProps) {
                     props.backPath
                       ? "relative"
                       : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
+                    "shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}
                 </div>
@@ -208,7 +206,6 @@ function MainContainer({
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">
-        <CalAiBanner />
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

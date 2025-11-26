@@ -26,7 +26,7 @@ import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/li
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -279,14 +279,6 @@ export default function Success(props: PageProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  // const telemetry = useTelemetry();
-  /*  useEffect(() => {
-    if (top !== window) {
-      //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
-    }
-  }, [telemetry]); */
-
   useEffect(() => {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
@@ -470,7 +462,7 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
+                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -498,7 +490,7 @@ export default function Success(props: PageProps) {
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
-                            ? "bg-success"
+                            ? "bg-cal-success"
                             : "",
                           !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
                             ? "bg-subtle"
@@ -576,23 +568,25 @@ export default function Success(props: PageProps) {
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{cancellationReason}</p>
+                              <p className="wrap-break-word">{cancellationReason}</p>
                             </div>
                           </>
                         )}
-                        {isCancelled && bookingInfo?.cancelledBy && (
-                          <>
-                            <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
-                            </div>
-                          </>
-                        )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(bookingInfo.eventType?.hideOrganizerEmail && !isHost) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="wrap-break-word">{bookingInfo?.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <p className="wrap-break-word">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
@@ -717,7 +711,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -743,8 +737,8 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                    0 ? (
-                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                  0 ? (
+                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -774,15 +768,9 @@ export default function Success(props: PageProps) {
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
 
-                          const isSystemField = SystemField.safeParse(field.name);
-                          // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
-                          // TITLE is also an identifier for booking question "What is this meeting about?"
-                          if (
-                            isSystemField.success &&
-                            field.name !== SMS_REMINDER_NUMBER_FIELD &&
-                            field.name !== TITLE_FIELD
-                          )
+                          if (!shouldShowFieldInCustomResponses(field.name)) {
                             return null;
+                          }
 
                           const label = field.label || t(field.defaultLabel);
 
@@ -795,7 +783,7 @@ export default function Success(props: PageProps) {
                                 }}
                               />
                               <p
-                                className="text-default break-words"
+                                className="text-default wrap-break-word"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"
@@ -851,10 +839,11 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
-                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                          : ""
-                                          }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                          currentUserEmail
+                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                            : ""
+                                        }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
@@ -1064,7 +1053,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 space-y-1 text-center">
+                      <div className="my-4 stack-y-1 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
@@ -1210,7 +1199,7 @@ function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+              {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
               <br />
               {formatToLocalizedTime({
                 date: dayjs(dateStr),
@@ -1228,7 +1217,7 @@ function RecurringBookings({
                 timeZone: tz,
               })}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -1243,7 +1232,7 @@ function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.utc(dateStr), language, "full", tz)}
                     <br />
                     {formatToLocalizedTime({
                       date: dayjs(dateStr),
@@ -1259,7 +1248,7 @@ function RecurringBookings({
                       timeZone: tz,
                     })}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                      ({formatToLocalizedTimezone(dayjs.utc(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}

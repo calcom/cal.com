@@ -1,12 +1,21 @@
 "use client";
 
 import { format } from "date-fns";
+import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
+import {
+  Sheet,
+  SheetContent,
+  SheetBody,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@calcom/ui/components/sheet";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type BlocklistEntry = RouterOutputs["viewer"]["organizations"]["listWatchlistEntries"]["rows"][number];
@@ -15,9 +24,15 @@ interface BlocklistEntryDetailsSheetProps {
   entry: BlocklistEntry | null;
   isOpen: boolean;
   onClose: () => void;
+  handleDeleteBlocklistEntry: (entry: BlocklistEntry) => void;
 }
 
-export function BlocklistEntryDetailsSheet({ entry, isOpen, onClose }: BlocklistEntryDetailsSheetProps) {
+export function BlocklistEntryDetailsSheet({
+  entry,
+  isOpen,
+  onClose,
+  handleDeleteBlocklistEntry,
+}: BlocklistEntryDetailsSheetProps) {
   const { t } = useLocale();
 
   const { data, isLoading } = trpc.viewer.organizations.getWatchlistEntryDetails.useQuery(
@@ -27,104 +42,115 @@ export function BlocklistEntryDetailsSheet({ entry, isOpen, onClose }: Blocklist
     }
   );
 
-  const getActionVariant = (action: string) => {
-    switch (action) {
-      case "BLOCK":
-        return "red";
-      case "REPORT":
-        return "orange";
-      case "ALERT":
-        return "blue";
-      default:
-        return "gray";
-    }
-  };
-
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{t("blocklist_entry_details")}</SheetTitle>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}>
+      <SheetContent className="px-0 pb-0 sm:max-w-xl sm:px-0 sm:pb-0">
+        <SheetHeader className="px-6">
+          <SheetTitle>{entry?.value}</SheetTitle>
         </SheetHeader>
 
-        {isLoading ? (
-          <div className="mt-6 space-y-4">
-            <SkeletonText className="h-6 w-32" />
-            <SkeletonText className="h-10 w-full" />
-            <SkeletonText className="h-6 w-32" />
-            <SkeletonText className="h-10 w-full" />
-            <SkeletonText className="h-6 w-32" />
-            <SkeletonText className="h-20 w-full" />
-          </div>
-        ) : data?.entry ? (
-          <div className="mt-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-default mb-1 block text-sm font-medium">{t("type")}</label>
-                <Badge variant="blue" size="lg">
-                  {data.entry.type === "EMAIL" ? t("email") : t("domain")}
-                </Badge>
-              </div>
-
-              <div>
-                <label className="text-default mb-1 block text-sm font-medium">{t("value")}</label>
-                <p className="text-emphasis text-base">{data.entry.value}</p>
-              </div>
-
-              <div>
-                <label className="text-default mb-1 block text-sm font-medium">{t("action")}</label>
-                <Badge variant={getActionVariant(data.entry.action)} size="lg">
-                  {t(data.entry.action.toLowerCase())}
-                </Badge>
-              </div>
-
-              <div>
-                <label className="text-default mb-1 block text-sm font-medium">{t("description")}</label>
-                <p className="text-default">{data.entry.description || t("no_description_provided")}</p>
-              </div>
-
-              <div>
-                <label className="text-default mb-1 block text-sm font-medium">{t("created_by")}</label>
-                <p className="text-default">{data.auditHistory[0]?.changedByUser?.email || "—"}</p>
-              </div>
+        <SheetBody className="px-6">
+          {isLoading ? (
+            <div className="mt-3 stack-y-3">
+              <SkeletonText className="h-6 w-32" />
+              <SkeletonText className="h-40 w-full" />
             </div>
+          ) : data?.entry ? (
+            <div className="mt-3 stack-y-6">
+              <div className="bg-subtle rounded-xl p-1">
+                <h2 className="text-default p-5 text-sm font-semibold">{t("details")}</h2>
 
-            <div className="border-subtle my-6 border-t" />
+                <div className="bg-default stack-y-3 rounded-xl p-5">
+                  <div>
+                    <label className="text-default block text-sm font-semibold">
+                      {data.entry.type === "EMAIL" ? t("email") : t("domain")}
+                    </label>
+                    <p className="text-subtle text-sm">{data.entry.value}</p>
+                  </div>
 
-            <div>
-              <h3 className="text-emphasis mb-4 font-semibold">{t("audit_history")}</h3>
-              {data.auditHistory.length > 0 ? (
-                <div className="space-y-0">
-                  {data.auditHistory.map((audit, index) => (
-                    <div
-                      key={audit.id}
-                      className={`py-3 ${
-                        index !== data.auditHistory.length - 1 ? "border-subtle border-b" : ""
-                      }`}>
-                      <div className="mb-1 flex items-start justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-muted text-xs">{t("by")}:</span>
-                          <span className="text-default text-sm">{audit.changedByUser?.email || "—"}</span>
-                        </div>
-                        <span className="text-muted text-xs">
-                          {format(new Date(audit.changedAt), "MMM d, h:mm a")}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted text-xs">{t("added")}:</span>
-                        <span className="text-emphasis text-sm">{audit.value}</span>
-                      </div>
+                  <div>
+                    <label className="text-default block text-sm font-semibold">{t("type")}</label>
+                    <p className="text-subtle text-sm">
+                      {data.entry.type === "EMAIL" ? t("email") : t("domain")}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-default block text-sm font-semibold">{t("blocked_by")}</label>
+                    <p className="text-subtle text-sm">{data.auditHistory[0]?.changedByUser?.email || "—"}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-default block text-sm font-semibold">{t("description")}</label>
+                    <p className="text-subtle text-sm">
+                      {data.entry.description || t("no_description_provided")}
+                    </p>
+                  </div>
+
+                  {data.entry.bookingReports && data.entry.bookingReports.length > 0 && (
+                    <div>
+                      <label className="text-default block text-sm font-semibold">
+                        {t("related_booking")}
+                      </label>
+
+                      {data.entry.bookingReports.map((report) => {
+                        return (
+                          <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
+                            <div className="text-subtle flex items-center gap-1 text-sm">
+                              {report.booking.title}
+                              <Icon name="external-link" className="h-4 w-4" />
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <p className="text-muted text-sm">{t("no_audit_history")}</p>
-              )}
+              </div>
+
+              <div className="bg-subtle rounded-xl p-1">
+                <h2 className="text-default p-5 text-sm font-semibold">{t("history")}</h2>
+                {data.auditHistory.length > 0 ? (
+                  <div className="stack-y-3">
+                    {data.auditHistory.map((audit) => (
+                      <div key={audit.id} className="bg-default border-subtle rounded-xl border p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="text-default text-sm font-semibold">
+                              {audit.changedByUser?.name || audit.changedByUser?.email || "—"}
+                            </span>
+                            <span className="text-subtle text-sm"> {t("added")}</span>
+                            <div className="text-default mt-1 text-sm font-semibold">{audit.value}</div>
+                          </div>
+                          <span className="text-subtle text-sm">
+                            {format(new Date(audit.changedAt), "MMM d, h:mm a")}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-subtle text-sm">{t("no_audit_history")}</p>
+                )}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-muted mt-8 text-center">{t("blocklist_entry_not_found")}</div>
-        )}
+          ) : (
+            <div className="text-muted mt-8 text-center">{t("blocklist_entry_not_found")}</div>
+          )}
+        </SheetBody>
+        <SheetFooter className="bg-muted px-6 py-5">
+          <Button
+            type="button"
+            color="secondary"
+            onClick={() => entry && handleDeleteBlocklistEntry(entry)}
+            disabled={!entry}>
+            {t("remove_from_blocklist")}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
