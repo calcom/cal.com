@@ -15244,17 +15244,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@savvywombat/tailwindcss-grid-areas@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@savvywombat/tailwindcss-grid-areas@npm:3.0.1"
-  dependencies:
-    lodash: ^4.17.21
-  peerDependencies:
-    tailwindcss: ^3.0.1
-  checksum: 016672a0585b2b1bdd0ae2f8ed821d634d2a5ba7ea26484adbc8cd38499366be80c6e338cd93d8c25cf6e29a8f33293eb7e24ff68184bea3b36ea27b9884dbb1
-  languageName: node
-  linkType: hard
-
 "@scure/base@npm:1.1.1":
   version: 1.1.1
   resolution: "@scure/base@npm:1.1.1"
