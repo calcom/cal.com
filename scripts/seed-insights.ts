@@ -9,6 +9,16 @@ import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 
+// Valid statuses for seed data - calculated once at module load.
+// AWAITING_HOST is excluded because it requires special handling:
+// - userId must be NULL (not assigned until host joins)
+// - Requires InstantMeetingToken to be created
+// - Only used for actual instant meetings via InstantBookingCreateService
+// See: packages/features/bookings/lib/service/InstantBookingCreateService.ts
+const validStatusesForSeed = Object.values(BookingStatus).filter(
+  (status) => status !== BookingStatus.AWAITING_HOST
+);
+
 function getRandomRatingFeedback() {
   const feedbacks = [
     "Great chat!",
@@ -51,14 +61,7 @@ const shuffle = (
   booking.endTime = endTime.toISOString();
   booking.createdAt = startTime.subtract(1, "day").toISOString();
 
-  // Pick a random status, excluding AWAITING_HOST which requires special handling:
-  // - userId must be NULL (not assigned until host joins)
-  // - Requires InstantMeetingToken to be created
-  // - Only used for actual instant meetings via InstantBookingCreateService
-  // See: packages/features/bookings/lib/service/InstantBookingCreateService.ts
-  const validStatusesForSeed = Object.values(BookingStatus).filter(
-    (status) => status !== BookingStatus.AWAITING_HOST
-  );
+  // Pick a random status from validStatusesForSeed (defined at module level)
   const randomStatusIndex = Math.floor(Math.random() * validStatusesForSeed.length);
   booking.status = validStatusesForSeed[randomStatusIndex];
 
