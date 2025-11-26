@@ -143,7 +143,7 @@ function EventTypeSingleLayout({
             <>
               <div
                 className={classNames(
-                  "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md transition",
+                  "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
                   formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
                 )}>
