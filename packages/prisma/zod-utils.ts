@@ -865,10 +865,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  locations: allManagedEventTypeProps.locations,
-  scheduleId: allManagedEventTypeProps.scheduleId,
-  destinationCalendar: allManagedEventTypeProps.destinationCalendar,
-};
+  locations: true,
+  scheduleId: true,
+  destinationCalendar: true,
+} as const satisfies Partial<typeof allManagedEventTypeProps>;
 
 export const emailSchema = emailRegexSchema;
 

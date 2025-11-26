@@ -1,4 +1,4 @@
-import type { GroupBase, InputProps, Props } from "react-select";
+import type { CSSObjectWithLabel, GroupBase, InputProps, Props } from "react-select";
 import ReactSelect, { components } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
@@ -41,14 +41,15 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        option: (provided, state) =>
+          ({
+            ...provided,
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          }) as CSSObjectWithLabel,
       }}
       components={{
         ...components,
@@ -78,24 +79,27 @@ export function UnstyledSelect<
         Input: InputComponent,
       }}
       styles={{
-        container: (provided) => ({
-          ...provided,
-          width: "100%",
-        }),
-        control: (provided) => ({
-          ...provided,
-          backgroundColor: " transparent",
-          border: "none",
-          boxShadow: "none",
-        }),
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        container: (provided) =>
+          ({
+            ...provided,
+            width: "100%",
+          }) as CSSObjectWithLabel,
+        control: (provided) =>
+          ({
+            ...provided,
+            backgroundColor: " transparent",
+            border: "none",
+            boxShadow: "none",
+          }) as CSSObjectWithLabel,
+        option: (provided, state) =>
+          ({
+            ...provided,
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          }) as CSSObjectWithLabel,
         indicatorSeparator: () => ({
           display: "hidden",
           color: "black",

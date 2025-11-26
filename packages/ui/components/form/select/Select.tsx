@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, SingleValue, MultiValue } from "react-select";
+import type { CSSObjectWithLabel, GroupBase, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,11 +50,12 @@ export const Select = <
       {...reactSelectProps}
       menuPlacement={menuPlacement}
       styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
-        }),
+        control: (base) =>
+          ({
+            ...base,
+            minHeight: size === "sm" ? "28px" : "32px",
+            height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          }) as CSSObjectWithLabel,
       }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
