@@ -271,7 +271,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             )}
             {/* Bulk Invite */}
             {modalImportMode === "BULK" && (
-              <div className="bg-muted flex flex-col rounded-md p-4">
+              <div className="bg-cal-muted flex flex-col rounded-md p-4">
                 <Controller
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
@@ -402,7 +402,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </div>
           <DialogFooter showDivider>
             {!disableCopyLink && (
-              <div className="flex-grow">
+              <div className="grow">
                 <Button
                   type="button"
                   color="minimal"

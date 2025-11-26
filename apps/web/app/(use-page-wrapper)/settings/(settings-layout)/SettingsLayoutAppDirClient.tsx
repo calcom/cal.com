@@ -188,6 +188,7 @@ export interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
+  canViewAttributes?: boolean;
 }
 
 const useTabs = ({
@@ -218,7 +219,7 @@ const useTabs = ({
           (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
 
-        if (permissions?.canUpdateOrganization) {
+        if (permissions?.canViewAttributes) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -460,14 +461,14 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     )}
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
+                <CollapsibleContent className="stack-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       trackingMetadata={{ section: "team", page: "profile", teamId: team.id }}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      className="me-5 h-7 w-auto !px-2"
+                      className="px-2! me-5 h-7 w-auto"
                       disableChevron
                     />
                   )}
@@ -476,7 +477,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     href={`/settings/teams/${team.id}/members`}
                     trackingMetadata={{ section: "team", page: "members", teamId: team.id }}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className="me-5 h-7 w-auto !px-2"
+                    className="px-2! me-5 h-7 w-auto"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -493,37 +494,37 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 textClassNames="px-3 text-emphasis font-medium text-sm"
                 disableChevron
               /> */}
-                        <VerticalTabItem
-                          name={t("appearance")}
-                          href={`/settings/teams/${team.id}/appearance`}
-                          trackingMetadata={{ section: "team", page: "appearance", teamId: team.id }}
-                          textClassNames="px-3 text-emphasis font-medium text-sm"
-                          className="me-5 h-7 w-auto !px-2"
-                          disableChevron
-                        />
-                        {/* Hide if there is a parent ID */}
-                        {!team.parentId ? (
-                          <>
-                            <VerticalTabItem
-                              name={t("billing")}
-                              href={`/settings/teams/${team.id}/billing`}
-                              trackingMetadata={{ section: "team", page: "billing", teamId: team.id }}
-                              textClassNames="px-3 text-emphasis font-medium text-sm"
-                              className="me-5 h-7 w-auto !px-2"
-                              disableChevron
-                            />
-                          </>
-                        ) : null}
-                        <VerticalTabItem
-                          name={t("settings")}
-                          href={`/settings/teams/${team.id}/settings`}
-                          trackingMetadata={{ section: "team", page: "settings", teamId: team.id }}
-                          textClassNames="px-3 text-emphasis font-medium text-sm"
-                          className="me-5 h-7 w-auto !px-2"
-                          disableChevron
-                        />
-                      </>
-                    )}
+                      <VerticalTabItem
+                        name={t("appearance")}
+                        href={`/settings/teams/${team.id}/appearance`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        trackingMetadata={{ section: "team", page: "appearance", teamId: team.id }}
+                        className="px-2! me-5 h-7 w-auto"
+                        disableChevron
+                      />
+                      {/* Hide if there is a parent ID */}
+                      {!team.parentId ? (
+                        <>
+                          <VerticalTabItem
+                            name={t("billing")}
+                            href={`/settings/teams/${team.id}/billing`}
+                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                            trackingMetadata={{ section: "team", page: "billing", teamId: team.id }}
+                            className="px-2! me-5 h-7 w-auto"
+                            disableChevron
+                          />
+                        </>
+                      ) : null}
+                      <VerticalTabItem
+                        name={t("settings")}
+                        href={`/settings/teams/${team.id}/settings`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        trackingMetadata={{ section: "team", page: "settings", teamId: team.id }}
+                        className="px-2! me-5 h-7 w-auto"
+                        disableChevron
+                      />
+                    </>
+                  )}
                 </CollapsibleContent>
               </Collapsible>
             );
@@ -597,7 +598,7 @@ const SettingsSidebarContainer = ({
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -611,7 +612,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                  <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
@@ -638,7 +639,7 @@ const SettingsSidebarContainer = ({
                       </Skeleton>
                     </div>
                   </div>
-                  <div className="my-3 space-y-px">
+                  <div className="stack-y-px">
                     {tab.children?.map((child, index) => (
                       <div key={child.href} className="flex items-start gap-2">
                         <VerticalTabItem
@@ -647,8 +648,9 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`h-7 w-fit !px-2 ${tab.children && index === tab.children?.length - 1 && "!mb-3"
-                            }`}
+                          className={`px-2! h-7 w-fit ${
+                            tab.children && index === tab.children?.length - 1 && "mb-3!"
+                          }`}
                           disableChevron
                         />
                         {child.isBadged && (
@@ -689,7 +691,7 @@ const SettingsSidebarContainer = ({
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         trackingMetadata={{ section: "team", page: "add_a_team" }}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        className="px-2! me-5 h-7 w-auto"
                         icon="plus"
                         disableChevron
                       />
@@ -787,14 +789,14 @@ const SettingsSidebarContainer = ({
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
-                                className="space-y-0.5"
+                                className="stack-y-0.5"
                                 id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   trackingMetadata={{ section: "other_team", page: "profile", teamId: otherTeam.id }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <VerticalTabItem
@@ -802,7 +804,7 @@ const SettingsSidebarContainer = ({
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   trackingMetadata={{ section: "other_team", page: "members", teamId: otherTeam.id }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <>
@@ -835,7 +837,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
+      <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
           <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
@@ -904,7 +906,7 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 [&>*]:flex-1">
+      <div className="*:flex-1 flex flex-1">
         <div
           className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>

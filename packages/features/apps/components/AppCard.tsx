@@ -128,7 +128,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
       <p
-        className="text-default mt-2 flex-grow text-sm"
+        className="text-default mt-2 grow text-sm"
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
         style={{
           overflow: "hidden",
@@ -141,7 +141,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
-          className="flex w-32 flex-grow justify-center"
+          className="flex w-32 grow justify-center"
           href={`/apps/${app.slug}`}
           onClick={() => { posthog.capture("app_card_details_clicked", { slug: app.slug }) }}
           data-testid={`app-store-app-card-${app.slug}`}>

@@ -85,7 +85,7 @@ const Addon = ({
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
+      "flex shrink-0 items-center justify-center whitespace-nowrap",
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
@@ -158,7 +158,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(
             inputStyles({ size }),
             "group relative mb-1 flex min-w-0 items-center gap-1",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default focus-within:ring-2",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>

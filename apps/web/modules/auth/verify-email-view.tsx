@@ -36,7 +36,7 @@ function VerifyEmailPage() {
     return null;
   }
   return (
-    <div className="h-[100vh] w-full ">
+    <div className="h-screen w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
         <div className="max-w-3xl">
           <EmptyScreen

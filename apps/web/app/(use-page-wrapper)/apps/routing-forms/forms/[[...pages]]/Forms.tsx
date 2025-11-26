@@ -163,7 +163,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}
@@ -281,7 +281,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="edit"
                                       routingForm={form}
                                       color="minimal"
-                                      className="!flex"
+                                      className="flex!"
                                       StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>
