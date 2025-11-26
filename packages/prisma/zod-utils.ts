@@ -872,7 +872,6 @@ export const allManagedEventTypePropsForZod = {
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
-  instantMeetingScheduleId: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -928,8 +927,6 @@ export const allManagedEventTypePropsForZod = {
   maxLeadThreshold: true,
   customReplyToEmail: true,
   bookingRequiresAuthentication: true,
-  profileId: true,
-  rrSegmentQueryValue: true,
 } as const;
 
 // All properties that are defined as unlocked based on all managed props

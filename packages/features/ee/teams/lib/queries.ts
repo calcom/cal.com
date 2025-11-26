@@ -453,7 +453,7 @@ export function generateNewChildEventTypeDataForDB({
     bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
     durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
     eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-    rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+    rrSegmentQueryValue: undefined, // RR Segment isn't applicable for managed event types
     onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
     userId,
     ...(includeUserConnect && {
