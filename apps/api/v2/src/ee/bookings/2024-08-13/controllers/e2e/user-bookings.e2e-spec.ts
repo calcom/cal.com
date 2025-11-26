@@ -2600,6 +2600,56 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
+    describe("cancellation reason and cancelled by returned if null in database", () => {
+      it("should return cancellation reason and cancelled by if null in database", async () => {
+        const dbBooking = await bookingsRepositoryFixture.create({
+          uid: randomString(10),
+          title: "test",
+          startTime: new Date(Date.UTC(2040, 0, 13, 16, 0, 0)),
+          endTime: new Date(Date.UTC(2040, 0, 13, 17, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          metadata: {},
+          responses: {
+            name: "tester",
+            email: "tester@example.com",
+            guests: [],
+          },
+          cancellationReason: null,
+          cancelledBy: null,
+        });
+
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${dbBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        const responseBody: GetBookingOutput_2024_08_13 = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data).toBeDefined();
+        expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+        if (responseDataIsBooking(responseBody.data)) {
+          const data: BookingOutput_2024_08_13 = responseBody.data;
+          expect(data.id).toBeDefined();
+          expect(data.cancellationReason).toBe("");
+          expect(data.cancelledByEmail).toBe("");
+        } else {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+      });
+    });
+
     describe("calendar events", () => {
       beforeEach(() => {
         jest.restoreAllMocks();
