@@ -4,6 +4,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
 import CancelBooking from "@components/booking/CancelBooking";
 
@@ -19,7 +20,9 @@ interface ICancelBookingDialog {
       amount: number;
       currency: string;
       success: boolean;
-      paymentOption?: string;
+      paymentOption?: string | null;
+      appId?: string | null;
+      refunded?: boolean;
     }[];
   };
   profile: {
@@ -71,9 +74,14 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
       ? {
           amount: booking.payment[0].amount,
           currency: booking.payment[0].currency,
-          appId: null, // paymentOption is not the same as appId, but CancelBooking expects appId
+          appId: booking.payment[0].appId || null,
         }
       : null;
+
+  const handleCanceled = () => {
+    showToast(t("booking_cancelled"), "success");
+    setIsOpenDialog(false);
+  };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -102,6 +110,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
           internalNotePresets={internalNotePresets}
           eventTypeMetadata={eventTypeMetadata}
           showErrorAsToast={true}
+          onCanceled={handleCanceled}
         />
       </DialogContent>
     </Dialog>

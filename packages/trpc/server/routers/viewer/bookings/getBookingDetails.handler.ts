@@ -80,25 +80,6 @@ export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetails
  * Fetch detailed booking information
  * This function should be called only after authorization checks pass
  */
-async function fetchBookingDetails(bookingId: number) {
-  // TODO: Implement the actual booking details fetching logic here
-  // For now, return a placeholder response
-
-  const bookingDetails = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    // Add your select/include fields here based on what data you need
-    select: {
-      id: true,
-      uid: true,
-      title: true,
-      startTime: true,
-      endTime: true,
-      status: true,
-      // Add more fields as needed
-    },
-  });
-
-  return bookingDetails;
+async function fetchBookingDetails(_bookingId: number) {
+  return {};
 }

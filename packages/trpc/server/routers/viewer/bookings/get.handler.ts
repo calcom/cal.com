@@ -580,13 +580,27 @@ export async function getBookings({
           jsonArrayFrom(
             eb
               .selectFrom("Payment")
-              .select(["Payment.paymentOption", "Payment.amount", "Payment.currency", "Payment.success"])
+              .select([
+                "Payment.paymentOption",
+                "Payment.amount",
+                "Payment.currency",
+                "Payment.success",
+                "Payment.appId",
+                "Payment.refunded",
+              ])
               .whereRef("Payment.bookingId", "=", "Booking.id")
           ).as("payment"),
           jsonObjectFrom(
             eb
               .selectFrom("users")
-              .select(["users.id", "users.name", "users.email", "users.avatarUrl", "users.username"])
+              .select([
+                "users.id",
+                "users.name",
+                "users.email",
+                "users.avatarUrl",
+                "users.username",
+                "users.timeZone",
+              ])
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(

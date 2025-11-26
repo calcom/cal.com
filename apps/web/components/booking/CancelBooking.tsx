@@ -7,7 +7,6 @@ import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -42,7 +41,7 @@ const InternalNotePresetsSelect = ({
       setCancellationReason("");
     } else {
       setShowOtherInput(false);
-      onPresetSelect && onPresetSelect(option);
+      onPresetSelect?.(option);
     }
   };
 
@@ -52,7 +51,7 @@ const InternalNotePresetsSelect = ({
       <Select
         className="mb-2"
         options={[
-          ...internalNotePresets?.map((preset) => ({
+          ...internalNotePresets.map((preset) => ({
             label: preset.name,
             value: preset.id,
           })),
@@ -110,6 +109,7 @@ type Props = {
   eventTypeMetadata?: Record<string, unknown> | null;
   className?: string;
   showErrorAsToast?: boolean;
+  onCanceled?: () => void;
 };
 
 export default function CancelBooking(props: Props) {
@@ -298,6 +298,9 @@ export default function CancelBooking(props: Props) {
                       booking: bookingWithCancellationReason,
                     });
                     refreshData();
+                    if (props.onCanceled) {
+                      props.onCanceled();
+                    }
                   } else {
                     const data = await res.json();
                     setLoading(false);
