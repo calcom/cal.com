@@ -1627,7 +1627,6 @@ async function handler(
           currentEventAttendee!.bookingSeat = newBookingSeat;
         }
 
-        console.log("Setting booking seat: ", JSON.stringify(currentEventAttendee));
         evt.attendeeSeatId = uniqueAttendeeId;
       }
     } else {

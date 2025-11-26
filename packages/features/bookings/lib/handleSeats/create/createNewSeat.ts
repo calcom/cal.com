@@ -212,8 +212,6 @@ const createNewSeat = async (
 
     currentEventAttendee.bookingSeat = bookingSeat;
 
-    console.log("Attendee Seat:", bookingSeat);
-
     const payment = await handlePayment({
       evt,
       selectedEventType: eventType,
