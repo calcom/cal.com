@@ -430,8 +430,14 @@ export function generateNewChildEventTypeDataForDB({
       .optional(),
   });
 
+  // Omit profileId, instantMeetingScheduleId, and rrSegmentQueryValue as they are not propagated to children
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypePropsForZod)
+    .omit({
+      ...unlockedManagedEventTypePropsForZod,
+      profileId: true,
+      instantMeetingScheduleId: true,
+      rrSegmentQueryValue: true,
+    })
     .parse(eventType);
 
   // Define the values for unlocked properties to use on creation, not updation

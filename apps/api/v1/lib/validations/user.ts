@@ -151,14 +151,16 @@ export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
   .strict();
 
 // @note: These are the values that are always returned when reading a user
-export const schemaUserReadPublic = UserSchema.pick({
+// Type cast to preserve original behavior while satisfying Zod 3.25's stricter .pick() typing
+// avatar doesn't exist in UserSchema (only avatarUrl does) but was in the original mask
+const userReadPublicPickMask = {
   id: true,
   username: true,
   name: true,
   email: true,
   emailVerified: true,
   bio: true,
-  avatarUrl: true,
+  avatar: true,
   timeZone: true,
   weekStart: true,
   endTime: true,
@@ -176,6 +178,10 @@ export const schemaUserReadPublic = UserSchema.pick({
   verified: true,
   invitedTo: true,
   role: true,
-});
+} as const;
+
+export const schemaUserReadPublic = UserSchema.pick(
+  userReadPublicPickMask as unknown as Parameters<typeof UserSchema.pick>[0]
+);
 
 export const schemaUsersReadPublic = z.array(schemaUserReadPublic);

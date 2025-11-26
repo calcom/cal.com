@@ -123,8 +123,15 @@ export default async function handleChildrenEventTypes({
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypePropsForZod);
+  // Omit profileId, instantMeetingScheduleId, and rrSegmentQueryValue from managedEventTypeValues
+  // These fields are handled explicitly in the create/update payloads below
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypePropsForZod)
+    .omit({
+      ...unlockedManagedEventTypePropsForZod,
+      profileId: true,
+      instantMeetingScheduleId: true,
+      rrSegmentQueryValue: true,
+    })
     .parse(eventType);
 
   // Check we are certainly dealing with a managed event type through its metadata
@@ -236,7 +243,15 @@ export default async function handleChildrenEventTypes({
 
     // Add to payload all eventType values that belong to locked fields, changed or unchanged
     // Ignore from payload any eventType values that belong to unlocked fields
-    const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
+    // Also omit profileId, instantMeetingScheduleId, and rrSegmentQueryValue as they are not propagated to children
+    const updatePayload = allManagedEventTypePropsZod
+      .omit({
+        ...unlockedFieldProps,
+        profileId: true,
+        instantMeetingScheduleId: true,
+        rrSegmentQueryValue: true,
+      })
+      .parse(eventType);
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
