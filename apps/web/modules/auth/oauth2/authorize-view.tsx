@@ -69,7 +69,7 @@ export default function Authorize() {
       }
 
       if (client?.redirectUri) {
-        window.location.href = `${client.redirectUri}?${errorParams.toString()}`;
+        window.location.href = `${client.redirectUri}${client.redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
       }
     },
   });
