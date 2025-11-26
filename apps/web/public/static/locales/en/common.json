@@ -2558,7 +2558,7 @@
   "no_organization_slug": "There was an error creating teams for this organization. Missing URL slug.",
   "copy_link_org": "Copy link to organization",
   "welcome_to_organizations": "Welcome to Organizations!",
-  "organizations_welcome_description": "We're excited to connect your bookers with your team members. With your Teams's plan you get:",
+  "organizations_welcome_description": "We're excited to connect your bookers with your team members. With your Organizations's plan you get:",
   "1_parent_team_unlimited_subteams": "1 parent team and unlimited sub-teams",
   "organization_workflows": "Organization workflows",
   "custom_subdomain": "Yourcompany.cal.com subdomain",
