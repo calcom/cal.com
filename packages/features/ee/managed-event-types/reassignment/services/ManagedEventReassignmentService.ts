@@ -63,7 +63,7 @@ export class ManagedEventReassignmentService {
 
     reassignLogger.info(`User ${reassignedById} initiating auto-reassignment`);
 
-    await validateManagedEventReassignment({ bookingId });
+    await validateManagedEventReassignment({ bookingId, bookingRepository: this.bookingRepository });
     const booking = await this.fetchAndValidateBookingForReassignment(bookingId);
 
     const { currentChild, parent } = await this.fetchManagedEventTypeChain(
