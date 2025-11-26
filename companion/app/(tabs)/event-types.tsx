@@ -1441,6 +1441,60 @@ export default function EventTypes() {
                                 ))}
                               </View>
 
+                              {/* Continuous selection rectangles overlay */}
+                              {[
+                                ...selectionRanges,
+                                ...(currentDragRange
+                                  ? [{ id: "current", ...currentDragRange }]
+                                  : []),
+                              ].map((range) => {
+                                // Use EXACT same calculations as screenToCalendarPosition
+                                const timeColumnWidth = 80;
+                                const headerHeight = 60;
+                                const dayWidth = ((calendarLayout?.width || 800) - timeColumnWidth) / 7;
+                                const hourHeight = 60;
+
+                                // Calculate absolute positions using exact same logic as drag detection
+                                const startY = headerHeight + (range.startHour * hourHeight) + minuteToY(range.startMinute, hourHeight);
+                                const endY = headerHeight + (range.endHour * hourHeight) + minuteToY(range.endMinute, hourHeight);
+                                const height = endY - startY;
+
+                                // Position rectangle to exactly match drag detection logic
+                                const startX = timeColumnWidth + (range.startDay * dayWidth);
+                                const width = dayWidth;
+
+                                return (
+                                  <TouchableOpacity
+                                    key={range.id}
+                                    style={{
+                                      position: "absolute",
+                                      top: startY,
+                                      left: startX,
+                                      width: width,
+                                      height: height,
+                                      backgroundColor:
+                                        range.id === "current"
+                                          ? "rgba(59, 130, 246, 0.3)"
+                                          : "rgba(34, 197, 94, 0.5)",
+                                      borderWidth: 1,
+                                      borderColor:
+                                        range.id === "current"
+                                          ? "#3B82F6"
+                                          : "#22C55E",
+                                      borderRadius: 4,
+                                      zIndex: 1,
+                                    }}
+                                    onPress={() => {
+                                      if (range.id !== "current") {
+                                        // Remove this selection range
+                                        setSelectionRanges(prev => prev.filter(r => r.id !== range.id));
+                                      }
+                                    }}
+                                    activeOpacity={0.8}
+                                  />
+                                );
+                              })}
+
                               {/* Time Grid - One block per hour */}
                               {Array.from({ length: 24 }, (_, hour) => (
                                 <View key={hour} className="flex-row border-b border-gray-200">
@@ -1498,76 +1552,6 @@ export default function EventTypes() {
                                             );
                                           })}
 
-                                          {/* Selection rectangles overlay */}
-                                          {[
-                                            ...selectionRanges,
-                                            ...(currentDragRange
-                                              ? [{ id: "current", ...currentDragRange }]
-                                              : []),
-                                          ].map((range, index) => {
-                                            // Check if this hour block intersects with the range
-                                            if (
-                                              dayIndex >= range.startDay &&
-                                              dayIndex <= range.endDay &&
-                                              hour >= range.startHour &&
-                                              hour <= range.endHour
-                                            ) {
-                                              // Calculate the actual start and end positions within this hour block
-                                              const blockStartMinute =
-                                                dayIndex === range.startDay &&
-                                                hour === range.startHour
-                                                  ? range.startMinute
-                                                  : 0;
-                                              const blockEndMinute =
-                                                dayIndex === range.endDay && hour === range.endHour
-                                                  ? range.endMinute
-                                                  : 60;
-
-                                              const topOffset = minuteToY(
-                                                blockStartMinute,
-                                                hourHeight
-                                              );
-                                              const height = minuteToY(
-                                                blockEndMinute - blockStartMinute,
-                                                hourHeight
-                                              );
-
-                                              return (
-                                                <TouchableOpacity
-                                                  key={`${range.id}-${dayIndex}-${hour}`}
-                                                  style={{
-                                                    position: "absolute",
-                                                    top: topOffset,
-                                                    left: 2,
-                                                    right: 2,
-                                                    height: height,
-                                                    backgroundColor:
-                                                      range.id === "current"
-                                                        ? "rgba(59, 130, 246, 0.3)"
-                                                        : "rgba(34, 197, 94, 0.5)",
-                                                    borderWidth: 1,
-                                                    borderColor:
-                                                      range.id === "current"
-                                                        ? "#3B82F6"
-                                                        : "#22C55E",
-                                                    borderRadius: 4,
-                                                    zIndex: 1,
-                                                  }}
-                                                  onPress={() => {
-                                                    if (range.id !== "current") {
-                                                      handleCellClick(
-                                                        dayIndex,
-                                                        hour,
-                                                        blockStartMinute
-                                                      );
-                                                    }
-                                                  }}
-                                                  activeOpacity={0.8}
-                                                />
-                                              );
-                                            }
-                                            return null;
-                                          })}
                                         </TouchableOpacity>
                                       </View>
                                     );
@@ -1749,7 +1733,8 @@ export default function EventTypes() {
                       {/* Mobile Calendar Grid */}
                       <View className="flex-1">
                         <ScrollView className="flex-1">
-                          {/* Day Headers */}
+                          <View style={{ position: 'relative' }}>
+                            {/* Day Headers */}
                           <View className="flex-row border-b border-gray-300 bg-gray-50">
                             <View style={{ width: 40 }} className="p-1">
                               <Text className="text-xs text-gray-500">Time</Text>
@@ -1769,6 +1754,62 @@ export default function EventTypes() {
                               </View>
                             ))}
                           </View>
+
+                          {/* Continuous selection rectangles overlay for mobile */}
+                          {[
+                            ...selectionRanges,
+                            ...(currentDragRange
+                              ? [{ id: "current", ...currentDragRange }]
+                              : []),
+                          ].map((range) => {
+                            // Use exact mobile layout calculations
+                            const headerHeight = 32; // Height of day headers in mobile (includes padding)
+                            const hourHeight = 40; // Height of each hour row in mobile
+                            const timeColumnWidth = 40;
+                            const screenWidth = Dimensions.get('window').width - 16; // Account for padding
+                            const availableWidth = screenWidth - timeColumnWidth;
+                            const dayWidth = availableWidth / 7; // Use same variable name as web for consistency
+
+                            // Calculate absolute positions for mobile to match hour cell boundaries
+                            const startY = headerHeight + (range.startHour * hourHeight);
+                            const endY = headerHeight + (range.endHour * hourHeight) + hourHeight;
+                            const height = endY - startY;
+
+                            // Position rectangle to exactly match the day column boundaries (no border adjustments)
+                            const startX = timeColumnWidth + (range.startDay * dayWidth);
+                            const width = dayWidth;
+
+                            return (
+                              <TouchableOpacity
+                                key={range.id}
+                                style={{
+                                  position: "absolute",
+                                  top: startY,
+                                  left: startX,
+                                  width: width,
+                                  height: height,
+                                  backgroundColor:
+                                    range.id === "current"
+                                      ? "rgba(59, 130, 246, 0.3)"
+                                      : "rgba(34, 197, 94, 0.5)",
+                                  borderWidth: 1,
+                                  borderColor:
+                                    range.id === "current"
+                                      ? "#3B82F6"
+                                      : "#22C55E",
+                                  borderRadius: 2,
+                                  zIndex: 1,
+                                }}
+                                onPress={() => {
+                                  if (range.id !== "current") {
+                                    // Remove this selection range
+                                    setSelectionRanges(prev => prev.filter(r => r.id !== range.id));
+                                  }
+                                }}
+                                activeOpacity={0.8}
+                              />
+                            );
+                          })}
 
                           {/* Time Grid - Simplified for mobile (hour blocks) */}
                           {Array.from({ length: 24 }, (_, hour) => (
@@ -1797,54 +1838,12 @@ export default function EventTypes() {
                                       onPress={() => handleHourPress(dayIndex, hour)}
                                     />
 
-                                    {/* Selection rectangles overlay for mobile */}
-                                    {[
-                                      ...selectionRanges,
-                                      ...(currentDragRange
-                                        ? [{ id: "current", ...currentDragRange }]
-                                        : []),
-                                    ].map((range, index) => {
-                                      if (
-                                        dayIndex >= range.startDay &&
-                                        dayIndex <= range.endDay &&
-                                        hour >= range.startHour &&
-                                        hour <= range.endHour
-                                      ) {
-                                        return (
-                                          <TouchableOpacity
-                                            key={`${range.id}-${dayIndex}-${hour}`}
-                                            style={{
-                                              position: "absolute",
-                                              top: 2,
-                                              left: 2,
-                                              right: 2,
-                                              bottom: 2,
-                                              backgroundColor:
-                                                range.id === "current"
-                                                  ? "rgba(59, 130, 246, 0.3)"
-                                                  : "rgba(34, 197, 94, 0.5)",
-                                              borderWidth: 1,
-                                              borderColor:
-                                                range.id === "current" ? "#3B82F6" : "#22C55E",
-                                              borderRadius: 2,
-                                              zIndex: 1,
-                                            }}
-                                            onPress={() => {
-                                              if (range.id !== "current") {
-                                                handleCellClick(dayIndex, hour, 0);
-                                              }
-                                            }}
-                                            activeOpacity={0.8}
-                                          />
-                                        );
-                                      }
-                                      return null;
-                                    })}
                                   </View>
                                 );
                               })}
                             </View>
                           ))}
+                          </View>
                         </ScrollView>
                       </View>
 
