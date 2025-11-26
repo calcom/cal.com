@@ -15,7 +15,7 @@ import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./se
 // - Requires InstantMeetingToken to be created
 // - Only used for actual instant meetings via InstantBookingCreateService
 // See: packages/features/bookings/lib/service/InstantBookingCreateService.ts
-const validStatusesForSeed = Object.values(BookingStatus).filter(
+const VALID_STATUSES_FOR_SEED = Object.values(BookingStatus).filter(
   (status) => status !== BookingStatus.AWAITING_HOST
 );
 
@@ -61,9 +61,9 @@ const shuffle = (
   booking.endTime = endTime.toISOString();
   booking.createdAt = startTime.subtract(1, "day").toISOString();
 
-  // Pick a random status from validStatusesForSeed (defined at module level)
-  const randomStatusIndex = Math.floor(Math.random() * validStatusesForSeed.length);
-  booking.status = validStatusesForSeed[randomStatusIndex];
+  // Pick a random status from VALID_STATUSES_FOR_SEED (defined at module level)
+  const randomStatusIndex = Math.floor(Math.random() * VALID_STATUSES_FOR_SEED.length);
+  booking.status = VALID_STATUSES_FOR_SEED[randomStatusIndex];
 
   booking.rescheduled = Math.random() > 0.5 && Math.random() > 0.5 && Math.random() > 0.5;
 
