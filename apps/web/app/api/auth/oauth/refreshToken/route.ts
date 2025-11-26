@@ -17,11 +17,11 @@ async function handler(req: NextRequest) {
   }
 
   if (!client_id) {
-    return NextResponse.json({ message: "Missing client_id" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
   if (grant_type !== "refresh_token") {
-    return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
   const oAuthClientRepository = new OAuthClientRepository(prisma);
@@ -29,7 +29,7 @@ async function handler(req: NextRequest) {
   const client = await oAuthClientRepository.findByClientId(client_id);
 
   if (!client) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
   }
 
   const validationError = OAuthService.validateClient(client, client_secret, code_verifier);
@@ -45,20 +45,20 @@ async function handler(req: NextRequest) {
     const refreshTokenValue = refresh_token || req.headers.get("authorization")?.split(" ")[1] || "";
 
     if (!refreshTokenValue) {
-      return NextResponse.json({ message: "Missing refresh_token" }, { status: 400 });
+      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
     }
 
     decodedRefreshToken = jwt.verify(refreshTokenValue, secretKey) as OAuthTokenPayload;
   } catch {
-    return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
-    return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   if (decodedRefreshToken.clientId !== client_id) {
-    return NextResponse.json({ message: "Invalid refresh_token" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   const pkceError = OAuthService.verifyPKCEForRefreshToken(client, decodedRefreshToken, code_verifier);

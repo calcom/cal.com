@@ -18,8 +18,13 @@ async function handler(req: NextRequest) {
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
   }
+
+  if (!client_id || !code || !redirect_uri) {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+  }
+
   if (grant_type !== "authorization_code") {
-    return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
   const oAuthClientRepository = new OAuthClientRepository(prisma);
@@ -27,8 +32,12 @@ async function handler(req: NextRequest) {
 
   const client = await oAuthClientRepository.findByClientId(client_id);
 
-  if (!client || client.redirectUri !== redirect_uri) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!client) {
+    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
+  }
+
+  if (client.redirectUri !== redirect_uri) {
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   const validationError = OAuthService.validateClient(client, client_secret, code_verifier);
@@ -42,7 +51,7 @@ async function handler(req: NextRequest) {
   await accessCodeRepository.deleteExpiredAndUsedCodes(code, client_id);
 
   if (!accessCode) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
   const pkceError = OAuthService.verifyPKCE(client, accessCode, code_verifier);
