@@ -43,7 +43,7 @@ export enum ErrorCode {
   BookingSeatsFull = "booking_seats_full_error",
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
   BookingConflict = "booking_conflict_error",
-  ResourceAlreadyExists = "user_already_exists_error",
+  ResourceAlreadyExists = "resource_already_exists_error",
   ResourceConflict = "resource_conflict_error",
 
   // 422 Unprocessable Entity - Invalid input data
