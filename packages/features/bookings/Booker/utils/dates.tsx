@@ -22,13 +22,16 @@ export const formatEventFromTime = ({ date, timeFormat, timeZone, language }: Ev
     dateStyle: "full",
   }).format(startDate);
 
-  const formattedTime = new Intl.DateTimeFormat(language, {
+  let formattedTime = new Intl.DateTimeFormat(language, {
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  })
-    .format(startDate)
-    .toLowerCase();
+  }).format(startDate);
+
+  // Only lowercase for 12-hour format (AM/PM), preserve capitalization for 24-hour format (e.g., German "Uhr")
+  if (timeFormat === TimeFormat.TWELVE_HOUR) {
+    formattedTime = formattedTime.toLowerCase();
+  }
 
   return { date: formattedDate, time: formattedTime };
 };
@@ -50,13 +53,16 @@ export const formatEventFromToTime = ({
     dateStyle: "full",
   }).formatRange(startDate, endDate);
 
-  const formattedTime = new Intl.DateTimeFormat(language, {
+  let formattedTime = new Intl.DateTimeFormat(language, {
     timeZone,
     timeStyle: "short",
     hour12: timeFormat === TimeFormat.TWELVE_HOUR ? true : false,
-  })
-    .formatRange(startDate, endDate)
-    .toLowerCase();
+  }).formatRange(startDate, endDate);
+
+  // Only lowercase for 12-hour format (AM/PM), preserve capitalization for 24-hour format (e.g., German "Uhr")
+  if (timeFormat === TimeFormat.TWELVE_HOUR) {
+    formattedTime = formattedTime.toLowerCase();
+  }
 
   return { date: formattedDate, time: formattedTime };
 };
