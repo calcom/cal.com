@@ -18,7 +18,7 @@
     "build": "npx rimraf dist && node -e \"const{execSync:e}=require('child_process');process.env.NEXT_PUBLIC_EMBED_FINGER_PRINT=e('git rev-parse --short HEAD').toString().trim();process.env.NEXT_PUBLIC_EMBED_VERSION=require('./package.json').version;e('yarn __build',{stdio:'inherit',env:process.env})\"",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
-    "tailwind": "yarn tailwindcss -i ./src/styles.css -o ./src/tailwind.generated.css",
+    "tailwind": "tailwindcss --input ./src/styles.css --output ./src/tailwind.generated.css",
     "buildWatchAndServer": "run-p '__dev' 'vite --port 3100 --strict-port --host --open'",
     "buildWatchAndServer-https": "run-p '__dev' 'vite --port 3100 --strict-port --host --open --https'",
     "dev": "yarn tailwind && run-p 'tailwind --watch' 'buildWatchAndServer'",
@@ -40,20 +40,15 @@
   "files": [
     "dist"
   ],
-  "postcss": {
-    "map": false,
-    "plugins": {
-      "tailwindcss": {},
-      "autoprefixer": {}
-    }
-  },
   "devDependencies": {
     "@playwright/test": "^1.45.3",
+    "@tailwindcss/cli": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "autoprefixer": "^10.4.12",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
-    "tailwindcss": "^3.3.3",
+    "tailwindcss": "^4",
     "typescript": "^5.9.0-beta",
     "vite": "^4.1.2",
     "vite-plugin-environment": "^1.1.3"
