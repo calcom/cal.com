@@ -1,4 +1,6 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { TrackingData } from "@calcom/lib/tracking";
+
 import type {
   AIPhoneServiceProvider,
   AIPhoneServiceProviderType,
@@ -171,6 +173,7 @@ export class RetellAIPhoneServiceProvider
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }): Promise<{ url: string; message: string }> {
     return await this.service.generatePhoneNumberCheckoutSession(params);
   }
