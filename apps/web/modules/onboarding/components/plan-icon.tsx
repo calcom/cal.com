@@ -31,7 +31,7 @@ export function PlanIcon({
       <div
         className="bg-default absolute left-1/2 top-1/2 flex h-[80px] w-[80px] -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-clip rounded-full"
         style={{
-          background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-cal-muted, #f7f7f7))",
+          background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
           boxShadow:
             "0px 2.818px 5.635px 0px var(--cal-border-subtle), 0px 0px 0px 0.704px var(--cal-border), 0px 0.704px 3.522px -2.818px rgba(0, 0, 0, 0.3)",
         }}>
@@ -92,7 +92,7 @@ export function PlanIcon({
           x: x - iconHalfSize,
           left: "50%",
           top: "50%",
-          background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-cal-muted, #f7f7f7))",
+          background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
         }}>
         <div className="flex items-center justify-center opacity-70">
           <Icon name="user" size={24} strokeWidth={1.75} className="text-emphasis" />
