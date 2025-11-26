@@ -96,7 +96,7 @@ export class ManagedEventManualReassignmentService {
 
     reassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
-    await validateManagedEventReassignment({ bookingId });
+    await validateManagedEventReassignment({ bookingId, bookingRepository: this.bookingRepository });
 
     const {
       currentChildEventType,
@@ -218,23 +218,14 @@ export class ManagedEventManualReassignmentService {
     };
 
 
-    const reassignmentResult = await this.prisma.$transaction(async (tx) => {
-      const cancelledBooking = await this.bookingRepository.cancelBookingForManagedEventReassignment({
-        bookingId: originalBookingFull.id,
-        cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
-        metadata:
-          typeof originalBookingFull.metadata === "object" && originalBookingFull.metadata !== null
-            ? (originalBookingFull.metadata as Record<string, unknown>)
-            : undefined,
-        tx,
-      });
-
-      const newBooking = await this.bookingRepository.createBookingForManagedEventReassignment({
-        ...newBookingPlan,
-        tx,
-      });
-
-      return { newBooking, cancelledBooking };
+    const reassignmentResult = await this.bookingRepository.ManagedEventReassignmentTransaction({
+      bookingId: originalBookingFull.id,
+      cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
+      metadata:
+        typeof originalBookingFull.metadata === "object" && originalBookingFull.metadata !== null
+          ? (originalBookingFull.metadata as Record<string, unknown>)
+          : undefined,
+      newBookingPlan,
     });
 
     const newBooking: ManagedEventReassignmentCreatedBooking = reassignmentResult.newBooking;

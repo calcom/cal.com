@@ -7,7 +7,7 @@ interface ManagedEventReassignmentParams {
   reassignedById: number;
   emailsEnabled?: boolean;
 }
-
+// TODO: Remove this function with better dependency injection
 export async function managedEventReassignment({
   bookingId,
   orgId,

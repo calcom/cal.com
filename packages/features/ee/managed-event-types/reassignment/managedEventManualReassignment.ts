@@ -9,6 +9,7 @@ import { createManagedEventManualReassignmentService } from "./services/containe
  * This delegates to the service layer without direct repository knowledge.
  * The container handles all dependency injection.
  */
+// TODO: Remove this function with better dependency injection
 export async function managedEventManualReassignment(params: ManagedEventManualReassignmentParams) {
   const service = createManagedEventManualReassignmentService(prisma);
   return service.execute(params);
