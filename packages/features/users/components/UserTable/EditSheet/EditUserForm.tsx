@@ -190,7 +190,7 @@ export function EditForm({
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
         </SheetHeader>
-        <SheetBody className="bg-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
+        <SheetBody className="bg-cal-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
           <div className="">
             <Controller
               control={form.control}
@@ -419,7 +419,7 @@ function AttributesList(props: { selectedUserId: number }) {
                         }}
                       />
                       {attr.isWeightsEnabled && fieldValue?.options && (
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 stack-y-2">
                           <Label>Weights</Label>
                           <div className="">
                             {fieldValue.options.map((option, idx) => {
