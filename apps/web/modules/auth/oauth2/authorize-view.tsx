@@ -48,6 +48,30 @@ export default function Authorize() {
     onSuccess: (data) => {
       window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },
+    onError: (error) => {
+      let oauthError = "server_error";
+      if (error.data?.code === "BAD_REQUEST") {
+        oauthError = "invalid_request";
+      } else if (error.data?.code === "UNAUTHORIZED") {
+        oauthError = "unauthorized_client";
+      }
+
+      const errorParams = new URLSearchParams({
+        error: oauthError,
+      });
+
+      if (error.message) {
+        errorParams.append("error_description", error.message);
+      }
+
+      if (state) {
+        errorParams.append("state", state);
+      }
+
+      if (client?.redirectUri) {
+        window.location.href = `${client.redirectUri}?${errorParams.toString()}`;
+      }
+    },
   });
 
   const mappedProfiles = data
