@@ -40,9 +40,10 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
-  const validationError = OAuthService.validateClient(client, client_secret, code_verifier);
-  if (validationError) {
-    return validationError;
+  const isValidClient = OAuthService.validateClient(client, client_secret);
+
+  if (!isValidClient) {
+    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
   }
 
   const accessCode = await accessCodeRepository.findValidCode(code, client_id);
@@ -56,7 +57,7 @@ async function handler(req: NextRequest) {
 
   const pkceError = OAuthService.verifyPKCE(client, accessCode, code_verifier);
   if (pkceError) {
-    return pkceError;
+    return NextResponse.json({ error: pkceError.error }, { status: pkceError.status });
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;

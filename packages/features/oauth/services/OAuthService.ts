@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
@@ -8,122 +6,54 @@ interface OAuthClient {
   clientSecret?: string | null;
 }
 
-interface AccessCode {
+type OAuthErrorCode = "invalid_request" | "invalid_grant";
+
+interface PKCESource {
   codeChallenge?: string | null;
   codeChallengeMethod?: string | null;
 }
 
-interface RefreshTokenPayload {
-  codeChallenge?: string | null;
-  codeChallengeMethod?: string | null;
+interface OAuthErrorResult {
+  error: OAuthErrorCode;
+  status: number;
 }
 
 export class OAuthService {
-  static validateClient(
-    client: OAuthClient,
-    client_secret?: string,
-    code_verifier?: string
-  ): NextResponse | null {
+  static validateClient(client: OAuthClient, client_secret?: string): boolean {
     if (client.clientType === "CONFIDENTIAL") {
-      if (!client_secret) {
-        return NextResponse.json(
-          { message: "client_secret required for confidential clients" },
-          { status: 400 }
-        );
-      }
+      if (!client_secret) return false;
 
       const [hashedSecret] = generateSecret(client_secret);
-      if (client.clientSecret !== hashedSecret) {
-        return NextResponse.json({ message: "Invalid client_secret" }, { status: 401 });
-      }
-    } else if (client.clientType === "PUBLIC") {
-      if (!code_verifier) {
-        return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
-      }
+      if (client.clientSecret !== hashedSecret) return false;
     }
-    return null;
+
+    return true; // PUBLIC has no client_secret
   }
 
+  /**
+   * PKCE validator for BOTH:
+   * - exchanging authorization code
+   * - exchanging refresh token
+   */
   static verifyPKCE(
     client: OAuthClient,
-    accessCode: AccessCode,
+    source: PKCESource,
     code_verifier?: string
-  ): NextResponse | null {
-    if (client.clientType === "PUBLIC") {
-      if (!accessCode.codeChallenge) {
-        return NextResponse.json(
-          { message: "PKCE code challenge missing for public client" },
-          { status: 400 }
-        );
-      }
-      if (!code_verifier) {
-        return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
-      }
+  ): OAuthErrorResult | null {
+    // Determine if PKCE should be enforced
+    const shouldEnforcePKCE =
+      client.clientType === "PUBLIC" || (client.clientType === "CONFIDENTIAL" && source.codeChallenge);
 
-      const method = accessCode.codeChallengeMethod || "S256";
-      if (method !== "S256") {
-        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-      }
-      if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
-        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-      }
-    } else if (client.clientType === "CONFIDENTIAL" && accessCode.codeChallenge) {
-      if (!code_verifier) {
-        return NextResponse.json(
-          { message: "code_verifier required if PKCE was used in original authorization" },
-          { status: 400 }
-        );
-      }
-      const method = accessCode.codeChallengeMethod || "S256";
-      if (method !== "S256") {
-        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-      }
-      if (!verifyCodeChallenge(code_verifier, accessCode.codeChallenge, method)) {
-        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-      }
+    if (!shouldEnforcePKCE) return null;
+
+    const method = source.codeChallengeMethod || "S256";
+
+    if (!source.codeChallenge || !code_verifier || method !== "S256") {
+      return { error: "invalid_request", status: 400 };
     }
 
-    return null;
-  }
-
-  static verifyPKCEForRefreshToken(
-    client: OAuthClient,
-    decodedRefreshToken: RefreshTokenPayload,
-    code_verifier?: string
-  ): NextResponse | null {
-    if (client.clientType === "PUBLIC") {
-      if (!decodedRefreshToken.codeChallenge) {
-        return NextResponse.json({ message: "PKCE code challenge missing for public client" }, { status: 400 });
-      }
-
-      if (!code_verifier) {
-        return NextResponse.json({ message: "code_verifier required for public clients" }, { status: 400 });
-      }
-
-      const method = decodedRefreshToken.codeChallengeMethod || "S256";
-      if (method !== "S256") {
-        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-      }
-
-      if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
-        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-      }
-    } else if (client.clientType === "CONFIDENTIAL" && decodedRefreshToken.codeChallenge) {
-      if (!code_verifier) {
-        return NextResponse.json(
-          { message: "code_verifier required when PKCE was used in original authorization" },
-          { status: 400 }
-        );
-      }
-
-      const method = decodedRefreshToken.codeChallengeMethod || "S256";
-      if (method !== "S256") {
-        return NextResponse.json({ message: "code_challenge_method is not supported" }, { status: 400 });
-      }
-
-      if (!verifyCodeChallenge(code_verifier, decodedRefreshToken.codeChallenge, method)) {
-        return NextResponse.json({ message: "Invalid code_verifier" }, { status: 400 });
-      }
+    if (!verifyCodeChallenge(code_verifier, source.codeChallenge, method)) {
+      return { error: "invalid_grant", status: 400 };
     }
 
     return null;

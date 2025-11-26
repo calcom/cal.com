@@ -32,9 +32,10 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "invalid_client" }, { status: 401 });
   }
 
-  const validationError = OAuthService.validateClient(client, client_secret, code_verifier);
-  if (validationError) {
-    return validationError;
+  const isValidClient = OAuthService.validateClient(client, client_secret);
+
+  if (!isValidClient) {
+    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
   }
 
   const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
@@ -61,9 +62,9 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
   }
 
-  const pkceError = OAuthService.verifyPKCEForRefreshToken(client, decodedRefreshToken, code_verifier);
+  const pkceError = OAuthService.verifyPKCE(client, decodedRefreshToken, code_verifier);
   if (pkceError) {
-    return pkceError;
+    return NextResponse.json({ error: pkceError.error }, { status: pkceError.status });
   }
 
   const accessTokenExpiresIn = 1800; // 30 minutes

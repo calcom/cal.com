@@ -333,7 +333,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     const tokenData = await tokenResponse.json();
 
     expect(tokenResponse.status).toBe(400);
-    expect(tokenData.message).toBe("Invalid code_verifier");
+    expect(tokenData.error).toBe("invalid_grant");
   });
 
   test("should reject PUBLIC client without code_verifier", async ({ page, users }) => {
@@ -375,7 +375,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     const tokenData = await tokenResponse.json();
 
     expect(tokenResponse.status).toBe(400);
-    expect(tokenData.message).toBe("code_verifier required for public clients");
+    expect(tokenData.error).toBe("invalid_request");
   });
 
   test("should reject PUBLIC client authorization without code_challenge", async ({ page, users }) => {
@@ -539,7 +539,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     const refreshTokenData = await refreshTokenResponse.json();
 
     expect(refreshTokenResponse.status).toBe(400);
-    expect(refreshTokenData.message).toBe("code_verifier required for public clients");
+    expect(refreshTokenData.error).toBe("invalid_request");
   });
 
   test("should reject PUBLIC client refresh token with invalid code_verifier", async ({ page, users }) => {
@@ -602,7 +602,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
     const refreshTokenData = await refreshTokenResponse.json();
 
     expect(refreshTokenResponse.status).toBe(400);
-    expect(refreshTokenData.message).toBe("Invalid code_verifier");
+    expect(refreshTokenData.error).toBe("invalid_grant");
   });
 });
 
@@ -757,9 +757,7 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     const refreshTokenData = await refreshTokenResponse.json();
 
     expect(refreshTokenResponse.status).toBe(400);
-    expect(refreshTokenData.message).toBe(
-      "code_verifier required when PKCE was used in original authorization"
-    );
+    expect(refreshTokenData.error).toBe("invalid_request");
   });
 
   test("should allow CONFIDENTIAL client refresh with only client_secret when PKCE was NOT used", async ({

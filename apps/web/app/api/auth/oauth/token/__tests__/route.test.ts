@@ -198,6 +198,9 @@ describe("POST /api/auth/oauth/token", () => {
       prismaMock.oAuthClient.findFirst.mockResolvedValue(
         mockPublicClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findFirst>>
       );
+      prismaMock.accessCode.findFirst.mockResolvedValue(
+        mockAccessCode as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
+      );
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
@@ -212,7 +215,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.message).toBe("code_verifier required for public clients");
+      expect(data.error).toBe("invalid_request");
     });
 
     it("should reject PUBLIC client with missing code challenge in access code", async () => {
@@ -223,6 +226,7 @@ describe("POST /api/auth/oauth/token", () => {
         ...mockAccessCode,
         codeChallenge: null,
       } as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>);
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
@@ -238,7 +242,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.message).toBe("PKCE code challenge missing for public client");
+      expect(data.error).toBe("invalid_request");
     });
 
     it("should reject PUBLIC client with invalid code_verifier", async () => {
@@ -248,6 +252,7 @@ describe("POST /api/auth/oauth/token", () => {
       prismaMock.accessCode.findFirst.mockResolvedValue(
         mockAccessCode as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
       );
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
       mockVerifyCodeChallenge.mockReturnValue(false);
 
       const tokenRequest = createTokenRequest({
@@ -264,7 +269,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.message).toBe("Invalid code_verifier");
+      expect(data.error).toBe("invalid_grant");
       expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("wrong_verifier", "test_challenge", "S256");
     });
   });
@@ -336,8 +341,8 @@ describe("POST /api/auth/oauth/token", () => {
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.message).toBe("client_secret required for confidential clients");
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("invalid_client");
     });
 
     it("should reject CONFIDENTIAL client with invalid client_secret", async () => {
@@ -360,7 +365,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.message).toBe("Invalid client_secret");
+      expect(data.error).toBe("invalid_client");
     });
 
     it("should accept CONFIDENTIAL client with code_verifier for enhanced security", async () => {
@@ -423,6 +428,7 @@ describe("POST /api/auth/oauth/token", () => {
       prismaMock.accessCode.findFirst.mockResolvedValue(
         mockAccessCodeWithPKCE as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
       );
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
       mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
       mockVerifyCodeChallenge.mockReturnValue(false);
 
@@ -441,7 +447,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.message).toBe("Invalid code_verifier");
+      expect(data.error).toBe("invalid_grant");
       expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("wrong_verifier", "test_challenge", "S256");
     });
   });
