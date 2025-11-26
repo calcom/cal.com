@@ -11,6 +11,8 @@ import { trpc } from "@calcom/trpc/react";
 
 import { BlocklistTable } from "~/settings/organizations/privacy/blocklist-table";
 
+import OrgAutoJoinSetting from "../components/OrgAutoJoinSetting";
+
 const PrivacyView = ({
   permissions,
   watchlistPermissions,
@@ -34,13 +36,21 @@ const PrivacyView = ({
 
   return (
     <LicenseRequired>
-      <div className="space-y-8">
+      <div className="stack-y-8">
         <MakeTeamPrivateSwitch
           isOrg={true}
           teamId={currentOrg.id}
           isPrivate={currentOrg.isPrivate}
           disabled={isDisabled}
         />
+
+        {currentOrg.organizationSettings?.orgAutoAcceptEmail && (
+          <OrgAutoJoinSetting
+            orgId={currentOrg.id}
+            orgAutoJoinEnabled={!!currentOrg.organizationSettings.orgAutoJoinOnSignup}
+            emailDomain={currentOrg.organizationSettings.orgAutoAcceptEmail}
+          />
+        )}
 
         {watchlistPermissions?.canRead && (
           <div>

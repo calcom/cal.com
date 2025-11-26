@@ -34,7 +34,6 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -409,7 +408,6 @@ function formatAvailabilitySnapshot(data: {
 }
 
 export interface IBookingServiceDependencies {
-  cacheService: CacheService;
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
@@ -1376,6 +1374,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
   if (!builtEvt) {
@@ -1871,6 +1870,7 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
+      evt.hasOrganizerChanged = true;
     }
 
     if (changedOrganizer && originalRescheduledBooking?.user) {
