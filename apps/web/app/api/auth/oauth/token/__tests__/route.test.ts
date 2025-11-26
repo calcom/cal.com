@@ -461,7 +461,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.message).toBe("grant_type invalid");
+      expect(data.error).toBe("invalid_request");
     });
 
     it("should reject invalid client_id", async () => {
@@ -480,7 +480,7 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.message).toBe("Unauthorized");
+      expect(data.error).toBe("invalid_client");
     });
 
     it("should reject mismatched redirect_uri", async () => {
@@ -502,8 +502,8 @@ describe("POST /api/auth/oauth/token", () => {
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data.message).toBe("Unauthorized");
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("invalid_grant");
     });
 
     it("should reject expired authorization code", async () => {
@@ -527,8 +527,8 @@ describe("POST /api/auth/oauth/token", () => {
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data.message).toBe("Unauthorized");
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("invalid_grant");
     });
   });
 });
