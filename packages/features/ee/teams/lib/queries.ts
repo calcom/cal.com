@@ -16,7 +16,8 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
-  unlockedManagedEventTypeProps,
+  allManagedEventTypePropsForZod,
+  unlockedManagedEventTypePropsForZod,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
@@ -422,7 +423,7 @@ export function generateNewChildEventTypeDataForDB({
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypePropsForZod).extend({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
     locations: z
       .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
@@ -430,12 +431,12 @@ export function generateNewChildEventTypeDataForDB({
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypeProps)
+    .omit(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypeProps)
+    .pick(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
   // Calculate if there are new workflows for which assigned members will get too
@@ -487,8 +488,8 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
-  eventTypesToAdd.length > 0 &&
-    (await prisma.$transaction(
+  if (eventTypesToAdd.length > 0) {
+    await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
           return prisma.eventType.create({
@@ -504,7 +505,8 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
           });
         }
       })
-    ));
+    );
+  }
 }
 
 export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {

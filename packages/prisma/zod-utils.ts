@@ -790,7 +790,8 @@ export const downloadLinkSchema = z.object({
 });
 
 // All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps = {
+// This includes both scalar fields and relation fields for Prisma select
+export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]?: true } = {
   title: true,
   description: true,
   interfaceLanguage: true,
@@ -860,15 +861,87 @@ export const allManagedEventTypeProps = {
   maxLeadThreshold: true,
   customReplyToEmail: true,
   bookingRequiresAuthentication: true,
-} as const satisfies { [k in keyof Omit<Prisma.EventTypeSelect, "id">]?: true };
+};
+
+// Scalar-only props for Zod schema pick/omit (excludes relation fields that don't exist in EventTypeSchema)
+// Relations excluded: aiPhoneCallConfig, availability, customInputs, children, hashedLink, webhooks, destinationCalendar, workflows
+export const allManagedEventTypePropsForZod = {
+  title: true,
+  description: true,
+  interfaceLanguage: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  offsetStart: true,
+  locations: true,
+  hidden: true,
+  recurringEvent: true,
+  disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  requiresConfirmationForFreeEmail: true,
+  requiresConfirmationWillBlockSlot: true,
+  eventName: true,
+  metadata: true,
+  hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
+  slotInterval: true,
+  scheduleId: true,
+  bookingFields: true,
+  durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
+  rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
+} as const;
 
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
-export const unlockedManagedEventTypeProps = {
+export const unlockedManagedEventTypeProps: { [k in keyof typeof allManagedEventTypeProps]?: true } = {
   locations: true,
   scheduleId: true,
   destinationCalendar: true,
-} as const satisfies Partial<typeof allManagedEventTypeProps>;
+};
+
+// Scalar-only unlocked props for Zod schema pick/omit (excludes destinationCalendar which is a relation)
+export const unlockedManagedEventTypePropsForZod = {
+  locations: true,
+  scheduleId: true,
+} as const;
 
 export const emailSchema = emailRegexSchema;
 
