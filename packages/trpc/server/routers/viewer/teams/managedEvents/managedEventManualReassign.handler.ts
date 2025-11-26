@@ -1,6 +1,5 @@
-import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { managedEventManualReassignment } from "@calcom/features/ee/managed-event-types/reassignment";
-import { prisma } from "@calcom/prisma";
+import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -21,7 +20,7 @@ export const managedEventManualReassignHandler = async ({
   const { bookingId, teamMemberId, reassignReason } = input;
 
   // Check if user has access to change booking
-  const bookingAccessService = new BookingAccessService(prisma);
+  const bookingAccessService = getBookingAccessService();
   const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
     userId: ctx.user.id,
     bookingId,

@@ -1,6 +1,5 @@
-import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
-import { prisma } from "@calcom/prisma";
+import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -18,7 +17,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
   const { bookingId } = input;
 
   // Check if user has access to change booking
-  const bookingAccessService = new BookingAccessService(prisma);
+  const bookingAccessService = getBookingAccessService();
   const isAllowed = await bookingAccessService.doesUserIdHaveAccessToBooking({
     userId: ctx.user.id,
     bookingId,
