@@ -1044,7 +1044,9 @@ export default defineContentScript({
 
             const slotsHTML = dateSlots
               .map((slot) => {
-                const bookingURL = `https://cal.com/${username}/${eventType.slug}?duration=${duration}&date=${slot.isoDate}&slot=${slot.isoTimestamp}&cal.tz=${timezone}`;
+                // URL-encode the timezone to handle special characters like "/"
+                const encodedTimezone = encodeURIComponent(timezone);
+                const bookingURL = `https://cal.com/${username}/${eventType.slug}?duration=${duration}&date=${slot.isoDate}&slot=${slot.isoTimestamp}&cal.tz=${encodedTimezone}`;
 
                 return `
                   <td style="padding: 0px; width: 64px; display: inline-block; margin-right: 4px; margin-bottom: 4px; height: 24px; border: 1px solid #111827; border-radius: 3px;">
@@ -1108,7 +1110,7 @@ export default defineContentScript({
             </div>
             ${datesHTML}
             <div style="margin-top: 13px;">
-              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${timezone}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${encodeURIComponent(timezone)}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
                 See all available times →
               </a>
             </div>
@@ -1786,8 +1788,10 @@ export default defineContentScript({
 
             // Fetch event types to get the matching one
             try {
-              embedButton.textContent = "Loading...";
+              // Disable button and show loading state with opacity
               embedButton.disabled = true;
+              embedButton.style.opacity = "0.6";
+              embedButton.style.cursor = "not-allowed";
 
               const response: any = await new Promise((resolve, reject) => {
                 chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
@@ -1811,8 +1815,9 @@ export default defineContentScript({
                   `No ${freshParsedData.detectedDuration}min event type found`,
                   "error"
                 );
-                embedButton.textContent = "Insert Embed";
                 embedButton.disabled = false;
+                embedButton.style.opacity = "1";
+                embedButton.style.cursor = "pointer";
                 return;
               }
 
@@ -1838,8 +1843,9 @@ export default defineContentScript({
                 showGmailNotification("Failed to insert embed", "error");
               }
 
-              embedButton.textContent = "Insert Embed";
               embedButton.disabled = false;
+              embedButton.style.opacity = "1";
+              embedButton.style.cursor = "pointer";
             } catch (error) {
               console.error("Cal.com: Failed to insert embed:", error);
 
@@ -1853,8 +1859,9 @@ export default defineContentScript({
                 showGmailNotification("Failed to insert embed", "error");
               }
 
-              embedButton.textContent = "Insert Embed";
               embedButton.disabled = false;
+              embedButton.style.opacity = "1";
+              embedButton.style.cursor = "pointer";
             }
           });
 
@@ -2619,12 +2626,42 @@ export default defineContentScript({
           let timezoneOffset = "GMT+00:00";
 
           try {
+            // First, try to get the IANA timezone from data-ad-hoc-v2-params
+            const paramsAttr = chipElement.getAttribute("data-ad-hoc-v2-params");
+            console.log("Cal.com: data-ad-hoc-v2-params:", paramsAttr);
+
+            if (paramsAttr) {
+              // The timezone is at the end of the params string, like: "Asia/Kolkata"
+              // Try multiple patterns as Gmail might format it differently
+              let tzMatch = paramsAttr.match(/&quot;([^&]+)&quot;\]/);
+
+              // Also try without HTML entities
+              if (!tzMatch) {
+                tzMatch = paramsAttr.match(/"([^"]+)"\]/);
+              }
+
+              // Also try with escaped quotes
+              if (!tzMatch) {
+                tzMatch = paramsAttr.match(/\\"([^\\]+)\\"\]/);
+              }
+
+              if (tzMatch && tzMatch[1]) {
+                timezone = tzMatch[1]; // e.g., "Asia/Kolkata"
+                console.log("Cal.com: ✅ Parsed IANA timezone from data attribute:", timezone);
+              } else {
+                console.warn("Cal.com: ⚠️ Failed to extract timezone from params attribute");
+              }
+            } else {
+              console.warn("Cal.com: ⚠️ No data-ad-hoc-v2-params attribute found");
+            }
+
+            // Also get the display timezone and offset from the UI text
             const timezoneText = chipElement.querySelector("td")?.textContent?.trim() || "";
             const timezoneMatch = timezoneText.match(/^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/);
 
             if (timezoneMatch) {
-              timezone = timezoneMatch[2]?.trim() || "UTC";
               timezoneOffset = timezoneMatch[3]?.trim() || "GMT+00:00";
+              console.log("Cal.com: Parsed timezone offset from UI:", timezoneOffset);
             }
           } catch (tzError) {
             // Non-critical error - continue with default timezone
@@ -2711,6 +2748,10 @@ export default defineContentScript({
             // No valid slots found - Gmail structure might have changed
             return null;
           }
+
+          console.log(
+            `Cal.com: ✅ Parsed chip - ${slots.length} slots, ${detectedDuration}min, timezone: ${timezone}`
+          );
 
           return {
             scheduleId,
