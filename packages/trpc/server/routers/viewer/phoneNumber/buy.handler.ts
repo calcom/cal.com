@@ -14,9 +14,9 @@ type BuyHandlerOptions = {
   input: TBuyInputSchema;
 };
 
-export const buyHandler = async ({ ctx: { user: loggedInUser }, input }: BuyHandlerOptions) => {
+export const buyHandler = async ({ ctx: { user: loggedInUser, req }, input }: BuyHandlerOptions) => {
   const aiService = createDefaultAIPhoneServiceProvider();
-  const tracking = getTrackingFromCookies(ctx.req?.cookies);
+  const tracking = getTrackingFromCookies(req?.cookies);
 
   const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
     userId: loggedInUser.id,
