@@ -22,6 +22,7 @@ const badgeVariants = cva(
         attention: "bg-yellow-50 text-yellow-600",
       },
       size: {
+        xs: "h-4 px-1 text-xs",
         sm: "h-5 px-1.5 text-xs",
         md: "h-5 px-2 py-3",
         lg: "h-7 px-3",

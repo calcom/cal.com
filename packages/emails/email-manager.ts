@@ -578,13 +578,17 @@ export const sendOrganizerRequestReminderEmail = async (
 
 export const sendAwaitingPaymentEmailAndSMS = async (
   calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  bookingSeatId?: number
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
+      if (bookingSeatId && attendee!.bookingSeat?.id !== bookingSeatId) {
+        return Promise.resolve();
+      }
       return sendEmail(() => new AttendeeAwaitingPaymentEmail(calEvent, attendee));
     })
   );

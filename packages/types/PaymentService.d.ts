@@ -54,6 +54,7 @@ export interface IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
+    bookingSeat?: BookingSeat["id"],
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void>;

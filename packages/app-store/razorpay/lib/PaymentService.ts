@@ -189,6 +189,7 @@ export class PaymentService implements IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
+    bookingSeat: BookingSeat["id"],
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
@@ -208,7 +209,8 @@ export class PaymentService implements IAbstractPaymentService {
           currency: paymentData.currency,
         },
       },
-      eventTypeMetadata
+      eventTypeMetadata,
+      bookingSeat
     );
   }
 

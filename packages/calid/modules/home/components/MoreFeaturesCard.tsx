@@ -48,12 +48,12 @@ const Card = ({
         <div className="mb-1 flex items-center gap-2">
           <h3 className="text-default text-sm font-semibold">{title}</h3>
           {isNew && (
-            <Badge variant="default" size="sm">
+            <Badge className="bg-success text-success" size="sm">
               New
             </Badge>
           )}
           {isComingSoon && (
-            <Badge variant="default" size="sm">
+            <Badge variant="attention" size="sm">
               Coming Soon
             </Badge>
           )}
