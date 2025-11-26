@@ -281,7 +281,7 @@ const WebhookForm = (props: {
     ).map((option) => option.value);
   };
 
-  const formMethods = useForm({
+  const formMethods = useForm<WebhookFormValues>({
     defaultValues: {
       subscriberUrl: props.webhook?.subscriberUrl || "",
       active: props.webhook ? props.webhook.active : true,

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui/components/toast";
 
 import {
@@ -95,7 +95,7 @@ export default function EditOAuthClientWebhooks() {
                     }
                     await refetchWebhooks();
                     router.push("/settings/platform/");
-                  } catch (err) {
+                  } catch {
                     showToast(t(webhookId ? "webhook_update_failed" : "webhook_create_failed"), "error");
                   }
                 }}
@@ -105,7 +105,12 @@ export default function EditOAuthClientWebhooks() {
                 noRoutingFormTriggers={true}
                 webhook={
                   webhook
-                    ? { ...webhook, eventTriggers: webhook.triggers, secret: webhook.secret ?? null }
+                    ? {
+                        ...webhook,
+                        eventTriggers: webhook.triggers,
+                        secret: webhook.secret ?? null,
+                        version: webhook.version ?? WebhookVersion.V_2021_10_20,
+                      }
                     : undefined
                 }
               />

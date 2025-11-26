@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
@@ -68,11 +68,12 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
         noRoutingFormTriggers={false}
         webhook={webhook}
         versionSelector={(formMethods) => (
-          <SettingsHeader
+          <SettingsHeaderWithBackButton
             title={t("edit_webhook")}
             description={t("add_webhook_description", { appName: APP_NAME })}
             borderInShellHeader={true}
             backButton
+            onBackButtonClick={() => router.back()}
             CTA={
               <Tooltip content={t("webhook_version")}>
                 <div>
