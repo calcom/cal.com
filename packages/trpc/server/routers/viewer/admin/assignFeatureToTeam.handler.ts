@@ -1,3 +1,4 @@
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -29,6 +30,9 @@ export const assignFeatureToTeamHandler = async ({ ctx, input }: AssignFeatureOp
     },
     update: {},
   });
+
+  // Clear server-side in-memory cache so next request gets fresh data
+  FeaturesRepository.clearCache();
 
   return { success: true };
 };

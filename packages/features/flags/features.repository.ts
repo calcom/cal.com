@@ -10,19 +10,35 @@ interface CacheOptions {
   ttl: number; // time in ms
 }
 
+// Use globalThis to ensure cache is shared across all module instances in Next.js
+// Without this, different API routes may have separate static variables
+const globalForCache = globalThis as unknown as {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __featuresCache: { data: any[]; expiry: number } | null;
+};
+
 /**
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
  */
 export class FeaturesRepository implements IFeaturesRepository {
+  private static get featuresCache() {
+    return globalForCache.__featuresCache ?? null;
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static featuresCache: { data: any[]; expiry: number } | null = null;
+  private static set featuresCache(value: { data: any[]; expiry: number } | null) {
+    globalForCache.__featuresCache = value;
+  }
 
   constructor(private prismaClient: PrismaClient) {}
 
-  private clearCache() {
-    FeaturesRepository.featuresCache = null;
+  /**
+   * Clears the in-memory feature flags cache.
+   * Call this when feature flags are updated to ensure fresh data is fetched.
+   */
+  public static clearCache() {
+    globalForCache.__featuresCache = null;
   }
 
   /**
@@ -283,7 +299,7 @@ export class FeaturesRepository implements IFeaturesRepository {
         update: {},
       });
       // Clear cache when features are modified
-      this.clearCache();
+      FeaturesRepository.clearCache();
     } catch (err) {
       captureException(err);
       throw err;

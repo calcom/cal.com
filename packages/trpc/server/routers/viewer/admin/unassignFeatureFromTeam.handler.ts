@@ -1,3 +1,4 @@
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -23,6 +24,9 @@ export const unassignFeatureFromTeamHandler = async ({ ctx, input }: UnassignFea
       },
     },
   });
+
+  // Clear server-side in-memory cache so next request gets fresh data
+  FeaturesRepository.clearCache();
 
   return { success: true };
 };
