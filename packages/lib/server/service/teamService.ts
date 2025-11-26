@@ -437,8 +437,6 @@ export class TeamService {
         },
       }),
     ]);
-
-    await TeamService.cleanupFilterSegmentsWithRemovedUser(membership.userId, teamId);
   }
 
   private static async getAllChildTeamIds(teamId: number): Promise<number[]> {
