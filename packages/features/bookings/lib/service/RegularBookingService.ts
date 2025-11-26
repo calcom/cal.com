@@ -1578,7 +1578,7 @@ async function handler(
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
-      evt: { ...evt, bookerUrl },
+      evt: { ...evt, seatsPerTimeSlot: eventType.seatsPerTimeSlot, bookerUrl },
       invitee,
       allCredentials,
       organizerUser,

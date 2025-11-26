@@ -605,11 +605,15 @@ export class CreditService {
             "@calcom/features/ee/workflows/lib/reminders/reminderScheduler"
           );
           promises.push(
-            cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
-              (error) => {
-                log.error("Failed to cancel scheduled messages", error, { result });
-              }
-            )
+            cancelScheduledMessagesAndScheduleEmails({
+              teamId: result.teamId,
+              userIdsWithNoCredits: await this._getUserIdsWithoutCredits({
+                teamId: result.teamId ?? null,
+                userId: result.userId ?? null,
+              }),
+            }).catch((error) => {
+              log.error("Failed to cancel scheduled messages", error, { result });
+            })
           );
         }
 
@@ -825,5 +829,35 @@ export class CreditService {
         orgId,
       };
     });
+  }
+
+  private async _getUserIdsWithoutCredits({
+    teamId,
+    userId,
+  }: {
+    teamId: number | null;
+    userId: number | null;
+  }) {
+    let userIdsWithNoCredits: number[] = userId ? [userId] : [];
+    if (teamId) {
+      const teamMembers = await prisma.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+        },
+      });
+
+      userIdsWithNoCredits = (
+        await Promise.all(
+          teamMembers.map(async (member) => {
+            const hasCredits = await this.hasAvailableCredits({ userId: member.userId });
+            return { userId: member.userId, hasCredits };
+          })
+        )
+      )
+        .filter(({ hasCredits }) => !hasCredits)
+        .map(({ userId }) => userId);
+    }
+    return userIdsWithNoCredits;
   }
 }

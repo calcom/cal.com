@@ -76,7 +76,7 @@ export default function ForgotPassword(props: PageProps) {
 
   const Success = () => {
     return (
-      <div className="space-y-6 text-sm leading-normal ">
+      <div className="stack-y-6 text-sm leading-normal ">
         <p className="">{t("password_reset_email", { email })}</p>
         <p className="">{t("password_reset_leading")}</p>
         {error && <p className="text-center text-red-600">{error.message}</p>}
@@ -103,9 +103,9 @@ export default function ForgotPassword(props: PageProps) {
       {success && <Success />}
       {!success && (
         <>
-          <div className="space-y-6">{error && <p className="text-red-600">{error.message}</p>}</div>
+          <div className="stack-y-6">{error && <p className="text-red-600">{error.message}</p>}</div>
           <form
-            className="space-y-6"
+            className="stack-y-6"
             onSubmit={handleSubmit}
             action="#"
             style={
@@ -125,7 +125,7 @@ export default function ForgotPassword(props: PageProps) {
               placeholder="john.doe@example.com"
               required
             />
-            <div className="space-y-2">
+            <div className="stack-y-2">
               <Button
                 className="w-full justify-center bg-white hover:bg-black hover:text-white"
                 type="submit"
