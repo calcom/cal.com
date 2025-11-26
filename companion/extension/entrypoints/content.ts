@@ -1013,9 +1013,217 @@ export default defineContentScript({
       // ========== Google Calendar Chip Integration ==========
 
       /**
-       * Helper function to insert text into Gmail compose field
+       * Generate HTML email embed for Cal.com booking
+       * Based on the email embed feature in main Cal.com codebase
        */
-      function insertGmailText(text: string): boolean {
+      function generateEmailEmbedHTML(params: {
+        eventType: any;
+        username: string;
+        slots: any[];
+        duration: number;
+        timezone: string;
+        timezoneOffset: string;
+      }): string {
+        const { eventType, username, slots, duration, timezone, timezoneOffset } = params;
+
+        // Group slots by date
+        const slotsByDate: { [date: string]: any[] } = {};
+        slots.forEach((slot) => {
+          if (!slotsByDate[slot.isoDate]) {
+            slotsByDate[slot.isoDate] = [];
+          }
+          slotsByDate[slot.isoDate].push(slot);
+        });
+
+        // Generate time slot buttons HTML
+        const datesHTML = Object.keys(slotsByDate)
+          .sort()
+          .map((date) => {
+            const dateSlots = slotsByDate[date];
+            const formattedDate = dateSlots[0].date; // Already formatted like "Thu, 27 November"
+
+            const slotsHTML = dateSlots
+              .map((slot) => {
+                const bookingURL = `https://cal.com/${username}/${eventType.slug}?duration=${duration}&date=${slot.isoDate}&slot=${slot.isoTimestamp}&cal.tz=${timezone}`;
+
+                return `
+                  <td style="padding: 0px; width: 64px; display: inline-block; margin-right: 4px; margin-bottom: 4px; height: 24px; border: 1px solid #111827; border-radius: 3px;">
+                    <table style="height: 21px;">
+                      <tbody>
+                        <tr style="height: 21px;">
+                          <td style="width: 7px;"></td>
+                          <td style="width: 50px; text-align: center; margin-right: 1px;">
+                            <a href="${bookingURL}" style="font-family: 'Proxima Nova', sans-serif; text-decoration: none; text-align: center; color: #111827; font-size: 12px; line-height: 16px;">
+                              <b style="font-weight: normal; text-decoration: none;">${slot.startTime}</b>
+                            </a>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                `;
+              })
+              .join("");
+
+            return `
+              <table key="${date}" style="margin-top: 16px; text-align: left; border-collapse: collapse; border-spacing: 0px;">
+                <tbody>
+                  <tr>
+                    <td style="text-align: left; margin-top: 16px;">
+                      <span style="font-size: 14px; line-height: 16px; padding-bottom: 8px; color: rgb(26, 26, 26); font-weight: bold;">
+                        ${formattedDate}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <table style="border-collapse: separate; border-spacing: 0px 4px;">
+                        <tbody>
+                          <tr style="height: 25px;">
+                            ${slotsHTML}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            `;
+          })
+          .join("");
+
+        // Complete HTML structure
+        return `
+          <div style="padding-bottom: 3px; font-size: 13px; color: black; line-height: 1.4; background-color: white; border: 1px solid #e5e5ea; border-radius: 8px; padding: 16px; margin: 8px 0; font-family: 'Google Sans', Roboto, Arial, sans-serif;">
+            <div style="font-style: normal; font-size: 20px; font-weight: bold; line-height: 19px; margin-top: 15px; margin-bottom: 15px;">
+              <b style="color: black;">${eventType.title}</b>
+            </div>
+            <div style="font-style: normal; font-weight: normal; font-size: 14px; line-height: 17px; color: #333333;">
+              Duration: <b style="color: black;">${duration} mins</b>
+            </div>
+            <div>
+              <span style="font-style: normal; font-weight: normal; font-size: 14px; line-height: 17px; color: #333333;">
+                Timezone: <b style="color: black;">${timezone} (${timezoneOffset})</b>
+              </span>
+            </div>
+            ${datesHTML}
+            <div style="margin-top: 13px;">
+              <a href="https://cal.com/${username}/${eventType.slug}?cal.tz=${timezone}" style="text-decoration: none; cursor: pointer; color: #0B57D0; font-size: 14px;">
+                See all available times →
+              </a>
+            </div>
+            <div style="border-top: 1px solid #CCCCCC; margin-top: 8px; padding-top: 8px; text-align: right; font-size: 12px; color: #666;">
+              <span>Powered by</span> <b style="color: black;">Cal.com</b>
+            </div>
+          </div>
+          <p><br></p>
+        `;
+      }
+
+      /**
+       * Helper function to insert HTML into Gmail compose field
+       * @param html - The HTML content to insert
+       * @param targetComposeElement - Optional: The chip's compose element to ensure we insert in the correct window
+       */
+      function insertGmailHTML(html: string, targetComposeElement?: HTMLElement): boolean {
+        try {
+          // Validate input
+          if (!html || typeof html !== "string") {
+            console.warn("Cal.com: Invalid HTML to insert");
+            return false;
+          }
+
+          // If a target compose element is provided, find the compose body within its scope
+          let composeBody: Element | null = null;
+
+          if (targetComposeElement) {
+            const composeWindow =
+              targetComposeElement.closest('[role="dialog"]') ||
+              targetComposeElement.closest(".nH") ||
+              targetComposeElement.closest('div[contenteditable="true"]')?.parentElement;
+
+            if (composeWindow) {
+              composeBody =
+                composeWindow.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+                composeWindow.querySelector('[role="textbox"][g_editable="true"]') ||
+                composeWindow.querySelector('div[contenteditable="true"][role="textbox"]');
+            }
+          }
+
+          // Fallback: Try global selectors
+          if (!composeBody) {
+            composeBody =
+              document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+              document.querySelector('[role="textbox"][g_editable="true"]') ||
+              document.querySelector('div[contenteditable="true"][role="textbox"]');
+          }
+
+          if (!composeBody) {
+            console.warn("Cal.com: Gmail compose field not found");
+            return false;
+          }
+
+          // Focus the compose body
+          try {
+            (composeBody as HTMLElement).focus();
+          } catch (focusError) {
+            console.warn("Cal.com: Failed to focus compose field:", focusError);
+          }
+
+          const selection = window.getSelection();
+          if (!selection || selection.rangeCount === 0) {
+            // No selection - append at end
+            try {
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = html;
+              composeBody.appendChild(tempDiv);
+              return true;
+            } catch (appendError) {
+              console.warn("Cal.com: Failed to append HTML:", appendError);
+              return false;
+            }
+          }
+
+          // Insert at cursor position
+          try {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+
+            // Insert all child nodes
+            const fragment = document.createDocumentFragment();
+            while (tempDiv.firstChild) {
+              fragment.appendChild(tempDiv.firstChild);
+            }
+
+            range.insertNode(fragment);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Trigger input events
+            (composeBody as HTMLElement).dispatchEvent(new Event("input", { bubbles: true }));
+            (composeBody as HTMLElement).dispatchEvent(new Event("change", { bubbles: true }));
+
+            return true;
+          } catch (insertError) {
+            console.warn("Cal.com: Failed to insert HTML at cursor:", insertError);
+            return false;
+          }
+        } catch (error) {
+          console.error("Cal.com: Critical error inserting HTML:", error);
+          return false;
+        }
+      }
+
+      /**
+       * Helper function to insert text into Gmail compose field
+       * @param text - The text to insert
+       * @param targetComposeElement - Optional: The chip's compose element to ensure we insert in the correct window
+       */
+      function insertGmailText(text: string, targetComposeElement?: HTMLElement): boolean {
         try {
           // Validate input
           if (!text || typeof text !== "string") {
@@ -1023,12 +1231,33 @@ export default defineContentScript({
             return false;
           }
 
-          // Try multiple selectors for Gmail compose field
-          // Gmail structure may change, so we have multiple fallbacks
-          const composeBody =
-            document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
-            document.querySelector('[role="textbox"][g_editable="true"]') ||
-            document.querySelector('div[contenteditable="true"][role="textbox"]');
+          // If a target compose element is provided, find the compose body within its scope
+          // Otherwise, fall back to the first compose field (legacy behavior)
+          let composeBody: Element | null = null;
+
+          if (targetComposeElement) {
+            // Find the compose window that contains the chip
+            const composeWindow =
+              targetComposeElement.closest('[role="dialog"]') ||
+              targetComposeElement.closest(".nH") ||
+              targetComposeElement.closest('div[contenteditable="true"]')?.parentElement;
+
+            if (composeWindow) {
+              // Look for compose body within this specific window
+              composeBody =
+                composeWindow.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+                composeWindow.querySelector('[role="textbox"][g_editable="true"]') ||
+                composeWindow.querySelector('div[contenteditable="true"][role="textbox"]');
+            }
+          }
+
+          // Fallback: Try global selectors if no target or if scoped search failed
+          if (!composeBody) {
+            composeBody =
+              document.querySelector('[role="textbox"][aria-label*="Message Body"]') ||
+              document.querySelector('[role="textbox"][g_editable="true"]') ||
+              document.querySelector('div[contenteditable="true"][role="textbox"]');
+          }
 
           if (!composeBody) {
             console.warn("Cal.com: Gmail compose field not found (structure may have changed)");
@@ -1459,11 +1688,19 @@ export default defineContentScript({
           user-select: none;
         `;
 
-          // Button
-          const button = document.createElement("button");
-          button.className = "cal-companion-suggest-button";
-          button.textContent = "Suggest Links";
-          button.style.cssText = `
+          // Buttons container
+          const buttonsContainer = document.createElement("div");
+          buttonsContainer.style.cssText = `
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
+        `;
+
+          // "Suggest Links" Button
+          const suggestButton = document.createElement("button");
+          suggestButton.className = "cal-companion-suggest-button";
+          suggestButton.textContent = "Suggest Links";
+          suggestButton.style.cssText = `
           padding: 8px 16px;
           background: #111827;
           color: white;
@@ -1474,24 +1711,23 @@ export default defineContentScript({
           cursor: pointer;
           transition: background 0.2s ease;
           font-family: 'Google Sans', Roboto, Arial, sans-serif;
-          flex-shrink: 0;
         `;
 
-          button.addEventListener("mouseenter", () => {
-            button.style.background = "#1f2937";
+          suggestButton.addEventListener("mouseenter", () => {
+            suggestButton.style.background = "#1f2937";
           });
 
-          button.addEventListener("mouseleave", () => {
-            button.style.background = "#111827";
+          suggestButton.addEventListener("mouseleave", () => {
+            suggestButton.style.background = "#111827";
           });
 
-          button.addEventListener("click", (e) => {
+          suggestButton.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
             // Re-parse the chip to get fresh data (in case it changed)
             const freshParsedData = parseGoogleChip(chipElement);
             console.log(
-              "Cal.com: Button clicked, fresh parsed data:",
+              "Cal.com: Suggest Links clicked, fresh parsed data:",
               freshParsedData?.detectedDuration,
               "min"
             );
@@ -1501,6 +1737,115 @@ export default defineContentScript({
               console.log("Cal.com: Failed to parse fresh data or no slots found");
             }
           });
+
+          // "Insert Embed" Button
+          const embedButton = document.createElement("button");
+          embedButton.className = "cal-companion-embed-button";
+          embedButton.textContent = "Insert Embed";
+          embedButton.style.cssText = `
+          padding: 8px 16px;
+          background: white;
+          color: #111827;
+          border: 1px solid #111827;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: 'Google Sans', Roboto, Arial, sans-serif;
+        `;
+
+          embedButton.addEventListener("mouseenter", () => {
+            embedButton.style.background = "#f8f9fa";
+          });
+
+          embedButton.addEventListener("mouseleave", () => {
+            embedButton.style.background = "white";
+          });
+
+          embedButton.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Re-parse the chip to get fresh data
+            const freshParsedData = parseGoogleChip(chipElement);
+            console.log(
+              "Cal.com: Insert Embed clicked, fresh parsed data:",
+              freshParsedData?.detectedDuration,
+              "min"
+            );
+
+            if (!freshParsedData || freshParsedData.slots.length === 0) {
+              showGmailNotification("No time slots found", "error");
+              return;
+            }
+
+            // Fetch event types to get the matching one
+            try {
+              embedButton.textContent = "Loading...";
+              embedButton.disabled = true;
+
+              const response: any = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage({ action: "fetch-event-types" }, (result) => {
+                  if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                  } else if (result && result.error) {
+                    reject(new Error(result.error));
+                  } else {
+                    resolve(result);
+                  }
+                });
+              });
+
+              const eventTypes = response?.data || (Array.isArray(response) ? response : []);
+              const matchingEventType = eventTypes.find(
+                (et: any) => et.lengthInMinutes === freshParsedData.detectedDuration
+              );
+
+              if (!matchingEventType) {
+                showGmailNotification(
+                  `No ${freshParsedData.detectedDuration}min event type found`,
+                  "error"
+                );
+                embedButton.textContent = "Insert Embed";
+                embedButton.disabled = false;
+                return;
+              }
+
+              const username = matchingEventType.users?.[0]?.username || "user";
+
+              // Generate HTML embed
+              const embedHTML = generateEmailEmbedHTML({
+                eventType: matchingEventType,
+                username: username,
+                slots: freshParsedData.slots,
+                duration: freshParsedData.detectedDuration,
+                timezone: freshParsedData.timezone,
+                timezoneOffset: freshParsedData.timezoneOffset,
+              });
+
+              // Insert HTML into Gmail
+              const inserted = insertGmailHTML(embedHTML, chipElement);
+
+              if (inserted) {
+                showGmailNotification("Cal.com embed inserted!", "success");
+                console.log("Cal.com: ✅ Email embed inserted successfully");
+              } else {
+                showGmailNotification("Failed to insert embed", "error");
+              }
+
+              embedButton.textContent = "Insert Embed";
+              embedButton.disabled = false;
+            } catch (error) {
+              console.error("Cal.com: Failed to insert embed:", error);
+              showGmailNotification("Failed to insert embed", "error");
+              embedButton.textContent = "Insert Embed";
+              embedButton.disabled = false;
+            }
+          });
+
+          buttonsContainer.appendChild(suggestButton);
+          buttonsContainer.appendChild(embedButton);
 
           // Close button (×) to remove the action bar completely
           const closeBtn = document.createElement("button");
@@ -1553,7 +1898,7 @@ export default defineContentScript({
           try {
             actionBar.appendChild(icon);
             actionBar.appendChild(text);
-            actionBar.appendChild(button);
+            actionBar.appendChild(buttonsContainer);
             actionBar.appendChild(closeBtn);
 
             // Position the action bar as an overlay (like Grammarly)
@@ -2022,13 +2367,23 @@ export default defineContentScript({
             customDropdown.appendChild(optionsContainer);
             selectorDiv.appendChild(customDropdown);
 
-            // Close dropdown when clicking outside
-            document.addEventListener("click", function closeDropdown(e) {
+            // Close dropdown when clicking outside (with cleanup)
+            const closeDropdown = (e: MouseEvent) => {
               if (!customDropdown.contains(e.target as Node)) {
                 optionsContainer.style.display = "none";
                 selectedDisplay.style.borderColor = "#e5e5ea";
               }
-            });
+            };
+            document.addEventListener("click", closeDropdown);
+
+            // Clean up listener when modal closes
+            backdrop.addEventListener(
+              "remove",
+              () => {
+                document.removeEventListener("click", closeDropdown);
+              },
+              { once: true }
+            );
           }
 
           contentContainer.appendChild(selectorDiv);
@@ -2127,8 +2482,8 @@ export default defineContentScript({
 
               console.log("Cal.com: Generated URL:", calcomUrl);
 
-              // Insert link into Gmail compose
-              const inserted = insertGmailText(calcomUrl);
+              // Insert link into Gmail compose (pass chipElement to target the correct compose window)
+              const inserted = insertGmailText(calcomUrl, chipElement);
 
               if (inserted) {
                 showGmailNotification("Cal.com link inserted!", "success");
