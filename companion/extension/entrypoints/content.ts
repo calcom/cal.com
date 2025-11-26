@@ -1842,7 +1842,17 @@ export default defineContentScript({
               embedButton.disabled = false;
             } catch (error) {
               console.error("Cal.com: Failed to insert embed:", error);
-              showGmailNotification("Failed to insert embed", "error");
+
+              // Check if this is the "Extension context invalidated" error
+              const isContextInvalidated =
+                error instanceof Error && error.message.includes("Extension context invalidated");
+
+              if (isContextInvalidated) {
+                showGmailNotification("Extension reloaded - please reload Gmail", "error");
+              } else {
+                showGmailNotification("Failed to insert embed", "error");
+              }
+
               embedButton.textContent = "Insert Embed";
               embedButton.disabled = false;
             }
