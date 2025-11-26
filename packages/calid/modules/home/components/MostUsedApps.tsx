@@ -1,11 +1,14 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 
 export const MostUsedApps = () => {
   const { t } = useLocale();
@@ -66,6 +69,20 @@ export const MostUsedApps = () => {
     },
   ];
 
+  const { data: integrationsData } = trpc.viewer.apps.integrations.useQuery({
+    includeTeamInstalledApps: true,
+    sortByInstalledFirst: true,
+  });
+
+  const installedAppSlugs = useMemo(() => {
+    const connectedApps = integrationsData?.items ?? [];
+    return new Set(
+      connectedApps
+        .filter((connectedApp) => connectedApp.isInstalled)
+        .map((connectedApp) => connectedApp.slug)
+    );
+  }, [integrationsData?.items]);
+
   return (
     <div className="border-default bg-default flex h-full w-full flex-col rounded-md border px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
@@ -84,6 +101,7 @@ export const MostUsedApps = () => {
           const logo = appMetadata?.logo || "";
           const appName = appMetadata?.name || app.name;
           const appSlug = appMetadata?.slug || "";
+          const isInstalled = !!appSlug && installedAppSlugs.has(appSlug);
 
           if (!appSlug) return null;
 
@@ -105,7 +123,14 @@ export const MostUsedApps = () => {
                 />
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-default truncate text-sm font-medium">{appName}</p>
+                <div className="flex flex-col justify-between gap-1">
+                  <p className="text-default truncate text-sm font-medium">{appName}</p>
+                  {isInstalled && (
+                    <Badge className="w-fit" size="xs">
+                      {t("installed")}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </Link>
           );
