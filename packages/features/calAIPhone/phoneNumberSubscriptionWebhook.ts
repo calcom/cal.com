@@ -8,9 +8,9 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -79,11 +79,11 @@ function handleError(error: unknown) {
   const url = new URL(`${WEBAPP_URL}/workflows`);
   url.searchParams.set("error", "true");
 
-  const httpError = getServerErrorFromUnknown(error);
-  url.searchParams.set(
-    "message",
-    httpError.message || "An error occurred while processing your subscription"
-  );
+  if (error instanceof HttpError) {
+    url.searchParams.set("message", error.message);
+  } else {
+    url.searchParams.set("message", "An error occurred while processing your subscription");
+  }
 
   return NextResponse.redirect(url.toString());
 }
