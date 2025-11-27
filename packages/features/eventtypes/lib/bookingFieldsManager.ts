@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { validateBookingFields } from "@calcom/lib/validateBookingFields";
 import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -98,6 +99,12 @@ export async function upsertBookingField(
       sources: [source],
     });
   }
+
+  const validation = validateBookingFields(newFields);
+  if (!validation.valid) {
+    throw new Error(`Invalid booking fields configuration: ${validation.errors.join("; ")}`);
+  }
+
   await prisma.eventType.update({
     where: {
       id: eventTypeId,
@@ -137,6 +144,11 @@ export async function removeBookingField(
       return f;
     })
     .filter((f): f is Field => !!f);
+
+  const validation = validateBookingFields(newFields);
+  if (!validation.valid) {
+    throw new Error(`Invalid booking fields configuration: ${validation.errors.join("; ")}`);
+  }
 
   await prisma.eventType.update({
     where: {

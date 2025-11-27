@@ -7,8 +7,7 @@ import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-type View = ALL_VIEWS | (string & {});
+type View = ALL_VIEWS | string;
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
 
@@ -23,6 +22,40 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
+
+/**
+ * Determines if a conditional field should be active based on current form responses
+ * Uses OR logic for multi-value fields (checkbox): if ANY checked value matches trigger list, field is active
+ */
+function isConditionalFieldActive(
+  field: { conditionalOn?: { parent: string; values: string[] } },
+  responses: Record<string, unknown>,
+  allFields: BookingFields
+): boolean {
+  if (!field.conditionalOn) return true;
+
+  const { parent, values: triggerValues } = field.conditionalOn;
+  const parentResponse = responses[parent];
+
+  if (parentResponse === undefined || parentResponse === null) {
+    return false;
+  }
+
+  const parentField = allFields?.find((f) => f.name === parent);
+  if (!parentField) return false;
+
+  if (parentField.type === "boolean") {
+    return triggerValues.includes(String(parentResponse));
+  }
+
+  if (parentField.type === "checkbox" || parentField.type === "multiselect") {
+    if (!Array.isArray(parentResponse)) return false;
+    return parentResponse.some((val) => triggerValues.includes(val));
+  }
+
+  return triggerValues.includes(String(parentResponse));
+}
+
 export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -71,6 +104,12 @@ function preprocess<T extends z.ZodType>({
           // If there is no response for the field, then we don't need to do any processing
           return;
         }
+
+        const isActive = isConditionalFieldActive(field, parsedResponses, bookingFields);
+        if (!isActive) {
+          return;
+        }
+
         const views = field.views;
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
@@ -104,7 +143,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch {
+            // Invalid JSON, use default empty values
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -142,6 +183,14 @@ function preprocess<T extends z.ZodType>({
 
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
+
+        const isActive = isConditionalFieldActive(bookingField, responses, bookingFields);
+
+        if (!isActive) {
+          delete responses[bookingField.name];
+          continue;
+        }
+
         const stringSchema = z.string();
         const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema

@@ -1081,6 +1081,11 @@ export const variantsConfigSchema = z.object({
   ),
 });
 
+export const conditionalOnSchema = z.object({
+  parent: z.string(),
+  values: z.array(z.string()).min(1),
+});
+
 export const fieldSchema = baseFieldSchema.merge(
   z.object({
     variant: z.string().optional(),
@@ -1116,6 +1121,7 @@ export const fieldSchema = baseFieldSchema.merge(
       )
       .optional(),
     disableOnPrefill: z.boolean().default(false).optional(),
+    conditionalOn: conditionalOnSchema.optional(),
   })
 );
 
