@@ -19,6 +19,7 @@ import {
   ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc";
 
@@ -34,7 +35,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const createdAtColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "createdAt",
   title: "createdAt",
   type: ColumnFilterType.DATE_RANGE,
