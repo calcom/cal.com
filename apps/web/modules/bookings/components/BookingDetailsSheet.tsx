@@ -14,6 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -220,11 +221,11 @@ function BookingDetailsSheetInner({
 
             <WhenSection startTime={startTime} endTime={endTime} timeZone={userTimeZone} />
 
-            <RescheduleRequestMessage booking={booking} />
+            <OldRescheduledBookingInfo booking={booking} />
 
-            <RescheduleInfoSection booking={booking} />
+            <NewRescheduledBookingInfo booking={booking} />
 
-            <WhatSection booking={booking} />
+            <CancelledBookingInfo booking={booking} />
 
             <WhoSection booking={booking} />
 
@@ -237,6 +238,8 @@ function BookingDetailsSheetInner({
             <PaymentSection booking={booking} />
 
             <SlotsSection booking={booking} />
+
+            <AdditionalNotesSection booking={booking} />
 
             <CustomQuestionsSection
               customResponses={customResponses}
@@ -310,20 +313,6 @@ function WhenSection({
         </span>
       </div>
     </Section>
-  );
-}
-
-function RescheduleRequestMessage({ booking }: { booking: BookingOutput }) {
-  const { t } = useLocale();
-
-  if (booking.status !== "CANCELLED" || !booking.rescheduled) {
-    return null;
-  }
-
-  return (
-    <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
-      {t("reschedule_request_sent")}
-    </Badge>
   );
 }
 
@@ -573,46 +562,129 @@ function CustomQuestionsSection({
   );
 }
 
-function RescheduleInfoSection({ booking }: { booking: BookingOutput }) {
+// Old booking that was rescheduled away
+function OldRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
-  const isCancelled = booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
-  const isRescheduled = booking.status === BookingStatus.ACCEPTED;
+  // Only show for old rescheduled bookings
+  if (!booking.rescheduled) {
+    return null;
+  }
+
+  // Fetch additional reschedule details
+  const { data: bookingDetails, isLoading } = trpc.viewer.bookings.getBookingDetails.useQuery(
+    { bookingId: booking.id },
+    {
+      // Only fetch if this is a rescheduled booking
+      enabled: booking.rescheduled === true,
+      // Keep data fresh but don't refetch too aggressively
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
 
   const cancellationReason = booking.cancellationReason || booking.rejectionReason;
-  const shouldShowCancellationReason = cancellationReason && isCancelled;
-  const shouldShowRescheduleReason = cancellationReason && isRescheduled;
-  const shouldShowRescheduler = booking.rescheduler && isRescheduled;
+  const rescheduledBy = booking.rescheduledBy;
+  const rescheduledToBooking = bookingDetails?.rescheduledToBooking;
+
+  // Reserve space to prevent layout shift
+  const shouldShowRescheduledTo = isLoading || rescheduledToBooking?.uid;
 
   return (
     <>
-      {shouldShowCancellationReason && (
-        <Section title={t("reason")}>
-          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+      {shouldShowRescheduledTo && (
+        <Section title={t("rescheduled_to")}>
+          {isLoading ? (
+            <div className="text-subtle text-sm">
+              <Icon name="loader" className="mr-2 inline h-4 w-4 animate-spin" />
+              {t("loading")}
+            </div>
+          ) : rescheduledToBooking?.uid ? (
+            <Link className="text-default text-sm underline" href={`/booking/${rescheduledToBooking.uid}`}>
+              {t("view_new_booking")}
+            </Link>
+          ) : null}
         </Section>
       )}
-      {shouldShowRescheduleReason && (
+      {rescheduledBy && (
+        <Section title={t("rescheduled_by")}>
+          <p className="text-default text-sm">{rescheduledBy}</p>
+        </Section>
+      )}
+      {cancellationReason && (
         <Section title={t("reschedule_reason")}>
           <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
         </Section>
       )}
-      {shouldShowRescheduler && (
-        <Section title={t("rescheduled_by")}>
-          <div className="flex flex-col gap-1">
-            <p className="text-default text-sm">{booking.rescheduler}</p>
-            {booking.fromReschedule && (
-              <Link className="text-default text-sm underline" href={`/booking/${booking.fromReschedule}`}>
-                {t("original_booking")}
-              </Link>
-            )}
-          </div>
+      {!shouldShowRescheduledTo && !rescheduledBy && !cancellationReason && (
+        <Section title={t("rescheduled")}>
+          <p className="text-default text-sm">{t("this_booking_was_rescheduled")}</p>
         </Section>
       )}
     </>
   );
 }
 
-function WhatSection({ booking }: { booking: BookingOutput }) {
+// New booking that replaced an old one
+function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  // Only show for new bookings that replaced an old one
+  if (!booking.fromReschedule) {
+    return null;
+  }
+
+  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const rescheduledBy = booking.rescheduler;
+
+  return (
+    <>
+      {booking.fromReschedule && (
+        <Section title={t("rescheduled_from")}>
+          <Link className="text-default text-sm underline" href={`/booking/${booking.fromReschedule}`}>
+            {t("view_original_booking")}
+          </Link>
+        </Section>
+      )}
+      {rescheduledBy && (
+        <Section title={t("rescheduled_by")}>
+          <p className="text-default text-sm">{rescheduledBy}</p>
+        </Section>
+      )}
+      {cancellationReason && (
+        <Section title={t("reschedule_reason")}>
+          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+        </Section>
+      )}
+    </>
+  );
+}
+
+// Purely cancelled or rejected (not rescheduled)
+function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
+  const { t } = useLocale();
+
+  // Only show for cancelled/rejected bookings that were NOT rescheduled
+  const isCancelled = booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const wasRescheduled = booking.rescheduled === true;
+
+  if (!isCancelled || wasRescheduled) {
+    return null;
+  }
+
+  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+
+  if (!cancellationReason) {
+    return null;
+  }
+
+  return (
+    <Section title={t("reason")}>
+      <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+    </Section>
+  );
+}
+
+function AdditionalNotesSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
   if (!booking.description) {
@@ -620,7 +692,7 @@ function WhatSection({ booking }: { booking: BookingOutput }) {
   }
 
   return (
-    <Section title={t("what")}>
+    <Section title={t("additional_notes")}>
       <p className="text-default whitespace-pre-wrap text-sm">{booking.description}</p>
     </Section>
   );

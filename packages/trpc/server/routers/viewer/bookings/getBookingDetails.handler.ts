@@ -80,6 +80,36 @@ export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetails
  * Fetch detailed booking information
  * This function should be called only after authorization checks pass
  */
-async function fetchBookingDetails(_bookingId: number) {
-  return {};
+async function fetchBookingDetails(bookingId: number) {
+  const booking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      uid: true,
+      rescheduled: true,
+      fromReschedule: true,
+    },
+  });
+
+  if (!booking) {
+    return null;
+  }
+
+  // For old rescheduled bookings, find the new booking
+  let rescheduledToBooking: { uid: string } | null = null;
+  if (booking.rescheduled) {
+    rescheduledToBooking = await prisma.booking.findFirst({
+      where: {
+        fromReschedule: booking.uid,
+      },
+      select: {
+        uid: true,
+      },
+    });
+  }
+
+  return {
+    rescheduledToBooking,
+  };
 }
