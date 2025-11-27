@@ -38,7 +38,6 @@ export default defineConfig({
         organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
         pbac: resolve(__dirname, "./pbac.ts"),
-        locations: resolve(__dirname, "./locations.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
