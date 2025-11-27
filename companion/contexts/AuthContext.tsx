@@ -250,7 +250,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
       await storage.set(AUTH_TYPE_KEY, "api_key");
 
-      // Update state
       setAccessToken(newAccessToken);
       setRefreshToken(newRefreshToken);
       setIsAuthenticated(true);

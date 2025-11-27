@@ -81,105 +81,44 @@ export class CalComOAuthService {
 
   /**
    * Generate a cryptographically secure code verifier
-   * Following Cal.com's method: base64url-encoded random 32 bytes
-   * Equivalent to: openssl rand -base64 32 | tr -d '=' | tr '+' '-' | tr '/' '_'
+   * base64url-encoded random 32 bytes (S256 method)
    */
   private generateCodeVerifier(): string {
-    try {
-      // Generate 32 random bytes
-      const randomBytes = new Uint8Array(32);
+    const bytes = new Uint8Array(Crypto.getRandomBytes(32));
 
-      if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-        // Web environment
-        crypto.getRandomValues(randomBytes);
-      } else {
-        // React Native environment using expo-crypto
-        const expoRandomBytes = Crypto.getRandomBytes(32);
-        const bytes =
-          expoRandomBytes instanceof Uint8Array ? expoRandomBytes : new Uint8Array(expoRandomBytes);
-        randomBytes.set(bytes);
-      }
-
-      // Convert to base64 using built-in methods
-      let base64: string;
-
-      if (typeof btoa !== "undefined") {
-        // Web environment - use btoa
-        const binaryString = String.fromCharCode.apply(null, Array.from(randomBytes));
-        base64 = btoa(binaryString);
-      } else {
-        // React Native fallback - manual base64 encoding
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        let result = "";
-
-        for (let i = 0; i < randomBytes.length; i += 3) {
-          const a = randomBytes[i];
-          const b = i + 1 < randomBytes.length ? randomBytes[i + 1] : 0;
-          const c = i + 2 < randomBytes.length ? randomBytes[i + 2] : 0;
-
-          const triplet = (a << 16) | (b << 8) | c;
-
-          result += chars[(triplet >> 18) & 63];
-          result += chars[(triplet >> 12) & 63];
-          result += i + 1 < randomBytes.length ? chars[(triplet >> 6) & 63] : "=";
-          result += i + 2 < randomBytes.length ? chars[triplet & 63] : "=";
-        }
-        base64 = result;
-      }
-
-      // Convert to base64url format (remove padding, replace + with -, / with _)
-      const base64url = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-
-      return base64url;
-    } catch (error) {
-      console.warn("Failed to generate secure code verifier, using fallback:", error);
-      // Simple fallback that should work everywhere
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-      let result = "";
-      for (let i = 0; i < 43; i++) {
-        // Minimum length for PKCE
-        result += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return result;
+    // Convert directly to base64url
+    if (typeof btoa !== "undefined") {
+      return btoa(String.fromCharCode(...bytes))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
     }
+
+    // React Native: direct base64url encoding
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    let result = "";
+    for (let i = 0; i < bytes.length; i += 3) {
+      const bitmap = (bytes[i] << 16) | ((bytes[i + 1] || 0) << 8) | (bytes[i + 2] || 0);
+      result += chars[(bitmap >> 18) & 63] + chars[(bitmap >> 12) & 63];
+      if (i + 1 < bytes.length) result += chars[(bitmap >> 6) & 63];
+      if (i + 2 < bytes.length) result += chars[bitmap & 63];
+    }
+    return result;
   }
 
   /**
    * Generate a cryptographically secure random string
    */
   private generateRandomString(length: number): string {
-    try {
-      const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const randomBytes = Crypto.getRandomBytes(length);
+    const bytes = randomBytes instanceof Uint8Array ? randomBytes : new Uint8Array(randomBytes);
+    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-      if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-        const array = new Uint8Array(length);
-        crypto.getRandomValues(array);
-        let result = "";
-        for (let i = 0; i < length; i++) {
-          result += charset[array[i] % charset.length];
-        }
-        return result;
-      } else {
-        const randomBytes = Crypto.getRandomBytes(length);
-        let result = "";
-
-        // Convert to Uint8Array if it's not already
-        const bytes = randomBytes instanceof Uint8Array ? randomBytes : new Uint8Array(randomBytes);
-
-        for (let i = 0; i < length; i++) {
-          result += charset[bytes[i] % charset.length];
-        }
-        return result;
-      }
-    } catch (error) {
-      console.warn("Failed to generate secure random string, using fallback:", error);
-      const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      let result = "";
-      for (let i = 0; i < length; i++) {
-        result += charset[Math.floor(Math.random() * charset.length)];
-      }
-      return result;
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += charset[bytes[i] % charset.length];
     }
+    return result;
   }
 
   /**
