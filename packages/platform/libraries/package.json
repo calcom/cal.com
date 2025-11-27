@@ -132,9 +132,6 @@
       ],
       "pbac": [
         "dist/pbac.d.ts"
-      ],
-      "locations": [
-        "dist/locations.d.ts"
       ]
     }
   }
