@@ -8,7 +8,7 @@
   "main": "index.ts",
   "scripts": {
     "lint": "eslint .",
-    "dev:trigger": "npx trigger.dev@latest dev",
+    "dev:trigger": "npx trigger.dev@latest dev --analyze",
     "deploy:trigger": "npx trigger.dev@latest deploy"
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
-    "@trigger.dev/sdk": "4.1.1",
+    "@trigger.dev/sdk": "4.1.2",
     "@vercel/functions": "^1.4.0",
     "akismet-api": "^6.0.0",
     "class-variance-authority": "^0.7.1",

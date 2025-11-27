@@ -3488,7 +3488,7 @@ __metadata:
     "@tanstack/react-table": ^8.20.6
     "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
-    "@trigger.dev/sdk": 4.1.1
+    "@trigger.dev/sdk": 4.1.2
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
     akismet-api: ^6.0.0
@@ -17509,9 +17509,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/core@npm:4.1.1":
-  version: 4.1.1
-  resolution: "@trigger.dev/core@npm:4.1.1"
+"@trigger.dev/core@npm:4.1.2":
+  version: 4.1.2
+  resolution: "@trigger.dev/core@npm:4.1.2"
   dependencies:
     "@bugsnag/cuid": ^3.1.1
     "@electric-sql/client": 1.0.14
@@ -17546,7 +17546,7 @@ __metadata:
     zod: 3.25.76
     zod-error: 1.5.0
     zod-validation-error: ^1.5.0
-  checksum: df1fa1fa6e2621c392943b0770e6dde502d43c7c3438f9d721c7c11992e285cbcc612d798435ee8b9dc1c6de442582fd0c6e3e7d7062227115127f960f401239
+  checksum: 6ab67da650465a5c6c14e32374fb073b729bd44ee5496d3d86242232cf843d4fa4c19feca4d54e50d60c6d5368cd23ea1427dda45a3b396ea3a51e2258ce9d64
   languageName: node
   linkType: hard
 
@@ -17580,13 +17580,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/sdk@npm:4.1.1":
-  version: 4.1.1
-  resolution: "@trigger.dev/sdk@npm:4.1.1"
+"@trigger.dev/sdk@npm:4.1.2":
+  version: 4.1.2
+  resolution: "@trigger.dev/sdk@npm:4.1.2"
   dependencies:
     "@opentelemetry/api": 1.9.0
     "@opentelemetry/semantic-conventions": 1.36.0
-    "@trigger.dev/core": 4.1.1
+    "@trigger.dev/core": 4.1.2
     chalk: ^5.2.0
     cronstrue: ^2.21.0
     debug: ^4.3.4
@@ -17602,7 +17602,7 @@ __metadata:
   peerDependenciesMeta:
     ai:
       optional: true
-  checksum: fbc97b0e59b381ad212a055f9f737ed053d764018e680c5fab08a559abe5f847d2c5e6026b8b3363a18a5e2365d9481764cd3b3b50ad5de43a9a44bcea07ce71
+  checksum: fc403c05ee3a19c6cc13e8f722da7c5e5834eb9d3e9a3c4deca7be39b730be45278324c52edc769eba7b2d7b7c2742229e2fa7963742178b503a3307e64ac04c
   languageName: node
   linkType: hard
 

@@ -1,4 +1,7 @@
 import { defineConfig } from "@trigger.dev/sdk";
+import dotEnv from "dotenv";
+
+dotEnv.config({ path: "../../.env" });
 
 export default defineConfig({
   // Your project ref from the Trigger.dev dashboard

@@ -458,7 +458,14 @@
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
-    "dev:trigger": {},
+    "dev:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"]
+    },
+    "deploy:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"]
+    },
     "dx": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
