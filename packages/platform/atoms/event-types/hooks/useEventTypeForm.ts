@@ -185,6 +185,8 @@ export const useEventTypeForm = ({
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
               requireEmailForGuests: z.boolean().nullable(),
+              enableAutomaticNoShowTrackingForHosts: z.boolean().nullable(),
+              enableAutomaticNoShowTrackingForGuests: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
