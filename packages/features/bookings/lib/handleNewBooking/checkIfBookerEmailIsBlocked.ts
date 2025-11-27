@@ -54,7 +54,6 @@ export const checkIfBookerEmailIsBlocked = async ({
   });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  // For reschedules, skip the email verification requirement but still check for blacklisted emails
   const shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
 
   if (!shouldBlock) {
