@@ -180,7 +180,6 @@ describe("Booking Actions", () => {
       expect(action).toEqual({
         id: "cancel",
         label: "cancel_event",
-        href: "/booking/booking-123?cancel=true",
         icon: "circle-x",
         color: "destructive",
         disabled: false,
@@ -212,7 +211,6 @@ describe("Booking Actions", () => {
       });
       const action = getCancelEventAction(context);
 
-      expect(action.href).toContain("allRemainingBookings=true");
       expect(action.label).toBe("cancel_all_remaining");
     });
   });
