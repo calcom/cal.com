@@ -245,7 +245,7 @@ const Locations: React.FC<LocationsProps> = ({
                       <Icon
                         name="x"
                         className={classNames(
-                          "border-l hover:text-emphasis text-subtle h-4 w-4",
+                          "hover:text-emphasis text-subtle h-4 w-4",
                           customClassNames?.removeLocationIcon
                         )}
                       />
