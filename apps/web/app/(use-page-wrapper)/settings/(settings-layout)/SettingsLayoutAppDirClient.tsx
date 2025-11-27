@@ -44,10 +44,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "conferencing", href: "/settings/my-account/conferencing" },
         { name: "appearance", href: "/settings/my-account/appearance" },
         { name: "out_of_office", href: "/settings/my-account/out-of-office" },
-        {
-          name: "push_notifications",
-          href: "/settings/my-account/push-notifications",
-        },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -147,10 +144,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "organizations", href: "/settings/admin/organizations" },
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
-        {
-          name: "Workspace Platforms",
-          href: "/settings/admin/workspace-platforms",
-        },
+        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
         { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
@@ -158,24 +152,15 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 
   tabs.find((tab) => {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-      tab.children?.push({
-        name: "sso_configuration",
-        href: "/settings/security/sso",
-      });
+      tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({
-        name: "create_org",
-        href: "/settings/organizations/new",
-      });
+      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
     }
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({
-        name: "create_license_key",
-        href: "/settings/license-key/new",
-      });
+      tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
     }
   });
 
@@ -197,6 +182,7 @@ export interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
+  canViewAttributes?: boolean;
 }
 
 const useTabs = ({
@@ -209,9 +195,7 @@ const useTabs = ({
   permissions?: SettingsPermissions;
 }) => {
   const session = useSession();
-  const { data: user } = trpc.viewer.me.get.useQuery({
-    includePasswordAdded: true,
-  });
+  const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -229,7 +213,7 @@ const useTabs = ({
           (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
 
-        if (permissions?.canUpdateOrganization) {
+        if (permissions?.canViewAttributes) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -470,7 +454,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      className="me-5 px-2! h-7 w-auto"
+                      className="px-2! me-5 h-7 w-auto"
                       disableChevron
                     />
                   )}
@@ -478,7 +462,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className="me-5 px-2! h-7 w-auto"
+                    className="px-2! me-5 h-7 w-auto"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -499,7 +483,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 px-2! h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -509,7 +493,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
-                            className="me-5 px-2! h-7 w-auto"
+                            className="px-2! me-5 h-7 w-auto"
                             disableChevron
                           />
                         </>
@@ -518,7 +502,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 px-2! h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
                     </>
@@ -594,10 +578,7 @@ const SettingsSidebarContainer = ({
 
   return (
     <nav
-      style={{
-        maxHeight: `calc(100vh - ${bannersHeight}px)`,
-        top: `${bannersHeight}px`,
-      }}
+      style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
         "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
@@ -688,7 +669,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        className="me-5 px-2! h-7 w-auto"
+                        className="px-2! me-5 h-7 w-auto"
                         icon="plus"
                         disableChevron
                       />
@@ -792,14 +773,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 px-2! h-7 w-auto"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 px-2! h-7 w-auto"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <>

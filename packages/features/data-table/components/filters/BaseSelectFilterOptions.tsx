@@ -18,26 +18,26 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type {
-  ColumnFilterType,
   FacetedValue,
   FilterableColumn as _FilterableColumn,
   FilterValueSchema,
 } from "../../lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 
 type FilterableColumn = Extract<
   _FilterableColumn,
-  { type: ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT }
+  { type: Extract<FilterType, "ms" | "ss"> }
 >;
 
-type FilterableSelectColumn<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT> =
+type FilterableSelectColumn<T extends Extract<FilterType, "ms" | "ss">> =
   Extract<FilterableColumn, { type: T }>;
 
-type FilterValue<T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT> = ReturnType<
+type FilterValue<T extends Extract<FilterType, "ms" | "ss">> = ReturnType<
   typeof useFilterValue<T, FilterValueSchema<T>>
 >;
 
 export type BaseSelectFilterOptionsProps<
-  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+  T extends Extract<FilterType, "ms" | "ss">
 > = {
   column: FilterableSelectColumn<T>;
   filterValueSchema: FilterValueSchema<T>;
@@ -88,7 +88,7 @@ function getSectionedOptions(options: FacetedValue[]) {
 }
 
 export function BaseSelectFilterOptions<
-  T extends ColumnFilterType.MULTI_SELECT | ColumnFilterType.SINGLE_SELECT
+  T extends Extract<FilterType, "ms" | "ss">
 >({
   column,
   filterValueSchema,

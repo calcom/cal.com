@@ -127,9 +127,9 @@ export default function ForgotPassword(props: PageProps) {
             />
             <div className="stack-y-2">
               <Button
-                className="w-full justify-center bg-white hover:bg-black hover:text-white"
+                className="w-full justify-center"
                 type="submit"
-                color="primary"
+                color="secondary"
                 disabled={loading}
                 aria-label={t("request_password_reset")}
                 loading={loading}>
