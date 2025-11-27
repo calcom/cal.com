@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "calcompanion",
-    "slug": "calcompanion",
-    "scheme": "calcompanion",
+    "name": "expo-wxt-app",
+    "slug": "expo-wxt-app",
+    "scheme": "expo-wxt-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

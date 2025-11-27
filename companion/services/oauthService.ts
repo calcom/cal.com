@@ -556,7 +556,7 @@ export function createCalComOAuthService(overrides: Partial<OAuthConfig> = {}): 
     defaultRedirectUri = `${window.location.origin}/oauth/callback`;
   } else {
     // For mobile, use the custom URL scheme
-    defaultRedirectUri = "calcompanion://oauth/callback";
+    defaultRedirectUri = "expo-wxt-app://oauth/callback";
   }
 
   const defaultConfig: OAuthConfig = {
