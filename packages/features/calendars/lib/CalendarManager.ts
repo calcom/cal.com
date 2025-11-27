@@ -121,7 +121,7 @@ export const getConnectedCalendars = async (
           calendars,
         };
       } catch (error) {
-        let errorMessage = error;
+        let errorMessage = "Could not get connected calendars";
 
         // Here you can expect for specific errors
         if (error instanceof Error) {
@@ -134,11 +134,7 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error(
-          "getConnectedCalendars failed",
-          errorMessage,
-          safeStringify({ credentialId: item.credential.id })
-        );
+        log.error("getConnectedCalendars failed", error, safeStringify({ credentialId: item.credential.id }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
