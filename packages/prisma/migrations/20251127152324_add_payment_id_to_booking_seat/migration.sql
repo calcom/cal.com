@@ -9,6 +9,3 @@ ALTER TABLE "public"."BookingSeat" ADD COLUMN     "paymentId" INTEGER;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BookingSeat_paymentId_key" ON "public"."BookingSeat"("paymentId");
-
--- CreateIndex
-CREATE INDEX "BookingSeat_paymentId_idx" ON "public"."BookingSeat"("paymentId");

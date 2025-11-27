@@ -1633,7 +1633,6 @@ model BookingSeat {
 
   @@index([bookingId])
   @@index([attendeeId])
-  @@index([paymentId])
 }
 
 model VerifiedNumber {

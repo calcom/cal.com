@@ -42,7 +42,6 @@ export async function getBooking(bookingId: number) {
           email: true,
           timeZone: true,
           locale: true,
-          phoneNumber: true,
           bookingSeat: {
             select: {
               id: true,
