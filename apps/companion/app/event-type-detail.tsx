@@ -477,7 +477,7 @@ export default function EventTypeDetail() {
       setScheduleDetailsLoading(true);
       console.log("Fetching schedule details for ID:", scheduleId);
       const scheduleDetails = await CalComAPIService.getScheduleById(scheduleId);
-      console.log("Raw schedule details response:", scheduleDetails);
+      // Remove sensitive logging of schedule data
       setSelectedScheduleDetails(scheduleDetails);
       if (scheduleDetails.timeZone) {
         setSelectedTimezone(scheduleDetails.timeZone);
