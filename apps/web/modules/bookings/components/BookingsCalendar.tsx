@@ -21,6 +21,7 @@ type BookingsCalendarProps = {
   bookings: BookingOutput[];
   ErrorView?: React.ReactNode;
   hasError?: boolean;
+  userWeekStart?: number;
 };
 
 export function BookingsCalendar({
@@ -32,6 +33,7 @@ export function BookingsCalendar({
   bookings,
   ErrorView,
   hasError,
+  userWeekStart = 0,
 }: BookingsCalendarProps) {
   return (
     <>
@@ -52,6 +54,7 @@ export function BookingsCalendar({
           currentWeekStart={currentWeekStart}
           onWeekStartChange={setCurrentWeekStart}
           isPending={isPending}
+          userWeekStart={userWeekStart}
         />
       )}
     </>

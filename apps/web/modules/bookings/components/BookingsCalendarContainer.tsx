@@ -6,6 +6,7 @@ import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
+import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -15,6 +16,7 @@ import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
+import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus, BookingOutput, BookingsGetOutput } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
@@ -23,13 +25,40 @@ import { BookingsCalendar } from "./BookingsCalendar";
 // For calendar view, fetch all statuses except cancelled
 const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
 
+/**
+ * Parser for the weekStart query parameter
+ * This parser simply parses the date from the URL and ensures it's at the start of the day.
+ * The week start logic based on user preference is applied when determining the default value.
+ */
 const weekStartParser = createParser({
   parse: (value: string) => {
     const parsed = dayjs(value);
-    return parsed.isValid() ? parsed.startOf("week") : dayjs().startOf("week");
+    return parsed.isValid() ? parsed.startOf("day") : dayjs().startOf("day");
   },
   serialize: (value: dayjs.Dayjs) => value.format("YYYY-MM-DD"),
 });
+
+/**
+ * Custom hook to manage the current week start based on user preferences
+ * @returns Object containing currentWeekStart state and userWeekStart preference
+ */
+function useCurrentWeekStart() {
+  const user = useMeQuery().data;
+
+  // Get the user's preferred week start day (0-6, where 0 = Sunday)
+  const userWeekStart = weekdayToWeekIndex(user?.weekStart);
+
+  const [currentWeekStart, setCurrentWeekStart] = useQueryState(
+    "weekStart",
+    weekStartParser.withDefault(getWeekStart(dayjs(), userWeekStart))
+  );
+
+  return {
+    currentWeekStart,
+    setCurrentWeekStart,
+    userWeekStart,
+  };
+}
 
 /**
  * Custom hook to manage allowed filters for calendar view
@@ -98,11 +127,7 @@ function BookingsCalendarInner({
 }: BookingsCalendarInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
-
-  const [currentWeekStart, setCurrentWeekStart] = useQueryState(
-    "weekStart",
-    weekStartParser.withDefault(dayjs().startOf("week"))
-  );
+  const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
 
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
@@ -209,6 +234,7 @@ function BookingsCalendarInner({
         bookings={bookings}
         ErrorView={ErrorView}
         hasError={hasError}
+        userWeekStart={userWeekStart}
       />
 
       <BookingDetailsSheet
@@ -224,8 +250,7 @@ function BookingsCalendarInner({
 export function BookingsCalendarContainer(props: BookingsCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
   const { userIds } = useBookingFilters();
-
-  const [currentWeekStart] = useQueryState("weekStart", weekStartParser.withDefault(dayjs().startOf("week")));
+  const { currentWeekStart } = useCurrentWeekStart();
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
 
   const allowedFilterIds = useAllowedFilters({ canReadOthersBookings, activeFilters, setActiveFilters });

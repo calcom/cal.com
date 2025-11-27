@@ -12,6 +12,7 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { getWeekStart } from "../lib/weekUtils";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 
@@ -20,6 +21,7 @@ type BookingsCalendarViewProps = {
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
   isPending?: boolean;
+  userWeekStart?: number;
 };
 
 export function BookingsCalendarView({
@@ -27,6 +29,7 @@ export function BookingsCalendarView({
   currentWeekStart,
   onWeekStartChange,
   isPending = false,
+  userWeekStart = 0,
 }: BookingsCalendarViewProps) {
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { t } = useLocale();
@@ -42,7 +45,7 @@ export function BookingsCalendarView({
   };
 
   const goToToday = () => {
-    onWeekStartChange(dayjs().startOf("week"));
+    onWeekStartChange(getWeekStart(dayjs(), userWeekStart));
   };
 
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
