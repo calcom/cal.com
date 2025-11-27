@@ -8,7 +8,7 @@ import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerT
 import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingEmailAndSmsTaskerDependencies {
-  asyncTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
+  asyncTasker: BookingEmailAndSmsTriggerDevTasker;
   syncTasker: BookingEmailAndSmsSyncTasker;
   logger: ILogger;
 }
@@ -28,20 +28,29 @@ export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> 
       runId: string;
     } = { runId: "task-not-found" };
 
-    if (action === BookingActionMap.rescheduled) {
-      if (schedulingType === "ROUND_ROBIN") return this.safeDispatch("rrReschedule", payload);
-      {
-        taskResponse = await this.safeDispatch("reschedule", payload);
+    try {
+      if (action === BookingActionMap.rescheduled) {
+        if (schedulingType === "ROUND_ROBIN") return this.dispatch("rrReschedule", payload);
+        {
+          taskResponse = await this.dispatch("reschedule", payload);
+        }
       }
-    }
-    if (action === BookingActionMap.confirmed) {
-      taskResponse = await this.safeDispatch("confirm", payload);
-    }
-    if (action === BookingActionMap.requested) {
-      taskResponse = await this.safeDispatch("request", payload);
-    }
+      if (action === BookingActionMap.confirmed) {
+        taskResponse = await this.dispatch("confirm", payload);
+      }
+      if (action === BookingActionMap.requested) {
+        taskResponse = await this.dispatch("request", payload);
+      }
 
-    this.logger.warn("BookingEmailAndSmsTasker Tasker Send", taskResponse);
+      this.logger.info(`BookingEmailAndSmsTasker send ${action} success:`, taskResponse, {
+        bookingId: payload.bookingId,
+      });
+    } catch {
+      taskResponse = { runId: "task-failed" };
+      this.logger.error(`BookingEmailAndSmsTasker send ${action} failed`, taskResponse, {
+        bookingId: payload.bookingId,
+      });
+    }
 
     return taskResponse;
   }

@@ -39,20 +39,23 @@ export abstract class Tasker<T> {
     ...args: T[K] extends (...args: any[]) => any ? Parameters<T[K]> : never
   ): Promise<T[K] extends (...args: any[]) => any ? Awaited<ReturnType<T[K]>> : never> {
     this.logger.info(`Safely Dispatching task '${String(taskName)}'`, { args });
-    return this.safeDispatch(taskName, ...args);
+    return this._safeDispatch(taskName, ...args);
   }
 
-  protected async safeDispatch<K extends keyof T>(
+  private async _safeDispatch<K extends keyof T>(
     taskName: K,
     ...args: T[K] extends (...args: any[]) => any ? Parameters<T[K]> : never
   ): Promise<T[K] extends (...args: any[]) => any ? Awaited<ReturnType<T[K]>> : never> {
     try {
+      this.logger.info(
+        `${isAsyncTaskerEnabled ? "AsyncTasker" : "SyncTasker"} '${String(taskName)}' dispatched.`
+      );
       const method = this.asyncTasker[taskName] as (...args: any[]) => any;
       return await method.apply(this.asyncTasker, args);
     } catch (err) {
       this.logger.error(
         `${isAsyncTaskerEnabled ? "AsyncTasker" : "SyncTasker"} failed for '${String(taskName)}'.`,
-        err as Error
+        (err as Error)?.message ?? "ERROR MESSAGE UNAVAILABLE"
       );
 
       if (this.asyncTasker === this.syncTasker) {
@@ -61,8 +64,16 @@ export abstract class Tasker<T> {
 
       this.logger.warn(`Trying again with SyncTasker for '${String(taskName)}'.`);
 
-      const fallbackMethod = this.syncTasker[taskName] as (...args: any[]) => any;
-      return fallbackMethod.apply(this.syncTasker, args);
+      try {
+        const fallbackMethod = this.syncTasker[taskName] as (...args: any[]) => any;
+        return await fallbackMethod.apply(this.syncTasker, args);
+      } catch (err) {
+        this.logger.error(
+          `SyncTasker failed for '${String(taskName)}'.`,
+          (err as Error)?.message ?? "ERROR MESSAGE UNAVAILABLE"
+        );
+        throw err;
+      }
     }
   }
 }
