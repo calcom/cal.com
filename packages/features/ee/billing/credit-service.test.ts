@@ -1128,4 +1128,206 @@ describe("CreditService", () => {
       );
     });
   });
+  describe("moveCreditsFromUserToTeam", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should transfer credits from user to team when user has credits", async () => {
+      const userId = 1;
+      const teamId = 100;
+      const userCredits = 500;
+
+      // User has credits
+      vi.mocked(CreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "user-balance-1",
+          additionalCredits: userCredits,
+          limitReachedAt: null,
+          warningSentAt: null,
+        })
+        // Team has no existing balance
+        .mockResolvedValueOnce(null);
+
+      // Team balance will be created
+      vi.mocked(CreditsRepository.createCreditBalance).mockResolvedValue({
+        id: "team-balance-1",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.mocked(CreditsRepository.updateCreditBalance).mockResolvedValue({
+        id: "team-balance-1",
+        additionalCredits: userCredits,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const result = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(result).toEqual({
+        creditsTransferred: userCredits,
+        userId,
+        teamId,
+      });
+
+      // Verify user credits were zeroed
+      expect(CreditsRepository.updateCreditBalance).toHaveBeenCalledWith(
+        {
+          userId,
+          data: { additionalCredits: 0 },
+        },
+        MOCK_TX
+      );
+
+      // Verify team credits were incremented
+      expect(CreditsRepository.updateCreditBalance).toHaveBeenCalledWith(
+        {
+          teamId,
+          data: { additionalCredits: { increment: userCredits } },
+        },
+        MOCK_TX
+      );
+    });
+
+    it("should transfer credits to existing team balance", async () => {
+      const userId = 2;
+      const teamId = 200;
+      const userCredits = 300;
+      const existingTeamCredits = 100;
+
+      // User has credits
+      vi.mocked(CreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "user-balance-2",
+          additionalCredits: userCredits,
+          limitReachedAt: null,
+          warningSentAt: null,
+        })
+        // Team has existing balance
+        .mockResolvedValueOnce({
+          id: "team-balance-2",
+          additionalCredits: existingTeamCredits,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+      vi.mocked(CreditsRepository.updateCreditBalance).mockResolvedValue({
+        id: "team-balance-2",
+        additionalCredits: existingTeamCredits + userCredits,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const result = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(result).toEqual({
+        creditsTransferred: userCredits,
+        userId,
+        teamId,
+      });
+
+      // Should NOT create new balance since team already has one
+      expect(CreditsRepository.createCreditBalance).not.toHaveBeenCalled();
+
+      // Verify credits were transferred
+      expect(CreditsRepository.updateCreditBalance).toHaveBeenCalledTimes(2);
+    });
+
+    it("should return undefined when user has no credit balance", async () => {
+      const userId = 3;
+      const teamId = 300;
+
+      // User has no credit balance
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValueOnce(null);
+
+      const result = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(result).toBeUndefined();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+      expect(CreditsRepository.createCreditBalance).not.toHaveBeenCalled();
+    });
+
+    it("should return undefined when user has zero credits", async () => {
+      const userId = 4;
+      const teamId = 400;
+
+      // User has balance but zero credits
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValueOnce({
+        id: "user-balance-4",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const result = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(result).toBeUndefined();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+    });
+
+    it("should be idempotent - second call should be no-op", async () => {
+      const userId = 5;
+      const teamId = 500;
+
+      // First call - user has credits
+      vi.mocked(CreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "user-balance-5",
+          additionalCredits: 250,
+          limitReachedAt: null,
+          warningSentAt: null,
+        })
+        .mockResolvedValueOnce({
+          id: "team-balance-5",
+          additionalCredits: 0,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+      vi.mocked(CreditsRepository.updateCreditBalance).mockResolvedValue({
+        id: "team-balance-5",
+        additionalCredits: 250,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const firstResult = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+      expect(firstResult?.creditsTransferred).toBe(250);
+
+      vi.clearAllMocks();
+
+      // Second call - user now has 0 credits (already transferred)
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValueOnce({
+        id: "user-balance-5",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const secondResult = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(secondResult).toBeUndefined();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+    });
+
+    it("should handle negative credits gracefully (treat as no credits)", async () => {
+      const userId = 6;
+      const teamId = 600;
+
+      // Edge case: negative credits (shouldn't happen but handle gracefully)
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValueOnce({
+        id: "user-balance-6",
+        additionalCredits: -10,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const result = await creditService.moveCreditsFromUserToTeam({ userId, teamId });
+
+      expect(result).toBeUndefined();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+    });
+  });
 });
