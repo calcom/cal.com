@@ -38,12 +38,16 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
 
-  const { booking, webhook, hostsThatDidntJoinTheCall, originalRescheduledBooking, participants } = result;
+  const {
+    booking,
+    webhook,
+    hostsThatDidntJoinTheCall,
+    originalRescheduledBooking,
+    participants,
+    isAutomaticTrackingOnly,
+  } = result;
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
-
-  // Automatic tracking mode: mark DB only, skip webhook notifications
-  const isAutomaticTrackingOnly = (result as any).isAutomaticTrackingOnly ?? false;
 
   // Skip webhook for automatic tracking mode
   if (!isAutomaticTrackingOnly) {

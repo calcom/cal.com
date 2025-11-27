@@ -50,12 +50,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants,
+    isAutomaticTrackingOnly,
   } = result;
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
-
-  // Automatic tracking mode: mark DB only, skip webhook notifications
-  const isAutomaticTrackingOnly = (result as any).isAutomaticTrackingOnly ?? false;
 
   const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 

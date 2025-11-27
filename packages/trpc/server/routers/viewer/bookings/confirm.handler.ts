@@ -90,7 +90,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           customReplyToEmail: true,
           metadata: true,
           locations: true,
-          calVideoSettings: true,
+          calVideoSettings: {
+            select: {
+              enableAutomaticNoShowTrackingForHosts: true,
+              enableAutomaticNoShowTrackingForGuests: true,
+            },
+          },
           team: {
             select: {
               id: true,
@@ -317,12 +322,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         eventType: booking.eventType
           ? {
               ...booking.eventType,
-              calVideoSettings: booking.eventType.calVideoSettings
-                ? {
-                    ...booking.eventType.calVideoSettings,
-                    redirectUrlOnExit: booking.eventType.calVideoSettings.redirectUrlOnExit ?? undefined,
-                  }
-                : null,
+              calVideoSettings: booking.eventType.calVideoSettings ?? null,
             }
           : null,
       },
