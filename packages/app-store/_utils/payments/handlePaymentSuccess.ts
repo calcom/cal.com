@@ -129,10 +129,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
           }
         }
 
-        // Check if this is a new seat (if there are other attendees already)
         const newSeat = evt.attendees.length > 1;
 
-        // Send emails only to the attendee who just paid
         await sendScheduledSeatsEmailsAndSMS(
           evt,
           attendeeWhoPaid,
@@ -144,7 +142,6 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         );
       }
     } else {
-      // For non-seated events, send regular emails to all attendees
       await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventTypeMetadata);
     }
   }
