@@ -202,27 +202,31 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const requestId = req.get("X-Request-Id") || "no-request-id";
-    this.logger.log(`[BOOKING_DEBUG_1] createBooking start`, {
-      requestId,
-      eventTypeId: body.eventTypeId,
-      email: body.responses?.email,
-      guests: body.responses?.guests,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_1] createBooking start ${JSON.stringify({
+        requestId,
+        eventTypeId: body.eventTypeId,
+        email: body.responses?.email,
+        guests: body.responses?.guests,
+      })}`
+    );
     const oAuthClientId =
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
-    this.logger.log(`[BOOKING_DEBUG_2] OAuth resolved`, { requestId, oAuthClientId });
+    this.logger.error(`[BOOKING_DEBUG_2] OAuth resolved ${JSON.stringify({ requestId, oAuthClientId })}`);
     try {
       await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
-      this.logger.log(`[BOOKING_DEBUG_3] Auth checked`, { requestId });
+      this.logger.error(`[BOOKING_DEBUG_3] Auth checked ${JSON.stringify({ requestId })}`);
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
-      this.logger.log(`[BOOKING_DEBUG_4] Request created`, {
-        requestId,
-        userId: bookingRequest.userId,
-        email: bookingRequest.body?.responses?.email,
-        guests: bookingRequest.body?.responses?.guests,
-      });
+      this.logger.error(
+        `[BOOKING_DEBUG_4] Request created ${JSON.stringify({
+          requestId,
+          userId: bookingRequest.userId,
+          email: bookingRequest.body?.responses?.email,
+          guests: bookingRequest.body?.responses?.guests,
+        })}`
+      );
 
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -250,11 +254,14 @@ export class BookingsController_2024_04_15 {
         data: booking,
       };
     } catch (err) {
-      this.logger.error(`[BOOKING_DEBUG_ERROR]`, {
-        requestId,
-        msg: err instanceof Error ? err.message : String(err),
-        status: err && typeof err === "object" && "statusCode" in err ? err.statusCode : undefined,
-      });
+      this.logger.error(
+        `[BOOKING_DEBUG_ERROR] ${JSON.stringify({
+          requestId,
+          msg: err instanceof Error ? err.message : String(err),
+          status: err && typeof err === "object" && "statusCode" in err ? err.statusCode : undefined,
+          err,
+        })}`
+      );
       this.handleBookingErrors(err);
     }
     throw new InternalServerErrorException("Could not create booking.");
@@ -471,16 +478,18 @@ export class BookingsController_2024_04_15 {
   }
 
   private async getOAuthClientIdFromEventType(eventTypeId: number): Promise<string | undefined> {
-    this.logger.log(`[BOOKING_DEBUG_getOAuthClientId] Start`, { eventTypeId });
+    this.logger.error(`[BOOKING_DEBUG_getOAuthClientId] Start ${JSON.stringify({ eventTypeId })}`);
     if (!eventTypeId) {
-      this.logger.log(`[BOOKING_DEBUG_getOAuthClientId] No eventTypeId`);
+      this.logger.error(`[BOOKING_DEBUG_getOAuthClientId] No eventTypeId`);
       return undefined;
     }
     const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(eventTypeId);
-    this.logger.log(`[BOOKING_DEBUG_getOAuthClientId] Got params`, {
-      hasParams: !!oAuthClientParams,
-      platformClientId: oAuthClientParams?.platformClientId,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_getOAuthClientId] Got params ${JSON.stringify({
+        hasParams: !!oAuthClientParams,
+        platformClientId: oAuthClientParams?.platformClientId,
+      })}`
+    );
     if (!oAuthClientParams) {
       return undefined;
     }
@@ -506,14 +515,16 @@ export class BookingsController_2024_04_15 {
     eventTypeId: number,
     rescheduleUid?: string
   ): Promise<void> {
-    this.logger.log(`[BOOKING_DEBUG_checkAuth] Start`, { eventTypeId, rescheduleUid });
+    this.logger.error(`[BOOKING_DEBUG_checkAuth] Start ${JSON.stringify({ eventTypeId, rescheduleUid })}`);
     const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
       id: eventTypeId,
     });
-    this.logger.log(`[BOOKING_DEBUG_checkAuth] EventType loaded`, {
-      hasEventType: !!eventType,
-      bookingRequiresAuth: eventType?.bookingRequiresAuthentication,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_checkAuth] EventType loaded ${JSON.stringify({
+        hasEventType: !!eventType,
+        bookingRequiresAuth: eventType?.bookingRequiresAuthentication,
+      })}`
+    );
 
     if (!eventType?.bookingRequiresAuthentication) {
       return;
@@ -522,18 +533,25 @@ export class BookingsController_2024_04_15 {
     if (rescheduleUid) {
       const isValidRescheduleBooking = await this.isValidRescheduleBooking(rescheduleUid, eventTypeId);
       if (isValidRescheduleBooking) {
-        this.logger.log(`[BOOKING_DEBUG_checkAuth] Valid reschedule`);
+        this.logger.error(`[BOOKING_DEBUG_checkAuth] Valid reschedule`);
         return;
       } else {
         throw new BadRequestException(
           "Trying to reschedule an event-type which requires authentication but provided invalid rescheduleUid."
         );
       }
+      this.logger.error(
+        `[BOOKING_DEBUG_TRANSFORM_AFTER] ${JSON.stringify({
+          oAuthClientId,
+          transformedEmail: requestBody?.responses?.email,
+          transformedGuests: requestBody?.responses?.guests,
+        })}`
+      );
     }
 
     const userId = await this.getOwnerId(req);
 
-    this.logger.log(`[BOOKING_DEBUG_checkAuth] Got userId`, { userId });
+    this.logger.error(`[BOOKING_DEBUG_checkAuth] Got userId ${JSON.stringify({ userId })}`);
 
     if (!userId) {
       throw new UnauthorizedException(
@@ -557,14 +575,16 @@ export class BookingsController_2024_04_15 {
     }
 
     const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
-    this.logger.log(`[BOOKING_DEBUG_checkAuth] Authorization check`, {
-      userId,
-      isEventTypeOwner,
-      isHost,
-      isTeamAdminOrOwner,
-      isOrgAdminOrOwner,
-      isAuthorized,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_checkAuth] Authorization check ${JSON.stringify({
+        userId,
+        isEventTypeOwner,
+        isHost,
+        isTeamAdminOrOwner,
+        isOrgAdminOrOwner,
+        isAuthorized,
+      })}`
+    );
 
     if (!isAuthorized) {
       throw new ForbiddenException(
@@ -606,11 +626,13 @@ export class BookingsController_2024_04_15 {
     isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
-    this.logger.log(`[BOOKING_DEBUG_createRequest] Start`, {
-      requestId,
-      oAuthClientId,
-      hasRescheduleUid: !!req.body.rescheduleUid,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_createRequest] Start ${JSON.stringify({
+        requestId,
+        oAuthClientId,
+        hasRescheduleUid: !!req.body.rescheduleUid,
+      })}`
+    );
     const clone = { ...req };
     const userId = clone.body.rescheduleUid
       ? await this.getOwnerIdRescheduledBooking(req, oAuthClientId)
@@ -618,19 +640,23 @@ export class BookingsController_2024_04_15 {
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
-    this.logger.log(`[BOOKING_DEBUG_createRequest] Got userId and params`, {
-      requestId,
-      userId,
-      oAuthClientId,
-      arePlatformEmailsEnabled: oAuthParams.arePlatformEmailsEnabled,
-    });
-    this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
-      requestId,
-      ownerId: userId,
-      platformBookingLocation,
-      oAuthClientId,
-      ...oAuthParams,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_createRequest] Got userId and params ${JSON.stringify({
+        requestId,
+        userId,
+        oAuthClientId,
+        arePlatformEmailsEnabled: oAuthParams.arePlatformEmailsEnabled,
+      })}`
+    );
+    this.logger.error(
+      `createNextApiBookingRequest_2024_04_15 ${JSON.stringify({
+        requestId,
+        ownerId: userId,
+        platformBookingLocation,
+        oAuthClientId,
+        ...oAuthParams,
+      })}`
+    );
     Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
     clone.body = {
       ...clone.body,
@@ -638,10 +664,12 @@ export class BookingsController_2024_04_15 {
       creationSource: CreationSource.API_V2,
     };
     if (oAuthClientId) {
-      this.logger.log(`[BOOKING_DEBUG_createRequest] Calling setPlatformAttendeesEmails`, {
-        requestId,
-        oAuthClientId,
-      });
+      this.logger.error(
+        `[BOOKING_DEBUG_createRequest] Calling setPlatformAttendeesEmails ${JSON.stringify({
+          requestId,
+          oAuthClientId,
+        })}`
+      );
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
     }
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
@@ -651,11 +679,13 @@ export class BookingsController_2024_04_15 {
     requestBody: { responses?: { email?: string; guests?: string[] } },
     oAuthClientId: string
   ): Promise<void> {
-    this.logger.log(`[BOOKING_DEBUG_TRANSFORM_BEFORE]`, {
-      oAuthClientId,
-      originalEmail: requestBody?.responses?.email,
-      originalGuests: requestBody?.responses?.guests,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_TRANSFORM_BEFORE] ${JSON.stringify({
+        oAuthClientId,
+        originalEmail: requestBody?.responses?.email,
+        originalGuests: requestBody?.responses?.guests,
+      })}`
+    );
     if (requestBody?.responses?.email) {
       requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
         requestBody.responses.email,
@@ -668,11 +698,13 @@ export class BookingsController_2024_04_15 {
         oAuthClientId
       );
     }
-    this.logger.log(`[BOOKING_DEBUG_TRANSFORM_AFTER]`, {
-      oAuthClientId,
-      transformedEmail: requestBody?.responses?.email,
-      transformedGuests: requestBody?.responses?.guests,
-    });
+    this.logger.error(
+      `[BOOKING_DEBUG_TRANSFORM_AFTER] ${JSON.stringify({
+        oAuthClientId,
+        transformedEmail: requestBody?.responses?.email,
+        transformedGuests: requestBody?.responses?.guests,
+      })}`
+    );
   }
 
   private async createNextApiRecurringBookingRequest(
@@ -687,13 +719,15 @@ export class BookingsController_2024_04_15 {
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
     const requestId = req.get("X-Request-Id");
-    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
-      requestId,
-      ownerId: userId,
-      platformBookingLocation,
-      oAuthClientId,
-      ...oAuthParams,
-    });
+    this.logger.error(
+      `createNextApiRecurringBookingRequest_2024_04_15 ${JSON.stringify({
+        requestId,
+        ownerId: userId,
+        platformBookingLocation,
+        oAuthClientId,
+        ...oAuthParams,
+      })}`
+    );
     Object.assign(clone, {
       userId,
       ...oAuthParams,
