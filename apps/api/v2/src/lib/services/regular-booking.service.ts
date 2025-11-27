@@ -1,4 +1,5 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
+import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
@@ -19,7 +20,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     selectedSlotsRepository: PrismaSelectedSlotRepository,
     hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
-    userRepository: PrismaUserRepository
+    userRepository: PrismaUserRepository,
+    routingFormResponseRepository: PrismaRoutingFormResponseRepository
   ) {
     super({
       checkBookingAndDurationLimitsService,
@@ -29,6 +31,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       hashedLinkService,
       luckyUserService,
       userRepository,
+      routingFormResponseRepository,
     });
   }
 }

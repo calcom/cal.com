@@ -71,6 +71,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -420,6 +421,7 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  routingFormResponseRepository: RoutingFormResponseRepository;
 }
 
 /**
@@ -1738,8 +1740,11 @@ async function handler(
       const isTeamEvent = eventType.schedulingType;
       if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
         booking = await createBookingWithReservedSlot(
-          deps.prismaClient,
-          deps.selectedSlotsRepository,
+          {
+            prismaClient: deps.prismaClient,
+            routingFormResponseRepository: deps.routingFormResponseRepository,
+            selectedSlotsRepository: deps.selectedSlotsRepository,
+          },
           createArgs,
           {
             eventTypeId,
@@ -1749,7 +1754,10 @@ async function handler(
           }
         );
       } else {
-        booking = await createBooking(createArgs);
+        booking = await createBooking(createArgs, {
+          tx: deps.prismaClient,
+          routingFormResponseRepository: deps.routingFormResponseRepository,
+        });
       }
 
       if (booking?.userId) {

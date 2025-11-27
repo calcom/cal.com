@@ -5,6 +5,7 @@ import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-fo
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -86,7 +87,10 @@ const _createBooking = async (
     creationSource,
     tracking,
   }: CreateBookingParams & { rescheduledBy: string | undefined },
-  options?: { tx?: Prisma.TransactionClient }
+  deps: {
+    tx?: Prisma.TransactionClient;
+    routingFormResponseRepository: RoutingFormResponseRepository;
+  }
 ) => {
   updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -112,7 +116,7 @@ const _createBooking = async (
     originalRescheduledBooking,
     eventType.paymentAppData,
     eventType.organizerUser,
-    options?.tx
+    deps
   );
 
   function shouldConnectBookingToFormResponse() {
@@ -140,7 +144,10 @@ async function saveBooking(
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
   organizerUser: CreateBookingParams["eventType"]["organizerUser"],
-  tx?: Prisma.TransactionClient
+  deps: {
+    tx?: Prisma.TransactionClient;
+    routingFormResponseRepository: RoutingFormResponseRepository;
+  }
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
@@ -183,14 +190,14 @@ async function saveBooking(
 
     const booking = await client.booking.create(createBookingObj);
     if (reroutingFormResponseUpdateData) {
-      await client.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
+      await deps.routingFormResponseRepository.update(reroutingFormResponseUpdateData, client);
     }
 
     return booking;
   };
 
-  if (tx) {
-    return run(tx);
+  if (deps?.tx) {
+    return run(deps.tx);
   }
 
   return prisma.$transaction(run);

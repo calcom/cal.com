@@ -3,6 +3,7 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
+import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
@@ -28,6 +29,7 @@ import { Module } from "@nestjs/common";
     HashedLinkService,
     LuckyUserService,
     RegularBookingService,
+    PrismaRoutingFormResponseRepository,
   ],
   exports: [RegularBookingService],
 })
