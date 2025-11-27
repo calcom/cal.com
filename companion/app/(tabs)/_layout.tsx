@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { Platform } from "react-native";
 
 export default function TabLayout() {
   // Check if liquid glass effect is available
@@ -45,9 +46,9 @@ export default function TabLayout() {
           backgroundColor: "#ffffff",
           borderTopWidth: 0.5,
           borderTopColor: "#C6C6C8",
-          paddingBottom: 2,
+          paddingBottom: 4,
           paddingTop: 4,
-          height: 66,
+          height: Platform.OS === "android" ? 74 : 66,
         },
       }}
     >
