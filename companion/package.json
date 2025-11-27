@@ -21,6 +21,7 @@
     "@react-native-segmented-control/segmented-control": "^2.5.7",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
+    "base64-js": "^1.5.1",
     "expo": "~54.0.0",
     "expo-auth-session": "^7.0.9",
     "expo-constants": "~18.0.10",

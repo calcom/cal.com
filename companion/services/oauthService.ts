@@ -2,6 +2,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
+import { fromByteArray } from "base64-js";
 
 // Complete warm up for WebBrowser on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -38,13 +39,13 @@ export class CalComOAuthService {
     state: string;
   }> {
     // Generate code verifier (43-128 characters, URL-safe)
-    const codeVerifier = this.generateCodeVerifier();
+    const codeVerifier = this.generateRandomBase64Url();
 
     // Generate code challenge using SHA256
     const codeChallenge = await this.generateCodeChallenge(codeVerifier);
 
     // Generate state parameter for CSRF protection
-    const state = this.generateRandomString(32);
+    const state = this.generateRandomBase64Url();
 
     this.codeVerifier = codeVerifier;
     this.state = state;
@@ -54,25 +55,17 @@ export class CalComOAuthService {
 
   /**
    * Generate code challenge from code verifier using SHA256 and base64url encoding
-   * Matches Cal.com's expected format: echo -n "{CODE_VERIFIER}" | openssl dgst -binary -sha256 | openssl base64 -A | tr -d '=' | tr '+' '-' | tr '/' '_'
    */
   private async generateCodeChallenge(codeVerifier: string): Promise<string> {
     try {
-      // Use SHA256 with BASE64 encoding, then convert to base64url
       const base64Hash = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         codeVerifier,
         { encoding: Crypto.CryptoEncoding.BASE64 }
       );
 
-      // Convert base64 to base64url (RFC 4648 § 5) - matches Cal.com format
-      // openssl base64 -A outputs without newlines, tr commands convert to base64url
-      const base64url = base64Hash
-        .replace(/\+/g, "-") // + becomes -
-        .replace(/\//g, "_") // / becomes _
-        .replace(/=/g, ""); // remove padding
-
-      return base64url;
+      // Convert base64 to base64url (RFC 4648 § 5)
+      return base64Hash.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
     } catch (error) {
       console.error("Failed to generate code challenge:", error);
       throw new Error("Failed to generate OAuth code challenge");
@@ -80,45 +73,17 @@ export class CalComOAuthService {
   }
 
   /**
-   * Generate a cryptographically secure code verifier
-   * base64url-encoded random 32 bytes (S256 method)
+   * Generate a cryptographically secure random base64url-encoded string
+   * Used for code verifier and state parameter
    */
-  private generateCodeVerifier(): string {
+  private generateRandomBase64Url(): string {
     const bytes = new Uint8Array(Crypto.getRandomBytes(32));
 
-    // Convert directly to base64url
-    if (typeof btoa !== "undefined") {
-      return btoa(String.fromCharCode(...bytes))
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=/g, "");
-    }
+    // Convert to base64, then to base64url
+    const base64 =
+      typeof btoa !== "undefined" ? btoa(String.fromCharCode(...bytes)) : fromByteArray(bytes);
 
-    // React Native: direct base64url encoding
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    let result = "";
-    for (let i = 0; i < bytes.length; i += 3) {
-      const bitmap = (bytes[i] << 16) | ((bytes[i + 1] || 0) << 8) | (bytes[i + 2] || 0);
-      result += chars[(bitmap >> 18) & 63] + chars[(bitmap >> 12) & 63];
-      if (i + 1 < bytes.length) result += chars[(bitmap >> 6) & 63];
-      if (i + 2 < bytes.length) result += chars[bitmap & 63];
-    }
-    return result;
-  }
-
-  /**
-   * Generate a cryptographically secure random string
-   */
-  private generateRandomString(length: number): string {
-    const randomBytes = Crypto.getRandomBytes(length);
-    const bytes = randomBytes instanceof Uint8Array ? randomBytes : new Uint8Array(randomBytes);
-    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += charset[bytes[i] % charset.length];
-    }
-    return result;
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
   /**
