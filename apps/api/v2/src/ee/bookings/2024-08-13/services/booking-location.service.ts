@@ -1,37 +1,15 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
-import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
-import { getDefaultConferencingAppLocation } from "@calcom/platform-libraries/conferencing";
-import {
-  getLocationValueForDB,
-  getOrgIdFromMemberOrTeamId,
-  getBookingDataLocation,
-} from "@calcom/platform-libraries/locations";
 import type {
   UpdateBookingLocationInput_2024_08_13,
   BookingInputLocation_2024_08_13,
 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
-
-type LocationObject = {
-  type: string;
-  address?: string;
-  displayLocationPublicly?: boolean;
-  credentialId?: number;
-  customLabel?: string;
-} & Partial<
-  Record<
-    "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
-    string
-  >
->;
 
 @Injectable()
 export class BookingLocationService_2024_08_13 {
@@ -41,8 +19,6 @@ export class BookingLocationService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly usersRepository: UsersRepository,
-    private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly credentialsRepository: CredentialsRepository,
     private readonly inputService: InputBookingsService_2024_08_13
   ) {}
 
@@ -62,6 +38,15 @@ export class BookingLocationService_2024_08_13 {
     }
 
     return this.bookingsService.getBooking(existingBooking.uid, user);
+  }
+
+  getLocationValue(loc: BookingInputLocation_2024_08_13) {
+    if ("address" in loc) return (loc as { address: string }).address;
+    if ("link" in loc) return (loc as { link: string }).link;
+    if ("phone" in loc) return (loc as { phone: string }).phone;
+    if ("location" in loc) return (loc as { location: string }).location;
+    if ("integration" in loc) return (loc as { integration: string }).integration;
+    return undefined;
   }
 
   async updateLocation(
@@ -86,45 +71,19 @@ export class BookingLocationService_2024_08_13 {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
-    const existingBookingEventType = await this.eventTypesRepository.getEventTypeById(
-      existingBooking.eventTypeId
-    );
+    const locationString = this.getLocationValue(location);
+    bookingLocation = locationString ?? bookingLocation;
 
-    if (location.type === "organizersDefaultApp") {
-      const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
-        existingBookingHost.id
-      );
-      const existingBookingUserOrgId = await getOrgIdFromMemberOrTeamId({
-        memberId: existingBooking.userId ?? null,
-        teamId: existingBookingEventType?.teamId,
-      });
-      const enrichedUser = await enrichUsersWithDelegationCredentials({
-        orgId: existingBookingUserOrgId ?? null,
-        users: [
-          {
-            id: existingBookingHost.id,
-            email: existingBookingHost.email,
-            credentials: existingBookingHostCredentials,
-          },
-        ],
-      });
+    const transformedLocation = this.inputService.transformLocation(location);
 
-      bookingLocation = getDefaultConferencingAppLocation(
-        existingBookingHost?.metadata,
-        enrichedUser?.[0]?.credentials ?? []
-      );
-    } else {
-      const transformedLocation = this.inputService.transformLocation(location);
-      const locationValue = getBookingDataLocation(transformedLocation);
-      const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
-        locationValue,
-        existingBookingEventType?.locations as unknown as LocationObject[]
-      );
-      bookingLocation = bookingLocationForDB;
-    }
+    const responses = (existingBooking.responses || {}) as Record<string, unknown>;
+    const { location: _existingLocation, ...rest } = responses;
+
+    const updatedBookingResponses = { ...rest, location: transformedLocation };
 
     const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
       location: bookingLocation,
+      responses: updatedBookingResponses,
     });
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
