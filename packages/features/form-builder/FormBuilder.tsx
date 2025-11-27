@@ -428,7 +428,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => {},
+  onChange = () => { },
   className = "",
   readOnly = false,
   showPrice = false,
@@ -910,10 +910,10 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   }
   const label =
     variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+  const fieldName =
+    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
 
-  if (!label) {
-    const fieldName =
-      variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
+  if (!label || label === fieldName) {
     const defaultLabel = fieldTypeConfigVariants?.[variant]?.fieldsMap?.[fieldName as string]?.defaultLabel;
     const resolvedLabel = defaultLabel || field.defaultLabel || field.name || "Name";
     return <span>{t(resolvedLabel)}</span>;
@@ -1005,7 +1005,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
