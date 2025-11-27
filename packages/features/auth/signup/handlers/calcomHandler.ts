@@ -213,11 +213,15 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
-    sendEmailVerification({
-      email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
-      username: username || "",
-    });
+    // Only send verification email for non-premium usernames
+    // Premium usernames will get a magic link after payment in paymentCallback
+    if (!checkoutSessionId) {
+      sendEmailVerification({
+        email,
+        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+        username: username || "",
+      });
+    }
   }
 
   if (checkoutSessionId) {
