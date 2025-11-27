@@ -5,7 +5,7 @@ import { moduleLoader as BookingEmailAndSmsTriggerDevTaskerModule } from "./Book
 
 const container = createContainer();
 
-export function getBookingEmailAndSmsSyncTasker(): BookingEmailAndSmsTriggerDevTasker {
+export function getBookingEmailAndSmsTriggerDevTasker(): BookingEmailAndSmsTriggerDevTasker {
   BookingEmailAndSmsTriggerDevTaskerModule.loadModule(container);
   return container.get<BookingEmailAndSmsTriggerDevTasker>(BookingEmailAndSmsTriggerDevTaskerModule.token);
 }
