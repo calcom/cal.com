@@ -13,6 +13,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -602,6 +603,8 @@ export async function handleWorkflowsUpdate({
     },
   });
 
+  const creditService = new CreditService();
+
   await scheduleWorkflowReminders({
     workflows: newEventWorkflows,
     smsReminderNumber: null,
@@ -612,6 +615,7 @@ export async function handleWorkflowsUpdate({
       bookerUrl,
     },
     hideBranding: !!eventType?.owner?.hideBranding,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 }
 
