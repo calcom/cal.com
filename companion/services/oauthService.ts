@@ -46,16 +46,8 @@ export class CalComOAuthService {
     // Generate state parameter for CSRF protection
     const state = this.generateRandomString(32);
 
-    console.log("=== PKCE GENERATION DEBUG ===");
-    console.log("Code verifier generated (full):", codeVerifier);
-    console.log("Code verifier length:", codeVerifier.length);
-    console.log("Code challenge generated:", codeChallenge);
-    console.log("State generated:", state);
-
     this.codeVerifier = codeVerifier;
     this.state = state;
-
-    console.log("Code verifier stored in instance:", this.codeVerifier);
 
     return { codeVerifier, codeChallenge, state };
   }
@@ -79,12 +71,6 @@ export class CalComOAuthService {
         .replace(/\+/g, "-") // + becomes -
         .replace(/\//g, "_") // / becomes _
         .replace(/=/g, ""); // remove padding
-
-      console.log("=== CODE CHALLENGE DEBUG ===");
-      console.log("Code verifier for challenge:", codeVerifier.substring(0, 20) + "...");
-      console.log("SHA256 base64 hash:", base64Hash);
-      console.log("Final code challenge (base64url):", base64url);
-      console.log("Challenge length:", base64url.length);
 
       return base64url;
     } catch (error) {
@@ -213,14 +199,6 @@ export class CalComOAuthService {
 
     const authUrl = `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
 
-    console.log("=== AUTHORIZATION URL DEBUG ===");
-    console.log("Authorization URL:", authUrl);
-    console.log("Redirect URI used in auth:", this.config.redirectUri);
-    console.log("Code challenge in URL:", codeChallenge);
-    console.log("Code challenge method:", "S256");
-    console.log("Client ID:", this.config.clientId);
-    console.log("State parameter:", state);
-
     return authUrl;
   }
 
@@ -289,7 +267,6 @@ export class CalComOAuthService {
               });
 
               authResult = await request.promptAsync(discovery);
-              console.log("Web OAuth result:", authResult);
             } catch (error) {
               console.warn("Discovery failed, using manual endpoints:", error);
               // Fallback to manual discovery if fetchDiscoveryAsync fails
@@ -299,7 +276,6 @@ export class CalComOAuthService {
               };
 
               authResult = await request.promptAsync(discovery);
-              console.log("Web OAuth result (manual discovery):", authResult);
             }
           }
         }
@@ -317,21 +293,12 @@ export class CalComOAuthService {
 
         const authUrlString = `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
 
-        console.log("=== MOBILE AUTHORIZATION URL DEBUG ===");
-        console.log("Generated auth URL:", authUrlString);
-        console.log("Redirect URI:", this.config.redirectUri);
-        console.log("Code challenge in URL:", codeChallenge);
-        console.log("Code verifier stored:", this.codeVerifier);
-        console.log("State in URL:", state);
-
         const result = await WebBrowser.openAuthSessionAsync(
           authUrlString,
           this.config.redirectUri
         );
 
         if (result.type === "success") {
-          console.log("OAuth success, parsing URL:", result.url);
-
           // Parse the URL manually to extract parameters
           const url = new URL(result.url);
           const params: any = {};
@@ -361,10 +328,6 @@ export class CalComOAuthService {
             }
           }
 
-          console.log("Parsed OAuth parameters:", params);
-          console.log("URL search params:", Object.fromEntries(url.searchParams.entries()));
-          console.log("Full URL:", result.url);
-
           authResult = {
             type: "success",
             params: params,
@@ -382,11 +345,6 @@ export class CalComOAuthService {
         // Cal.com might use 'code' or 'authorizationCode'
         const code = params.code || params.authorizationCode;
         const returnedState = params.state;
-
-        // Verify state parameter
-        console.log("State verification - Expected:", this.state, "Received:", returnedState);
-        console.log("Authorization code received:", code);
-        console.log("All received params:", authResult.params);
 
         if (returnedState !== this.state) {
           throw new Error(
@@ -435,15 +393,6 @@ export class CalComOAuthService {
     body.append("redirect_uri", this.config.redirectUri);
     body.append("code_verifier", this.codeVerifier);
 
-    console.log("=== TOKEN EXCHANGE DEBUG ===");
-    console.log("Token endpoint:", tokenEndpoint);
-    console.log("Code verifier used in token exchange:", this.codeVerifier);
-    console.log("Code verifier length:", this.codeVerifier.length);
-    console.log("Authorization code:", code);
-    console.log("Redirect URI in token request:", this.config.redirectUri);
-    console.log("Client ID:", this.config.clientId);
-    console.log("Full request body string:", body.toString());
-
     const response = await fetch(tokenEndpoint, {
       method: "POST",
       headers: {
@@ -452,9 +401,6 @@ export class CalComOAuthService {
       },
       body: body.toString(),
     });
-
-    console.log("Token exchange response status:", response.status);
-    console.log("Token exchange response headers:", Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -472,7 +418,6 @@ export class CalComOAuthService {
     }
 
     const tokenData = await response.json();
-    console.log("Token exchange successful:", Object.keys(tokenData));
 
     const tokens: OAuthTokens = {
       accessToken: tokenData.access_token,
