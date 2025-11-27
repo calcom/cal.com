@@ -16,9 +16,9 @@ export abstract class Tasker<T> {
     this.logger = dependencies.logger;
 
     if (!isAsyncTaskerEnabled) {
-      if (ENABLE_ASYNC_TASKER && !process.env.TRIGGER_SECRET_KEY && !process.env.TRIGGER_API_URL) {
+      if (ENABLE_ASYNC_TASKER && (!process.env.TRIGGER_SECRET_KEY || !process.env.TRIGGER_API_URL)) {
         this.logger.info(
-          "Missing env variables TRIGGER_SECRET_KEY & TRIGGER_API_URL, falling back to Sync tasker."
+          "Missing env variables TRIGGER_SECRET_KEY or TRIGGER_API_URL, falling back to Sync tasker."
         );
       }
     }
