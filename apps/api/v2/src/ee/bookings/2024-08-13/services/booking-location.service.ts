@@ -13,7 +13,7 @@ import { Booking } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingLocationService_2024_08_13 {
-  private readonly logger = new Logger("BookingGuestsService_2024_08_13");
+  private readonly logger = new Logger("BookingLocationService_2024_08_13");
 
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,

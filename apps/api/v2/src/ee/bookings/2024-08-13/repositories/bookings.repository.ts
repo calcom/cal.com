@@ -213,6 +213,7 @@ export class BookingsRepository_2024_08_13 {
         uid: bookingUid,
       },
       data: body,
+      select: { uid: true },
     });
   }
 }
