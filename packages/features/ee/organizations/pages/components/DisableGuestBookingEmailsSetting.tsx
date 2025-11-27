@@ -79,6 +79,18 @@ interface IDisableGuestBookingEmailsSettingProps {
   readOnly?: boolean;
 }
 
+const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
+  [EmailType.CONFIRMATION]: "confirmation",
+  [EmailType.CANCELLATION]: "cancellation",
+  [EmailType.RESCHEDULED]: "rescheduled",
+  [EmailType.REQUEST]: "request",
+  [EmailType.REASSIGNED]: "host_reassignment",
+  [EmailType.AWAITING_PAYMENT]: "awaiting_payment",
+  [EmailType.RESCHEDULE_REQUEST]: "reschedule_request",
+  [EmailType.LOCATION_CHANGE]: "location_change",
+  [EmailType.NEW_EVENT]: "guest_added",
+};
+
 const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSettingProps) => {
   const { readOnly = false } = props;
   const utils = trpc.useUtils();
@@ -86,6 +98,8 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [dialogAction, setDialogAction] = useState<"enable" | "disable">("disable");
+  const [dialogMode, setDialogMode] = useState<"all" | "individual">("all");
+  const [pendingEmailType, setPendingEmailType] = useState<EmailType | null>(null);
 
   const [emailSettings, setEmailSettings] = useState<EmailSettings>({
     [EmailType.CONFIRMATION]: props.settings.disableAttendeeConfirmationEmail,
@@ -125,9 +139,25 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   };
 
   const handleIndividualToggle = (type: EmailType, disabled: boolean) => {
-    const settingKey = EMAIL_TYPE_TO_SETTING_KEY[type];
-    mutation.mutate({ [settingKey]: disabled });
-    setEmailSettings((prev) => ({ ...prev, [type]: disabled }));
+    if (disabled) {
+      setPendingEmailType(type);
+      setDialogAction("disable");
+      setDialogMode("individual");
+      setShowConfirmDialog(true);
+    } else {
+      const settingKey = EMAIL_TYPE_TO_SETTING_KEY[type];
+      mutation.mutate({ [settingKey]: false });
+      setEmailSettings((prev) => ({ ...prev, [type]: false }));
+    }
+  };
+
+  const confirmIndividualToggle = () => {
+    if (pendingEmailType === null) return;
+    const settingKey = EMAIL_TYPE_TO_SETTING_KEY[pendingEmailType];
+    const shouldDisable = dialogAction === "disable";
+    mutation.mutate({ [settingKey]: shouldDisable });
+    setEmailSettings((prev) => ({ ...prev, [pendingEmailType]: shouldDisable }));
+    setPendingEmailType(null);
   };
 
   return (
@@ -135,22 +165,50 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <ConfirmationDialogContent
           variety={dialogAction === "disable" ? "danger" : "warning"}
-          title={t(
-            dialogAction === "disable"
-              ? "disable_all_guest_booking_emails_confirm_title"
-              : "enable_all_guest_booking_emails_confirm_title"
+          title={
+            dialogMode === "all"
+              ? t(
+                  dialogAction === "disable"
+                    ? "disable_all_guest_booking_emails_confirm_title"
+                    : "enable_all_guest_booking_emails_confirm_title"
+                )
+              : t(
+                  dialogAction === "disable"
+                    ? "disable_individual_guest_email_confirm_title"
+                    : "enable_individual_guest_email_confirm_title",
+                  { emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "" }
+                )
+          }
+          confirmBtnText={t(
+            dialogMode === "all"
+              ? dialogAction === "disable"
+                ? "disable_all"
+                : "enable_all"
+              : dialogAction === "disable"
+                ? "disable_email"
+                : "enable_email"
           )}
-          confirmBtnText={t(dialogAction === "disable" ? "disable_all" : "enable_all")}
           onConfirm={() => {
-            handleDisableAll(dialogAction === "disable");
+            if (dialogMode === "all") {
+              handleDisableAll(dialogAction === "disable");
+            } else {
+              confirmIndividualToggle();
+            }
             setShowConfirmDialog(false);
           }}>
           <p className="mt-2">
-            {t(
-              dialogAction === "disable"
-                ? "disable_all_guest_booking_emails_confirm_description"
-                : "enable_all_guest_booking_emails_confirm_description"
-            )}
+            {dialogMode === "all"
+              ? t(
+                  dialogAction === "disable"
+                    ? "disable_all_guest_booking_emails_confirm_description"
+                    : "enable_all_guest_booking_emails_confirm_description"
+                )
+              : t(
+                  dialogAction === "disable"
+                    ? "disable_individual_guest_email_confirm_description"
+                    : "enable_individual_guest_email_confirm_description",
+                  { emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "" }
+                )}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
@@ -168,6 +226,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
         disabled={readOnly}
         onCheckedChange={(checked) => {
           setDialogAction(checked ? "disable" : "enable");
+          setDialogMode("all");
           setShowConfirmDialog(true);
         }}
       />

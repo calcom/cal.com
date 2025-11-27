@@ -1,7 +1,6 @@
 "use client";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/components/skeleton";
 
@@ -22,7 +21,6 @@ const SkeletonLoader = () => {
 };
 
 const GuestNotificationsView = ({ permissions }: { permissions: { canRead: boolean; canEdit: boolean } }) => {
-  const { t } = useLocale();
   const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
   const isInviteOpen = !currentOrg?.user.accepted;
   const isDisabled = !permissions.canEdit || isInviteOpen;
