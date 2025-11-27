@@ -30,7 +30,7 @@ import {
 } from "@calcom/platform-constants";
 import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { CreateEventTypeInput_2024_06_14, GetBookingOutput_2024_08_13 } from "@calcom/platform-types";
+import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 
@@ -190,16 +190,25 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
           location: {
             type: "address",
+            address: address,
           },
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(address);
@@ -209,16 +218,25 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
           location: {
             type: "link",
+            link: link,
           },
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(link);
@@ -228,16 +246,25 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
           location: {
             type: "phone",
+            phone: phone,
           },
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(phone);
@@ -253,12 +280,20 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(attendeeAddress);
@@ -274,12 +309,20 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(attendeePhone);
@@ -295,12 +338,20 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         };
 
         const updatedBookingResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${bookingUid}`)
+          .patch(`/v2/bookings/${bookingUid}/location`)
           .send(updatedBookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
