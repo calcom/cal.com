@@ -42,7 +42,7 @@ function TabsSkeletonLoader() {
           <SkeletonAvatar className="mb-1 mr-1 h-4 w-4 rounded-full" />
           <SkeletonText className="h-4 w-16" />
         </div>
-        <div className="inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-2">
+        <div className="inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-1">
           <SkeletonAvatar className="mb-1 mr-1 h-4 w-4 rounded-full" />
           <SkeletonText className="h-4 w-16" />
         </div>
