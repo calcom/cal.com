@@ -1302,22 +1302,6 @@ export class BookingRepository {
                 },
               },
             },
-            workflows: {
-              select: {
-                workflow: {
-                  select: {
-                    id: true,
-                    name: true,
-                    trigger: true,
-                    timeUnit: true,
-                    userId: true,
-                    teamId: true,
-                    steps: true,
-                    time: true,
-                  },
-                },
-              },
-            },
           },
         },
         references: {

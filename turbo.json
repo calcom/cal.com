@@ -460,11 +460,13 @@
     },
     "dev:trigger": {
       "inputs": ["./.env"],
-      "env": ["TRIGGER_DEV_PROJECT_REF"]
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
     },
     "deploy:trigger": {
       "inputs": ["./.env"],
-      "env": ["TRIGGER_DEV_PROJECT_REF"]
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
     },
     "dx": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],

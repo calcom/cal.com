@@ -7,6 +7,7 @@ export type BookingEmailAndSmsTaskPayload = {
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
+  isRescheduledByBooker?: boolean;
 };
 
 export type BookingEmailAndSmsSyncSendPayload = EmailsAndSmsSideEffectsPayload;

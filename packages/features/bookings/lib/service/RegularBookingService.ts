@@ -2637,6 +2637,7 @@ async function handler(
                 platformRescheduleUrl,
                 platformCancelUrl,
                 platformBookingUrl,
+                isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
               },
             });
           }

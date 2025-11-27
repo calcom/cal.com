@@ -6,6 +6,7 @@ import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/han
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { JsonObject } from "@calcom/types/Json";
@@ -120,6 +121,12 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
       !!booking.eventType?.seatsPerTimeSlot
     );
 
+    const changedOrganizer =
+      !!originalBookingData &&
+      (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+        eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+      originalBookingData.userId !== calendarEvent.organizer.id;
+
     await this.dependencies.emailsAndSmsHandler.send({
       action: "BOOKING_RESCHEDULED",
       data: {
@@ -134,8 +141,8 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
         originalRescheduledBooking: originalBookingData,
         rescheduleReason: (calendarEvent?.responses?.["rescheduleReason"]?.value as string) ?? undefined,
         users: eventType.hosts.map((h) => h.user) ?? [],
-        changedOrganizer: true,
-        isRescheduledByBooker: true,
+        changedOrganizer: changedOrganizer,
+        isRescheduledByBooker: payload.isRescheduledByBooker ?? false,
       },
     });
   }
