@@ -28,7 +28,7 @@ import { FullScreenModal } from "../../components/FullScreenModal";
 import { slugify } from "../../utils/slugify";
 
 export default function EventTypes() {
-  console.log('EventTypes component rendering');
+  console.log("EventTypes component rendering");
   const router = useRouter();
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [filteredEventTypes, setFilteredEventTypes] = useState<EventType[]>([]);
@@ -84,7 +84,6 @@ export default function EventTypes() {
       isMountedRef.current = false;
     };
   }, []);
-
 
   // Fetch username on mount
   useEffect(() => {
@@ -428,7 +427,6 @@ export default function EventTypes() {
     handleOpenCreateModal();
   };
 
-
   const handleOpenCreateModal = () => {
     setShowCreateModal(true);
   };
@@ -441,7 +439,6 @@ export default function EventTypes() {
     setNewEventDuration("15");
     setIsSlugManuallyEdited(false);
   };
-
 
   const handleCreateEventType = async () => {
     if (!newEventTitle.trim()) {
@@ -977,7 +974,6 @@ export default function EventTypes() {
                 <Ionicons name="calendar-outline" size={20} color="#6B7280" />
                 <Text className="ml-3 text-base text-gray-900">New Event Type</Text>
               </TouchableOpacity>
-
             </View>
 
             {/* Cancel button */}
@@ -992,7 +988,6 @@ export default function EventTypes() {
           </TouchableOpacity>
         </TouchableOpacity>
       </FullScreenModal>
-
 
       {/* Delete Confirmation Modal */}
       <FullScreenModal

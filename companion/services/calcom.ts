@@ -1058,4 +1058,3 @@ export class CalComAPIService {
     }
   }
 }
-

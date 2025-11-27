@@ -171,6 +171,7 @@ export function Header() {
       <FullScreenModal
         visible={showProfileModal}
         animationType="fade"
+        transparent
         onRequestClose={() => setShowProfileModal(false)}
       >
         <TouchableOpacity
