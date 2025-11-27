@@ -136,7 +136,8 @@ function preprocess<T extends z.ZodType>({
       const isEmailFieldHidden = !!emailField?.hidden;
 
       // To prevent using user's session email as attendee's email, we set email to empty string
-      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden) {
+      // But only if email wasn't explicitly provided (e.g., from API request)
+      if (isEmailFieldHidden && !isAttendeePhoneNumberFieldHidden && !responses["email"]) {
         responses["email"] = "";
       }
 
