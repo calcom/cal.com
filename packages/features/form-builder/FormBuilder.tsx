@@ -155,67 +155,67 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
-          <div className="flex items-center gap-4">
-            {showPhoneAndEmailToggle && (
-              <ToggleGroup
-                value={(() => {
-                  const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
-                  const emailField = fields.find((field) => field.name === "email");
+          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
+            {description}
+          </p>
+          {showPhoneAndEmailToggle && (
+            <ToggleGroup
+              value={(() => {
+                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                const emailField = fields.find((field) => field.name === "email");
 
-                  if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
-                    return "phone";
-                  }
+                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
+                  return "phone";
+                }
 
-                  return "email";
-                })()}
-                options={[
-                  {
-                    value: "email",
-                    label: "Email",
-                    iconLeft: <Icon name="mail" className="h-4 w-4" />,
-                  },
-                  {
-                    value: "phone",
-                    label: "Phone",
-                    iconLeft: <Icon name="phone" className="h-4 w-4" />,
-                  },
-                ]}
-                onValueChange={(value) => {
-                  const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
-                  const emailFieldIndex = fields.findIndex((field) => field.name === "email");
-                  if (value === "email") {
-                    update(emailFieldIndex, {
-                      ...fields[emailFieldIndex],
-                      hidden: false,
-                      required: true,
-                    });
-                    update(phoneFieldIndex, {
-                      ...fields[phoneFieldIndex],
-                      hidden: true,
-                      required: false,
-                    });
-                  } else if (value === "phone") {
-                    update(emailFieldIndex, {
-                      ...fields[emailFieldIndex],
-                      hidden: true,
-                      required: false,
-                    });
-                    update(phoneFieldIndex, {
-                      ...fields[phoneFieldIndex],
-                      hidden: false,
-                      required: true,
-                    });
-                  }
-                }}
-              />
-            )}
-          </div>
+                return "email";
+              })()}
+              options={[
+                {
+                  value: "email",
+                  label: "Email",
+                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                },
+                {
+                  value: "phone",
+                  label: "Phone",
+                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                },
+              ]}
+              onValueChange={(value) => {
+                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
+                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                if (value === "email") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                } else if (value === "phone") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                }
+              }}
+            />
+          )}
         </div>
         <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {t("questions")}
         </p>
-        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+        <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
           {t("all_info_your_booker_provide")}
         </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
@@ -275,7 +275,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
+                className="hover:bg-cal-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -318,7 +318,7 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
+                  <p className="text-subtle wrap-break-word max-w-[280px] pt-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
@@ -499,12 +499,12 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4" data-testid="options-container">
+      <div className="bg-cal-muted rounded-md p-4" data-testid="options-container">
         <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
+                <div className="relative grow">
                   <Input
                     required
                     value={option.label}
@@ -525,7 +525,7 @@ function Options({
                   {value.length > 2 && !readOnly && (
                     <Button
                       type="button"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      className="hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0! absolute right-1 top-1/2 -translate-y-1/2"
                       size="sm"
                       color="minimal"
                       StartIcon="x"

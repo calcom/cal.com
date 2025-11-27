@@ -94,14 +94,14 @@ export const OnboardingBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
           <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
       {/* Content */}
-      <div className="bg-muted h-full pl-11 pt-11">
+      <div className="bg-cal-muted h-full pl-11 pt-11">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

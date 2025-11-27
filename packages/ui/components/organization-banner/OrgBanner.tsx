@@ -18,7 +18,7 @@ export function OrgBanner(props: OrgBannerProps) {
   const { imageSrc, alt, width = 1500, height = 500 } = props;
 
   if (!imageSrc) {
-    return <div className={classNames("bg-muted", props.className)}>{props.fallback}</div>;
+    return <div className={classNames("bg-cal-muted", props.className)}>{props.fallback}</div>;
   }
   return (
     <Image

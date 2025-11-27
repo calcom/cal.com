@@ -127,7 +127,7 @@ function MatchingTeamMembers({
 
   if (!hasValidValue) {
     return (
-      <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+      <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
         <div className="text-subtle flex items-center text-sm font-medium">
           <span>{t("no_filter_set")}</span>
         </div>
@@ -138,7 +138,7 @@ function MatchingTeamMembers({
   if (isPending) {
     return (
       <div
-        className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4"
+        className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4"
         data-testid="segment_loading_state">
         <div className="text-emphasis flex items-center text-sm font-medium">
           <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
@@ -161,7 +161,7 @@ function MatchingTeamMembers({
   const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
 
   return (
-    <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+    <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
       <div className="text-emphasis flex items-center text-sm font-medium">
         <span>{t("x_matching_members", { x: matchingTeamMembers?.length ?? 0 })}</span>
       </div>
