@@ -215,6 +215,13 @@ const createNewSeat = async (
       bookerPhoneNumber,
     });
 
+    if (payment?.id && newBookingSeat?.id) {
+      await prisma.bookingSeat.update({
+        where: { id: newBookingSeat.id },
+        data: { paymentId: payment.id },
+      });
+    }
+
     resultBooking = { ...foundBooking };
     resultBooking["message"] = "Payment required";
     resultBooking["paymentUid"] = payment?.uid;

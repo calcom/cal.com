@@ -105,16 +105,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
     // For seated events, send emails only to the attendee who just completed payment
     if (evt.seatsPerTimeSlot) {
-      // Find the attendee who just paid - it's the one with the most recently created bookingSeat
-      // evt.attendees already includes bookingSeat information from getBooking()
-      const attendeeWhoPaid = evt.attendees
-        .filter((a) => a.bookingSeat)
-        .sort((a, b) => {
-          // Sort by bookingSeat.id descending to get the newest
-          const aId = a.bookingSeat?.id ?? 0;
-          const bId = b.bookingSeat?.id ?? 0;
-          return bId - aId;
-        })[0];
+      // Find the attendee whose bookingSeat has this paymentId
+      const attendeeWhoPaid = evt.attendees.find((a) => a.bookingSeat?.paymentId === paymentId);
 
       if (attendeeWhoPaid) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);

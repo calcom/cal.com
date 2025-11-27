@@ -51,6 +51,7 @@ export async function getBooking(bookingId: number) {
               metadata: true,
               bookingId: true,
               attendeeId: true,
+              paymentId: true,
             },
           },
         },

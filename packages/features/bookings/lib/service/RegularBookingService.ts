@@ -1846,6 +1846,7 @@ async function handler(
                   metadata: newBookingSeat.metadata,
                   bookingId: newBookingSeat.bookingId,
                   attendeeId: newBookingSeat.attendeeId,
+                  paymentId: null, // updated after payment is processed in handleSeats
                 },
               };
             }
@@ -2375,6 +2376,14 @@ async function handler(
       bookingFields: eventType.bookingFields,
       locale: language,
     });
+
+    if (payment?.id && evt.attendeeSeatId) {
+      await deps.prismaClient.bookingSeat.update({
+        where: { referenceUid: evt.attendeeSeatId },
+        data: { paymentId: payment.id },
+      });
+    }
+
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
