@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { Transform } from "class-transformer";
-import { IsNumber, IsString, IsArray, ValidateNested, IsDateString, IsOptional, ValidateIf } from "class-validator";
+import { IsNumber, IsString, IsArray, ValidateNested, IsDateString, IsOptional, ValidatorConstraint, ValidatorConstraintInterface, Validate } from "class-validator";
 
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
@@ -14,6 +14,18 @@ export class Calendar {
   externalId!: string;
 }
 
+@ValidatorConstraint({ name: "TimezoneRequired", async: false })
+export class TimezoneRequiredValidator implements ValidatorConstraintInterface {
+  validate(value: any) {
+    return !!value.timeZone || !!value.loggedInUsersTz;
+  }
+
+  defaultMessage() {
+    return "Either timeZone or loggedInUsersTz must be provided";
+  }
+}
+
+@Validate(TimezoneRequiredValidator)
 export class CalendarBusyTimesInput {
   @ApiProperty({
     required: false,
@@ -33,10 +45,6 @@ export class CalendarBusyTimesInput {
   @IsOptional()
   @IsString()
   timeZone?: string;
-
-  @ValidateIf((o) => !o.timeZone && !o.loggedInUsersTz)
-  @IsString()
-  private readonly _timezoneValidation?: never;
 
   @ApiProperty({
     required: false,
