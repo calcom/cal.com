@@ -127,11 +127,8 @@ const createNewSeat = async (
   const copyEvent = cloneDeep(evt);
   copyEvent.uid = seatedBooking.uid;
   
-  // Check if payment is required BEFORE sending emails
   const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking;
   
-  // Only send confirmation emails if payment is NOT required
-  // If payment is required, emails will be sent after payment is completed via handlePaymentSuccess
   if (noEmail !== true && !requiresPayment) {
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;

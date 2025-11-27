@@ -100,7 +100,7 @@ const _sendScheduledEmailsAndSMS = async (
                 }),
               },
               attendee,
-              formattedCalEvent.seatsShowAttendees ?? undefined
+              formattedCalEvent.seatsShowAttendees ?? false
             )
         );
       })
