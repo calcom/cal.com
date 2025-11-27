@@ -89,9 +89,7 @@ export class CalComOAuthService {
   /**
    * Build authorization URL with PKCE parameters
    */
-  async buildAuthorizationUrl(): Promise<string> {
-    const { codeChallenge, state } = await this.generatePKCEParams();
-
+  private buildAuthorizationUrl(codeChallenge: string, state: string): string {
     const params = new URLSearchParams({
       client_id: this.config.clientId,
       response_type: "code",
@@ -101,9 +99,7 @@ export class CalComOAuthService {
       code_challenge_method: "S256",
     });
 
-    const authUrl = `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
-
-    return authUrl;
+    return `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
   }
 
   /**
@@ -111,22 +107,75 @@ export class CalComOAuthService {
    */
   async startAuthorizationFlow(): Promise<OAuthTokens> {
     try {
-      // Generate PKCE params once and store them
-      // NOTE: generatePKCEParams() already sets this.codeVerifier and this.state internally
-      const { codeVerifier, codeChallenge, state } = await this.generatePKCEParams();
+      // Generate PKCE params
+      const { codeChallenge, state } = await this.generatePKCEParams();
 
-      // Verify the challenge matches the verifier (sanity check)
-      const verifyChallenge = await this.generateCodeChallenge(codeVerifier);
+      // Check for stored callback (web only)
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        const storedCode = window.localStorage.getItem("oauth_callback_code");
+        const storedState = window.localStorage.getItem("oauth_callback_state");
 
-      if (codeChallenge !== verifyChallenge) {
-        throw new Error(
-          "PKCE code challenge verification failed - code verifier and challenge don't match!"
-        );
+        if (storedCode && storedState) {
+          window.localStorage.removeItem("oauth_callback_code");
+          window.localStorage.removeItem("oauth_callback_state");
+
+          if (storedState !== state) {
+            throw new Error("Invalid state parameter - possible CSRF attack");
+          }
+
+          return await this.exchangeCodeForTokens(storedCode);
+        }
       }
 
-      // Create the authorization request with our generated values
-      // For web, AuthRequest will use our codeChallenge
-      // For mobile, we'll build the URL manually to ensure we use our PKCE params
+      // Get authorization result
+      const authResult = await this.getAuthorizationResult(codeChallenge, state);
+
+      // Handle result
+      if (authResult.type === "success") {
+        const code = authResult.params?.code || authResult.params?.authorizationCode;
+        const returnedState = authResult.params?.state;
+
+        if (returnedState !== state) {
+          throw new Error("Invalid state parameter - possible CSRF attack");
+        }
+
+        if (!code) {
+          throw new Error("No authorization code received");
+        }
+
+        return await this.exchangeCodeForTokens(code);
+      }
+
+      // Handle errors
+      if (authResult.type === "error") {
+        const errorDescription =
+          authResult.params?.error_description ||
+          ("error" in authResult ? authResult.error?.message : undefined) ||
+          "Unknown error";
+        throw new Error(`OAuth error: ${errorDescription}`);
+      }
+
+      if (authResult.type === "cancel") {
+        throw new Error("OAuth flow was cancelled by user");
+      }
+
+      throw new Error("OAuth flow failed or was dismissed");
+    } catch (error) {
+      console.error("OAuth authorization error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get authorization result (web or mobile)
+   */
+  private async getAuthorizationResult(
+    codeChallenge: string,
+    state: string
+  ): Promise<AuthSession.AuthSessionResult | { type: string; params: Record<string, string> }> {
+    const discovery = await this.getDiscoveryEndpoints();
+
+    if (Platform.OS === "web") {
       const request = new AuthSession.AuthRequest({
         clientId: this.config.clientId,
         redirectUri: this.config.redirectUri,
@@ -136,147 +185,59 @@ export class CalComOAuthService {
         codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
       });
 
-      let authResult;
+      return await request.promptAsync(discovery);
+    } else {
+      // Mobile: build URL manually and use WebBrowser
+      const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri);
 
-      if (Platform.OS === "web") {
-        // For web, check if we have stored callback parameters first
-        if (typeof window !== "undefined") {
-          const storedCode = window.localStorage.getItem("oauth_callback_code");
-          const storedState = window.localStorage.getItem("oauth_callback_state");
-
-          if (storedCode) {
-            // Clear the stored parameters
-            window.localStorage.removeItem("oauth_callback_code");
-            window.localStorage.removeItem("oauth_callback_state");
-
-            authResult = {
-              type: "success",
-              params: {
-                code: storedCode,
-                state: storedState,
-              },
-            };
-          } else {
-            // Proceed with normal OAuth flow
-            try {
-              // Try to fetch discovery document first
-              const discovery = await AuthSession.fetchDiscoveryAsync(
-                `${this.config.calcomBaseUrl}/.well-known/openid_configuration`
-              ).catch(() => {
-                // If discovery fails, provide manual endpoints
-                return {
-                  authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-                  tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-                };
-              });
-
-              authResult = await request.promptAsync(discovery);
-            } catch (error) {
-              console.warn("Discovery failed, using manual endpoints:", error);
-              // Fallback to manual discovery if fetchDiscoveryAsync fails
-              const discovery = {
-                authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
-                tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
-              };
-
-              authResult = await request.promptAsync(discovery);
-            }
-          }
-        }
-      } else {
-        // For mobile, use WebBrowser-based flow
-        // Build the authorization URL manually to ensure we use our PKCE parameters
-        const params = new URLSearchParams({
-          client_id: this.config.clientId,
-          response_type: "code",
-          redirect_uri: this.config.redirectUri,
-          state: state,
-          code_challenge: codeChallenge,
-          code_challenge_method: "S256",
-        });
-
-        const authUrlString = `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
-
-        const result = await WebBrowser.openAuthSessionAsync(
-          authUrlString,
-          this.config.redirectUri
-        );
-
-        if (result.type === "success") {
-          // Parse the URL manually to extract parameters
-          const url = new URL(result.url);
-          const params: any = {};
-
-          // Get parameters from search params (after ?)
-          url.searchParams.forEach((value, key) => {
-            params[key] = value;
-          });
-
-          // Also try to parse parameters from hash fragment (after #) if searchParams is empty
-          if (Object.keys(params).length === 0 && url.hash) {
-            const hashParams = new URLSearchParams(url.hash.substring(1)); // Remove the # symbol
-            hashParams.forEach((value, key) => {
-              params[key] = value;
-            });
-          }
-
-          // Fallback: manually parse the full URL if still no params
-          if (Object.keys(params).length === 0) {
-            const urlParts = result.url.split("?");
-            if (urlParts.length > 1) {
-              const queryString = urlParts[1].split("#")[0]; // Remove any hash fragment
-              const searchParams = new URLSearchParams(queryString);
-              searchParams.forEach((value, key) => {
-                params[key] = value;
-              });
-            }
-          }
-
-          authResult = {
-            type: "success",
-            params: params,
-          };
-        } else {
-          authResult = {
-            type: result.type,
-            params: {},
-          };
-        }
+      if (result.type === "success") {
+        const params = this.parseCallbackUrl(result.url);
+        return { type: "success" as const, params };
       }
 
-      if (authResult.type === "success") {
-        const params = authResult.params || {};
-        // Cal.com might use 'code' or 'authorizationCode'
-        const code = params.code || params.authorizationCode;
-        const returnedState = params.state;
-
-        if (returnedState !== this.state) {
-          throw new Error(
-            `Invalid state parameter - possible CSRF attack. Expected: ${this.state}, Received: ${returnedState}`
-          );
-        }
-
-        if (!code) {
-          throw new Error(
-            `No authorization code received. Params received: ${JSON.stringify(authResult.params)}`
-          );
-        }
-
-        // Exchange code for tokens
-        return await this.exchangeCodeForTokens(code);
-      } else if (authResult.type === "error") {
-        const errorDescription =
-          authResult.params?.error_description || authResult.error?.message || "Unknown error";
-        throw new Error(`OAuth error: ${errorDescription}`);
-      } else if (authResult.type === "cancel") {
-        throw new Error("OAuth flow was cancelled by user");
-      } else {
-        throw new Error("OAuth flow failed or was dismissed");
-      }
-    } catch (error) {
-      console.error("OAuth authorization error:", error);
-      throw error;
+      return { type: result.type, params: {} } as { type: string; params: Record<string, string> };
     }
+  }
+
+  /**
+   * Get discovery endpoints with fallback
+   */
+  private async getDiscoveryEndpoints(): Promise<AuthSession.DiscoveryDocument> {
+    try {
+      const discovery = await AuthSession.fetchDiscoveryAsync(
+        `${this.config.calcomBaseUrl}/.well-known/openid_configuration`
+      );
+      return discovery;
+    } catch {
+      return {
+        authorizationEndpoint: `${this.config.calcomBaseUrl}/auth/oauth2/authorize`,
+        tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+      } as AuthSession.DiscoveryDocument;
+    }
+  }
+
+  /**
+   * Parse callback URL to extract parameters
+   */
+  private parseCallbackUrl(url: string): Record<string, string> {
+    const urlObj = new URL(url);
+    const params: Record<string, string> = {};
+
+    // Try search params first
+    urlObj.searchParams.forEach((value, key) => {
+      params[key] = value;
+    });
+
+    // Fallback to hash fragment
+    if (Object.keys(params).length === 0 && urlObj.hash) {
+      const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+      hashParams.forEach((value, key) => {
+        params[key] = value;
+      });
+    }
+
+    return params;
   }
 
   /**
