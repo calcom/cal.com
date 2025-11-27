@@ -2819,6 +2819,7 @@
                   "organization.attributes.update",
                   "organization.attributes.delete",
                   "organization.attributes.create",
+                  "organization.attributes.editUsers",
                   "routingForm.create",
                   "routingForm.read",
                   "routingForm.update",
@@ -26257,6 +26258,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26360,6 +26362,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26491,6 +26494,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -26593,6 +26597,7 @@
                 "organization.attributes.update",
                 "organization.attributes.delete",
                 "organization.attributes.create",
+                "organization.attributes.editUsers",
                 "routingForm.create",
                 "routingForm.read",
                 "routingForm.update",
@@ -27430,6 +27435,14 @@
             "type": "string",
             "nullable": true
           },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "timeFormat": {
             "type": "number"
           },
@@ -27456,6 +27469,8 @@
           "username",
           "email",
           "name",
+          "avatarUrl",
+          "bio",
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
