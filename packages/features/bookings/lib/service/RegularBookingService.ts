@@ -537,11 +537,14 @@ async function handler(
 
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
+  const isReschedule = !!rawBookingData.rescheduleUid;
+
   try {
     await checkIfBookerEmailIsBlocked({
       loggedInUserId: userId,
       bookerEmail,
       verificationCode: reqBody.verificationCode,
+      isReschedule,
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {

@@ -8,10 +8,17 @@ export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
+  isReschedule = false,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
+  /**
+   * When true, the user-level "Prevent impersonation on bookings" setting (requiresBookerEmailVerification)
+   * is bypassed. This allows guests to reschedule their existing bookings without re-verification.
+   * Note: BLACKLISTED_GUEST_EMAILS is still enforced even for reschedules.
+   */
+  isReschedule?: boolean;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 
@@ -52,7 +59,10 @@ export const checkIfBookerEmailIsBlocked = async ({
   });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  const shouldBlock = !!blacklistedByEnv || blockedByUserSetting;
+  // For reschedules, we skip the user-level "Prevent impersonation" setting
+  // but still enforce the environment blacklist
+  const shouldBlockByUserSetting = blockedByUserSetting && !isReschedule;
+  const shouldBlock = !!blacklistedByEnv || shouldBlockByUserSetting;
 
   if (!shouldBlock) {
     return false;

@@ -1137,5 +1137,185 @@ describe("Booking Validation Specifications", () => {
 
       expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith("user@example.com", "invalid-code");
     });
+
+    test("should allow rescheduling without verification when user has requiresBookerEmailVerification enabled", async () => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const booker = getBooker({
+        email: "user@example.com",
+        name: "User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      const userWithVerificationRequired = getOrganizer({
+        name: "User",
+        email: "user@example.com",
+        id: 201,
+        schedules: [TestData.schedules.IstWorkHours],
+        emailVerified: new Date(),
+        requiresBookerEmailVerification: true,
+      });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: [userWithVerificationRequired],
+          apps: [TestData.apps["google-calendar"]],
+          bookings: [
+            {
+              uid: "existing-booking-uid",
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
+              attendees: [
+                {
+                  email: booker.email,
+                  name: booker.name,
+                  timeZone: "Asia/Kolkata",
+                },
+              ],
+            },
+          ],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          rescheduleUid: "existing-booking-uid",
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      // Should not throw - reschedules bypass user-level email verification
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(createdBooking).toEqual(
+        expect.objectContaining({
+          id: expect.any(Number),
+          uid: expect.any(String),
+        })
+      );
+    });
+
+    test("should still block rescheduling when email is in BLACKLISTED_GUEST_EMAILS", async () => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const booker = getBooker({
+        email: "blocked@example.com",
+        name: "Blocked User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      const blockedUser = getOrganizer({
+        name: "Blocked User",
+        email: "blocked@example.com",
+        id: 201,
+        schedules: [TestData.schedules.IstWorkHours],
+        emailVerified: new Date(),
+      });
+
+      addToBlacklistedEmails(["blocked@example.com"]);
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: [blockedUser],
+          apps: [TestData.apps["google-calendar"]],
+          bookings: [
+            {
+              uid: "existing-booking-uid",
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
+              attendees: [
+                {
+                  email: booker.email,
+                  name: booker.name,
+                  timeZone: "Asia/Kolkata",
+                },
+              ],
+            },
+          ],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          rescheduleUid: "existing-booking-uid",
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      // Should still throw - BLACKLISTED_GUEST_EMAILS is enforced even for reschedules
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow(
+        "Attendee email has been blocked. Make sure to login as blocked@example.com to use this email for creating a booking."
+      );
+    });
   });
 });
