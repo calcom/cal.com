@@ -42,10 +42,13 @@
   },
   "private": true,
   "devDependencies": {
+    "@react-native/metro-config": "^0.82.1",
     "@types/chrome": "^0.1.31",
     "babel-preset-expo": "^54.0.7",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.0",
+    "metro": "^0.83.3",
+    "metro-config": "^0.83.3",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.17",
