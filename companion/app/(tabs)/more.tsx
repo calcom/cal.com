@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from "react-
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
+import { LogoutButton } from "../../components/LogoutButton";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface MoreMenuItem {
   name: string;
@@ -14,6 +16,7 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
+  const { isUsingOAuth } = useAuth();
 
   const openExternalLink = async (url: string, fallbackMessage: string) => {
     try {
@@ -97,6 +100,17 @@ export default function More() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Authentication Info and Logout */}
+        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+          <View className="border-b border-[#E5E5EA] px-5 py-4">
+            <Text className="text-sm font-medium text-gray-700">Authentication</Text>
+          </View>
+          <View className="px-5 py-4">
+            <LogoutButton variant="destructive" className="w-full" />
+          </View>
+        </View>
+
         <Text className="mt-4 text-sm text-gray-500">
           We view the companion as an extension of the web application. If you are performing any
           complicated actions, please refer back to the web application.

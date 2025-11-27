@@ -20,8 +20,26 @@ import type {
 
 const API_BASE_URL = "https://api.cal.com/v2";
 
-// You'll need to set your API key here
-const API_KEY = process.env.EXPO_PUBLIC_CAL_API_KEY || "your-cal-api-key-here";
+// Authentication configuration
+interface AuthConfig {
+  accessToken?: string;
+  refreshToken?: string;
+  apiKey?: string;
+}
+
+// Global auth state
+const authConfig: AuthConfig = {
+  apiKey: process.env.EXPO_PUBLIC_CAL_API_KEY,
+};
+
+// Token refresh callback - will be set by AuthContext
+let tokenRefreshCallback: ((accessToken: string, refreshToken?: string) => Promise<void>) | null =
+  null;
+
+// Refresh token function - will be set by AuthContext
+let refreshTokenFunction:
+  | ((refreshToken: string) => Promise<{ accessToken: string; refreshToken?: string }>)
+  | null = null;
 
 // Re-export types for backward compatibility
 export type {
@@ -71,6 +89,69 @@ export const getBookingParticipation = (
 
 export class CalComAPIService {
   private static userProfile: UserProfile | null = null;
+
+  /**
+   * Set OAuth access token for authentication
+   */
+  static setAccessToken(accessToken: string, refreshToken?: string): void {
+    authConfig.accessToken = accessToken;
+    if (refreshToken) {
+      authConfig.refreshToken = refreshToken;
+    }
+    authConfig.apiKey = undefined; // Clear API key when using OAuth
+  }
+
+  /**
+   * Set refresh token function for automatic token refresh
+   */
+  static setRefreshTokenFunction(
+    refreshFn: (refreshToken: string) => Promise<{ accessToken: string; refreshToken?: string }>
+  ): void {
+    refreshTokenFunction = refreshFn;
+  }
+
+  /**
+   * Set API key for authentication (fallback)
+   */
+  static setApiKey(apiKey: string): void {
+    authConfig.apiKey = apiKey;
+    authConfig.accessToken = undefined; // Clear OAuth token when using API key
+  }
+
+  /**
+   * Clear all authentication
+   */
+  static clearAuth(): void {
+    authConfig.accessToken = undefined;
+    authConfig.refreshToken = undefined;
+    authConfig.apiKey = undefined;
+    tokenRefreshCallback = null;
+    refreshTokenFunction = null;
+  }
+
+  /**
+   * Set token refresh callback for OAuth token refresh
+   */
+  static setTokenRefreshCallback(
+    callback: (accessToken: string, refreshToken?: string) => Promise<void>
+  ): void {
+    tokenRefreshCallback = callback;
+  }
+
+  /**
+   * Get current authentication header
+   */
+  private static getAuthHeader(): string {
+    if (authConfig.accessToken) {
+      return `Bearer ${authConfig.accessToken}`;
+    } else if (authConfig.apiKey) {
+      return `Bearer ${authConfig.apiKey}`;
+    } else {
+      throw new Error(
+        "No authentication configured. Please set either OAuth access token or API key."
+      );
+    }
+  }
 
   // Get current user profile
   static async getCurrentUser(): Promise<UserProfile> {
@@ -164,7 +245,7 @@ export class CalComAPIService {
 
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: this.getAuthHeader(),
           "Content-Type": "application/json",
           "cal-api-version": "2024-08-13",
         },
@@ -181,14 +262,15 @@ export class CalComAPIService {
   private static async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {},
-    apiVersion: string = "2024-08-13"
+    apiVersion: string = "2024-08-13",
+    isRetry: boolean = false
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
     const response = await fetch(url, {
       ...options,
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: this.getAuthHeader(),
         "Content-Type": "application/json",
         "cal-api-version": apiVersion,
         ...options.headers,
@@ -211,10 +293,35 @@ export class CalComAPIService {
 
       // Handle specific error cases
       if (response.status === 401) {
-        if (errorMessage.includes("expired")) {
-          throw new Error("Your API key has expired. Please update it in the app settings.");
+        // If we have a refresh token and refresh function, attempt to refresh and retry
+        if (!isRetry && authConfig.refreshToken && refreshTokenFunction && tokenRefreshCallback) {
+          try {
+            // Call the refresh function to get new tokens
+            const newTokens = await refreshTokenFunction(authConfig.refreshToken);
+
+            // Update auth config with new access token
+            authConfig.accessToken = newTokens.accessToken;
+            if (newTokens.refreshToken) {
+              authConfig.refreshToken = newTokens.refreshToken;
+            }
+
+            // Notify AuthContext to update stored tokens
+            await tokenRefreshCallback(newTokens.accessToken, newTokens.refreshToken);
+
+            // Retry the original request with the new token
+            return this.makeRequest<T>(endpoint, options, apiVersion, true);
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            // Clear auth on refresh failure
+            this.clearAuth();
+            throw new Error("Authentication failed. Please sign in again.");
+          }
         }
-        throw new Error("Authentication failed. Please check your API key.");
+
+        if (errorMessage.includes("expired")) {
+          throw new Error("Your authentication has expired. Please sign in again.");
+        }
+        throw new Error("Authentication failed. Please check your credentials.");
       }
 
       throw new Error(`API Error: ${errorMessage}`);
@@ -1058,4 +1165,3 @@ export class CalComAPIService {
     }
   }
 }
-
