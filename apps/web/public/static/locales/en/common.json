@@ -501,6 +501,8 @@
   "no_status_bookings_yet_description": "You have no {{status}} bookings. {{description}}",
   "event_between_users": "{{eventName}} between {{host}} and {{attendeeName}}",
   "bookings": "Bookings",
+  "event_types": "Event Types",
+  "default_home_view": "Default Home View",
   "booking_not_found": "Booking not found",
   "bookings_description": "See upcoming and past events booked through your event type links.",
   "upcoming_bookings": "As soon as someone books a time with you it will show up here.",
