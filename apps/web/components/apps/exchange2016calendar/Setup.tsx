@@ -54,7 +54,7 @@ export default function Exchange2016CalendarSetup() {
                   router.push(json.url);
                 }
               }}>
-              <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
+              <fieldset className="stack-y-2" disabled={form.formState.isSubmitting}>
                 <TextField
                   required
                   type="text"
