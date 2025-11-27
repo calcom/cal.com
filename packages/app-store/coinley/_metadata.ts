@@ -8,7 +8,7 @@ export const metadata = {
   slug: "coinley",
   category: "payment",
   categories: ["payment"],
-  logo: "icon.svg",
+  logo: "icon.png",
   publisher: "Coinley Labs",
   title: "Coinley Crypto Payments",
   type: "coinley_payment",

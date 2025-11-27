@@ -1,0 +1,365 @@
+1m 59s
+Run yarn type-check:ci
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turborepo.com/docs/telemetry
+
+• Packages in scope: @calcom/alby, @calcom/amie, @calcom/api, @calcom/api-proxy, @calcom/api-v2, @calcom/app-store, @calcom/app-store-cli, @calcom/applecalendar, @calcom/atoms, @calcom/attio, @calcom/autocheckin, @calcom/baa-for-hipaa, @calcom/base, @calcom/basecamp3, @calcom/bolna, @calcom/btcpayserver, @calcom/caldavcalendar, @calcom/campfire, @calcom/chatbase, @calcom/clic, @calcom/closecom, @calcom/coinley, @calcom/config, @calcom/cron, @calcom/dailyvideo, @calcom/dayjs, @calcom/debugging, @calcom/deel, @calcom/demodesk, @calcom/dialpad, @calcom/discord, @calcom/dub, @calcom/ee, @calcom/eightxeight, @calcom/element-call, @calcom/elevenlabs, @calcom/emails, @calcom/embed-core, @calcom/embed-react, @calcom/embed-snippet, @calcom/eslint-config, @calcom/eslint-plugin-eslint, @calcom/example-app-credential-sync, @calcom/exchange2013calendar, @calcom/exchange2016calendar, @calcom/exchangecalendar, @calcom/facetime, @calcom/fathom, @calcom/feature-auth, @calcom/features, @calcom/feishucalendar, @calcom/fonio-ai, @calcom/framer, @calcom/ga4, @calcom/giphy, @calcom/googlecalendar, @calcom/googlevideo, @calcom/granola, @calcom/greetmate-ai, @calcom/gtm, @calcom/hitpay, @calcom/horizon-workrooms, @calcom/hubspot, @calcom/huddle01video, @calcom/ics-feed, @calcom/insihts, @calcom/intercom, @calcom/jelly, @calcom/jitsivideo, @calcom/kysely, @calcom/larkcalendar, @calcom/lib, @calcom/lindy, @calcom/linear, @calcom/make, @calcom/matomo, @calcom/metapixel, @calcom/millis-ai, @calcom/mirotalk, @calcom/mock-payment-app, @calcom/monobot, @calcom/n8n, @calcom/nextcloudtalk, @calcom/office365calendar, @calcom/office365video, @calcom/paypal, @calcom/ping, @calcom/pipedream, @calcom/pipedrive-crm, @calcom/platform-constants, @calcom/platform-enums, @calcom/platform-libraries, @calcom/platform-types, @calcom/platform-utils, @calcom/plausible, @calcom/posthog, @calcom/prisma, @calcom/qr_code, @calcom/raycast, @calcom/retell-ai, @calcom/riverside, @calcom/roam, @calcom/routing-forms, @calcom/salesforce, @calcom/salesroom, @calcom/sendgrid, @calcom/shimmer-video, @calcom/signal, @calcom/sirius_video, @calcom/skype, @calcom/stripepayment, @calcom/sylapsvideo, @calcom/synthflow, @calcom/tandemvideo, @calcom/telegram, @calcom/telli, @calcom/timeless-ui-docs, @calcom/trpc, @calcom/tsconfig, @calcom/twipla, @calcom/types, @calcom/ui, @calcom/umami, @calcom/vimcal, @calcom/vital, @calcom/weather_in_your_calendar, @calcom/web, @calcom/webex, @calcom/whatsapp, @calcom/whereby, @calcom/wordpress, @calcom/zapier, @calcom/zoho-bigin, @calcom/zohocalendar, @calcom/zohocrm, @calcom/zoomvideo, WipeMyCal
+• Running type-check:ci in 137 packages
+• Remote caching disabled
+@calcom/trpc:build
+@calcom/embed-snippet:type-check:ci
+@calcom/embed-react:type-check:ci
+@calcom/embed-core:type-check:ci
+@calcom/ui:type-check:ci
+cache bypass, force executing c5af7ba832c2ae90
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:1:15 - error TS2305: Module '"@prisma/client"' has no exported member 'Payment'.
+
+1 import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
+                ~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:1:24 - error TS2305: Module '"@prisma/client"' has no exported member 'Booking'.
+
+1 import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
+                         ~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:1:33 - error TS2305: Module '"@prisma/client"' has no exported member 'PaymentOption'.
+
+1 import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
+                                  ~~~~~~~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:1:56 - error TS2305: Module '"@prisma/client"' has no exported member 'Credential'.
+
+1 import type { Payment, Booking, PaymentOption, Prisma, Credential } from "@prisma/client";
+                                                         ~~~~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:2:46 - error TS2307: Cannot find module '@calcom/app-store/_utils/payments/IAbstractPaymentService' or its corresponding type declarations.
+
+2 import type { IAbstractPaymentService } from "@calcom/app-store/_utils/payments/IAbstractPaymentService";
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:143:52 - error TS2694: Namespace '"/home/runner/actions-runner/_work/cal.com/cal.com/node_modules/.prisma/client/default".Prisma' has no exported member 'InputJsonObject'.
+
+143           data: paymentIntent as unknown as Prisma.InputJsonObject,
+                                                       ~~~~~~~~~~~~~~~
+
+/home/runner/actions-runner/_work/cal.com/cal.com/packages/app-store/coinley/lib/PaymentService.ts:206:54 - error TS2694: Namespace '"/home/runner/actions-runner/_work/cal.com/cal.com/node_modules/.prisma/client/default".Prisma' has no exported member 'InputJsonObject'.
+
+206           data: capturedPayment as unknown as Prisma.InputJsonObject,
+                                                         ~~~~~~~~~~~~~~~
+
+
+Found 7 errors in the same file, starting at: ../app-store/coinley/lib/PaymentService.ts:1
+
+Error:  command finished with error: command (/home/runner/actions-runner/_work/cal.com/cal.com/packages/ui) /tmp/xfs-0e4d5ac1/yarn run type-check:ci exited (2)
+@calcom/app-store:type-check:ci
+@calcom/api:type-check:ci
+@calcom/web:type-check:ci
+Error: @calcom/ui#type-check:ci: command (/home/runner/actions-runner/_work/cal.com/cal.com/packages/ui) /tmp/xfs-0e4d5ac1/yarn run type-check:ci exited (2)
+
+ Tasks:    4 successful, 8 total
+Cached:    0 cached, 8 total
+  Time:    1m56.97s 
+Failed:    @calcom/ui#type-check:ci
+
+ ERROR  run failed: command  exited (2)
+Error: Process completed with exit code 2.
+
+
+
+@cubic-dev-ai[bot] commented on this pull request.
+
+14 issues found across 32 files
+
+Prompt for AI agents (all 14 issues)
+Since this is your first cubic review, here's how it works:
+
+cubic automatically reviews your code and comments on bugs and improvements
+Teach cubic by replying to its comments. cubic learns from your replies and gets better over time
+Ask questions if you need clarification on any suggestion
+Reply to cubic to teach it or ask questions. Re-run a review with @cubic-dev-ai review this PR
+
+In packages/app-store/coinley/components/InstallAppButton.tsx:
+
+> +        }
++      } else {
++        showToast(data.message || "Failed to install Coinley", "error");
++      }
++    } catch (error: any) {
++      console.error("Error installing Coinley:", error);
++      showToast(error.message || "Failed to install Coinley", "error");
++    } finally {
++      setLoading(false);
++    }
++  };
++
++  return (
++    <div className="space-y-6">
++      <div>
++        <h2 className="text-xl font-semibold">Connect Coinley</h2>
+All user-facing strings in this component bypass the required t() localization helper, so the UI cannot be translated.
+
+Prompt for AI agents
+In packages/app-store/coinley/components/EventTypeAppCardInterface.tsx:
+
+> +import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
++import useIsAppEnabled from "../../_utils/useIsAppEnabled";
++import type { appDataSchema } from "../zod";
++import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
++
++const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
++  app,
++  eventType,
++  eventTypeFormMetadata,
++}) {
++  const { t } = useLocale();
++  const pathname = usePathname();
++  const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
++  const { enabled, updateEnabled } = useIsAppEnabled(app);
++  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
++  const [requirePayment, _setRequirePayment] = useState(getAppData("enabled"));
+requirePayment is cached in unused state, so disableSwitch never reacts to changes coming from setAppData, leaving the Coinley switch disabled even after the user starts requiring payments.
+
+Prompt for AI agents
+In apps/web/components/apps/coinley/CoinleyPaymentComponent.tsx:
+
+> +  if (!credentials || !credentials.api_key || !credentials.api_secret) {
++    console.error("[Coinley] Missing API credentials");
++    return (
++      <>
++        <p className="mt-3 text-center text-red-600">
++          Payment gateway not configured. Please contact support.
++        </p>
++      </>
++    );
++  }
++
++  return (
++    <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
++      <div className="w-full max-w-md space-y-6 text-center">
++        <div>
++          <h3 className="text-lg font-semibold mb-2">Complete Your Payment</h3>
+User-facing copy (title, spinner text, toast messages, etc.) is hard-coded in English instead of going through t(), violating the project’s localization requirement and preventing translation.
+
+Prompt for AI agents
+In apps/web/components/apps/coinley/CoinleyPaymentComponent.tsx:
+
+> +    console.log("[Coinley] Loading SDK from CDN...");
++
++    // Load the Coinley CDN script
++    const script = document.createElement("script");
++    script.id = "coinley-sdk-script";
++    script.src = "https://cdn.jsdelivr.net/npm/coinley-test@latest/dist/vanilla/coinley-vanilla.umd.js";
++    script.async = true;
++    script.onload = () => {
++      console.log("[Coinley] SDK loaded successfully");
++      // Initialize Coinley once script is loaded
++      if (typeof window !== "undefined" && "CoinleyVanilla" in window && !coinleyInstanceRef.current) {
++        try {
++          const CoinleyVanillaConstructor = (window as unknown as { CoinleyVanilla: new (...args: unknown[]) => unknown }).CoinleyVanilla;
++          coinleyInstanceRef.current = new CoinleyVanillaConstructor({
++            apiKey: credentials.api_key,
++            apiSecret: credentials.api_secret,
+This client component passes api_secret to the browser when constructing the Coinley SDK, exposing the merchant’s secret to anyone who opens the payment page. Secrets must be exchanged server-side for short-lived tokens or proxied through backend endpoints instead of shipping them to the client.
+
+Prompt for AI agents
+In packages/app-store/coinley/lib/PaymentService.ts:
+
+> +
++    // For blockchain payments, collectCard and create are similar
++    // The difference is in the backend handling (authorize vs capture)
++    return this.create(payment, bookingId, userId, username, bookerName, paymentOption, metadata);
++  }
++
++  /**
++   * Charge a previously authorized payment
++   */
++  async chargeCard(payment: Payment, _bookingId?: Booking["id"]): Promise<Payment> {
++    if (!this.credentials) {
++      throw new Error("Coinley credentials not configured");
++    }
++
++    try {
++      const paymentData = payment.data as CoinleyPaymentDetails;
+HOLD captures always fail because payment.data never has paymentId; the capture request is sent to /payments/undefined/capture instead of the real provider id.
+
+Prompt for AI agents
+ Fix with Cubic
+In packages/lib/currencyConversions.ts:
+
+> @@ -61,6 +61,14 @@ export const formatPrice = (price: number, currency: string | undefined, locale
+   switch (currency) {
+     case "BTC":
+       return `${price} sats`;
++    case "USDT":
++    case "USDC":
++    case "DAI":
++    case "ETH":
++    case "BNB":
++    case "MATIC":
++      // Cryptocurrencies - format with decimal places but no currency symbol
++      return `${convertFromSmallestToPresentableCurrencyUnit(price, currency).toFixed(2)} ${currency}`;
+Crypto price formatting ignores the provided locale by using toFixed, so non-English locales always see U.S.-style decimal separators.
+
+Prompt for AI agents
+⬇️ Suggested change
+-      return `${convertFromSmallestToPresentableCurrencyUnit(price, currency).toFixed(2)} ${currency}`;
++      return `${Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 6, useGrouping: false }).format(convertFromSmallestToPresentableCurrencyUnit(price, currency))} ${currency}`;
+In packages/app-store/coinley/README.md:
+
+> @@ -0,0 +1,192 @@
++# Coinley Payment Integration
++
++Accept cryptocurrency payments for your Cal.com bookings with Coinley. Support for USDT, USDC, DAI, and other major stablecoins across 8+ blockchains.
++
++## Features
++
++- 🔐 **Direct to Wallet** - Payments go directly to your wallet, no intermediaries
++- ⛓️ **Multi-Chain Support** - Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
++- 💰 **Multiple Currencies** - USDT, USDC, DAI, ETH, BNB, MATIC
+README advertises DAI/ETH/BNB/MATIC support even though the Coinley integration only exposes USDT and USDC, so merchants will expect unsupported payment options.
+
+Prompt for AI agents
+In packages/app-store/coinley/api/confirm-payment.ts:
+
+> @@ -0,0 +1,89 @@
++import type { NextApiRequest, NextApiResponse } from "next";
++import prisma from "@calcom/prisma";
++import type { Prisma } from "@prisma/client";
++
++/**
++ * Confirm payment directly from frontend (like WooCommerce AJAX approach)
++ * Called when the Coinley SDK onSuccess callback is triggered
++ */
++export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+This payment-confirmation endpoint lacks any authentication or signature verification, so any unauthenticated client can mark arbitrary bookings as paid and accepted.
+
+Prompt for AI agents
+In packages/app-store/coinley/api/add.ts:
+
+> +  }
++
++  try {
++    // Check authentication
++    const session = await getServerSession({ req, res });
++
++    if (!session?.user?.id) {
++      return res.status(401).json({ message: "Unauthorized" });
++    }
++
++    // Validate request body
++    const { api_key, api_secret } = req.body;
++
++    // Always use API URL from environment variable (users should not configure this)
++    // Note: SDK adds /api path automatically, so base URL should not include it
++    const api_url = process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
+Do not fall back to a hard-coded Coinley API URL. Require COINLEY_API_URL (via the shared env config) so that stored credentials always point to the documented Coinley host.
+
+Prompt for AI agents
+In packages/app-store/coinley/api/add.ts:
+
+> +    const { api_key, api_secret } = req.body;
++
++    // Always use API URL from environment variable (users should not configure this)
++    // Note: SDK adds /api path automatically, so base URL should not include it
++    const api_url = process.env.COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
++
++    // Validate credentials using Zod schema
++    // Note: Wallet addresses are configured in Coinley merchant dashboard, not during installation
++    const credentials = appKeysSchema.parse({
++      api_key,
++      api_secret,
++      api_url,
++    });
++
++    // Check if credential already exists for this user
++    const existingCredential = await prisma.credential.findFirst({
+Limit the credential lookup to the fields that are actually used (e.g., select only id) so we are not loading sensitive credential data unnecessarily.
+
+Prompt for AI agents
+ Fix with Cubic
+In packages/app-store/coinley/components/EventTypeAppSettingsInterface.tsx:
+
+> +          onChange={(input) => {
++            if (input) setAppData("paymentOption", input.value);
++          }}
++          className="mb-1 h-[38px] w-full"
++          isDisabled={seatsEnabled}
++        />
++      </div>
++      {seatsEnabled && paymentOption === "HOLD" && (
++        <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
++      )}
++
++      <div className="mt-4">
++        <Alert
++          className="mt-2"
++          severity="info"
++          title="Supported Cryptocurrencies"
+Wrap the “Supported Cryptocurrencies” title and paragraph copy in t() so the alert can be localized.
+
+Prompt for AI agents
+ Fix with Cubic
+In packages/features/ee/payments/pages/payment.tsx:
+
+> @@ -87,6 +104,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) =>
+       payment,
+       clientSecret: getClientSecretFromPayment(payment),
+       profile,
++      appCredentials: appCredentials || null,
+getServerSideProps now places the Coinley credential key (credential.key) into page props, so the secret is serialized and sent to every client visiting this page, leaking API credentials in violation of the project’s security policy.
+
+Prompt for AI agents
+ Fix with Cubic
+In packages/app-store/coinley/lib/PaymentService.ts:
+
+> +        data: {
++          uid: paymentUid,
++          appId: "coinley",
++          bookingId,
++          amount: payment.amount,
++          fee,
++          currency: payment.currency || "USDT",
++          success: false,
++          refunded: false,
++          data: paymentIntent as unknown as Prisma.InputJsonObject,
++          externalId: paymentIntent.payment.id,
++          paymentOption: paymentOption || "ON_BOOKING",
++        },
++      });
++
++      console.log("[Coinley] Payment created:", {
+Rule violated: Avoid Logging Sensitive Information
+
+Remove the plaintext logging of payment IDs, booking IDs, and amounts; these constitute sensitive financial data and must not be emitted to application logs.
+
+Prompt for AI agents
+ Fix with Cubic
+In packages/app-store/coinley/api/add.ts:
+
+> +        userId: session.user.id,
++        appId: "coinley",
++      },
++    });
++
++    if (existingCredential) {
++      // Update existing credential
++      await prisma.credential.update({
++        where: { id: existingCredential.id },
++        data: {
++          key: credentials as unknown as Prisma.InputJsonObject,
++          invalid: false,
++        },
++      });
++
++      console.log("[Coinley] Credentials updated for user:", session.user.id);
+Rule violated: Avoid Logging Sensitive Information
+
+User IDs are written to the logs whenever Coinley credentials are created or updated, which leaks PII in violation of the "Avoid Logging Sensitive Information" rule. Remove the identifier or replace it with an anonymized reference so sensitive data is never logged.
+
+Prompt for AI agents
+ Fix with Cubic
+—
