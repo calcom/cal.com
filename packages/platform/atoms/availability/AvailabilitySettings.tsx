@@ -394,11 +394,18 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           <Controller
             control={form.control}
             name="name"
-            render={({ field }) => (
+            rules={{
+              validate: (value) => {
+                const trimmed = value?.trim();
+                return (trimmed && trimmed.length > 0) || "Schedule name cannot be empty";
+              },
+            }}
+            render={({ field, fieldState }) => (
               <EditableHeading
                 className={cn(customClassNames?.editableHeadingClassName)}
                 isReady={!isLoading}
                 disabled={disableEditableHeading}
+                error={fieldState.error?.message}
                 {...field}
                 data-testid="availablity-title"
               />

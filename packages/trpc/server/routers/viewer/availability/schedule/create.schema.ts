@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZCreateInputSchema = z.object({
-  name: z.string(),
+  name: z.string().transform((val) => val.trim() || "Default Schedule"),
   schedule: z
     .array(
       z.array(
