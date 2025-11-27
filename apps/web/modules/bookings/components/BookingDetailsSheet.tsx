@@ -173,6 +173,9 @@ function BookingDetailsSheetInner({
         .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
+  const reason = booking.assignmentReason?.[0];
+  const reasonTitle = reason && assignmentReasonBadgeTitleMap(reason.reasonEnum);
+
   return (
     <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
@@ -183,6 +186,11 @@ function BookingDetailsSheetInner({
                 <Badge variant={statusBadge.variant} className="capitalize">
                   {statusBadge.label}
                 </Badge>
+                {reasonTitle && (
+                  <Badge variant="gray" className="capitalize">
+                    {reasonTitle}
+                  </Badge>
+                )}
                 {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
                 {recurringInfo && (
                   <Badge variant="gray">
@@ -514,19 +522,15 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
     return null;
   }
 
+  // we fetch only one assignment reason.
+  const reason = booking.assignmentReason[0];
+  if (!reason.reasonString) {
+    return null;
+  }
+
   return (
     <Section title={t("assignment_reason")}>
-      <div className="flex flex-col gap-2">
-        {booking.assignmentReason.map((reason, index) => {
-          const reasonTitle = assignmentReasonBadgeTitleMap(reason.reasonEnum);
-          return (
-            <div key={index} className="text-default text-sm">
-              <Badge variant="gray">{t(reasonTitle)}</Badge>
-              {reason.reasonString && <span className="ml-1">{reason.reasonString}</span>}
-            </div>
-          );
-        })}
-      </div>
+      <div className="text-default text-sm">{reason.reasonString}</div>
     </Section>
   );
 }
