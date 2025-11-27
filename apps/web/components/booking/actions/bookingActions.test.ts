@@ -394,7 +394,16 @@ describe("Booking Actions", () => {
           ...createMockContext().booking,
           status: BookingStatus.ACCEPTED,
           paid: true,
-          payment: [{ paymentOption: "HOLD", amount: 1000, currency: "usd", success: true }],
+          payment: [
+            {
+              paymentOption: "HOLD",
+              amount: 1000,
+              currency: "usd",
+              success: true,
+              appId: null,
+              refunded: false,
+            },
+          ],
         },
       });
       const actions = getAfterEventActions(context);
