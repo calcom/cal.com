@@ -102,7 +102,7 @@ export const EventMeta = ({
   const bookerState = useBookerStoreContext((state) => state.state);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
-  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
+  const [seatedEventData, _setSeatedEventData] = useBookerStoreContext(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
@@ -178,9 +178,8 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4">
+              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4 overflow-y-auto">
               <div
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
                   __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
                 }}
