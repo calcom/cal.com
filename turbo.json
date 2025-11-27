@@ -436,7 +436,7 @@
       "outputs": ["dist/**"],
       "env": ["EXPO_PUBLIC_CAL_API_KEY"]
     },
-    "cal-companion#ext:build": {
+    "cal-companion#build:ext": {
       "outputs": [".output/**"],
       "env": ["EXPO_PUBLIC_CAL_API_KEY"]
     },
