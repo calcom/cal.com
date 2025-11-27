@@ -38,6 +38,44 @@ import type { fieldsSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
+/**
+ * Normalizes field data by converting empty label strings to undefined.
+ * This ensures that empty labels fall back to the default label instead of being saved as empty strings.
+ */
+function normalizeFieldLabels(data: RhfFormField): RhfFormField {
+  const normalizedData = { ...data };
+
+  // Normalize main label: convert empty string to undefined
+  if (normalizedData.label === "") {
+    normalizedData.label = undefined;
+  }
+
+  // Normalize variant field labels
+  if (normalizedData.variantsConfig?.variants) {
+    const normalizedVariants = { ...normalizedData.variantsConfig.variants };
+    for (const variantKey of Object.keys(normalizedVariants)) {
+      const variant = normalizedVariants[variantKey];
+      if (variant?.fields) {
+        normalizedVariants[variantKey] = {
+          ...variant,
+          fields: variant.fields.map((field) => {
+            if (field.label === "" || field.label === field.name) {
+              return { ...field, label: undefined };
+            }
+            return field;
+          }),
+        };
+      }
+    }
+    normalizedData.variantsConfig = {
+      ...normalizedData.variantsConfig,
+      variants: normalizedVariants,
+    };
+  }
+
+  return normalizedData;
+}
+
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
 };
@@ -379,30 +417,31 @@ export const FormBuilder = function FormBuilder({
             })
           }
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
-            const type = data.type || "text";
+            const normalizedData = normalizeFieldLabels(data);
+            const type = normalizedData.type || "text";
             const isNewField = !fieldDialog.data;
 
-            if (data.name === "guests" && type !== "multiemail") {
+            if (normalizedData.name === "guests" && type !== "multiemail") {
               showToast(t("guests_field_must_be_multiemail"), "error");
               return;
             }
 
-            if (isNewField && fields.some((f) => f.name === data.name)) {
+            if (isNewField && fields.some((f) => f.name === normalizedData.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
             if (fieldDialog.data) {
-              update(fieldDialog.fieldIndex, data);
+              update(fieldDialog.fieldIndex, normalizedData);
             } else {
               const field: RhfFormField = {
-                ...data,
+                ...normalizedData,
                 type,
                 sources: [
                   {
                     label: "User",
                     type: "user",
                     id: "user",
-                    fieldRequired: data.required,
+                    fieldRequired: normalizedData.required,
                   },
                 ],
               };
