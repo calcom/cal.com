@@ -4,4 +4,6 @@ export type OAuthTokenPayload = {
   token_type: string;
   scope: string[];
   clientId: string;
+  codeChallenge?: string | null;
+  codeChallengeMethod?: string | null;
 };

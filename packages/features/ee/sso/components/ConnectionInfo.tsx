@@ -49,7 +49,7 @@ export default function ConnectionInfo({
         <OIDCInfo callbackUrl={connection.callbackUrl} />
       )}
       <hr className="border-subtle my-6" />
-      <div className="flex flex-col space-y-3">
+      <div className="flex flex-col stack-y-3">
         <Label>{t("danger_zone")}</Label>
         <Dialog>
           <div>
@@ -83,7 +83,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
   }
 
   return (
-    <div className="space-y-6">
+    <div className="stack-y-6">
       <div className="flex flex-col">
         <div className="flex">
           <Label>ACS URL</Label>
