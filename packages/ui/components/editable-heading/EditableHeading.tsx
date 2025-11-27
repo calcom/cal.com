@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
 import { Icon } from "../icon";
