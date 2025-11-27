@@ -1,0 +1,46 @@
+name: Companion production build
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  EXPO_PUBLIC_CAL_API_KEY: ${{ secrets.CI_EXPO_PUBLIC_CAL_API_KEY }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  build:
+    name: Build Companion
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Cache Companion production build
+        uses: buildjet/cache@v4
+        id: cache-companion-build
+        env:
+          cache-name: companion-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/companion/**.[jt]s', 'apps/companion/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            ${{ github.workspace }}/apps/companion/dist
+            ${{ github.workspace }}/apps/companion/.output
+            **/.turbo/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+      - name: Log Cache Hit
+        if: steps.cache-companion-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for Companion build. Skipping build."
+      - name: Run build
+        if: steps.cache-companion-build.outputs.cache-hit != 'true'
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn turbo run build:web ext:build --filter=cal-companion...
+        shell: bash

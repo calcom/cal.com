@@ -8,12 +8,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build:web": "expo export --platform web --output-dir dist",
     "ext:build": "wxt build",
     "ext": "wxt",
     "ext:zip": "wxt zip",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "prepare": "cd .. && husky companion/.husky"
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\""
   },
   "dependencies": {
     "@expo/ui": "^0.2.0-beta.7",

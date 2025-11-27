@@ -432,6 +432,14 @@
         "MOTIFLAND_DOCS_PROJECT_ID"
       ]
     },
+    "cal-companion#build:web": {
+      "outputs": ["dist/**"],
+      "env": ["EXPO_PUBLIC_CAL_API_KEY"]
+    },
+    "cal-companion#ext:build": {
+      "outputs": [".output/**"],
+      "env": ["EXPO_PUBLIC_CAL_API_KEY"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
