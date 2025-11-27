@@ -102,13 +102,8 @@ export default function More() {
         </View>
 
         {/* Authentication Info and Logout */}
-        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
-          <View className="border-b border-[#E5E5EA] px-5 py-4">
-            <Text className="text-sm font-medium text-gray-700">Authentication</Text>
-          </View>
-          <View className="px-5 py-4">
-            <LogoutButton variant="destructive" className="w-full" />
-          </View>
+        <View className="py-4">
+          <LogoutButton variant="destructive" className="w-full bg-transparent text-gray-900" />
         </View>
 
         <Text className="mt-4 text-sm text-gray-500">

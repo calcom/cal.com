@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, Text, Alert } from "react-native";
+import { TouchableOpacity, Text, Alert, Platform } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 
 interface LogoutButtonProps {
@@ -8,7 +8,7 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ className = "", variant = "default" }: LogoutButtonProps) {
-  const { logout, isUsingOAuth } = useAuth();
+  const { logout } = useAuth();
 
   const getButtonStyles = () => {
     switch (variant) {
@@ -21,47 +21,23 @@ export function LogoutButton({ className = "", variant = "default" }: LogoutButt
     }
   };
 
-  const getTextStyles = () => {
-    switch (variant) {
-      case "destructive":
-        return "text-white font-medium";
-      case "ghost":
-        return "text-blue-600 font-medium";
-      default:
-        return "text-white font-medium";
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+      Alert.alert("Error", "Failed to sign out. Please try again.");
     }
   };
 
-  const handleLogout = () => {
-    const authMethod = isUsingOAuth ? "OAuth" : "API key";
-
-    Alert.alert(
-      "Sign Out",
-      `Are you sure you want to sign out? You'll need to authenticate again using ${authMethod}.`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert("Error", "Failed to sign out. Please try again.");
-            }
-          },
-        },
-      ]
-    );
-  };
-
   return (
-    <TouchableOpacity onPress={handleLogout} className={`${getButtonStyles()} ${className}`}>
-      <Text className={getTextStyles()}>Sign Out</Text>
+    <TouchableOpacity
+      onPress={handleLogout}
+      className={`${getButtonStyles()} ${className}`}
+      style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
+      activeOpacity={0.7}
+    >
+      <Text className="font-medium text-gray-900">Sign Out</Text>
     </TouchableOpacity>
   );
 }
