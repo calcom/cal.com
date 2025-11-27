@@ -4,6 +4,8 @@ import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
+import type { BookingRepository } from "../../repositories/BookingRepository";
+
 export type ReservedSlotMeta = {
   eventTypeId: number;
   slotUtcStart: Date;
@@ -12,11 +14,15 @@ export type ReservedSlotMeta = {
 };
 
 export async function createInstantBookingWithReservedSlot(
-  prismaClient: PrismaClient,
-  selectedSlotsRepository: PrismaSelectedSlotRepository,
+  deps: {
+    prismaClient: PrismaClient;
+    selectedSlotsRepository: PrismaSelectedSlotRepository;
+    bookingRepository: BookingRepository;
+  },
   createArgs: Prisma.BookingCreateArgs,
   reservedSlot: ReservedSlotMeta
 ) {
+  const { prismaClient, selectedSlotsRepository, bookingRepository } = deps;
   return prismaClient.$transaction(async (tx) => {
     const earliestActive = await selectedSlotsRepository.findEarliestActiveSlot(reservedSlot, tx);
 
@@ -30,7 +36,7 @@ export async function createInstantBookingWithReservedSlot(
       });
     }
 
-    const booking = await tx.booking.create(createArgs);
+    const booking = await bookingRepository.create(createArgs, tx);
 
     await selectedSlotsRepository.deleteForEvent(reservedSlot, tx);
 

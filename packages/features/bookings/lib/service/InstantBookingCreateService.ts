@@ -14,6 +14,7 @@ import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/g
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { createInstantMeetingWithCalVideo } from "@calcom/features/conferencing/lib/videoClient";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
@@ -34,6 +35,7 @@ import { createInstantBookingWithReservedSlot } from "../handleNewBooking/create
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
   selectedSlotsRepository: PrismaSelectedSlotRepository;
+  bookingRepository: BookingRepository;
 }
 
 const handleInstantMeetingWebhookTrigger = async (args: {
@@ -282,12 +284,13 @@ export async function handler(
 
   const newBooking = await (async () => {
     if (bookingMeta?.reservedSlotUid) {
-      return createInstantBookingWithReservedSlot(prisma, deps.selectedSlotsRepository, createBookingObj, {
+      const reservedSlot = {
         eventTypeId: reqBody.eventTypeId,
         slotUtcStart: bookingStartUtc,
         slotUtcEnd: bookingEndUtc,
-        reservedSlotUid: bookingMeta.reservedSlotUid!,
-      });
+        reservedSlotUid: bookingMeta.reservedSlotUid,
+      };
+      return createInstantBookingWithReservedSlot(deps, createBookingObj, reservedSlot);
     }
     return prisma.booking.create(createBookingObj);
   })();

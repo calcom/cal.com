@@ -123,6 +123,11 @@ const buildWhereClauseForActiveBookings = ({
 export class BookingRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  async create(args: Prisma.BookingCreateArgs, tx?: Prisma.TransactionClient) {
+    const db = tx ?? this.prismaClient;
+    return db.booking.create(args);
+  }
+
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
       where: {
