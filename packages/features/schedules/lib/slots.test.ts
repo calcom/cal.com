@@ -840,4 +840,60 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     vi.useRealTimers();
   });
+
+  it("should mark slots as away when OOO is on next day and availability extends past midnight", async () => {
+    // This test reproduces the bug where:
+    // - Day 1 has availability from 00:00 to 23:59
+    // - Day 2 is marked as OOO
+    // - Slots generated after midnight are not marked as away
+
+    vi.setSystemTime(dayjs.utc("2025-11-17T00:00:00Z").toDate());
+
+    const day1Start = dayjs.utc("2025-11-17T00:00:00Z");
+    const day2End = dayjs.utc("2025-11-18T23:59:59Z");
+
+    // OOO data for Day 2 (2025-11-18)
+    const datesOutOfOffice = {
+      "2025-11-18": {
+        fromUser: { id: 1, displayName: "Test User" },
+        toUser: null,
+        reason: "Out of office",
+        emoji: "🏖️",
+      },
+    };
+
+    const slots = getSlots({
+      inviteeDate: day1Start,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      eventLength: 15,
+      dateRanges: [
+        {
+          start: day1Start,
+          end: day2End,
+        },
+      ],
+      datesOutOfOffice,
+    });
+
+    // Filter slots by day
+    const day1Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-17");
+    const day2Slots = slots.filter((slot) => slot.time.format("YYYY-MM-DD") === "2025-11-18");
+
+    // Day 1 slots should NOT be marked as away
+    day1Slots.forEach((slot) => {
+      expect(slot.away).toBeUndefined();
+    });
+
+    expect(day2Slots.length).toBeGreaterThan(0);
+    
+    // Day 2 slots should be marked as away
+    day2Slots.forEach((slot) => {
+      expect(slot.away).toBe(true);
+      expect(slot.reason).toBe("Out of office");
+      expect(slot.emoji).toBe("🏖️");
+    });
+
+    vi.useRealTimers();
+  });
 });
