@@ -1,6 +1,9 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { THasNoShowForEventTypeInputSchema } from "./hasNoShowForEventType.schema";
 
@@ -13,9 +16,17 @@ type HasNoShowOptions = {
 };
 
 export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOptions) => {
-  // Fetch event type to get teamId, orgId (team.parentId), and parentId (for managed children)
-  const eventType = await ctx.prisma.eventType.findUnique({
-    where: { id: input.eventTypeId },
+  const userTeamIds = await MembershipRepository.findUserTeamIds({ userId: ctx.user.id });
+
+  const eventType = await ctx.prisma.eventType.findFirst({
+    where: {
+      id: input.eventTypeId,
+      OR: [
+        { userId: ctx.user.id },
+        { users: { some: { id: ctx.user.id } } },
+        { AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }] },
+      ],
+    },
     select: {
       id: true,
       teamId: true,
@@ -30,10 +41,7 @@ export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOpti
   });
 
   if (!eventType) {
-    return {
-      hasHostNoShow: false,
-      hasGuestNoShow: false,
-    };
+    throw new TRPCError({ code: "NOT_FOUND" });
   }
 
   // Use parentId directly from the event type (for managed children)
