@@ -69,6 +69,7 @@ import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -414,6 +415,7 @@ export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
+  selectedSlotsRepository: PrismaSelectedSlotRepository;
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
@@ -1733,12 +1735,17 @@ async function handler(
 
       const isTeamEvent = eventType.schedulingType;
       if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
-        booking = await createBookingWithReservedSlot(deps.prismaClient, createArgs, {
-          eventTypeId,
-          slotUtcStart: bookingStartUtc,
-          slotUtcEnd: bookingEndUtc,
-          reservedSlotUid: input.reservedSlotUid,
-        });
+        booking = await createBookingWithReservedSlot(
+          deps.prismaClient,
+          deps.selectedSlotsRepository,
+          createArgs,
+          {
+            eventTypeId,
+            slotUtcStart: bookingStartUtc,
+            slotUtcEnd: bookingEndUtc,
+            reservedSlotUid: input.reservedSlotUid,
+          }
+        );
       } else {
         booking = await createBooking(createArgs);
       }

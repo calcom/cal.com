@@ -23,6 +23,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -32,6 +33,7 @@ import { createInstantBookingWithReservedSlot } from "../handleNewBooking/create
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
+  selectedSlotsRepository: PrismaSelectedSlotRepository;
 }
 
 const handleInstantMeetingWebhookTrigger = async (args: {
@@ -280,7 +282,7 @@ export async function handler(
 
   const newBooking = await (async () => {
     if (bookingMeta?.reservedSlotUid) {
-      return createInstantBookingWithReservedSlot(prisma, createBookingObj, {
+      return createInstantBookingWithReservedSlot(prisma, deps.selectedSlotsRepository, createBookingObj, {
         eventTypeId: reqBody.eventTypeId,
         slotUtcStart: bookingStartUtc,
         slotUtcEnd: bookingEndUtc,

@@ -3,6 +3,7 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
+import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
@@ -20,6 +21,7 @@ import { Module } from "@nestjs/common";
     PrismaFeaturesRepository,
     PrismaHostRepository,
     PrismaOOORepository,
+    PrismaSelectedSlotRepository,
     PrismaUserRepository,
     CheckBookingAndDurationLimitsService,
     CheckBookingLimitsService,
@@ -29,4 +31,4 @@ import { Module } from "@nestjs/common";
   ],
   exports: [RegularBookingService],
 })
-export class RegularBookingModule { }
+export class RegularBookingModule {}

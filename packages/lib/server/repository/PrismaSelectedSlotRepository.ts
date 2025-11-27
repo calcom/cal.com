@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -87,6 +88,49 @@ export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
         eventTypeId: { equals: eventTypeId },
         releaseAt: { lt: currentTimeInUtc },
       },
+    });
+  }
+
+  async deleteForEvent(
+    reservedSlot: {
+      eventTypeId: number;
+      slotUtcStart: Date;
+      slotUtcEnd: Date;
+      reservedSlotUid: string;
+    },
+    tx?: Prisma.TransactionClient
+  ) {
+    const db = tx || this.prismaClient;
+    return db.selectedSlots.deleteMany({
+      where: {
+        eventTypeId: reservedSlot.eventTypeId,
+        slotUtcStartDate: reservedSlot.slotUtcStart,
+        slotUtcEndDate: reservedSlot.slotUtcEnd,
+        uid: reservedSlot.reservedSlotUid,
+      },
+    });
+  }
+
+  async findEarliestActiveSlot(
+    reservedSlot: {
+      eventTypeId: number;
+      slotUtcStart: Date;
+      slotUtcEnd: Date;
+    },
+    tx?: Prisma.TransactionClient
+  ) {
+    const db = tx || this.prismaClient;
+    const now = dayjs.utc().toDate();
+
+    return await db.selectedSlots.findFirst({
+      where: {
+        eventTypeId: reservedSlot.eventTypeId,
+        slotUtcStartDate: reservedSlot.slotUtcStart,
+        slotUtcEndDate: reservedSlot.slotUtcEnd,
+        releaseAt: { gt: now },
+      },
+      orderBy: [{ releaseAt: "asc" }, { id: "asc" }],
+      select: { uid: true, releaseAt: true },
     });
   }
 }
