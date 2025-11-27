@@ -1832,8 +1832,6 @@ async function handler(
         });
         evt.attendeeSeatId = uniqueAttendeeId;
 
-        // Update the evt attendees to include the bookingSeat information
-        // This is needed for the payment service to correctly filter attendees for email sending
         evt = {
           ...evt,
           attendees: evt.attendees.map((attendee) => {
@@ -1847,7 +1845,7 @@ async function handler(
                   metadata: newBookingSeat.metadata,
                   bookingId: newBookingSeat.bookingId,
                   attendeeId: newBookingSeat.attendeeId,
-                  paymentId: null, // updated after payment is processed in handleSeats
+                  paymentId: null,
                 },
               };
             }
