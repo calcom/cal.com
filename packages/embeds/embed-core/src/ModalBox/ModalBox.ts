@@ -175,9 +175,9 @@ export class ModalBox extends EmbedElement {
     const message = this.dataset.message;
     const errorMessage = this.dataset.errorCode
       ? getErrorString({
-          errorCode: this.dataset.errorCode,
-          errorMessage: message,
-        })
+        errorCode: this.dataset.errorCode,
+        errorMessage: message,
+      })
       : null;
     const messageToShow = errorMessage || message;
     if (messageToShow) {
@@ -250,6 +250,7 @@ export class ModalBox extends EmbedElement {
     const modalHtml = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${modalBoxHtml({
       layout: this.getLayout(),
       pageType: this.getPageType() ?? null,
+      externalThemeClass: this.themeClass
     })}`;
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;

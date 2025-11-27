@@ -189,7 +189,7 @@ export function EditMemberSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-cal-muted">
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
@@ -216,8 +216,8 @@ export function EditMemberSheet({
                 </Skeleton>
               </div>
             </SheetHeader>
-            <SheetBody className="flex flex-col space-y-4 p-4">
-              <div className="mb-4 flex flex-col space-y-4">
+            <SheetBody className="flex flex-col stack-y-4 p-4">
+              <div className="mb-4 flex flex-col stack-y-4">
                 <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                 <DisplayInfo label="Cal" value={bookingLink} icon="external-link" />
                 <DisplayInfo label={t("email")} value={selectedUser.email} icon="at-sign" />

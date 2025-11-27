@@ -244,7 +244,7 @@ export const ReassignDialog = ({
                           />
                           <div
                             className={classNames(
-                              "h-3 w-3 flex-shrink-0 rounded-full",
+                              "h-3 w-3 shrink-0 rounded-full",
                               member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
                             )}
                           />

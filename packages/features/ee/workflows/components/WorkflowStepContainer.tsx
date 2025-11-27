@@ -123,7 +123,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
 
 const CalAIAgentDataSkeleton = () => {
   return (
-    <div className="bg-muted mt-4 rounded-lg p-4">
+    <div className="bg-cal-muted mt-4 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <div>
           <SkeletonText className="h-5 w-28" />
@@ -848,7 +848,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
-            <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
@@ -875,7 +875,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
           {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
           {stepAgentId && agentData && (
-            <div className="bg-muted mt-4 rounded-lg p-4">
+            <div className="bg-cal-muted mt-4 rounded-lg p-4">
               <div
                 className="flex cursor-pointer items-center justify-between"
                 onClick={(e) => {
@@ -1019,7 +1019,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {isPhoneNumberNeeded && (
-            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+            <div className="bg-cal-muted mt-2 rounded-md p-4 pt-0">
               <Label className="pt-4">{t("custom_phone_number")}</Label>
               <div className="block sm:flex">
                 <Controller
@@ -1132,7 +1132,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             )}
           {isEmailAddressNeeded && !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-5 rounded-2xl border p-4">
+            <div className="bg-cal-muted border-muted mt-5 rounded-2xl border p-4">
               <Label>{t("email_address")}</Label>
               <div className="block items-center gap-2 sm:flex">
                 <Controller
@@ -1304,7 +1304,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-3 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border p-3">
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
@@ -1316,7 +1316,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {t("email_subject")}
                     </Label>
                     {!props.readOnly && !isFormTrigger(trigger) && (
-                      <div className="flex-grow text-right">
+                      <div className="grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
                           variables={DYNAMIC_TEXT_VARIABLES}
@@ -1520,7 +1520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   ? t("how_form_responses_as_variables")
                   : t("how_booking_questions_as_variables")}
               </h1>
-              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
+              <div className="mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
@@ -1540,7 +1540,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div className="test-sm text-emphasis col-span-7">{t("company_size")}</div>
                     <div className="test-sm text-default col-span-5 w-full">{t("variable")}</div>
 
-                    <div className="test-sm text-emphasis col-span-7 break-words">
+                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1558,7 +1558,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     <div className="test-sm text-emphasis col-span-7">{t("what_help_needed")}</div>
                     <div className="test-sm text-default col-span-5">{t("variable")}</div>
-                    <div className="test-sm text-emphasis col-span-7 break-words">
+                    <div className="test-sm text-emphasis col-span-7 wrap-break-word">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1631,7 +1631,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         {/* Unsubscribe Confirmation Dialog */}
         <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
-            <div className="space-y-4">
+            <div className="stack-y-4">
               <p className="text-default text-sm">{t("do_you_still_want_to_unsubscribe")}</p>
               {getActivePhoneNumbers(
                 agentData?.outboundPhoneNumbers?.map((phone) => ({
@@ -1639,7 +1639,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                <div className="bg-muted rounded-lg p-3">
+                <div className="bg-cal-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Icon name="phone" className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
@@ -1689,7 +1689,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         {/* Delete Step Confirmation Dialog */}
         <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
           <DialogContent type="confirmation" title={t("delete_workflow_step")}>
-            <div className="space-y-4">
+            <div className="stack-y-4">
               <p className="text-default text-sm">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
               {(() => {
                 const relevantPhoneNumbers =
@@ -1703,9 +1703,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
                           <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
-                          <div className="space-y-2">
+                          <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
-                            <ul className="text-attention list-inside list-disc space-y-1 text-sm">
+                            <ul className="text-attention list-inside list-disc stack-y-1 text-sm">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
@@ -1715,10 +1715,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       </div>
                       {relevantPhoneNumbers.map((phone) => (
-                        <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
-                          <div className="flex items-center gap-2">
-                            <Icon name="phone" className="text-emphasis h-4 w-4" />
-                            <span className="text-emphasis text-sm font-medium">
+                        <div key={phone.phoneNumber} className="p-3 rounded-lg bg-cal-muted">
+                          <div className="flex gap-2 items-center">
+                            <Icon name="phone" className="w-4 h-4 text-emphasis" />
+                            <span className="text-sm font-medium text-emphasis">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
                             {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (

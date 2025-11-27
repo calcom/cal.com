@@ -36,7 +36,7 @@ export const AvailableTimesHeader = ({
   return (
     <header
       className={classNames(
-        `dark:bg-muted dark:before:bg-muted mb-3 flex w-full flex-row items-center font-medium`,
+        `dark:bg-cal-muted dark:before:bg-cal-muted mb-3 flex w-full flex-row items-center font-medium`,
         "bg-default before:bg-default",
         customClassNames?.availableTimeSlotsHeaderContainer
       )}>

@@ -70,7 +70,7 @@ export function RenameSegmentDialog({
       <DialogContent>
         <DialogHeader title={t("rename_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="stack-y-4">
             <TextField
               required
               data-testid="rename-segment-name"

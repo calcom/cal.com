@@ -31,7 +31,7 @@ export const AdminOnboardingHandover = () => {
   const onboardingUrl = `${WEBAPP_URL}/settings/organizations/new/resume?onboardingId=${onboardingId}`;
 
   return (
-    <div className="space-y-6">
+    <div className="stack-y-6">
       {/* Instructions Card */}
       <div className="bg-subtle rounded-lg p-6">
         <h3 className="text-emphasis mb-2 text-lg font-medium">{t("next_steps")}</h3>
@@ -40,7 +40,7 @@ export const AdminOnboardingHandover = () => {
           setup:
         </p>
 
-        <div className="space-y-3">
+        <div className="stack-y-3">
           <div className="bg-default flex items-center gap-2 rounded-md border p-3">
             <code className="text-default flex-1 truncate font-mono text-sm" data-testid="onboarding-url">
               {onboardingUrl}

@@ -236,7 +236,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         </div>
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mb-10 mt-6 space-y-6">
+          <div className="mb-10 mt-6 stack-y-6">
             {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -270,7 +270,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             )}
             {/* Bulk Invite */}
             {modalImportMode === "BULK" && (
-              <div className="bg-muted flex flex-col rounded-md p-4">
+              <div className="bg-cal-muted flex flex-col rounded-md p-4">
                 <Controller
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
@@ -399,7 +399,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </div>
           <DialogFooter showDivider>
             {!disableCopyLink && (
-              <div className="flex-grow">
+              <div className="grow">
                 <Button
                   type="button"
                   color="minimal"

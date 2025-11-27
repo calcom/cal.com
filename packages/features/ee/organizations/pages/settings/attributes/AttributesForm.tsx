@@ -212,7 +212,7 @@ const GroupOption = ({
     <div key={option.id}>
       <div className="mb-2 flex items-center gap-2" key={option.id}>
         <div className="flex w-full items-center justify-between gap-2">
-          <Input {...form.register(`options.${index}.value`)} className="!mb-0 w-36" />
+          <Input {...form.register(`options.${index}.value`)} className="mb-0! w-36" />
           <SelectField
             isMulti
             placeholder={t("choose_an_option")}
@@ -362,7 +362,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
   return (
     <Form
       form={form}
-      className="flex flex-col space-y-4 lg:space-y-6"
+      className="flex flex-col stack-y-4 lg:stack-y-6"
       handleSubmit={(values) => {
         onSubmit({
           ...values,
@@ -423,7 +423,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
         )}
       />
       {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedType) && (
-        <div className="bg-muted border-muted mt-6 rounded-lg border p-6">
+        <div className="bg-cal-muted border-muted mt-6 rounded-lg border p-6">
           <div className="flex flex-col gap-2">
             <div>
               <Label>{t("options")}</Label>

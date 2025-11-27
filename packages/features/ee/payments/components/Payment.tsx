@@ -80,7 +80,7 @@ export const PaymentFormComponent = (
         <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
       </div>
       {paymentOption === "HOLD" && (
-        <div className="bg-info mb-5 mt-2 rounded-md p-3">
+        <div className="bg-cal-info mb-5 mt-2 rounded-md p-3">
           <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,

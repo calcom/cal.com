@@ -177,7 +177,7 @@ export default function Login({
     : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
+    <div className="text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
@@ -193,7 +193,7 @@ export default function Login({
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-3">
+              <div className="stack-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
                     color="primary"
@@ -224,11 +224,11 @@ export default function Login({
               {(isGoogleLoginEnabled || displaySSOLogin) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
-                    <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                    <div className="border-subtle grow border-t" />
+                    <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
                       {t("or").toLocaleLowerCase()}
                     </span>
-                    <div className="border-subtle flex-grow border-t" />
+                    <div className="border-subtle grow border-t" />
                   </div>
                 </div>
               )}
@@ -239,8 +239,8 @@ export default function Login({
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+            <div className="stack-y-6">
+              <div className={classNames("stack-y-6", { hidden: twoFactorRequired })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}

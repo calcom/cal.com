@@ -85,7 +85,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
     <>
       <Form
         form={newOrganizationFormMethods}
-        className="space-y-5"
+        className="stack-y-5"
         id="createOrg"
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isPending) {

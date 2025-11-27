@@ -17,10 +17,10 @@ export function SkeletonLoader({ className }: { className?: string }) {
 function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between p-3">
-      <div className="flex-grow truncate text-sm">
+      <div className="grow truncate text-sm">
         <div className="flex justify-start space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-10 w-10" />
-          <div className="space-y-1">
+          <div className="stack-y-1">
             <div>
               <SkeletonText className="h-4 w-16" />
             </div>
@@ -30,7 +30,7 @@ function SkeletonItem() {
           </div>
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 sm:ml-5 sm:mt-0 lg:flex">
+      <div className="mt-4 hidden shrink-0 sm:ml-5 sm:mt-0 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-11 w-32" />
         </div>
