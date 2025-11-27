@@ -30,8 +30,9 @@ export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> 
 
     try {
       if (action === BookingActionMap.rescheduled) {
-        if (schedulingType === "ROUND_ROBIN") return this.dispatch("rrReschedule", payload);
-        {
+        if (schedulingType === "ROUND_ROBIN") {
+          taskResponse = await this.dispatch("rrReschedule", payload);
+        } else {
           taskResponse = await this.dispatch("reschedule", payload);
         }
       }
