@@ -32,7 +32,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const userProfile = user.profile;
 
   // Validate profile exists and user has access
-  const profile = await ProfileRepository.findByUpId(userProfile.upId, user.id);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }

@@ -492,9 +492,9 @@ export class ProfileRepository {
     return normalizeProfile(profile);
   }
 
-  static async findByUpId(upId: string, userId: number) {
+  static async findByUpIdWithAuth(upId: string, userId: number) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    log.debug("findByUpId", safeStringify({ upId, lookupTarget, userId }));
+    log.debug("findByUpIdWithAuth", safeStringify({ upId, lookupTarget, userId }));
 
     if (lookupTarget.type === LookupTarget.User) {
       const targetUserId = lookupTarget.id;

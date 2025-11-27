@@ -20,7 +20,7 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
+describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
   let user1: { id: number; email: string; username: string };
   let user2: { id: number; email: string; username: string };
   let org1: { id: number; name: string; slug: string };
@@ -135,7 +135,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
   describe("UUID-based profile identifiers (new secure format)", () => {
     it("should allow user to access their own profile", async () => {
-      const result = await ProfileRepository.findByUpId(profile1.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile1.upId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);
@@ -146,20 +146,20 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
     it("should allow user to access profile from their organization", async () => {
       // Add User 1 as member of Org 1 (already done in setup)
       // User 1 should be able to access their own profile
-      const result = await ProfileRepository.findByUpId(profile1.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile1.upId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);
     });
 
     it("should prevent cross-tenant access - user from org1 cannot access org2 profile", async () => {
-      const result = await ProfileRepository.findByUpId(profile2.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile2.upId, user1.id);
 
       expect(result).toBeNull();
     });
 
     it("should prevent cross-tenant access - user from org2 cannot access org1 profile", async () => {
-      const result = await ProfileRepository.findByUpId(profile1.upId, user2.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile1.upId, user2.id);
 
       expect(result).toBeNull();
     });
@@ -174,7 +174,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
         },
       });
 
-      const result = await ProfileRepository.findByUpId(profile1.upId, user3.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile1.upId, user3.id);
 
       expect(result).toBeNull();
     });
@@ -191,7 +191,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
       });
 
       // Now User 1 should be able to access Profile 2 (from Org 2)
-      const result = await ProfileRepository.findByUpId(profile2.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile2.upId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile2.id);
@@ -208,7 +208,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
         },
       });
 
-      const result = await ProfileRepository.findByUpId(profile2.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile2.upId, user1.id);
 
       expect(result).toBeNull();
     });
@@ -217,7 +217,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
   describe("Legacy numeric profile IDs (backward compatibility)", () => {
     it("should support legacy numeric IDs for backward compatibility", async () => {
       const legacyUpId = profile1.id.toString();
-      const result = await ProfileRepository.findByUpId(legacyUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(legacyUpId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);
@@ -225,14 +225,14 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
     it("should prevent cross-tenant access with legacy numeric IDs", async () => {
       const legacyUpId = profile2.id.toString();
-      const result = await ProfileRepository.findByUpId(legacyUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(legacyUpId, user1.id);
 
       expect(result).toBeNull();
     });
 
     it("should allow access to own profile with legacy numeric ID", async () => {
       const legacyUpId = profile1.id.toString();
-      const result = await ProfileRepository.findByUpId(legacyUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(legacyUpId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);
@@ -242,7 +242,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
   describe("User profile identifiers (usr- format)", () => {
     it("should allow user to access their own user profile", async () => {
       const userUpId = `usr-${user1.id}`;
-      const result = await ProfileRepository.findByUpId(userUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(userUpId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.upId).toBe(userUpId);
@@ -251,7 +251,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
     it("should prevent user from accessing another user's profile", async () => {
       const userUpId = `usr-${user2.id}`;
-      const result = await ProfileRepository.findByUpId(userUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(userUpId, user1.id);
 
       expect(result).toBeNull();
     });
@@ -259,7 +259,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
     it("should require userId parameter for security", async () => {
       const userUpId = `usr-${user1.id}`;
       // userId is now required - this test verifies the method signature
-      const result = await ProfileRepository.findByUpId(userUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(userUpId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.upId).toBe(userUpId);
@@ -269,18 +269,18 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
   describe("Authorization edge cases", () => {
     it("should return null for non-existent profile", async () => {
       const fakeUpId = `prof-${ProfileRepository.generateProfileUid()}`;
-      const result = await ProfileRepository.findByUpId(fakeUpId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(fakeUpId, user1.id);
 
       expect(result).toBeNull();
     });
 
     it("should return null for invalid upId format", async () => {
-      await expect(() => ProfileRepository.findByUpId("invalid-format", user1.id)).rejects.toThrow();
+      await expect(() => ProfileRepository.findByUpIdWithAuth("invalid-format", user1.id)).rejects.toThrow();
     });
 
     it("should require userId parameter - authorization check always runs", async () => {
       // userId is now required - authorization check always runs
-      const result = await ProfileRepository.findByUpId(profile1.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile1.upId, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile1.id);
@@ -320,7 +320,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
         },
       });
 
-      const result = await ProfileRepository.findByUpId(
+      const result = await ProfileRepository.findByUpIdWithAuth(
         `prof-${platformProfile.uid}`,
         platformUser.id
       );
@@ -412,7 +412,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
       // Try to access profile1 using its numeric ID (legacy format)
       const legacyUpId = profile1.id.toString();
-      const result = await ProfileRepository.findByUpId(legacyUpId, attacker.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(legacyUpId, attacker.id);
 
       // Should be blocked - attacker is not a member of org1
       expect(result).toBeNull();
@@ -429,7 +429,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
       // Try to access profile using UUID (even if guessed)
       const guessedUpId = `prof-${ProfileRepository.generateProfileUid()}`;
-      const result = await ProfileRepository.findByUpId(guessedUpId, attacker.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(guessedUpId, attacker.id);
 
       // Should return null (profile doesn't exist or no access)
       expect(result).toBeNull();
@@ -437,7 +437,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
 
     it("should prevent access to profiles from different organizations", async () => {
       // User 1 from Org 1 tries to access User 2's profile from Org 2
-      const result = await ProfileRepository.findByUpId(profile2.upId, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(profile2.upId, user1.id);
 
       expect(result).toBeNull();
     });
@@ -471,7 +471,7 @@ describe("ProfileRepository.findByUpId - IDOR Security Fix", () => {
       });
 
       // User 1 (member of Org 1) should be able to access User 3's profile (also in Org 1)
-      const result = await ProfileRepository.findByUpId(`prof-${profile3.uid}`, user1.id);
+      const result = await ProfileRepository.findByUpIdWithAuth(`prof-${profile3.uid}`, user1.id);
 
       expect(result).not.toBeNull();
       expect(result?.id).toBe(profile3.id);

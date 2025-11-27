@@ -57,7 +57,7 @@ const fetchEventTypeGroups = async ({
   teamId,
 }: {
   ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
-  profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpId>>>;
+  profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpIdWithAuth>>>;
   parentOrgHasLockedEventTypes: boolean | undefined;
   skipEventTypes: boolean;
   teamId?: number;
@@ -214,7 +214,7 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
   const shouldSkipEventTypes = isOrg;
 
   const userProfile = ctx.user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId, ctx.user.id);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, ctx.user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
