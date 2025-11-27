@@ -962,7 +962,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
+                username: getOrgUsernameFromEmail(user.email, getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

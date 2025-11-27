@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
+  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition cursor-pointer disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
@@ -54,7 +54,7 @@ export const buttonClasses = cva(
           "bg-brand-default",
           "text-brand",
           // Hover state
-          "enabled:hover:bg-brand-emphasis",
+          "not-disabled:hover:bg-brand-emphasis",
           // Focus state
           "focus-visible:outline-none",
           "focus-visible:ring-0",
@@ -65,8 +65,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-button-solid-brand-default",
-          "enabled:active:shadow-button-solid-brand-active",
-          "enabled:hover:shadow-button-solid-brand-hover",
+          "not-disabled:active:shadow-button-solid-brand-active",
+          "not-disabled:hover:shadow-button-solid-brand-hover",
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -79,8 +79,8 @@ export const buttonClasses = cva(
           "border",
           "border-default",
           // Hover state
-          "enabled:hover:bg-muted",
-          "enabled:hover:text-emphasis",
+          "not-disabled:hover:bg-cal-muted",
+          "not-disabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
           // Focus state
@@ -90,8 +90,8 @@ export const buttonClasses = cva(
           "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
           "shadow-outline-gray-rested",
-          "enabled:hover:shadow-outline-gray-hover",
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:hover:shadow-outline-gray-hover",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -101,9 +101,9 @@ export const buttonClasses = cva(
           "text-subtle",
           "border border-transparent",
           // Hover
-          "enabled:hover:bg-subtle",
-          "enabled:hover:text-emphasis",
-          "enabled:hover:border-subtle hover:border",
+          "not-disabled:hover:bg-subtle",
+          "not-disabled:hover:text-emphasis",
+          "not-disabled:hover:border-subtle hover:border",
           // Disabled
           "disabled:opacity-30",
           // Focus
@@ -114,7 +114,7 @@ export const buttonClasses = cva(
           "focus-visible:shadow-button-outline-gray-focused",
 
           // Shadows and effects
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -142,8 +142,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-outline-red-rested",
-          "enabled:hover:shadow-outline-red-hover",
-          "enabled:active:shadow-outline-red-active",
+          "not-disabled:hover:shadow-outline-red-hover",
+          "not-disabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -187,22 +187,22 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
+        className: "min-h-[36px] min-w-[36px] p-2! hover:border-default",
       },
       {
         variant: "icon",
         size: "xs",
-        className: "h-5 w-5 !p-1 rounded-md",
+        className: "h-5 w-5 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-1 rounded-md",
+        className: "h-6 w-6 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "lg",
-        className: "h-10 w-10 !p-1",
+        className: "h-10 w-10 p-1!",
       },
       {
         variant: "fab",
@@ -273,7 +273,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 name={StartIcon}
                 className={classNames(
                   loading ? "invisible" : "visible",
-                  "button-icon group-active:translate-y-[0.5px]",
+                  "button-icon group-[:not(div):active]:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
                   variant === "button" && "h-4 w-4 stroke-[1.5px] "
                 )}
@@ -286,7 +286,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           "contents", // This makes the div behave like it doesn't exist in the layout
           loading ? "invisible" : "visible",
           variant === "fab" ? "hidden md:contents" : "",
-          "group-active:translate-y-[0.5px]"
+          "group-[:not(div):active]:translate-y-[0.5px]"
         )}>
         {props.children}
       </div>
@@ -321,7 +321,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               name={EndIcon}
               className={classNames(
                 loading ? "invisible" : "visible",
-                "group-active:translate-y-[0.5px]",
+                "group-[:not(div):active]:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
                 variant === "button" && "h-4 w-4 stroke-[1.5px] "
               )}

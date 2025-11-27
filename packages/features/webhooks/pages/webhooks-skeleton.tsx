@@ -14,7 +14,7 @@ export const SkeletonLoader = () => {
       borderInShellHeader={false}
       CTA={null}>
       <SkeletonContainer>
-        <div className="divide-subtle border-subtle mt-6 space-y-6 rounded-lg border px-6 py-4">
+        <div className="divide-subtle border-subtle mt-6 stack-y-6 rounded-lg border px-6 py-4">
           <SkeletonText className="h-8 w-full" />
           <SkeletonText className="h-8 w-full" />
         </div>
