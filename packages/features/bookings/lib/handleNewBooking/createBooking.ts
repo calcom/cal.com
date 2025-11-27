@@ -89,7 +89,7 @@ const _createBooking = async (
     tracking,
   }: CreateBookingParams & { rescheduledBy: string | undefined },
   deps: {
-    tx?: Prisma.TransactionClient;
+    tx: Prisma.TransactionClient;
     routingFormResponseRepository: RoutingFormResponseRepository;
     bookingRepository: BookingRepository;
   }
@@ -147,7 +147,7 @@ async function saveBooking(
   paymentAppData: PaymentAppData,
   organizerUser: CreateBookingParams["eventType"]["organizerUser"],
   deps: {
-    tx?: Prisma.TransactionClient;
+    tx: Prisma.TransactionClient;
     routingFormResponseRepository: RoutingFormResponseRepository;
     bookingRepository: BookingRepository;
   }
@@ -199,11 +199,7 @@ async function saveBooking(
     return booking;
   };
 
-  if (deps?.tx) {
-    return run(deps.tx);
-  }
-
-  return prisma.$transaction(run);
+  return run(deps.tx);
 }
 
 function getEventTypeRel(eventTypeId: EventTypeId) {
