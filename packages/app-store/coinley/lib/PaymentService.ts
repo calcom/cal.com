@@ -29,7 +29,7 @@ interface CoinleyPaymentIntent {
     chainId?: number;
     tokenAddress?: string;
     tokenDecimals?: number;
-    [key: string]: any; // For additional fields
+    [key: string]: unknown; // For additional fields
   };
 }
 
@@ -135,6 +135,7 @@ export class PaymentService implements IAbstractPaymentService {
       const fee = Math.round(payment.amount * feePercentage);
 
       // Store payment in database
+      // Include public_key in data for frontend SDK initialization
       const storedPayment = await prisma.payment.create({
         data: {
           uid: paymentUid,
@@ -145,7 +146,12 @@ export class PaymentService implements IAbstractPaymentService {
           currency: payment.currency || "USDT",
           success: false,
           refunded: false,
-          data: paymentIntent as unknown as Prisma.InputJsonObject,
+          data: {
+            ...paymentIntent,
+            credentials: {
+              public_key: this.credentials.public_key,
+            },
+          } as unknown as Prisma.InputJsonObject,
           externalId: paymentIntent.payment.id,
           paymentOption: paymentOption || "ON_BOOKING",
         },
@@ -154,9 +160,10 @@ export class PaymentService implements IAbstractPaymentService {
       console.log("[Coinley] Payment created successfully");
 
       return storedPayment;
-    } catch (error: any) {
-      console.error("[Coinley] Error creating payment:", error.response?.data || error.message);
-      throw new Error(`Failed to create Coinley payment: ${error.response?.data?.message || error.message}`);
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      console.error("[Coinley] Error creating payment:", axiosError.response?.data || axiosError.message);
+      throw new Error(`Failed to create Coinley payment: ${axiosError.response?.data?.message || axiosError.message}`);
     }
   }
 
@@ -218,9 +225,10 @@ export class PaymentService implements IAbstractPaymentService {
       console.log("[Coinley] Payment captured successfully");
 
       return updatedPayment;
-    } catch (error: any) {
-      console.error("[Coinley] Error capturing payment:", error.response?.data || error.message);
-      throw new Error(`Failed to capture payment: ${error.response?.data?.message || error.message}`);
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      console.error("[Coinley] Error capturing payment:", axiosError.response?.data || axiosError.message);
+      throw new Error(`Failed to capture payment: ${axiosError.response?.data?.message || axiosError.message}`);
     }
   }
 
@@ -261,9 +269,10 @@ export class PaymentService implements IAbstractPaymentService {
       console.log("[Coinley] Payment refunded successfully");
 
       return refundedPayment;
-    } catch (error: any) {
-      console.error("[Coinley] Error refunding payment:", error.response?.data || error.message);
-      throw new Error(`Failed to refund payment: ${error.response?.data?.message || error.message}`);
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      console.error("[Coinley] Error refunding payment:", axiosError.response?.data || axiosError.message);
+      throw new Error(`Failed to refund payment: ${axiosError.response?.data?.message || axiosError.message}`);
     }
   }
 
@@ -290,8 +299,9 @@ export class PaymentService implements IAbstractPaymentService {
       console.log("[Coinley] Payment deleted successfully");
 
       return true;
-    } catch (error: any) {
-      console.error("[Coinley] Error deleting payment:", error.response?.data || error.message);
+    } catch (error) {
+      const axiosError = error as { response?: { data?: unknown }; message?: string };
+      console.error("[Coinley] Error deleting payment:", axiosError.response?.data || axiosError.message);
       return false;
     }
   }
@@ -330,15 +340,15 @@ export class PaymentService implements IAbstractPaymentService {
    * After payment actions (send confirmations, etc.)
    */
   async afterPayment(
-    event: any,
-    booking: {
+    _event: unknown,
+    _booking: {
       user: { email: string | null; name: string | null; timeZone: string } | null;
       id: number;
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment,
-    eventTypeMetadata?: any
+    _paymentData: Payment,
+    _eventTypeMetadata?: unknown
   ): Promise<void> {
     console.log("[Coinley] After payment hook executed");
 
@@ -367,9 +377,10 @@ export class PaymentService implements IAbstractPaymentService {
     try {
       const response = await this.client.get<CoinleyPaymentDetails>(`/payments/${externalId}`);
       return response.data;
-    } catch (error: any) {
-      console.error("[Coinley] Error getting payment status:", error.response?.data || error.message);
-      throw new Error(`Failed to get payment status: ${error.response?.data?.message || error.message}`);
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
+      console.error("[Coinley] Error getting payment status:", axiosError.response?.data || axiosError.message);
+      throw new Error(`Failed to get payment status: ${axiosError.response?.data?.message || axiosError.message}`);
     }
   }
 

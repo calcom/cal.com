@@ -40,6 +40,9 @@ const PaymentCoinleyDataSchema = z.object({
     tokenAddress: z.string().optional(),
     tokenDecimals: z.number().optional(),
   }),
+  credentials: z.object({
+    public_key: z.string(),
+  }).optional(),
 });
 
 export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) => {
@@ -50,19 +53,19 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
   const { t } = useLocale();
   const coinleyInstanceRef = useRef<unknown>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isRetryingRef = useRef(false); // Track if we're in retry mode to prevent cleanup closing modal
   const [isInitialized, setIsInitialized] = useState(false);
   const [hasOpened, setHasOpened] = useState(false); // Prevent reopening
   const [isProcessing, setIsProcessing] = useState(false); // Track payment processing
+  const [isCancelled, setIsCancelled] = useState(false); // Track if user cancelled payment
 
   // Parse data early so we can use it in hooks
   const parsedData = PaymentCoinleyDataSchema.safeParse(data);
   const paymentData = parsedData.success ? parsedData.data : null;
   const paymentInfo = paymentData?.payment;
 
-  // Get credentials from paymentPageProps
-  const credentials = paymentPageProps.appCredentials as {
-    public_key: string;
-  } | null;
+  // Get credentials from payment data (stored when payment was created)
+  const credentials = paymentData?.credentials || null;
 
   // API URL is hardcoded - users don't provide it
   const apiUrl = process.env.NEXT_PUBLIC_COINLEY_API_URL || "https://talented-mercy-production.up.railway.app";
@@ -213,7 +216,77 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
   // Handle payment modal close
   const handlePaymentClose = useCallback(() => {
     console.log("[Coinley] ℹ️ Payment modal closed");
+    // Only set cancelled if not processing (user manually closed)
+    if (!isProcessing) {
+      setIsCancelled(true);
+    }
+  }, [isProcessing]);
+
+  // Handle retry payment
+  const handleRetryPayment = useCallback(() => {
+    console.log("[Coinley] 🔄 Retrying payment...");
+
+    // Set retry flag BEFORE any state changes to prevent cleanup from closing modal
+    isRetryingRef.current = true;
+
+    // Close old modal if exists (but don't destroy - SDK might not support it)
+    const oldInstance = coinleyInstanceRef.current as { close?: () => void } | null;
+    if (oldInstance && typeof oldInstance.close === 'function') {
+      try {
+        oldInstance.close();
+      } catch (e) {
+        console.log("[Coinley] Error closing old modal:", e);
+      }
+    }
+
+    // Clear instance ref so useEffect creates a new one
+    coinleyInstanceRef.current = null;
+
+    // Reset states - this will trigger the useEffect to reinitialize
+    // Since CoinleyVanilla persists on window, it will be reused without reloading script
+    setIsCancelled(false);
+    setHasOpened(false);
+    setIsInitialized(false);
   }, []);
+
+  // Helper function to initialize SDK and open modal
+  const initializeAndOpen = useCallback(() => {
+    if (typeof window === "undefined" || !("CoinleyVanilla" in window) || !credentials || !paymentConfig) {
+      return false;
+    }
+
+    try {
+      const CoinleyVanillaConstructor = (window as unknown as { CoinleyVanilla: new (...args: unknown[]) => unknown }).CoinleyVanilla;
+      coinleyInstanceRef.current = new CoinleyVanillaConstructor({
+        publicKey: credentials.public_key,
+        apiUrl: apiUrl,
+        theme: "light",
+        debug: true,
+      });
+
+      console.log("[Coinley] SDK initialized, opening modal...");
+
+      // Open payment modal
+      const instance = coinleyInstanceRef.current as { open: (config: unknown, callbacks: unknown) => void };
+      instance.open(paymentConfig, {
+        onSuccess: handlePaymentSuccess,
+        onError: handlePaymentError,
+        onClose: handlePaymentClose,
+      });
+      setIsInitialized(true);
+      setHasOpened(true);
+
+      // Clear retry flag after successful initialization
+      isRetryingRef.current = false;
+
+      console.log("[Coinley] Modal opened successfully");
+      return true;
+    } catch (error) {
+      console.error("[Coinley] Failed to initialize:", error);
+      showToast("Failed to load payment gateway", "error");
+      return false;
+    }
+  }, [credentials, apiUrl, paymentConfig, handlePaymentSuccess, handlePaymentError, handlePaymentClose]);
 
   // Load Coinley CDN script and initialize (moved to top level before conditional returns)
   useEffect(() => {
@@ -222,62 +295,30 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
       return;
     }
 
-    // Prevent duplicate script loading (React Strict Mode runs effects twice in dev)
-    const existingScript = document.getElementById("coinley-sdk-script");
-    const existingLink = document.getElementById("coinley-sdk-styles");
+    // Skip if we already have an active instance
+    if (coinleyInstanceRef.current) {
+      console.log("[Coinley] Already have active instance, skipping");
+      return;
+    }
 
-    if (existingScript || coinleyInstanceRef.current) {
-      console.log("[Coinley] SDK already loaded, skipping initialization");
+    // Check if CoinleyVanilla is already on window (from previous load or retry)
+    if (typeof window !== "undefined" && "CoinleyVanilla" in window) {
+      console.log("[Coinley] CoinleyVanilla already available, reusing...");
+      initializeAndOpen();
+      return;
+    }
+
+    // Check if script is already loading
+    const existingScript = document.getElementById("coinley-sdk-script");
+    if (existingScript) {
+      console.log("[Coinley] Script already loading, waiting...");
       return;
     }
 
     console.log("[Coinley] Loading SDK from CDN...");
 
-    // Load the Coinley CDN script
-    const script = document.createElement("script");
-    script.id = "coinley-sdk-script";
-    script.src = "https://cdn.jsdelivr.net/npm/coinley-test@latest/dist/vanilla/coinley-vanilla.umd.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("[Coinley] SDK loaded successfully");
-      // Initialize Coinley once script is loaded
-      if (typeof window !== "undefined" && "CoinleyVanilla" in window && !coinleyInstanceRef.current) {
-        try {
-          const CoinleyVanillaConstructor = (window as unknown as { CoinleyVanilla: new (...args: unknown[]) => unknown }).CoinleyVanilla;
-          coinleyInstanceRef.current = new CoinleyVanillaConstructor({
-            publicKey: credentials.public_key,
-            apiUrl: apiUrl,
-            theme: "light",
-            debug: true,
-          });
-
-          console.log("[Coinley] SDK initialized, opening modal...");
-
-          // Open payment modal only once
-          const instance = coinleyInstanceRef.current as { open: (config: unknown, callbacks: unknown) => void };
-          instance.open(paymentConfig, {
-            onSuccess: handlePaymentSuccess,
-            onError: handlePaymentError,
-            onClose: handlePaymentClose,
-          });
-          setIsInitialized(true);
-          setHasOpened(true); // Mark as opened
-
-          console.log("[Coinley] Modal opened successfully");
-        } catch (error) {
-          console.error("[Coinley] Failed to initialize:", error);
-          showToast("Failed to load payment gateway", "error");
-        }
-      }
-    };
-    script.onerror = () => {
-      console.error("[Coinley] Failed to load CDN script");
-      showToast("Failed to load payment gateway", "error");
-    };
-
-    document.head.appendChild(script);
-
-    // Load CSS only if not already present
+    // Load CSS first if not already present
+    const existingLink = document.getElementById("coinley-sdk-styles");
     if (!existingLink) {
       const link = document.createElement("link");
       link.id = "coinley-sdk-styles";
@@ -286,9 +327,32 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
       document.head.appendChild(link);
     }
 
+    // Load the Coinley CDN script
+    const script = document.createElement("script");
+    script.id = "coinley-sdk-script";
+    script.src = "https://cdn.jsdelivr.net/npm/coinley-test@latest/dist/coinley-vanilla.min.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("[Coinley] SDK loaded successfully");
+      initializeAndOpen();
+    };
+    script.onerror = () => {
+      console.error("[Coinley] Failed to load CDN script");
+      showToast("Failed to load payment gateway", "error");
+    };
+
+    document.head.appendChild(script);
+
     // Cleanup - but don't remove global script/styles, just close modal
     return () => {
-      console.log("[Coinley] Cleanup effect triggered");
+      console.log("[Coinley] Cleanup effect triggered, isRetrying:", isRetryingRef.current);
+
+      // Skip cleanup if we're retrying - the modal should stay open
+      if (isRetryingRef.current) {
+        console.log("[Coinley] Skipping cleanup - retry in progress");
+        return;
+      }
+
       const instance = coinleyInstanceRef.current as { close?: () => void } | null;
       if (instance && instance.close) {
         instance.close();
@@ -297,7 +361,7 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
       // Only reset the instance ref
       coinleyInstanceRef.current = null;
     };
-  }, [credentials, apiUrl, paymentConfig, handlePaymentSuccess, handlePaymentError, handlePaymentClose, hasOpened, isProcessing]); // Dependencies properly listed
+  }, [credentials, apiUrl, paymentConfig, handlePaymentSuccess, handlePaymentError, handlePaymentClose, hasOpened, isProcessing, initializeAndOpen]); // Dependencies properly listed
 
   // Handle data validation errors
   if (!parsedData.success || !parsedData.data?.payment?.id) {
@@ -335,7 +399,7 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
 
         {/* Container for Coinley payment UI */}
         <div ref={containerRef} id="coinley-payment-container">
-          {!isInitialized && !isProcessing && (
+          {!isInitialized && !isProcessing && !isCancelled && (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
               <p className="ml-3 text-sm text-gray-600">Loading payment gateway...</p>
@@ -347,10 +411,21 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
               <p className="mt-3 text-sm text-green-600">Processing payment...</p>
             </div>
           )}
+          {isCancelled && (
+            <div className="flex flex-col items-center justify-center p-8">
+              <p className="text-sm text-gray-600 mb-4">Payment was cancelled. Click below to try again.</p>
+              <button
+                onClick={handleRetryPayment}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-gray-500">
-          Supported: USDT, USDC, DAI • Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
+          Supported: USDT, USDC • Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
         </p>
 
         <div className="text-xs text-gray-400">Powered by Coinley • Secured by Blockchain</div>

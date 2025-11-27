@@ -76,23 +76,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  // Get app credentials for payment apps (e.g., Coinley)
-  let appCredentials = null;
-  if (payment.appId === "coinley" && eventType.userId) {
-    const credential = await prisma.credential.findFirst({
-      where: {
-        appId: "coinley",
-        userId: eventType.userId,
-      },
-      select: {
-        key: true,
-      },
-    });
-    if (credential?.key) {
-      appCredentials = credential.key;
-    }
-  }
-
   return {
     props: {
       user,
@@ -104,7 +87,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       payment,
       clientSecret: getClientSecretFromPayment(payment),
       profile,
-      appCredentials: appCredentials || null,
     },
   };
 };

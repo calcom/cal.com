@@ -60,7 +60,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Merchant credentials not found" });
     }
 
-    const credentials = appKeysSchema.parse(credential.key);
+    // Validate credentials format (not used for public endpoint, but validates merchant setup)
+    const _credentials = appKeysSchema.parse(credential.key);
 
     // Verify payment status with Coinley API
     // API URL is configured via environment variable
@@ -68,20 +69,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const apiUrl = baseURL.endsWith("/api") ? baseURL : `${baseURL}/api`;
 
     try {
-      const verifyResponse = await axios.get(`${apiUrl}/payments/${paymentId}`, {
-        headers: {
-          "X-Public-Key": credentials.public_key,
-        },
+      // First check payment status using public endpoint
+      const statusResponse = await axios.get(`${apiUrl}/payments/public/${paymentId}`, {
         timeout: 10000,
       });
 
-      const paymentStatus = verifyResponse.data;
+      const paymentStatus = statusResponse.data?.payment?.status;
 
       // Only mark as paid if Coinley confirms payment is successful
-      if (paymentStatus.status !== "confirmed" && paymentStatus.status !== "completed") {
+      if (paymentStatus !== "confirmed" && paymentStatus !== "completed") {
         return res.status(400).json({
           error: "Payment not confirmed",
-          status: paymentStatus.status,
+          status: paymentStatus,
         });
       }
     } catch (verifyError) {
@@ -101,7 +100,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...(payment.data as object),
           transactionHash,
           status: "confirmed",
-          paymentDetails,
           confirmedAt: new Date().toISOString(),
         } as unknown as Prisma.InputJsonObject,
       },
@@ -127,11 +125,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       bookingId,
       paymentId,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Coinley] Error confirming payment:", error);
     return res.status(500).json({
       error: "Internal server error",
-      message: error.message,
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
