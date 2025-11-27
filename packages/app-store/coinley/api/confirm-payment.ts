@@ -45,6 +45,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Payment not found" });
     }
 
+    // SECURITY: Validate that the client-supplied paymentId matches the stored payment
+    // This prevents attackers from using a different confirmed paymentId to mark arbitrary bookings as paid
+    const storedPaymentData = payment.data as { payment?: { id?: string } } | null;
+    const storedPaymentId = storedPaymentData?.payment?.id;
+
+    if (!storedPaymentId || storedPaymentId !== paymentId) {
+      console.error("[Coinley] Payment ID mismatch - possible attack attempt", {
+        expected: storedPaymentId,
+        received: paymentId,
+      });
+      return res.status(403).json({ error: "Payment ID does not match booking" });
+    }
+
     // Get merchant credentials to verify payment with Coinley API
     const credential = await prisma.credential.findFirst({
       where: {

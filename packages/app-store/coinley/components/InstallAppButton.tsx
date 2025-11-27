@@ -5,9 +5,11 @@ import { Button } from "@calcom/ui/components/button";
 import { TextField, Label } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InstallAppButton() {
   const router = useRouter();
+  const { t } = useLocale();
   const [loading, setLoading] = useState(false);
   const [publicKey, setPublicKey] = useState("");
 
@@ -27,16 +29,16 @@ export default function InstallAppButton() {
       const data = await response.json();
 
       if (data.success) {
-        showToast("Coinley installed successfully!", "success");
+        showToast(t("coinley_installed_successfully"), "success");
         if (data.redirectUrl) {
           router.push(data.redirectUrl);
         }
       } else {
-        showToast(data.message || "Failed to install Coinley", "error");
+        showToast(data.message || t("coinley_install_failed"), "error");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error installing Coinley:", error);
-      showToast(error.message || "Failed to install Coinley", "error");
+      showToast(t("coinley_install_failed"), "error");
     } finally {
       setLoading(false);
     }
@@ -45,16 +47,15 @@ export default function InstallAppButton() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Connect Coinley</h2>
+        <h2 className="text-xl font-semibold">{t("coinley_connect_title")}</h2>
         <p className="text-sm text-gray-600 mt-2">
-          Accept cryptocurrency payments directly to your wallet with Coinley. Support for USDT, USDC, and
-          more across Ethereum, BSC, Polygon, and other major blockchains.
+          {t("coinley_connect_description")}
         </p>
       </div>
 
       <form onSubmit={handleInstall} className="space-y-4">
         <div>
-          <Label htmlFor="public_key">Public Key</Label>
+          <Label htmlFor="public_key">{t("coinley_public_key")}</Label>
           <TextField
             id="public_key"
             type="text"
@@ -65,57 +66,57 @@ export default function InstallAppButton() {
             className="mt-1"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Get your public key from{" "}
+            {t("coinley_get_public_key")}{" "}
             <a
               href="https://merchant.coinley.io/settings"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline">
-              Coinley Settings
+              {t("coinley_settings")}
             </a>
-            {" "}(starts with pk_)
+            {" "}({t("coinley_starts_with_pk")})
           </p>
         </div>
 
         <div className="flex gap-2">
           <Button type="submit" loading={loading} className="flex-1">
-            {loading ? "Connecting..." : "Connect Coinley"}
+            {loading ? t("connecting") : t("coinley_connect_button")}
           </Button>
         </div>
       </form>
 
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <h3 className="font-medium text-blue-900">Before connecting:</h3>
+        <h3 className="font-medium text-blue-900">{t("coinley_before_connecting")}</h3>
         <ul className="mt-2 space-y-1 text-sm text-blue-800">
-          <li>✓ Configure your wallet addresses in the{" "}
+          <li>✓ {t("coinley_configure_wallets")}{" "}
             <a
               href="https://merchant.coinley.io/dashboard"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium underline">
-              Coinley Dashboard
+              {t("coinley_dashboard")}
             </a>
           </li>
-          <li>✓ Add wallet addresses for each network you want to support (Ethereum, BSC, Polygon, etc.)</li>
-          <li>✓ Generate your public key from the API Keys section (it's safe to share)</li>
+          <li>✓ {t("coinley_add_wallet_addresses")}</li>
+          <li>✓ {t("coinley_generate_public_key")}</li>
         </ul>
       </div>
 
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4 mt-4">
-        <h3 className="font-medium text-gray-900">Why Coinley?</h3>
+        <h3 className="font-medium text-gray-900">{t("coinley_why_coinley")}</h3>
         <ul className="mt-2 space-y-1 text-sm text-gray-700">
-          <li>✓ Accept crypto payments directly to your wallet</li>
-          <li>✓ No intermediaries - you control your funds</li>
-          <li>✓ Support for USDT and USDC on 8 EVM blockchains</li>
-          <li>✓ Lower fees than traditional payment processors</li>
-          <li>✓ Instant settlement - no waiting for payouts</li>
+          <li>✓ {t("coinley_benefit_direct_wallet")}</li>
+          <li>✓ {t("coinley_benefit_no_intermediaries")}</li>
+          <li>✓ {t("coinley_benefit_multi_chain")}</li>
+          <li>✓ {t("coinley_benefit_lower_fees")}</li>
+          <li>✓ {t("coinley_benefit_instant_settlement")}</li>
         </ul>
       </div>
 
       <div className="text-xs text-gray-500">
-        Don't have a Coinley account?{" "}
+        {t("coinley_no_account")}{" "}
         <a href="https://merchant.coinley.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-          Sign up for free
+          {t("coinley_sign_up_free")}
         </a>
       </div>
     </div>

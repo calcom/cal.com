@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Verify signature
     const signature = req.headers["x-coinley-signature"] as string;
-    const webhookSecret = process.env.COINLEY_WEBHOOK_SECRET || process.env.COINLEY_API_SECRET;
+    const webhookSecret = process.env.COINLEY_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
       console.error("[Coinley Webhook] Webhook secret not configured");
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ received: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Coinley Webhook] Error processing webhook:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
@@ -91,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * Handle payment pending event (transaction submitted to blockchain)
  */
-async function handlePaymentPending(event: any) {
+async function handlePaymentPending(event: { data: { paymentId: string; transactionHash?: string; network?: string; blockNumber?: number } }) {
   const { paymentId, transactionHash, network, blockNumber } = event.data;
 
   // Find payment in database
@@ -133,7 +133,7 @@ async function handlePaymentPending(event: any) {
 /**
  * Handle payment confirmed event (transaction confirmed on blockchain)
  */
-async function handlePaymentConfirmed(event: any) {
+async function handlePaymentConfirmed(event: { data: { paymentId: string; transactionHash?: string; confirmations?: number; network?: string; blockNumber?: number; metadata?: { bookingId?: string } } }) {
   const { paymentId, transactionHash, confirmations, network, blockNumber, metadata } = event.data;
 
   // Find payment in database by externalId OR by bookingId from metadata
@@ -162,7 +162,7 @@ async function handlePaymentConfirmed(event: any) {
     });
 
     if (booking?.payment?.[0]) {
-      payment = booking.payment[0] as any;
+      payment = booking.payment[0];
     }
   }
 
@@ -211,7 +211,7 @@ async function handlePaymentConfirmed(event: any) {
 /**
  * Handle payment failed event
  */
-async function handlePaymentFailed(event: any) {
+async function handlePaymentFailed(event: { data: { paymentId: string; reason?: string } }) {
   const { paymentId, reason } = event.data;
 
   const payment = await prisma.payment.findUnique({
@@ -262,11 +262,15 @@ async function handlePaymentFailed(event: any) {
 /**
  * Handle payment refunded event
  */
-async function handlePaymentRefunded(event: any) {
+async function handlePaymentRefunded(event: { data: { paymentId: string; refundTransactionHash?: string; refundAmount?: number } }) {
   const { paymentId, refundTransactionHash, refundAmount } = event.data;
 
   const payment = await prisma.payment.findUnique({
     where: { externalId: paymentId },
+    select: {
+      id: true,
+      data: true,
+    },
   });
 
   if (!payment) {

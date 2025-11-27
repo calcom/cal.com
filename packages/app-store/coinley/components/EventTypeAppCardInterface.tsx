@@ -1,5 +1,4 @@
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -22,7 +21,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
-  const [requirePayment, _setRequirePayment] = useState(getAppData("enabled"));
+  // Read enabled state directly from app data so it stays in sync with changes
+  const requirePayment = getAppData("enabled");
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   return (

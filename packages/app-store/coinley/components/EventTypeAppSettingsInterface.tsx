@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -25,7 +25,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     value: paymentOptions[0].value,
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
-  const [requirePayment, _setRequirePayment] = useState(getAppData("enabled"));
+  // Read enabled state directly from app data so it stays in sync
+  const requirePayment = getAppData("enabled");
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
@@ -50,7 +51,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     <>
       <div className="mt-2 block items-center sm:flex">
         <TextField
-          label="Price"
+          label={t("price")}
           labelSrOnly
           addOnLeading="$"
           addOnSuffix="USD"
@@ -70,7 +71,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         />
       </div>
       <p className="text-default mt-1 text-xs text-gray-500">
-        Customers can choose to pay with USDT or USDC in the payment modal
+        {t("coinley_currency_selection_info")}
       </p>
 
       <div className="mt-4 w-60">

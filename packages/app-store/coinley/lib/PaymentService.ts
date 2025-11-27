@@ -204,11 +204,15 @@ export class PaymentService implements IAbstractPaymentService {
     }
 
     try {
-      const paymentData = payment.data as unknown as CoinleyPaymentDetails;
+      // Use externalId which stores the Coinley payment ID from when payment was created
+      const coinleyPaymentId = payment.externalId;
+      if (!coinleyPaymentId) {
+        throw new Error("Payment has no external ID - cannot capture");
+      }
 
       // Capture the authorized payment
       const response = await this.client.post<CoinleyPaymentDetails>(
-        `/payments/${paymentData.paymentId}/capture`
+        `/payments/${coinleyPaymentId}/capture`
       );
 
       const capturedPayment = response.data;

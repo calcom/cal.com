@@ -391,9 +391,9 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
     <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div>
-          <h3 className="text-lg font-semibold mb-2">Complete Your Payment</h3>
+          <h3 className="text-lg font-semibold mb-2">{t("coinley_complete_payment")}</h3>
           <p className="text-sm text-gray-600">
-            Pay {paymentInfo?.amount} {paymentInfo?.currency}
+            {t("pay")} {paymentInfo?.amount} {paymentInfo?.currency}
           </p>
         </div>
 
@@ -402,33 +402,33 @@ export const CoinleyPaymentComponent = (props: ICoinleyPaymentComponentProps) =>
           {!isInitialized && !isProcessing && !isCancelled && (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-              <p className="ml-3 text-sm text-gray-600">Loading payment gateway...</p>
+              <p className="ml-3 text-sm text-gray-600">{t("coinley_loading_gateway")}</p>
             </div>
           )}
           {isProcessing && (
             <div className="flex flex-col items-center justify-center p-8">
               <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full"></div>
-              <p className="mt-3 text-sm text-green-600">Processing payment...</p>
+              <p className="mt-3 text-sm text-green-600">{t("coinley_processing_payment")}</p>
             </div>
           )}
           {isCancelled && (
             <div className="flex flex-col items-center justify-center p-8">
-              <p className="text-sm text-gray-600 mb-4">Payment was cancelled. Click below to try again.</p>
+              <p className="text-sm text-gray-600 mb-4">{t("coinley_payment_cancelled")}</p>
               <button
                 onClick={handleRetryPayment}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
-                Try Again
+                {t("try_again")}
               </button>
             </div>
           )}
         </div>
 
         <p className="text-xs text-gray-500">
-          Supported: USDT, USDC • Ethereum, BSC, Polygon, Arbitrum, Optimism, Avalanche, Celo, Base
+          {t("coinley_supported_tokens_networks")}
         </p>
 
-        <div className="text-xs text-gray-400">Powered by Coinley • Secured by Blockchain</div>
+        <div className="text-xs text-gray-400">{t("coinley_powered_by")}</div>
       </div>
     </div>
   );

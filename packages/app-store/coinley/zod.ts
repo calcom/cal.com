@@ -34,7 +34,7 @@ export type AppKeysSchema = z.infer<typeof appKeysSchema>;
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     // Payment settings
-    price: z.number().int().positive({ message: "Price must be greater than 0" }),
+    price: z.number().positive({ message: "Price must be greater than 0" }),
     currency: z.enum(SUPPORTED_CURRENCIES).default("USDT"),
 
     // Network selection
