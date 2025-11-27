@@ -1,7 +1,9 @@
 import { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
 import { createModule, bindModuleToClassOnToken } from "@calcom/features/di/di";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as selectedSlotsRepositoryModuleLoader } from "@calcom/features/di/modules/SelectedSlots";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 export const instantBookingCreateServiceModule = createModule();
 const token = DI_TOKENS.INSTANT_BOOKING_CREATE_SERVICE;
@@ -14,6 +16,8 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
     prismaClient: prismaModuleLoader,
+    bookingRepository: bookingRepositoryModuleLoader,
+    selectedSlotsRepository: selectedSlotsRepositoryModuleLoader,
   },
 });
 
