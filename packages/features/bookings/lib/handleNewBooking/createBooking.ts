@@ -12,6 +12,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { BookingRepository } from "../../repositories/BookingRepository";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -90,6 +91,7 @@ const _createBooking = async (
   deps: {
     tx?: Prisma.TransactionClient;
     routingFormResponseRepository: RoutingFormResponseRepository;
+    bookingRepository: BookingRepository;
   }
 ) => {
   updateEventDetails(evt, originalRescheduledBooking);
@@ -147,6 +149,7 @@ async function saveBooking(
   deps: {
     tx?: Prisma.TransactionClient;
     routingFormResponseRepository: RoutingFormResponseRepository;
+    bookingRepository: BookingRepository;
   }
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
@@ -185,10 +188,10 @@ async function saveBooking(
    */
   const run = async (client: Prisma.TransactionClient) => {
     if (originalBookingUpdateDataForCancellation) {
-      await client.booking.update(originalBookingUpdateDataForCancellation);
+      await deps.bookingRepository.update(originalBookingUpdateDataForCancellation, client);
     }
 
-    const booking = await client.booking.create(createBookingObj);
+    const booking = await deps.bookingRepository.create(createBookingObj, client);
     if (reroutingFormResponseUpdateData) {
       await deps.routingFormResponseRepository.update(reroutingFormResponseUpdateData, client);
     }

@@ -4,6 +4,7 @@ import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaClient } from "@calcom/prisma";
 
+import type { BookingRepository } from "../../repositories/BookingRepository";
 import { createBooking } from "./createBooking";
 import type { CreateBookingParams } from "./createBooking";
 
@@ -19,6 +20,7 @@ export async function createBookingWithReservedSlot(
     prismaClient: PrismaClient;
     selectedSlotsRepository: PrismaSelectedSlotRepository;
     routingFormResponseRepository: RoutingFormResponseRepository;
+    bookingRepository: BookingRepository;
   },
   args: CreateBookingParams & { rescheduledBy: string | undefined },
   reservedSlot: ReservedSlot
@@ -39,6 +41,7 @@ export async function createBookingWithReservedSlot(
     const booking = await createBooking(args, {
       tx,
       routingFormResponseRepository: deps.routingFormResponseRepository,
+      bookingRepository: deps.bookingRepository,
     });
 
     await deps.selectedSlotsRepository.deleteForEvent(reservedSlot, tx);

@@ -1744,6 +1744,7 @@ async function handler(
             prismaClient: deps.prismaClient,
             routingFormResponseRepository: deps.routingFormResponseRepository,
             selectedSlotsRepository: deps.selectedSlotsRepository,
+            bookingRepository: deps.bookingRepository,
           },
           createArgs,
           {
@@ -1757,6 +1758,7 @@ async function handler(
         booking = await createBooking(createArgs, {
           tx: deps.prismaClient,
           routingFormResponseRepository: deps.routingFormResponseRepository,
+          bookingRepository: deps.bookingRepository,
         });
       }
 
