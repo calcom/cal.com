@@ -1,4 +1,5 @@
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -67,6 +68,7 @@ type ProcessWorkflowStepParams = (
 export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
+  creditCheckFn: CreditCheckFn;
 };
 
 const processWorkflowStep = async (
@@ -79,7 +81,8 @@ const processWorkflowStep = async (
     hideBranding,
     seatReferenceUid,
     formData,
-  }: ProcessWorkflowStepParams
+  }: ProcessWorkflowStepParams,
+  creditCheckFn: CreditCheckFn
 ) => {
   if (!step?.verifiedAt) return;
 
@@ -109,6 +112,7 @@ const processWorkflowStep = async (
     teamId: workflow.teamId,
     seatReferenceUid,
     verifiedAt: step.verifiedAt,
+    creditCheckFn,
   };
 
   if (isSMSAction(step.action)) {
@@ -242,6 +246,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     seatReferenceUid,
     isDryRun = false,
     formData,
+    creditCheckFn,
   } = args;
   if (isDryRun || !workflows.length) return;
 
@@ -249,13 +254,18 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        emailAttendeeSendToOverride,
-        smsReminderNumber,
-        hideBranding,
-        seatReferenceUid,
-        ...(evt ? { calendarEvent: evt } : { formData }),
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          emailAttendeeSendToOverride,
+          smsReminderNumber,
+          hideBranding,
+          seatReferenceUid,
+          ...(evt ? { calendarEvent: evt } : { formData }),
+        },
+        creditCheckFn
+      );
     }
   }
 };
@@ -265,10 +275,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  creditCheckFn: CreditCheckFn;
 }
 
 const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt, workflows, hideBranding, creditCheckFn } = args;
 
   if (!workflows.length) return;
 
@@ -276,11 +287,16 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        smsReminderNumber,
-        hideBranding,
-        calendarEvent: evt,
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          smsReminderNumber,
+          hideBranding,
+          calendarEvent: evt,
+        },
+        creditCheckFn
+      );
     }
   }
 };
