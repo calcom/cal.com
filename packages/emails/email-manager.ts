@@ -582,17 +582,18 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   const organizationSettings = await fetchOrganizationEmailSettings(calEvent.organizationId);
-  if (
-    shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.AWAITING_PAYMENT)
-  )
-    return;
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(
-    ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeAwaitingPaymentEmail(calEvent, attendee));
-    })
-  );
+  if (
+    !shouldSkipAttendeeEmailWithSettings(eventTypeMetadata, organizationSettings, EmailType.AWAITING_PAYMENT)
+  ) {
+    emailsToSend.push(
+      ...calEvent.attendees.map((attendee) => {
+        return sendEmail(() => new AttendeeAwaitingPaymentEmail(calEvent, attendee));
+      })
+    );
+  }
+
   await Promise.all(emailsToSend);
   const awaitingPaymentSMS = new AwaitingPaymentSMS(calEvent);
   await awaitingPaymentSMS.sendSMSToAttendees();
