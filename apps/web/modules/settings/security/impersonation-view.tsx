@@ -12,7 +12,7 @@ import { showToast } from "@calcom/ui/components/toast";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle space-y-6 border border-t-0 px-4 py-8 sm:px-6">
+      <div className="border-subtle stack-y-6 border border-t-0 px-4 py-8 sm:px-6">
         <SkeletonText className="h-8 w-full" />
       </div>
     </SkeletonContainer>
