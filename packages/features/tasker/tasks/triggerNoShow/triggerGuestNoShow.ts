@@ -54,8 +54,8 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  // Check if this is an internal webhook (automatic tracking without actual webhook)
-  const isInternalWebhook = webhook.id === "internal" || webhook.subscriberUrl === "https://internal.cal.com/no-webhook";
+  // Automatic tracking mode: mark DB only, skip webhook notifications
+  const isAutomaticTrackingOnly = (result as any).isAutomaticTrackingOnly ?? false;
 
   const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 
@@ -69,8 +69,8 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         }),
       ];
 
-      // Only send webhook if there's a real webhook configured
-      if (!isInternalWebhook) {
+      // Skip webhook for automatic tracking mode
+      if (!isAutomaticTrackingOnly) {
         promises.push(
           sendWebhookPayload(
             webhook,
@@ -87,12 +87,10 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     }
   } else {
     if (!didGuestJoinTheCall) {
-      const promises = [
-        markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall }),
-      ];
+      const promises = [markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall })];
 
-      // Only send webhook if there's a real webhook configured
-      if (!isInternalWebhook) {
+      // Skip webhook for automatic tracking mode
+      if (!isAutomaticTrackingOnly) {
         promises.push(
           sendWebhookPayload(
             webhook,

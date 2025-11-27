@@ -42,11 +42,11 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
 
   const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  // Check if this is an internal webhook (automatic tracking without actual webhook)
-  const isInternalWebhook = webhook.id === "internal" || webhook.subscriberUrl === "https://internal.cal.com/no-webhook";
+  // Automatic tracking mode: mark DB only, skip webhook notifications
+  const isAutomaticTrackingOnly = (result as any).isAutomaticTrackingOnly ?? false;
 
-  // Only send webhook payload if there's a real webhook configured
-  if (!isInternalWebhook) {
+  // Skip webhook for automatic tracking mode
+  if (!isAutomaticTrackingOnly) {
     const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
       return sendWebhookPayload(
         webhook,

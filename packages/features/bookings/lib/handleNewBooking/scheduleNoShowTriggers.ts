@@ -77,8 +77,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
         })
       );
     } else {
-      // No webhooks exist, but automatic tracking is enabled - schedule default 15-minute trigger
-      // We use a special internal URL to indicate this is for database marking only, not actual webhook sending
+      // Automatic tracking enabled: mark no-shows in DB without webhook notifications
       const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
       noShowPromises.push(
         tasker.create(
@@ -86,9 +85,10 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           {
             triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
+            isAutomaticTrackingOnly: true,
             webhook: {
-              id: "internal",
-              subscriberUrl: "https://internal.cal.com/no-webhook",
+              id: "automatic-tracking",
+              subscriberUrl: "",
               payloadTemplate: null,
               eventTriggers: [],
               appId: null,
@@ -139,8 +139,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
         })
       );
     } else {
-      // No webhooks exist, but automatic tracking is enabled - schedule default 15-minute trigger
-      // We use a special internal URL to indicate this is for database marking only, not actual webhook sending
+      // Automatic tracking enabled: mark no-shows in DB without webhook notifications
       const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
       noShowPromises.push(
         tasker.create(
@@ -148,9 +147,10 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           {
             triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
+            isAutomaticTrackingOnly: true,
             webhook: {
-              id: "internal",
-              subscriberUrl: "https://internal.cal.com/no-webhook",
+              id: "automatic-tracking",
+              subscriberUrl: "",
               payloadTemplate: null,
               eventTriggers: [],
               appId: null,
