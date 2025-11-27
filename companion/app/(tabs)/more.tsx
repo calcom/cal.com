@@ -16,7 +16,6 @@ interface MoreMenuItem {
 
 export default function More() {
   const router = useRouter();
-  const { isUsingOAuth } = useAuth();
 
   const openExternalLink = async (url: string, fallbackMessage: string) => {
     try {

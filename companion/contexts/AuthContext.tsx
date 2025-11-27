@@ -11,7 +11,6 @@ interface AuthContextType {
   refreshToken: string | null;
   userInfo: any;
   isWebSession: boolean;
-  isUsingOAuth: boolean;
   login: (accessToken: string, refreshToken: string) => Promise<void>;
   loginFromWebSession: (userInfo: any) => Promise<void>;
   loginWithOAuth: () => Promise<void>;
@@ -38,7 +37,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isWebSession, setIsWebSession] = useState(false);
-  const [isUsingOAuth, setIsUsingOAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [oauthService] = useState(() => {
     try {
@@ -133,7 +131,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setAccessToken(storedTokens.accessToken);
         setRefreshToken(storedTokens.refreshToken || null);
         setIsAuthenticated(true);
-        setIsUsingOAuth(true);
         setIsWebSession(false);
 
         // Configure API service to use OAuth token
@@ -171,7 +168,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (legacyToken) {
           setAccessToken(legacyToken);
           setIsAuthenticated(true);
-          setIsUsingOAuth(false);
           setIsWebSession(false);
 
           // Configure API service to use API key
@@ -188,7 +184,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       else if (authType === "web_session") {
         // Try to restore web session state
         setIsWebSession(true);
-        setIsUsingOAuth(false);
       }
     } catch (error) {
       console.error("Failed to check auth state:", error);
@@ -223,7 +218,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setRefreshToken(newRefreshToken);
       setIsAuthenticated(true);
       setIsWebSession(false);
-      setIsUsingOAuth(false);
 
       // Configure API service to use API key
       CalComAPIService.setApiKey(newAccessToken);
@@ -246,7 +240,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserInfo(sessionUserInfo);
       setIsAuthenticated(true);
       setIsWebSession(true);
-      setIsUsingOAuth(false);
 
       // Store auth type
       if (Platform.OS === "web") {
@@ -280,15 +273,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
-      // Revoke OAuth token if using OAuth
-      if (isUsingOAuth && accessToken && oauthService) {
-        try {
-          await oauthService.revokeToken(accessToken);
-        } catch (revokeError) {
-          console.warn("Failed to revoke OAuth token:", revokeError);
-        }
-      }
-
       // Clear all stored auth data
       await clearAuth();
 
@@ -298,7 +282,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserInfo(null);
       setIsAuthenticated(false);
       setIsWebSession(false);
-      setIsUsingOAuth(false);
 
       // Clear API service auth
       CalComAPIService.clearAuth();
@@ -358,7 +341,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAccessToken(tokens.accessToken);
       setRefreshToken(tokens.refreshToken || null);
       setIsAuthenticated(true);
-      setIsUsingOAuth(true);
       setIsWebSession(false);
 
       // Configure API service
@@ -399,7 +381,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshToken,
     userInfo,
     isWebSession,
-    isUsingOAuth,
     login,
     loginFromWebSession,
     loginWithOAuth,
