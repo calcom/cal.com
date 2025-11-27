@@ -292,7 +292,7 @@ export async function handler(
       };
       return createInstantBookingWithReservedSlot(deps, createBookingObj, reservedSlot);
     }
-    return prisma.booking.create(createBookingObj);
+    return deps.bookingRepository.create(createBookingObj);
   })();
 
   // Create Instant Meeting Token
