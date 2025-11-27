@@ -2,7 +2,7 @@
   "name": "Coinley",
   "slug": "coinley",
   "type": "coinley_payment",
-  "logo": "icon.svg",
+  "logo": "icon.png",
   "url": "https://coinley.io",
   "variant": "payment",
   "categories": ["payment"],
@@ -12,7 +12,7 @@
   "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": false,
-  "imageSrc": "icon.svg",
+  "imageSrc": "icon.png",
   "dirName": "coinley",
   "isOAuth": false
 }
