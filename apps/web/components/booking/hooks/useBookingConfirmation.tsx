@@ -3,9 +3,6 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextAreaField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface UseBookingConfirmationOptions {
@@ -14,10 +11,16 @@ interface UseBookingConfirmationOptions {
   isTabUnconfirmed?: boolean;
 }
 
+interface BookingConfirmParams {
+  bookingId: number;
+  confirmed: boolean;
+  recurringEventId?: string | null;
+  reason?: string;
+}
+
 export function useBookingConfirmation(options: UseBookingConfirmationOptions = {}) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
 
   const { isRecurring = false, isTabRecurring = false, isTabUnconfirmed = false } = options;
@@ -33,17 +36,17 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
       utils.viewer.bookings.invalidate();
       utils.viewer.me.bookingUnconfirmedCount.invalidate();
     },
-    onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
+    onError: (error) => {
+      showToast(error.message || t("booking_confirmation_failed"), "error");
       utils.viewer.bookings.invalidate();
     },
   });
 
-  const bookingConfirm = (bookingId: number, confirmed: boolean, recurringEventId?: string | null) => {
+  const bookingConfirm = ({ bookingId, confirmed, recurringEventId, reason }: BookingConfirmParams) => {
     let body = {
       bookingId,
       confirmed,
-      reason: rejectionReason,
+      reason: reason || "",
     };
 
     /**
@@ -61,50 +64,11 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
     setRejectionDialogIsOpen(true);
   };
 
-  const RejectionDialog = ({
-    bookingId,
-    recurringEventId,
-  }: {
-    bookingId: number;
-    recurringEventId?: string | null;
-  }) => (
-    <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-      <div>
-        <TextAreaField
-          name="rejectionReason"
-          label={
-            <>
-              {t("rejection_reason")}
-              <span className="text-subtle font-normal"> (Optional)</span>
-            </>
-          }
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.target.value)}
-        />
-      </div>
-
-      <DialogFooter>
-        <DialogClose />
-        <Button
-          disabled={mutation.isPending}
-          data-testid="rejection-confirm"
-          onClick={() => {
-            bookingConfirm(bookingId, false, recurringEventId);
-          }}>
-          {t("rejection_confirmation")}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  );
-
   return {
     bookingConfirm,
     handleReject,
-    rejectionReason,
-    setRejectionReason,
     rejectionDialogIsOpen,
     setRejectionDialogIsOpen,
     isPending: mutation.isPending,
-    RejectionDialog,
   };
 }

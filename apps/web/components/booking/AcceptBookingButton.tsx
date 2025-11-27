@@ -39,7 +39,7 @@ export function AcceptBookingButton({
       color={color}
       size={size}
       className={className}
-      onClick={() => bookingConfirm(bookingId, true, recurringEventId)}
+      onClick={() => bookingConfirm({ bookingId, confirmed: true, recurringEventId })}
       disabled={isPending}
       data-testid="confirm">
       {confirmLabel}

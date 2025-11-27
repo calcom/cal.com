@@ -31,10 +31,6 @@ export type BookingActionsStore = {
   setIsOpenReportDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setRerouteDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsCancelDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-
-  // Rejection reason state
-  rejectionReason: string;
-  setRejectionReason: (reason: string) => void;
 };
 
 export const createBookingActionsStore = () => {
@@ -105,9 +101,5 @@ export const createBookingActionsStore = () => {
       set((state) => ({
         isCancelDialogOpen: typeof isOpen === "function" ? isOpen(state.isCancelDialogOpen) : isOpen,
       })),
-
-    // Rejection reason state
-    rejectionReason: "",
-    setRejectionReason: (reason: string) => set({ rejectionReason: reason }),
   }));
 };

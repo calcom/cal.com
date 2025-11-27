@@ -1,7 +1,7 @@
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
+import { RejectionReasonDialog } from "../dialog/RejectionReasonDialog";
 import { useBookingConfirmation } from "./hooks/useBookingConfirmation";
 
 interface RejectBookingButtonProps {
@@ -27,7 +27,7 @@ export function RejectBookingButton({
 }: RejectBookingButtonProps) {
   const { t } = useLocale();
 
-  const { handleReject, isPending, rejectionDialogIsOpen, setRejectionDialogIsOpen, RejectionDialog } =
+  const { bookingConfirm, handleReject, isPending, rejectionDialogIsOpen, setRejectionDialogIsOpen } =
     useBookingConfirmation({
       isRecurring,
       isTabRecurring,
@@ -38,9 +38,12 @@ export function RejectBookingButton({
 
   return (
     <>
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <RejectionDialog bookingId={bookingId} recurringEventId={recurringEventId} />
-      </Dialog>
+      <RejectionReasonDialog
+        isOpenDialog={rejectionDialogIsOpen}
+        setIsOpenDialog={setRejectionDialogIsOpen}
+        onConfirm={(reason) => bookingConfirm({ bookingId, confirmed: false, recurringEventId, reason })}
+        isPending={isPending}
+      />
 
       <Button
         color={color}

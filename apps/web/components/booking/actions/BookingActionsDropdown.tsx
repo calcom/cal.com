@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { z } from "zod";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +8,7 @@ import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -20,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { TextAreaField } from "@calcom/ui/components/form";
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -29,10 +27,12 @@ import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RejectionReasonDialog } from "@components/dialog/RejectionReasonDialog";
 import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
@@ -74,11 +74,24 @@ export function BookingActionsDropdown({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  // Use store for all dialog states
-  const rejectionReason = useBookingActionsStoreContext((state) => state.rejectionReason);
-  const setRejectionReason = useBookingActionsStoreContext((state) => state.setRejectionReason);
-  const rejectionDialogIsOpen = useBookingActionsStoreContext((state) => state.rejectionDialogIsOpen);
-  const setRejectionDialogIsOpen = useBookingActionsStoreContext((state) => state.setRejectionDialogIsOpen);
+  const isRecurring = booking.recurringEventId !== null;
+  const isTabRecurring = booking.listingStatus === "recurring";
+  const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+
+  // Use the booking confirmation hook for confirm/reject logic
+  const {
+    bookingConfirm,
+    handleReject,
+    rejectionDialogIsOpen,
+    setRejectionDialogIsOpen,
+    isPending: isConfirmPending,
+  } = useBookingConfirmation({
+    isRecurring,
+    isTabRecurring,
+    isTabUnconfirmed,
+  });
+
+  // Use store for all other dialog states
   const chargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.chargeCardDialogIsOpen);
   const setChargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.setChargeCardDialogIsOpen);
   const viewRecordingsDialogIsOpen = useBookingActionsStoreContext(
@@ -132,23 +145,6 @@ export function BookingActionsDropdown({
     },
   });
 
-  const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === "REJECTED") {
-        setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
-      } else {
-        showToast(t("booking_confirmation_success"), "success");
-      }
-      utils.viewer.bookings.invalidate();
-      utils.viewer.me.bookingUnconfirmedCount.invalidate();
-    },
-    onError: () => {
-      showToast(t("booking_confirmation_failed"), "error");
-      utils.viewer.bookings.invalidate();
-    },
-  });
-
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -174,7 +170,6 @@ export function BookingActionsDropdown({
   const isRejected = booking.status === "REJECTED";
   const isPending = booking.status === "PENDING";
   const isRescheduled = booking.fromReschedule !== null;
-  const isRecurring = booking.recurringEventId !== null;
 
   const getBookingStatus = (): "upcoming" | "past" | "cancelled" | "rejected" => {
     if (isCancelled) return "cancelled";
@@ -182,9 +177,6 @@ export function BookingActionsDropdown({
     if (isBookingInPast) return "past";
     return "upcoming";
   };
-
-  const isTabRecurring = booking.listingStatus === "recurring";
-  const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const isBookingFromRoutingForm = !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 
@@ -205,19 +197,6 @@ export function BookingActionsDropdown({
 
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;
-  };
-
-  const bookingConfirm = async (confirm: boolean) => {
-    let body = {
-      bookingId: booking.id,
-      confirmed: confirm,
-      reason: rejectionReason,
-    };
-
-    if ((isTabRecurring || isTabUnconfirmed) && isRecurring) {
-      body = Object.assign({}, body, { recurringEventId: booking.recurringEventId });
-    }
-    mutation.mutate(body);
   };
 
   const saveLocation = async ({
@@ -275,12 +254,17 @@ export function BookingActionsDropdown({
     shouldShowPending && context === "details" ? getPendingActions(actionContext) : [];
   const pendingActions: ActionType[] = basePendingActions.map((action) => ({
     ...action,
-    disabled: mutation.isPending,
+    disabled: isConfirmPending,
     onClick:
       action.id === "confirm"
-        ? () => bookingConfirm(true)
+        ? () =>
+            bookingConfirm({
+              bookingId: booking.id,
+              confirmed: true,
+              recurringEventId: booking.recurringEventId,
+            })
         : action.id === "reject"
-        ? () => setRejectionDialogIsOpen(true)
+        ? () => handleReject()
         : undefined,
   })) as ActionType[];
 
@@ -488,35 +472,6 @@ export function BookingActionsDropdown({
           isOpen={isNoShowDialogOpen}
         />
       )}
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       <CancelBookingDialog
         isOpenDialog={isCancelDialogOpen}
         setIsOpenDialog={setIsCancelDialogOpen}
@@ -614,6 +569,19 @@ export function BookingActionsDropdown({
   return (
     <>
       {dialogs}
+      <RejectionReasonDialog
+        isOpenDialog={rejectionDialogIsOpen}
+        setIsOpenDialog={setRejectionDialogIsOpen}
+        onConfirm={(reason) =>
+          bookingConfirm({
+            bookingId: booking.id,
+            confirmed: false,
+            recurringEventId: booking.recurringEventId,
+            reason,
+          })
+        }
+        isPending={isConfirmPending}
+      />
       <Dropdown modal={false}>
         <DropdownMenuTrigger asChild data-testid="booking-actions-dropdown">
           <Button
