@@ -4037,5 +4037,6 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "schedule_name_cannot_be_empty": "Schedule name cannot be empty",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

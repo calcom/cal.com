@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
 import { Icon } from "../icon";
@@ -21,6 +21,10 @@ export const EditableHeading = function EditableHeading({
   const [previousValue, setPreviousValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const enableEditing = () => setIsEditing(!disabled);
+
+  useEffect(() => {
+    setPreviousValue(value);
+  }, [value]);
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const trimmedValue = e.target.value.trim();

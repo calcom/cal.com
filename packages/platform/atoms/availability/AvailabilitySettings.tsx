@@ -42,6 +42,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
@@ -394,18 +395,11 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           <Controller
             control={form.control}
             name="name"
-            rules={{
-              validate: (value) => {
-                const trimmed = value?.trim();
-                return (trimmed && trimmed.length > 0) || "Schedule name cannot be empty";
-              },
-            }}
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <EditableHeading
                 className={cn(customClassNames?.editableHeadingClassName)}
                 isReady={!isLoading}
                 disabled={disableEditableHeading}
-                error={fieldState.error?.message}
                 {...field}
                 data-testid="availablity-title"
               />
@@ -649,9 +643,13 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             form={form}
             id="availability-form"
             handleSubmit={async (props) => {
+              if (!props.name.trim()) {
+                showToast(t("schedule_name_cannot_be_empty"), "error");
+                return;
+              }
               handleSubmit(props);
             }}
-            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
+            className={cn(customClassNames?.formClassName, "flex flex-col sm:mx:0 xl:flex-row xl:space-x-6")}>
             <div className="flex-1 flex-row xl:mr-0">
               <div
                 className={cn(
