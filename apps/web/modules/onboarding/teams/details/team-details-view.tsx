@@ -136,7 +136,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
               {/* Team Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_name")}</Label>
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
                 <TextField
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
@@ -154,7 +154,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
               {/* Team Bio */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_bio")}</Label>
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_bio")}</Label>
                 <TextArea
                   value={teamBio}
                   onChange={(e) => setTeamBio(e.target.value)}
