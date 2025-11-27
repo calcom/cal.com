@@ -497,6 +497,7 @@ export async function getBookings({
           "Booking.fromReschedule",
           "Booking.rescheduled",
           "Booking.rescheduledBy",
+          "Booking.cancelledBy",
           "Booking.isRecorded",
           "Booking.cancellationReason",
           "Booking.rejectionReason",

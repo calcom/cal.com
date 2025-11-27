@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZGetBookingDetailsInputSchema = z.object({
-  bookingId: z.number(),
+  uid: z.string(),
 });
 
 export type TGetBookingDetailsInputSchema = z.infer<typeof ZGetBookingDetailsInputSchema>;

@@ -94,6 +94,16 @@ function BookingDetailsSheetInner({
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
 
+  // Fetch additional booking details for reschedule information
+  const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
+    { uid: booking.uid },
+    {
+      enabled: Boolean(booking.rescheduled || booking.fromReschedule),
+      // Keep data fresh but don't refetch too aggressively
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
+
   // Get navigation state directly from the store
   const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
   const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
@@ -122,7 +132,14 @@ function BookingDetailsSheetInner({
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
 
-  const getStatusBadge = () => {
+  const statusBadge = useMemo(() => {
+    if (booking.rescheduled) {
+      return {
+        variant: "red" as const,
+        label: t("rescheduled"),
+      };
+    }
+
     switch (booking.status) {
       case "ACCEPTED":
         return { variant: "green" as const, label: t("confirmed") };
@@ -135,9 +152,8 @@ function BookingDetailsSheetInner({
       default:
         return { variant: "gray" as const, label: booking.status };
     }
-  };
+  }, [booking.status, booking.rescheduled, t]);
 
-  const statusBadge = getStatusBadge();
   const isPending = booking.status === BookingStatus.PENDING;
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
@@ -214,14 +230,23 @@ function BookingDetailsSheetInner({
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <SheetTitle className="text-emphasis flex items-center gap-3 text-xl font-semibold">
-                <div className="bg-emphasis w-[2px] shrink-0 self-stretch rounded-lg"></div>
+                <div className="bg-emphasis w-0.5 shrink-0 self-stretch rounded-lg"></div>
                 <span>{booking.title}</span>
               </SheetTitle>
             </div>
 
-            <WhenSection startTime={startTime} endTime={endTime} timeZone={userTimeZone} />
+            <WhenSection
+              rescheduled={booking.rescheduled || false}
+              startTime={startTime}
+              endTime={endTime}
+              timeZone={userTimeZone}
+              previousBooking={bookingDetails?.previousBooking}
+            />
 
-            <OldRescheduledBookingInfo booking={booking} />
+            <OldRescheduledBookingInfo
+              booking={booking}
+              rescheduledToBooking={bookingDetails?.rescheduledToBooking}
+            />
 
             <NewRescheduledBookingInfo booking={booking} />
 
@@ -264,11 +289,13 @@ function BookingDetailsSheetInner({
                 />
               </>
             ) : (
-              <JoinMeetingButton
-                location={booking.location}
-                metadata={booking.metadata}
-                bookingStatus={booking.status}
-              />
+              !booking.rescheduled && (
+                <JoinMeetingButton
+                  location={booking.location}
+                  metadata={booking.metadata}
+                  bookingStatus={booking.status}
+                />
+              )
             )}
 
             <BookingActionsDropdown
@@ -295,24 +322,57 @@ function BookingDetailsSheetInner({
 }
 
 function WhenSection({
+  rescheduled,
+  startTime,
+  endTime,
+  timeZone,
+  previousBooking,
+}: {
+  rescheduled: boolean;
+  startTime: dayjs.Dayjs;
+  endTime: dayjs.Dayjs;
+  timeZone?: string;
+  previousBooking?: { uid: string; startTime: Date; endTime: Date } | null;
+}) {
+  const { t } = useLocale();
+
+  return (
+    <Section title={t("when")}>
+      {previousBooking?.startTime && previousBooking?.endTime && (
+        <div className="text-default flex flex-col text-sm line-through opacity-60">
+          <DisplayTimestamp
+            startTime={previousBooking.startTime}
+            endTime={previousBooking.endTime}
+            timeZone={timeZone}
+          />
+        </div>
+      )}
+      <div className={classNames("text-default flex flex-col text-sm", rescheduled && "line-through")}>
+        <DisplayTimestamp startTime={startTime} endTime={endTime} timeZone={timeZone} />
+      </div>
+    </Section>
+  );
+}
+
+function DisplayTimestamp({
   startTime,
   endTime,
   timeZone,
 }: {
-  startTime: dayjs.Dayjs;
-  endTime: dayjs.Dayjs;
+  startTime: Date | dayjs.Dayjs;
+  endTime: Date | dayjs.Dayjs;
   timeZone?: string;
 }) {
-  const { t } = useLocale();
+  const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
+  const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
+
   return (
-    <Section title={t("when")}>
-      <div className="text-default flex flex-col text-sm">
-        <span>{startTime.format("dddd, MMMM D, YYYY")}</span>
-        <span>
-          {startTime.format("h:mma")} - {endTime.format("h:mma")} ({timeZone || startTime.format("Z")})
-        </span>
-      </div>
-    </Section>
+    <>
+      <span>{start.format("dddd, MMMM D, YYYY")}</span>
+      <span>
+        {start.format("h:mma")} - {end.format("h:mma")} ({timeZone || start.format("Z")})
+      </span>
+    </>
   );
 }
 
@@ -380,6 +440,10 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
     t,
     bookingStatus: booking.status,
   });
+
+  if (booking.rescheduled) {
+    return null;
+  }
 
   if (!locationToDisplay) {
     return null;
@@ -563,7 +627,13 @@ function CustomQuestionsSection({
 }
 
 // Old booking that was rescheduled away
-function OldRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
+function OldRescheduledBookingInfo({
+  booking,
+  rescheduledToBooking,
+}: {
+  booking: BookingOutput;
+  rescheduledToBooking?: { uid: string } | null;
+}) {
   const { t } = useLocale();
 
   // Only show for old rescheduled bookings
@@ -571,38 +641,20 @@ function OldRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
     return null;
   }
 
-  // Fetch additional reschedule details
-  const { data: bookingDetails, isLoading } = trpc.viewer.bookings.getBookingDetails.useQuery(
-    { bookingId: booking.id },
-    {
-      // Only fetch if this is a rescheduled booking
-      enabled: booking.rescheduled === true,
-      // Keep data fresh but don't refetch too aggressively
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }
-  );
-
   const cancellationReason = booking.cancellationReason || booking.rejectionReason;
   const rescheduledBy = booking.rescheduledBy;
-  const rescheduledToBooking = bookingDetails?.rescheduledToBooking;
-
-  // Reserve space to prevent layout shift
-  const shouldShowRescheduledTo = isLoading || rescheduledToBooking?.uid;
+  const cancelledBy = booking.cancelledBy;
 
   return (
     <>
-      {shouldShowRescheduledTo && (
-        <Section title={t("rescheduled_to")}>
-          {isLoading ? (
-            <div className="text-subtle text-sm">
-              <Icon name="loader" className="mr-2 inline h-4 w-4 animate-spin" />
-              {t("loading")}
+      {rescheduledToBooking?.uid && (
+        <Section title={t("rescheduled")}>
+          <Link href={`/booking/${rescheduledToBooking.uid}`}>
+            <div className="text-default flex items-center gap-1 text-sm underline">
+              {t("view_booking")}
+              <Icon name="external-link" className="h-4 w-4" />
             </div>
-          ) : rescheduledToBooking?.uid ? (
-            <Link className="text-default text-sm underline" href={`/booking/${rescheduledToBooking.uid}`}>
-              {t("view_new_booking")}
-            </Link>
-          ) : null}
+          </Link>
         </Section>
       )}
       {rescheduledBy && (
@@ -611,13 +663,13 @@ function OldRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
         </Section>
       )}
       {cancellationReason && (
-        <Section title={t("reschedule_reason")}>
+        <Section title={t("reason")}>
           <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
         </Section>
       )}
-      {!shouldShowRescheduledTo && !rescheduledBy && !cancellationReason && (
-        <Section title={t("rescheduled")}>
-          <p className="text-default text-sm">{t("this_booking_was_rescheduled")}</p>
+      {cancelledBy && (
+        <Section title={t("cancelled_by")}>
+          <p className="text-default text-sm">{cancelledBy}</p>
         </Section>
       )}
     </>
@@ -639,13 +691,17 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
   return (
     <>
       {booking.fromReschedule && (
-        <Section title={t("rescheduled_from")}>
-          <Link className="text-default text-sm underline" href={`/booking/${booking.fromReschedule}`}>
-            {t("view_original_booking")}
+        <Section title={t("rescheduled_by")}>
+          {rescheduledBy && <p className="text-default text-sm">{rescheduledBy}</p>}
+          <Link href={`/booking/${booking.fromReschedule}`}>
+            <div className="text-default flex items-center gap-1 text-sm underline">
+              {t("original_booking")}
+              <Icon name="external-link" className="h-4 w-4" />
+            </div>
           </Link>
         </Section>
       )}
-      {rescheduledBy && (
+      {!booking.fromReschedule && rescheduledBy && (
         <Section title={t("rescheduled_by")}>
           <p className="text-default text-sm">{rescheduledBy}</p>
         </Section>
@@ -672,15 +728,25 @@ function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
   }
 
   const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const cancelledBy = booking.cancelledBy;
 
-  if (!cancellationReason) {
+  if (!cancellationReason && !cancelledBy) {
     return null;
   }
 
   return (
-    <Section title={t("reason")}>
-      <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
-    </Section>
+    <>
+      {cancelledBy && (
+        <Section title={t("cancelled_by")}>
+          <p className="text-default text-sm">{cancelledBy}</p>
+        </Section>
+      )}
+      {cancellationReason && (
+        <Section title={t("reason")}>
+          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+        </Section>
+      )}
+    </>
   );
 }
 

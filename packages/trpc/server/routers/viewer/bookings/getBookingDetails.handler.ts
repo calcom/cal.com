@@ -15,17 +15,20 @@ type GetBookingDetailsOptions = {
 };
 
 export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetailsOptions) => {
-  const { bookingId } = input;
   const { user } = ctx;
 
   // Fetch the booking with minimal data needed for authorization
   const booking = await prisma.booking.findUnique({
     where: {
-      id: bookingId,
+      uid: input.uid,
     },
     select: {
       id: true,
       userId: true,
+      uid: true,
+      rescheduled: true,
+      fromReschedule: true,
+      status: true,
       eventType: {
         select: {
           teamId: true,
@@ -72,44 +75,40 @@ export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetails
     }
   }
 
-  // Authorization passed, fetch booking details
-  return await fetchBookingDetails(bookingId);
-};
-
-/**
- * Fetch detailed booking information
- * This function should be called only after authorization checks pass
- */
-async function fetchBookingDetails(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      uid: true,
-      rescheduled: true,
-      fromReschedule: true,
-    },
-  });
-
   if (!booking) {
     return null;
   }
 
-  // For old rescheduled bookings, find the new booking
-  let rescheduledToBooking: { uid: string } | null = null;
-  if (booking.rescheduled) {
-    rescheduledToBooking = await prisma.booking.findFirst({
-      where: {
-        fromReschedule: booking.uid,
-      },
-      select: {
-        uid: true,
-      },
-    });
-  }
+  // Fetch rescheduled and previous bookings in parallel
+  const [rescheduledToBooking, previousBooking] = await Promise.all([
+    // For old rescheduled bookings, find the new booking
+    booking.rescheduled
+      ? prisma.booking.findFirst({
+          where: {
+            fromReschedule: booking.uid,
+          },
+          select: {
+            uid: true,
+          },
+        })
+      : Promise.resolve(null),
+    // For new bookings that replaced an old one, fetch the previous booking's schedule
+    booking.fromReschedule
+      ? prisma.booking.findUnique({
+          where: {
+            uid: booking.fromReschedule,
+          },
+          select: {
+            uid: true,
+            startTime: true,
+            endTime: true,
+          },
+        })
+      : Promise.resolve(null),
+  ]);
 
   return {
     rescheduledToBooking,
+    previousBooking,
   };
-}
+};
