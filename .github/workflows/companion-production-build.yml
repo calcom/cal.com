@@ -42,5 +42,5 @@ jobs:
         if: steps.cache-companion-build.outputs.cache-hit != 'true'
         run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn turbo run build:web ext:build --filter=cal-companion...
+          yarn turbo run build:web build:ext --filter=cal-companion...
         shell: bash
