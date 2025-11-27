@@ -58,7 +58,6 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -73,7 +72,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should build query params from response correctly when identifier is not present in fields. Should fallback to label", () => {
+  it("should build query params from response correctly when identifier is not present in fields. Should fallback to label",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -94,7 +93,6 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -109,7 +107,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle select fields correctly when options have id set", () => {
+  it("should handle select fields correctly when options have id set",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -147,7 +145,6 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -162,7 +159,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle select fields correctly when options have no id set(Legacy options)", () => {
+  it("should handle select fields correctly when options have no id set(Legacy options)",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -200,7 +197,6 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -215,7 +211,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should handle number values correctly", () => {
+  it("should handle number values correctly",() => {
     const field1Id = uuidv4();
     const response = {
       [field1Id]: { value: 123 },
@@ -229,7 +225,6 @@ describe("getUrlSearchParamsToForward", () => {
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
-      "cal.routedTeamMemberIds": "null",
     };
 
     const result = getUrlSearchParamsToForward({
@@ -244,7 +239,7 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
-  it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true", () => {
+  it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true",() => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
     const formResponse = {
@@ -429,7 +424,6 @@ describe("getUrlSearchParamsToForward", () => {
       const searchParams = new URLSearchParams("?query1=value1&query2=value2");
       const expectedParams = {
         "cal.routingFormResponseId": "0",
-        "cal.routedTeamMemberIds": "null",
         query1: "value1",
         query2: "value2",
       };
