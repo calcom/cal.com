@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Header } from "../../components/Header";
 import { LogoutButton } from "../../components/LogoutButton";
-import { useAuth } from "../../contexts/AuthContext";
 
 interface MoreMenuItem {
   name: string;
@@ -102,7 +101,7 @@ export default function More() {
 
         {/* Authentication Info and Logout */}
         <View className="py-4">
-          <LogoutButton variant="destructive" className="w-full bg-transparent text-gray-900" />
+          <LogoutButton className="w-full bg-transparent text-gray-900" />
         </View>
 
         <Text className="mt-4 text-sm text-gray-500">

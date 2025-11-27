@@ -7,19 +7,8 @@ interface LogoutButtonProps {
   variant?: "default" | "destructive" | "ghost";
 }
 
-export function LogoutButton({ className = "", variant = "default" }: LogoutButtonProps) {
+export function LogoutButton({ className = "" }: LogoutButtonProps) {
   const { logout } = useAuth();
-
-  const getButtonStyles = () => {
-    switch (variant) {
-      case "destructive":
-        return "bg-red-600 py-2 px-4 rounded-lg";
-      case "ghost":
-        return "py-2 px-4";
-      default:
-        return "bg-gray-600 py-2 px-4 rounded-lg";
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -33,7 +22,7 @@ export function LogoutButton({ className = "", variant = "default" }: LogoutButt
   return (
     <TouchableOpacity
       onPress={handleLogout}
-      className={`${getButtonStyles()} ${className}`}
+      className={`"px-4 rounded-lg" bg-gray-600 py-2 ${className}`}
       style={Platform.OS === "web" ? { cursor: "pointer" } : undefined}
       activeOpacity={0.7}
     >
