@@ -1,15 +1,18 @@
-import { prisma } from "@calcom/prisma";
+// import { prisma as this.prismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 export class WorkflowReminderRepository {
-  static async findScheduledMessagesToCancel({
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findScheduledMessagesToCancel({
     teamId,
     userIdsWithNoCredits,
   }: {
     teamId?: number | null;
     userIdsWithNoCredits: number[];
   }) {
-    return await prisma.workflowReminder.findMany({
+    return this.prismaClient.workflowReminder.findMany({
       where: {
         workflowStep: {
           workflow: {
@@ -61,8 +64,8 @@ export class WorkflowReminderRepository {
     });
   }
 
-  static async updateRemindersToEmail({ reminderIds }: { reminderIds: number[] }): Promise<void> {
-    await prisma.workflowReminder.updateMany({
+  async updateRemindersToEmail({ reminderIds }: { reminderIds: number[] }): Promise<void> {
+    this.prismaClient.workflowReminder.updateMany({
       where: {
         id: {
           in: reminderIds,
@@ -75,7 +78,7 @@ export class WorkflowReminderRepository {
     });
   }
 
-  static async create({
+  async create({
     bookingUid,
     workflowStepId,
     method,
@@ -88,7 +91,7 @@ export class WorkflowReminderRepository {
     scheduledDate: Date;
     scheduled: boolean;
   }) {
-    return prisma.workflowReminder.create({
+    return this.prismaClient.workflowReminder.create({
       data: {
         bookingUid,
         workflowStepId,

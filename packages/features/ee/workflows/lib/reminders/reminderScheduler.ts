@@ -17,7 +17,7 @@ import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -331,7 +331,8 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
     "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
   );
 
-  const scheduledMessages = await WorkflowReminderRepository.findScheduledMessagesToCancel({
+  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+  const scheduledMessages = await workflowReminderRepository.findScheduledMessagesToCancel({
     teamId,
     userIdsWithNoCredits,
   });
@@ -364,7 +365,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
     })
   );
 
-  await WorkflowReminderRepository.updateRemindersToEmail({
+  await workflowReminderRepository.updateRemindersToEmail({
     reminderIds: scheduledMessages.map((msg) => msg.id),
   });
 };
