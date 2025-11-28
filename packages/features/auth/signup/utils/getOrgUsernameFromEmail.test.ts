@@ -16,6 +16,30 @@ describe("getOrgUsernameFromEmail", () => {
     const result = getOrgUsernameFromEmail(email, autoAcceptEmailDomain);
     expect(result).toBe("john.doe-example");
   });
+
+  it("should generate unique usernames for different emails even with same name", () => {
+    const email1 = "alice@acme.com";
+    const email2 = "alice+work@corp.com";
+
+    const username1 = getOrgUsernameFromEmail(email1, null);
+    const username2 = getOrgUsernameFromEmail(email2, null);
+
+    expect(username1).toBe("alice-acme");
+    expect(username2).toBe("alice-work-corp");
+    expect(username1).not.toBe(username2);
+  });
+
+  it("should handle email with plus sign correctly", () => {
+    const email = "bob+test@example.com";
+    const result = getOrgUsernameFromEmail(email, "example.com");
+    expect(result).toBe("bob-test");
+  });
+
+  it("should handle null autoAcceptEmailDomain", () => {
+    const email = "user@company.com";
+    const result = getOrgUsernameFromEmail(email, null);
+    expect(result).toBe("user-company");
+  });
 });
 
 describe("deriveNameFromOrgUsername", () => {

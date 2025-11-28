@@ -1,5 +1,6 @@
 import type { AllPossibleLayouts, EmbedPageType } from "../types";
 import { generateSkeleton } from "../ui/skeleton";
+import { type ExternalThemeClass, getInternalThemeClass } from "../ui/themeClass";
 
 function getStyle() {
   return `
@@ -56,7 +57,7 @@ function getStyle() {
     }
     /*Modal background is black only, so hardcode white */
     .loader {
-      --cal-brand-color:white;
+      --cal-brand:white;
     }
   </style>
       `;
@@ -65,14 +66,18 @@ function getStyle() {
 const html = ({
   layout = "month_view",
   pageType,
+  externalThemeClass,
 }: {
   layout?: AllPossibleLayouts;
   pageType: EmbedPageType | null;
+  externalThemeClass: ExternalThemeClass;
 }) => {
   const { skeletonContent, skeletonContainerStyle, skeletonStyle } = getSkeletonData({
     layout,
     pageType,
   });
+
+  const themeClass = getInternalThemeClass(externalThemeClass);
 
   // Keep message-container outside modal-box as that restricts the content to be shown through its overflow:auto unnecessarily
   return `
@@ -81,12 +86,12 @@ ${getStyle()}
   <div class="header">
     <button type="button" class="close" aria-label="Close">&times;</button>
   </div>
-  <div id="message-container" style="left: 50%; top: 50%; transform: translate(-50%, -50%);" class="message-container flex items-center p-24 justify-center dark:bg-muted rounded-md border-subtle border bg-default text-default  absolute z-highest">
+  <div id="message-container" style="left: 50%; top: 50%; transform: translate(-50%, -50%);" class="message-container flex items-center p-24 justify-center dark:bg-cal-muted rounded-md border-subtle border bg-default text-default  absolute z-highest">
     <div id="message"></div>
   </div>
   <div class="modal-box">
-    <div class="body" id="skeleton-container" style="${skeletonContainerStyle}">
-      <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
+    <div class="body${themeClass ? " " + themeClass : ""}" id="skeleton-container" style="${skeletonContainerStyle}">
+      <div id="wrapper" class="z-999999999999 absolute flex w-full items-center">
         <div class="loader modal-loader border-brand-default dark:border-darkmodebrand">
           <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
         </div>

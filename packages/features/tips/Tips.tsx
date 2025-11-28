@@ -1,6 +1,7 @@
 
 import shuffle from "lodash/shuffle";
 import { useState, memo } from "react";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -238,6 +239,14 @@ function Tips() {
                   thumbnailUrl={tip.thumbnailUrl}
                   coverPhoto={tip.coverPhoto}
                   mediaLink={isTopTip ? tip.mediaLink : undefined}
+                  mediaLinkOnClick={
+                    isTopTip
+                      ? () => {
+                        posthog.capture("tip_video_clicked", tip);
+                        if (tip.onClick) tip.onClick();
+                      }
+                      : undefined
+                  }
                   title={t(tip.title)}
                   description={t(tip.description)}
                   learnMore={
@@ -250,7 +259,15 @@ function Tips() {
                       : undefined
                   }
                   actionButton={
-                    isTopTip ? { onClick: () => handleRemoveItem(tip.id), child: t("dismiss") } : undefined
+                    isTopTip
+                      ? {
+                        onClick: () => {
+                          posthog.capture("tip_dismiss_clicked", tip);
+                          handleRemoveItem(tip.id);
+                        },
+                        child: t("dismiss"),
+                      }
+                      : undefined
                   }
                   containerProps={{
                     tabIndex: isTopTip ? undefined : -1,
