@@ -660,10 +660,16 @@ export class InsightsBookingBaseService {
         const fieldLabelMap = bookingFieldsCache.get(booking.eventTypeId);
 
         Object.entries(responses).forEach(([fieldName, answer]) => {
+          if (!shouldShowFieldInCustomResponses(fieldName)) {
+            return;
+          }
+
+          // Skip null, undefined, empty arrays, and empty strings
           if (
-            !shouldShowFieldInCustomResponses(fieldName) ||
-            !answer ||
-            (Array.isArray(answer) && answer.length === 0)
+            answer === null ||
+            answer === undefined ||
+            (Array.isArray(answer) && answer.length === 0) ||
+            (typeof answer === "string" && answer.trim() === "")
           ) {
             return;
           }
