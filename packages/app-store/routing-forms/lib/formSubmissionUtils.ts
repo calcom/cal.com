@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -225,15 +224,11 @@ export async function _onFormSubmission(
         chosenAction && chosenAction.type === "eventTypeRedirectUrl" && chosenAction.eventTypeId
           ? chosenAction.eventTypeId
           : null;
-
-      const creditService = new CreditService();
-
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
-        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         form: {
           ...form,
           fields: form.fields.map((field) => ({

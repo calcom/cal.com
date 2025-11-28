@@ -60,7 +60,7 @@ export const DateTargetSelector = ({ value, onChange }: DateTargetSelectorProps)
                   onChange(option.value);
                   setOpen(false);
                 }}
-                className="flex items-center gap-2 px-4 py-3 rounded-none">
+                className="flex items-center gap-2 px-4 py-3">
                 <div>
                   <div className="font-medium">{option.label}</div>
                   <div className="text-muted-foreground text-sm">{option.description}</div>

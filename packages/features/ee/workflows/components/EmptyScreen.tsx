@@ -40,7 +40,7 @@ function WorkflowExample(props: WorkflowExampleType) {
             )}
           </div>
         </div>
-        <div className="m-auto w-full grow items-center justify-center ">
+        <div className="m-auto w-full flex-grow items-center justify-center ">
           <div className="text-semibold text-emphasis line-clamp-2 w-full text-sm font-semibold">{title}</div>
           <div className="text-default text-sm font-normal leading-none">{description}</div>
         </div>
@@ -146,7 +146,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
 const TemplateSection = ({ title, examples }: { title: string; examples: WorkflowExampleType[] }) => {
   return (
     <div className="flex items-center justify-center">
-      <div className="bg-cal-muted flex max-w-5xl flex-col rounded-md p-2">
+      <div className="bg-muted flex max-w-5xl flex-col rounded-md p-2">
         <h2 className="text-emphasis mb-2 text-base font-semibold">{title}</h2>
         <div className="grid grid-cols-1 items-center gap-2 lg:grid-cols-3">
           {examples.map((example: WorkflowExampleType, index: number) => (

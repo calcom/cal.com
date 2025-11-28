@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZBuyInputSchema } from "./buy.schema";
@@ -23,7 +21,7 @@ export const phoneNumberRouter = router({
     const { buyHandler } = await import("./buy.handler");
 
     return buyHandler({
-      ctx: { ...ctx, req: ctx.req as NextApiRequest },
+      ctx,
       input,
     });
   }),

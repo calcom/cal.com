@@ -61,7 +61,7 @@ export default function OtherTeamListItem(props: Props) {
 
   return (
     <li>
-      <div className="hover:bg-cal-muted group flex items-center justify-between transition">
+      <div className="hover:bg-muted group flex items-center justify-between transition">
         {teamInfo}
         <div className="px-5 py-5">
           <div className="flex space-x-2 rtl:space-x-reverse">
@@ -88,7 +88,7 @@ export default function OtherTeamListItem(props: Props) {
               <Dropdown>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
+                    className="radix-state-open:rounded-r-md"
                     type="button"
                     color="secondary"
                     variant="icon"

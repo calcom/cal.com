@@ -2,6 +2,7 @@ import { EmbedElement } from "../EmbedElement";
 import { getErrorString } from "../lib/utils";
 import loaderCss from "../loader.css?inline";
 import inlineHtml, { getSkeletonData } from "./inlineHtml";
+
 export class Inline extends EmbedElement {
   static get observedAttributes() {
     return ["loading"];
@@ -37,7 +38,6 @@ export class Inline extends EmbedElement {
     this.shadowRoot.innerHTML = `<style>${window.Cal.__css}</style><style>${loaderCss}</style>${inlineHtml({
       layout: this.layout,
       pageType: this.getPageType() ?? null,
-      externalThemeClass: this.themeClass
     })}`;
   }
 }

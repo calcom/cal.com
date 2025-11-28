@@ -37,7 +37,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       onOpenChange={(open) => {
         if (!open) setQuery("");
       }}>
-      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-cal-muted pt-[6px]">
+      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
         <div className="items-center">
           {props.isTextEditor ? (
             <>
@@ -65,7 +65,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-52">
-        <div className="stack-y-2 p-1">
+        <div className="space-y-2 p-1">
           <div className="text-muted ml-1 text-left text-xs font-medium tracking-wide">
             {t("add_dynamic_variables")}
           </div>

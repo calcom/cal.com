@@ -10,7 +10,7 @@ const DirectoryInfo = ({ directory }: { directory: Directory }) => {
   const { t } = useLocale();
 
   return (
-    <div className="stack-y-8">
+    <div className="space-y-8">
       <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
         {t("directory_sync_info_description")}
       </p>

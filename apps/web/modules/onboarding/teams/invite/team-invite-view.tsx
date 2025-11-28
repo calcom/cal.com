@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import React from "react";
 
 import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,25 +21,13 @@ type TeamInviteViewProps = {
 
 export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
   const flags = useFlags();
 
   const store = useOnboardingStore();
-  const { setTeamInvites, teamDetails, setTeamId } = store;
+  const { setTeamInvites, teamDetails } = store;
   const { createTeam, isSubmitting } = useCreateTeam();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
-
-  // Read teamId from query params and store it (from payment callback)
-  useEffect(() => {
-    const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
-      }
-    }
-  }, [searchParams, setTeamId]);
 
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 

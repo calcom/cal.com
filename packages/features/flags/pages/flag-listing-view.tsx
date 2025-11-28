@@ -10,7 +10,7 @@ import { FlagAdminList } from "../components/FlagAdminList";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="divide-subtle mb-8 mt-6 stack-y-6">
+      <div className="divide-subtle mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>

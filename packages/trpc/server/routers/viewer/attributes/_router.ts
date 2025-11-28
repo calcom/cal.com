@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";
 import { bulkAssignAttributesSchema } from "./bulkAssignAttributes.schema";
@@ -11,7 +11,6 @@ import { ZFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMem
 import { getAttributeSchema } from "./get.schema";
 import { getByUserIdSchema } from "./getByUserId.schema";
 import { toggleActiveSchema } from "./toggleActive.schema";
-import { createAttributePbacProcedure } from "./util";
 
 export type TFindTeamMembersMatchingAttributeLogicInputSchema = z.infer<
   typeof ZFindTeamMembersMatchingAttributeLogicInputSchema
@@ -31,39 +30,31 @@ export const attributesRouter = router({
     return handler({ ctx, input });
   }),
   // Mutations
-  create: createAttributePbacProcedure("organization.attributes.create")
-    .input(createAttributeSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./create.handler");
-      return handler({ ctx, input });
-    }),
-  edit: createAttributePbacProcedure("organization.attributes.update")
-    .input(editAttributeSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./edit.handler");
-      return handler({ ctx, input });
-    }),
-  delete: createAttributePbacProcedure("organization.attributes.delete")
-    .input(deleteAttributeSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./delete.handler");
-      return handler({ ctx, input });
-    }),
-  toggleActive: createAttributePbacProcedure("organization.attributes.update")
-    .input(toggleActiveSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./toggleActive.handler");
-      return handler({ ctx, input });
-    }),
+  create: authedOrgAdminProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
+    const { default: handler } = await import("./create.handler");
+    return handler({ ctx, input });
+  }),
+  edit: authedOrgAdminProcedure.input(editAttributeSchema).mutation(async ({ ctx, input }) => {
+    const { default: handler } = await import("./edit.handler");
+    return handler({ ctx, input });
+  }),
+  delete: authedOrgAdminProcedure.input(deleteAttributeSchema).mutation(async ({ ctx, input }) => {
+    const { default: handler } = await import("./delete.handler");
+    return handler({ ctx, input });
+  }),
+  toggleActive: authedOrgAdminProcedure.input(toggleActiveSchema).mutation(async ({ ctx, input }) => {
+    const { default: handler } = await import("./toggleActive.handler");
+    return handler({ ctx, input });
+  }),
 
-  assignUserToAttribute: createAttributePbacProcedure("organization.attributes.editUsers")
+  assignUserToAttribute: authedOrgAdminProcedure
     .input(assignUserToAttributeSchema)
     .mutation(async ({ ctx, input }) => {
       const { default: handler } = await import("./assignUserToAttribute.handler");
       return handler({ ctx, input });
     }),
 
-  bulkAssignAttributes: createAttributePbacProcedure("organization.attributes.editUsers")
+  bulkAssignAttributes: authedOrgAdminProcedure
     .input(bulkAssignAttributesSchema)
     .mutation(async ({ ctx, input }) => {
       const { default: handler } = await import("./bulkAssignAttributes.handler");

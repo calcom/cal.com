@@ -1,10 +1,7 @@
-import type { NextApiRequest } from "next";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
@@ -16,7 +13,6 @@ import type { TrpcSessionUser } from "../../../types";
 type PublishOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    req?: NextApiRequest;
   };
 };
 
@@ -55,8 +51,6 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   // Since this is an ORG we need to make sure ORG members are scyned with the team. Every time a user is added to the TEAM, we need to add them to the ORG
   if (IS_TEAM_BILLING_ENABLED) {
-    const tracking = getTrackingFromCookies(ctx.req?.cookies);
-
     const checkoutSession = await purchaseTeamOrOrgSubscription({
       teamId: prevTeam.id,
       seatsUsed: prevTeam.members.length,
@@ -67,7 +61,6 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
       billingPeriod: metadata.data?.billingPeriod ?? undefined,
-      tracking,
     });
 
     if (!checkoutSession.url)
@@ -86,9 +79,10 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   }
 
   const { requestedSlug, ...newMetadata } = metadata.data;
+  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
   try {
-    await prisma.team.update({
+    updatedTeam = await prisma.team.update({
       where: { id: orgId },
       data: {
         slug: requestedSlug,

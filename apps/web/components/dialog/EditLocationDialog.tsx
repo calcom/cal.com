@@ -257,7 +257,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           }}>
           <div className="flex flex-row md:space-x-3">
-            <div className="bg-subtle mx-auto hidden h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10 md:flex">
+            <div className="bg-subtle mx-auto hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10 md:flex">
               <Icon name="map-pin" className="text-emphasis h-6 w-6" />
             </div>
             <div className="w-full md:pt-1">

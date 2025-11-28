@@ -8,12 +8,10 @@ export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
-  isReschedule = false,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
-  isReschedule?: boolean;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 
@@ -54,7 +52,7 @@ export const checkIfBookerEmailIsBlocked = async ({
   });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
-  const shouldBlock = !!blacklistedByEnv || (blockedByUserSetting && !isReschedule);
+  const shouldBlock = !!blacklistedByEnv || blockedByUserSetting;
 
   if (!shouldBlock) {
     return false;

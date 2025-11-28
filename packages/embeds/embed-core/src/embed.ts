@@ -2,6 +2,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
+import { addAppCssVars } from "./addAppCssVars";
 import {
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
@@ -38,6 +39,8 @@ export type Message = {
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
+// Add App CSS Vars as soon as possible so that tailwind classes can work instantly.
+addAppCssVars();
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -177,8 +180,8 @@ type SingleInstructionMap = {
   off: ["off", allPossibleCallbacksAndActions];
 } & {
   [K in Exclude<keyof CalApi, "on" | "off">]: CalApi[K] extends (...args: never[]) => void
-  ? [K, ...Parameters<CalApi[K]>]
-  : never;
+    ? [K, ...Parameters<CalApi[K]>]
+    : never;
 };
 
 type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
@@ -599,7 +602,7 @@ export class Cal {
       : 0;
     const crossedReloadThreshold = previousEmbedRenderStartTime
       ? timeSinceLastRender >
-      (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
+        (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
       : false;
 
     const areSlotsStale = previousEmbedRenderStartTime
@@ -945,10 +948,10 @@ class CalApi {
 
     template.innerHTML = `<cal-inline 
       ${generateDataAttributes({
-      pageType,
-      theme,
-      layout,
-    })}
+        pageType,
+        theme,
+        layout,
+      })}
       style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
     </cal-inline>
     <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
@@ -1188,8 +1191,8 @@ class CalApi {
               ...enrichedConfig,
               ...(actionToTake === "connect-no-slots-fetch"
                 ? {
-                  "cal.embed.noSlotsFetchOnConnect": "true",
-                }
+                    "cal.embed.noSlotsFetchOnConnect": "true",
+                  }
                 : {}),
             },
             params: paramsToAdd,
@@ -1231,10 +1234,10 @@ class CalApi {
 
     template.innerHTML = `<cal-modal-box 
       ${generateDataAttributes({
-      pageType,
-      theme,
-      layout,
-    })}
+        pageType,
+        theme,
+        layout,
+      })}
       uid="${uid}">
     </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];

@@ -1,12 +1,11 @@
 import { useMemo } from "react";
 import type { z } from "zod";
 
-import type { FilterValueSchema, ZFilterValue } from "../lib/types";
-import type { FilterType } from "@calcom/types/data-table";
+import type { FilterValueSchema, ColumnFilterType, ZFilterValue } from "../lib/types";
 import { useDataTable } from "./useDataTable";
 
 export function useFilterValue<
-  T extends FilterType,
+  T extends ColumnFilterType,
   TSchema extends FilterValueSchema<T> | typeof ZFilterValue
 >(columnId: string, schema: TSchema) {
   const { activeFilters } = useDataTable();

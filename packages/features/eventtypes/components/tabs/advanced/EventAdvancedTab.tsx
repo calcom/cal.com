@@ -176,8 +176,8 @@ const destinationCalendarComponents = {
     );
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
-      <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -222,7 +222,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -230,7 +230,7 @@ const destinationCalendarComponents = {
             />
           </div>
         </div>
-        <div className="stack-y-2">
+        <div className="space-y-2">
           {showConnectedCalendarSettings && (
             <div className={classNames("w-full", customClassNames?.addToCalendarEmailOrganizer?.container)}>
               <Switch
@@ -300,8 +300,8 @@ const destinationCalendarComponents = {
   },
   DestinationCalendarSettingsSkeleton() {
     return (
-      <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -312,7 +312,7 @@ const destinationCalendarComponents = {
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
           </div>
         </div>
-        <div className="stack-y-2">
+        <div className="space-y-2">
           <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
           <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
           <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
@@ -614,7 +614,7 @@ export const EventAdvancedTab = ({
   }, [isPlatform]);
 
   return (
-    <div className="flex flex-col stack-y-4">
+    <div className="flex flex-col space-y-4">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
@@ -638,12 +638,12 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-cal-muted rounded-lg border p-1">
+      <div className="border-subtle bg-muted rounded-lg border p-1">
         <div className="p-5">
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
             <LearnMoreLink
               t={t}
               i18nKey="booking_questions_description"

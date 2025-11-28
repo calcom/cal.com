@@ -119,7 +119,7 @@ export default function FormCard({
   collapsible?: boolean;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
-    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-cal-muted mb-2",
+    "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-muted mb-2",
     className
   );
 

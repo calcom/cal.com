@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
@@ -174,8 +173,6 @@ export async function handler(req: NextRequest) {
       if (message?.length && message?.length > 0 && sendTo) {
         const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
 
-        const creditService = new CreditService();
-
         const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
             phoneNumber: sendTo,
@@ -196,7 +193,6 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
-          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
 
         if (scheduledNotification) {

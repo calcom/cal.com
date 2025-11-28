@@ -28,18 +28,9 @@ function EditModeFooter() {
   );
 }
 
-function MoreInfoFooter({
-  canEditAttributesForUser,
-  canChangeMemberRole,
-}: {
-  canEditAttributesForUser?: boolean;
-  canChangeMemberRole?: boolean;
-}) {
+function MoreInfoFooter() {
   const { t } = useLocale();
   const setEditMode = useEditMode((state) => state.setEditMode);
-
-  // Show edit button if user can change member role (edit user info) or edit attributes
-  const canEdit = canChangeMemberRole || canEditAttributesForUser;
 
   return (
     <>
@@ -48,40 +39,21 @@ function MoreInfoFooter({
           {t("close")}
         </Button>
       </SheetClose>
-      {canEdit && (
-        <Button
-          type="button"
-          className="justify-center"
-          onClick={() => {
-            setEditMode(true);
-          }}
-          key="EDIT_BUTTON"
-          StartIcon="pencil">
-          {t("edit")}
-        </Button>
-      )}
+      <Button
+        type="button"
+        className="justify-center"
+        onClick={() => {
+          setEditMode(true);
+        }}
+        key="EDIT_BUTTON"
+        StartIcon="pencil">
+        {t("edit")}
+      </Button>
     </>
   );
 }
 
-export function SheetFooterControls({
-  canEditAttributesForUser,
-  canChangeMemberRole,
-}: {
-  canEditAttributesForUser?: boolean;
-  canChangeMemberRole?: boolean;
-}) {
+export function SheetFooterControls() {
   const editMode = useEditMode((state) => state.editMode);
-  return (
-    <>
-      {editMode ? (
-        <EditModeFooter />
-      ) : (
-        <MoreInfoFooter
-          canEditAttributesForUser={canEditAttributesForUser}
-          canChangeMemberRole={canChangeMemberRole}
-        />
-      )}
-    </>
-  );
+  return <>{editMode ? <EditModeFooter /> : <MoreInfoFooter />}</>;
 }

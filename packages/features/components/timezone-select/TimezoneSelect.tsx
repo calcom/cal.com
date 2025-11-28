@@ -161,7 +161,7 @@ export function TimezoneSelectComponent({
           classNames(
             "bg-default py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
-            state.isDisabled && "bg-cal-muted",
+            state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),

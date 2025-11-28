@@ -15,7 +15,6 @@ import {
   getAIAgentCallPhoneNumberField,
   getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
@@ -739,8 +738,6 @@ export async function scheduleBookingReminders(
 
   const bookerUrl = await getBookerBaseUrl(isOrg ? teamId : null);
 
-  const creditService = new CreditService();
-
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     const promiseScheduleReminders = bookings.map(async (booking) => {
@@ -844,7 +841,6 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
-          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -862,7 +858,6 @@ export async function scheduleBookingReminders(
           userId: userId,
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
-          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } else if (booking.smsReminderNumber) {
         if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -882,7 +877,6 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
-            creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
           });
         } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
           await scheduleWhatsappReminder({
@@ -901,7 +895,6 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
-            creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
           });
         }
       } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {

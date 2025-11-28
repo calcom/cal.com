@@ -60,7 +60,7 @@ type FormValues = {
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="border-subtle stack-y-6 rounded-b-xl border border-t-0 px-4 py-8">
+      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -140,7 +140,7 @@ const OrgProfileView = ({
           </>
         ) : (
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
-            <div className="grow">
+            <div className="flex-grow">
               <div>
                 <Label className="text-emphasis">{t("organization_name")}</Label>
                 <p className="text-default text-sm">{currentOrganisation?.name}</p>
@@ -149,7 +149,7 @@ const OrgProfileView = ({
                 <>
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
-                    className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),

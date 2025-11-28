@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -103,8 +102,6 @@ export async function handler(req: NextRequest) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const creditService = new CreditService();
-
         const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
             phoneNumber: sendTo,
@@ -127,7 +124,6 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
-          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
 
         if (scheduledNotification) {

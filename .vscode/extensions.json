@@ -4,6 +4,7 @@
     "yzhang.markdown-all-in-one", // nicer markdown support
     "esbenp.prettier-vscode", // prettier plugin
     "dbaeumer.vscode-eslint", // eslint plugin
+    "bradlc.vscode-tailwindcss", // hinting / autocompletion for tailwind
     "ban.spellright", // Spell check for docs
     "stripe.vscode-stripe", // stripe VSCode extension
     "Prisma.prisma", // syntax|format|completion for prisma

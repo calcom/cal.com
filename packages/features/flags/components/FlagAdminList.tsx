@@ -35,7 +35,7 @@ export const FlagAdminList = () => {
 
   return (
     <>
-      <div className="stack-y-4">
+      <div className="space-y-4">
         {sortedTypes.map((type) => (
           <PanelCard key={type} title={type.replace(/_/g, " ")} collapsible defaultCollapsed={false}>
             <List roundContainer noBorderTreatment>

@@ -34,7 +34,6 @@ export enum CustomAction {
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
   Impersonate = "impersonate",
-  EditUsers = "editUsers",
 }
 
 export enum Scope {
@@ -317,7 +316,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
-      dependsOn: ["team.read"],
       visibleWhen: {
         teamPrivacy: "public", // Only show for public teams
       },
@@ -560,22 +558,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
       scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
-    },
-    [CustomAction.EditUsers]: {
-      description: "Edit user attributes",
-      category: "attributes",
-      i18nKey: "pbac_action_edit_users",
-      descriptionI18nKey: "pbac_desc_edit_user_attributes",
-      scope: [Scope.Organization],
-      dependsOn: [
-        "organization.read",
-        "organization.listMembers",
-        "organization.attributes.read",
-        "organization.attributes.update",
-        "organization.attributes.delete",
-        "organization.attributes.create",
-        "organization.changeMemberRole",
-      ],
     },
   },
   [Resource.RoutingForm]: {

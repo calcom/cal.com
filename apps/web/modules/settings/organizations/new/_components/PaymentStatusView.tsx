@@ -34,7 +34,7 @@ const PaymentStatusView = () => {
 
   if (paymentStatus === "failed" || paymentError) {
     return (
-      <div className="flex min-h-[500px] flex-col items-center justify-center stack-y-6 px-4 sm:px-6">
+      <div className="flex min-h-[500px] flex-col items-center justify-center space-y-6 px-4 sm:px-6">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
           <Icon name="x" className="h-6 w-6 text-red-600" />
         </div>
@@ -50,7 +50,7 @@ const PaymentStatusView = () => {
   }
 
   return (
-    <div className="flex min-h-[500px] flex-col items-center justify-center stack-y-6 px-4 sm:px-6">
+    <div className="flex min-h-[500px] flex-col items-center justify-center space-y-6 px-4 sm:px-6">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
         <Icon name="check" className="h-6 w-6 text-green-600 dark:text-green-400" />
       </div>

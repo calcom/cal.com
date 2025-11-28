@@ -141,18 +141,16 @@ describe("SMSManager", () => {
         rateLimitingType: "sms",
       });
 
-      expect(sendSmsOrFallbackEmail).toHaveBeenCalledWith(
-        expect.objectContaining({
-          twilioData: expect.objectContaining({
-            phoneNumber: mockCalEvent.attendees[0].phoneNumber,
-            body: expect.stringContaining(mockCalEvent.attendees[0].name),
-            sender: expect.any(String),
-            userId: 1,
-            bookingUid: "test-booking-uid",
-          }),
-          creditCheckFn: expect.any(Function),
-        })
-      );
+      expect(sendSmsOrFallbackEmail).toHaveBeenCalledWith({
+        twilioData: {
+          phoneNumber: mockCalEvent.attendees[0].phoneNumber,
+          body: expect.stringContaining(mockCalEvent.attendees[0].name),
+          sender: expect.any(String),
+          teamId: undefined,
+          userId: 1,
+          bookingUid: "test-booking-uid",
+        },
+      });
 
       expect(result).toEqual(mockSmsResponse);
     });

@@ -609,10 +609,10 @@ const CopyTimes = ({
   };
 
   return (
-    <div className="stack-y-2 py-2">
+    <div className="space-y-2 py-2">
       <div className="p-2">
         <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
-        <ol className="stack-y-2">
+        <ol className="space-y-2">
           <li key="select all">
             <CheckboxField
               description={t("select_all")}

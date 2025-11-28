@@ -17,7 +17,7 @@ type AddClientOptions = {
 };
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { clientId, scopes, teamSlug, codeChallenge, codeChallengeMethod } = input;
+  const { clientId, scopes, teamSlug } = input;
   const client = await prisma.oAuthClient.findUnique({
     where: {
       clientId,
@@ -26,37 +26,12 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       clientId: true,
       redirectUri: true,
       name: true,
-      clientType: true,
     },
   });
 
   if (!client) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Client ID not valid" });
   }
-
-  if (client.clientType === "PUBLIC") {
-    if (!codeChallenge) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "code_challenge required for public clients",
-      });
-    }
-    if (!codeChallengeMethod || codeChallengeMethod !== "S256") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "code_challenge_method must be S256 for public clients",
-      });
-    }
-  } else if (client.clientType === "CONFIDENTIAL") {
-    // Optional PKCE validation for CONFIDENTIAL clients
-    if (codeChallenge && (!codeChallengeMethod || codeChallengeMethod !== "S256")) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "code_challenge_method must be S256 when PKCE is used",
-      });
-    }
-  }
-
   const authorizationCode = generateAuthorizationCode();
 
   const team = teamSlug
@@ -87,8 +62,6 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       teamId: team ? team.id : undefined,
       expiresAt: dayjs().add(10, "minutes").toDate(),
       scopes: scopes as [AccessScope],
-      codeChallenge,
-      codeChallengeMethod,
     },
   });
   return { client, authorizationCode };

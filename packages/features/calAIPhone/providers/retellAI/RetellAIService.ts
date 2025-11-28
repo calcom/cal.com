@@ -1,5 +1,3 @@
-import type { TrackingData } from "@calcom/lib/tracking";
-
 import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
@@ -267,7 +265,6 @@ export class RetellAIService {
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
-    tracking?: TrackingData;
   }) {
     return this.billingService.generatePhoneNumberCheckoutSession(params);
   }

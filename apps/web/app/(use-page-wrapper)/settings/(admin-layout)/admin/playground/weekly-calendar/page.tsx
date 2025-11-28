@@ -5,23 +5,17 @@ import { useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
+import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
 
 const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
 };
 
-const getBaseProps = ({
-  events,
-  startHour = 6,
-}: {
-  events: CalendarEvent[];
-  startHour?: Hours;
-}): CalendarComponentProps => ({
+const getBaseProps = (events: CalendarEvent[]): CalendarComponentProps => ({
   startDate: dayjs("2025-01-06").toDate(), // Monday
   endDate: dayjs("2025-01-12").toDate(), // Sunday
   events,
-  startHour,
+  startHour: 6,
   endHour: 18,
   gridCellsPerHour: 4,
   timezone: "UTC",
@@ -29,7 +23,6 @@ const getBaseProps = ({
   showBorder: false,
   hideHeader: true,
   borderColor: "subtle",
-  scrollToCurrentTime: false,
 });
 
 type Scenario = {
@@ -38,7 +31,6 @@ type Scenario = {
   description: string;
   expected: string;
   events: CalendarEvent[];
-  startHour: Hours;
 };
 
 const scenarios: Scenario[] = [
@@ -47,8 +39,7 @@ const scenarios: Scenario[] = [
     title: "Two Overlapping Events",
     description: "Two events with overlapping time ranges on the same day",
     expected:
-      "First event 80% width at left edge (0%), second event 50% width aligned to right edge (49.5% offset). Events spread across full width for maximum visual distinction. Hover should bring event to front.",
-    startHour: 9,
+      "Second event should be offset 8% to the right, both 80% width. Hover should bring event to front.",
     events: [
       {
         id: 1,
@@ -71,8 +62,7 @@ const scenarios: Scenario[] = [
     title: "Three Overlapping Events (Cascading)",
     description: "Three events that overlap, creating a cascading effect",
     expected:
-      "Events spread across full width with variable widths (55%, ~42%, 33%). Offsets: 0%, ~35%, 66.5% (last event aligned to right edge). Right edges evenly distributed for maximum scatter. Z-index should increment. Hover brings any to top.",
-    startHour: 9,
+      "Events should cascade with offsets 0%, 8%, 16%. Z-index should increment. Hover brings any to top.",
     events: [
       {
         id: 3,
@@ -101,8 +91,7 @@ const scenarios: Scenario[] = [
     id: "non-overlapping",
     title: "Non-Overlapping Events",
     description: "Events that don't overlap should not cascade",
-    expected: "Both events at 0% offset (separate groups), no cascade. Both should be 100% width.",
-    startHour: 9,
+    expected: "Both events at 0% offset (separate groups), no cascade. Both should be 80% width.",
     events: [
       {
         id: 6,
@@ -124,9 +113,7 @@ const scenarios: Scenario[] = [
     id: "same-start-time",
     title: "Same Start Time, Different Durations",
     description: "Multiple events starting at the same time with varying lengths",
-    expected:
-      "Longest event first (base of cascade), spread across full width with variable widths (55%, ~42%, 33%). Last event aligned to right edge. All start at 10:00.",
-    startHour: 9,
+    expected: "Longest event first (base of cascade), shorter ones offset 8%, 16%. All start at 10:00.",
     events: [
       {
         id: 8,
@@ -152,18 +139,16 @@ const scenarios: Scenario[] = [
     ],
   },
   {
-    id: "four-overlapping",
-    title: "Four Overlapping Events",
-    description: "Four events that overlap simultaneously",
-    expected:
-      "Events spread across full width with variable widths (40%, ~33%, ~28%, 25%). Last event aligned to right edge. Right edges evenly distributed for maximum scatter.",
-    startHour: 9,
+    id: "chain-overlaps",
+    title: "Chain Overlaps (A→B→C)",
+    description: "Events where A overlaps B, and B overlaps C",
+    expected: "Single overlap group with cascading offsets 0%, 8%, 16%.",
     events: [
       {
         id: 11,
         title: "Event A",
         start: makeDate(4, 10, 0),
-        end: makeDate(4, 12, 0),
+        end: makeDate(4, 11, 0),
         options: { status: "ACCEPTED", color: "#3b82f6" },
       },
       {
@@ -177,15 +162,8 @@ const scenarios: Scenario[] = [
         id: 13,
         title: "Event C",
         start: makeDate(4, 11, 0),
-        end: makeDate(4, 12, 30),
+        end: makeDate(4, 12, 0),
         options: { status: "ACCEPTED", color: "#10b981" },
-      },
-      {
-        id: 50,
-        title: "Event D",
-        start: makeDate(4, 11, 15),
-        end: makeDate(4, 12, 15),
-        options: { status: "PENDING", color: "#8b5cf6" },
       },
     ],
   },
@@ -195,7 +173,6 @@ const scenarios: Scenario[] = [
     description: "A very busy day with many overlapping events",
     expected:
       "Visually tight stack with multiple cascading levels. Right edge should not overflow. Hover should still work.",
-    startHour: 8,
     events: [
       {
         id: 14,
@@ -350,9 +327,7 @@ const scenarios: Scenario[] = [
     id: "touching-events",
     title: "Touching Events (Edge Case)",
     description: "Events that touch exactly at boundaries",
-    expected:
-      "Separate groups; no cascade; both at 0% offset. Both should be 100% width. Events touching at 11:00 should not overlap.",
-    startHour: 9,
+    expected: "Separate groups; no cascade; both at 0% offset. Events touching at 11:00 should not overlap.",
     events: [
       {
         id: 25,
@@ -376,7 +351,6 @@ const scenarios: Scenario[] = [
     description: "Events with different booking statuses",
     expected:
       "Visual styling should differ by status (ACCEPTED, PENDING, CANCELLED). Cascade should still work.",
-    startHour: 13,
     events: [
       {
         id: 27,
@@ -407,7 +381,6 @@ const scenarios: Scenario[] = [
     description: "Events with different durations to test layout logic (eventDuration > 30 changes flex-col)",
     expected:
       "Events ≤30min show horizontal layout (title and time inline). Events >30min show vertical layout (title and time stacked).",
-    startHour: 8,
     events: [
       {
         id: 40,
@@ -492,7 +465,7 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
       </div>
 
       <div className="h-[600px] overflow-hidden rounded border">
-        <Calendar {...getBaseProps({ events: scenario.events, startHour: scenario.startHour })} />
+        <Calendar {...getBaseProps(scenario.events)} />
       </div>
 
       <button
@@ -512,7 +485,7 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
 
 export default function WeeklyCalendarPlayground() {
   return (
-    <div className="stack-y-8 p-6">
+    <div className="space-y-8 p-6">
       <div>
         <h1 className="text-3xl font-bold">Weekly Calendar Playground</h1>
         <p className="text-subtle mt-2">
@@ -522,7 +495,7 @@ export default function WeeklyCalendarPlayground() {
       </div>
 
       {/* Grid View of All Scenarios */}
-      <div className="stack-y-8">
+      <div className="space-y-8">
         <h2 className="mb-4 text-2xl font-bold">All Scenarios (Side-by-Side)</h2>
         {scenarios.map((scenario, index) => (
           <ScenarioCard key={index} scenario={scenario} />
@@ -532,7 +505,7 @@ export default function WeeklyCalendarPlayground() {
       {/* Testing Checklist */}
       <div className="border-subtle rounded-lg border p-6">
         <h2 className="mb-4 text-xl font-bold">Testing Checklist</h2>
-        <ul className="text-subtle stack-y-2 text-sm">
+        <ul className="text-subtle space-y-2 text-sm">
           <li>✓ Visual appearance matches expectations (80% width with 8% cascading offsets)</li>
           <li>✓ Hover behavior works smoothly - hovered event appears topmost</li>
           <li>✓ No visual glitches with 3+ overlapping events</li>

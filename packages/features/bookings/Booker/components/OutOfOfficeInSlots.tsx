@@ -35,7 +35,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">
           <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
-        <div className="stack-y-2 text-center">
+        <div className="space-y-2 text-center">
           <p className="mt-2 text-base font-bold">
             {t("ooo_user_is_ooo", { displayName: fromUser.displayName })}
           </p>

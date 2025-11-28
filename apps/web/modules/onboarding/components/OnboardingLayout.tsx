@@ -28,7 +28,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
   const column2 = childrenArray[1];
 
   return (
-    <div className="bg-cal-muted flex min-h-screen w-full flex-col items-center justify-between overflow-clip rounded-[12px] px-4 py-2 md:px-6">
+    <div className="bg-muted flex min-h-screen w-full flex-col items-center justify-between overflow-clip rounded-[12px] px-4 py-2 md:px-6">
       {/* Logo and container - centered */}
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-6">
         <Logo className="mt-4 h-5 w-auto shrink-0" />

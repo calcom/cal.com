@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { InputError, Input } from "@calcom/ui/components/form";
+import { InputError } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/profile-view";
 
@@ -47,9 +47,9 @@ const CustomEmailTextField = ({
         className={`border-default mt-2 flex w-full items-center rounded-[10px] border ${
           inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
         }`}>
-        <Input
+        <input
           {...formMethods.register(formMethodFieldName)}
-          className="focus:ring-none! focus:shadow-none! flex-1 border-none bg-transparent px-3 py-1.5 text-sm outline-none"
+          className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
           data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}

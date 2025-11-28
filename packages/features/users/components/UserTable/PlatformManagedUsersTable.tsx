@@ -304,7 +304,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
           </>
         }>
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

@@ -124,7 +124,7 @@ export const OAuthClientForm = ({
                   <TextField
                     type="url"
                     required={index === 0}
-                    className="w-full"
+                    className="w-[100%]"
                     label=""
                     disabled={isFormDisabled}
                     {...register(`redirectUris.${index}.uri` as const)}
@@ -197,7 +197,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking redirect uri"
-              className="w-full"
+              className="w-[100%]"
               {...register("bookingRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -208,7 +208,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking cancel redirect uri"
-              className="w-full"
+              className="w-[100%]"
               {...register("bookingCancelRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -219,7 +219,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking reschedule redirect uri"
-              className="w-full"
+              className="w-[100%]"
               {...register("bookingRescheduleRedirectUri")}
               disabled={isFormDisabled}
             />

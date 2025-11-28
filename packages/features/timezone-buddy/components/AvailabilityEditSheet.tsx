@@ -74,7 +74,7 @@ const DateOverride = ({
   return (
     <div className="">
       <Label>{t("date_overrides")}</Label>
-      <div className="stack-y-2">
+      <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
           replace={replace}
@@ -195,7 +195,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <SheetBody className="mt-4 flex flex-col stack-y-4">
+          <SheetBody className="mt-4 flex flex-col space-y-4">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -213,7 +213,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             <div className="mt-4">
               <Label className="text-emphasis">{t("members_default_schedule")}</Label>
               {/* Remove padding from schedule without touching the component */}
-              <div className="[&>*:first-child]:p-0!">
+              <div className="[&>*:first-child]:!p-0">
                 <Schedule
                   control={form.control}
                   name="schedule"

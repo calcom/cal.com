@@ -9,11 +9,10 @@ import { Form, Select, NumberInput } from "@calcom/ui/components/form";
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZNumberFilterValue, ColumnFilterType } from "../../lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 import { numberFilterOperatorOptions } from "./utils";
 
 export type NumberFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: Extract<FilterType, "n"> }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.NUMBER }>;
 };
 
 export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {

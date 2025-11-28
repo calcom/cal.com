@@ -184,7 +184,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       className={classNames(
                         "flex h-8 flex-col items-center justify-center",
                         isInRange ? "text-emphasis" : "",
-                        isInRange && !rangeOverlap ? "bg-cal-success" : "",
+                        isInRange && !rangeOverlap ? "bg-success" : "",
                         hours ? "" : "bg-subtle font-medium"
                       )}
                       onMouseEnter={handleMouseEnter}

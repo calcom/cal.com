@@ -192,10 +192,10 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
     <div className="w-full">
       {keyValueMode && (
         <div className="mb-2 flex items-center px-2">
-          <div className="grow">
+          <div className="flex-grow">
             <span className="text-subtle text-xs font-medium">{keyLabel}</span>
           </div>
-          <div className="grow">
+          <div className="flex-grow">
             <span className="text-subtle text-xs font-medium">{valueLabel}</span>
           </div>
           {/* Space for buttons */}
@@ -211,7 +211,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
             {keyValueMode ? (
               // Key-value pair mode
               <div className="flex w-full gap-2">
-                <div className="grow">
+                <div className="flex-grow">
                   <TextField
                     disabled={disabled}
                     labelSrOnly
@@ -223,7 +223,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                     {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
                   />
                 </div>
-                <div className="grow">
+                <div className="flex-grow">
                   <TextField
                     disabled={disabled}
                     labelSrOnly
@@ -248,7 +248,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
               </div>
             ) : (
               // Standard mode
-              <div className="grow">
+              <div className="flex-grow">
                 <TextField
                   disabled={disabled}
                   labelSrOnly

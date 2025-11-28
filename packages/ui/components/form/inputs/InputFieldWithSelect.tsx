@@ -13,7 +13,7 @@ export const InputFieldWithSelect = forwardRef<
       ref={ref}
       {...props}
       inputIsFullWidth={false}
-      addOnClassname="px-0!"
+      addOnClassname="!px-0"
       addOnSuffix={<UnstyledSelect {...props.selectProps} />}
     />
   );

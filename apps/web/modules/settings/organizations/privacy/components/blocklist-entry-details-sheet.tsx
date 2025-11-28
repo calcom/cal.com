@@ -55,16 +55,16 @@ export function BlocklistEntryDetailsSheet({
 
         <SheetBody className="px-6">
           {isLoading ? (
-            <div className="mt-3 stack-y-3">
+            <div className="mt-3 space-y-3">
               <SkeletonText className="h-6 w-32" />
               <SkeletonText className="h-40 w-full" />
             </div>
           ) : data?.entry ? (
-            <div className="mt-3 stack-y-6">
+            <div className="mt-3 space-y-6">
               <div className="bg-subtle rounded-xl p-1">
                 <h2 className="text-default p-5 text-sm font-semibold">{t("details")}</h2>
 
-                <div className="bg-default stack-y-3 rounded-xl p-5">
+                <div className="bg-default space-y-3 rounded-xl p-5">
                   <div>
                     <label className="text-default block text-sm font-semibold">
                       {data.entry.type === "EMAIL" ? t("email") : t("domain")}
@@ -115,7 +115,7 @@ export function BlocklistEntryDetailsSheet({
               <div className="bg-subtle rounded-xl p-1">
                 <h2 className="text-default p-5 text-sm font-semibold">{t("history")}</h2>
                 {data.auditHistory.length > 0 ? (
-                  <div className="stack-y-3">
+                  <div className="space-y-3">
                     {data.auditHistory.map((audit) => (
                       <div key={audit.id} className="bg-default border-subtle rounded-xl border p-4">
                         <div className="flex items-start justify-between">

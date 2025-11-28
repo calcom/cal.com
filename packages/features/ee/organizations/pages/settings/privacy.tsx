@@ -36,7 +36,7 @@ const PrivacyView = ({
 
   return (
     <LicenseRequired>
-      <div className="stack-y-8">
+      <div className="space-y-8">
         <MakeTeamPrivateSwitch
           isOrg={true}
           teamId={currentOrg.id}

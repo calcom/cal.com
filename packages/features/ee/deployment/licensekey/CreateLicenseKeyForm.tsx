@@ -85,7 +85,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
       {!stripeCheckoutUrl ? (
         <Form
           form={newLicenseKeyFormMethods}
-          className="stack-y-5"
+          className="space-y-5"
           id="createOrg"
           handleSubmit={(values) => {
             mutation.mutate(values);
@@ -177,7 +177,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 *:flex-1">
+          <div className="flex flex-wrap gap-2 [&>*]:flex-1">
             <Controller
               name="entityCount"
               control={newLicenseKeyFormMethods.control}
@@ -257,7 +257,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             <TextField className="flex-1" disabled value={stripeCheckoutUrl} />
           </div>
 
-          <div className="mt-4 flex gap-2 *:flex-1 *:justify-center">
+          <div className="mt-4 flex gap-2 [&>*]:flex-1 [&>*]:justify-center">
             <Button
               color="secondary"
               onClick={() => {

@@ -211,7 +211,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 {t("schedule_timezone_change")}
               </Button>
             ) : (
-              <div className="bg-cal-muted border-subtle mt-2 rounded-md border p-4">
+              <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
                 <Label>{t("travel_schedule")}</Label>
                 <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
                   {watchedTzSchedules.map((schedule, index) => {

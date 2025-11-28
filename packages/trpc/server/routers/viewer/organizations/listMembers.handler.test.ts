@@ -3,7 +3,6 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 
 import { listMembersHandler } from "./listMembers.handler";
 
@@ -77,7 +76,6 @@ describe("listMembersHandler", () => {
     prisma.membership.count.mockResolvedValue(0);
     prisma.membership.findFirst.mockResolvedValue({ role: "ADMIN" });
     // Mock team.findUnique to return only isPrivate field since that's what the handler selects
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.team.findUnique.mockResolvedValue({ isPrivate: false } as any);
   });
 
@@ -85,7 +83,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC enabled
     mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
-    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -124,7 +122,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC disabled
     mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
-    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -159,7 +157,7 @@ describe("listMembersHandler", () => {
     // Mock PBAC disabled for this test
     mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
-    const roleFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -167,7 +165,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const teamFilter: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const teamFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "teams",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -175,7 +173,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const attributeFilter1: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const attributeFilter1: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "1",
       value: {
         type: ColumnFilterType.MULTI_SELECT,
@@ -183,7 +181,7 @@ describe("listMembersHandler", () => {
       },
     };
 
-    const attributeFilter2: TypedColumnFilter<Extract<FilterType, "ms">> = {
+    const attributeFilter2: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "2",
       value: {
         type: ColumnFilterType.MULTI_SELECT,

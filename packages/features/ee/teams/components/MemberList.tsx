@@ -490,7 +490,7 @@ function MemberListContent(props: Props) {
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
                           <Button
-                            className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
+                            className="radix-state-open:rounded-r-md"
                             color="secondary"
                             variant="icon"
                             StartIcon="ellipsis"
@@ -734,12 +734,12 @@ function MemberListContent(props: Props) {
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
+          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

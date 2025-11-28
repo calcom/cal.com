@@ -214,7 +214,7 @@ export const AvailableTimeSlots = ({
       <div
         ref={containerRef}
         className={classNames(
-          limitHeight && "scroll-bar grow overflow-auto md:h-[400px]",
+          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>
@@ -223,7 +223,7 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden!">
+            <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}
                 customClassNames={customClassNames?.availableTimes}

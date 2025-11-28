@@ -28,11 +28,11 @@ const navigationItemStyles = cva(
   {
     variants: {
       isChild: {
-        true: "[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 ml-16 lg:flex lg:ml-10 relative before:absolute before:left-[-24px] before:-top-2 before:h-[calc(100%+0.5rem)] before:w-0.5 before:bg-subtle before:content-[''] first:before:rounded-t-full last:before:rounded-b-full",
+        true: "[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 ml-16 lg:flex lg:ml-10 relative before:absolute before:left-[-24px] before:top-[-0.5rem] before:h-[calc(100%+0.5rem)] before:w-0.5 before:bg-subtle before:content-[''] [&:first-child]:before:rounded-t-full [&:last-child]:before:rounded-b-full",
         false: "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
       },
       hasChild: {
-        true: "aria-[aria-current='page']:bg-transparent! relative after:absolute after:left-[-24px] after:top-6 after:h-[calc(100%-1.5rem)] after:w-0.5 after:bg-subtle after:content-[''] first:after:rounded-t-full last:after:rounded-b-full",
+        true: "[&[aria-current='page']]:!bg-transparent relative after:absolute after:left-[-24px] after:top-[1.5rem] after:h-[calc(100%-1.5rem)] after:w-0.5 after:bg-subtle after:content-[''] [&:first-child]:after:rounded-t-full [&:last-child]:after:rounded-b-full",
         false: "[&[aria-current='page']]:bg-subtle",
       },
       isFirstChild: {
@@ -77,7 +77,7 @@ const NavigationItemComponent = ({
           <Icon
             name={item.isLoading ? "rotate-cw" : item.icon}
             className={classNames(
-              "text-subtle mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+              "text-subtle mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
               item.isLoading && "animate-spin"
             )}
             aria-hidden="true"

@@ -35,7 +35,7 @@ const sampleBookingsByHourStats = [
 export default function BookingsByHourPlayground() {
   const { t } = useLocale();
   return (
-    <div className="stack-y-6 p-6">
+    <div className="space-y-6 p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Bookings by Hour Playground</h1>
         <p className="mt-2 text-gray-600">

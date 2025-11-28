@@ -348,9 +348,9 @@ export const MultiplePrivateLinksController = ({
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent title={t("link_settings")} type="creation">
-          <div className="mb-4 stack-y-4">
+          <div className="mb-4 space-y-4">
             <RadioArea.Group
-              className="stack-y-2"
+              className="space-y-2"
               value={selectedType}
               data-testid="private-link-radio-group"
               onValueChange={(value: "time" | "usage") => {

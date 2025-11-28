@@ -459,7 +459,7 @@ const WebhookForm = (props: {
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>
-                  <div className="bg-default stack-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
+                  <div className="bg-default space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
                     <div className="text-emphasis rounded-sm border-b p-2 text-sm">
                       {t("forgotten_secret_description")}
                     </div>
@@ -541,7 +541,7 @@ const WebhookForm = (props: {
                 />
               </div>
               {useCustomTemplate && (
-                <div className="stack-y-3">
+                <div className="space-y-3">
                   <TextArea
                     name="customPayloadTemplate"
                     rows={8}
@@ -561,11 +561,11 @@ const WebhookForm = (props: {
                       {webhookVariables.map(({ category, variables }) => (
                         <div key={category} className="mb-4">
                           <h4 className="mb-2 text-sm font-medium">{category}</h4>
-                          <div className="stack-y-2">
+                          <div className="space-y-2">
                             {variables.map(({ name, variable, description }) => (
                               <div
                                 key={name}
-                                className="hover:bg-cal-muted  cursor-pointer rounded p-2 text-sm transition-colors"
+                                className="hover:bg-muted  cursor-pointer rounded p-2 text-sm transition-colors"
                                 onClick={() => {
                                   const currentValue = formMethods.getValues("payloadTemplate") || "{}";
                                   const updatedValue = insertVariableIntoTemplate(

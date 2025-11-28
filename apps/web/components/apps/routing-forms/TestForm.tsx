@@ -335,7 +335,7 @@ export const TestFormRenderer = ({
   if (!isMobile) {
     if (isTestPreviewOpen) {
       return (
-        <div className="border-muted bg-cal-muted h-full border-l p-6">
+        <div className="border-muted bg-muted h-full border-l p-6">
           <TestForm
             form={testForm}
             supportsTeamMembersMatchingLogic={isSubTeamForm}

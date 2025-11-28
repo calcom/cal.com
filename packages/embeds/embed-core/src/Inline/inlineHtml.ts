@@ -1,23 +1,20 @@
 import type { AllPossibleLayouts, EmbedPageType } from "../types";
 import { generateSkeleton } from "../ui/skeleton";
-import { type ExternalThemeClass, getInternalThemeClass } from "../ui/themeClass";
+
 const html = ({
   layout = "month_view",
   pageType,
-  externalThemeClass,
 }: {
   layout?: AllPossibleLayouts;
   pageType: EmbedPageType | null;
-  externalThemeClass: ExternalThemeClass;
 }) => {
   const { skeletonContent, skeletonContainerStyle, skeletonStyle } = getSkeletonData({
     layout,
     pageType,
   });
 
-  const themeClass = getInternalThemeClass(externalThemeClass);
   return `
-<div id="skeleton-container" style="${skeletonContainerStyle}" ${themeClass ? `class="${themeClass}"` : ""}>
+<div id="skeleton-container" style="${skeletonContainerStyle}">
   <div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">
     ${skeletonContent}
   </div>

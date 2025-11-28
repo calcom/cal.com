@@ -158,7 +158,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               setIsEmailAddressNeeded(false);
               setIsSenderIdNeeded(false);
             }}>
-            <div className="stack-y-1">
+            <div className="space-y-1">
               <Label htmlFor="label">{t("action")}:</Label>
               <Controller
                 name="action"
@@ -190,7 +190,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               )}
             </div>
             {isPhoneNumberNeeded && (
-              <div className="mt-5 stack-y-1">
+              <div className="mt-5 space-y-1">
                 <Label htmlFor="sendTo">{t("phone_number")}</Label>
                 <div className="mb-5 mt-1">
                   <Controller

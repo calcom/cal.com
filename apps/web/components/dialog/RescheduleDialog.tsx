@@ -13,13 +13,13 @@ import { showToast } from "@calcom/ui/components/toast";
 interface IRescheduleDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUid: string;
+  bookingUId: string;
 }
 
 export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingUid } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
   const { mutate: rescheduleApi, isPending } = trpc.viewer.bookings.requestReschedule.useMutation({
@@ -38,7 +38,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow data-testid="reschedule-dialog">
         <div className="flex flex-row md:space-x-3">
-          <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
+          <div className="bg-subtle hidden h-10 w-10 flex-shrink-0 justify-center rounded-full md:flex">
             <Icon name="clock" className="m-auto h-6 w-6" />
           </div>
           <div className="w-full md:pt-1">
@@ -66,7 +66,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
             disabled={isPending}
             onClick={() => {
               rescheduleApi({
-                bookingUid,
+                bookingId,
                 rescheduleReason,
               });
             }}>

@@ -63,7 +63,6 @@ export interface OnboardingState {
   teamDetails: TeamDetails;
   teamBrand: TeamBrand;
   teamInvites: Invite[];
-  teamId: number | null;
 
   // Personal user state
   personalDetails: PersonalDetails;
@@ -80,7 +79,6 @@ export interface OnboardingState {
   setTeamDetails: (details: Partial<TeamDetails>) => void;
   setTeamBrand: (brand: Partial<TeamBrand>) => void;
   setTeamInvites: (invites: Invite[]) => void;
-  setTeamId: (teamId: number | null) => void;
 
   // Personal actions
   setPersonalDetails: (details: Partial<PersonalDetails>) => void;
@@ -114,7 +112,6 @@ const initialState = {
     logo: null,
   },
   teamInvites: [],
-  teamId: null,
   personalDetails: {
     name: "",
     username: "",
@@ -159,8 +156,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setTeamInvites: (invites) => set({ teamInvites: invites }),
 
-      setTeamId: (teamId) => set({ teamId }),
-
       setPersonalDetails: (details) =>
         set((state) => ({
           personalDetails: { ...state.personalDetails, ...details },
@@ -182,7 +177,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         teamDetails: state.teamDetails,
         teamBrand: state.teamBrand,
         teamInvites: state.teamInvites,
-        teamId: state.teamId,
         personalDetails: state.personalDetails,
       }),
     }

@@ -16,7 +16,7 @@ import type { InputFieldProps } from "./types";
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-cal-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
       {props.children}
     </span>
   );
@@ -165,7 +165,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("bg-default border-default stack-y-2 rounded-sm border p-2", props.className)}>
+      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
       {props.children}
     </div>
   );

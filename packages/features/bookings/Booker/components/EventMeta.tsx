@@ -178,7 +178,7 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 wrap-break-word max-w-full max-h-[180px] scroll-bar pr-4 overflow-y-auto">
+              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
@@ -187,7 +187,7 @@ export const EventMeta = ({
               />
             </EventMetaBlock>
           )}
-          <div className="stack-y-4 font-medium rtl:-mr-2">
+          <div className="space-y-4 font-medium rtl:-mr-2">
             {rescheduleUid && bookingData && (
               <EventMetaBlock icon="calendar">
                 {t("former_time")}
@@ -223,7 +223,7 @@ export const EventMeta = ({
                 <>{timezone}</>
               ) : (
                 <span
-                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%+35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}
                   data-testid="event-meta-current-timezone">
@@ -233,8 +233,8 @@ export const EventMeta = ({
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () =>
-                        "min-h-0! p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
-                      menu: () => "w-64! max-w-[90vw] mb-1 ",
+                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
+                      menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",

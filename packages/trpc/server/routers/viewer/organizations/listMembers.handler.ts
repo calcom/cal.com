@@ -1,7 +1,8 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -112,19 +113,19 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const { limit, offset } = input;
 
   const roleFilter = filters.find((filter) => filter.id === "role") as
-    | TypedColumnFilter<Extract<FilterType, "ms">>
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
   const teamFilter = filters.find((filter) => filter.id === "teams") as
-    | TypedColumnFilter<Extract<FilterType, "ms">>
+    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
     | undefined;
   const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
-    | TypedColumnFilter<Extract<FilterType, "dr">>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
   const createdAtFilter = filters.find((filter) => filter.id === "createdAt") as
-    | TypedColumnFilter<Extract<FilterType, "dr">>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
   const updatedAtFilter = filters.find((filter) => filter.id === "updatedAt") as
-    | TypedColumnFilter<Extract<FilterType, "dr">>
+    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
 
   const roleWhereClause = roleFilter

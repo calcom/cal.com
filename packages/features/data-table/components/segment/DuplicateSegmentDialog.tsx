@@ -87,7 +87,7 @@ export function DuplicateSegmentDialog({
       <DialogContent>
         <DialogHeader title={t("duplicate_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>
-          <div className="stack-y-4">
+          <div className="space-y-4">
             <TextField
               required
               data-testid="duplicate-segment-name"

@@ -24,7 +24,7 @@ export interface CalPageWrapper {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -80,7 +80,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-sans: ${interFont.style.fontFamily};
+          --font-inter: ${interFont.style.fontFamily};
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>

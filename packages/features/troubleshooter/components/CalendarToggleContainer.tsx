@@ -86,7 +86,7 @@ export function CalendarToggleContainer() {
   const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
 
   return (
-    <div className="flex flex-col stack-y-3">
+    <div className="flex flex-col space-y-3">
       <p className="text-sm font-medium leading-none">{t("calendars_were_checking_for_conflicts")}</p>
       {hasConnectedCalendars && !isLoading ? (
         <>

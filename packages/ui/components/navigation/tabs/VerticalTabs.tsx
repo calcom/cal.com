@@ -29,7 +29,7 @@ const NavTabs = function ({
   return (
     <nav
       className={classNames(
-        `no-scrollbar flex flex-col stack-y-0.5 overflow-scroll ${className}`,
+        `no-scrollbar flex flex-col space-y-0.5 overflow-scroll ${className}`,
         sticky && "sticky top-0 -mt-7"
       )}
       style={{

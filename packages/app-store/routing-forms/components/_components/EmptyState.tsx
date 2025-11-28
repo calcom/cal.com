@@ -23,7 +23,7 @@ export const EmptyState = ({
   buttonDataTestId,
 }: EmptyStateProps) => {
   return (
-    <div className="border-sublte bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
+    <div className="border-sublte bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
       <div className="mb-3 grid">
         {/* Icon card - Top */}
         <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">

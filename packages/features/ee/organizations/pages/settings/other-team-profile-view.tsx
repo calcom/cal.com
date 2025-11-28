@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -31,6 +32,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -52,6 +54,7 @@ const OtherTeamProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const session = useSession();
   const [firstRender, setFirstRender] = useState(true);
 
   useLayoutEffect(() => {
@@ -130,6 +133,19 @@ const OtherTeamProfileView = () => {
     },
   });
 
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
+      await utils.viewer.eventTypes.invalidate();
+      showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
   const publishMutation = trpc.viewer.teams.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
@@ -143,6 +159,14 @@ const OtherTeamProfileView = () => {
 
   function deleteTeam() {
     if (team?.id) deleteTeamMutation.mutate({ teamId: team.id });
+  }
+
+  function leaveTeam() {
+    if (team?.id && session.data)
+      removeMemberMutation.mutate({
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
+      });
   }
 
   if (!team) return null;
@@ -257,7 +281,7 @@ const OtherTeamProfileView = () => {
             </Form>
           ) : (
             <div className="flex">
-              <div className="grow">
+              <div className="flex-grow">
                 <div>
                   <Label className="text-emphasis">{t("team_name")}</Label>
                   <p className="text-default text-sm">{team?.name}</p>
@@ -266,7 +290,7 @@ const OtherTeamProfileView = () => {
                   <>
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                       // eslint-disable-next-line react/no-danger
                       dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />

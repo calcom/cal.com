@@ -86,7 +86,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
 
   return (
     <AtomsWrapper>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen}>
         <DialogTrigger asChild>
           <>
             {isMultiCalendar && (
@@ -147,7 +147,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
               }
             }}>
             <fieldset
-              className="stack-y-4"
+              className="space-y-4"
               disabled={form.formState.isSubmitting}
               data-testid="apple-calendar-form">
               <TextField

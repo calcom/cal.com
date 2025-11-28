@@ -3,7 +3,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
+import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import {
   isMultiSelectFilterValue,
   isTextFilterValue,
@@ -49,7 +49,7 @@ export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServic
 export type InsightsRoutingServiceFilterOptions = {
   startDate: string;
   endDate: string;
-  columnFilters?: TypedColumnFilter<FilterType>[];
+  columnFilters?: TypedColumnFilter<ColumnFilterType>[];
 };
 
 export type InsightsRoutingTableItem = {
@@ -705,7 +705,7 @@ export class InsightsRoutingBaseService {
       columnFilters.reduce((acc, filter) => {
         acc[filter.id] = filter;
         return acc;
-      }, {} as Record<string, TypedColumnFilter<FilterType>>) || {};
+      }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>) || {};
 
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];

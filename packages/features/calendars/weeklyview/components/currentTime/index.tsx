@@ -11,13 +11,7 @@ function calculateMinutesFromStart(startHour: number, currentHour: number, curre
   return currentMinuteOfDay - startMinute;
 }
 
-export function CurrentTime({
-  timezone,
-  scrollToCurrentTime = true,
-}: {
-  timezone: string;
-  scrollToCurrentTime?: boolean;
-}) {
+export function CurrentTime({ timezone }: { timezone: string }) {
   const { timeFormat } = useTimePreferences();
   const currentTimeRef = useRef<HTMLDivElement>(null);
   const [scrolledIntoView, setScrolledIntoView] = useState(false);
@@ -42,14 +36,14 @@ export function CurrentTime({
     const minutesFromStart = calculateMinutesFromStart(startHour, currentHour, currentMinute);
     setCurrentTimePos(minutesFromStart);
 
-    if (!scrollToCurrentTime || !currentTimeRef.current || scrolledIntoView) return;
+    if (!currentTimeRef.current || scrolledIntoView) return;
     // Within a small timeout so element has time to render.
     setTimeout(() => {
       // Doesn't seem to cause any issue. Put it under condition if needed
       currentTimeRef?.current?.scrollIntoView({ block: "center" });
       setScrolledIntoView(true);
     }, 100);
-  }, [startHour, endHour, scrolledIntoView, timezone, scrollToCurrentTime]);
+  }, [startHour, endHour, scrolledIntoView, timezone]);
 
   return (
     <div

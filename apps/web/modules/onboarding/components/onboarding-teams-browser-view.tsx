@@ -54,7 +54,7 @@ export const OnboardingTeamsBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-cal-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
           <p className="text-default text-sm font-medium leading-tight">{webappUrl}/teams</p>
         </div>
@@ -62,7 +62,7 @@ export const OnboardingTeamsBrowserView = ({
       </div>
 
       {/* Content */}
-      <div className="bg-cal-muted h-full pl-11 pt-11">
+      <div className="bg-muted h-full pl-11 pt-11">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
@@ -149,7 +149,7 @@ export const OnboardingTeamsBrowserView = ({
                   ))
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
-                  <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-full">
+                  <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
                     <Icon name="users" className="text-subtle h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-1 text-center">

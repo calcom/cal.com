@@ -151,7 +151,7 @@ export default function ApiKeyDialogForm({
               setSuccessfulNewApiKeyModal(true);
             }
           }}
-          className="stack-y-4">
+          className="space-y-4">
           <div className="mb-4 mt-1">
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}

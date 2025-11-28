@@ -35,7 +35,7 @@ export default function SAMLConnection({
           </p>
         </div>
         {!connection && (
-          <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
+          <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
             <Button color="secondary" onClick={() => setOpenModal(true)}>
               Configure
             </Button>

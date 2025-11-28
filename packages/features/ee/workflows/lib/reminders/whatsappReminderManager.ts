@@ -41,7 +41,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
     isVerificationPending = false,
     seatReferenceUid,
     verifiedAt,
-    creditCheckFn,
   } = args;
 
   if (!verifiedAt) {
@@ -195,12 +194,11 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
                 replyTo: evt.organizer.email,
               }
             : undefined,
-          creditCheckFn,
         });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
-    }else if (
+    } else if (
       (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
@@ -232,7 +230,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
                   workflowStepId,
                 }
               : undefined,
-            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {

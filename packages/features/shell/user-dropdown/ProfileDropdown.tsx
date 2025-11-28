@@ -49,14 +49,14 @@ export function ProfileDropdown() {
           className={classNames(
             "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
           )}>
-          <span className="flex w-full grow items-center justify-around gap-2 text-sm font-medium leading-none">
+          <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
             <Avatar alt={currentOption.label || ""} size="xsm" />
-            <span className="block w-20 overflow-hidden text-ellipsis whitespace-nowrap">
+            <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
               {currentOption.label}
             </span>
             <Icon
               name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />
           </span>

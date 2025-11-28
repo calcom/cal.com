@@ -45,7 +45,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   return (
     <div
       data-testid={`select-event-type-${id}`}
-      className="hover:bg-cal-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
+      className="hover:bg-muted min-h-20 box-border flex w-full cursor-pointer select-none items-center space-x-4 px-4 py-3"
       onClick={() => handleSelect()}>
       <input
         id={`${id}`}
@@ -63,7 +63,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           </div>
           {Boolean(description) && (
             <div
-              className="text-subtle line-clamp-4 wrap-break-word text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              className="text-subtle line-clamp-4 break-words text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
                 __html: markdownToSafeHTML(description),
@@ -105,7 +105,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
 
       <div className="sm:border-subtle bg-default  border dark:bg-black sm:rounded-md">
         <ScrollableArea className="rounded-md">
-          <ul className="border-subtle max-h-97 static! w-full divide-y">
+          <ul className="border-subtle max-h-97 !static w-full divide-y">
             {fields.length > 0 ? (
               fields.map((field, index) => (
                 <EventTypeCard
@@ -118,7 +118,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
                 />
               ))
             ) : (
-              <div className="text-subtle bg-cal-muted w-full p-2  text-center text-sm">Team has no Events</div>
+              <div className="text-subtle bg-muted w-full p-2  text-center text-sm">Team has no Events</div>
             )}
           </ul>
         </ScrollableArea>

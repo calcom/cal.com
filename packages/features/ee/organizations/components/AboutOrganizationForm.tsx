@@ -34,7 +34,7 @@ export const AboutOrganizationForm = () => {
     <>
       <Form
         form={aboutOrganizationFormMethods}
-        className="stack-y-5"
+        className="space-y-5"
         handleSubmit={(values) => {
           setLogo(values.logo);
           setBio(values.bio);

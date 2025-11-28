@@ -212,7 +212,7 @@ export default function WorkflowDetailsPage(props: Props) {
           </FormCardBody>
         </FormCard>
 
-        <div className="mt-0! ml-7 h-3 w-2 border-l" />
+        <div className="!mt-0 ml-7 h-3 w-2 border-l" />
         {form.getValues("steps") && (
           <div className="">
             {form.getValues("steps")?.map((step, index) => {
@@ -225,7 +225,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="mb-0 bg-cal-muted border-muted"
+                    className="mb-0 bg-muted border-muted"
                     collapsible={false}
                     label={
                       <div className="flex gap-2 items-center pt-1 pb-2">
@@ -293,7 +293,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     </FormCardBody>
                   </FormCard>
                   {index !== form.getValues("steps").length - 1 && (
-                    <div className="border-default mt-0! ml-7 h-3 w-2 border-l" />
+                    <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
                   )}
                 </div>
               );
@@ -302,7 +302,7 @@ export default function WorkflowDetailsPage(props: Props) {
         )}
         {!permissions.readOnly && (
           <>
-            <div className="border-default mt-0! ml-7 h-3 w-2 border-l" />
+            <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
             <Button
               type="button"
               onClick={() => setIsAddActionDialogOpen(true)}

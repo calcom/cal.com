@@ -58,7 +58,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
         <div className="flex flex-row md:space-x-3">
-          <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
+          <div className="bg-subtle hidden h-10 w-10 flex-shrink-0 justify-center rounded-full md:flex">
             <Icon name="user-plus" className="m-auto h-6 w-6" />
           </div>
           <div className="w-full md:pt-1">
@@ -74,7 +74,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
 
             {isInvalidEmail && (
               <div className="my-4 flex text-sm text-red-700">
-                <div className="shrink-0">
+                <div className="flex-shrink-0">
                   <Icon name="triangle-alert" className="h-5 w-5" />
                 </div>
                 <div className="ml-3">

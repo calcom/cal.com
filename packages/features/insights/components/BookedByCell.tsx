@@ -22,7 +22,7 @@ export function BookedByCell({
     <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => {
         const tooltipContent = (
-          <div className="stack-y-1">
+          <div className="space-y-1">
             <div>
               {t("email")}: {attendee.email}
             </div>

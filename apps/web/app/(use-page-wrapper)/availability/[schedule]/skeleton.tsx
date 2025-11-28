@@ -24,7 +24,7 @@ export function AvailabilityScheduleSkeleton() {
               </div>
 
               {/* Action buttons */}
-              <div className="relative shrink-0 md:relative md:bottom-auto md:right-auto">
+              <div className="relative flex-shrink-0 md:relative md:bottom-auto md:right-auto">
                 {/* Desktop buttons - Set to Default, Delete, and Save */}
                 <div className="flex items-center justify-end">
                   {/* Set to Default - desktop only */}
@@ -99,14 +99,14 @@ export function AvailabilityScheduleSkeleton() {
                     <SkeletonText className="ml-2 h-4 w-4 rounded-full" /> {/* Info icon */}
                   </div>
                   <SkeletonText className="mb-4 mt-1 h-4 w-full max-w-md text-sm" /> {/* Description */}
-                  <div className="stack-y-2">
+                  <div className="space-y-2">
                     <SkeletonButton className="h-9 w-36 rounded-md" /> {/* Add an override button */}
                   </div>
                 </div>
               </div>
 
               {/* Sidebar - only visible on desktop */}
-              <div className="min-w-40 col-span-3 hidden stack-y-2 md:block lg:col-span-1 xl:w-[25%]">
+              <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1 xl:w-[25%]">
                 <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                   <div>
                     <SkeletonText className="mb-1 h-4 w-24 text-sm" /> {/* Timezone */}

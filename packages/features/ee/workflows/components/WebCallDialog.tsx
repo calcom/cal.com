@@ -402,7 +402,7 @@ export function WebCallDialog({
             )}
           </div>
 
-          <div className="h-60 stack-y-3 overflow-y-auto p-2">
+          <div className="h-60 space-y-3 overflow-y-auto p-2">
             {transcript.length === 0 ? (
               <div className="flex h-40 items-center justify-center text-center">
                 <div>

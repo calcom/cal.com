@@ -104,10 +104,10 @@ export function BookingReportEntryDetailsModal({
       <DialogContent enableOverflow>
         <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="stack-y-5">
+          <div className="space-y-5">
             <div className="bg-subtle rounded-xl p-1">
               <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
-              <div className="bg-default stack-y-4 rounded-xl p-5">
+              <div className="bg-default space-y-4 rounded-xl p-5">
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">{t("email")}</label>
                   <p className="text-subtle text-sm">{entry.bookerEmail}</p>

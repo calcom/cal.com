@@ -76,7 +76,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
       {groupNames.map((name) => (
         <Badge variant="gray" size="lg" key={name} className="min-h-8 h-auto py-2">
           <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 wrap-break-word">{name}</p>
+            <p className="min-w-0 break-words">{name}</p>
             <div className="hover:bg-emphasis shrink-0 rounded p-1">
               <Icon name="x" className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>

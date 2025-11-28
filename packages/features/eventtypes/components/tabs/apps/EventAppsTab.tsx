@@ -171,7 +171,7 @@ export const EventAppsTab = ({
       </div>
       {/* TODO: Add back after salesforce v3 dev */}
       {!appsDisableProps.disabled && (
-        <div className="bg-cal-muted mt-4 rounded-2xl p-4">
+        <div className="bg-muted mt-4 rounded-2xl p-4">
           {!isPendingApps && notInstalledApps?.length ? (
             <div className="mb-4 flex flex-col">
               <Section.Title>{t("available_apps_lower_case")}</Section.Title>

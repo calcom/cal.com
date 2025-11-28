@@ -59,9 +59,9 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
           </div>
         </SheetHeader>
 
-        <SheetBody className="flex flex-col stack-y-6 p-4">
+        <SheetBody className="flex flex-col space-y-6 p-4">
           {/* Call Information */}
-          <div className="stack-y-3">
+          <div className="space-y-3">
             <h3 className="text-emphasis text-base font-semibold">{t("call_information")}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -106,14 +106,14 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
 
           {/* Call Summary */}
           {selectedCall.call_analysis?.call_summary && (
-            <div className="stack-y-3">
+            <div className="space-y-3">
               <h3 className="text-emphasis text-base font-semibold">{t("call_summary")}</h3>
               <p className="text-default text-sm">{selectedCall.call_analysis.call_summary}</p>
             </div>
           )}
 
           {/* Recording Section */}
-          <div className="stack-y-3">
+          <div className="space-y-3">
             <h3 className="text-emphasis text-base font-semibold">{t("recording")}</h3>
             <div className="flex items-center gap-3">
               <audio controls className="h-11 w-[258px]" src={selectedCall.recording_url}>
@@ -126,9 +126,9 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
           </div>
 
           {/* Transcription */}
-          <div className="stack-y-3">
+          <div className="space-y-3">
             <h3 className="text-emphasis text-base font-semibold">{t("transcription")}</h3>
-            <div className="border-subtle max-h-96 stack-y-3 overflow-y-auto rounded-md border p-4">
+            <div className="border-subtle max-h-96 space-y-3 overflow-y-auto rounded-md border p-4">
               {selectedCall.transcript ? (
                 selectedCall.transcript
                   .split("\n")
@@ -141,7 +141,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
                     if (!isAgent && !isUser) return null;
 
                     return (
-                      <div key={index} className="stack-y-1">
+                      <div key={index} className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Icon name="user" className={isAgent ? "text-info" : "text-success"} />
                           <span className={`text-sm font-medium ${isAgent ? "text-info" : "text-success"}`}>
@@ -160,9 +160,9 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
 
           {/* Event Details */}
           {selectedCall.retell_llm_dynamic_variables && (
-            <div className="stack-y-3">
+            <div className="space-y-3">
               <h3 className="text-emphasis text-base font-semibold">{t("event_details")}</h3>
-              <div className="border-subtle bg-cal-muted rounded-md border p-4">
+              <div className="border-subtle bg-muted rounded-md border p-4">
                 <pre className="text-default overflow-x-auto text-xs">
                   {JSON.stringify(selectedCall.retell_llm_dynamic_variables, null, 2)}
                 </pre>

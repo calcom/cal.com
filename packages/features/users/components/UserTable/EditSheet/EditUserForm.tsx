@@ -71,13 +71,11 @@ export function EditForm({
   avatarUrl,
   domainUrl,
   dispatch,
-  canEditAttributesForUser,
 }: {
   selectedUser: RouterOutputs["viewer"]["organizations"]["getUser"];
   avatarUrl: string;
   domainUrl: string;
   dispatch: Dispatch<UserTableAction>;
-  canEditAttributesForUser?: boolean;
 }) {
   const setEditMode = useEditMode((state) => state.setEditMode);
   const [mutationLoading, setMutationLoading] = useState(false);
@@ -192,7 +190,7 @@ export function EditForm({
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
         </SheetHeader>
-        <SheetBody className="bg-cal-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
+        <SheetBody className="bg-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
           <div className="">
             <Controller
               control={form.control}
@@ -251,12 +249,8 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
-          {canEditAttributesForUser && (
-            <>
-              <Divider />
-              <AttributesList selectedUserId={selectedUser?.id} />
-            </>
-          )}
+          <Divider />
+          <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
           <Button
@@ -425,7 +419,7 @@ function AttributesList(props: { selectedUserId: number }) {
                         }}
                       />
                       {attr.isWeightsEnabled && fieldValue?.options && (
-                        <div className="mt-3 stack-y-2">
+                        <div className="mt-3 space-y-2">
                           <Label>Weights</Label>
                           <div className="">
                             {fieldValue.options.map((option, idx) => {

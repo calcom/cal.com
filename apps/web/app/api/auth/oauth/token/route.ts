@@ -4,63 +4,64 @@ import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
-import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
 import prisma from "@calcom/prisma";
+import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
-  const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } = await parseUrlFormData(
-    req
-  );
-
-  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-    return NextResponse.json({ message: "CALENDSO_ENCRYPTION_KEY is not set" }, { status: 500 });
-  }
-
-  if (!client_id || !code || !redirect_uri) {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
-  }
-
+  const { code, client_id, client_secret, grant_type, redirect_uri } = await parseUrlFormData(req);
   if (grant_type !== "authorization_code") {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+    return NextResponse.json({ message: "grant_type invalid" }, { status: 400 });
   }
 
-  const oAuthClientRepository = new OAuthClientRepository(prisma);
-  const accessCodeRepository = new AccessCodeRepository(prisma);
+  const [hashedSecret] = generateSecret(client_secret);
 
-  const client = await oAuthClientRepository.findByClientId(client_id);
+  const client = await prisma.oAuthClient.findFirst({
+    where: {
+      clientId: client_id,
+      clientSecret: hashedSecret,
+    },
+    select: {
+      redirectUri: true,
+    },
+  });
 
-  if (!client) {
-    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
+  if (!client || client.redirectUri !== redirect_uri) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  if (client.redirectUri !== redirect_uri) {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
-  }
-
-  const isValidClient = OAuthService.validateClient(client, client_secret);
-
-  if (!isValidClient) {
-    return NextResponse.json({ error: "invalid_client" }, { status: 401 });
-  }
-
-  const accessCode = await accessCodeRepository.findValidCode(code, client_id);
+  const accessCode = await prisma.accessCode.findFirst({
+    where: {
+      code: code,
+      clientId: client_id,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+  });
 
   // Delete all expired accessCodes + the one that is used here
-  await accessCodeRepository.deleteExpiredAndUsedCodes(code, client_id);
+  await prisma.accessCode.deleteMany({
+    where: {
+      OR: [
+        {
+          expiresAt: {
+            lt: new Date(),
+          },
+        },
+        {
+          code: code,
+          clientId: client_id,
+        },
+      ],
+    },
+  });
 
   if (!accessCode) {
-    return NextResponse.json({ error: "invalid_grant" }, { status: 400 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const pkceError = OAuthService.verifyPKCE(client, accessCode, code_verifier);
-  if (pkceError) {
-    return NextResponse.json({ error: pkceError.error }, { status: pkceError.status });
-  }
-
-  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
+  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
   const payloadAuthToken: OAuthTokenPayload = {
     userId: accessCode.userId,
@@ -76,11 +77,6 @@ async function handler(req: NextRequest) {
     scope: accessCode.scopes,
     token_type: "Refresh Token",
     clientId: client_id,
-    // Include PKCE information for clients that used PKCE (PUBLIC mandatory, CONFIDENTIAL optional)
-    ...(accessCode.codeChallenge && {
-      codeChallenge: accessCode.codeChallenge,
-      codeChallengeMethod: accessCode.codeChallengeMethod,
-    }),
   };
 
   const accessTokenExpiresIn = 1800; // 30 minutes
@@ -93,6 +89,7 @@ async function handler(req: NextRequest) {
     expiresIn: 30 * 24 * 60 * 60, // 30 days
   });
 
+  // @see https://datatracker.ietf.org/doc/html/rfc6749#section-5.1
   return NextResponse.json(
     { access_token, token_type: "bearer", refresh_token, expires_in: accessTokenExpiresIn },
     {

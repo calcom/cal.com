@@ -19,7 +19,7 @@ export const VerticalLines = ({ days, borderColor }: { days: dayjs.Dayjs[]; bord
   return (
     <div
       className={classNames(
-        "pointer-events-none relative z-60 col-start-1 col-end-2 row-start-1 grid auto-cols-auto grid-rows-1 divide-x",
+        "pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid auto-cols-auto grid-rows-1 divide-x sm:pr-8",
         borderColor === "subtle" ? "divide-subtle" : "divide-default"
       )}
       dir={direction}

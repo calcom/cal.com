@@ -54,7 +54,7 @@ export default function TeamAvailabilityTimes(props: Props) {
     : [];
 
   return (
-    <div className={classNames("min-w-60 grow pl-0", props.className)}>
+    <div className={classNames("min-w-60 flex-grow pl-0", props.className)}>
       {props.HeaderComponent}
       {isPending && slots.length === 0 && <SkeletonLoader />}
       {!isPending && slots.length === 0 ? (
@@ -68,7 +68,7 @@ export default function TeamAvailabilityTimes(props: Props) {
         {slots.map((slot) => (
           <div key={slot.time.format()} className="flex flex-row items-center ">
             <a
-              className="min-w-48 border-brand-default text-bookingdarker  bg-default mb-2 mr-3 block grow rounded-md border py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 "
+              className="min-w-48 border-brand-default text-bookingdarker  bg-default mb-2 mr-3 block flex-grow rounded-md border py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 "
               data-testid="time">
               {slot.time.tz(props.selectedTimeZone.toString()).format("HH:mm")}
             </a>

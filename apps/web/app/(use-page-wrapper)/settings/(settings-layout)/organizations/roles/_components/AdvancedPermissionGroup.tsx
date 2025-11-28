@@ -87,7 +87,7 @@ export function AdvancedPermissionGroup({
   };
 
   return (
-    <div className="bg-cal-muted border-subtle mb-2 rounded-xl border">
+    <div className="bg-muted border-subtle mb-2 rounded-xl border">
       <button
         type="button"
         className="flex cursor-pointer items-center justify-between gap-1.5 p-4"

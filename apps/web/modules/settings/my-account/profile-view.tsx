@@ -658,7 +658,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 shrink-0" />
+          <Icon name="info" className="mt-0.5 flex-shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -719,7 +719,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col stack-y-4">
+            <div className="flex flex-col space-y-4">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo

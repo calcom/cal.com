@@ -115,7 +115,7 @@ function Legend({
                 </span>
               </Tooltip>
             </button>
-            {index < items.length - 1 && <div className="bg-cal-muted h-5 w-px" />}
+            {index < items.length - 1 && <div className="bg-muted h-5 w-[1px]" />}
           </Fragment>
         );
       })}

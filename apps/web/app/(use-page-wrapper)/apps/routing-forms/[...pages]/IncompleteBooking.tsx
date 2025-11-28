@@ -122,7 +122,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
             />
           </div>
           {salesforceActionEnabled ? (
-            <div className="bg-cal-muted mt-1 rounded-xl p-2">
+            <div className="bg-muted mt-1 rounded-xl p-2">
               {form.team && (
                 <>
                   <div className="bg-default mt-2 rounded-xl px-2 py-2">

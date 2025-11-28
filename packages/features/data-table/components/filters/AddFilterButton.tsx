@@ -78,7 +78,7 @@ function AddFilterButtonComponent<TData>(
                       addFilter(column.id);
                       setOpen(false);
                     }}
-                    className="flex items-center justify-between px-4 py-2 rounded-none"
+                    className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
                     {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}

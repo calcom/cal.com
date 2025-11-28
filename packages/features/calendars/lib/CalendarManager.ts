@@ -500,12 +500,6 @@ export const deleteEvent = async ({
  * Process the calendar event by generating description and removing attendees if needed
  */
 const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  if (calEvent.seatsPerTimeSlot){
-    calEvent.responses = null;
-    calEvent.userFieldsResponses = null;
-    calEvent.additionalNotes = null;
-    calEvent.customInputs = null;
-  }
   // Generate the calendar event description
   const calendarEvent: CalendarServiceEvent = {
     ...calEvent,
@@ -521,6 +515,11 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
 
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
     calendarEvent.attendees = [];
+  }
+
+  if (calEvent.seatsPerTimeSlot){
+    calendarEvent.responses = null;
+    calendarEvent.userFieldsResponses = null;
   }
 
   return calendarEvent;

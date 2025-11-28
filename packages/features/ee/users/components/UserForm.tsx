@@ -118,7 +118,7 @@ export const UserForm = ({
   });
 
   return (
-    <Form form={form} className="stack-y-4" handleSubmit={onSubmit}>
+    <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
       <div className="flex items-center">
         <Controller
           control={form.control}

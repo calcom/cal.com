@@ -28,7 +28,7 @@ import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwit
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mb-8 mt-6 stack-y-6">
+      <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />

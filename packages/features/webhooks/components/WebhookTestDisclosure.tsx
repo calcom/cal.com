@@ -54,7 +54,7 @@ export default function WebhookTestDisclosure() {
           {t("ping_test")}
         </Button>
       </div>
-      <div className="border-subtle stack-y-0 rounded-b-lg border border-t-0 px-6 py-8 sm:mx-0">
+      <div className="border-subtle space-y-0 rounded-b-lg border border-t-0 px-6 py-8 sm:mx-0">
         <div className="border-subtle flex justify-between rounded-t-lg border p-4">
           <div className="flex items-center space-x-1">
             <h3 className="text-emphasis self-center text-sm font-semibold leading-4">
@@ -67,10 +67,10 @@ export default function WebhookTestDisclosure() {
             )}
           </div>
         </div>
-        <div className="bg-cal-muted border-subtle rounded-b-lg border border-t-0 p-4 font-mono text-[13px] leading-4">
+        <div className="bg-muted border-subtle rounded-b-lg border border-t-0 p-4 font-mono text-[13px] leading-4">
           {!mutation.data && <p>{t("no_data_yet")}</p>}
           {mutation.status === "success" && mutation.data && (
-            <div className="stack-y-2">
+            <div className="space-y-2">
               <div>
                 <span className="text-subtle">{t("status")}:</span> <span className="text-emphasis">{mutation.data.status}</span>
               </div>

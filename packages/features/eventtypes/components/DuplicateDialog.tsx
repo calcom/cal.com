@@ -124,7 +124,7 @@ const DuplicateDialog = () => {
           handleSubmit={(values) => {
             duplicateMutation.mutate(values);
           }}>
-          <div className="-mt-2 stack-y-5">
+          <div className="-mt-2 space-y-5">
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}

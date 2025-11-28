@@ -13,7 +13,6 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { useCreateTeam } from "../../hooks/useCreateTeam";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
 
@@ -24,9 +23,7 @@ type TeamDetailsViewProps = {
 export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const store = useOnboardingStore();
-  const { teamDetails, teamBrand, setTeamDetails, setTeamBrand } = store;
-  const { createTeam, isSubmitting } = useCreateTeam();
+  const { teamDetails, teamBrand, setTeamDetails, setTeamBrand } = useOnboardingStore();
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");
@@ -65,7 +62,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
     setTeamLogo(newLogo);
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!isSlugValid) {
       return;
     }
@@ -80,8 +77,8 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       logo: teamLogo || null,
     });
 
-    // Create the team (will handle payment redirect if needed)
-    await createTeam(store);
+    // We will push to /invite when we have other methods of inviting users from onboarding i.e. CSV upload, Google Workspace connect, copy link etc
+    router.push("/onboarding/teams/invite/email");
   };
 
   return (
@@ -104,7 +101,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                   color="primary"
                   className="rounded-[10px]"
                   onClick={handleContinue}
-                  disabled={!isSlugValid || !teamName || !teamSlug || isSubmitting}>
+                  disabled={!isSlugValid || !teamName || !teamSlug}>
                   {t("continue")}
                 </Button>
               </div>
@@ -136,7 +133,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
               {/* Team Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
+                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_name")}</Label>
                 <TextField
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
@@ -154,7 +151,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
               {/* Team Bio */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_bio")}</Label>
+                <Label className="text-emphasis text-sm font-medium leading-4">{t("team_bio")}</Label>
                 <TextArea
                   value={teamBio}
                   onChange={(e) => setTeamBio(e.target.value)}

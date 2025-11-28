@@ -3,18 +3,17 @@
 import { useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZMultiSelectFilterValue, ColumnFilterType } from "../../lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 import { BaseSelectFilterOptions } from "./BaseSelectFilterOptions";
 
 export type MultiSelectFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: Extract<FilterType, "ms"> }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>;
 };
 
 export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
   const { updateFilter } = useDataTable();
 
   return (
-    <BaseSelectFilterOptions<Extract<FilterType, "ms">>
+    <BaseSelectFilterOptions<ColumnFilterType.MULTI_SELECT>
       column={column}
       filterValueSchema={ZMultiSelectFilterValue}
       testIdPrefix="select-filter-options"

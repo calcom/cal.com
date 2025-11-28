@@ -1,15 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { OnboardingCard } from "../../../components/OnboardingCard";
@@ -32,24 +31,12 @@ type FormValues = {
 
 export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
 
   const store = useOnboardingStore();
-  const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId } = store;
+  const { teamInvites, setTeamInvites, teamDetails } = store;
   const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
-  const { inviteMembers, isSubmitting } = useCreateTeam();
-
-  // Read teamId from query params and store it (from payment callback or redirect)
-  useEffect(() => {
-    const teamIdParam = searchParams?.get("teamId");
-    if (teamIdParam) {
-      const teamId = parseInt(teamIdParam, 10);
-      if (!isNaN(teamId)) {
-        setTeamId(teamId);
-      }
-    }
-  }, [searchParams, setTeamId]);
+  const { createTeam, isSubmitting } = useCreateTeam();
 
   const formSchema = z.object({
     invites: z.array(
@@ -76,53 +63,26 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
-    const teamIdParam = searchParams?.get("teamId");
-    const parsedTeamId = !teamId ? parseInt(teamIdParam || "", 10) : teamId;
-    if (!parsedTeamId) {
-      showToast(
-        t("team_id_missing") || "Team ID is missing. Please go back and create your team first.",
-        "error"
-      );
-      return;
-    }
-
     const invitesWithTeam = data.invites.map((invite) => ({
       email: invite.email,
-      role: invite.role,
       team: teamDetails.name,
+      role: invite.role,
     }));
 
     setTeamInvites(invitesWithTeam);
 
-    // Filter out empty emails and invite members
-    const validInvites = data.invites.filter((invite) => invite.email && invite.email.trim().length > 0);
+    // Create the team (will handle checkout redirect if needed)
+    await createTeam(store);
+  };
 
-    if (validInvites.length > 0) {
-      try {
-        await inviteMembers(
-          validInvites.map((invite) => ({
-            email: invite.email,
-            role: invite.role,
-          })),
-          i18n.language
-        );
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : t("something_went_wrong") || "Something went wrong";
-        showToast(errorMessage, "error");
-      }
-    } else {
-      // No invites, skip to personal settings
-      const gettingStartedPath = "/onboarding/personal/settings";
-      router.push(gettingStartedPath);
-    }
+  const handleBack = () => {
+    router.push("/onboarding/teams/invite");
   };
 
   const handleSkip = async () => {
     setTeamInvites([]);
-    // Skip inviting members and go to personal settings
-    const gettingStartedPath = "/onboarding/personal/settings";
-    router.push(gettingStartedPath);
+    // Create the team without invites (will handle checkout redirect if needed)
+    await createTeam(store);
   };
 
   const hasValidInvites = fields.some((_, index) => {
@@ -138,10 +98,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
-          title={t("invite")}
+          title={t("invite_via_email")}
           subtitle={t("team_invite_subtitle")}
           footer={
-            <div className="flex w-full items-center justify-end gap-4">
+            <div className="flex w-full items-center justify-between gap-4">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
+                {t("back")}
+              </Button>
               <div className="flex items-center gap-2">
                 <Button
                   color="minimal"

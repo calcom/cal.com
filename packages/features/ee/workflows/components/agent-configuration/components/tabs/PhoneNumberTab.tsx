@@ -124,7 +124,7 @@ export function PhoneNumberTab({
 
     return (
       <>
-        <div className="relative stack-y-2">
+        <div className="relative space-y-2">
           {updateAgentMutation.isPending && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -274,11 +274,11 @@ export function PhoneNumberTab({
   return (
     <>
       <div className="border-subtle rounded-xl border p-8">
-        <div className="flex flex-col items-center stack-y-6 text-center">
-          <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
+        <div className="flex flex-col items-center space-y-6 text-center">
+          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
             <Icon name="phone" className="text-subtle h-8 w-8" />
           </div>
-          <div className="stack-y-2">
+          <div className="space-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("no_phone_numbers")}</h3>
             <p className="text-subtle text-sm">{t("buy_a_phone_number_or_import_one_you_already_have")}</p>
           </div>

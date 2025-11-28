@@ -19,7 +19,7 @@ export const InputComponent = <
     <reactSelectComponents.Input
       // disables our default form focus highlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 !text-default dark:text-white!",
+        "focus:ring-0 focus:ring-offset-0 !text-default dark:!text-white",
         inputClassName
       )}
       {...props}

@@ -20,8 +20,6 @@
     "app-store:watch": "yarn app-store-cli watch",
     "app-store": "yarn app-store-cli cli",
     "create-app": "yarn app-store create",
-    "companion:build-web": "turbo run build:web --filter=\"cal-companion\"",
-    "companion:build-ext": "turbo run build:ext --filter=\"cal-companion\"",
     "edit-app": "yarn app-store edit",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "publish-embed": "yarn withEmbedPublishEnv workspace @calcom/embed-core build && yarn withEmbedPublishEnv workspace @calcom/embed-snippet build && yarn workspaces foreach --from=\"@calcom/embed*\" npm publish --access=public",

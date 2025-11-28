@@ -1,24 +1,19 @@
 import type { SortingState, ColumnSort } from "@tanstack/react-table";
 import { z } from "zod";
 
-import type { TextFilterOperator, FilterType } from "@calcom/types/data-table";
-export type { ColumnFilterMeta, FilterableColumn } from "@calcom/types/data-table";
-
-const ColumnFilterType = {
-  SINGLE_SELECT: "ss",
-  MULTI_SELECT: "ms",
-  TEXT: "t",
-  NUMBER: "n",
-  DATE_RANGE: "dr",
-} as const satisfies Record<string, FilterType>;
-
-type ColumnFilterTypeValues = typeof ColumnFilterType;
+import type { IconName } from "@calcom/ui/components/icon";
 
 export type { SortingState } from "@tanstack/react-table";
 
 export const SYSTEM_SEGMENT_PREFIX = "system_";
 
-export { ColumnFilterType, TextFilterOperator };
+export enum ColumnFilterType {
+  SINGLE_SELECT = "ss",
+  MULTI_SELECT = "ms",
+  TEXT = "t",
+  NUMBER = "n",
+  DATE_RANGE = "dr",
+}
 
 export const textFilterOperators = [
   "equals",
@@ -31,10 +26,12 @@ export const textFilterOperators = [
   "isNotEmpty",
 ] as const;
 
+export type TextFilterOperator = (typeof textFilterOperators)[number];
+
 export const ZTextFilterOperator = z.enum(textFilterOperators);
 
 export type SingleSelectFilterValue = {
-  type: ColumnFilterTypeValues["SINGLE_SELECT"];
+  type: ColumnFilterType.SINGLE_SELECT;
   data: string | number;
 };
 
@@ -44,7 +41,7 @@ export const ZSingleSelectFilterValue = z.object({
 }) satisfies z.ZodType<SingleSelectFilterValue>;
 
 export type MultiSelectFilterValue = {
-  type: ColumnFilterTypeValues["MULTI_SELECT"];
+  type: ColumnFilterType.MULTI_SELECT;
   data: Array<string | number>;
 };
 
@@ -54,7 +51,7 @@ export const ZMultiSelectFilterValue = z.object({
 }) satisfies z.ZodType<MultiSelectFilterValue>;
 
 export type TextFilterValue = {
-  type: ColumnFilterTypeValues["TEXT"];
+  type: ColumnFilterType.TEXT;
   data: {
     operator: TextFilterOperator;
     operand: string;
@@ -76,7 +73,7 @@ export type NumberFilterOperator = (typeof numberFilterOperators)[number];
 export const ZNumberFilterOperator = z.enum(numberFilterOperators);
 
 export type NumberFilterValue = {
-  type: ColumnFilterTypeValues["NUMBER"];
+  type: ColumnFilterType.NUMBER;
   data: {
     operator: NumberFilterOperator;
     operand: number;
@@ -92,7 +89,7 @@ export const ZNumberFilterValue = z.object({
 }) satisfies z.ZodType<NumberFilterValue>;
 
 export type DateRangeFilterValue = {
-  type: ColumnFilterTypeValues["DATE_RANGE"];
+  type: ColumnFilterType.DATE_RANGE;
   data: {
     startDate: string | null;
     endDate: string | null;
@@ -127,6 +124,48 @@ export type TextFilterOptions = {
   placeholder?: string;
 };
 
+export type ColumnFilterMeta =
+  | {
+      type: ColumnFilterType.DATE_RANGE;
+      icon?: IconName;
+      dateRangeOptions?: DateRangeFilterOptions;
+    }
+  | {
+      type: ColumnFilterType.TEXT;
+      icon?: IconName;
+      textOptions?: TextFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE | ColumnFilterType.TEXT>;
+      icon?: IconName;
+    };
+
+export type FilterableColumn = {
+  id: string;
+  title: string;
+  icon?: IconName;
+} & (
+  | {
+      type: ColumnFilterType.SINGLE_SELECT;
+      options: FacetedValue[];
+    }
+  | {
+      type: ColumnFilterType.MULTI_SELECT;
+      options: FacetedValue[];
+    }
+  | {
+      type: ColumnFilterType.TEXT;
+      textOptions?: TextFilterOptions;
+    }
+  | {
+      type: ColumnFilterType.NUMBER;
+    }
+  | {
+      type: ColumnFilterType.DATE_RANGE;
+      dateRangeOptions?: DateRangeFilterOptions;
+    }
+);
+
 export type ColumnFilter = {
   id: string;
   value: FilterValue;
@@ -137,32 +176,32 @@ export const ZColumnFilter = z.object({
   value: ZFilterValue,
 }) satisfies z.ZodType<ColumnFilter>;
 
-export type FilterValueSchema<T extends FilterType> = T extends ColumnFilterTypeValues["SINGLE_SELECT"]
+export type FilterValueSchema<T extends ColumnFilterType> = T extends ColumnFilterType.SINGLE_SELECT
   ? typeof ZSingleSelectFilterValue
-  : T extends ColumnFilterTypeValues["MULTI_SELECT"]
+  : T extends ColumnFilterType.MULTI_SELECT
   ? typeof ZMultiSelectFilterValue
-  : T extends ColumnFilterTypeValues["TEXT"]
+  : T extends ColumnFilterType.TEXT
   ? typeof ZTextFilterValue
-  : T extends ColumnFilterTypeValues["NUMBER"]
+  : T extends ColumnFilterType.NUMBER
   ? typeof ZNumberFilterValue
-  : T extends ColumnFilterTypeValues["DATE_RANGE"]
+  : T extends ColumnFilterType.DATE_RANGE
   ? typeof ZDateRangeFilterValue
   : never;
 
-export type FilterValue<T extends FilterType = FilterType> =
-  T extends ColumnFilterTypeValues["SINGLE_SELECT"]
+export type FilterValue<T extends ColumnFilterType = ColumnFilterType> =
+  T extends ColumnFilterType.SINGLE_SELECT
     ? SingleSelectFilterValue
-    : T extends ColumnFilterTypeValues["MULTI_SELECT"]
+    : T extends ColumnFilterType.MULTI_SELECT
     ? MultiSelectFilterValue
-    : T extends ColumnFilterTypeValues["TEXT"]
+    : T extends ColumnFilterType.TEXT
     ? TextFilterValue
-    : T extends ColumnFilterTypeValues["NUMBER"]
+    : T extends ColumnFilterType.NUMBER
     ? NumberFilterValue
-    : T extends ColumnFilterTypeValues["DATE_RANGE"]
+    : T extends ColumnFilterType.DATE_RANGE
     ? DateRangeFilterValue
     : never;
 
-export type TypedColumnFilter<T extends FilterType> = {
+export type TypedColumnFilter<T extends ColumnFilterType> = {
   id: string;
   value: FilterValue<T>;
 };

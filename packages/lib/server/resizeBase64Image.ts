@@ -26,6 +26,10 @@ export async function resizeBase64Image(
     maxSize = 96 * 4,
   } = opts ?? {};
   const image = await jimp.read(buffer);
+  if (image.getHeight() !== image.getWidth()) {
+    // this could be handled later
+    throw new Error("Image is not a square");
+  }
   const currentSize = Math.max(image.getWidth(), image.getHeight());
   if (currentSize > maxSize) {
     image.resize(jimp.AUTO, maxSize);

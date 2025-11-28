@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { Resource, CustomAction, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
@@ -63,69 +63,50 @@ const Page = async () => {
   }
 
   // Get specific PBAC permissions for organization member actions
-  const [orgPermissions, attributesPermissions] = await Promise.all([
-    getSpecificPermissions({
-      userId: session.user.id,
-      teamId: session.user.profile.organizationId,
-      resource: Resource.Organization,
-      userRole: session.user.org.role,
-      actions: [
-        CustomAction.ListMembers,
-        CustomAction.ListMembersPrivate,
-        CustomAction.Invite,
-        CustomAction.ChangeMemberRole,
-        CustomAction.Remove,
-        CustomAction.Impersonate,
-      ],
-      fallbackRoles: {
-        [CustomAction.ListMembers]: {
-          roles: fallbackRolesThatCanSeeMembers,
-        },
-        [CustomAction.ListMembersPrivate]: {
-          roles: fallbackRolesThatCanSeeMembers,
-        },
-        [CustomAction.Invite]: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
-        [CustomAction.ChangeMemberRole]: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
-        [CustomAction.Remove]: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
-        [CustomAction.Impersonate]: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
+  const permissions = await getSpecificPermissions({
+    userId: session.user.id,
+    teamId: session.user.profile.organizationId,
+    resource: Resource.Organization,
+    userRole: session.user.org.role,
+    actions: [
+      CustomAction.ListMembers,
+      CustomAction.ListMembersPrivate,
+      CustomAction.Invite,
+      CustomAction.ChangeMemberRole,
+      CustomAction.Remove,
+      CustomAction.Impersonate,
+    ],
+    fallbackRoles: {
+      [CustomAction.ListMembers]: {
+        roles: fallbackRolesThatCanSeeMembers,
       },
-    }),
-    getSpecificPermissions({
-      userId: session.user.id,
-      teamId: session.user.profile.organizationId,
-      resource: Resource.Attributes,
-      userRole: session.user.org.role,
-      actions: [CrudAction.Read, CustomAction.EditUsers],
-      fallbackRoles: {
-        [CrudAction.Read]: {
-          roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
-        [CustomAction.EditUsers]: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        },
+      [CustomAction.ListMembersPrivate]: {
+        roles: fallbackRolesThatCanSeeMembers,
       },
-    }),
-  ]);
+      [CustomAction.Invite]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.ChangeMemberRole]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.Remove]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.Impersonate]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
 
   // Map specific permissions to member actions
   const memberPermissions = {
     canListMembers: org.isPrivate
-      ? orgPermissions[CustomAction.ListMembersPrivate]
-      : orgPermissions[CustomAction.ListMembers],
-    canInvite: orgPermissions[CustomAction.Invite],
-    canChangeMemberRole: orgPermissions[CustomAction.ChangeMemberRole],
-    canRemove: orgPermissions[CustomAction.Remove],
-    canImpersonate: orgPermissions[CustomAction.Impersonate],
-    canViewAttributes: attributesPermissions[CrudAction.Read],
-    canEditAttributesForUser: attributesPermissions[CustomAction.EditUsers],
+      ? permissions[CustomAction.ListMembersPrivate]
+      : permissions[CustomAction.ListMembers],
+    canInvite: permissions[CustomAction.Invite],
+    canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
+    canRemove: permissions[CustomAction.Remove],
+    canImpersonate: permissions[CustomAction.Impersonate],
   };
 
   const facetedTeamValues = {

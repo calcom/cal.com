@@ -3,7 +3,6 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -361,8 +360,6 @@ export async function handleConfirmation(args: {
         });
       }
 
-      const creditService = new CreditService();
-
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
@@ -371,7 +368,6 @@ export async function handleConfirmation(args: {
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
-        creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
     }
   } catch (error) {
@@ -575,15 +571,12 @@ export async function handleConfirmation(args: {
           metadata: { videoCallUrl: meetingUrl },
         };
 
-        const creditService = new CreditService();
-
         await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
           hideBranding: !!updatedBookings[0].eventType?.owner?.hideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
-          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       } catch (error) {
         log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));

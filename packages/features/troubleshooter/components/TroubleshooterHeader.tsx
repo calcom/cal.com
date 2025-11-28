@@ -46,7 +46,7 @@ export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: numbe
 
   return (
     <div className="border-default relative z-10 flex border-b px-5 py-4 ltr:border-l rtl:border-r">
-      <div className="flex items-center gap-5 rtl:grow">
+      <div className="flex items-center gap-5 rtl:flex-grow">
         <FormattedSelectedDateRange />
         <ButtonGroup>
           <Button
