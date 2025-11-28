@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { appKeysSchema } from "../zod";
 
@@ -58,11 +58,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: "Payment ID does not match booking" });
     }
 
+    // Check if booking exists and has a user
+    if (!payment.booking || !payment.booking.userId) {
+      console.error("[Coinley] Booking or userId not found");
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
     // Get merchant credentials to verify payment with Coinley API
     const credential = await prisma.credential.findFirst({
       where: {
         appId: "coinley",
-        userId: payment.booking.userId!,
+        userId: payment.booking.userId,
       },
       select: {
         key: true,
@@ -114,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           transactionHash,
           status: "confirmed",
           confirmedAt: new Date().toISOString(),
-        } as unknown as Prisma.InputJsonObject,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 

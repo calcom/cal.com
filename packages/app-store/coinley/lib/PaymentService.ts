@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
-import type { Booking, Credential, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 import axios, { type AxiosInstance } from "axios";
 
@@ -51,7 +51,7 @@ export class PaymentService implements IAbstractPaymentService {
   private client: AxiosInstance;
   private credentials: AppKeysSchema | null;
 
-  constructor(credentials: Credential) {
+  constructor(credentials: { key: Prisma.JsonValue }) {
     try {
       // Validate and parse credentials
       this.credentials = appKeysSchema.parse(credentials.key);

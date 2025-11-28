@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { appKeysSchema } from "../zod";
 
 /**
@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Check authentication
-    const session = await getServerSession({ req, res });
+    const session = await getServerSession({ req });
 
     if (!session?.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.credential.update({
         where: { id: existingCredential.id },
         data: {
-          key: credentials as unknown as Prisma.InputJsonObject,
+          key: credentials as unknown as Prisma.InputJsonValue,
           invalid: false,
         },
       });
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.credential.create({
         data: {
           type: "coinley_payment",
-          key: credentials as unknown as Prisma.InputJsonObject,
+          key: credentials as unknown as Prisma.InputJsonValue,
           userId: session.user.id,
           appId: "coinley",
           invalid: false,
@@ -76,21 +76,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Coinley app installed successfully",
       redirectUrl: "/apps/installed/payment",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Coinley] Error installing app:", error);
 
     // Handle Zod validation errors
-    if (error.name === "ZodError") {
+    const zodError = error as { name?: string; errors?: unknown[] };
+    if (zodError.name === "ZodError") {
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
-        errors: error.errors,
+        errors: zodError.errors,
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to install Coinley app",
+      message: error instanceof Error ? error.message : "Failed to install Coinley app",
     });
   }
 }

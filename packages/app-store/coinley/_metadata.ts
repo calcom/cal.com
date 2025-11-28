@@ -21,13 +21,7 @@ export const metadata = {
   trending: true,
   isOAuth: false, // Using API key authentication
   dirName: "coinley",
-  appData: {
-    location: {
-      type: "coinley",
-      label: "Coinley Crypto Payment",
-    },
-  },
   dependencies: [],
-} satisfies AppMeta;
+} as AppMeta;
 
 export default metadata;

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
 import crypto from "crypto";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 // Disable body parser to access raw body for signature verification
 export const config = {
@@ -119,7 +119,7 @@ async function handlePaymentPending(event: { data: { paymentId: string; transact
         status: "pending",
         network,
         blockNumber,
-      } as unknown as Prisma.InputJsonObject,
+      } as unknown as Prisma.InputJsonValue,
     },
   });
 
@@ -184,7 +184,7 @@ async function handlePaymentConfirmed(event: { data: { paymentId: string; transa
         confirmations,
         network,
         blockNumber,
-      } as unknown as Prisma.InputJsonObject,
+      } as unknown as Prisma.InputJsonValue,
     },
   });
 
@@ -237,7 +237,7 @@ async function handlePaymentFailed(event: { data: { paymentId: string; reason?: 
         ...(payment.data as object),
         status: "failed",
         failureReason: reason,
-      } as unknown as Prisma.InputJsonObject,
+      } as unknown as Prisma.InputJsonValue,
     },
   });
 
@@ -287,7 +287,7 @@ async function handlePaymentRefunded(event: { data: { paymentId: string; refundT
         status: "refunded",
         refundTransactionHash,
         refundAmount,
-      } as unknown as Prisma.InputJsonObject,
+      } as unknown as Prisma.InputJsonValue,
     },
   });
 
