@@ -151,8 +151,9 @@ function BookingListInner({
 
   return (
     <>
-      <div className="flex flex-row flex-wrap justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Desktop: full width on first row, Mobile: full width on first row */}
+        <div className="w-full md:w-auto">
           <ToggleGroup
             value={currentTab}
             onValueChange={(value) => {
@@ -164,28 +165,32 @@ function BookingListInner({
             }}
             options={tabOptions}
           />
-          <FilterButton
-            table={table}
-            displayedFilterCount={displayedFilterCount}
-            showFilters={showFilters}
-            setShowFilters={setShowFilters}
-          />
         </div>
-        <div className="flex items-center gap-2">
-          <DataTableSegment.Select shortLabel />
-          {bookingsV3Enabled && <ViewToggleButton />}
-        </div>
+
+        {/* Desktop: second item on first row, Mobile: first item on second row */}
+        <FilterButton
+          table={table}
+          displayedFilterCount={displayedFilterCount}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+        />
+
+        {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
+        <div className="hidden flex-grow md:block" />
+
+        <DataTableSegment.Select shortLabel />
+        {bookingsV3Enabled && <ViewToggleButton />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
-        <div className="mt-3 flex justify-between gap-2">
-          <div className="flex gap-2">
-            <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.AddFilterButton table={table} variant="minimal" />
-          </div>
-          <div className="flex gap-2">
-            <DataTableFilters.ClearFiltersButton />
-            <DataTableSegment.SaveButton />
-          </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <DataTableFilters.ActiveFilters table={table} />
+          <DataTableFilters.AddFilterButton table={table} variant="minimal" />
+
+          {/* Desktop: auto-pushed to right via flex-grow spacer */}
+          <div className="hidden flex-grow md:block" />
+
+          <DataTableFilters.ClearFiltersButton />
+          <DataTableSegment.SaveButton />
         </div>
       )}
       {status === "upcoming" && !isEmpty && (
