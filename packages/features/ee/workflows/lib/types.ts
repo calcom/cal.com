@@ -1,3 +1,4 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type {
   TimeUnit,
   WorkflowActions,
@@ -28,4 +29,14 @@ export type WorkflowStep = {
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
   verifiedAt?: Date | null;
+};
+
+export type FormSubmissionData = {
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  routedEventTypeId: number | null;
+  user: {
+    email: string;
+    timeFormat: number | null;
+    locale: string;
+  };
 };
