@@ -117,6 +117,7 @@ export const sendScheduledEmailsAndSMS = withReporting(
 );
 
 // for rescheduled round robin booking that assigned new members
+// or for reassignment of a managed event
 export const sendReassignedScheduledEmailsAndSMS = async ({
   calEvent,
   members,

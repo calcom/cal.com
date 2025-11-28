@@ -226,7 +226,7 @@ export class BookingEmailSmsHandler {
 
     const {
       sendRoundRobinRescheduledEmailsAndSMS,
-      sendRoundRobinScheduledEmailsAndSMS,
+      sendReassignedScheduledEmailsAndSMS,
       sendRoundRobinCancelledEmailsAndSMS,
     } = await import("@calcom/emails/email-manager");
 
