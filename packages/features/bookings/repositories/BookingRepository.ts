@@ -1752,7 +1752,7 @@ export class BookingRepository {
   /**
    * Wraps the cancel+create operations for managed events in a single transaction.
    */
-  async ManagedEventReassignmentTransaction({
+  async managedEventReassignmentTransaction({
     bookingId,
     cancellationReason,
     metadata,

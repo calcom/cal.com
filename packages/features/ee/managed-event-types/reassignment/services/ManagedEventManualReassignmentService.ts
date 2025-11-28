@@ -277,11 +277,11 @@ export class ManagedEventManualReassignmentService {
     originalBookingFull: NonNullable<
       Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
     >;
-    newBookingPlan: Parameters<BookingRepository["ManagedEventReassignmentTransaction"]>[0]["newBookingPlan"];
+    newBookingPlan: Parameters<BookingRepository["managedEventReassignmentTransaction"]>[0]["newBookingPlan"];
     newUser: { name: string | null; email: string };
     reassignLogger: typeof logger;
   }) {
-    const reassignmentResult = await this.bookingRepository.ManagedEventReassignmentTransaction({
+    const reassignmentResult = await this.bookingRepository.managedEventReassignmentTransaction({
       bookingId: originalBookingFull.id,
       cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
       metadata:

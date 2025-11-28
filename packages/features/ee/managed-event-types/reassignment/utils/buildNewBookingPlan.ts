@@ -20,13 +20,6 @@ interface BuildNewBookingPlanParams {
   reassignedById: number;
 }
 
-/**
- * Builds the new booking plan for a reassigned booking
- * 
- * This is a pure function that constructs the booking data structure needed
- * for the reassignment transaction. It generates a new UID, computes the booking
- * title, and assembles all fields from the original booking.
- */
 export function buildNewBookingPlan({
   originalBookingFull,
   targetEventTypeDetails,

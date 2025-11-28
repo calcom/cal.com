@@ -301,6 +301,7 @@ export const roundRobinManualReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    schedulingType: eventType.schedulingType,
     hideOrganizerEmail: eventType.hideOrganizerEmail,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
