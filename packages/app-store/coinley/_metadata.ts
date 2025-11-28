@@ -3,7 +3,6 @@ import type { AppMeta } from "@calcom/types/App";
 export const metadata = {
   name: "Coinley",
   description: "Accept cryptocurrency payments directly to your wallet. Support for USDT, USDC, and more across multiple blockchains.",
-  // App is always available - users provide their own API credentials during installation
   installed: true,
   slug: "coinley",
   category: "payment",
@@ -15,13 +14,9 @@ export const metadata = {
   variant: "payment",
   extendsFeature: "EventType",
   url: "https://coinley.io",
-  verified: true,
-  rating: 5,
-  reviews: 0,
-  trending: true,
-  isOAuth: false, // Using API key authentication
+  email: "support@coinley.io",
   dirName: "coinley",
-  dependencies: [],
+  isOAuth: false,
 } as AppMeta;
 
 export default metadata;
