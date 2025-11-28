@@ -61,8 +61,6 @@ export class OrganizationPermissionService {
     const isBillingPeriodModified =
       data.billingPeriod !== undefined && data.billingPeriod !== null && data.billingPeriod !== "MONTHLY";
 
-    // Seats are no longer enforced to a minimum, so we don't check seats for "modification"
-    // Only price per seat and billing period matter for determining if custom pricing is needed
     const isPricePerSeatModified =
       data.pricePerSeat !== undefined &&
       data.pricePerSeat !== null &&
