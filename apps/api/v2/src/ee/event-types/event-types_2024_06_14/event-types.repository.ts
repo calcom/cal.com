@@ -3,6 +3,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
+import type { SortOrderType } from "@calcom/platform-types";
 import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
@@ -67,31 +68,23 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async getUserEventTypes(userId: number) {
+  async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         userId,
       },
-      orderBy: [
-        {
-          id: "desc",
-        },
-      ],
+      ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
       include: { users: true, schedule: true, destinationCalendar: true },
     });
   }
 
-  async getUserEventTypesPublic(userId: number) {
+  async getUserEventTypesPublic(userId: number, sortCreatedAt?: SortOrderType) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
         userId,
         hidden: false,
       },
-      orderBy: [
-        {
-          id: "desc",
-        },
-      ],
+      ...(sortCreatedAt && { orderBy: { id: sortCreatedAt } }),
       include: { users: true, schedule: true, destinationCalendar: true },
     });
   }

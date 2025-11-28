@@ -640,9 +640,9 @@ describe("Event types Endpoints", () => {
       hiddenEventType = responseBody.data;
     });
 
-    it(`/GET/event-types by username`, async () => {
+    it(`/GET/event-types by username with sortCreatedAt=desc`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/event-types?username=${user.username}`)
+        .get(`/api/v2/event-types?username=${user.username}&sortCreatedAt=desc`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200);
@@ -653,7 +653,7 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toEqual(2);
 
-      // Verify ordering: event types are returned newest to oldest (by id descending)
+      // Verify ordering: event types are returned newest to oldest when sortCreatedAt=desc
       // hiddenEventType was created after eventType, so it should have a higher ID and appear first
       expect(responseBody.data[0].id).toBeGreaterThan(responseBody.data[1].id);
       expect(responseBody.data[0].id).toEqual(hiddenEventType.id);
@@ -715,6 +715,46 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.id).toEqual(eventType.id);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
       expect(fetchedEventType?.hidden).toEqual(false);
+    });
+
+    it(`/GET/event-types by username with sortCreatedAt=asc`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}&sortCreatedAt=asc`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      // Verify ordering: event types are returned oldest to newest when sortCreatedAt=asc
+      // eventType was created before hiddenEventType, so it should have a lower ID and appear first
+      expect(responseBody.data[0].id).toBeLessThan(responseBody.data[1].id);
+      expect(responseBody.data[0].id).toEqual(eventType.id);
+      expect(responseBody.data[1].id).toEqual(hiddenEventType.id);
+    });
+
+    it(`/GET/event-types by username without sortCreatedAt parameter`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${user.username}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      // Without sortCreatedAt, no specific order is guaranteed
+      // Just verify both event types are present
+      const ids = responseBody.data.map((et) => et.id);
+      expect(ids).toContain(eventType.id);
+      expect(ids).toContain(hiddenEventType.id);
     });
 
     it(`/GET/event-types by username should not return hidden event type if no auth provided`, async () => {
