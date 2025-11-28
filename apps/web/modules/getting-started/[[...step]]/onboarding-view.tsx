@@ -160,6 +160,7 @@ const OnboardingPage = (props: PageProps) => {
         typeof window.cioanalytics.identify === "function"
       ) {
         try {
+          console.log("Identifying user with CIO Analytics:");
           window.cioanalytics.identify({
             id: data.id,
             onboarding_completed: true,
