@@ -33,11 +33,6 @@ import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
-type ScheduleEmailReminderAction = Extract<
-  WorkflowActions,
-  "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
->;
-
 export type ScheduleReminderArgs = {
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
