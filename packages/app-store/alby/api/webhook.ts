@@ -6,7 +6,7 @@ import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePa
 import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib";
 import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -90,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return await handlePaymentSuccess(payment.id, payment.bookingId);
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     return res.status(err.statusCode || 500).send({
       message: err.message,

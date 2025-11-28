@@ -6,7 +6,7 @@ import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePa
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(200).send({
       message: err.message,

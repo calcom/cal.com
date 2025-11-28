@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormProvider } from "react-hook-form";
 
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 
 import { showToast } from "../../toast";
 
@@ -27,7 +27,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
               // FIXME: Booking Pages don't have toast, so this error is never shown
-              showToast(`${getErrorFromUnknown(err).message}`, "error");
+              showToast(`${getClientErrorFromUnknown(err).message}`, "error");
             });
         }}
         {...passThrough}>

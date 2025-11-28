@@ -3,7 +3,7 @@
 import { captureException } from "@sentry/nextjs";
 import React from "react";
 
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { redactError } from "@calcom/lib/redactError";
@@ -26,7 +26,7 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error]);
 
   const processedError = React.useMemo(() => {
-    const err = getErrorFromUnknown(error);
+    const err = getClientErrorFromUnknown(error);
 
     if (err instanceof HttpError) {
       const redactedError = redactError(err);

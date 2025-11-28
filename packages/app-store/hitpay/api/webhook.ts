@@ -4,7 +4,7 @@ import type z from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -111,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return await handlePaymentSuccess(payment.id, payment.bookingId);
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getClientErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     return res.status(200).send({
       message: err.message,

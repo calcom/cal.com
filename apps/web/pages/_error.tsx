@@ -8,7 +8,7 @@ import NextError from "next/error";
 import React from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { redactError } from "@calcom/lib/redactError";
@@ -37,7 +37,7 @@ const CustomError: NextPage<CustomErrorProps> = (props) => {
     // https://github.com/vercel/next.js/issues/8592. As a workaround, we pass
     // err via _app.tsx so it can be captured
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const e = getErrorFromUnknown(err);
+    const e = getClientErrorFromUnknown(err);
     // can be captured here
     // e.g. Sentry.captureException(e);
   }

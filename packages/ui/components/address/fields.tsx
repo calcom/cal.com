@@ -4,7 +4,7 @@ import React, { forwardRef } from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormProvider, useFormContext } from "react-hook-form";
 
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getClientErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
@@ -213,7 +213,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
-              showToast(`${getErrorFromUnknown(err).message}`, "error");
+              showToast(`${getClientErrorFromUnknown(err).message}`, "error");
             });
         }}
         {...passThrough}>
