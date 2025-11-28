@@ -14,7 +14,9 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
+import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -242,22 +244,38 @@ export class WorkflowService {
     });
   }
 
-  static async scheduleLazyEmailWorkflow({
+  private async scheduleLazyEmailWorkflow({
     bookingUid,
     workflowStepId,
+    workflowTriggerEvent,
     method,
-    scheduledDate,
-    scheduled,
+    workflow,
+    evt,
   }: {
     bookingUid: string;
     workflowStepId: number;
+    // TODO: Expand this method to other workflow triggers
+    workflowTriggerEvent: "BEFORE_EVENT";
     method: WorkflowMethods;
-    scheduledDate: Date;
-    scheduled: boolean;
+    workflow: Pick<Workflow, "time" | "timeUnit">;
+    evt: Pick<CalendarEvent, "startTime" | "endTime">;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[WorkflowService.scheduleLazyEmailReminder]: bookingUid ${bookingUid}`],
     });
+
+    const scheduledDate = this.processWorkflowScheduledDate({
+      time: workflow.time,
+      timeUnit: workflow.timeUnit,
+      workflowTriggerEvent,
+      evt,
+    });
+
+    if (!scheduledDate) {
+      log.error("No scheduled date processed");
+      return;
+    }
+
     let workflowReminder: { uuid: string | null };
     try {
       workflowReminder = await WorkflowReminderRepository.create({
@@ -265,7 +283,7 @@ export class WorkflowService {
         workflowStepId,
         method,
         scheduledDate,
-        scheduled,
+        scheduled: true,
       });
     } catch (error) {
       log.error(`Error creating workflowReminder: ${error}`);
@@ -285,5 +303,32 @@ export class WorkflowService {
       scheduledAt: scheduledDate,
       referenceUid: workflowReminder.uuid as string,
     });
+  }
+
+  private processWorkflowScheduledDate({
+    workflowTriggerEvent,
+    time,
+    timeUnit,
+    evt,
+  }: {
+    workflowTriggerEvent: WorkflowTriggerEvents;
+    time: number | null;
+    timeUnit: TimeUnit | null;
+    evt: Pick<CalendarEvent, "startTime" | "endTime">;
+  }) {
+    const { startTime, endTime } = evt;
+    const processedTimeUnit: timeUnitLowerCase | undefined =
+      timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+
+    let scheduledDate = null;
+
+    if (workflowTriggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+      scheduledDate =
+        time && processedTimeUnit ? dayjs(startTime).subtract(time, processedTimeUnit).toDate() : null;
+    } else if (workflowTriggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+      scheduledDate = time && processedTimeUnit ? dayjs(endTime).add(time, processedTimeUnit).toDate() : null;
+    }
+
+    return scheduledDate;
   }
 }
