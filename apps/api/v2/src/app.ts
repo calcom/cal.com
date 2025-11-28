@@ -22,7 +22,6 @@ import {
 } from "@calcom/platform-constants";
 
 import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
-import { ErrorWithCodeExceptionFilter } from "./filters/error-with-code-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
@@ -79,7 +78,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
   app.useGlobalFilters(new CalendarServiceExceptionFilter());
-  app.useGlobalFilters(new ErrorWithCodeExceptionFilter());
 
   app.use(cookieParser());
 
