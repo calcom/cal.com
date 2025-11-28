@@ -40,7 +40,7 @@ export const substituteVariables = (
         const humanReadableString = humanReadableValues.toString();
 
         const variablePattern = `{${variable}}`;
-        const variableIndex = eventTypeUrl.indexOf(variablePattern);
+        const variableIndex = routeValue.indexOf(variablePattern);
         const isInQueryString = queryStringIndex !== -1 && variableIndex > queryStringIndex;
 
         let valueToSubstitute: string;
