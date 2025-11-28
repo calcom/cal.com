@@ -18,10 +18,13 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import type loggerType from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
 
@@ -31,7 +34,6 @@ import {
   ManagedEventAssignmentReasonService,
   ManagedEventReassignmentType,
 } from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventAssignmentReasonRecorder";
-import { ManagedEventWorkflowReminderService } from "./ManagedEventWorkflowReminderService";
 import {
   findTargetChildEventType,
   validateManagedEventReassignment,
@@ -44,7 +46,6 @@ interface ManagedEventManualReassignmentServiceDeps {
   userRepository: UserRepository;
   eventTypeRepository: EventTypeRepository;
   assignmentReasonService: ManagedEventAssignmentReasonService;
-  workflowReminderService: ManagedEventWorkflowReminderService;
 }
 
 export interface ManagedEventManualReassignmentParams {
@@ -63,7 +64,6 @@ export class ManagedEventManualReassignmentService {
   private readonly userRepository: UserRepository;
   private readonly eventTypeRepository: EventTypeRepository;
   private readonly assignmentReasonService: ManagedEventAssignmentReasonService;
-  private readonly workflowReminderService: ManagedEventWorkflowReminderService;
   private readonly log = logger.getSubLogger({ prefix: ["ManagedEventManualReassignmentService"] });
 
   constructor(deps: ManagedEventManualReassignmentServiceDeps) {
@@ -72,7 +72,6 @@ export class ManagedEventManualReassignmentService {
     this.userRepository = deps.userRepository;
     this.eventTypeRepository = deps.eventTypeRepository;
     this.assignmentReasonService = deps.assignmentReasonService;
-    this.workflowReminderService = deps.workflowReminderService;
   }
 
   async execute({
@@ -142,22 +141,60 @@ export class ManagedEventManualReassignmentService {
 
     const { bookingLocation, videoCallUrl, videoCallData, additionalInformation } = calendarResult;
 
-    await this.cancelExistingWorkflows({
-      originalBookingFull,
-      logger: reassignLogger,
-    });
+    try {
+      await WorkflowRepository.deleteAllWorkflowReminders(originalBookingFull.workflowReminders);
+      reassignLogger.info(`Cancelled ${originalBookingFull.workflowReminders.length} workflow reminders`);
+    } catch (error) {
+      reassignLogger.error("Error cancelling workflow reminders", error);
+    }
 
-    await this.scheduleWorkflowsForNewBooking({
-      targetEventTypeDetails,
-      newBooking,
-      newUser,
-      newUserT,
-      bookingLocation,
-      videoCallUrl,
-      additionalInformation,
-      orgId,
-      logger: reassignLogger,
-    });
+    if (targetEventTypeDetails.workflows && targetEventTypeDetails.workflows.length > 0) {
+      try {
+        const bookerBaseUrl = await getBookerBaseUrl(orgId);
+        const bookerUrl = `${bookerBaseUrl}/${newUser.username}/${targetEventTypeDetails.slug}`;
+
+        await WorkflowService.scheduleWorkflowsForNewBooking({
+          workflows: targetEventTypeDetails.workflows.map((w) => w.workflow),
+          smsReminderNumber: newBooking.smsReminderNumber || null,
+          calendarEvent: {
+            type: targetEventTypeDetails.slug,
+            uid: newBooking.uid,
+            title: newBooking.title,
+            startTime: dayjs(newBooking.startTime).utc().format(),
+            endTime: dayjs(newBooking.endTime).utc().format(),
+            organizer: {
+              id: newUser.id,
+              name: newUser.name || "",
+              email: newUser.email,
+              timeZone: newUser.timeZone,
+              language: { translate: newUserT, locale: newUser.locale ?? "en" },
+            },
+            attendees: newBooking.attendees.map(
+              (att: { name: string; email: string; timeZone: string; locale: string | null }) => ({
+                name: att.name,
+                email: att.email,
+                timeZone: att.timeZone,
+                language: { translate: newUserT, locale: att.locale ?? "en" },
+              })
+            ),
+            location: bookingLocation || undefined,
+            description: newBooking.description || undefined,
+            eventType: { slug: targetEventTypeDetails.slug },
+            bookerUrl,
+            metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
+          },
+          hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
+          seatReferenceUid: undefined,
+          isDryRun: false,
+          isConfirmedByDefault: targetEventTypeDetails.requiresConfirmation ? false : true,
+          isNormalBookingOrFirstRecurringSlot: true,
+          isRescheduleEvent: false,
+        });
+        reassignLogger.info("Scheduled workflow reminders for new booking");
+      } catch (error) {
+        reassignLogger.error("Error scheduling workflow reminders for new booking", error);
+      }
+    }
 
     if (emailsEnabled) {
       await this.sendReassignmentNotifications({
@@ -320,7 +357,7 @@ export class ManagedEventManualReassignmentService {
     >;
     originalUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
     apps: ReturnType<typeof eventTypeAppMetadataOptionalSchema.parse>;
-    logger: typeof logger;
+    logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
     if (!originalUser) return;
 
@@ -379,7 +416,7 @@ export class ManagedEventManualReassignmentService {
       Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
     >;
     apps: ReturnType<typeof eventTypeAppMetadataOptionalSchema.parse>;
-    logger: typeof logger;
+    logger: ReturnType<typeof loggerType.getSubLogger>;
   }): Promise<{
     bookingLocation: string | null;
     videoCallUrl: string | null;
@@ -601,106 +638,6 @@ export class ManagedEventManualReassignmentService {
     };
   }
 
-  /**
-   * Cancels workflow reminders for the original booking
-   */
-  private async cancelExistingWorkflows({
-    originalBookingFull,
-    logger,
-  }: {
-    originalBookingFull: NonNullable<
-      Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
-    >;
-    logger: typeof logger;
-  }) {
-    try {
-      const cancelResult = await this.workflowReminderService.cancelWorkflowReminders(
-        originalBookingFull.workflowReminders
-      );
-      logger.info(`Cancelled ${cancelResult.cancelledCount} workflow reminders`);
-    } catch (error) {
-      logger.error("Error cancelling workflow reminders", error);
-    }
-  }
-
-  /**
-   * Schedules workflow reminders for the new booking
-   */
-  private async scheduleWorkflowsForNewBooking({
-    targetEventTypeDetails,
-    newBooking,
-    newUser,
-    newUserT,
-    bookingLocation,
-    videoCallUrl,
-    additionalInformation,
-    orgId,
-    logger,
-  }: {
-    targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
-    newBooking: ManagedEventReassignmentCreatedBooking;
-    newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
-    bookingLocation: string | null;
-    videoCallUrl: string | null;
-    additionalInformation: AdditionalInformation;
-    orgId: number | null;
-    logger: typeof logger;
-  }) {
-    if (!targetEventTypeDetails.workflows || targetEventTypeDetails.workflows.length === 0) {
-      return;
-    }
-
-    try {
-      const { WorkflowService } = await import(
-        "@calcom/features/ee/workflows/lib/service/WorkflowService"
-      );
-
-      const bookerBaseUrl = await getBookerBaseUrl(orgId);
-      const bookerUrl = `${bookerBaseUrl}/${newUser.username}/${targetEventTypeDetails.slug}`;
-
-      await WorkflowService.scheduleWorkflowsForNewBooking({
-        workflows: targetEventTypeDetails.workflows.map((w) => w.workflow),
-        smsReminderNumber: newBooking.smsReminderNumber || null,
-        calendarEvent: {
-          type: targetEventTypeDetails.slug,
-          uid: newBooking.uid,
-          title: newBooking.title,
-          startTime: dayjs(newBooking.startTime).utc().format(),
-          endTime: dayjs(newBooking.endTime).utc().format(),
-          organizer: {
-            id: newUser.id,
-            name: newUser.name || "",
-            email: newUser.email,
-            timeZone: newUser.timeZone,
-            language: { translate: newUserT, locale: newUser.locale ?? "en" },
-          },
-          attendees: newBooking.attendees.map(
-            (att: { name: string; email: string; timeZone: string; locale: string | null }) => ({
-              name: att.name,
-              email: att.email,
-              timeZone: att.timeZone,
-              language: { translate: newUserT, locale: att.locale ?? "en" },
-            })
-          ),
-          location: bookingLocation || undefined,
-          description: newBooking.description || undefined,
-          eventType: { slug: targetEventTypeDetails.slug },
-          bookerUrl,
-          metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
-        },
-        hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
-        seatReferenceUid: undefined,
-        isDryRun: false,
-        isConfirmedByDefault: targetEventTypeDetails.requiresConfirmation ? false : true,
-        isNormalBookingOrFirstRecurringSlot: true,
-        isRescheduleEvent: false,
-      });
-      logger.info("Scheduled workflow reminders for new booking");
-    } catch (error) {
-      logger.error("Error scheduling workflow reminders for new booking", error);
-    }
-  }
 
   /**
    * Sends reassignment notification emails to all parties
@@ -730,7 +667,7 @@ export class ManagedEventManualReassignmentService {
     videoCallData: CalendarEvent["videoCallData"];
     additionalInformation: AdditionalInformation;
     reassignReason?: string;
-    logger: typeof logger;
+    logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
@@ -863,7 +800,7 @@ export class ManagedEventManualReassignmentService {
     reassignedById: number;
     reassignReason?: string;
     isAutoReassignment: boolean;
-    logger: typeof logger;
+    logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
     try {
       const assignmentResult = await this.assignmentReasonService.recordReassignment({

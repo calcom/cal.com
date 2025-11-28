@@ -78,16 +78,17 @@ export class ManagedEventReassignmentService {
       reassignLogger
     );
 
-    const availableUsers = await this.filterUsersAvailableAtTime(
-      eligibleUsers,
-      parent,
+    const availableUsers = await ensureAvailableUsers(
+      { ...parent, users: eligibleUsers },
       {
-        start: booking.startTime,
-        end: booking.endTime,
+        dateFrom: dayjs(booking.startTime).format(),
+        dateTo: dayjs(booking.endTime).format(),
         timeZone: parent.timeZone || eligibleUsers[0]?.timeZone || "UTC",
       },
       reassignLogger
     );
+
+    reassignLogger.info(`${availableUsers.length} users available at booking time`);
 
     const selectedUser = await this.selectReassignmentUser(availableUsers, parent, reassignLogger);
 
@@ -194,47 +195,13 @@ export class ManagedEventReassignmentService {
     })) as unknown as IsFixedAwareUser[];
   }
 
-  private async filterUsersAvailableAtTime(
-    users: IsFixedAwareUser[],
-    parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
-    timeSlot: { start: Date; end: Date; timeZone: string },
-    log: typeof logger
-  ): Promise<IsFixedAwareUser[]> {
-    const availableUsers = await ensureAvailableUsers(
-      { ...parentEventType, users },
-      {
-        dateFrom: dayjs(timeSlot.start).format(),
-        dateTo: dayjs(timeSlot.end).format(),
-        timeZone: timeSlot.timeZone,
-      },
-      logger
-    );
-
-    if (availableUsers.length === 0) {
-      throw new Error("No users available at the booking time");
-    }
-
-    log.info(`${availableUsers.length} users available at booking time`);
-
-    return availableUsers;
-  }
-
   private async selectReassignmentUser(
-    availableUsers: IsFixedAwareUser[],
+    availableUsers: [IsFixedAwareUser, ...IsFixedAwareUser[]],
     parentEventType: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>,
     log: typeof logger
   ): Promise<IsFixedAwareUser> {
-    if (availableUsers.length === 0) {
-      throw new Error("No available users to select for reassignment");
-    }
-
-    const nonEmptyUsers: [IsFixedAwareUser, ...IsFixedAwareUser[]] =
-      availableUsers.length === 1
-        ? [availableUsers[0]]
-        : [availableUsers[0], ...availableUsers.slice(1)];
-
     const luckyUser: IsFixedAwareUser = await this.luckyUserService.getLuckyUser({
-      availableUsers: nonEmptyUsers,
+      availableUsers,
       eventType: parentEventType,
       allRRHosts: [],
       routingFormResponse: null,

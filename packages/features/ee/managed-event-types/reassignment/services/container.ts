@@ -4,11 +4,9 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { ManagedEventManualReassignmentService } from "./ManagedEventManualReassignmentService";
 import { ManagedEventReassignmentService } from "./ManagedEventReassignmentService";
 import { ManagedEventAssignmentReasonService } from "./ManagedEventAssignmentReasonRecorder";
-import { ManagedEventWorkflowReminderService } from "./ManagedEventWorkflowReminderService";
 
 /**
  * Dependency Injection Container for Reassignment Services
@@ -25,7 +23,6 @@ export class ReassignmentServiceContainer {
   private readonly eventTypeRepository: EventTypeRepository;
   private readonly assignmentReasonRepository: AssignmentReasonRepository;
   private readonly assignmentReasonService: ManagedEventAssignmentReasonService;
-  private readonly workflowReminderService: ManagedEventWorkflowReminderService;
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
@@ -36,9 +33,6 @@ export class ReassignmentServiceContainer {
     this.assignmentReasonService = new ManagedEventAssignmentReasonService({
       userRepository: this.userRepository,
       assignmentReasonRepository: this.assignmentReasonRepository,
-    });
-    this.workflowReminderService = new ManagedEventWorkflowReminderService({
-      workflowRepository: WorkflowRepository,
     });
   }
 
@@ -53,7 +47,6 @@ export class ReassignmentServiceContainer {
       userRepository: this.userRepository,
       eventTypeRepository: this.eventTypeRepository,
       assignmentReasonService: this.assignmentReasonService,
-      workflowReminderService: this.workflowReminderService,
     });
   }
 

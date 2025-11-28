@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, it, beforeAll } from "vitest";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { ZodError } from "zod";
 
 import { prisma } from "@calcom/prisma";
@@ -49,6 +49,15 @@ describe("GET /api/bookings", () => {
         status: "ACCEPTED",
       },
     });
+  });
+
+  afterAll(async () => {
+    // Clean up the test booking created in beforeAll
+    if (memberUserBooking?.id) {
+      await prisma.booking.delete({
+        where: { id: memberUserBooking.id },
+      });
+    }
   });
 
   it("Does not return bookings of other users when user has no permission", async () => {
