@@ -1,3 +1,4 @@
+import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
@@ -7,8 +8,10 @@ import {
   isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { SENDER_NAME } from "@calcom/lib/constants";
@@ -118,70 +121,18 @@ const processWorkflowStep = async (
     step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
     const { scheduleEmailReminder } = await import("./emailReminderManager");
-    let sendTo: string[] = [];
-
-    switch (step.action) {
-      case WorkflowActions.EMAIL_ADDRESS:
-        sendTo = [step.sendTo || ""];
-        break;
-      case WorkflowActions.EMAIL_HOST: {
-        if (!evt) {
-          // EMAIL_HOST is not supported for form triggers
-          return;
-        }
-
-        sendTo = [evt.organizer?.email || ""];
-
-        const schedulingType = evt.eventType.schedulingType;
-        const isTeamEvent =
-          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
-        if (isTeamEvent && evt.team?.members) {
-          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
-        }
-        break;
-      }
-      case WorkflowActions.EMAIL_ATTENDEE:
-        if (evt) {
-          const attendees = emailAttendeeSendToOverride
-            ? [emailAttendeeSendToOverride]
-            : evt.attendees?.map((attendee) => attendee.email);
-
-          const limitGuestsDate = new Date("2025-01-13");
-
-          if (workflow.userId) {
-            const userRepository = new UserRepository(prisma);
-            const user = await userRepository.findById({ id: workflow.userId });
-            if (user?.createdDate && user.createdDate > limitGuestsDate) {
-              sendTo = attendees.slice(0, 1);
-            } else {
-              sendTo = attendees;
-            }
-          } else {
-            sendTo = attendees;
-          }
-        }
-
-        if (formData) {
-          const submitterEmail = getSubmitterEmail(formData.responses);
-          if (submitterEmail) {
-            sendTo = [submitterEmail];
-          }
-        }
-    }
-
-    const emailParams = {
-      ...scheduleFunctionParams,
-      action: step.action,
-      sendTo,
-      emailSubject: step.emailSubject || "",
-      emailBody: step.reminderBody || "",
-      sender: step.sender || SENDER_NAME,
+    const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
+    const emailParams = await emailWorkflowService.generateParametersToBuildEmailWorkflowContent({
+      evt,
+      workflowStep: step,
+      workflow,
+      emailAttendeeSendToOverride,
+      formData,
+      commonScheduleFunctionParams: scheduleFunctionParams,
       hideBranding,
-      includeCalendarEvent: step.includeCalendarEvent,
-      ...contextData,
-      verifiedAt: step.verifiedAt,
-    } as const;
-
+    });
     await scheduleEmailReminder(emailParams);
   } else if (isWhatsappAction(step.action)) {
     if (!evt) {
