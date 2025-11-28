@@ -187,30 +187,12 @@ function BookingDetailsSheetInner({
         <SheetHeader showCloseButton={false} className="w-full">
           <div className="flex items-center justify-between gap-x-4">
             <div className="flex min-w-0 flex-col gap-y-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <Badge variant={statusBadge.variant} className="capitalize">
-                  {statusBadge.label}
-                </Badge>
-                {reasonTitle && (
-                  <Badge variant="gray" className="capitalize">
-                    {reasonTitle}
-                  </Badge>
-                )}
-                {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
-                {booking.paid && !booking.payment[0] ? (
-                  <Badge variant="orange">{t("error_collecting_card")}</Badge>
-                ) : booking.paid ? (
-                  <Badge variant="green" data-testid="paid_badge">
-                    {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-                  </Badge>
-                ) : null}
-                {recurringInfo && (
-                  <Badge variant="gray">
-                    <Icon name="repeat" className="mr-1 h-3 w-3" />
-                    {recurringInfo.count}
-                  </Badge>
-                )}
-              </div>
+              <BookingHeaderBadges
+                statusBadge={statusBadge}
+                reasonTitle={reasonTitle}
+                booking={booking}
+                recurringInfo={recurringInfo}
+              />
             </div>
             <div className="flex gap-2">
               <Button
@@ -798,6 +780,47 @@ function AdditionalNotesSection({ booking }: { booking: BookingOutput }) {
     <Section title={t("additional_notes")}>
       <p className="text-default whitespace-pre-wrap text-sm">{booking.description}</p>
     </Section>
+  );
+}
+
+function BookingHeaderBadges({
+  statusBadge,
+  reasonTitle,
+  booking,
+  recurringInfo,
+}: {
+  statusBadge: { variant: "red" | "green" | "orange" | "gray"; label: string };
+  reasonTitle: string | undefined;
+  booking: BookingOutput;
+  recurringInfo: { count: number; recurringEvent: RecurringEvent } | null;
+}) {
+  const { t } = useLocale();
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <Badge variant={statusBadge.variant} className="capitalize">
+        {statusBadge.label}
+      </Badge>
+      {reasonTitle && (
+        <Badge variant="gray" className="capitalize">
+          {reasonTitle}
+        </Badge>
+      )}
+      {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+      {booking.paid && !booking.payment[0] ? (
+        <Badge variant="orange">{t("error_collecting_card")}</Badge>
+      ) : booking.paid ? (
+        <Badge variant="green" data-testid="paid_badge">
+          {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+        </Badge>
+      ) : null}
+      {recurringInfo && (
+        <Badge variant="gray">
+          <Icon name="repeat" className="mr-1 h-3 w-3" />
+          {recurringInfo.count}
+        </Badge>
+      )}
+    </div>
   );
 }
 
