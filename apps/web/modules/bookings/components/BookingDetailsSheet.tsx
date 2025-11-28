@@ -13,7 +13,11 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  eventTypeBookingFields,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
@@ -37,6 +41,7 @@ import { RejectBookingButton } from "../../../components/booking/RejectBookingBu
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import {
   useBookingDetailsSheetStore,
   useBookingDetailsSheetStoreApi,
@@ -192,6 +197,13 @@ function BookingDetailsSheetInner({
                   </Badge>
                 )}
                 {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+                {booking.paid && !booking.payment[0] ? (
+                  <Badge variant="orange">{t("error_collecting_card")}</Badge>
+                ) : booking.paid ? (
+                  <Badge variant="green" data-testid="paid_badge">
+                    {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+                  </Badge>
+                ) : null}
                 {recurringInfo && (
                   <Badge variant="gray">
                     <Icon name="repeat" className="mr-1 h-3 w-3" />
@@ -268,7 +280,7 @@ function BookingDetailsSheetInner({
 
             <AssignmentReasonSection booking={booking} />
 
-            <PaymentSection booking={booking} />
+            {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
 
             <SlotsSection booking={booking} />
 
@@ -535,19 +547,40 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
   );
 }
 
-function PaymentSection({ booking }: { booking: BookingOutput }) {
+function PaymentSection({
+  booking,
+  payment,
+}: {
+  booking: BookingOutput;
+  payment: NonNullable<BookingOutput["payment"]>[number];
+}) {
   const { t } = useLocale();
 
-  if (!booking.paid || !Array.isArray(booking.payment) || booking.payment.length === 0) {
-    return null;
-  }
+  // Get refund policy from event type metadata
+  const parsedEventTypeMetadata = booking.eventType?.metadata
+    ? EventTypeMetaDataSchema.safeParse(booking.eventType.metadata)
+    : null;
+  const eventTypeMetadata = parsedEventTypeMetadata?.success ? parsedEventTypeMetadata.data : null;
 
-  const payment = booking.payment[0];
+  const refundPolicy = eventTypeMetadata?.apps?.stripe?.refundPolicy;
+  const refundDaysCount = eventTypeMetadata?.apps?.stripe?.refundDaysCount;
+
+  const paymentStatusMessage = usePaymentStatus({
+    bookingStatus: booking.status,
+    startTime: booking.startTime,
+    eventTypeTeamId: booking.eventType?.teamId,
+    userId: booking.user?.id,
+    payment,
+    refundPolicy,
+    refundDaysCount,
+  });
+
   const formattedPrice = formatPrice(payment.amount, payment.currency);
 
   return (
     <Section title={t("payment")}>
-      <p className="text-default text-sm">{formattedPrice}</p>
+      <p className="text-default text-sm font-medium">{formattedPrice}</p>
+      {paymentStatusMessage && <p className="text-subtle text-xs">{paymentStatusMessage}</p>}
     </Section>
   );
 }

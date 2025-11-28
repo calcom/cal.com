@@ -530,6 +530,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.teamId",
                 eb
                   .cast<SchedulingType | null>(
                     eb
