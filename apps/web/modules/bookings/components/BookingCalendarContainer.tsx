@@ -5,6 +5,7 @@ import { createParser, useQueryState } from "nuqs";
 import React, { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { DataTableFilters } from "@calcom/features/data-table";
 import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,8 +20,9 @@ import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filter
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus, BookingOutput, BookingsGetOutput } from "../types";
-import { BookingCalendar } from "./BookingCalendar";
+import { BookingCalendarView } from "./BookingCalendarView";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
+import { ViewToggleButton } from "./ViewToggleButton";
 
 // For calendar view, fetch all statuses except cancelled
 const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
@@ -224,18 +226,26 @@ function BookingCalendarInner({
 
   return (
     <>
-      <BookingCalendar
-        status={status}
-        table={table}
-        showFilterBar={allowedFilterIds.length > 0}
-        isPending={isPending}
-        currentWeekStart={currentWeekStart}
-        setCurrentWeekStart={setCurrentWeekStart}
-        bookings={bookings}
-        ErrorView={ErrorView}
-        hasError={hasError}
-        userWeekStart={userWeekStart}
-      />
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {allowedFilterIds.length > 0 && <DataTableFilters.FilterBar table={table} />}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ViewToggleButton />
+        </div>
+      </div>
+      {hasError && ErrorView ? (
+        ErrorView
+      ) : (
+        <BookingCalendarView
+          bookings={bookings}
+          currentWeekStart={currentWeekStart}
+          onWeekStartChange={setCurrentWeekStart}
+          isPending={isPending}
+          userWeekStart={userWeekStart}
+        />
+      )}
 
       <BookingDetailsSheet
         userTimeZone={user?.timeZone}
