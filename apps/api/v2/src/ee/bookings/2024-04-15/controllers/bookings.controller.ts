@@ -530,6 +530,9 @@ export class BookingsController_2024_04_15 {
       return;
     }
 
+    this.logger.error(
+      `[BOOKING_DEBUG_checkAuth] checking rescheduleUid ${JSON.stringify({ rescheduleUid })}`
+    );
     if (rescheduleUid) {
       const isValidRescheduleBooking = await this.isValidRescheduleBooking(rescheduleUid, eventTypeId);
       if (isValidRescheduleBooking) {
@@ -540,15 +543,9 @@ export class BookingsController_2024_04_15 {
           "Trying to reschedule an event-type which requires authentication but provided invalid rescheduleUid."
         );
       }
-      this.logger.error(
-        `[BOOKING_DEBUG_TRANSFORM_AFTER] ${JSON.stringify({
-          oAuthClientId,
-          transformedEmail: requestBody?.responses?.email,
-          transformedGuests: requestBody?.responses?.guests,
-        })}`
-      );
     }
 
+    this.logger.error(`[BOOKING_DEBUG_checkAuth] getting userId`);
     const userId = await this.getOwnerId(req);
 
     this.logger.error(`[BOOKING_DEBUG_checkAuth] Got userId ${JSON.stringify({ userId })}`);
