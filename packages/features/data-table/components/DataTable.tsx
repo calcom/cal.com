@@ -118,7 +118,7 @@ export function DataTable<TData>({
   return (
     <div
       className={classNames(
-        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        !hasWrapperContext ? "grid" : "bg-cal-muted grid rounded-xl px-0.5 pb-0.5",
         className
       )}
       style={{
@@ -153,7 +153,7 @@ export function DataTable<TData>({
         <TableNew
           className={classNames(
             "data-table grid border-0",
-            !hasWrapperContext && "bg-muted rounded-xl px-0.5 pb-0.5"
+            !hasWrapperContext && "bg-cal-muted rounded-xl px-0.5 pb-0.5"
           )}
           style={{
             ...columnSizingVars,
@@ -174,7 +174,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
-                        "bg-muted",
+                        "bg-cal-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -184,9 +184,9 @@ export function DataTable<TData>({
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
                             "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "!opacity-75"
+                            header.column.getIsResizing() && "opacity-75!"
                           )}>
-                          <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          <div className="bg-inverted mx-auto h-full w-px" />
                         </div>
                       )}
                     </TableHead>
@@ -287,7 +287,7 @@ function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRo
   return (
     <div
       className={classNames(
-        "bg-muted text-emphasis w-full px-3 py-2 font-semibold",
+        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
         separator.className,
         className
       )}>
@@ -400,7 +400,14 @@ function DataTableBody<TData>({
             {...computedDataAttributes}
             data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
-            onClick={() => onRowMouseclick && onRowMouseclick(row)}
+            onClick={(e) => {
+              if (!onRowMouseclick) return;
+              const target = e.target as Node | null;
+              const current = e.currentTarget as HTMLElement | null;
+              // Only invoke the handler when the event target is inside the row element.
+              if (!target || !current || !current.contains(target)) return;
+              onRowMouseclick(row);
+            }}
             style={{
               display: "flex",
               ...(virtualItem && {
@@ -422,10 +429,10 @@ function DataTableBody<TData>({
                     width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                   }}
                   className={classNames(
-                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
+                    "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                     variant === "compact" && "p-0",
                     column.getIsPinned() &&
-                      "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                      "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
                   )}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
@@ -464,7 +471,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
           type="button"
           className={classNames(
             "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
-            open && "bg-muted"
+            open && "bg-cal-muted"
           )}>
           <div
             className="text-default truncate text-sm leading-none"

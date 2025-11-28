@@ -29,53 +29,87 @@ import {
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import {
+  useBookingDetailsSheetStore,
+  useBookingDetailsSheetStoreApi,
+} from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
 interface BookingDetailsSheetProps {
-  booking: BookingOutput | null;
-  isOpen: boolean;
-  onClose: () => void;
   userTimeZone?: string;
   userTimeFormat?: number;
   userId?: number;
   userEmail?: string;
-  onPrevious?: () => void;
-  hasPrevious?: boolean;
-  onNext?: () => void;
-  hasNext?: boolean;
 }
 
-interface BookingDetailsSheetInnerProps extends Omit<BookingDetailsSheetProps, "booking"> {
-  booking: BookingOutput;
-}
-
-export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
-  if (!props.booking) return null;
-
-  return (
-    <BookingActionsStoreProvider>
-      <BookingDetailsSheetInner {...props} booking={props.booking} />
-    </BookingActionsStoreProvider>
-  );
-}
-
-function BookingDetailsSheetInner({
-  booking,
-  isOpen,
-  onClose,
+export function BookingDetailsSheet({
   userTimeZone,
   userTimeFormat,
   userId,
   userEmail,
-  onPrevious,
-  hasPrevious = false,
-  onNext,
-  hasNext = false,
+}: BookingDetailsSheetProps) {
+  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+
+  // Return null if no booking is selected (sheet is closed)
+  if (!booking) return null;
+
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner
+        booking={booking}
+        userTimeZone={userTimeZone}
+        userTimeFormat={userTimeFormat}
+        userId={userId}
+        userEmail={userEmail}
+      />
+    </BookingActionsStoreProvider>
+  );
+}
+
+interface BookingDetailsSheetInnerProps {
+  booking: BookingOutput;
+  userTimeZone?: string;
+  userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
+}
+
+function BookingDetailsSheetInner({
+  booking,
+  userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
+
+  // Get navigation state directly from the store
+  const hasNext = useBookingDetailsSheetStore((state) => state.hasNext());
+  const hasPrevious = useBookingDetailsSheetStore((state) => state.hasPrevious());
+  const setSelectedBookingId = useBookingDetailsSheetStore((state) => state.setSelectedBookingId);
+
+  const handleClose = () => {
+    setSelectedBookingId(null);
+  };
+
+  const storeApi = useBookingDetailsSheetStoreApi();
+
+  const handleNext = () => {
+    const nextId = storeApi.getState().getNextBookingId();
+    if (nextId !== null) {
+      setSelectedBookingId(nextId);
+    }
+  };
+
+  const handlePrevious = () => {
+    const prevId = storeApi.getState().getPreviousBookingId();
+    if (prevId !== null) {
+      setSelectedBookingId(prevId);
+    }
+  };
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
@@ -115,7 +149,7 @@ function BookingDetailsSheetInner({
     : [];
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={true} onOpenChange={handleClose}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader
           showCloseButton={false}
@@ -128,7 +162,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasPrevious}
                 onClick={(e) => {
                   e.preventDefault();
-                  onPrevious?.();
+                  handlePrevious();
                 }}
               />
               <Button
@@ -138,7 +172,7 @@ function BookingDetailsSheetInner({
                 disabled={!hasNext}
                 onClick={(e) => {
                   e.preventDefault();
-                  onNext?.();
+                  handleNext();
                 }}
               />
             </div>
@@ -157,9 +191,9 @@ function BookingDetailsSheetInner({
           </div>
         </SheetHeader>
 
-        <SheetBody className="space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-1">
+        <SheetBody className="stack-y-6">
+          <div className="stack-y-6">
+            <div className="stack-y-1">
               <SheetTitle className="text-2xl font-semibold">{booking.title}</SheetTitle>
               <p className="text-subtle text-sm">
                 {startTime.format("dddd, MMMM D, YYYY h:mma")} - {endTime.format("h:mma")} (
@@ -190,7 +224,7 @@ function BookingDetailsSheetInner({
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
           <div className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-4 pt-4">
-            <Button color="secondary" StartIcon="x" onClick={onClose}>
+            <Button color="secondary" StartIcon="x" onClick={handleClose}>
               {t("close")}
             </Button>
 
@@ -215,6 +249,7 @@ function BookingDetailsSheetInner({
                   isToday: false,
                 }}
                 usePortal={false}
+                context="details"
               />
             </div>
           </div>
@@ -242,7 +277,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
   return (
     <Section title={t("who")}>
-      <div className="space-y-4">
+      <div className="stack-y-4">
         {booking.user && (
           <div className="flex items-center gap-4">
             <Avatar
@@ -305,12 +340,12 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={provider.iconUrl}
-            className="h-4 w-4 flex-shrink-0 rounded-sm"
+            className="h-4 w-4 shrink-0 rounded-sm"
             alt={`${provider?.label} logo`}
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-default flex-shrink-0">{provider?.label}:</span>
+          <span className="text-default shrink-0">{provider?.label}:</span>
           <a
             href={locationToDisplay}
             target="_blank"
@@ -467,7 +502,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={classNames("space-y-1", className)}>
+    <div className={classNames("stack-y-1", className)}>
       <h3 className="text-subtle text-xs font-semibold">{title}</h3>
       {children}
     </div>

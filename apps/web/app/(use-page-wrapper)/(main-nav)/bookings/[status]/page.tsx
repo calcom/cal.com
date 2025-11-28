@@ -6,7 +6,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -54,12 +56,23 @@ const Page = async ({ params }: PageProps) => {
     canReadOthersBookings = teamIdsWithPermission.length > 0;
   }
 
+  const userProfile = session?.user?.profile;
+  const orgId = userProfile?.organizationId ?? session?.user.org?.id;
+  const featuresRepository = new FeaturesRepository(prisma);
+  const bookingsV3Enabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "bookings-v3")
+    : false;
+
   return (
-    <ShellMainAppDir heading={t("bookings")} CTA={<ViewToggleButton />}>
+    <ShellMainAppDir
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      CTA={bookingsV3Enabled ? <ViewToggleButton /> : null}>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
         permissions={{ canReadOthersBookings }}
+        bookingsV3Enabled={bookingsV3Enabled}
       />
     </ShellMainAppDir>
   );
