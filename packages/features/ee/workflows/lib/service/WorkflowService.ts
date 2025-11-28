@@ -3,7 +3,7 @@ import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import type { Workflow, WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
@@ -18,6 +18,7 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
   static _beforeAfterEventTriggers: WorkflowTriggerEvents[] = [
@@ -335,5 +336,32 @@ export class WorkflowService {
     }
 
     return scheduledDate;
+  }
+
+  static generateCommonScheduleFunctionParams({
+    workflow,
+    workflowStep,
+    seatReferenceUid,
+    creditCheckFn
+  }: {
+    workflow: Workflow;
+    workflowStep: WorkflowStep;
+    seatReferenceUid: string | undefined;
+    creditCheckFn: CreditCheckFn,
+  }) {
+    return {
+      triggerEvent: workflow.trigger,
+      timeSpan: {
+        time: workflow.time,
+        timeUnit: workflow.timeUnit,
+      },
+      workflowStepId: workflowStep.id,
+      template: workflowStep.template,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      seatReferenceUid,
+      verifiedAt: workflowStep.verifiedAt,
+      creditCheckFn,
+    };
   }
 }
