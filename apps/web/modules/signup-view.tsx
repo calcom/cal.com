@@ -313,7 +313,7 @@ export default function Signup({
                 id="gtm-init-script"
                 // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
                 // And we don't want it to error here anyways
-                 
+
                 dangerouslySetInnerHTML={{
                   __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
@@ -323,7 +323,6 @@ export default function Signup({
                 }}
               />
               <noscript
-                 
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}
@@ -385,16 +384,20 @@ export default function Signup({
                     label={t("data_region")}
                     value={{
                       label: t(
-                        typeof window !== "undefined" && 
-                        (window.location.hostname.includes("cal.eu") || 
-                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
+                        // Use WEBAPP_URL for SSR-safe region detection
+                        WEBAPP_URL.includes("cal.eu") ||
+                          (typeof window !== "undefined" &&
+                            window.location.hostname === "localhost" &&
+                            new URL(window.location.href).searchParams.get("region") === "eu")
                           ? "european_union"
                           : "united_states"
                       ),
                       value:
-                        typeof window !== "undefined" && 
-                        (window.location.hostname.includes("cal.eu") || 
-                         (window.location.hostname === "localhost" && new URL(window.location.href).searchParams.get("region") === "eu"))
+                        // Use WEBAPP_URL for SSR-safe region detection
+                        WEBAPP_URL.includes("cal.eu") ||
+                        (typeof window !== "undefined" &&
+                          window.location.hostname === "localhost" &&
+                          new URL(window.location.href).searchParams.get("region") === "eu")
                           ? "eu"
                           : "us",
                     }}
@@ -405,20 +408,21 @@ export default function Signup({
                     onChange={(option) => {
                       if (option && "value" in option) {
                         const currentUrl = new URL(window.location.href);
-                        
+
                         // Handle localhost - add region as URL parameter
                         if (currentUrl.hostname === "localhost") {
                           currentUrl.searchParams.set("region", option.value);
                           window.location.href = currentUrl.toString();
                           return;
                         }
-                        
-                        // Handle production domains
-                        const targetDomain =
-                          option.value === "eu"
-                            ? currentUrl.href.replace("app.cal.com", "app.cal.eu")
-                            : currentUrl.href.replace("app.cal.eu", "app.cal.com");
-                        window.location.href = targetDomain;
+
+                        // Handle production domains - modify hostname only to preserve query params
+                        if (option.value === "eu") {
+                          currentUrl.hostname = currentUrl.hostname.replace("cal.com", "cal.eu");
+                        } else {
+                          currentUrl.hostname = currentUrl.hostname.replace("cal.eu", "cal.com");
+                        }
+                        window.location.href = currentUrl.toString();
                       }
                     }}
                   />
