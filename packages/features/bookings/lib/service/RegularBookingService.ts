@@ -542,6 +542,7 @@ async function handler(
       loggedInUserId: userId,
       bookerEmail,
       verificationCode: reqBody.verificationCode,
+      isReschedule: !!rawBookingData.rescheduleUid,
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
