@@ -69,7 +69,7 @@ export function TableActions({
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button
-                className="radix-state-open:rounded-r-md"
+                className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                 color="secondary"
                 variant="icon"
                 StartIcon="ellipsis"
