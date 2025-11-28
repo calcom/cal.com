@@ -14,16 +14,18 @@ import type {
 export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry> {
-    const existing = await this.checkExists({
-      type: params.type,
-      value: params.value,
-      organizationId: params.organizationId,
-      isGlobal: params.isGlobal,
-    });
+  async createEntry(params: CreateWatchlistInput & { skipExistenceCheck?: boolean }): Promise<WatchlistEntry> {
+    if (!params.skipExistenceCheck) {
+      const existing = await this.checkExists({
+        type: params.type,
+        value: params.value,
+        organizationId: params.organizationId,
+        isGlobal: params.isGlobal,
+      });
 
-    if (existing) {
-      throw new Error("Watchlist entry already exists for this organization");
+      if (existing) {
+        throw new Error("Watchlist entry already exists for this organization");
+      }
     }
 
     const watchlist = await this.prismaClient.$transaction(async (tx) => {
@@ -318,6 +320,7 @@ export class WatchlistRepository implements IWatchlistRepository {
         action: WatchlistAction.BLOCK,
         description: params.description,
         userId: params.userId,
+        skipExistenceCheck: true,
       }));
 
     return { watchlistEntry, value: params.value };
@@ -364,17 +367,6 @@ export class WatchlistRepository implements IWatchlistRepository {
           description: params.description,
         });
 
-        await params.bookingReportRepo.linkWatchlistToReport({
-          reportId: report.id,
-          watchlistId: watchlistEntry.id,
-        });
-
-        await params.bookingReportRepo.updateReportStatus({
-          reportId: report.id,
-          status: "BLOCKED",
-          organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
-        });
-
         return {
           reportId: report.id,
           watchlistId: watchlistEntry.id,
@@ -382,6 +374,11 @@ export class WatchlistRepository implements IWatchlistRepository {
         };
       })
     );
+
+    await params.bookingReportRepo.bulkLinkWatchlistWithStatus({
+      links: results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
+      status: "BLOCKED",
+    });
 
     return {
       success: reportsToAdd.length,
