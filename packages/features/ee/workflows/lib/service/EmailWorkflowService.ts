@@ -285,6 +285,8 @@ export class EmailWorkflowService {
         organizerEmail: evt.organizer.email,
         sendToEmail: sendTo[0],
       });
+      const meetingUrl =
+        evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -298,7 +300,7 @@ export class EmailWorkflowService {
         location: evt.location,
         additionalNotes: evt.additionalNotes,
         responses: transformBookingResponsesToVariableFormat(evt.responses),
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+        meetingUrl,
         cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
           recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
         }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
@@ -348,7 +350,8 @@ export class EmailWorkflowService {
         eventName: evt.title,
         timeZone,
         location: evt.location || "",
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+        meetingUrl:
+          evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
         otherPerson: attendeeName,
         name,
       });
