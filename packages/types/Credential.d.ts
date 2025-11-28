@@ -9,6 +9,7 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
   select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
 }> & {
   delegatedToId?: string | null;
+  appName?: string;
 };
 
 export type CredentialForCalendarService = CredentialPayload & {
