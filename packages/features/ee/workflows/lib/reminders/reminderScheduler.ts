@@ -7,6 +7,8 @@ import {
   isWhatsappAction,
   isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -254,6 +256,22 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
+      if (
+        // These tasks currently write the entire payload in the task
+        (workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+          workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
+        isEmailAction(step.action) &&
+        evt
+      ) {
+        await WorkflowService.scheduleLazyEmailWorkflow({
+          evt,
+          workflowStepId: step.id,
+          workflowTriggerEvent: workflow.trigger,
+          workflow,
+        });
+        continue;
+      }
+
       await processWorkflowStep(
         workflow,
         step,
