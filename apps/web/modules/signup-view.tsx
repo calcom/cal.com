@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import posthog from "posthog-js";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -34,8 +35,6 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -193,7 +192,6 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
-  const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
@@ -244,6 +242,15 @@ export default function Signup({
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
+
+    posthog.capture("signup_form_submitted", {
+      has_token: !!token,
+      is_org_invite: isOrgInviteByLink,
+      org_slug: orgSlug,
+      is_premium_username: premiumUsername,
+      username_taken: usernameTaken,
+    });
+
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -261,7 +268,7 @@ export default function Signup({
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
-        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
         const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
         const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
@@ -299,6 +306,13 @@ export default function Signup({
         });
       })
       .catch((err) => {
+        posthog.capture("signup_form_submit_error", {
+          has_token: !!token,
+          is_org_invite: isOrgInviteByLink,
+          org_slug: orgSlug,
+          is_premium_username: premiumUsername,
+          error_message: err.message,
+        });
         formMethods.setError("apiError", { message: err.message });
       });
   };
@@ -342,12 +356,12 @@ export default function Signup({
       ) : null}
       <div
         className={classNames(
-          "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+          "light bg-cal-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
           "[--cal-brand-subtle:#9CA3AF]",
           "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
           "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
         )}>
-        <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+        <div className="bg-cal-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {displayBackButton && (
@@ -537,6 +551,13 @@ export default function Signup({
                           showToast("error", t("username_required"));
                           return;
                         }
+
+                        posthog.capture("signup_saml_submit_button_clicked", {
+                          has_token: !!token,
+                          is_org_invite: isOrgInviteByLink,
+                          org_slug: orgSlug,
+                        });
+
                         // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
@@ -590,15 +611,27 @@ export default function Signup({
                       color="primary"
                       loading={isGoogleLoading}
                       CustomStartIcon={
-                        <img
-                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
-                          src="/google-icon-colored.svg"
-                          alt="Continue with Google Icon"
-                        />
+                        <>
+                          {/* eslint-disable @next/next/no-img-element */}
+                          <img
+                            className={classNames(
+                              "text-subtle  mr-2 h-4 w-4",
+                              premiumUsername && "opacity-50"
+                            )}
+                            src="/google-icon-colored.svg"
+                            alt="Continue with Google Icon"
+                          />
+                        </>
                       }
                       className={classNames("w-full justify-center rounded-md text-center")}
                       data-testid="continue-with-google-button"
                       onClick={async () => {
+                        posthog.capture("signup_google_button_clicked", {
+                          has_token: !!token,
+                          is_org_invite: isOrgInviteByLink,
+                          org_slug: orgSlug,
+                          has_prepopulated_username: !!prepopulateFormValues?.username,
+                        });
                         setIsSamlSignup(false);
                         setIsGoogleLoading(true);
                         const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
@@ -627,11 +660,11 @@ export default function Signup({
                 {isGoogleLoginEnabled && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
-                      <div className="border-subtle flex-grow border-t" />
-                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                      <div className="border-subtle grow border-t" />
+                      <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
                         {t("or").toLocaleLowerCase()}
                       </span>
-                      <div className="border-subtle flex-grow border-t" />
+                      <div className="border-subtle grow border-t" />
                     </div>
                   </div>
                 )}
@@ -643,6 +676,11 @@ export default function Signup({
                     disabled={isGoogleLoading}
                     className={classNames("w-full justify-center rounded-md text-center")}
                     onClick={() => {
+                      posthog.capture("signup_email_button_clicked", {
+                        has_token: !!token,
+                        is_org_invite: isOrgInviteByLink,
+                        org_slug: orgSlug,
+                      });
                       setDisplayEmailForm(true);
                       setIsSamlSignup(false);
                     }}
@@ -656,6 +694,11 @@ export default function Signup({
                       disabled={isGoogleLoading}
                       className={classNames("w-full justify-center rounded-md text-center")}
                       onClick={() => {
+                        posthog.capture("signup_saml_button_clicked", {
+                          has_token: !!token,
+                          is_org_invite: isOrgInviteByLink,
+                          org_slug: orgSlug,
+                        });
                         setDisplayEmailForm(true);
                         setIsSamlSignup(true);
                       }}>
@@ -705,6 +748,7 @@ export default function Signup({
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/product-of-the-day.svg"
                       className="h-[34px] w-full dark:invert"
@@ -712,6 +756,7 @@ export default function Signup({
                     />
                   </div>
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/product-of-the-week.svg"
                       className="h-[34px] w-full dark:invert"
@@ -719,6 +764,7 @@ export default function Signup({
                     />
                   </div>
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/product-of-the-month.svg"
                       className="h-[34px] w-full dark:invert"
@@ -728,6 +774,7 @@ export default function Signup({
                 </div>
                 <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/producthunt.svg"
                       className="h-[54px] w-full"
@@ -735,6 +782,7 @@ export default function Signup({
                     />
                   </div>
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/google-reviews.svg"
                       className="h-[54px] w-full"
@@ -742,6 +790,7 @@ export default function Signup({
                     />
                   </div>
                   <div>
+                    {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/g2.svg"
                       className="h-[54px] w-full"
@@ -751,8 +800,9 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default bg-black/3 hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+              {/* eslint-disable @next/next/no-img-element */}
               <img
                 className="hidden dark:block"
                 src="/mock-event-type-list-dark.svg"

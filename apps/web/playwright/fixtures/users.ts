@@ -189,6 +189,7 @@ const createTeamAndAddUser = async (
         orgAutoAcceptEmail: user.email.split("@")[1],
         isOrganizationVerified: !!isOrgVerified,
         isOrganizationConfigured: isDnsSetup,
+        orgAutoJoinOnSignup: true,
       },
     };
   }

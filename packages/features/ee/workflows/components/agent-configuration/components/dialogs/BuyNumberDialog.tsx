@@ -1,3 +1,5 @@
+import posthog from "posthog-js";
+
 import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -26,6 +28,7 @@ export function BuyNumberDialog({ open, onOpenChange, agentId, workflowId, teamI
         window.location.href = data.checkoutUrl;
       } else if (data.phoneNumber) {
         showToast(t("phone_number_purchased_successfully"), "success");
+        posthog.capture("calai_phone_number_purchased");
         await utils.viewer.me.get.invalidate();
         onOpenChange(false);
         if (agentId) {
@@ -116,6 +119,7 @@ export function BuyNumberDialog({ open, onOpenChange, agentId, workflowId, teamI
                 if (!agentId || !workflowId) {
                   return;
                 }
+                posthog.capture("calai_buy_number_button_clicked", { agentId, workflowId, teamId });
                 buyNumberMutation.mutate({
                   agentId: agentId,
                   workflowId: workflowId,
