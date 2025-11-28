@@ -34,7 +34,7 @@ export class ErrorsBookingsService_2024_08_13 {
   handleBookingError(error: unknown, bookingTeamEventType: boolean): never {
     const hostsUnavaile = "One of the hosts either already has booking at this time or is not available";
 
-    if (error instanceof Error) {
+    if (error instanceof Error || (typeof error === "object" && error !== null && "message" in error)) {
       if (error.message === "no_available_users_found_error") {
         if (bookingTeamEventType) {
           throw new BadRequestException(hostsUnavaile);
