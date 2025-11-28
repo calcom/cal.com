@@ -35,6 +35,34 @@ import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
 import { ViewToggleButton } from "./ViewToggleButton";
 
+interface FilterButtonProps {
+  table: ReturnType<typeof useReactTable<RowData>>;
+  displayedFilterCount: number;
+  setShowFilters: (value: boolean | ((prev: boolean) => boolean)) => void;
+}
+
+function FilterButton({ table, displayedFilterCount, setShowFilters }: FilterButtonProps) {
+  const { t } = useLocale();
+
+  if (displayedFilterCount === 0) {
+    return <DataTableFilters.AddFilterButton table={table} />;
+  }
+
+  return (
+    <Button
+      color="secondary"
+      StartIcon="list-filter"
+      className="h-full"
+      size="sm"
+      onClick={() => setShowFilters((value) => !value)}>
+      {t("filter")}
+      <Badge variant="gray" className="ml-1">
+        {displayedFilterCount}
+      </Badge>
+    </Button>
+  );
+}
+
 interface BookingListContainerProps {
   status: BookingListingStatus;
   permissions: {
@@ -136,20 +164,12 @@ function BookingListInner({
             }}
             options={tabOptions}
           />
-          {displayedFilterCount === 0 && <DataTableFilters.AddFilterButton table={table} />}
-          {displayedFilterCount > 0 && (
-            <Button
-              color="secondary"
-              StartIcon="list-filter"
-              className="h-full"
-              size="sm"
-              onClick={() => setShowFilters((value) => !value)}>
-              {t("filter")}
-              <Badge variant="gray" className="ml-1">
-                {displayedFilterCount}
-              </Badge>
-            </Button>
-          )}
+          <FilterButton
+            table={table}
+            displayedFilterCount={displayedFilterCount}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+          />
         </div>
         <div className="flex items-center gap-2">
           <DataTableSegment.Select shortLabel />
