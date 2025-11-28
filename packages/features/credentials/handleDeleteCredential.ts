@@ -216,6 +216,9 @@ const handleDeleteCredential = async ({
           apps,
         });
 
+        // Collect email data during transaction, send after
+        const emailsToSend = [];
+
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -232,7 +235,6 @@ const handleDeleteCredential = async ({
             },
           });
 
-          // Assuming that all bookings under this eventType need to be paid
           const unpaidBookings = await prisma.booking.findMany({
             where: {
               userId: userId,
@@ -331,65 +333,85 @@ const handleDeleteCredential = async ({
               },
             });
 
-            const attendeesListPromises = booking.attendees.map(async (attendee) => {
-              return {
-                name: attendee.name,
-                email: attendee.email,
-                timeZone: attendee.timeZone,
-                language: {
-                  translate: await getTranslation(attendee.locale ?? "en", "common"),
-                  locale: attendee.locale ?? "en",
-                },
-              };
+            // Collect email data instead of sending
+            emailsToSend.push({
+              booking,
+              attendees: booking.attendees,
             });
-
-            const attendeesList = await Promise.all(attendeesListPromises);
-            const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-            await sendCancelledEmailsAndSMS(
-              {
-                type: booking?.eventType?.title as string,
-                title: booking.title,
-                description: booking.description,
-                customInputs: isPrismaObjOrUndefined(booking.customInputs),
-                ...getCalEventResponses({
-                  bookingFields: booking.eventType?.bookingFields ?? null,
-                  booking,
-                }),
-                startTime: booking.startTime.toISOString(),
-                endTime: booking.endTime.toISOString(),
-                organizer: {
-                  email: booking?.userPrimaryEmail ?? (booking?.user?.email as string),
-                  name: booking?.user?.name ?? "Nameless",
-                  timeZone: booking?.user?.timeZone as string,
-                  language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
-                },
-                attendees: attendeesList,
-                uid: booking.uid,
-                recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-                location: booking.location,
-                destinationCalendar: booking.destinationCalendar
-                  ? [booking.destinationCalendar]
-                  : booking.user?.destinationCalendar
-                  ? [booking.user?.destinationCalendar]
-                  : [],
-                cancellationReason: "Payment method removed by organizer",
-                seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
-                seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-                hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
-                team: !!booking.eventType?.team
-                  ? {
-                      name: booking.eventType.team.name,
-                      id: booking.eventType.team.id,
-                      members: [],
-                    }
-                  : undefined,
-              },
-              {
-                eventName: booking?.eventType?.eventName,
-              },
-              booking?.eventType?.metadata as EventTypeMetadata
-            );
           }
+        });
+
+        // Send emails after transaction completes
+        // This runs asynchronously and won't block the response
+        Promise.all(
+          emailsToSend.map(async ({ booking, attendees }) => {
+            try {
+              const attendeesListPromises = attendees.map(async (attendee) => {
+                return {
+                  name: attendee.name,
+                  email: attendee.email,
+                  timeZone: attendee.timeZone,
+                  language: {
+                    translate: await getTranslation(attendee.locale ?? "en", "common"),
+                    locale: attendee.locale ?? "en",
+                  },
+                };
+              });
+
+              const attendeesList = await Promise.all(attendeesListPromises);
+              const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+
+              await sendCancelledEmailsAndSMS(
+                {
+                  type: booking?.eventType?.title as string,
+                  title: booking.title,
+                  description: booking.description,
+                  customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  ...getCalEventResponses({
+                    bookingFields: booking.eventType?.bookingFields ?? null,
+                    booking,
+                  }),
+                  startTime: booking.startTime.toISOString(),
+                  endTime: booking.endTime.toISOString(),
+                  organizer: {
+                    email: booking?.userPrimaryEmail ?? (booking?.user?.email as string),
+                    name: booking?.user?.name ?? "Nameless",
+                    timeZone: booking?.user?.timeZone as string,
+                    language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                  },
+                  attendees: attendeesList,
+                  uid: booking.uid,
+                  recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+                  location: booking.location,
+                  destinationCalendar: booking.destinationCalendar
+                    ? [booking.destinationCalendar]
+                    : booking.user?.destinationCalendar
+                    ? [booking.user?.destinationCalendar]
+                    : [],
+                  cancellationReason: "Payment method removed by organizer",
+                  seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                  seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+                  hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+                  team: !!booking.eventType?.team
+                    ? {
+                        name: booking.eventType.team.name,
+                        id: booking.eventType.team.id,
+                        members: [],
+                      }
+                    : undefined,
+                },
+                {
+                  eventName: booking?.eventType?.eventName,
+                },
+                booking?.eventType?.metadata as EventTypeMetadata
+              );
+            } catch (error) {
+              console.error(`Failed to send cancellation email for booking ${booking.id}:`, error);
+              // Optionally: Log to error tracking service, queue for retry, etc.
+            }
+          })
+        ).catch((error) => {
+          console.error("Error sending cancellation emails:", error);
         });
       }
     } else if (
