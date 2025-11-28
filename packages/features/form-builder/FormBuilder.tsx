@@ -331,7 +331,17 @@ export const FormBuilder = function FormBuilder({
                       const isAIAgentPhone = field.name === "aiAgentCallPhoneNumber";
                       const isSmsReminder = field.name === "smsReminderNumber";
                       const isPriorityWorkflowField = field.name === DEFAULT_WORKFLOW_PHONE_FIELD;
-                      const mustStayVisible = !hasAttendeePhoneLocation && isPriorityWorkflowField;
+
+                      // Count visible phone fields (not hidden)
+                      const isPhoneField = field.type === "phone";
+                      const visiblePhoneFieldsCount = fields.filter(
+                        (f) => f.type === "phone" && !f.hidden
+                      ).length;
+                      const isLastVisiblePhoneField =
+                        isPhoneField && visiblePhoneFieldsCount === 1 && !field.hidden;
+
+                      // Must stay visible if: no location phone AND this is the last visible phone field
+                      const mustStayVisible = !hasAttendeePhoneLocation && isLastVisiblePhoneField;
                       const canShowToggle =
                         (!isFieldEditableSystem && !isFieldEditableSystemButHidden && !disabled) ||
                         ((isAIAgentPhone || isSmsReminder) && !disabled);

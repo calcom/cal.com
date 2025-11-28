@@ -66,21 +66,31 @@ export const BookingFields = ({
 
   // Decide the primary phone source shown by default:
   // 1) Location phone when configured
-  // 2) Workflow default phone (configurable one-liner)
-  // 3) attendeePhoneNumber
-  // 4) first custom phone
+  // 2) Workflow default phone (configurable one-liner) IF NOT EXPLICITLY HIDDEN by host
+  // 3) attendeePhoneNumber IF NOT EXPLICITLY HIDDEN by host
+  // 4) first custom phone IF NOT EXPLICITLY HIDDEN by host
+  // 5) fallback to first phone field even if hidden
   const primaryPhoneSource = useMemo<{ kind: "location" } | { kind: "field"; name: string } | null>(() => {
     if (hasLocationPhoneOption) {
       return { kind: "location" } as const;
     }
-    const hasDefaultWorkflow = allPhoneFields.find((f) => f.name === DEFAULT_WORKFLOW_PHONE_FIELD);
+
+    // Filter out fields that are explicitly hidden by host
+    const visiblePhoneFields = allPhoneFields.filter((f) => f.hidden !== true);
+
+    const hasDefaultWorkflow = visiblePhoneFields.find((f) => f.name === DEFAULT_WORKFLOW_PHONE_FIELD);
     if (hasDefaultWorkflow) {
       return { kind: "field", name: hasDefaultWorkflow.name } as const;
     }
-    const attendeePhone = allPhoneFields.find((f) => f.name === SystemField.Enum.attendeePhoneNumber);
+    const attendeePhone = visiblePhoneFields.find((f) => f.name === SystemField.Enum.attendeePhoneNumber);
     if (attendeePhone) {
       return { kind: "field", name: attendeePhone.name } as const;
     }
+    if (visiblePhoneFields.length > 0) {
+      return { kind: "field", name: visiblePhoneFields[0].name } as const;
+    }
+
+    // Fallback: if all fields are hidden, use the first one anyway
     if (allPhoneFields.length > 0) {
       return { kind: "field", name: allPhoneFields[0].name } as const;
     }
@@ -113,6 +123,7 @@ export const BookingFields = ({
   const allPhoneFieldNames = useMemo(() => allPhoneFields.map((f) => f.name), [allPhoneFields]);
 
   // Define master priority order: Location > AI Agent > SMS Reminder > Custom fields
+  // ONLY consider fields that are NOT explicitly hidden by host
   const masterPriorityOrder = useMemo(() => {
     const order: Array<{
       type: typeof MASTER_SOURCE_TYPE_LOCATION | typeof MASTER_SOURCE_TYPE_FIELD;
@@ -124,20 +135,23 @@ export const BookingFields = ({
       order.push({ type: MASTER_SOURCE_TYPE_LOCATION, name: SystemField.Enum.location });
     }
 
-    // 2. AI Agent phone
-    const aiAgentField = allPhoneFields.find((f) => f.name === CAL_AI_AGENT_PHONE_NUMBER_FIELD);
+    // Filter to only visible phone fields (not explicitly hidden by host)
+    const visiblePhoneFields = allPhoneFields.filter((f) => f.hidden !== true);
+
+    // 2. AI Agent phone (if visible)
+    const aiAgentField = visiblePhoneFields.find((f) => f.name === CAL_AI_AGENT_PHONE_NUMBER_FIELD);
     if (aiAgentField) {
       order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: CAL_AI_AGENT_PHONE_NUMBER_FIELD });
     }
 
-    // 3. SMS reminder
-    const smsField = allPhoneFields.find((f) => f.name === SMS_REMINDER_NUMBER_FIELD);
+    // 3. SMS reminder (if visible)
+    const smsField = visiblePhoneFields.find((f) => f.name === SMS_REMINDER_NUMBER_FIELD);
     if (smsField) {
       order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: SMS_REMINDER_NUMBER_FIELD });
     }
 
-    // 4. Custom phone fields (in order they appear)
-    allPhoneFields.forEach((f) => {
+    // 4. Custom phone fields (in order they appear, only if visible)
+    visiblePhoneFields.forEach((f) => {
       if (f.name !== CAL_AI_AGENT_PHONE_NUMBER_FIELD && f.name !== SMS_REMINDER_NUMBER_FIELD) {
         order.push({ type: MASTER_SOURCE_TYPE_FIELD, name: f.name });
       }
@@ -148,6 +162,10 @@ export const BookingFields = ({
 
   const aiAgentPhoneValue = watch(getFormFieldPath(CAL_AI_AGENT_PHONE_NUMBER_FIELD));
   const smsReminderValue = watch(getFormFieldPath(SMS_REMINDER_NUMBER_FIELD));
+
+  // Watch ALL phone field values to ensure currentMaster updates when ANY field changes
+  const allPhoneFieldValues = watch(allPhoneFieldNames.map((name) => getFormFieldPath(name)));
+
   const currentMaster = useMemo(() => {
     for (const candidate of masterPriorityOrder) {
       if (candidate.type === MASTER_SOURCE_TYPE_LOCATION) {
@@ -164,7 +182,11 @@ export const BookingFields = ({
         } else if (candidate.name === SMS_REMINDER_NUMBER_FIELD) {
           fieldValue = String(smsReminderValue ?? "").trim();
         } else {
-          fieldValue = String(watch(getFormFieldPath(candidate.name)) ?? "").trim();
+          // Find value from allPhoneFieldValues array
+          const fieldIndex = allPhoneFieldNames.indexOf(candidate.name);
+          if (fieldIndex !== -1 && allPhoneFieldValues) {
+            fieldValue = String(allPhoneFieldValues[fieldIndex] ?? "").trim();
+          }
         }
 
         if (fieldValue) {
@@ -173,7 +195,14 @@ export const BookingFields = ({
       }
     }
     return null;
-  }, [masterPriorityOrder, locationResponse, aiAgentPhoneValue, smsReminderValue]);
+  }, [
+    masterPriorityOrder,
+    locationResponse,
+    aiAgentPhoneValue,
+    smsReminderValue,
+    allPhoneFieldValues,
+    allPhoneFieldNames,
+  ]);
 
   const lastMasterValueRef = useRef<string | null>(null);
 
