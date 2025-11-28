@@ -1,8 +1,8 @@
 "use client";
 
-import { Meter as MeterPrimitive } from "components/meter";
+import { Meter as MeterPrimitive } from "@base-ui-components/react/meter";
 
-import { cn } from "lib/utils";
+import { cn } from "@/lib/utils";
 
 function Meter({ className, children, ...props }: MeterPrimitive.Root.Props) {
   return (

@@ -2,7 +2,11 @@
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
     "resolveJsonModule": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "exclude": ["dist", "build", "**/node_modules/**"]
 }

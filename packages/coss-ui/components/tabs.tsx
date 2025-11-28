@@ -1,8 +1,8 @@
 "use client";
 
-import { Tabs as TabsPrimitive } from "components/tabs";
+import { Tabs as TabsPrimitive } from "@base-ui-components/react/tabs";
 
-import { cn } from "lib/utils";
+import { cn } from "@/lib/utils";
 
 type TabsVariant = "default" | "underline";
 

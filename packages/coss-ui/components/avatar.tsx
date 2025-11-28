@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar as AvatarPrimitive } from "components/avatar";
+import { Avatar as AvatarPrimitive } from "@base-ui-components/react/avatar";
 
-import { cn } from "lib/utils";
+import { cn } from "@/lib/utils";
 
 function Avatar({ className, ...props }: AvatarPrimitive.Root.Props) {
   return (

@@ -1,9 +1,9 @@
 "use client";
 
-import { Dialog as SheetPrimitive } from "components/dialog";
+import { Dialog as SheetPrimitive } from "@base-ui-components/react/dialog";
 import { XIcon } from "lucide-react";
-import { cn } from "lib/utils";
-import { ScrollArea } from "components/scroll-area";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/scroll-area";
 
 const Sheet = SheetPrimitive.Root;
 
