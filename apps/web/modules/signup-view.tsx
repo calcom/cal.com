@@ -379,7 +379,7 @@ export default function Signup({
                   })}
                 </p>
               )}
-              {(IS_CALCOM || (typeof window !== "undefined" && window.location.hostname === "localhost")) && (
+              {IS_CALCOM && (
                 <div className="mt-4">
                   <SelectField
                     label={t("data_region")}
