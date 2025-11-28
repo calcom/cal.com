@@ -1,4 +1,5 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
@@ -153,18 +154,28 @@ export const useSchedule = ({
     enabled: options.enabled && !isCallingApiV2Slots,
   });
 
-  if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
+  // Determine which query is active and get its dataUpdatedAt
+  const isApiV2Active = isCallingApiV2Slots && !teamScheduleV2.failureReason;
+  const activeIsSuccess = isApiV2Active ? teamScheduleV2.isSuccess : schedule.isSuccess;
+  const activeDataUpdatedAt = isApiV2Active ? teamScheduleV2.dataUpdatedAt : schedule.dataUpdatedAt;
+
+  // Fire availabilityLoaded event only when data is actually updated (fresh fetch)
+  // Using dataUpdatedAt as dependency ensures the event fires only on actual data updates,
+  // not on every render when isSuccess is true from cached data
+  useEffect(() => {
+    if (!eventId || !eventSlug) return;
+    if (!activeIsSuccess) return;
+    // dataUpdatedAt being 0 means no data has been fetched yet
+    if (!activeDataUpdatedAt) return;
+
+    sdkActionManager?.fire("availabilityLoaded", getAvailabilityLoadedEventPayload({ eventId, eventSlug }));
+  }, [activeIsSuccess, activeDataUpdatedAt, eventId, eventSlug]);
+
+  if (isApiV2Active) {
     updateEmbedBookerState({
       bookerState,
       slotsQuery: teamScheduleV2,
     });
-
-    if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      sdkActionManager?.fire(
-        "availabilityLoaded",
-        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-      );
-    }
 
     return {
       ...teamScheduleV2,
@@ -181,13 +192,6 @@ export const useSchedule = ({
     bookerState,
     slotsQuery: schedule,
   });
-
-  if (schedule.isSuccess && eventId && eventSlug) {
-    sdkActionManager?.fire(
-      "availabilityLoaded",
-      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-    );
-  }
 
   return {
     ...schedule,
