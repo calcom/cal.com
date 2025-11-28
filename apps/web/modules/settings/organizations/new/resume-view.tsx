@@ -6,15 +6,12 @@ import { useEffect } from "react";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
-import { WizardLayout } from "@calcom/ui/components/layout";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
+
 export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <WizardLayout currentStep={1} maxSteps={5}>
-      {children}
-    </WizardLayout>
-  );
+  return <OrganizationWizardLayout currentStep={1}>{children}</OrganizationWizardLayout>;
 };
 
 const ResumeOnboardingView = () => {
@@ -66,7 +63,7 @@ const ResumeOnboardingView = () => {
 
   if (isLoadingOrgOnboarding) {
     return (
-      <SkeletonContainer className="space-y-4">
+      <SkeletonContainer className="stack-y-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-4 w-3/4" />
         <SkeletonText className="h-4 w-1/2" />
@@ -104,7 +101,7 @@ const ResumeOnboardingView = () => {
 
   // Loading state while redirecting
   return (
-    <SkeletonContainer className="space-y-4">
+    <SkeletonContainer className="stack-y-4">
       <SkeletonText className="h-8 w-full" />
       <SkeletonText className="h-4 w-3/4" />
     </SkeletonContainer>

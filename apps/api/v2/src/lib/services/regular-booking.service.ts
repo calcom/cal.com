@@ -1,6 +1,6 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { CacheService } from "@/lib/services/cache.service";
+import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { LuckyUserService } from "@/lib/services/lucky-user.service";
@@ -13,22 +13,22 @@ import type { PrismaClient } from "@calcom/prisma";
 @Injectable()
 export class RegularBookingService extends BaseRegularBookingService {
   constructor(
-    cacheService: CacheService,
     checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService,
     prismaWriteService: PrismaWriteService,
     bookingRepository: PrismaBookingRepository,
     hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
-    userRepository: PrismaUserRepository
+    userRepository: PrismaUserRepository,
+    bookingEventHandler: BookingEventHandlerService
   ) {
     super({
-      cacheService,
       checkBookingAndDurationLimitsService,
       prismaClient: prismaWriteService.prisma as unknown as PrismaClient,
       bookingRepository,
       hashedLinkService,
       luckyUserService,
       userRepository,
+      bookingEventHandler,
     });
   }
 }
