@@ -47,20 +47,15 @@ function SkeletonItem() {
         {/* Event title */}
         <SkeletonText className="h-5 w-36" />
         {/* Event description */}
-        <SkeletonText className="h-4 w-48" />
+        <SkeletonText className="h-4 w-full max-w-48" />
         {/* Attendees */}
-        <SkeletonText className="h-4 w-56" />
+        <SkeletonText className="h-4 w-full max-w-56" />
       </div>
 
       {/* Action buttons - only visible on larger screens */}
       <div className="ml-4 hidden shrink-0 gap-2 sm:flex">
         <SkeletonText className="h-9 w-20 rounded-md" />
         <SkeletonText className="h-9 w-20 rounded-md" />
-        <SkeletonText className="h-9 w-9 rounded-md" />
-      </div>
-
-      {/* Mobile menu button */}
-      <div className="ml-4 flex shrink-0 sm:hidden">
         <SkeletonText className="h-9 w-9 rounded-md" />
       </div>
     </li>
