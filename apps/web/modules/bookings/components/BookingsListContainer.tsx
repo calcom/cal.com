@@ -1,15 +1,25 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import React, { useMemo, useCallback } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { ColumnFilterType, useDataTable } from "@calcom/features/data-table";
+import {
+  ColumnFilterType,
+  useDataTable,
+  DataTableFilters,
+  DataTableSegment,
+  useDisplayedFilterCount,
+} from "@calcom/features/data-table";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 
@@ -29,13 +39,14 @@ import type {
 } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingsList } from "./BookingsList";
+import { ViewToggleButton } from "./ViewToggleButton";
 
 interface BookingsListContainerProps {
   status: BookingListingStatus;
   permissions: {
     canReadOthersBookings: boolean;
   };
-  enableDetailsSheet: boolean;
+  bookingsV3Enabled: boolean;
 }
 
 interface BookingsListInnerProps extends BookingsListContainerProps {
@@ -49,7 +60,7 @@ interface BookingsListInnerProps extends BookingsListContainerProps {
 function BookingsListInner({
   status,
   permissions,
-  enableDetailsSheet,
+  bookingsV3Enabled,
   data,
   isPending,
   hasError,
@@ -59,6 +70,8 @@ function BookingsListInner({
   const { t } = useLocale();
   const user = useMeQuery().data;
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
+  const router = useRouter();
+  const [showFilters, setShowFilters] = useState(true);
 
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
@@ -189,14 +202,14 @@ function BookingsListInner({
               }}
               listingStatus={status}
               recurringInfo={recurringInfo}
-              {...(enableDetailsSheet && { onClick: () => handleBookingClick(booking.uid) })}
+              {...(bookingsV3Enabled && { onClick: () => handleBookingClick(booking.uid) })}
               {...booking}
             />
           );
         },
       }),
     ];
-  }, [user, status, t, permissions.canReadOthersBookings, enableDetailsSheet, handleBookingClick]);
+  }, [user, status, t, permissions.canReadOthersBookings, bookingsV3Enabled, handleBookingClick]);
 
   /**
    * Transform raw bookings into flat list (excluding today's bookings for "upcoming" status)
@@ -285,6 +298,16 @@ function BookingsListInner({
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
+  const displayedFilterCount = useDisplayedFilterCount();
+  const { currentTab, tabOptions } = useBookingStatusTab();
+
+  useEffect(() => {
+    if (displayedFilterCount === 0) {
+      // reset to true, so it shows filters as soon as any filter is applied
+      setShowFilters(true);
+    }
+  }, [displayedFilterCount]);
+
   const table = useReactTable<RowData>({
     data: finalData,
     columns,
@@ -308,19 +331,66 @@ function BookingsListInner({
 
   return (
     <>
-      {status === "upcoming" && !isEmpty && (
-        <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+      <div className="flex flex-row flex-wrap justify-between">
+        <div className="flex items-center gap-2">
+          <ToggleGroup
+            value={currentTab}
+            onValueChange={(value) => {
+              if (!value) return;
+              const selectedTab = tabOptions.find((tab) => tab.value === value);
+              if (selectedTab?.href) {
+                router.push(selectedTab.href);
+              }
+            }}
+            options={tabOptions}
+          />
+          {displayedFilterCount === 0 && <DataTableFilters.AddFilterButton table={table} />}
+          {displayedFilterCount > 0 && (
+            <Button
+              color="secondary"
+              StartIcon="list-filter"
+              className="h-full"
+              size="sm"
+              onClick={() => setShowFilters((value) => !value)}>
+              {t("filter")}
+              <Badge variant="gray" className="ml-1">
+                {displayedFilterCount}
+              </Badge>
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <DataTableSegment.Select shortLabel />
+          {bookingsV3Enabled && <ViewToggleButton />}
+        </div>
+      </div>
+      {displayedFilterCount > 0 && showFilters && (
+        <div className="mt-3 flex justify-between gap-2">
+          <div className="flex gap-2">
+            <DataTableFilters.ActiveFilters table={table} />
+            <DataTableFilters.AddFilterButton table={table} variant="minimal" />
+          </div>
+          <div className="flex gap-2">
+            <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+          </div>
+        </div>
       )}
-      <BookingsList
-        status={status}
-        table={table}
-        isPending={isPending}
-        totalRowCount={totalRowCount}
-        ErrorView={ErrorView}
-        hasError={hasError}
-      />
+      {status === "upcoming" && !isEmpty && (
+        <WipeMyCalActionButton className="mt-4" bookingStatus={status} bookingsEmpty={isEmpty} />
+      )}
+      <div className="mt-4">
+        <BookingsList
+          status={status}
+          table={table}
+          isPending={isPending}
+          totalRowCount={totalRowCount}
+          ErrorView={ErrorView}
+          hasError={hasError}
+        />
+      </div>
 
-      {enableDetailsSheet && (
+      {bookingsV3Enabled && (
         <BookingDetailsSheet
           userTimeZone={user?.timeZone}
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
@@ -375,4 +445,64 @@ export function BookingsListContainer(props: BookingsListContainerProps) {
       />
     </BookingDetailsSheetStoreProvider>
   );
+}
+
+function useBookingStatusTab() {
+  const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const tabOptions = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        value: "upcoming",
+        label: "upcoming",
+        path: "/bookings/upcoming",
+        dataTestId: "upcoming",
+      },
+      {
+        value: "unconfirmed",
+        label: "unconfirmed",
+        path: "/bookings/unconfirmed",
+        dataTestId: "unconfirmed",
+      },
+      {
+        value: "recurring",
+        label: "recurring",
+        path: "/bookings/recurring",
+        dataTestId: "recurring",
+      },
+      {
+        value: "past",
+        label: "past",
+        path: "/bookings/past",
+        dataTestId: "past",
+      },
+      {
+        value: "cancelled",
+        label: "cancelled",
+        path: "/bookings/cancelled",
+        dataTestId: "cancelled",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      value: tabConfig.value,
+      label: t(tabConfig.label),
+      dataTestId: tabConfig.dataTestId,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+    }));
+  }, [searchParams, t]);
+
+  const currentTab = useMemo(() => {
+    const pathMatch = pathname?.match(/\/bookings\/(\w+)/);
+    return pathMatch?.[1] || "upcoming";
+  }, [pathname]);
+
+  return {
+    currentTab,
+    tabOptions,
+  };
 }
