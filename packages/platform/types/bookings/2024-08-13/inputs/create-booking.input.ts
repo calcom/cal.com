@@ -392,7 +392,7 @@ export class CreateBookingInput_2024_08_13 {
   @ApiPropertyOptional({
     type: String,
     description:
-      "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) and non-seated bookings aka 1 on 1 bookings, instant bookings and recurring bookings.",
+      "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) and non-seated bookings aka 1 on 1 bookings and recurring bookings. Instant bookings don't support reserved slot uid because for them slots are not reserved.",
     example: "430a2525-08e4-456d-a6b7-95ec2b0d22fb",
   })
   @IsOptional()

@@ -22,7 +22,7 @@ export class RegularBookingService extends BaseRegularBookingService {
     hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
     userRepository: PrismaUserRepository,
-    routingFormResponseRepository: PrismaRoutingFormResponseRepository
+    routingFormResponseRepository: PrismaRoutingFormResponseRepository,
     bookingEventHandler: BookingEventHandlerService
   ) {
     super({
