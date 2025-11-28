@@ -8,7 +8,12 @@
     "./lib/*": "./lib/*.ts"
   },
   "scripts": {
-    "registry:pull": "yarn dlx shadcn@latest add @coss/ui -y -a"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "registry:pull": "yarn dlx shadcn@latest add @coss/ui -y -a",
+    "registry:diff": "yarn dlx shadcn@latest diff"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
