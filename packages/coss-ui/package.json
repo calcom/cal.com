@@ -7,6 +7,9 @@
     "./components/*": "./components/*.tsx",
     "./lib/*": "./lib/*.ts"
   },
+  "scripts": {
+    "registry:pull": "yarn dlx shadcn@latest add @coss/ui -y -a"
+  },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.7",
     "class-variance-authority": "^0.4.0",
