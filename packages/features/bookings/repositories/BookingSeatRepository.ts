@@ -8,8 +8,12 @@ export class BookingSeatRepository {
       where: {
         referenceUid: uid,
       },
-      include: {
-        attendee: true,
+      select: {
+        attendee: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
   }
