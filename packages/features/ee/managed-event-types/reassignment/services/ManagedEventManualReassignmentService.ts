@@ -20,6 +20,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -150,6 +151,7 @@ export class ManagedEventManualReassignmentService {
 
     if (targetEventTypeDetails.workflows && targetEventTypeDetails.workflows.length > 0) {
       try {
+        const creditService = new CreditService();
         const bookerBaseUrl = await getBookerBaseUrl(orgId);
         const bookerUrl = `${bookerBaseUrl}/${newUser.username}/${targetEventTypeDetails.slug}`;
 
@@ -189,6 +191,7 @@ export class ManagedEventManualReassignmentService {
           isConfirmedByDefault: targetEventTypeDetails.requiresConfirmation ? false : true,
           isNormalBookingOrFirstRecurringSlot: true,
           isRescheduleEvent: false,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
         reassignLogger.info("Scheduled workflow reminders for new booking");
       } catch (error) {
