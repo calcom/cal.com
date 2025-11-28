@@ -34,6 +34,7 @@ import { SchedulingType } from "@calcom/platform-libraries";
 import {
   BaseConfirmationPolicy_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
+  supportedIntegrations,
   type ApiSuccessResponse,
   type CreateEventTypeInput_2024_06_14,
   type EventTypeOutput_2024_06_14,
@@ -2904,6 +2905,32 @@ describe("Event types Endpoints", () => {
         // Clean up
         await eventTypesRepositoryFixture.delete(legacyEventType.id);
       }
+    });
+
+    it("should reject with 400 if creating event type with unsupported integration location", async () => {
+      const createPayload = {
+        title: "Event with unsupported integration",
+        slug: "event-with-unsupported-integration",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "unsupported-integration",
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createPayload);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.message).toBe(
+        `Validation failed for integration location: integration must be one of the following values: ${supportedIntegrations.join(
+          ", "
+        )}`
+      );
     });
 
     describe("EventType Hidden Property", () => {
