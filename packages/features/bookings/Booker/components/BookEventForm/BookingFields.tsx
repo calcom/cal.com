@@ -145,6 +145,30 @@ export const BookingFields = ({
         let readOnly = bookingReadOnly || rescheduleReadOnly;
 
         let hidden = !!field.hidden;
+        // Conditional/parent-child support: If a field has a `parent` config
+        // with `{ name, values }`, hide it unless the parent's current
+        // response matches one of the configured values.
+        // Example field.parent: { name: 'hasPets', values: ['yes'] }
+        const parentConfig: { name?: string; values?: string[] } | undefined =
+          (field as any).parent;
+        if (parentConfig?.name) {
+          const parentValue = watch(`responses.${parentConfig.name}`);
+          // Normalize parentValue into comparable form
+          const parentValues = parentConfig.values || [];
+          const matches = (() => {
+            if (parentValue === undefined || parentValue === null) return false;
+            // For multi-select or checkbox types parentValue might be array
+            if (Array.isArray(parentValue)) {
+              return parentValue.some((v) => parentValues.includes(String(v)));
+            }
+            // For radioInput option shape { value, optionValue }
+            if (typeof parentValue === "object" && parentValue?.value !== undefined) {
+              return parentValues.includes(String(parentValue.value));
+            }
+            return parentValues.includes(String(parentValue));
+          })();
+          if (!matches) hidden = true;
+        }
         const fieldViews = field.views;
 
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {

@@ -78,6 +78,26 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
+        // If this field is conditional (has a parent), and the parent's value
+        // in the incoming responses does not match, skip processing/validation
+        // for this field (treat as hidden).
+        const parentConfig: { name?: string; values?: string[] } | undefined = (field as any).parent;
+        if (parentConfig?.name) {
+          const parentValue = parsedResponses[parentConfig.name];
+          const parentValues = parentConfig.values || [];
+          const parentMatches = (() => {
+            if (parentValue === undefined || parentValue === null) return false;
+            if (Array.isArray(parentValue)) return parentValue.some((v) => parentValues.includes(String(v)));
+            if (typeof parentValue === "object" && parentValue?.value !== undefined)
+              return parentValues.includes(String(parentValue.value));
+            return parentValues.includes(String(parentValue));
+          })();
+          if (!parentMatches) {
+            // Skip processing this field entirely
+            return;
+          }
+        }
+
         const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
         // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
         if (fieldTypeSchema) {
