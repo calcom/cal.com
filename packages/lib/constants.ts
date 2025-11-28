@@ -254,3 +254,12 @@ export const RETELL_AI_TEST_EVENT_TYPE_MAP = (() => {
 /* This is an internal environment variable and is not meant to be used by the self-hosters. It is planned to be removed later by either having it as an option in Event Type or by some other customer configurable approaches*/
 export const ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS =
   process.env._CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS;
+
+export const ORG_TRIAL_DAYS = process.env.STRIPE_ORG_TRIAL_DAYS
+  ? Math.max(0, parseInt(process.env.STRIPE_ORG_TRIAL_DAYS, 10))
+  : null;
+
+export const IS_API_V2_E2E = process.env.IS_E2E === "true";
+
+export const ENABLE_ASYNC_TASKER =
+  process.env.ENABLE_ASYNC_TASKER === "true" && !process.env.NEXT_PUBLIC_IS_E2E && !IS_API_V2_E2E;
