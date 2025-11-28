@@ -446,10 +446,11 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           creationSource: "API_V1",
         });
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
         prismaMock.$transaction.mockImplementation(async (callback) => {
           const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
@@ -523,10 +524,13 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           fromReschedule: "original-booking-uid",
         });
+
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
+
         prismaMock.$transaction.mockImplementation(async (callback) => {
           const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
@@ -587,10 +591,11 @@ describe("POST /api/bookings", () => {
           oneTimePassword: null,
           creationSource: "API_V1",
         });
+        prismaMock.booking.create.mockResolvedValue(mockBooking);
         prismaMock.$transaction.mockImplementation(async (callback) => {
           const _mockTx = {
             booking: {
-              create: prismaMock.booking.create.mockResolvedValue(mockBooking),
+              create: prismaMock.booking.create,
               update: vi.fn().mockResolvedValue({}),
             },
             app_RoutingForms_FormResponse: {
