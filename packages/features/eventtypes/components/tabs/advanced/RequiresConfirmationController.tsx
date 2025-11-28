@@ -112,10 +112,11 @@ export default function RequiresConfirmationController({
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
+                } else {
+                  formMethods.setValue("requiresConfirmationWillBlockSlot", true, { shouldDirty: true });
                 }
                 onRequiresConfirmation(val);
               }}>
@@ -136,6 +137,9 @@ export default function RequiresConfirmationController({
                         shouldDirty: true,
                       });
                       setRequiresConfirmationSetup(undefined);
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     } else if (val === "notice") {
                       formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
@@ -144,6 +148,9 @@ export default function RequiresConfirmationController({
                         requiresConfirmationSetup || defaultRequiresConfirmationSetup,
                         { shouldDirty: true }
                       );
+                      formMethods.setValue("requiresConfirmationWillBlockSlot", true, {
+                        shouldDirty: true,
+                      });
                     }
                   }}>
                   <div
@@ -198,7 +205,7 @@ export default function RequiresConfirmationController({
                                         );
                                       }}
                                       className={classNames(
-                                        "border-default h-9! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                        "border-default m-0! block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                         customClassNames?.conditionalConfirmationRadio?.timeInput
                                       )}
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}

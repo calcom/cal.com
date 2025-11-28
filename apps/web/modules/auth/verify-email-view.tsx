@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import posthog from "posthog-js";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,6 +24,9 @@ function VerifyEmailPage() {
 
   useEffect(() => {
     if (data?.isVerified) {
+      posthog.capture("verify_email_already_verified", {
+        onboarding_v3_enabled: flags["onboarding-v3"],
+      });
       const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
       router.replace(gettingStartedPath);
     }
@@ -32,7 +36,7 @@ function VerifyEmailPage() {
     return null;
   }
   return (
-    <div className="h-[100vh] w-full ">
+    <div className="h-screen w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
         <div className="max-w-3xl">
           <EmptyScreen
@@ -48,6 +52,7 @@ function VerifyEmailPage() {
                 className="underline"
                 loading={mutation.isPending}
                 onClick={() => {
+                  posthog.capture("verify_email_resend_clicked");
                   showToast(t("send_email"), "success");
                   mutation.mutate();
                 }}>
