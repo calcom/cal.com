@@ -284,6 +284,9 @@
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
     "USE_POOL",
+    "STRIPE_ORG_PRODUCT_ID",
+    "GOOGLE_ADS_ENABLED",
+    "LINKEDIN_ADS_ENABLED",
     "SEED_PLATFORM_OAUTH_CLIENT_ID",
     "SEED_PLATFORM_OAUTH_CLIENT_SECRET"
   ],
@@ -428,6 +431,14 @@
         "MOTIFLAND_DOCS_API_KEY",
         "MOTIFLAND_DOCS_PROJECT_ID"
       ]
+    },
+    "cal-companion#build:web": {
+      "outputs": ["dist/**"],
+      "env": ["EXPO_PUBLIC_CAL_API_KEY"]
+    },
+    "cal-companion#build:ext": {
+      "outputs": [".output/**"],
+      "env": ["EXPO_PUBLIC_CAL_API_KEY"]
     },
     "build": {
       "dependsOn": ["^build"],

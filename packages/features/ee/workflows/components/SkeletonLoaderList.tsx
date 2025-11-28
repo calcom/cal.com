@@ -16,9 +16,9 @@ export default SkeletonLoader;
 function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
-      <div className="flex-grow truncate text-sm">
+      <div className="grow truncate text-sm">
         <div className="flex">
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col stack-y-2">
             <SkeletonText className="h-4 w-16 sm:w-24" />
             <div className="flex">
               <Icon name="bell" className="mr-1.5 mt-0.5 inline h-4 w-4 text-gray-200" />
@@ -29,7 +29,7 @@ function SkeletonItem() {
           </div>
         </div>
       </div>
-      <div className="mt-0 flex flex-shrink-0 sm:ml-5">
+      <div className="mt-0 flex shrink-0 sm:ml-5">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-8 w-8 sm:w-16" />
         </div>

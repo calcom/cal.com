@@ -39,6 +39,11 @@ jobs:
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
+  build-companion:
+    name: Production builds
+    uses: ./.github/workflows/companion-production-build.yml
+    secrets: inherit
+
   build:
     name: Production builds
     uses: ./.github/workflows/production-build-without-database.yml
@@ -75,7 +80,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, build-companion, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

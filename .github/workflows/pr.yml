@@ -139,6 +139,13 @@ jobs:
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
+  build-companion:
+    name: Production builds
+    needs: [changes, check-label, deps]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/companion-production-build.yml
+    secrets: inherit
+
   build-docs:
     name: Production builds
     needs: [changes, check-label, deps]
@@ -243,6 +250,7 @@ jobs:
         build-api-v1,
         build-api-v2,
         build-atoms,
+        build-companion,
         build-docs,
         e2e,
         e2e-api-v2,
