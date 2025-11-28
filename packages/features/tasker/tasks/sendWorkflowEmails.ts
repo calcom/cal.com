@@ -22,7 +22,7 @@ export const ZSendWorkflowEmailsSchemaEager = z.object({
 
 const ZSendWorkflowEmailsSchemaLazy = z.object({
   bookingUid: z.string(),
-  workflowStepId: z.number(),
+  workflowReminderId: z.number(),
 });
 
 export const ZSendWorkflowEmailsSchema = z.union([
