@@ -268,6 +268,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
           workflowStepId: step.id,
           workflowTriggerEvent: workflow.trigger,
           workflow,
+          seatReferenceId: args.seatReferenceUid,
         });
         continue;
       }

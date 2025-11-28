@@ -249,12 +249,14 @@ export class WorkflowService {
     workflowStepId,
     workflow,
     evt,
+    seatReferenceId,
   }: {
     // TODO: Expand this method to other workflow triggers
     workflowTriggerEvent: "BEFORE_EVENT" | "AFTER_EVENT";
     workflowStepId: number;
     workflow: Pick<Workflow, "time" | "timeUnit">;
     evt: Pick<CalendarEvent, "uid" | "startTime" | "endTime">;
+    seatReferenceId?: string;
   }) {
     const { uid: bookingUid } = evt;
     const log = logger.getSubLogger({
@@ -271,6 +273,7 @@ export class WorkflowService {
       timeUnit: workflow.timeUnit,
       workflowTriggerEvent,
       evt,
+      ...(seatReferenceId && { seatReferenceId }),
     });
 
     if (!scheduledDate) {
