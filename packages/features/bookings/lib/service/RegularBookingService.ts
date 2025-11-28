@@ -543,8 +543,8 @@ async function handler(
     eventType,
   });
 
-  const bookingStartUtc = dayjs(reqBody.start).utc().toDate();
-  const bookingEndUtc = dayjs(reqBody.end).utc().toDate();
+  const bookingStartUtc = new Date(dayjs(reqBody.start).utc().format());
+  const bookingEndUtc = new Date(dayjs(reqBody.end).utc().format());
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
   try {
