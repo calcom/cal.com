@@ -22,10 +22,6 @@ export const EditableHeading = function EditableHeading({
   const inputRef = useRef<HTMLInputElement>(null);
   const enableEditing = () => setIsEditing(!disabled);
 
-  useEffect(() => {
-    setPreviousValue(value);
-  }, [value]);
-
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const trimmedValue = e.target.value.trim();
     
