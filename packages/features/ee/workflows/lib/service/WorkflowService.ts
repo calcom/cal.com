@@ -281,7 +281,7 @@ export class WorkflowService {
       return;
     }
 
-    let workflowReminder: { uuid: string | null };
+    let workflowReminder: { id: number | null; uuid: string | null };
     try {
       workflowReminder = await WorkflowReminderRepository.create({
         bookingUid,
@@ -295,18 +295,19 @@ export class WorkflowService {
       return;
     }
 
-    if (!workflowReminder.uuid) {
-      log.error(`WorkflowREminder does not contain uuid`);
+    if (!workflowReminder.id || !workflowReminder.uuid) {
+      log.error(`WorkflowReminder does not contain uuid`);
+      return;
     }
 
     const taskerPayload = {
       bookingUid,
-      workflowStepId,
+      workflowReminderId: workflowReminder.id,
     };
 
     await tasker.create("sendWorkflowEmails", taskerPayload, {
       scheduledAt: scheduledDate,
-      referenceUid: workflowReminder.uuid as string,
+      referenceUid: workflowReminder.uuid,
     });
   }
   static processWorkflowScheduledDate({
