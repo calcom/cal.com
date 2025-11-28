@@ -1,3 +1,5 @@
+import { moduleLoader as bookingAuditServiceModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditService.module";
+import { moduleLoader as bookingEventHandlerModuleLoader } from "@calcom/features/bookings/di/BookingEventHandlerService.module";
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
@@ -29,6 +31,7 @@ const loadModule = bindModuleToClassOnToken({
     hashedLinkService: hashedLinkServiceModuleLoader,
     bookingEmailAndSmsTasker: bookingEmailAndSmsTaskerModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
+    bookingEventHandler: bookingEventHandlerModuleLoader,
   },
 });
 

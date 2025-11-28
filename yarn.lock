@@ -4442,8 +4442,8 @@ __metadata:
     openid-client: 6.5.0
     otplib: ^12.0.1
     postcss: ^8.4.18
-    posthog-js: ^1.164.1
-    posthog-node: ^4.2.0
+    posthog-js: ^1.274.1
+    posthog-node: ^5.9.5
     qrcode: ^1.5.1
     raw-body: ^2.5.1
     react: ^18.2.0
@@ -11911,6 +11911,13 @@ __metadata:
   version: 1.0.2
   resolution: "@posthog/core@npm:1.0.2"
   checksum: dc7687c05e3210b3ea02cfc1cb52ca2473a807e544d786c876266f98195b029ab505cd61f889a1c93194c3be74d409992ad54d8b996b2861ef8c2b39308cbba6
+  languageName: node
+  linkType: hard
+
+"@posthog/core@npm:1.2.4":
+  version: 1.2.4
+  resolution: "@posthog/core@npm:1.2.4"
+  checksum: e6d89de66338c69ea6b5c6c90cfbae23005bb4ce5c7fbf95e5d43ad73a382206f43c429a433c34d683904f750d7e210626c9d0d33ab4cfdf931241b3a61312eb
   languageName: node
   linkType: hard
 
@@ -21657,7 +21664,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.8, axios@npm:^1.7.4":
+"axios@npm:^1.6.8":
   version: 1.7.7
   resolution: "axios@npm:1.7.7"
   dependencies:
@@ -40185,25 +40192,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-js@npm:^1.164.1":
-  version: 1.181.0
-  resolution: "posthog-js@npm:1.181.0"
+"posthog-js@npm:^1.274.1":
+  version: 1.274.1
+  resolution: "posthog-js@npm:1.274.1"
   dependencies:
+    "@posthog/core": 1.2.4
     core-js: ^3.38.1
     fflate: ^0.4.8
     preact: ^10.19.3
-    web-vitals: ^4.2.0
-  checksum: e48b53844701c9db6c3c3da7af3f251e04e1572a1079c673e7302452c84e0f0e27c4b6b22ddb215afc1996a7f091b69218e927f83d7c0c18f7f7463fef06ee1a
-  languageName: node
-  linkType: hard
-
-"posthog-node@npm:^4.2.0":
-  version: 4.2.1
-  resolution: "posthog-node@npm:4.2.1"
-  dependencies:
-    axios: ^1.7.4
-    rusha: ^0.8.14
-  checksum: f6871399069f329cd4d4c156e82a59c7ab222229d6f49fb62159738f0161a170d723b6707c229af2ca91ba3674f3bb243759d1a615333c23bec188b8122d35ab
+    web-vitals: ^4.2.4
+  peerDependencies:
+    "@rrweb/types": 2.0.0-alpha.17
+    rrweb-snapshot: 2.0.0-alpha.17
+  peerDependenciesMeta:
+    "@rrweb/types":
+      optional: true
+    rrweb-snapshot:
+      optional: true
+  checksum: 606d0843c7a7b30917fc89668bda7b6e731b688e1d9bd13b93b335030ad9dea862a0b0dcc806900b43bdb9ebc1fdc616d9f870ab7b0ab0d261da494fec5c85b3
   languageName: node
   linkType: hard
 
@@ -40213,6 +40219,15 @@ __metadata:
   dependencies:
     "@posthog/core": 1.0.2
   checksum: 0e8223d09cf832612dadc4aa6a4bcb71486e6edbd2b5f691165b5fa21391512c2dd52ef64fbf1d72820ce61afef7041b016d276a7c859463dc2254e590d4ca5c
+  languageName: node
+  linkType: hard
+
+"posthog-node@npm:^5.9.5":
+  version: 5.9.5
+  resolution: "posthog-node@npm:5.9.5"
+  dependencies:
+    "@posthog/core": 1.2.4
+  checksum: 5f7f316e49bb79c561c8ea8e7f084f9bf5bd07988948c5edd3ad5cb689e8f91417b34c6e6ee011ecb44edb6ce85a89128119ec4b71cf15647d524459f62b11bd
   languageName: node
   linkType: hard
 
@@ -43143,13 +43158,6 @@ __metadata:
   dependencies:
     queue-microtask: ^1.2.2
   checksum: cb4f97ad25a75ebc11a8ef4e33bb962f8af8516bb2001082ceabd8902e15b98f4b84b4f8a9b222e5d57fc3bd1379c483886ed4619367a7680dad65316993021d
-  languageName: node
-  linkType: hard
-
-"rusha@npm:^0.8.14":
-  version: 0.8.14
-  resolution: "rusha@npm:0.8.14"
-  checksum: d76d7b4b5df1191712eca1e2465d07054dc9bd5e9ec357e1e0f3ddf95006a762330a3c0348e96ac39853656a3fbe02e65e780aa5f61b9355ad914fa296185623
   languageName: node
   linkType: hard
 
@@ -48764,7 +48772,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:^4.2.0":
+"web-vitals@npm:^4.2.4":
   version: 4.2.4
   resolution: "web-vitals@npm:4.2.4"
   checksum: 5b3ffe1db33f23aebf8cc8560ac574401a95939baafde5841835c1bb1c01f9a2478442f319f77aa0d7914739fc2f6b020c5d5b128c16c5c77ca6be2f9dfbbde6
