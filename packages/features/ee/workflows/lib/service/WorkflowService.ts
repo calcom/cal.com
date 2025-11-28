@@ -244,27 +244,29 @@ export class WorkflowService {
     });
   }
 
-  private async scheduleLazyEmailWorkflow({
-    bookingUid,
-    workflowStepId,
+  static async scheduleLazyEmailWorkflow({
     workflowTriggerEvent,
-    method,
+    workflowStepId,
     workflow,
     evt,
   }: {
-    bookingUid: string;
-    workflowStepId: number;
     // TODO: Expand this method to other workflow triggers
-    workflowTriggerEvent: "BEFORE_EVENT";
-    method: WorkflowMethods;
+    workflowTriggerEvent: "BEFORE_EVENT" | "AFTER_EVENT";
+    workflowStepId: number;
     workflow: Pick<Workflow, "time" | "timeUnit">;
-    evt: Pick<CalendarEvent, "startTime" | "endTime">;
+    evt: Pick<CalendarEvent, "uid" | "startTime" | "endTime">;
   }) {
+    const { uid: bookingUid } = evt;
     const log = logger.getSubLogger({
       prefix: [`[WorkflowService.scheduleLazyEmailReminder]: bookingUid ${bookingUid}`],
     });
 
-    const scheduledDate = this.processWorkflowScheduledDate({
+    if (!bookingUid) {
+      log.error(`Missing bookingUid`);
+      return;
+    }
+
+    const scheduledDate = WorkflowService.processWorkflowScheduledDate({
       time: workflow.time,
       timeUnit: workflow.timeUnit,
       workflowTriggerEvent,
@@ -281,7 +283,7 @@ export class WorkflowService {
       workflowReminder = await WorkflowReminderRepository.create({
         bookingUid,
         workflowStepId,
-        method,
+        method: WorkflowMethods.EMAIL,
         scheduledDate,
         scheduled: true,
       });
@@ -304,8 +306,7 @@ export class WorkflowService {
       referenceUid: workflowReminder.uuid as string,
     });
   }
-
-  private processWorkflowScheduledDate({
+  static processWorkflowScheduledDate({
     workflowTriggerEvent,
     time,
     timeUnit,
