@@ -6,12 +6,14 @@ import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsRe
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
@@ -237,6 +239,51 @@ export class WorkflowService {
     await scheduleWorkflowReminders({
       ...args,
       workflows: workflows.filter((workflow) => triggers.includes(workflow.trigger)),
+    });
+  }
+
+  static async scheduleLazyEmailWorkflow({
+    bookingUid,
+    workflowStepId,
+    method,
+    scheduledDate,
+    scheduled,
+  }: {
+    bookingUid: string;
+    workflowStepId: number;
+    method: WorkflowMethods;
+    scheduledDate: Date;
+    scheduled: boolean;
+  }) {
+    const log = logger.getSubLogger({
+      prefix: [`[WorkflowService.scheduleLazyEmailReminder]: bookingUid ${bookingUid}`],
+    });
+    let workflowReminder: { uuid: string | null };
+    try {
+      workflowReminder = await WorkflowReminderRepository.create({
+        bookingUid,
+        workflowStepId,
+        method,
+        scheduledDate,
+        scheduled,
+      });
+    } catch (error) {
+      log.error(`Error creating workflowReminder: ${error}`);
+      return;
+    }
+
+    if (!workflowReminder.uuid) {
+      log.error(`WorkflowREminder does not contain uuid`);
+    }
+
+    const taskerPayload = {
+      bookingUid,
+      workflowStepId,
+    };
+
+    await tasker.create("sendWorkflowEmails", taskerPayload, {
+      scheduledAt: scheduledDate,
+      referenceUid: workflowReminder.uuid as string,
     });
   }
 }
