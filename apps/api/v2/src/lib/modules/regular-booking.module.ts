@@ -6,6 +6,7 @@ import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository"
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingEmailSmsService } from "@/lib/services/booking-emails-sms-service";
+import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
@@ -27,10 +28,6 @@ import { Module, Scope } from "@nestjs/common";
     PrismaHostRepository,
     PrismaOOORepository,
     PrismaUserRepository,
-    CheckBookingAndDurationLimitsService,
-    CheckBookingLimitsService,
-    HashedLinkService,
-    LuckyUserService,
     {
       provide: Logger,
       useFactory: () => {
@@ -38,6 +35,11 @@ import { Module, Scope } from "@nestjs/common";
       },
       scope: Scope.TRANSIENT,
     },
+    BookingEventHandlerService,
+    CheckBookingAndDurationLimitsService,
+    CheckBookingLimitsService,
+    HashedLinkService,
+    LuckyUserService,
     BookingEmailSmsService,
     BookingEmailAndSmsTaskService,
     BookingEmailAndSmsSyncTaskerService,
