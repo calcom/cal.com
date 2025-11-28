@@ -23,6 +23,9 @@ export const substituteVariables = (
 
   let eventTypeUrl = routeValue;
 
+  // Find the position of the query string separator to distinguish path vs query parameters
+  const queryStringIndex = routeValue.indexOf("?");
+
   variables.forEach((variable) => {
     for (const key in response) {
       const field = fields.find((field) => field.id === key);
@@ -35,9 +38,24 @@ export const substituteVariables = (
           field,
           value: response[key].value,
         });
-        // ['abc', 'def'] ----toString---> 'abc,def' ----slugify---> 'abc-def'
-        const valueToSubstitute = slugify(humanReadableValues.toString());
-        eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, valueToSubstitute);
+        const humanReadableString = humanReadableValues.toString();
+
+        const variablePattern = `{${variable}}`;
+        const variableIndex = eventTypeUrl.indexOf(variablePattern);
+        const isInQueryString = queryStringIndex !== -1 && variableIndex > queryStringIndex;
+
+        let valueToSubstitute: string;
+        if (isInQueryString) {
+          // For query parameters, preserve original formatting with proper URL encoding
+          // This ensures "Sean Paul" becomes "Sean%20Paul" instead of "sean-paul"
+          valueToSubstitute = encodeURIComponent(humanReadableString);
+        } else {
+          // For URL path segments, slugify the value for URL safety
+          // ['abc', 'def'] ----toString---> 'abc,def' ----slugify---> 'abc-def'
+          valueToSubstitute = slugify(humanReadableString);
+        }
+
+        eventTypeUrl = eventTypeUrl.replace(variablePattern, valueToSubstitute);
       }
     }
   });
