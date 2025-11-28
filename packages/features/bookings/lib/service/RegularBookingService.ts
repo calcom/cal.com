@@ -34,8 +34,8 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -411,7 +411,6 @@ function formatAvailabilitySnapshot(data: {
 }
 
 export interface IBookingServiceDependencies {
-  cacheService: CacheService;
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
@@ -544,6 +543,7 @@ async function handler(
       loggedInUserId: userId,
       bookerEmail,
       verificationCode: reqBody.verificationCode,
+      isReschedule: !!rawBookingData.rescheduleUid,
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
@@ -1388,6 +1388,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withHashedLink(hasHashedBookingLink ? reqBody.hashedLink ?? null : null)
     .build();
 
   if (!builtEvt) {
@@ -1576,7 +1577,7 @@ async function handler(
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
-      evt: { ...evt, bookerUrl },
+      evt: { ...evt, seatsPerTimeSlot: eventType.seatsPerTimeSlot, bookerUrl },
       invitee,
       allCredentials,
       organizerUser,
@@ -1885,6 +1886,7 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
+      evt.hasOrganizerChanged = true;
     }
 
     if (changedOrganizer && originalRescheduledBooking?.user) {
@@ -2378,6 +2380,8 @@ async function handler(
       };
 
       if (isNormalBookingOrFirstRecurringSlot) {
+        const creditService = new CreditService();
+
         await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
           workflows,
           smsReminderNumber: smsReminderNumber || null,
@@ -2386,6 +2390,7 @@ async function handler(
           seatReferenceUid: evt.attendeeSeatId,
           isDryRun,
           triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
       }
     } catch (error) {
@@ -2554,6 +2559,8 @@ async function handler(
   }
 
   try {
+    const creditService = new CreditService();
+
     await WorkflowService.scheduleWorkflowsForNewBooking({
       workflows,
       smsReminderNumber: smsReminderNumber || null,
@@ -2564,6 +2571,7 @@ async function handler(
       isConfirmedByDefault,
       isNormalBookingOrFirstRecurringSlot,
       isRescheduleEvent: !!rescheduleUid,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
   } catch (error) {
     tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

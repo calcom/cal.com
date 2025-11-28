@@ -1,5 +1,4 @@
 import { get } from "@vercel/edge-config";
-import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -7,7 +6,6 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
-import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
@@ -85,6 +83,48 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
+// Vercel/Edge rejects non‑ASCII header values (see: https://github.com/vercel/next.js/issues/85631)
+const isAscii = (s: string) => {
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x7f) return false;
+  return true;
+};
+const stripNonAscii = (s: string) => {
+  let out = "";
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) <= 0x7f) out += s[i];
+  return out;
+};
+const sanitizeRequestHeaders = (headers: Iterable<[string, string]>): Headers => {
+  const out = new Headers();
+  for (const [name, raw] of Array.from(headers)) {
+    if (!isAscii(name)) continue;
+    let value = raw;
+    if (!isAscii(value)) {
+      // Heuristic: if the string contains common mojibake markers (Ã: 0xC3, Â: 0xC2),
+      // prefer a simple strip (avoids introducing spurious ASCII letters like 'A').
+      let hasMojibakeMarker = false;
+      for (let i = 0; i < value.length; i++) {
+        const code = value.charCodeAt(i);
+        if (code === 0xc3 || code === 0xc2) {
+          hasMojibakeMarker = true;
+          break;
+        }
+      }
+
+      if (hasMojibakeMarker) {
+        value = stripNonAscii(value);
+      } else {
+        try {
+          value = stripNonAscii(value.normalize("NFKD"));
+        } catch {
+          value = stripNonAscii(value);
+        }
+      }
+    }
+    if (value) out.set(name, value);
+  }
+  return out;
+};
+
 const isPagePathRequest = (url: URL) => {
   const isNonPagePathPrefix = /^\/(?:_next|api)\//;
   const isFile = /\..*$/;
@@ -145,7 +185,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const res = NextResponse.next({
     request: {
-      headers: requestHeaders,
+      headers: sanitizeRequestHeaders(requestHeaders),
     },
   });
 
@@ -225,12 +265,8 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
+  runtime: "nodejs",
   matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
 };
 
-export default collectEvents({
-  middleware,
-  ...nextCollectBasicSettings,
-  cookieName: "__clnds",
-  extend: extendEventData,
-});
+export default middleware;
