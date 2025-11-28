@@ -4,7 +4,6 @@ import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/rea
 import { useQueryState } from "nuqs";
 import React, { useMemo, useEffect } from "react";
 
-import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";
 import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -85,22 +84,12 @@ function BookingCalendarInner({
     getFacetedUniqueValues,
   });
 
-  // Extract bookings from table data and filter by current week
+  // Extract bookings from table data
   const bookings = useMemo(() => {
-    const weekStart = currentWeekStart;
-    const weekEnd = currentWeekStart.add(6, "day");
-
     return rowData
       .filter((row): row is Extract<RowData, { type: "data" }> => row.type === "data")
-      .map((row) => row.booking)
-      .filter((booking) => {
-        const bookingStart = dayjs(booking.startTime);
-        return (
-          (bookingStart.isAfter(weekStart) || bookingStart.isSame(weekStart, "day")) &&
-          bookingStart.isBefore(weekEnd.endOf("day"))
-        );
-      });
-  }, [rowData, currentWeekStart]);
+      .map((row) => row.booking);
+  }, [rowData]);
 
   return (
     <>
