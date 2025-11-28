@@ -7,8 +7,8 @@
 
 */
 
--- Update User table
-UPDATE "User"
+-- Update User table (mapped to 'users' in database)
+UPDATE "users"
 SET "timeZone" = 'Europe/Kyiv'
 WHERE "timeZone" = 'Europe/Kiev';
 
@@ -41,8 +41,8 @@ UPDATE "Schedule"
 SET "timeZone" = 'Europe/Kyiv'
 WHERE "timeZone" = 'Europe/Kiev';
 
--- Update CalendarCache table
-UPDATE "CalendarCache"
+-- Update CalendarCacheEvent table
+UPDATE "CalendarCacheEvent"
 SET "timeZone" = 'Europe/Kyiv'
 WHERE "timeZone" = 'Europe/Kiev';
 
