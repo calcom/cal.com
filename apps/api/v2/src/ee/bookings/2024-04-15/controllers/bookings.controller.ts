@@ -652,16 +652,21 @@ export class BookingsController_2024_04_15 {
       type === "no-show"
         ? `Error while marking no-show.`
         : `Error while creating ${type ? type + " " : ""}booking.`;
+
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      err.message === "reserved_slot_not_first_in_line"
+    ) {
+      const secondsUntilRelease =
+        ("data" in err && (err.data as { secondsUntilRelease?: number })?.secondsUntilRelease) ?? 300;
+      const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${secondsUntilRelease} seconds.`;
+      throw new HttpException(message, 409);
+    }
+
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
-      if (httpError.message === "reserved_slot_not_first_in_line") {
-        const errorData =
-          "data" in httpError
-            ? (httpError.data as { secondsUntilRelease: number })
-            : { secondsUntilRelease: 300 };
-        const message = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
-        throw new HttpException(message, 409);
-      }
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
     }
 
