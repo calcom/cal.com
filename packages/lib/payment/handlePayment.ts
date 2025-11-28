@@ -92,6 +92,7 @@ const handlePayment = async ({
         currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
+      bookingSeat?.id,
       booking.userId,
       booking.user?.username ?? null,
       bookerName,
@@ -102,7 +103,6 @@ const handlePayment = async ({
       selectedEventType.title,
       evt.title,
       booking.responses ?? responses,
-      bookingSeat?.id
     );
   }
 
