@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
@@ -18,6 +17,7 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -554,7 +554,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees, seat references, and responses
+    // 2. Get all bookings with their attendees, seat references, responses, and eventTypeId
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -563,6 +563,7 @@ export class InsightsBookingBaseService {
       },
       select: {
         uid: true,
+        eventTypeId: true,
         attendees: {
           select: {
             name: true,
@@ -590,100 +591,100 @@ export class InsightsBookingBaseService {
       },
     });
 
-    // 3. Create booking map with attendee data and custom responses (matching original logic)
-    const bookingMap = new Map(
-      bookings.map((booking) => {
-        const attendeeList =
-          booking.seatsReferences.length > 0
-            ? booking.seatsReferences.map((ref) => ref.attendee)
-            : booking.attendees;
+    // 3. Build cache of parsed bookingFields by eventTypeId to avoid re-parsing
+    const bookingFieldsCache = new Map<number | null, Map<string, string>>();
 
-        // List all no-show guests (name and email)
-        const noShowGuests =
-          attendeeList
-            .filter((attendee) => attendee?.noShow)
-            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-            .filter(Boolean) // remove null values
-            .join("; ") || null;
-        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
-
-        const formattedAttendees = attendeeList
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-          .filter(Boolean);
-
-        // Parse custom question responses
-        const customResponses: Record<string, unknown> = {};
-        if (booking.responses && typeof booking.responses === "object") {
-          const responses = booking.responses as Record<string, unknown>;
-          const bookingFields =
-            booking.eventType?.bookingFields &&
-            eventTypeBookingFields.safeParse(booking.eventType.bookingFields).success
-              ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
-              : null;
-
-          // Filter responses to only include custom questions (not system fields)
-          Object.entries(responses).forEach(([fieldName, answer]) => {
-            if (shouldShowFieldInCustomResponses(fieldName) && answer) {
-              // Skip empty arrays
-              if (Array.isArray(answer) && answer.length === 0) return;
-
-              // Get field label from bookingFields if available
-              const field = bookingFields?.find((f) => f.name === fieldName);
-              const fieldLabel = field?.label || fieldName;
-
-              customResponses[fieldLabel] = answer;
+    bookings.forEach((booking) => {
+      const eventTypeId = booking.eventTypeId;
+      if (eventTypeId && !bookingFieldsCache.has(eventTypeId) && booking.eventType?.bookingFields) {
+        const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
+        if (parsed.success) {
+          // Create a map of field name -> label for O(1) lookup
+          const fieldLabelMap = new Map<string, string>();
+          parsed.data.forEach((field) => {
+            if (field.label) {
+              fieldLabelMap.set(field.name, field.label);
             }
           });
+          bookingFieldsCache.set(eventTypeId, fieldLabelMap);
         }
-
-        return [
-          booking.uid,
-          { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount, customResponses },
-        ];
-      })
-    );
-
-    // 4. Calculate max attendees for dynamic columns
-    const maxAttendees = Math.max(
-      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
-      0
-    );
-
-    // 4b. Collect all unique custom response field labels
-    const allCustomResponseLabels = new Set<string>();
-    Array.from(bookingMap.values()).forEach((data) => {
-      Object.keys(data.customResponses).forEach((label) => allCustomResponseLabels.add(label));
+      }
     });
 
-    // 5. Create final booking map with attendee fields and custom responses
-    const finalBookingMap = new Map(
-      Array.from(bookingMap.entries()).map(([uid, data]) => {
-        const attendeeFields: Record<string, string | null> = {};
+    // 4. Process all bookings in a single pass - calculate max attendees, collect labels, and build final map
+    let maxAttendees = 0;
+    const allCustomResponseLabels = new Set<string>();
+    const finalBookingMap = new Map<
+      string,
+      {
+        noShowGuests: string | null;
+        noShowGuestsCount: number;
+        attendeeList: string[];
+        customResponses: Record<string, string>;
+      }
+    >();
 
-        for (let i = 1; i <= maxAttendees; i++) {
-          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+    bookings.forEach((booking) => {
+      const attendeeList =
+        booking.seatsReferences.length > 0
+          ? booking.seatsReferences.map((ref) => ref.attendee)
+          : booking.attendees;
+
+      // Process attendees in single pass - format and identify no-shows
+      const formattedAttendees: string[] = [];
+      const noShowAttendees: string[] = [];
+      let noShowGuestsCount = 0;
+
+      attendeeList.forEach((attendee) => {
+        if (attendee) {
+          const formatted = `${attendee.name} (${attendee.email})`;
+          formattedAttendees.push(formatted);
+          if (attendee.noShow) {
+            noShowAttendees.push(formatted);
+            noShowGuestsCount++;
+          }
         }
+      });
 
-        // Add custom response fields
-        const customResponseFields: Record<string, string | null> = {};
-        allCustomResponseLabels.forEach((label) => {
-          const value = data.customResponses[label];
-          customResponseFields[label] = value !== undefined ? String(value) : null;
+      // Update max attendees
+      if (formattedAttendees.length > maxAttendees) {
+        maxAttendees = formattedAttendees.length;
+      }
+
+      const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
+
+      // Parse custom question responses using cached field labels
+      const customResponses: Record<string, string> = {};
+      if (booking.responses && typeof booking.responses === "object") {
+        const responses = booking.responses as Record<string, unknown>;
+        const fieldLabelMap = bookingFieldsCache.get(booking.eventTypeId);
+
+        Object.entries(responses).forEach(([fieldName, answer]) => {
+          // Skip system fields, empty values, and empty arrays
+          if (
+            !shouldShowFieldInCustomResponses(fieldName) ||
+            !answer ||
+            (Array.isArray(answer) && answer.length === 0)
+          ) {
+            return;
+          }
+
+          // Get label from cache (O(1) lookup) or use field name
+          const fieldLabel = fieldLabelMap?.get(fieldName) || fieldName;
+          customResponses[fieldLabel] = String(answer);
+          allCustomResponseLabels.add(fieldLabel);
         });
+      }
 
-        return [
-          uid,
-          {
-            noShowGuests: data.noShowGuests,
-            noShowGuestsCount: data.noShowGuestsCount,
-            ...attendeeFields,
-            ...customResponseFields,
-          },
-        ];
-      })
-    );
+      finalBookingMap.set(booking.uid, {
+        noShowGuests,
+        noShowGuestsCount,
+        attendeeList: formattedAttendees,
+        customResponses,
+      });
+    });
 
-    // 6. Combine booking data with attendee data and add ISO timestamp columns
+    // 5. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
       const dateAndTime = {
         createdAt: bookingTimeStatus.createdAt.toISOString(),
@@ -697,70 +698,27 @@ export class InsightsBookingBaseService {
         endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
       };
 
-      if (!bookingTimeStatus.uid) {
-        // should not be reached because we filtered above
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
+      const attendeeData = bookingTimeStatus.uid ? finalBookingMap.get(bookingTimeStatus.uid) : null;
 
-        const nullCustomResponseFields: Record<string, null> = {};
-        allCustomResponseLabels.forEach((label) => {
-          nullCustomResponseFields[label] = null;
-        });
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-          ...nullCustomResponseFields,
-        };
-      }
-
-      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
-
-      if (!attendeeData) {
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        const nullCustomResponseFields: Record<string, null> = {};
-        allCustomResponseLabels.forEach((label) => {
-          nullCustomResponseFields[label] = null;
-        });
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-          ...nullCustomResponseFields,
-        };
-      }
-
-      // Separate attendee fields from custom response fields
-      const attendeeFields = Object.fromEntries(
-        Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))
-      );
-      const customResponseFields = Object.fromEntries(
-        Object.entries(attendeeData).filter(
-          ([key]) =>
-            !key.startsWith("attendee") && key !== "noShowGuests" && key !== "noShowGuestsCount"
-        )
-      );
-
-      return {
+      // Build result object with all fields
+      const result: Record<string, unknown> = {
         ...bookingTimeStatus,
         ...dateAndTime,
-        noShowGuests: attendeeData.noShowGuests,
-        noShowGuestsCount: attendeeData.noShowGuestsCount,
-        ...attendeeFields,
-        ...customResponseFields,
+        noShowGuests: attendeeData?.noShowGuests || null,
+        noShowGuestsCount: attendeeData?.noShowGuestsCount || 0,
       };
+
+      // Add attendee columns
+      for (let i = 1; i <= maxAttendees; i++) {
+        result[`attendee${i}`] = attendeeData?.attendeeList[i - 1] || null;
+      }
+
+      // Add custom response columns
+      allCustomResponseLabels.forEach((label) => {
+        result[label] = attendeeData?.customResponses[label] || null;
+      });
+
+      return result;
     });
 
     return { data, total: totalCount };
