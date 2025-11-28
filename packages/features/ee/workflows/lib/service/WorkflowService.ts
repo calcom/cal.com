@@ -344,7 +344,7 @@ export class WorkflowService {
     seatReferenceUid,
     creditCheckFn
   }: {
-    workflow: Workflow;
+    workflow: Omit<Workflow, "steps">;
     workflowStep: WorkflowStep;
     seatReferenceUid: string | undefined;
     creditCheckFn: CreditCheckFn,

@@ -22,7 +22,7 @@ import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { FormSubmissionData } from "../types";
-import type { BookingInfo } from "./smsReminderManager";
+import type { BookingInfo } from "../types";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
 
 export type WorkflowContextData =
