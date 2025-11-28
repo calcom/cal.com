@@ -7,7 +7,7 @@
 
 @theme inline {
   --breakpoint-3xl: 1600px;
-  --breakpoint-4xl: 2000px;  
+  --breakpoint-4xl: 2000px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -50,7 +50,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card); 
+  --color-card: var(--card);
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
   --color-code-highlight: var(--code-highlight);
@@ -58,44 +58,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
-    }
-  }
-  @keyframes skeleton {
-  to {
-    background-position: -200% 0;
+    to {
+      background-position: -200% 0;
     }
   }
 }
@@ -167,7 +133,7 @@
   --success: oklch(0.696 0.17 162.48);
   --success-foreground: oklch(0.765 0.177 163.223);
   --warning: oklch(0.769 0.188 70.08);
-  --warning-foreground: oklch(0.828 0.189 84.429);  
+  --warning-foreground: oklch(0.828 0.189 84.429);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.552 0.016 285.938);
@@ -183,7 +149,7 @@
   --sidebar-accent: oklch(1 0 0 / 8%);
   --sidebar-accent-foreground: oklch(0.967 0.001 286.375);
   --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.705 0.015 286.067);  
+  --sidebar-ring: oklch(0.705 0.015 286.067);
   --code: color-mix(in srgb, oklch(0.21 0.006 285.885) 80%, oklch(0.141 0.005 285.823));
   --code-foreground: var(--foreground);
   --code-highlight: oklch(1 0 0 / 8%);
@@ -193,9 +159,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   .theme {
     --animate-skeleton: skeleton 2s -1s infinite linear;
   }
+
   :root {
     --destructive-foreground: var(--color-red-700);
     --info: var(--color-blue-500);
@@ -205,6 +173,7 @@
     --warning: var(--color-amber-500);
     --warning-foreground: var(--color-amber-700);
   }
+
   .dark {
     --destructive-foreground: var(--color-red-400);
     --info: var(--color-blue-500);
@@ -220,6 +189,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
