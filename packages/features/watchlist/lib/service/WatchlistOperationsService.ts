@@ -81,8 +81,8 @@ export abstract class WatchlistOperationsService {
     const validReports = await this.validateReports(input.reportIds);
 
     if (validReports.length !== input.reportIds.length) {
-      const foundIds = validReports.map((r) => r.id);
-      const missingIds = input.reportIds.filter((id) => !foundIds.includes(id));
+      const foundIds = new Set(validReports.map((r) => r.id));
+      const missingIds = input.reportIds.filter((id) => !foundIds.has(id));
       throw WatchlistErrors.notFound(`Report(s) not found: ${missingIds.join(", ")}`);
     }
 

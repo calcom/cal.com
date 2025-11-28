@@ -3,6 +3,8 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { MembershipRole, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
+import { WatchlistErrors } from "../errors/WatchlistErrors";
+
 export interface ListWatchlistEntriesInput {
   organizationId: number;
   userId: number;
@@ -39,7 +41,7 @@ export class OrganizationWatchlistQueryService {
     });
 
     if (!hasPermission) {
-      throw new Error("You are not authorized to view watchlist entries");
+      throw WatchlistErrors.permissionDenied("You are not authorized to view watchlist entries");
     }
   }
 
@@ -93,11 +95,11 @@ export class OrganizationWatchlistQueryService {
     const result = await this.deps.watchlistRepo.findEntryWithAuditAndReports(input.entryId);
 
     if (!result.entry) {
-      throw new Error("Blocklist entry not found");
+      throw WatchlistErrors.notFound("Blocklist entry not found");
     }
 
     if (result.entry.organizationId !== input.organizationId) {
-      throw new Error("You can only view blocklist entries from your organization");
+      throw WatchlistErrors.permissionDenied("You can only view blocklist entries from your organization");
     }
 
     const userIds = result.auditHistory
