@@ -39,7 +39,10 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   const { prisma, user, kysely } = ctx;
 
   // Support both singular 'status' and plural 'statuses' for backward compatibility
-  const statusesFilter = filters.statuses ?? (filters.status ? [filters.status] : bookingListingByStatus);
+  // Note: filters can be undefined at runtime despite the type definition, e.g., when
+  // API endpoints are called without query parameters (found in managed-user-bookings.e2e-spec.ts).
+  // Use optional chaining to handle this defensively.
+  const statusesFilter = filters?.statuses ?? (filters?.status ? [filters.status] : bookingListingByStatus);
 
   const { bookings, recurringInfo, totalCount } = await getBookings({
     user,
