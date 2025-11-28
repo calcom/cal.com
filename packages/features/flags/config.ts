@@ -32,6 +32,7 @@ export type AppFlags = {
   "booker-botid": boolean;
   "booking-calendar-view": boolean;
   "bookings-v3": boolean;
+  "notification-center": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;
