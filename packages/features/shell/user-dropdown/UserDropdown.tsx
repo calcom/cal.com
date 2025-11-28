@@ -29,7 +29,7 @@ declare global {
       init: (config: any) => void;
       open: () => void;
     };
-    openOneHashChat?: () => void;
+    openCrispChat?: () => void;
   }
 }
 
@@ -61,9 +61,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
     if (window.Plain) {
       window.Plain.open();
     }
-    // Open OneHash chat widget if available
-    if (window.openOneHashChat) {
-      window.openOneHashChat();
+    // Open Crisp chat widget if available
+    if (window.openCrispChat) {
+      window.openCrispChat();
     }
     setMenuOpen(false);
   };
