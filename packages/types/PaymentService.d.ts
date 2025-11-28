@@ -12,11 +12,13 @@ interface PaymentService {
   new (credentials: { key: Prisma.JsonValue }): IAbstractPaymentService;
 }
 
+// TODO: Refactor method signatures to use a single object parameter, to prevent wrong parameter ordering
 export interface IAbstractPaymentService {
   /* This method is for creating charges at the time of booking */
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
@@ -26,8 +28,7 @@ export interface IAbstractPaymentService {
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
-    responses?: Prisma.JsonValue,
-    bookingSeat?: BookingSeat["id"]
+    responses?: Prisma.JsonValue
   ): Promise<Payment>;
   /* This method is to collect card details to charge at a later date ex. no-show fees */
   collectCard(

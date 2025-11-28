@@ -44,6 +44,7 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
@@ -54,7 +55,6 @@ export class PaymentService implements IAbstractPaymentService {
     eventTitle?: string,
     bookingTitle?: string,
     responses: Prisma.JsonValue,
-    bookingSeat?: BookingSeat["id"]
   ) {
     try {
       if (!this.credentials) {

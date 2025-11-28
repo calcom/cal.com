@@ -23,7 +23,7 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 declare global {
   interface Window {
-    openOneHashChat?: () => void;
+    openCrispChat?: () => void;
   }
 }
 
@@ -88,8 +88,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): 
     onClick: (e) => {
       e.preventDefault();
       if (typeof window !== "undefined") {
-        if (window.openOneHashChat) {
-          window.openOneHashChat();
+        if (window.openCrispChat) {
+          window.openCrispChat();
         } else {
         }
       } else {

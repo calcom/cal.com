@@ -1,6 +1,6 @@
 "use client";
 
-import OneHashChatProvider from "@calid/features/modules/support/OneHashChatProvider";
+import CrispChatProvider from "@calid/features/modules/support/CrispChatProvider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
@@ -44,7 +44,7 @@ export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) 
           <CacheProvider>
             <WebPushProvider>
               <CustomerEngagementProvider>
-                {!isBookingPage ? <OneHashChatProvider>{children}</OneHashChatProvider> : children}
+                {!isBookingPage ? <CrispChatProvider>{children}</CrispChatProvider> : children}
               </CustomerEngagementProvider>
             </WebPushProvider>
           </CacheProvider>

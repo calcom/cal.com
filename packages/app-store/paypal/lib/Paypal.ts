@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import { HAS_STAGING_APPS, IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -14,13 +14,14 @@ class Paypal {
   expiresAt: number | null = null;
 
   constructor(opts: { clientId: string; secretKey: string }) {
-    this.url = IS_PRODUCTION ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+    this.url = IS_PRODUCTION && !HAS_STAGING_APPS ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
     this.clientId = opts.clientId;
     this.secretKey = opts.secretKey;
   }
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
     await this.getAccessToken();
+    
     return fetch(`${this.url}${endpoint}`, {
       method: "get",
       ...init,
