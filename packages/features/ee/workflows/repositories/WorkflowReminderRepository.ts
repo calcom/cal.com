@@ -101,4 +101,19 @@ export class WorkflowReminderRepository {
       },
     });
   }
+
+  findByIdIncludeStepAndWorkflow(id: number) {
+    return this.prismaClient.workflowReminder.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        workflowStep: {
+          include: {
+            workflow: true,
+          },
+        },
+      },
+    });
+  }
 }
