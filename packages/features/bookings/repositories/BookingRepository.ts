@@ -244,6 +244,9 @@ const selectStatementToGetBookingForCalEventBuilder = {
     },
   },
   references: {
+    where: {
+      deleted: null,
+    },
     select: {
       type: true,
       meetingId: true,
