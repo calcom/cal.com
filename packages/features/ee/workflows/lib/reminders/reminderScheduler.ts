@@ -92,20 +92,12 @@ const processWorkflowStep = async (
   }
 
   // Common parameters for all scheduling functions
-  const scheduleFunctionParams = {
-    triggerEvent: workflow.trigger,
-    timeSpan: {
-      time: workflow.time,
-      timeUnit: workflow.timeUnit,
-    },
-    workflowStepId: step.id,
-    template: step.template,
-    userId: workflow.userId,
-    teamId: workflow.teamId,
-    seatReferenceUid,
-    verifiedAt: step.verifiedAt,
+  const scheduleFunctionParams = WorkflowService.generateCommonScheduleFunctionParams({
+    workflow,
+    workflowStep: step,
+    seatReferenceUid: seatReferenceUid,
     creditCheckFn,
-  };
+  });
 
   if (isSMSAction(step.action)) {
     const { scheduleSMSReminder } = await import("./smsReminderManager");
@@ -202,6 +194,7 @@ const processWorkflowStep = async (
 
     await scheduleWhatsappReminder({
       ...scheduleFunctionParams,
+      verifiedAt: step.verifiedAt,
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
