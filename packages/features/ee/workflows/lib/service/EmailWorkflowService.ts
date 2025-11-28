@@ -1,14 +1,17 @@
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
-import type { Workflow, WorkflowStep, WorkflowReminder } from "@calcom/features/ee/workflows/lib/types";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import type { FormSubmissionData } from "../types";
+import type { FormSubmissionData, WorkflowContextData } from "../types";
 import { WorkflowService } from "./WorkflowService";
 
 export class EmailWorkflowService {
@@ -36,6 +39,8 @@ export class EmailWorkflowService {
       throw new Error(`Workflow step not found on reminder with id ${workflowReminderId}`);
     }
 
+    const workflow = workflowReminder.workflowStep.workflow;
+
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
       const seatAttendee = await this.bookingSeatRepository.getByUidIncludeAttendee(
@@ -43,12 +48,28 @@ export class EmailWorkflowService {
       );
       emailAttendeeSendToOverride = seatAttendee?.attendee.email || null;
     }
+    const creditService = new CreditService();
+    const creditCheckFn = creditService.hasAvailableCredits.bind(creditService);
+
+    const commonScheduleFunctionParams = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: workflowReminder.workflowStep.workflow,
+      workflowStep: workflowReminder.workflowStep,
+      seatReferenceUid: workflowReminder.seatReferenceId || undefined,
+      creditCheckFn,
+    });
+
+    const hideBranding = await getHideBranding({
+      userId: workflow.userId ?? undefined,
+      teamId: workflow.teamId ?? undefined,
+    });
 
     const buildEmailWorkflowContentParams = this.generateParametersToBuildEmailWorkflowContent({
       evt,
       workflowStep: workflowReminder.workflowStep,
       workflow: workflowReminder.workflowStep.workflow,
       emailAttendeeSendToOverride,
+      commonScheduleFunctionParams,
+      hideBranding,
     });
   }
 
@@ -58,12 +79,16 @@ export class EmailWorkflowService {
     workflow,
     emailAttendeeSendToOverride,
     formData,
+    commonScheduleFunctionParams,
+    hideBranding,
   }: {
-    evt: CalendarEvent;
-    workflowStep: Pick<WorkflowStep, "action" | "sendTo" | "emailSubject" | "reminderBody" | "sender">;
+    evt?: CalendarEvent;
+    workflowStep: WorkflowStep;
     workflow: Pick<Workflow, "userId">;
-    emailAttendeeSendToOverride: string | null;
+    emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
+    commonScheduleFunctionParams: ReturnType<typeof WorkflowService.generateCommonScheduleFunctionParams>;
+    hideBranding?: boolean;
   }) {
     let sendTo: string[] = [];
 
@@ -116,21 +141,23 @@ export class EmailWorkflowService {
         }
     }
 
-    const commonScheduleFunctionParams = WorkflowService.generateCommonScheduleFunctionParams({
-      workflow,
-    });
+    // The evt builder already validates the bookerUrl exists
+    if (!evt || typeof evt.bookerUrl !== "string") {
+      throw new Error("bookerUrl not a part of the evt");
+    }
 
+    const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
     return {
-      ...scheduleFunctionParams,
+      ...commonScheduleFunctionParams,
       action: workflowStep.action,
       sendTo,
       emailSubject: workflowStep.emailSubject || "",
       emailBody: workflowStep.reminderBody || "",
       sender: workflowStep.sender || SENDER_NAME,
       hideBranding,
-      includeCalendarEvent: step.includeCalendarEvent,
+      includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
-      verifiedAt: step.verifiedAt,
+      verifiedAt: workflowStep.verifiedAt,
     } as const;
   }
 }
