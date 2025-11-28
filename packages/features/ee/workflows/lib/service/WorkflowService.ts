@@ -18,7 +18,6 @@ import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
   static _beforeAfterEventTriggers: WorkflowTriggerEvents[] = [
@@ -343,12 +342,12 @@ export class WorkflowService {
     workflow,
     workflowStep,
     seatReferenceUid,
-    creditCheckFn
+    creditCheckFn,
   }: {
     workflow: Omit<Workflow, "steps">;
     workflowStep: WorkflowStep;
     seatReferenceUid: string | undefined;
-    creditCheckFn: CreditCheckFn,
+    creditCheckFn: CreditCheckFn;
   }) {
     return {
       triggerEvent: workflow.trigger,
@@ -361,7 +360,7 @@ export class WorkflowService {
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
-      verifiedAt: workflowStep.verifiedAt,
+      verifiedAt: workflowStep.verifiedAt || null,
       creditCheckFn,
     };
   }

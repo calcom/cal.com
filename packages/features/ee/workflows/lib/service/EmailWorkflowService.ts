@@ -19,6 +19,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
+import { isEmailAction } from "../actionHelperFunctions";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
@@ -125,7 +126,7 @@ export class EmailWorkflowService {
     hideBranding,
   }: {
     evt?: CalendarEvent;
-    workflowStep: WorkflowStep & { action: ScheduleEmailReminderAction };
+    workflowStep: WorkflowStep;
     workflow: Pick<Workflow, "userId">;
     emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
@@ -133,7 +134,11 @@ export class EmailWorkflowService {
     hideBranding?: boolean;
   }) {
     if (!workflowStep.verifiedAt) {
-      throw new Error();
+      throw new Error(`Workflow step ${workflowStep.id} is not verified`);
+    }
+
+    if (!isEmailAction(workflowStep.action)) {
+      throw new Error(`Non-email workflow step passed for booking ${evt?.uid}`);
     }
     let sendTo: string[] = [];
 
@@ -189,7 +194,7 @@ export class EmailWorkflowService {
       throw new Error("bookerUrl not a part of the evt");
     }
 
-    const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
+    const contextData: WorkflowContextData = evt ? { evt: evt as BookingInfo } : { formData: formData as FormSubmissionData };
     return {
       ...commonScheduleFunctionParams,
       action: workflowStep.action,

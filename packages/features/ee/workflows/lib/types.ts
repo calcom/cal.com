@@ -77,6 +77,9 @@ export type BookingInfo = {
   cancellationReason?: string | null;
   rescheduleReason?: string | null;
   hideOrganizerEmail?: boolean;
+  videoCallData?: {
+    url?: string;
+  };
 };
 
 export type WorkflowContextData =

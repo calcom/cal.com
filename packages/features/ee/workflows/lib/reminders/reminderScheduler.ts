@@ -112,16 +112,13 @@ const processWorkflowStep = async (
       isVerificationPending: step.numberVerificationPending,
       ...contextData,
     });
-  } else if (
-    step.action === WorkflowActions.EMAIL_ATTENDEE ||
-    step.action === WorkflowActions.EMAIL_HOST ||
-    step.action === WorkflowActions.EMAIL_ADDRESS
-  ) {
+  } else if (isEmailAction(step.action)) {
     const { scheduleEmailReminder } = await import("./emailReminderManager");
     if (!evt && step.action === WorkflowActions.EMAIL_HOST) {
       // EMAIL_HOST is not supported for form triggers
       return;
     }
+
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
     const bookingSeatRepository = new BookingSeatRepository(prisma);
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
