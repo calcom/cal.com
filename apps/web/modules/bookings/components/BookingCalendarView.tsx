@@ -115,7 +115,7 @@ export function BookingCalendarView({
     );
 
   return (
-    <div className="border-subtle flex h-[calc(100vh-6rem)] min-h-[600px] flex-col rounded-2xl border">
+    <>
       <div className="mx-4 mt-4 flex items-center justify-between py-1.5">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">{weekRange}</h2>
@@ -137,8 +137,7 @@ export function BookingCalendarView({
           </ButtonGroup>
         </div>
       </div>
-
-      <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl">
+      <div className="border-subtle flex h-[calc(100vh-6rem)] min-h-[600px] flex-1 flex-col overflow-y-auto overflow-x-hidden rounded-2xl border">
         <Calendar
           timezone={timezone}
           sortEvents
@@ -162,6 +161,6 @@ export function BookingCalendarView({
           hideHeader
         />
       </div>
-    </div>
+    </>
   );
 }
