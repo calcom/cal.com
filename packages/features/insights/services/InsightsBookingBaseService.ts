@@ -567,6 +567,7 @@ export class InsightsBookingBaseService {
           select: {
             name: true,
             email: true,
+            phoneNumber: true,
             noShow: true,
           },
         },
@@ -576,6 +577,7 @@ export class InsightsBookingBaseService {
               select: {
                 name: true,
                 email: true,
+                phoneNumber: true,
                 noShow: true,
               },
             },
@@ -618,6 +620,7 @@ export class InsightsBookingBaseService {
         noShowGuests: string | null;
         noShowGuestsCount: number;
         attendeeList: string[];
+        attendeePhoneNumbers: (string | null)[];
         customResponses: Record<string, string>;
       }
     >();
@@ -630,12 +633,14 @@ export class InsightsBookingBaseService {
 
       const formattedAttendees: string[] = [];
       const noShowAttendees: string[] = [];
+      const attendeePhoneNumbers: (string | null)[] = [];
       let noShowGuestsCount = 0;
 
       attendeeList.forEach((attendee) => {
         if (attendee) {
           const formatted = `${attendee.name} (${attendee.email})`;
           formattedAttendees.push(formatted);
+          attendeePhoneNumbers.push(attendee.phoneNumber || null);
           if (attendee.noShow) {
             noShowAttendees.push(formatted);
             noShowGuestsCount++;
@@ -673,6 +678,7 @@ export class InsightsBookingBaseService {
         noShowGuests,
         noShowGuestsCount,
         attendeeList: formattedAttendees,
+        attendeePhoneNumbers,
         customResponses,
       });
     });
@@ -701,9 +707,10 @@ export class InsightsBookingBaseService {
         noShowGuestsCount: attendeeData?.noShowGuestsCount || 0,
       };
 
-      // Add attendee columns
+      // Add attendee columns with phone numbers
       for (let i = 1; i <= maxAttendees; i++) {
         result[`attendee${i}`] = attendeeData?.attendeeList[i - 1] || null;
+        result[`attendeePhone${i}`] = attendeeData?.attendeePhoneNumbers[i - 1] || null;
       }
 
       // Add custom response columns
