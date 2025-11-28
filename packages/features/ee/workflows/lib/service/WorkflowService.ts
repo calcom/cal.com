@@ -284,7 +284,8 @@ export class WorkflowService {
 
     let workflowReminder: { id: number | null; uuid: string | null };
     try {
-      workflowReminder = await WorkflowReminderRepository.create({
+      const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+      workflowReminder = await workflowReminderRepository.create({
         bookingUid,
         workflowStepId,
         method: WorkflowMethods.EMAIL,
