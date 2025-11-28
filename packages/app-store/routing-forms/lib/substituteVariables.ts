@@ -23,7 +23,6 @@ export const substituteVariables = (
 
   let eventTypeUrl = routeValue;
 
-  // Find the position of the query string separator to distinguish path vs query parameters
   const queryStringIndex = routeValue.indexOf("?");
 
   variables.forEach((variable) => {
@@ -47,7 +46,6 @@ export const substituteVariables = (
         let valueToSubstitute: string;
         if (isInQueryString) {
           // For query parameters, preserve original formatting with proper URL encoding
-          // This ensures "Sean Paul" becomes "Sean%20Paul" instead of "sean-paul"
           valueToSubstitute = encodeURIComponent(humanReadableString);
         } else {
           // For URL path segments, slugify the value for URL safety
