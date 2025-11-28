@@ -11,6 +11,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
+import { useLocale } from "@calcom/lib/hooks/useLocale"; 
 
 export const LargeCalendar = ({
   extraDays,
@@ -30,6 +31,7 @@ export const LargeCalendar = ({
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
   const { timezone } = useBookerTime();
+  const { t } = useLocale(); 
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
@@ -52,10 +54,10 @@ export const LargeCalendar = ({
       id,
       start: dayjs(event.start).toDate(),
       end: dayjs(event.end).toDate(),
-      title: "Busy",
+      title: t("availability_busy"), 
       options: { status: "ACCEPTED" },
     })) as CalendarEvent[];
-  }, [overlayEvents, displayOverlay]);
+  }, [overlayEvents, displayOverlay, t]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
