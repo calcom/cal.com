@@ -242,22 +242,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   const disabled = props.disabled || loading;
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
-  const element = React.createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      disabled,
-      type: !isLink ? type : undefined,
-      ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+  
+  const buttonContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
@@ -332,11 +318,51 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
+  if (isLink) {
+    return (
+      <Wrapper
+        data-testid="wrapper"
+        tooltip={props.tooltip}
+        tooltipSide={tooltipSide}
+        tooltipOffset={tooltipOffset}
+        tooltipClassName={tooltipClassName}>
+        <Link
+          data-testid="link-component"
+          href={props.href}
+          shallow={shallow && shallow}
+          ref={forwardedRef as React.ForwardedRef<HTMLAnchorElement>}
+          className={classNames(buttonClasses({ color, size, loading, variant }), props.className)}
+          onClick={disabled
+            ? (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+                e.preventDefault();
+              }
+            : props.onClick}
+          {...passThroughProps}>
+          {buttonContent}
+        </Link>
+      </Wrapper>
+    );
+  }
+
+  const element = React.createElement(
+    "button",
+    {
+      ...passThroughProps,
+      disabled,
+      type: type,
+      ref: forwardedRef,
+      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+      // if we click a disabled button, we prevent going through the click handler
+      onClick: disabled
+        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.preventDefault();
+          }
+        : props.onClick,
+    },
+    buttonContent
+  );
+
+  return (
     <Wrapper
       data-testid="wrapper"
       tooltip={props.tooltip}

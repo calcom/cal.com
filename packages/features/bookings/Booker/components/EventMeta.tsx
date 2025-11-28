@@ -58,27 +58,38 @@ const ScrollFadeDescription = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [showFade, setShowFade] = useState(false);
+  const lineHeightCache = useRef<number | null>(null);
 
-  // Update whether fade is needed and whether we're near the bottom
-  const update = () => {
-    const el = ref.current;
-    if (!el) return;
-    const overflow = el.scrollHeight > el.clientHeight + 1;
+  // Memoize the update function to avoid recreating it on every render
+  const update = useMemo(
+    () => () => {
+      const el = ref.current;
+      if (!el) return;
 
-    // Compute threshold as N lines
-    const cs = window.getComputedStyle(el);
-    let lineHeight = parseFloat(cs.lineHeight || "0");
-    if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
-      // Fallback for 'normal'
-      const fontSize = parseFloat(cs.fontSize || "16");
-      lineHeight = Math.round(fontSize * 1.4); // conservative fallback
-    }
-    const bottomThresholdPx = Math.max(fadePx, lineHeight * linesFromBottomToUnfade);
+      const overflow = el.scrollHeight > el.clientHeight + 1;
+      if (!overflow) {
+        setShowFade(false);
+        return;
+      }
 
-    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - bottomThresholdPx;
+      // Cache line height calculation to avoid repeated getComputedStyle calls
+      if (lineHeightCache.current === null) {
+        const cs = window.getComputedStyle(el);
+        let lineHeight = parseFloat(cs.lineHeight || "0");
+        if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+          const fontSize = parseFloat(cs.fontSize || "16");
+          lineHeight = Math.round(fontSize * 1.4);
+        }
+        lineHeightCache.current = lineHeight;
+      }
 
-    setShowFade(overflow && !nearBottom);
-  };
+      const bottomThresholdPx = Math.max(fadePx, lineHeightCache.current * linesFromBottomToUnfade);
+      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - bottomThresholdPx;
+
+      setShowFade(!nearBottom);
+    },
+    [fadePx, linesFromBottomToUnfade]
+  );
 
   useEffect(() => {
     update();
@@ -104,24 +115,31 @@ const ScrollFadeDescription = ({
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
     };
-  }, [html]);
+  }, [html, update]);
 
-  // Use mask-image so scrollbar and interactions are unaffected
-  const mask = showFade
-    ? `linear-gradient(to bottom, black calc(100% - ${fadePx}px), transparent 100%)`
-    : "none";
+  // Memoize mask calculation
+  const maskStyle = useMemo(
+    () =>
+      showFade
+        ? `linear-gradient(to bottom, black calc(100% - ${fadePx}px), transparent 100%)`
+        : "none",
+    [showFade, fadePx]
+  );
+
+  // Memoize inline styles
+  const scrollContainerStyle = useMemo(
+    () => ({
+      maxHeight: `${collapsedMaxHeight}px`,
+      overflowY: "auto" as const,
+      WebkitMaskImage: maskStyle,
+      maskImage: maskStyle,
+    }),
+    [collapsedMaxHeight, maskStyle]
+  );
 
   return (
     <div className="relative">
-      <div
-        ref={ref}
-        className="scroll-bar pr-4"
-        style={{
-          maxHeight: `${collapsedMaxHeight}px`,
-          overflowY: "auto",
-          WebkitMaskImage: mask,
-          maskImage: mask,
-        }}>
+      <div ref={ref} className="scroll-bar pr-4" style={scrollContainerStyle}>
         <div
           dangerouslySetInnerHTML={{
             __html: html || "",
