@@ -554,7 +554,6 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees, seat references, responses, and eventTypeId
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -591,7 +590,7 @@ export class InsightsBookingBaseService {
       },
     });
 
-    // 3. Build cache of parsed bookingFields by eventTypeId to avoid re-parsing
+    // 2. Build cache of parsed bookingFields by eventTypeId
     const bookingFieldsCache = new Map<number | null, Map<string, string>>();
 
     bookings.forEach((booking) => {
@@ -599,7 +598,6 @@ export class InsightsBookingBaseService {
       if (eventTypeId && !bookingFieldsCache.has(eventTypeId) && booking.eventType?.bookingFields) {
         const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
         if (parsed.success) {
-          // Create a map of field name -> label for O(1) lookup
           const fieldLabelMap = new Map<string, string>();
           parsed.data.forEach((field) => {
             if (field.label) {
@@ -611,7 +609,7 @@ export class InsightsBookingBaseService {
       }
     });
 
-    // 4. Process all bookings in a single pass - calculate max attendees, collect labels, and build final map
+    // 3. Process bookings: calculate max attendees, collect custom response labels, and build final map
     let maxAttendees = 0;
     const allCustomResponseLabels = new Set<string>();
     const finalBookingMap = new Map<
@@ -630,7 +628,6 @@ export class InsightsBookingBaseService {
           ? booking.seatsReferences.map((ref) => ref.attendee)
           : booking.attendees;
 
-      // Process attendees in single pass - format and identify no-shows
       const formattedAttendees: string[] = [];
       const noShowAttendees: string[] = [];
       let noShowGuestsCount = 0;
@@ -646,21 +643,18 @@ export class InsightsBookingBaseService {
         }
       });
 
-      // Update max attendees
       if (formattedAttendees.length > maxAttendees) {
         maxAttendees = formattedAttendees.length;
       }
 
       const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
 
-      // Parse custom question responses using cached field labels
       const customResponses: Record<string, string> = {};
       if (booking.responses && typeof booking.responses === "object") {
         const responses = booking.responses as Record<string, unknown>;
         const fieldLabelMap = bookingFieldsCache.get(booking.eventTypeId);
 
         Object.entries(responses).forEach(([fieldName, answer]) => {
-          // Skip system fields, empty values, and empty arrays
           if (
             !shouldShowFieldInCustomResponses(fieldName) ||
             !answer ||
@@ -669,7 +663,6 @@ export class InsightsBookingBaseService {
             return;
           }
 
-          // Get label from cache (O(1) lookup) or use field name
           const fieldLabel = fieldLabelMap?.get(fieldName) || fieldName;
           customResponses[fieldLabel] = String(answer);
           allCustomResponseLabels.add(fieldLabel);
@@ -684,7 +677,7 @@ export class InsightsBookingBaseService {
       });
     });
 
-    // 5. Combine booking data with attendee data and add ISO timestamp columns
+    // 4. Combine booking data with attendee data and add ISO timestamp columns
     const data = csvData.map((bookingTimeStatus) => {
       const dateAndTime = {
         createdAt: bookingTimeStatus.createdAt.toISOString(),
