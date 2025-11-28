@@ -12,7 +12,7 @@ import type { CalendarSyncService } from "@calcom/features/calendar-subscription
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
-import { SelectedCalendar } from "@calcom/prisma/client";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -204,6 +204,10 @@ export class CalendarSubscriptionService {
    * Subscribe periodically to new calendars
    */
   async checkForNewSubscriptions() {
+    const calendarSubscriptionTeamsEnabled = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
