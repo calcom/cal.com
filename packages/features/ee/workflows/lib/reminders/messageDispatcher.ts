@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -27,13 +28,11 @@ export async function sendSmsOrFallbackEmail(props: {
     t: TFunction;
     replyTo: string;
   };
+  creditCheckFn: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
 
-  const creditService = new CreditService();
-
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  const hasCredits = await props.creditCheckFn({ userId, teamId });
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;
@@ -75,12 +74,11 @@ export async function scheduleSmsOrFallbackEmail(props: {
     replyTo: string;
     workflowStepId?: number;
   };
+  creditCheckFn: CreditCheckFn;
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-  const creditService = new CreditService();
 
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
+  const hasCredits = await props.creditCheckFn({ userId, teamId });
 
   if (!hasCredits) {
     const { fallbackData, twilioData } = props;

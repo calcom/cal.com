@@ -25,6 +25,7 @@ export const inputStyles = cva(
 
     // States
     "hover:border-emphasis",
+    "focus:border-emphasis",
     "focus:ring-0",
     "focus:shadow-outline-gray-focused",
 
@@ -37,7 +38,7 @@ export const inputStyles = cva(
     "shadow-outline-gray-rested",
 
     // Transitions
-    "transition",
+    "transition-all",
   ],
   {
     variants: {
@@ -158,7 +159,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(
             inputStyles({ size }),
             "group relative mb-1 flex min-w-0 items-center gap-1",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default focus-within:ring-2",
+            "focus-within:shadow-outline-gray-focused focus-within:border-emphasis",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
@@ -226,7 +227,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={classNames(
             className,
-            type === "email" && "focus:border-subtle focus:ring-brand-default focus:ring-2",
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}

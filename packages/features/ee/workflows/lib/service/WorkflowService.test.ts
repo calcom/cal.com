@@ -76,10 +76,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       },
     ];
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       form: mockForm,
+      responseId: 123,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
@@ -87,9 +92,11 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       formData: {
         responses: mockResponses,
         user: { email: "formowner@example.com", timeFormat: 12, locale: "en" },
+        routedEventTypeId: null,
       },
       hideBranding: false,
       workflows: [workflows[0]],
+      creditCheckFn: mockCreditCheckFn,
     });
   });
 
@@ -123,11 +130,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
 
     mockTasker.create.mockResolvedValue({ id: "task-123" });
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       responseId: 123,
       form: mockForm,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockTasker.create).toHaveBeenCalledWith(
@@ -137,6 +148,7 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
         responses: mockResponses,
         smsReminderNumber: "+1234567890",
         hideBranding: false,
+        routedEventTypeId: null,
         submittedAt: expect.any(Date),
         form: {
           id: "form-123",
@@ -190,10 +202,15 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       },
     ];
 
+    const mockCreditCheckFn = vi.fn().mockResolvedValue(true);
+
     await WorkflowService.scheduleFormWorkflows({
       workflows,
       responses: mockResponses,
       form: formWithoutPhone,
+      responseId: 123,
+      routedEventTypeId: null,
+      creditCheckFn: mockCreditCheckFn,
     });
 
     expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith({
@@ -201,9 +218,11 @@ describe("WorkflowService.scheduleFormWorkflows", () => {
       formData: {
         responses: mockResponses,
         user: { email: "formowner@example.com", timeFormat: 12, locale: "en" },
+        routedEventTypeId: null,
       },
       hideBranding: false,
       workflows: [workflows[0]],
+      creditCheckFn: mockCreditCheckFn,
     });
   });
 });

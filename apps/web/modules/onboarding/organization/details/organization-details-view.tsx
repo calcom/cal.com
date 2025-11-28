@@ -105,7 +105,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             <div className="flex w-full flex-col gap-4 rounded-xl">
               {/* Organization Name */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("organization_name")}
                 </Label>
                 <TextField
@@ -124,7 +124,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
               {/* Organization Bio */}
               <div className="flex w-full flex-col gap-1.5">
-                <Label className="text-emphasis text-sm font-medium leading-4">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
                   {t("onboarding_org_bio_label")}
                 </Label>
                 <TextArea
