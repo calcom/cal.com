@@ -93,7 +93,7 @@ export class InputEventTypesService_2024_06_14 {
 
     await this.validateEventTypeInputs({
       eventTypeId: eventTypeId,
-      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      seatsPerTimeSlot: "seatsPerTimeSlot" in transformedBody ? transformedBody.seatsPerTimeSlot : undefined,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,

@@ -1261,9 +1261,14 @@ describe("Organizations Event Types Endpoints", () => {
         .expect(201);
 
       const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
-      expect(createdEventType.seats?.seatsPerTimeSlot).toEqual(5);
-      expect(createdEventType.seats?.showAttendeeInfo).toEqual(true);
-      expect(createdEventType.seats?.showAvailabilityCount).toEqual(true);
+      const createdSeats = createdEventType.seats;
+      expect(createdSeats).toBeDefined();
+      expect(createdSeats && "seatsPerTimeSlot" in createdSeats).toBe(true);
+      if (createdSeats && "seatsPerTimeSlot" in createdSeats) {
+        expect(createdSeats.seatsPerTimeSlot).toEqual(5);
+        expect(createdSeats.showAttendeeInfo).toEqual(true);
+        expect(createdSeats.showAvailabilityCount).toEqual(true);
+      }
 
       // Now do a partial update that only changes a different field (not seats)
       const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
@@ -1278,9 +1283,14 @@ describe("Organizations Event Types Endpoints", () => {
       const updatedEventType: TeamEventTypeOutput_2024_06_14 = updateResponse.body.data;
 
       // Verify that seatsPerTimeSlot is preserved and not reset to null
-      expect(updatedEventType.seats?.seatsPerTimeSlot).toEqual(5);
-      expect(updatedEventType.seats?.showAttendeeInfo).toEqual(true);
-      expect(updatedEventType.seats?.showAvailabilityCount).toEqual(true);
+      const updatedSeats = updatedEventType.seats;
+      expect(updatedSeats).toBeDefined();
+      expect(updatedSeats && "seatsPerTimeSlot" in updatedSeats).toBe(true);
+      if (updatedSeats && "seatsPerTimeSlot" in updatedSeats) {
+        expect(updatedSeats.seatsPerTimeSlot).toEqual(5);
+        expect(updatedSeats.showAttendeeInfo).toEqual(true);
+        expect(updatedSeats.showAvailabilityCount).toEqual(true);
+      }
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
