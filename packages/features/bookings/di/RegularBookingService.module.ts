@@ -1,4 +1,5 @@
 import { moduleLoader as bookingAuditServiceModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditService.module";
+import { moduleLoader as bookingEventHandlerModuleLoader } from "@calcom/features/bookings/di/BookingEventHandlerService.module";
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
@@ -11,8 +12,6 @@ import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { moduleLoader as hashedLinkServiceModuleLoader } from "@calcom/features/hashedLink/di/HashedLinkService.module";
 
 import { moduleLoader as bookingEmailAndSmsTaskerModuleLoader } from "./tasker/BookingEmailAndSmsTasker.module";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-import { moduleLoader as bookingEventHandlerModuleLoader } from "@calcom/features/bookings/di/BookingEventHandlerService.module";
 
 const thisModule = createModule();
 const token = DI_TOKENS.REGULAR_BOOKING_SERVICE;
