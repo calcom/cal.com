@@ -32,7 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         id: true,
         data: true,
-        externalId: true,
         booking: {
           select: {
             userId: true,
@@ -42,26 +41,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!payment) {
-      console.error("[Coinley] Payment not found");
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    // Log payment data for debugging
-    const storedPaymentData = payment.data as { payment?: { id?: string } } | null;
-    console.log("[Coinley] Processing payment confirmation:", {
-      bookingId,
-      receivedPaymentId: paymentId,
-      storedPaymentId: storedPaymentData?.payment?.id,
-      externalId: payment.externalId,
-    });
-
-    // NOTE: The Coinley SDK may return a different payment ID than the initial intent
-    // because a new payment is created when the customer actually pays.
-    // Security is enforced by verifying the payment status with Coinley API below.
-
     // Check if booking exists and has a user
     if (!payment.booking || !payment.booking.userId) {
-      console.error("[Coinley] Booking or userId not found");
       return res.status(404).json({ error: "Booking not found" });
     }
 
@@ -89,12 +73,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const apiUrl = baseURL.endsWith("/api") ? baseURL : `${baseURL}/api`;
 
     try {
-      // First check payment status using public endpoint
+      // Verify payment status using public endpoint
       const statusResponse = await axios.get(`${apiUrl}/payments/public/${paymentId}`, {
         timeout: 10000,
       });
 
-      const paymentStatus = statusResponse.data?.payment?.status;
+      const paymentData = statusResponse.data?.payment;
+      const paymentStatus = paymentData?.status;
 
       // Only mark as paid if Coinley confirms payment is successful
       if (paymentStatus !== "confirmed" && paymentStatus !== "completed") {
@@ -103,8 +88,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: paymentStatus,
         });
       }
-    } catch (verifyError) {
-      console.error("[Coinley] Failed to verify payment with API:", verifyError);
+
+      // SECURITY: Verify the payment was created for this specific booking
+      // The metadata.bookingId was set when the payment was created
+      const paymentMetadata = paymentData?.metadata;
+      const metadataBookingId = paymentMetadata?.bookingId?.toString();
+
+      if (metadataBookingId && metadataBookingId !== bookingId.toString()) {
+        return res.status(403).json({ error: "Payment does not belong to this booking" });
+      }
+    } catch {
       return res.status(500).json({
         error: "Failed to verify payment status",
       });
@@ -134,22 +127,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    console.log("[Coinley] ✅ Payment and booking confirmed");
-
-    // TODO: Send booking confirmation email
-    // TODO: Trigger Cal.com webhooks
-
     return res.status(200).json({
       success: true,
       message: "Payment confirmed",
-      bookingId,
-      paymentId,
     });
-  } catch (error) {
-    console.error("[Coinley] Error confirming payment:", error);
+  } catch {
     return res.status(500).json({
       error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
