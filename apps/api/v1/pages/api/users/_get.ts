@@ -59,7 +59,7 @@ export async function getHandler(req: NextApiRequest) {
     };
   }
 
-  const [total, data] = await prisma.$transaction([
+  const [total, data] = await Promise.all([
     prisma.user.count({ where }),
     prisma.user.findMany({ where, take, skip }),
   ]);

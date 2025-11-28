@@ -10,12 +10,14 @@ import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { TrackingData } from "@calcom/lib/tracking";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -49,10 +51,14 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  isOnboarding,
+  tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  isOnboarding?: boolean;
+  tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -63,15 +69,15 @@ export const generateTeamCheckoutSession = async ({
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-          discounts: [
-            {
-              coupon:
-                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                  ? dubCustomer.discount.couponTestId
-                  : dubCustomer.discount.couponId,
-            },
-          ],
-        }
+        discounts: [
+          {
+            coupon:
+              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                ? dubCustomer.discount.couponTestId
+                : dubCustomer.discount.couponId,
+          },
+        ],
+      }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
@@ -98,6 +104,9 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
   });
   return session;
@@ -123,6 +132,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   isOrg?: boolean;
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
+  tracking?: TrackingData;
 }) => {
   const {
     teamId,
@@ -132,6 +142,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg,
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
+    tracking,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
@@ -189,12 +200,15 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
     subscription_data: {
       metadata: {
         teamId,
         dubCustomerId: userId,
       },
+      ...(isOrg && ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
     },
   });
   return { url: session.url };

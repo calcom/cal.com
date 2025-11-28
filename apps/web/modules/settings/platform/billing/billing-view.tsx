@@ -30,16 +30,18 @@ declare global {
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
+  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
+    useGetUserAttributes();
+
   const returnTo = pathname;
-  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
+  const teamId = `teamId=${userOrgId}`;
+  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}&${teamId}`;
 
   const onContactSupportClick = async () => {
     if (window.Support) {
       window.Support.open();
     }
   };
-  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
-    useGetUserAttributes();
 
   const { mutateAsync: removeTeamSubscription, isPending: isRemoveTeamSubscriptionLoading } =
     useUnsubscribeTeamToStripe({
@@ -87,7 +89,7 @@ export default function PlatformBillingUpgrade() {
         subtitle={t("manage_billing_description")}
         isPlatformUser={true}>
         <>
-          <div className="border-subtle space-y-6 rounded-lg border px-6 py-8 text-sm sm:space-y-8">
+          <div className="border-subtle stack-y-6 rounded-lg border px-6 py-8 text-sm sm:stack-y-8">
             <CtaRow
               title={t("view_and_manage_billing_details")}
               description={t("view_and_edit_billing_details")}>

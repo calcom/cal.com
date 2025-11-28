@@ -1,9 +1,9 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -24,7 +24,7 @@ const isAllString = (array: (string | number)[]): array is string[] => {
   return array.every((value) => typeof value === "string");
 };
 function getUserConditions(oAuthClientId?: string) {
-  if (!!oAuthClientId) {
+  if (oAuthClientId) {
     return {
       platformOAuthClients: {
         some: { id: oAuthClientId },
@@ -87,23 +87,20 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this organization." });
   }
 
-  // Check PBAC permissions for listing organization members
-  const permissions = await getSpecificPermissions({
+  const permissionCheckService = new PermissionCheckService();
+
+  const hasPermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: organizationId,
-    resource: Resource.Organization,
-    userRole: membership.role,
-    actions: [CustomAction.ListMembers],
-    fallbackRoles: {
-      [CustomAction.ListMembers]: {
-        roles: ctx.user.organization.isPrivate
-          ? [MembershipRole.ADMIN, MembershipRole.OWNER]
-          : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-    },
+    permission: ctx.user.organization.isPrivate
+      ? "organization.listMembersPrivate"
+      : "organization.listMembers",
+    fallbackRoles: ctx.user.organization.isPrivate
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+      : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
-  if (!permissions[CustomAction.ListMembers]) {
+  if (!hasPermission) {
     return {
       canUserGetMembers: false,
       rows: [],
@@ -115,19 +112,19 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const { limit, offset } = input;
 
   const roleFilter = filters.find((filter) => filter.id === "role") as
-    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | TypedColumnFilter<Extract<FilterType, "ms">>
     | undefined;
   const teamFilter = filters.find((filter) => filter.id === "teams") as
-    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | TypedColumnFilter<Extract<FilterType, "ms">>
     | undefined;
   const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
   const createdAtFilter = filters.find((filter) => filter.id === "createdAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
   const updatedAtFilter = filters.find((filter) => filter.id === "updatedAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
 
   const roleWhereClause = roleFilter

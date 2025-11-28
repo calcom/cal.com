@@ -34,8 +34,6 @@ import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -184,6 +182,7 @@ export default function Signup({
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
+  onboardingV3Enabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isSamlSignup, setIsSamlSignup] = useState(false);
@@ -192,7 +191,6 @@ export default function Signup({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const searchParams = useCompatSearchParams();
-  const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
@@ -260,9 +258,10 @@ export default function Signup({
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
-        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+        // telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
+        const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
@@ -274,7 +273,7 @@ export default function Signup({
         };
 
         const constructCallBackIfUrlNotPresent = () => {
-          if (!!isPlatformUser) {
+          if (isPlatformUser) {
             return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
           }
 
@@ -284,7 +283,7 @@ export default function Signup({
         const constructCallBackUrl = () => {
           const callbackUrlSearchParams = searchParams?.get("callbackUrl");
 
-          return !!callbackUrlSearchParams
+          return callbackUrlSearchParams
             ? constructCallBackIfUrlPresent()
             : constructCallBackIfUrlNotPresent();
         };
@@ -311,7 +310,7 @@ export default function Signup({
                 id="gtm-init-script"
                 // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
                 // And we don't want it to error here anyways
-                // eslint-disable-next-line react/no-danger
+                 
                 dangerouslySetInnerHTML={{
                   __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
@@ -321,7 +320,7 @@ export default function Signup({
                 }}
               />
               <noscript
-                // eslint-disable-next-line react/no-danger
+                 
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}
@@ -341,12 +340,12 @@ export default function Signup({
       ) : null}
       <div
         className={classNames(
-          "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+          "light bg-cal-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
           "[--cal-brand-subtle:#9CA3AF]",
           "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
           "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
         )}>
-        <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+        <div className="bg-cal-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {displayBackButton && (
@@ -426,6 +425,7 @@ export default function Signup({
                     id="signup-email"
                     {...register("email")}
                     label={t("email")}
+                    placeholder="john@doe.com"
                     type="email"
                     autoComplete="email"
                     disabled={prepopulateFormValues?.email}
@@ -522,8 +522,8 @@ export default function Signup({
                         usernameTaken
                       }>
                       {premiumUsername && !usernameTaken
-                        ? `${t("create_account")} (${getPremiumPlanPriceValue()})`
-                        : t("create_account")}
+                        ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
+                        : t("get_started")}
                     </Button>
                   )}
                 </Form>
@@ -575,11 +575,11 @@ export default function Signup({
                 {isGoogleLoginEnabled && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
-                      <div className="border-subtle flex-grow border-t" />
-                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                      <div className="border-subtle grow border-t" />
+                      <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
                         {t("or").toLocaleLowerCase()}
                       </span>
-                      <div className="border-subtle flex-grow border-t" />
+                      <div className="border-subtle grow border-t" />
                     </div>
                   </div>
                 )}
@@ -699,7 +699,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/3 dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
                 className="hidden dark:block"

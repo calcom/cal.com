@@ -139,7 +139,7 @@ const EventTypeGroup = ({
     keyName: "fieldId",
   });
   return (
-    <div className="ml-2 flex flex-col space-y-6">
+    <div className="ml-2 flex flex-col stack-y-6">
       {fields.map(
         (field, index) =>
           field.selected && (
@@ -213,7 +213,6 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
   );
 
   const [submit, setSubmit] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const allUpdated = updatedEventTypesStatus.every((item) => item.every((iitem) => iitem.updated));
 
   useEffect(() => {
@@ -223,11 +222,7 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
     }
   }, [submit, allUpdated, mainForSubmitRef]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!formPortalRef?.current || !mounted) {
+  if (!formPortalRef?.current) {
     return null;
   }
 

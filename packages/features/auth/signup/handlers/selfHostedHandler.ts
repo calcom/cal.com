@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -88,6 +88,7 @@ export default async function handler(body: Record<string, string>) {
         }
       }
 
+      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -100,12 +101,14 @@ export default async function handler(body: Record<string, string>) {
           },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          organizationId,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          organizationId,
         },
       });
 

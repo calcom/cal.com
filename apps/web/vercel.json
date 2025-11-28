@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/cron/calendar-cache-cleanup",
-      "schedule": "0 5 * * *"
+      "path": "/api/cron/calendar-subscriptions",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/calendar-subscriptions-cleanup",
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/queuedFormResponseCleanup",
@@ -10,10 +14,6 @@
     },
     {
       "path": "/api/tasks/cron",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/calendar-cache/cron",
       "schedule": "* * * * *"
     },
     {

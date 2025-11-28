@@ -1,5 +1,5 @@
-import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
