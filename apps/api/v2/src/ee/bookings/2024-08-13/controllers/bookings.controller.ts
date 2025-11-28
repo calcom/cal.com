@@ -238,10 +238,14 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get all the transcripts download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.
+    summary: "Get Cal Video real time transcript download links for the booking",
+    description: `Fetches all the transcript download links for the booking \`:bookingUid\`
 
-    <Note>cal-api-version: \`2024-08-13\` is required in the request header.</Note>
+    <Note>
+    Transcripts are generated when clicking "Transcribe" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.
+
+    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.
+    </Note>
     `,
   })
   async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {

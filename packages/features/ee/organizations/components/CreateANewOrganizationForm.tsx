@@ -25,11 +25,8 @@ import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { useOnboarding } from "../lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
-  let out = "";
-  try {
-    const match = email.match(/^(?:.*?:\/\/)?.*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
-    out = (match && match[1]) ?? "";
-  } catch (ignore) {}
+  const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);
+  const out = (match && match[1]) ?? "";
   return out.split(".")[0];
 }
 
@@ -118,7 +115,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     <>
       <Form
         form={newOrganizationFormMethods}
-        className="space-y-5"
+        className="stack-y-5"
         id="createOrg"
         handleSubmit={async (v) => {
           if (!needToCreateOnboarding) {
@@ -328,7 +325,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         {/* This radio group does nothing - its just for visual purposes */}
         {isBillingEnabled && !isAdmin && (
           <>
-            <div className="bg-subtle space-y-5  rounded-lg p-5">
+            <div className="bg-subtle stack-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
                 Upgrade to Organizations
               </h3>
