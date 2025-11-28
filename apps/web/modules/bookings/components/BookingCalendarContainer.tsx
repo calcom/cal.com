@@ -4,12 +4,16 @@ import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/rea
 import { useQueryState } from "nuqs";
 import React, { useMemo, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";
 import { activeFiltersParser } from "@calcom/features/data-table/lib/parsers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useBookingCalendarData } from "~/bookings/hooks/useBookingCalendarData";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
@@ -18,6 +22,7 @@ import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
+import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types";
 import { BookingCalendarView } from "./BookingCalendarView";
@@ -26,6 +31,14 @@ import { ViewToggleButton } from "./ViewToggleButton";
 
 // For calendar view, fetch all statuses except cancelled
 const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
+
+interface CurrentWeekProps {
+  weekRange: React.ReactNode;
+}
+
+function CurrentWeek({ weekRange }: CurrentWeekProps) {
+  return <h2 className="text-xl font-semibold">{weekRange}</h2>;
+}
 
 interface BookingCalendarContainerProps {
   status: BookingListingStatus;
@@ -51,13 +64,45 @@ function BookingCalendarInner({
   permissions,
   data,
   allowedFilterIds,
-  isPending,
   hasError,
   errorMessage,
 }: BookingCalendarInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
+
+  const goToPreviousWeek = () => {
+    setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
+  };
+
+  const goToNextWeek = () => {
+    setCurrentWeekStart(currentWeekStart.add(1, "week"));
+  };
+
+  const goToToday = () => {
+    setCurrentWeekStart(getWeekStart(dayjs(), userWeekStart));
+  };
+
+  const weekStart = currentWeekStart;
+  const weekEnd = currentWeekStart.add(6, "day");
+  const startMonth = weekStart.format("MMM");
+  const endMonth = weekEnd.format("MMM");
+  const year = weekEnd.format("YYYY");
+
+  const weekRange =
+    startMonth === endMonth ? (
+      <>
+        <span className="text-emphasis">{`${startMonth} ${weekStart.format("D")} - ${weekEnd.format(
+          "D"
+        )}`}</span>
+        <span className="text-muted">, {year}</span>
+      </>
+    ) : (
+      <>
+        <span className="text-emphasis">{`${weekStart.format("MMM D")} - ${weekEnd.format("MMM D")}`}</span>
+        <span className="text-muted">, {year}</span>
+      </>
+    );
 
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
@@ -95,10 +140,24 @@ function BookingCalendarInner({
     <>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <CurrentWeek weekRange={weekRange} />
           {allowedFilterIds.length > 0 && <DataTableFilters.FilterBar table={table} />}
         </div>
 
         <div className="flex items-center gap-2">
+          <Button color="secondary" onClick={goToToday} className="capitalize" size="sm">
+            {t("today")}
+          </Button>
+          <ButtonGroup combined>
+            <Button size="sm" color="secondary" onClick={goToPreviousWeek}>
+              <span className="sr-only">{t("view_previous_week")}</span>
+              <Icon name="chevron-left" className="h-4 w-4" />
+            </Button>
+            <Button size="sm" color="secondary" onClick={goToNextWeek}>
+              <span className="sr-only">{t("view_next_week")}</span>
+              <Icon name="chevron-right" className="h-4 w-4" />
+            </Button>
+          </ButtonGroup>
           <ViewToggleButton />
         </div>
       </div>
@@ -109,8 +168,6 @@ function BookingCalendarInner({
           bookings={bookings}
           currentWeekStart={currentWeekStart}
           onWeekStartChange={setCurrentWeekStart}
-          isPending={isPending}
-          userWeekStart={userWeekStart}
         />
       )}
 
