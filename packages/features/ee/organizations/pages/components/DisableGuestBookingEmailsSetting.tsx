@@ -172,21 +172,16 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
                     ? "disable_all_guest_booking_emails_confirm_title"
                     : "enable_all_guest_booking_emails_confirm_title"
                 )
-              : t(
-                  dialogAction === "disable"
-                    ? "disable_individual_guest_email_confirm_title"
-                    : "enable_individual_guest_email_confirm_title",
-                  { emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "" }
-                )
+              : t("disable_individual_guest_email_confirm_title", {
+                  emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "",
+                })
           }
           confirmBtnText={t(
             dialogMode === "all"
               ? dialogAction === "disable"
                 ? "disable_all"
                 : "enable_all"
-              : dialogAction === "disable"
-                ? "disable_email"
-                : "enable_email"
+              : "disable_email"
           )}
           onConfirm={() => {
             if (dialogMode === "all") {
@@ -203,12 +198,9 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
                     ? "disable_all_guest_booking_emails_confirm_description"
                     : "enable_all_guest_booking_emails_confirm_description"
                 )
-              : t(
-                  dialogAction === "disable"
-                    ? "disable_individual_guest_email_confirm_description"
-                    : "enable_individual_guest_email_confirm_description",
-                  { emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "" }
-                )}
+              : t("disable_individual_guest_email_confirm_description", {
+                  emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "",
+                })}
           </p>
         </ConfirmationDialogContent>
       </Dialog>

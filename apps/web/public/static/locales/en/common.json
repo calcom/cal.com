@@ -3929,6 +3929,8 @@
   "disable_all_guest_booking_emails_confirm_description": "This will prevent guests from receiving important booking updates across all event types in your organization. We recommend setting up custom org-wide workflow.",
   "enable_all_guest_booking_emails_confirm_title": "Are you sure you want to enable all booking emails?",
   "enable_all_guest_booking_emails_confirm_description": "This will allow guests to receive all booking-related email notifications across all event types in your organization.",
+  "disable_individual_guest_email_confirm_title": "Are you sure you want to disable {{emailType}} emails?",
+  "disable_individual_guest_email_confirm_description": "This will prevent guests from receiving {{emailType}} emails across all event types in your organization. We recommend setting up a custom org-wide Workflow for this.",
   "email_type": "Email Type",
   "guest_confirmation_email_description": "Email sent when booking is created",
   "guest_cancellation_email_description": "Email sent when booking is cancelled",
