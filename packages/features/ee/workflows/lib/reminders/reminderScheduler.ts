@@ -1,4 +1,3 @@
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
@@ -22,18 +21,9 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type { FormSubmissionData } from "../types";
 import type { BookingInfo } from "./smsReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
-
-export type FormSubmissionData = {
-  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-  routedEventTypeId: number | null;
-  user: {
-    email: string;
-    timeFormat: number | null;
-    locale: string;
-  };
-};
 
 export type WorkflowContextData =
   | { evt: BookingInfo; formData?: never }
