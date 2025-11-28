@@ -27,6 +27,10 @@
     {
       "path": "/api/cron/selected-calendars",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-pending-guests",
+      "schedule": "0 */6 * * *"
     }
   ],
   "functions": {

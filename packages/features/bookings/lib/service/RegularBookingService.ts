@@ -124,6 +124,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validat
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
+import { createPendingGuestsAndSendEmails } from "../handlePendingGuests";
 
 const translator = short();
 
@@ -1226,6 +1227,7 @@ async function handler(
   }
 
   const guestsRemoved: string[] = [];
+  const guestsToVerify: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
 
@@ -1235,7 +1237,7 @@ async function handler(
     }
 
     if (emailToRequiresVerification.get(baseGuestEmail)) {
-      guestsRemoved.push(guest);
+      guestsToVerify.push(baseGuestEmail);
       return guestArray;
     }
 
@@ -2607,6 +2609,25 @@ async function handler(
       },
       isTeamEventType,
     });
+
+    // Send verification emails to pending guests
+    if (guestsToVerify.length > 0 && booking) {
+      try {
+        await createPendingGuestsAndSendEmails({
+          guestsToVerify,
+          booking: {
+            id: booking.id,
+            uid: booking.uid,
+            title: booking.title,
+            startTime: booking.startTime,
+          },
+          bookerUrl,
+        });
+        log.info("Sent verification emails to pending guests", { count: guestsToVerify.length });
+      } catch (error) {
+        log.error("Error sending verification emails to pending guests", error);
+      }
+    }
   }
 
   // TODO: Refactor better so this booking object is not passed

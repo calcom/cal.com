@@ -872,6 +872,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  pendingGuests                PendingGuest[]
 
   // @@partial_index([reassignById])
 
@@ -2893,4 +2894,20 @@ model CalendarCacheEvent {
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
+}
+
+model PendingGuest {
+  id        String   @id @default(uuid())
+  email     String
+  bookingId Int
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, bookingId])
+  @@index([email])
+  @@index([bookingId])
+  @@index([expiresAt])
 }
