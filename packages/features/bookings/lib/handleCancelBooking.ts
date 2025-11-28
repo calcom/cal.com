@@ -109,8 +109,26 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  const isCancellationUserHost =
-    bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
+  let isCancellationUserHost = false;
+  if (userId) {
+    if (bookingToDelete.userId === userId) {
+      isCancellationUserHost = true;
+    }
+    else if (bookingToDelete.eventType?.hosts?.some((host) => host.user.id === userId)) {
+      isCancellationUserHost = true;
+    }
+    else if (bookingToDelete.eventType?.owner?.id === userId) {
+      isCancellationUserHost = true;
+    }
+    else if (
+      await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+        userId,
+        bookingToDelete.userId
+      )
+    ) {
+      isCancellationUserHost = true;
+    }
+  }
 
   // Only the host can cancel the booking even when the cancellation is disabled for the event
   if (!isCancellationUserHost && bookingToDelete.eventType?.disableCancelling) {
@@ -293,17 +311,17 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
+      team: {
+        name: bookingToDelete?.eventType?.team?.name || "Nameless",
+        members: teamMembers,
+        id: teamId,
+      },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -617,7 +635,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) {}
+  constructor(private readonly deps: BookingCancelServiceDependencies) { }
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
