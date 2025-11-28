@@ -74,4 +74,28 @@ export class WorkflowReminderRepository {
       },
     });
   }
+
+  static async create({
+    bookingUid,
+    workflowStepId,
+    method,
+    scheduledDate,
+    scheduled,
+  }: {
+    bookingUid: string;
+    workflowStepId: number;
+    method: WorkflowMethods;
+    scheduledDate: Date;
+    scheduled: boolean;
+  }) {
+    return prisma.workflowReminder.create({
+      data: {
+        bookingUid,
+        workflowStepId,
+        method,
+        scheduledDate,
+        scheduled,
+      },
+    });
+  }
 }
