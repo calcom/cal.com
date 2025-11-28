@@ -12,9 +12,6 @@ import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
-import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -121,6 +118,10 @@ const processWorkflowStep = async (
     step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
     const { scheduleEmailReminder } = await import("./emailReminderManager");
+    if (!evt && step.action === WorkflowActions.EMAIL_HOST) {
+      // EMAIL_HOST is not supported for form triggers
+      return;
+    }
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
     const bookingSeatRepository = new BookingSeatRepository(prisma);
     const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
