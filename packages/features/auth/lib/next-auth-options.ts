@@ -1044,6 +1044,11 @@ export const getOptions = ({
                   create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
                 },
               }),
+              // Mark OAuth-created users as having completed onboarding when
+              // the identity provider supplied a name and email. This prevents
+              // immediately redirecting them to the profile completion flow
+              // when their profile is already populated by the IdP.
+              completedOnboarding: true,
               creationSource: CreationSource.WEBAPP,
             },
           });
