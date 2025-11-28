@@ -1,8 +1,7 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { BookingRepository } from "../repositories/BookingRepository";
 
@@ -10,11 +9,9 @@ type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["f
 
 export class BookingAccessService {
   private permissionCheckService: PermissionCheckService;
-  private featuresRepository: FeaturesRepository;
 
   constructor(private prismaClient: PrismaClient) {
     this.permissionCheckService = new PermissionCheckService();
-    this.featuresRepository = new FeaturesRepository(prismaClient);
   }
 
   private isUserAHost(userId: number, booking: BookingForAccessCheck): boolean {
@@ -74,25 +71,14 @@ export class BookingAccessService {
     // Case 3: If booking has a teamId, check if user has access to team bookings
     if (booking.eventType?.teamId) {
       const teamId = booking.eventType.teamId;
-      const hasPbacEnabled = await this.featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
 
-      if (hasPbacEnabled) {
-        // Use PBAC permission check
-        const hasAccess = await this.permissionCheckService.checkPermission({
-          userId,
-          teamId,
-          permission: "booking.readTeamBookings",
-          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        });
-        return hasAccess;
-      } else {
-        // Use legacy role check
-        const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
-          userId,
-          teamId,
-        });
-        return isAdminOrUser;
-      }
+      const hasAccess = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId,
+        permission: "booking.readTeamBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      return hasAccess;
     }
 
     if (!booking.userId) return false;
@@ -104,49 +90,27 @@ export class BookingAccessService {
     // Case 4: Check if user is admin of booking organizer's organization
     if (bookingOwner.organizationId) {
       const orgId = bookingOwner.organizationId;
-      const hasPbacEnabled = await this.featuresRepository.checkIfTeamHasFeature(orgId, "pbac");
 
-      if (hasPbacEnabled) {
-        // Use PBAC permission check for org bookings
-        const hasAccess = await this.permissionCheckService.checkPermission({
-          userId,
-          teamId: orgId,
-          permission: "booking.readOrgBookings",
-          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        });
-        if (hasAccess) return true;
-      } else {
-        // Use legacy role check
-        const isOrgAdmin = await userRepo.isAdminOfTeamOrParentOrg({
-          userId,
-          teamId: orgId,
-        });
-        if (isOrgAdmin) return true;
-      }
+      const hasAccess = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId: orgId,
+        permission: "booking.readOrgBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      if (hasAccess) return true;
     }
 
     // Case 5: Check if user is admin of any team the booking organizer belongs to
     for (const membership of bookingOwner.teams) {
       const teamId = membership.teamId;
-      const hasPbacEnabled = await this.featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
 
-      if (hasPbacEnabled) {
-        // Use PBAC permission check
-        const hasAccess = await this.permissionCheckService.checkPermission({
-          userId,
-          teamId,
-          permission: "booking.readTeamBookings",
-          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        });
-        if (hasAccess) return true;
-      } else {
-        // Use legacy role check
-        const isTeamAdmin = await userRepo.isAdminOfTeamOrParentOrg({
-          userId,
-          teamId,
-        });
-        if (isTeamAdmin) return true;
-      }
+      const hasAccess = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId,
+        permission: "booking.readTeamBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      if (hasAccess) return true;
     }
 
     return false;

@@ -21,20 +21,18 @@ export class BookingPbacGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
-    const user = request.user as ApiAuthGuardUser;
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: ApiAuthGuardUser; pbacAuthorizedRequest?: boolean }>();
+    const user = request.user;
     const bookingUid = request.params.bookingUid;
 
     if (!user) {
-      throw new UnauthorizedException(
-        "BookingPbacGuard - the request does not have an authorized user provided"
-      );
+      throw new UnauthorizedException();
     }
 
     if (!bookingUid) {
-      throw new BadRequestException(
-        "BookingPbacGuard - bookingUid is required in the request URL parameters"
-      );
+      throw new BadRequestException("BookingPbacGuard - bookingUid is required");
     }
 
     const hasAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
