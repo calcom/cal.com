@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
@@ -20,6 +21,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
@@ -552,7 +554,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees and seat references
+    // 2. Get all bookings with their attendees, seat references, and responses
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -579,10 +581,16 @@ export class InsightsBookingBaseService {
             },
           },
         },
+        responses: true,
+        eventType: {
+          select: {
+            bookingFields: true,
+          },
+        },
       },
     });
 
-    // 3. Create booking map with attendee data (matching original logic)
+    // 3. Create booking map with attendee data and custom responses (matching original logic)
     const bookingMap = new Map(
       bookings.map((booking) => {
         const attendeeList =
@@ -603,7 +611,35 @@ export class InsightsBookingBaseService {
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
+        // Parse custom question responses
+        const customResponses: Record<string, unknown> = {};
+        if (booking.responses && typeof booking.responses === "object") {
+          const responses = booking.responses as Record<string, unknown>;
+          const bookingFields =
+            booking.eventType?.bookingFields &&
+            eventTypeBookingFields.safeParse(booking.eventType.bookingFields).success
+              ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
+              : null;
+
+          // Filter responses to only include custom questions (not system fields)
+          Object.entries(responses).forEach(([fieldName, answer]) => {
+            if (shouldShowFieldInCustomResponses(fieldName) && answer) {
+              // Skip empty arrays
+              if (Array.isArray(answer) && answer.length === 0) return;
+
+              // Get field label from bookingFields if available
+              const field = bookingFields?.find((f) => f.name === fieldName);
+              const fieldLabel = field?.label || fieldName;
+
+              customResponses[fieldLabel] = answer;
+            }
+          });
+        }
+
+        return [
+          booking.uid,
+          { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount, customResponses },
+        ];
       })
     );
 
@@ -613,7 +649,13 @@ export class InsightsBookingBaseService {
       0
     );
 
-    // 5. Create final booking map with attendee fields
+    // 4b. Collect all unique custom response field labels
+    const allCustomResponseLabels = new Set<string>();
+    Array.from(bookingMap.values()).forEach((data) => {
+      Object.keys(data.customResponses).forEach((label) => allCustomResponseLabels.add(label));
+    });
+
+    // 5. Create final booking map with attendee fields and custom responses
     const finalBookingMap = new Map(
       Array.from(bookingMap.entries()).map(([uid, data]) => {
         const attendeeFields: Record<string, string | null> = {};
@@ -622,12 +664,20 @@ export class InsightsBookingBaseService {
           attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
         }
 
+        // Add custom response fields
+        const customResponseFields: Record<string, string | null> = {};
+        allCustomResponseLabels.forEach((label) => {
+          const value = data.customResponses[label];
+          customResponseFields[label] = value !== undefined ? String(value) : null;
+        });
+
         return [
           uid,
           {
             noShowGuests: data.noShowGuests,
             noShowGuestsCount: data.noShowGuestsCount,
             ...attendeeFields,
+            ...customResponseFields,
           },
         ];
       })
@@ -654,12 +704,18 @@ export class InsightsBookingBaseService {
           nullAttendeeFields[`attendee${i}`] = null;
         }
 
+        const nullCustomResponseFields: Record<string, null> = {};
+        allCustomResponseLabels.forEach((label) => {
+          nullCustomResponseFields[label] = null;
+        });
+
         return {
           ...bookingTimeStatus,
           ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
+          ...nullCustomResponseFields,
         };
       }
 
@@ -671,21 +727,39 @@ export class InsightsBookingBaseService {
           nullAttendeeFields[`attendee${i}`] = null;
         }
 
+        const nullCustomResponseFields: Record<string, null> = {};
+        allCustomResponseLabels.forEach((label) => {
+          nullCustomResponseFields[label] = null;
+        });
+
         return {
           ...bookingTimeStatus,
           ...dateAndTime,
           noShowGuests: null,
           noShowGuestsCount: 0,
           ...nullAttendeeFields,
+          ...nullCustomResponseFields,
         };
       }
+
+      // Separate attendee fields from custom response fields
+      const attendeeFields = Object.fromEntries(
+        Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))
+      );
+      const customResponseFields = Object.fromEntries(
+        Object.entries(attendeeData).filter(
+          ([key]) =>
+            !key.startsWith("attendee") && key !== "noShowGuests" && key !== "noShowGuestsCount"
+        )
+      );
 
       return {
         ...bookingTimeStatus,
         ...dateAndTime,
         noShowGuests: attendeeData.noShowGuests,
         noShowGuestsCount: attendeeData.noShowGuestsCount,
-        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
+        ...attendeeFields,
+        ...customResponseFields,
       };
     });
 
