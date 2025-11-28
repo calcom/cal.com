@@ -18,7 +18,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   unconfirmed: "unconfirmed_bookings",
 };
 
-type BookingsListViewProps = {
+type BookingListViewProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
   isPending: boolean;
@@ -27,14 +27,14 @@ type BookingsListViewProps = {
   hasError?: boolean;
 };
 
-export function BookingsList({
+export function BookingList({
   status,
   table,
   isPending,
   totalRowCount,
   ErrorView,
   hasError,
-}: BookingsListViewProps) {
+}: BookingListViewProps) {
   const { t } = useLocale();
 
   return (

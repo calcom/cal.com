@@ -19,8 +19,8 @@ import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filter
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus, BookingOutput, BookingsGetOutput } from "../types";
+import { BookingCalendar } from "./BookingCalendar";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
-import { BookingsCalendar } from "./BookingsCalendar";
 
 // For calendar view, fetch all statuses except cancelled
 const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
@@ -97,14 +97,14 @@ function useAllowedFilters({
   return allowedFilterIds;
 }
 
-interface BookingsCalendarContainerProps {
+interface BookingCalendarContainerProps {
   status: BookingListingStatus;
   permissions: {
     canReadOthersBookings: boolean;
   };
 }
 
-interface BookingsCalendarInnerProps extends BookingsCalendarContainerProps {
+interface BookingCalendarInnerProps extends BookingCalendarContainerProps {
   data?: {
     bookings: BookingsGetOutput["bookings"];
     recurringInfo: BookingsGetOutput["recurringInfo"];
@@ -116,7 +116,7 @@ interface BookingsCalendarInnerProps extends BookingsCalendarContainerProps {
   errorMessage?: string;
 }
 
-function BookingsCalendarInner({
+function BookingCalendarInner({
   status,
   permissions,
   data,
@@ -124,7 +124,7 @@ function BookingsCalendarInner({
   isPending,
   hasError,
   errorMessage,
-}: BookingsCalendarInnerProps) {
+}: BookingCalendarInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
@@ -224,7 +224,7 @@ function BookingsCalendarInner({
 
   return (
     <>
-      <BookingsCalendar
+      <BookingCalendar
         status={status}
         table={table}
         showFilterBar={allowedFilterIds.length > 0}
@@ -247,7 +247,7 @@ function BookingsCalendarInner({
   );
 }
 
-export function BookingsCalendarContainer(props: BookingsCalendarContainerProps) {
+export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
   const { userIds } = useBookingFilters();
   const { currentWeekStart } = useCurrentWeekStart();
@@ -301,7 +301,7 @@ export function BookingsCalendarContainer(props: BookingsCalendarContainerProps)
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
-      <BookingsCalendarInner
+      <BookingCalendarInner
         {...props}
         data={data}
         allowedFilterIds={allowedFilterIds}

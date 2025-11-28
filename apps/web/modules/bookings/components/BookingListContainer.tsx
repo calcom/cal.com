@@ -32,10 +32,10 @@ import {
 } from "../store/bookingDetailsSheetStore";
 import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
-import { BookingsList } from "./BookingsList";
+import { BookingList } from "./BookingList";
 import { ViewToggleButton } from "./ViewToggleButton";
 
-interface BookingsListContainerProps {
+interface BookingListContainerProps {
   status: BookingListingStatus;
   permissions: {
     canReadOthersBookings: boolean;
@@ -43,7 +43,7 @@ interface BookingsListContainerProps {
   bookingsV3Enabled: boolean;
 }
 
-interface BookingsListInnerProps extends BookingsListContainerProps {
+interface BookingListInnerProps extends BookingListContainerProps {
   data?: BookingsGetOutput;
   isPending: boolean;
   hasError: boolean;
@@ -51,7 +51,7 @@ interface BookingsListInnerProps extends BookingsListContainerProps {
   totalRowCount?: number;
 }
 
-function BookingsListInner({
+function BookingListInner({
   status,
   permissions,
   bookingsV3Enabled,
@@ -60,7 +60,7 @@ function BookingsListInner({
   hasError,
   errorMessage,
   totalRowCount,
-}: BookingsListInnerProps) {
+}: BookingListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
@@ -172,7 +172,7 @@ function BookingsListInner({
         <WipeMyCalActionButton className="mt-4" bookingStatus={status} bookingsEmpty={isEmpty} />
       )}
       <div className="mt-4">
-        <BookingsList
+        <BookingList
           status={status}
           table={table}
           isPending={isPending}
@@ -194,7 +194,7 @@ function BookingsListInner({
   );
 }
 
-export function BookingsListContainer(props: BookingsListContainerProps) {
+export function BookingListContainer(props: BookingListContainerProps) {
   const { limit, offset } = useDataTable();
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
@@ -227,7 +227,7 @@ export function BookingsListContainer(props: BookingsListContainerProps) {
 
   return (
     <BookingDetailsSheetStoreProvider bookings={bookings}>
-      <BookingsListInner
+      <BookingListInner
         {...props}
         data={query.data}
         isPending={query.isPending}

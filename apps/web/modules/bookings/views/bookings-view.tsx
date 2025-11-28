@@ -10,13 +10,13 @@ import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
-import { BookingsListContainer } from "../components/BookingsListContainer";
+import { BookingListContainer } from "../components/BookingListContainer";
 import type { validStatuses } from "../lib/validStatuses";
 import { viewParser } from "../lib/viewParser";
 
-const BookingsCalendarContainer = dynamic(() =>
-  import("../components/BookingsCalendarContainer").then((mod) => ({
-    default: mod.BookingsCalendarContainer,
+const BookingCalendarContainer = dynamic(() =>
+  import("../components/BookingCalendarContainer").then((mod) => ({
+    default: mod.BookingCalendarContainer,
   }))
 );
 
@@ -76,14 +76,14 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
       {view === "list" && (
-        <BookingsListContainer
+        <BookingListContainer
           status={status}
           permissions={permissions}
           bookingsV3Enabled={bookingsV3Enabled}
         />
       )}
       {bookingsV3Enabled && view === "calendar" && (
-        <BookingsCalendarContainer status={status} permissions={permissions} />
+        <BookingCalendarContainer status={status} permissions={permissions} />
       )}
     </div>
   );

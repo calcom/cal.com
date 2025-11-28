@@ -16,7 +16,7 @@ import { getWeekStart } from "../lib/weekUtils";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 
-type BookingsCalendarViewProps = {
+type BookingCalendarViewProps = {
   bookings: BookingOutput[];
   currentWeekStart: dayjs.Dayjs;
   onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
@@ -24,13 +24,13 @@ type BookingsCalendarViewProps = {
   userWeekStart?: number;
 };
 
-export function BookingsCalendarView({
+export function BookingCalendarView({
   bookings,
   currentWeekStart,
   onWeekStartChange,
   isPending = false,
   userWeekStart = 0,
-}: BookingsCalendarViewProps) {
+}: BookingCalendarViewProps) {
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const { t } = useLocale();
   const { timezone } = useTimePreferences();

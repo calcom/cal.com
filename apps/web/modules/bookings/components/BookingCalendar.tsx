@@ -6,10 +6,10 @@ import dayjs from "@calcom/dayjs";
 import { DataTableFilters } from "@calcom/features/data-table";
 
 import type { RowData, BookingListingStatus, BookingOutput } from "../types";
-import { BookingsCalendarView } from "./BookingsCalendarView";
+import { BookingCalendarView } from "./BookingCalendarView";
 import { ViewToggleButton } from "./ViewToggleButton";
 
-type BookingsCalendarProps = {
+type BookingCalendarProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
   showFilterBar: boolean;
@@ -24,7 +24,7 @@ type BookingsCalendarProps = {
   userWeekStart?: number;
 };
 
-export function BookingsCalendar({
+export function BookingCalendar({
   table,
   showFilterBar,
   isPending = false,
@@ -34,7 +34,7 @@ export function BookingsCalendar({
   ErrorView,
   hasError,
   userWeekStart = 0,
-}: BookingsCalendarProps) {
+}: BookingCalendarProps) {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
@@ -49,7 +49,7 @@ export function BookingsCalendar({
       {hasError && ErrorView ? (
         ErrorView
       ) : (
-        <BookingsCalendarView
+        <BookingCalendarView
           bookings={bookings}
           currentWeekStart={currentWeekStart}
           onWeekStartChange={setCurrentWeekStart}
