@@ -143,10 +143,15 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  // Clean up all test bookings by finding them first
+  // Clean up all test bookings, including those created by reassignment
+  // We query by eventTypeId to catch both original bookings and reassignment-created bookings
   const testBookings = await prisma.booking.findMany({
     where: {
-      uid: { startsWith: "test-booking-" },
+      OR: [
+        { uid: { startsWith: "test-booking-" } },
+        { eventTypeId: { in: eventTypeIds } },
+        { userId: { in: userIds } },
+      ],
     },
     select: { id: true },
   });

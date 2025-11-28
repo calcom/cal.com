@@ -1498,7 +1498,6 @@ export class BookingRepository {
             delegationCredentialId: true,
           },
         },
-        eventType: true,
         workflowReminders: {
           select: {
             id: true,

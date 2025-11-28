@@ -442,11 +442,14 @@ export class ManagedEventManualReassignmentService {
     let bookingLocation = originalBookingFull.location || newBooking.location || null;
     let conferenceCredentialId: number | null = null;
 
+    const isManagedEventType = !!targetEventTypeDetails.parentId;
+    const isTeamEventType = !!targetEventTypeDetails.team;
+
     const locationResult = BookingLocationService.getLocationForHost({
       hostMetadata: newUser.metadata,
       eventTypeLocations: targetEventTypeDetails.locations || [],
-      isManagedEventType: false,
-      isTeamEventType: !!targetEventTypeDetails.team,
+      isManagedEventType,
+      isTeamEventType,
     });
 
     bookingLocation = locationResult.bookingLocation;
