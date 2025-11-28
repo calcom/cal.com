@@ -5,7 +5,6 @@ import { v5 as uuidv5 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
-  CreateBookingMeta,
   InstantBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
@@ -14,7 +13,6 @@ import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/g
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { createInstantMeetingWithCalVideo } from "@calcom/features/conferencing/lib/videoClient";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
@@ -24,18 +22,14 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
-import { createInstantBookingWithReservedSlot } from "../handleNewBooking/createInstantBookingWithReservedSlot";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
-  selectedSlotsRepository: PrismaSelectedSlotRepository;
-  bookingRepository: BookingRepository;
 }
 
 const handleInstantMeetingWebhookTrigger = async (args: {
@@ -169,8 +163,7 @@ const triggerBrowserNotifications = async (args: {
 
 export async function handler(
   bookingData: CreateInstantBookingData,
-  deps: IInstantBookingCreateServiceDependencies,
-  bookingMeta?: CreateBookingMeta
+  deps: IInstantBookingCreateServiceDependencies
 ) {
   // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
   const { prismaClient: prisma } = deps;
@@ -199,8 +192,6 @@ export async function handler(
   const translator = short();
   const seed = `${reqBody.email}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  const bookingStartUtc = new Date(dayjs(reqBody.start).utc().format());
-  const bookingEndUtc = new Date(dayjs(reqBody.end).utc().format());
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const attendeeTimezone = reqBody.timeZone;
@@ -282,18 +273,7 @@ export async function handler(
     data: newBookingData,
   };
 
-  const newBooking = await (async () => {
-    if (bookingMeta?.reservedSlotUid) {
-      const reservedSlot = {
-        eventTypeId: reqBody.eventTypeId,
-        slotUtcStart: bookingStartUtc,
-        slotUtcEnd: bookingEndUtc,
-        reservedSlotUid: bookingMeta.reservedSlotUid,
-      };
-      return createInstantBookingWithReservedSlot(deps, createBookingObj, reservedSlot);
-    }
-    return deps.bookingRepository.create(createBookingObj);
-  })();
+  const newBooking = await prisma.booking.create(createBookingObj);
 
   // Create Instant Meeting Token
 
@@ -371,10 +351,7 @@ export async function handler(
 export class InstantBookingCreateService implements IBookingCreateService {
   constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
 
-  async createBooking(input: {
-    bookingData: CreateInstantBookingData;
-    bookingMeta?: CreateBookingMeta;
-  }): Promise<InstantBookingCreateResult> {
-    return handler(input.bookingData, this.deps, input.bookingMeta);
+  async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
+    return handler(input.bookingData, this.deps);
   }
 }

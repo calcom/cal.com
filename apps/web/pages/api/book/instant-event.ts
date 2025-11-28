@@ -7,7 +7,6 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-import { getReservedSlotUidFromRequest } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
@@ -22,14 +21,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   req.body.creationSource = CreationSource.WEBAPP;
 
   const instantBookingService = getInstantBookingCreateService();
-  const reservedSlotUid = getReservedSlotUidFromRequest(req);
   // Even though req.body is any type, createBooking validates the schema on run-time.
   // TODO: We should do the run-time schema validation here and pass a typed bookingData instead and then run-time schema could be removed from createBooking. Then we can remove the any type from req.body.
   const booking = await instantBookingService.createBooking({
     bookingData: req.body,
-    bookingMeta: {
-      reservedSlotUid,
-    },
   });
 
   return booking;
