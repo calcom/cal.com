@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
@@ -202,10 +203,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-            ? ColumnFilterType.TEXT
-            : isSingleSelect
-            ? ColumnFilterType.SINGLE_SELECT
-            : ColumnFilterType.MULTI_SELECT;
+              ? ColumnFilterType.TEXT
+              : isSingleSelect
+                ? ColumnFilterType.SINGLE_SELECT
+                : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -685,14 +686,15 @@ function UserListTableContent({
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",
                     payload: {
                       showModal: true,
                     },
-                  })
-                }
+                  });
+                  posthog.capture("add_organization_member_clicked")
+                }}
                 data-testid="new-organization-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>

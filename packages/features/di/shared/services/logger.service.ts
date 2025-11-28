@@ -1,7 +1,10 @@
-import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
+import { createModule } from "@evyweb/ioctopus";
 import { Logger } from "tslog";
-import { SHARED_TOKENS } from "../shared.tokens";
+
+import { bindModuleToClassOnToken, type ModuleLoader } from "@calcom/features/di/di";
 import { loggerConfig } from "@calcom/lib/logger";
+
+import { SHARED_TOKENS } from "../shared.tokens";
 
 /**
  * Minimal logger interface that supports common logging methods.
@@ -32,7 +35,6 @@ const loadModule = bindModuleToClassOnToken({
 });
 
 export const moduleLoader = {
-  token,
+  token: SHARED_TOKENS.LOGGER,
   loadModule,
-};
-
+} satisfies ModuleLoader;
