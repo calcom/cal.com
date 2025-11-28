@@ -10,10 +10,13 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@coss/ui/components",
-    "utils": "@coss/ui/lib/utils",
-    "hooks": "@coss/ui/hooks",
-    "lib": "@coss/ui/lib",
-    "ui": "@coss/ui/components"
+    "components": "components",
+    "utils": "lib/utils",
+    "ui": "components",
+    "lib": "lib",
+    "hooks": "hooks"
+  },
+  "registries": {
+    "@coss": "https://coss.com/ui/r/{name}.json"
   }
 }

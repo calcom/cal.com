@@ -8,9 +8,9 @@
     "./lib/*": "./lib/*.ts"
   },
   "dependencies": {
-    "@base-ui-components/react": "^1.0.0-beta.4",
+    "@base-ui-components/react": "^1.0.0-beta.7",
     "class-variance-authority": "^0.4.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.4.0"
   }
 }
