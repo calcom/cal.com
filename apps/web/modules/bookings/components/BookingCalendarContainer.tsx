@@ -28,17 +28,10 @@ import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types"
 import { BookingCalendarView } from "./BookingCalendarView";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { ViewToggleButton } from "./ViewToggleButton";
+import { WeekPicker } from "./WeekPicker";
 
 // For calendar view, fetch all statuses except cancelled
 const STATUSES: BookingListingStatus[] = ["upcoming", "unconfirmed", "recurring", "past"];
-
-interface CurrentWeekProps {
-  weekRange: React.ReactNode;
-}
-
-function CurrentWeek({ weekRange }: CurrentWeekProps) {
-  return <h2 className="text-xl font-semibold">{weekRange}</h2>;
-}
 
 interface BookingCalendarContainerProps {
   status: BookingListingStatus;
@@ -83,27 +76,6 @@ function BookingCalendarInner({
     setCurrentWeekStart(getWeekStart(dayjs(), userWeekStart));
   };
 
-  const weekStart = currentWeekStart;
-  const weekEnd = currentWeekStart.add(6, "day");
-  const startMonth = weekStart.format("MMM");
-  const endMonth = weekEnd.format("MMM");
-  const year = weekEnd.format("YYYY");
-
-  const weekRange =
-    startMonth === endMonth ? (
-      <>
-        <span className="text-emphasis">{`${startMonth} ${weekStart.format("D")} - ${weekEnd.format(
-          "D"
-        )}`}</span>
-        <span className="text-muted">, {year}</span>
-      </>
-    ) : (
-      <>
-        <span className="text-emphasis">{`${weekStart.format("MMM D")} - ${weekEnd.format("MMM D")}`}</span>
-        <span className="text-muted">, {year}</span>
-      </>
-    );
-
   const ErrorView = errorMessage ? (
     <Alert severity="error" title={t("something_went_wrong")} message={errorMessage} />
   ) : undefined;
@@ -140,7 +112,11 @@ function BookingCalendarInner({
     <>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <CurrentWeek weekRange={weekRange} />
+          <WeekPicker
+            currentWeekStart={currentWeekStart}
+            userWeekStart={userWeekStart}
+            onDateChange={setCurrentWeekStart}
+          />
           {allowedFilterIds.length > 0 && <DataTableFilters.FilterBar table={table} />}
         </div>
 
