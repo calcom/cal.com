@@ -2,6 +2,7 @@ import type { EventStatus } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -21,7 +22,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
-import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
@@ -74,7 +75,7 @@ type SendEmailReminderParams = {
   };
   sendTo: string[];
   triggerEvent: WorkflowTriggerEvents;
-  scheduledDate?: dayjs.Dayjs | null;
+  scheduledDate?: Date | null;
   uid?: string;
   workflowStepId?: number;
   seatReferenceUid?: string;
@@ -90,7 +91,7 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
         bookingUid: uid,
         workflowStepId,
         method: WorkflowMethods.EMAIL,
-        scheduledDate: scheduledDate.toDate(),
+        scheduledDate,
         scheduled: true,
       },
     });
@@ -100,7 +101,7 @@ const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminder
   await sendOrScheduleWorkflowEmails({
     ...mailData,
     to: sendTo,
-    sendAt: scheduledDate?.toDate(),
+    sendAt: scheduledDate,
     referenceUid: reminderUid ?? undefined,
   });
 };
@@ -138,15 +139,13 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
-  const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
 
-  let scheduledDate = null;
-
-  if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
-    scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
-  } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
-    scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
-  }
+  const scheduledDate = WorkflowService.processWorkflowScheduledDate({
+    workflowTriggerEvent: triggerEvent,
+    time: timeSpan.time,
+    timeUnit: timeSpan.timeUnit,
+    evt,
+  });
 
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
   let name = "";
