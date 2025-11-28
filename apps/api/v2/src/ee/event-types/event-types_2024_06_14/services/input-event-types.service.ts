@@ -93,7 +93,7 @@ export class InputEventTypesService_2024_06_14 {
 
     await this.validateEventTypeInputs({
       eventTypeId: eventTypeId,
-      seatsPerTimeSlot: "seatsPerTimeSlot" in transformedBody ? transformedBody.seatsPerTimeSlot : undefined,
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
@@ -252,7 +252,7 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmationWillBlockSlot:
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
       eventTypeColor: this.transformInputEventTypeColor(color),
-      ...(seats !== undefined ? this.transformInputSeatOptions(seats) : {}),
+      ...(seats ? this.transformInputSeatOptions(seats) : { seatsPerTimeSlot: undefined }),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,

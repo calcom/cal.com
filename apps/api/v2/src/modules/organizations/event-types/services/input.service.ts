@@ -85,7 +85,7 @@ export class InputOrganizationsEventTypesService {
 
     await this.inputEventTypesService.validateEventTypeInputs({
       eventTypeId: eventTypeId,
-      seatsPerTimeSlot: "seatsPerTimeSlot" in transformedBody ? transformedBody.seatsPerTimeSlot : undefined,
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
