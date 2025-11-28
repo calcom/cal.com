@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
@@ -73,6 +72,7 @@ export class EmailWorkflowService {
       );
       emailAttendeeSendToOverride = seatAttendee?.attendee.email || null;
     }
+    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
     const creditService = new CreditService();
     const creditCheckFn = creditService.hasAvailableCredits.bind(creditService);
 
