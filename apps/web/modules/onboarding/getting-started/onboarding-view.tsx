@@ -126,7 +126,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
             </div>
           }>
           {/* Card */}
-          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
+          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group
@@ -174,7 +174,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </OnboardingCard>
 
         {/* Right column - Icon display */}
-        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
+        <div className="bg-cal-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
           <AnimatePresence mode="wait">
             {selectedPlanData && (
               <PlanIcon
