@@ -46,13 +46,13 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
         <div className="bg-emphasis flex h-14 w-14 flex-col items-center justify-center rounded-full">
           <span className="m-auto text-center text-lg">{emoji}</span>
         </div>
-        <div className="stack-y-2 text-center">
+        <div className="stack-y-2 max-h-[300px] w-full overflow-y-auto text-center">
           <p className="mt-2 text-base font-bold">
             {t("ooo_user_is_ooo", { displayName: fromUser.displayName })}
           </p>
 
           {notes && showNotePublicly && (
-            <p className="text-subtle mt-2 text-center text-sm">
+            <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm">
               {t("ooo_message")}: <span className="italic">{notes}</span>
             </p>
           )}
