@@ -3,7 +3,19 @@ import type { TFunction } from "next-i18next";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
+import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
+import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
+import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
 import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
+import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
+import type { IAuditActionService } from "../actions/IAuditActionService";
+import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
+import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
+import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
+import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
+import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import type { IBookingAuditRepository, BookingAuditWithActor, BookingAuditAction, BookingAuditType } from "../repository/IBookingAuditRepository";
 
 interface BookingAuditViewerServiceDeps {
@@ -40,6 +52,17 @@ type EnrichedAuditLog = {
  */
 export class BookingAuditViewerService {
     private readonly createdActionService: CreatedAuditActionService;
+    private readonly acceptedActionService: AcceptedAuditActionService;
+    private readonly cancelledActionService: CancelledAuditActionService;
+    private readonly rejectedActionService: RejectedAuditActionService;
+    private readonly rescheduledActionService: RescheduledAuditActionService;
+    private readonly rescheduleRequestedActionService: RescheduleRequestedAuditActionService;
+    private readonly attendeeAddedActionService: AttendeeAddedAuditActionService;
+    private readonly attendeeRemovedActionService: AttendeeRemovedAuditActionService;
+    private readonly reassignmentActionService: ReassignmentAuditActionService;
+    private readonly locationChangedActionService: LocationChangedAuditActionService;
+    private readonly hostNoShowUpdatedActionService: HostNoShowUpdatedAuditActionService;
+    private readonly attendeeNoShowUpdatedActionService: AttendeeNoShowUpdatedAuditActionService;
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly userRepository: UserRepository;
 
@@ -48,6 +71,17 @@ export class BookingAuditViewerService {
         this.userRepository = deps.userRepository;
 
         this.createdActionService = new CreatedAuditActionService();
+        this.acceptedActionService = new AcceptedAuditActionService();
+        this.cancelledActionService = new CancelledAuditActionService();
+        this.rejectedActionService = new RejectedAuditActionService();
+        this.rescheduledActionService = new RescheduledAuditActionService();
+        this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService();
+        this.attendeeAddedActionService = new AttendeeAddedAuditActionService();
+        this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService();
+        this.reassignmentActionService = new ReassignmentAuditActionService();
+        this.locationChangedActionService = new LocationChangedAuditActionService();
+        this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
+        this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
     }
 
     /**
@@ -139,16 +173,36 @@ export class BookingAuditViewerService {
         audit: BookingAuditWithActor,
         t: TFunction
     ): { displaySummary: string; displayDetails: Record<string, string> } {
-        if (audit.action !== "CREATED") {
+        // Map action to corresponding service
+        const actionServiceMap: Record<BookingAuditAction, IAuditActionService<z.ZodTypeAny> | null> = {
+            CREATED: this.createdActionService,
+            ACCEPTED: this.acceptedActionService,
+            CANCELLED: this.cancelledActionService,
+            REJECTED: this.rejectedActionService,
+            RESCHEDULED: this.rescheduledActionService,
+            RESCHEDULE_REQUESTED: this.rescheduleRequestedActionService,
+            ATTENDEE_ADDED: this.attendeeAddedActionService,
+            ATTENDEE_REMOVED: this.attendeeRemovedActionService,
+            REASSIGNMENT: this.reassignmentActionService,
+            LOCATION_CHANGED: this.locationChangedActionService,
+            HOST_NO_SHOW_UPDATED: this.hostNoShowUpdatedActionService,
+            ATTENDEE_NO_SHOW_UPDATED: this.attendeeNoShowUpdatedActionService,
+            PENDING: null,
+            AWAITING_HOST: null,
+        };
+
+        const actionService = actionServiceMap[audit.action];
+
+        if (!actionService) {
             throw new Error(
-                `Action ${audit.action} is not supported. Only CREATED action is implemented. `
+                `No action service found for audit action: ${audit.action}. This indicates a missing implementation or invalid audit data.`
             );
         }
 
-        const data = this.createdActionService.parseStored(audit.data);
+        const data = actionService.parseStored(audit.data);
         return {
-            displaySummary: this.createdActionService.getDisplaySummary(data, t),
-            displayDetails: this.createdActionService.getDisplayDetails(data, t),
+            displaySummary: actionService.getDisplaySummary(data, t),
+            displayDetails: actionService.getDisplayDetails(data, t),
         };
     }
 }
