@@ -54,7 +54,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
-    responses: Prisma.JsonValue,
+    responses: Prisma.JsonValue
   ) {
     try {
       if (!this.credentials) {
@@ -119,8 +119,18 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
-      throw new Error(ErrorCode.PaymentCreationFailure);
+      if (error instanceof AxiosError) {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        log.error(
+          "Razorpay: Axios error while creating payment link",
+          bookingId,
+          safeStringify(error.response?.data)
+        );
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      } else {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      }
     }
   }
   async update(): Promise<Payment> {
