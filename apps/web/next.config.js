@@ -108,7 +108,8 @@ const informAboutDuplicateTranslations = () => {
   }
 };
 
-informAboutDuplicateTranslations();
+// informAboutDuplicateTranslations();
+
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
