@@ -647,7 +647,7 @@ export class UserAvailabilityService {
             toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
             reason: reason ? reason.reason : null,
             emoji: reason ? reason.emoji : null,
-            notes: notes || null,
+            notes: showNotePublicly ? notes || null : null,
             showNotePublicly: showNotePublicly ?? false,
           };
         }
