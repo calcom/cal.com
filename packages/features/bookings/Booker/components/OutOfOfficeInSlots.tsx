@@ -35,7 +35,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
 
   const router = useRouter();
 
-  if (!fromUser || !toUser) return null;
+  if (!fromUser) return null;
   return (
     <div className={classNames("relative h-full pb-5", className)}>
       <div
