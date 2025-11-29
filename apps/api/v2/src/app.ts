@@ -6,7 +6,7 @@ import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
+import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as cookieParser from "cookie-parser";
 import { Request } from "express";
@@ -72,20 +72,18 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-    // Exception filters, new filters go at the bottom, keep the order
-    const { httpAdapter: _httpAdapter } = app.get(HttpAdapterHost);
-    app.useGlobalFilters(new PrismaExceptionFilter());
-    app.useGlobalFilters(new ZodExceptionFilter());
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalFilters(new TRPCExceptionFilter());
-    app.useGlobalFilters(new CalendarServiceExceptionFilter());
-    app.useGlobalFilters(new ErrorWithCodeExceptionFilter());
+  // Exception filters, new filters go at the bottom, keep the order
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(new ZodExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new TRPCExceptionFilter());
+  app.useGlobalFilters(new CalendarServiceExceptionFilter());
+  app.useGlobalFilters(new ErrorWithCodeExceptionFilter());
 
   app.use(cookieParser());
 
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
   if (process?.env?.API_GLOBAL_PREFIX) {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     app.setGlobalPrefix(process?.env?.API_GLOBAL_PREFIX);
   }
 
