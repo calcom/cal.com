@@ -90,16 +90,12 @@ export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https
 export const LOGO = "/calcom-logo-white-word.svg";
 export const LOGO_ICON = "/cal-com-icon-white.svg";
 export const AVATAR_FALLBACK = "/avatar.svg";
-export const FAVICON_16 = IS_PRODUCTION ? "/favicon-16x16-prod.png" : "/favicon-16x16-dev.png";
-export const FAVICON_32 = IS_PRODUCTION ? "/favicon-32x32-prod.png" : "/favicon-32x32-dev.png";
-export const APPLE_TOUCH_ICON = IS_PRODUCTION ? "/apple-touch-icon-prod.png" : "/apple-touch-icon-dev.png";
-export const MSTILE_ICON = IS_PRODUCTION ? "/mstile-150x150-prod.png" : "/mstile-150x150-dev.png";
-export const ANDROID_CHROME_ICON_192 = IS_PRODUCTION
-  ? "/android-chrome-192x192-prod.png"
-  : "/android-chrome-192x192-dev.png";
-export const ANDROID_CHROME_ICON_256 = IS_PRODUCTION
-  ? "/android-chrome-256x256-prod.png"
-  : "/android-chrome-256x256-dev.png";
+export const FAVICON_16 = "/favicon-16x16.png";
+export const FAVICON_32 = "/favicon-32x32.png";
+export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
+export const MSTILE_ICON = "/mstile-150x150.png";
+export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
+export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
