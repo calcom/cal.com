@@ -1,7 +1,5 @@
 import type { TimeUnit, WorkflowTriggerEvents, WorkflowType, WorkflowActions } from "../types";
 
-// Domain model - independent of Prisma
-// Represents a workflow in the business domain
 export interface Workflow {
   id: number;
   position: number;
@@ -44,7 +42,6 @@ export interface WorkflowReminder {
   seatReferenceId?: string;
 }
 
-// Value Objects for creating/updating workflows
 export interface CreateWorkflowData {
   name: string;
   userId?: number;
