@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
-import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { Badge, UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
@@ -29,6 +29,7 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
+  showNotePublicly?: boolean;
   uuid?: string | null;
   forUserId: number | null;
   forUserName?: string;
@@ -155,6 +156,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           toTeamUserId: null,
           reasonId: 1,
           forUserId: null,
+          showNotePublicly: false,
         },
   });
 
@@ -336,10 +338,27 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* Notes input */}
             <div className="mt-4">
-              <p className="text-emphasis block text-sm font-medium">{t("notes")}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
+                <Controller
+                  control={control}
+                  name="showNotePublicly"
+                  render={({ field: { value, onChange } }) => (
+                    <div className="flex items-center space-x-2">
+                      {!value && <Badge variant="grayWithoutHover">{t("hidden")}</Badge>}
+                      <Switch
+                        data-testid="show-note-publicly-switch"
+                        checked={value ?? false}
+                        onCheckedChange={onChange}
+                        tooltip={t("show_note_publicly_description")}
+                      />
+                    </div>
+                  )}
+                />
+              </div>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-1 h-10 w-full rounded-lg border px-2"
+                className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {

@@ -14,6 +14,7 @@ export const selectOOOEntries = {
   createdAt: true,
   updatedAt: true,
   notes: true,
+  showNotePublicly: true,
   reason: {
     select: {
       reason: true,
