@@ -1,7 +1,7 @@
 import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditRepository.module";
-import { moduleLoader as actorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/ActorRepository.module";
+import { moduleLoader as auditActorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/AuditActorRepository.module";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -16,10 +16,11 @@ const loadModule = bindModuleToClassOnToken({
   classs: BookingAuditService,
   depsMap: {
     bookingAuditRepository: bookingAuditRepositoryModuleLoader,
-    actorRepository: actorRepositoryModuleLoader,
+    actorRepository: auditActorRepositoryModuleLoader,
   },
 });
 
+export { BookingAuditService }
 export const moduleLoader = {
   token,
   loadModule

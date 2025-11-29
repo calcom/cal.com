@@ -34,6 +34,7 @@ type BookingAudit = {
  * BookingAuditService - Central service for all booking audit operations
  * Handles both write (audit creation) and read (display) operations
  * Each action service manages its own schema versioning
+ * 
  */
 export class BookingAuditService {
     private readonly bookingAuditRepository: IBookingAuditRepository;
@@ -43,7 +44,10 @@ export class BookingAuditService {
     }
 
     /**
-     * TODO: TO be integrated with public methods in followup PR
+     * Creates a new audit record for a booking action
+     * 
+     * @param input - The audit record data including bookingUid, actorId, type, action, data, and timestamp
+     * @returns The created audit record
      */
     async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
         // Log only non-sensitive metadata, excluding the data field which may contain PII
@@ -65,3 +69,4 @@ export class BookingAuditService {
         });
     }
 }
+
