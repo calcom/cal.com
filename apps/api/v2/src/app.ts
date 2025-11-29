@@ -1,5 +1,6 @@
 import "./instrument";
 
+import { ErrorWithCodeExceptionFilter } from "@/filters/error-with-code-exception.filter";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
@@ -71,13 +72,14 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  // Exception filters, new filters go at the bottom, keep the order
-  const { httpAdapter: _httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new PrismaExceptionFilter());
-  app.useGlobalFilters(new ZodExceptionFilter());
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalFilters(new TRPCExceptionFilter());
-  app.useGlobalFilters(new CalendarServiceExceptionFilter());
+    // Exception filters, new filters go at the bottom, keep the order
+    const { httpAdapter: _httpAdapter } = app.get(HttpAdapterHost);
+    app.useGlobalFilters(new PrismaExceptionFilter());
+    app.useGlobalFilters(new ZodExceptionFilter());
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalFilters(new TRPCExceptionFilter());
+    app.useGlobalFilters(new CalendarServiceExceptionFilter());
+    app.useGlobalFilters(new ErrorWithCodeExceptionFilter());
 
   app.use(cookieParser());
 
