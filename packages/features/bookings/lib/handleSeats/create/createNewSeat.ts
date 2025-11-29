@@ -155,6 +155,7 @@ const createNewSeat = async (
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
+  await eventManager.updateCRMAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 

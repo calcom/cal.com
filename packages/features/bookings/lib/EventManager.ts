@@ -56,7 +56,7 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+const _delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
 };
 
@@ -127,20 +127,20 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export type EventManagerInitParams = {
   user: EventManagerUser;
-  eventTypeAppMetadata?: Record<string, any>;
+  eventTypeAppMetadata?: Record<string, unknown>;
 };
 
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
-  appOptions?: Record<string, any>;
+  appOptions?: Record<string, unknown>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, unknown>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -840,6 +840,26 @@ export default class EventManager {
     await this.updateAllCalendarEvents(event, booking);
   }
 
+  public async updateCRMAttendees(event: CalendarEvent, booking: PartialBooking) {
+    if (booking.references.length === 0) {
+      console.error("Tried to update CRM references but there wasn't any.");
+      return;
+    }
+
+    for (const reference of booking.references) {
+      if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
+        const credential = this.crmCredentials.find((cred) => cred.id === reference.credentialId);
+        if (credential) {
+          const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
+          const crm = new CrmManager(credential, currentAppOption);
+          await crm.addContacts(reference.uid, event).catch((error) => {
+            log.warn(`Error adding contacts to CRM event for ${credential.type} for booking ${event?.uid}`, error);
+          });
+        }
+      }
+    }
+  }
+
   /**
    * Creates event entries for all calendar integrations given in the credentials.
    * When noMail is true, no mails will be sent. This is used when the event is
@@ -1190,9 +1210,9 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      let _message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
       if (error instanceof Error) {
-        message = message.replace("{thing}", error.message);
+        _message = _message.replace("{thing}", error.message);
       }
 
       return Promise.resolve(
