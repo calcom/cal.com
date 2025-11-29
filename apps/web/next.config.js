@@ -108,7 +108,6 @@ const informAboutDuplicateTranslations = () => {
   }
 };
 
-// informAboutDuplicateTranslations();
 
 const plugins = [];
 if (process.env.ANALYZE === "true") {
