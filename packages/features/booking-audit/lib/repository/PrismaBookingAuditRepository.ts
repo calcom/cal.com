@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { IBookingAuditRepository, BookingAuditCreateInput } from "./IBookingAuditRepository";
+import type { IBookingAuditRepository, BookingAuditCreateInput, BookingAuditWithActor } from "./IBookingAuditRepository";
 
 type Dependencies = {
     prismaClient: PrismaClient;
@@ -17,6 +17,20 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 type: bookingAudit.type,
                 timestamp: bookingAudit.timestamp,
                 data: bookingAudit.data === null ? undefined : bookingAudit.data,
+            },
+        });
+    }
+
+    async findAllForBooking(bookingUid: string): Promise<BookingAuditWithActor[]> {
+        return this.deps.prismaClient.bookingAudit.findMany({
+            where: {
+                bookingUid,
+            },
+            include: {
+                actor: true,
+            },
+            orderBy: {
+                timestamp: "desc",
             },
         });
     }

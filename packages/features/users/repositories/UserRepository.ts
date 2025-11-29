@@ -388,6 +388,18 @@ export class UserRepository {
     };
   }
 
+  async findByUuid({ uuid }: { uuid: string }) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        uuid,
+      },
+      select: {
+        name: true,
+        email: true,
+      },
+    });
+  }
+
   async findByIds({ ids }: { ids: number[] }) {
     return this.prismaClient.user.findMany({
       where: {
