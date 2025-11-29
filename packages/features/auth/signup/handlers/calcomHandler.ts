@@ -146,6 +146,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       },
     });
     if (team) {
+      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
       const user = await prisma.user.upsert({
         where: { email },
         update: {
@@ -158,12 +159,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
               update: { hash: hashedPassword },
             },
           },
+          organizationId,
         },
         create: {
           username,
           email,
           identityProvider: IdentityProvider.CAL,
           password: { create: { hash: hashedPassword } },
+          organizationId,
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies

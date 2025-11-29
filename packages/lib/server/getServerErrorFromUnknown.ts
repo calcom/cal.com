@@ -34,6 +34,12 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+/**
+ * Converts unknown error types to HttpError with proper status code mapping and error redaction.
+ * SERVER-ONLY: This function imports Prisma and Stripe schemas and should only be used in server-side code.
+ * Use in API routes, tRPC handlers, webhooks, and server-side services.
+ * For client-side code, use getErrorFromUnknown from @calcom/lib/errors instead.
+ */
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isZodError(cause)) {
     return new HttpError({
