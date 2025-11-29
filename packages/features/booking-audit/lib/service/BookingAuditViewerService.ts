@@ -26,6 +26,10 @@ interface BookingAuditViewerServiceDeps {
 type EnrichedAuditLog = {
     id: string;
     bookingUid: string;
+<<<<<<< HEAD
+=======
+    linkedBookingUid: string | null;
+>>>>>>> c40ba20ff7 (fix: restore BookingAuditViewerService files)
     type: BookingAuditType;
     action: BookingAuditAction;
     timestamp: string;
@@ -112,6 +116,10 @@ export class BookingAuditViewerService {
                 return {
                     id: log.id,
                     bookingUid: log.bookingUid,
+<<<<<<< HEAD
+=======
+                    linkedBookingUid: log.linkedBookingUid,
+>>>>>>> c40ba20ff7 (fix: restore BookingAuditViewerService files)
                     type: log.type,
                     action: log.action,
                     timestamp: log.timestamp.toISOString(),
