@@ -27,7 +27,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import {
   ConflictException,
   ForbiddenException,
-  HttpException,
   Injectable,
   Logger,
   NotFoundException,
@@ -38,9 +37,6 @@ import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
-import { getHttpStatusForErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 
 export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
 
@@ -890,24 +886,15 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    let res;
-    try {
-      res = await handleCancelBooking({
-        bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
-        platformClientId: bookingRequest.platformClientId,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-      });
-    } catch (error) {
-      if (error instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusForErrorCode(error.code);
-        throw new HttpException(error.message, statusCode);
-      }
-      throw error;
-    }
+    const res = await handleCancelBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+      platformClientId: bookingRequest.platformClientId,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+    });
 
     if (!res.onlyRemovedAttendee) {
       await this.billingService.cancelUsageByBookingUid(res.bookingUid);
