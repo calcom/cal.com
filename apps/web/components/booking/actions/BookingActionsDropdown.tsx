@@ -203,7 +203,6 @@ export function BookingActionsDropdown({
     return userSeat?.referenceUid;
   };
 
-  // Calculate isHost (from get.handler.ts lines 694-708)
   const loggedInUserId = booking.loggedInUser.userId;
   const isHost =
     booking.user?.id === loggedInUserId ||

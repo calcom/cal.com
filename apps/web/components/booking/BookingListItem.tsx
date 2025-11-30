@@ -239,13 +239,13 @@ function BookingListItem(booking: BookingItemProps) {
     return userSeat?.referenceUid;
   };
 
-  // Calculate isHost (from get.handler.ts lines 694-708)
   const loggedInUserId = booking.loggedInUser.userId;
   const isHost =
     booking.user?.id === loggedInUserId ||
     booking.eventType?.hosts?.some(
       ({ user: hostUser }) =>
         hostUser?.id === loggedInUserId &&
+        hostUser?.email &&
         booking.attendees.some((attendee) => attendee.email === hostUser.email)
     );
 
@@ -367,7 +367,7 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isCancelDialogOpen}
         setIsOpenDialog={setIsCancelDialogOpen}
         booking={booking}
-        isHost={isHost}
+        isHost={!!isHost}
         allRemainingBookings={isTabRecurring && isRecurring}
         seatReferenceUid={getSeatReferenceUid()}
       />
