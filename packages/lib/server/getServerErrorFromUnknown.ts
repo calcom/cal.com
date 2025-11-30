@@ -113,6 +113,8 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
       return 404;
     case ErrorCode.InternalServerError:
       return 500;
+
+    // Domain-specific error codes
     // 400 Bad Request
     case ErrorCode.RequestBodyWithouEnd:
     case ErrorCode.MissingPaymentCredential:
