@@ -28,6 +28,7 @@ interface getEventTypeByIdProps {
   prisma: PrismaClient;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
+  isTrpcCall?: boolean;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
