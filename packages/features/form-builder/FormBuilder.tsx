@@ -371,6 +371,7 @@ export const FormBuilder = function FormBuilder({
       {fieldDialog.isOpen && (
         <FieldEditDialog
           dialog={fieldDialog}
+          fields={fields}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
@@ -391,6 +392,29 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+
+            // Validate conditional configuration
+            if (data.conditionalOn) {
+              const { parent, values } = data.conditionalOn;
+
+              if (!parent || values.length === 0) {
+                showToast(t("conditional_field_must_have_parent_and_trigger"), "error");
+                return;
+              }
+
+              const parentField = fields.find((f) => f.name === parent);
+              if (!parentField) {
+                showToast(t("parent_field_not_found", { parent }), "error");
+                return;
+              }
+
+              // Prevent self-reference
+              if (parent === data.name) {
+                showToast(t("field_cannot_be_conditional_on_itself"), "error");
+                return;
+              }
+            }
+
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
             } else {
@@ -568,6 +592,7 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
 
 function FieldEditDialog({
   dialog,
+  fields,
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
@@ -575,6 +600,7 @@ function FieldEditDialog({
   paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
+  fields: RhfFormFields;
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
@@ -791,6 +817,148 @@ function FieldEditDialog({
                               }}
                               description={t("make_field_required")}
                             />
+                          );
+                        }}
+                      />
+                    </div>
+
+                    {/* Conditional Logic Section */}
+                    <div className="border-subtle mt-6 border-t pt-6">
+                      <Controller
+                        name="conditionalOn"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          const isConditional = !!value;
+                          const VALID_PARENT_TYPES = [
+                            "radio",
+                            "select",
+                            "checkbox",
+                            "boolean",
+                            "multiselect",
+                          ];
+                          const eligibleParentFields = fields.filter((f) => {
+                            return (
+                              VALID_PARENT_TYPES.includes(f.type) &&
+                              f.name !== fieldForm.getValues("name") && // Can't be parent of itself
+                              !f.conditionalOn // Parents can't be conditional (no nesting for v1)
+                            );
+                          });
+
+                          return (
+                            <>
+                              <CheckboxField
+                                checked={isConditional}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    // Enable conditional logic with empty config
+                                    onChange({ parent: "", values: [] });
+                                  } else {
+                                    // Disable conditional logic
+                                    onChange(undefined);
+                                  }
+                                }}
+                                description={t("make_conditional_question")}
+                              />
+
+                              {isConditional && (
+                                <div className="border-subtle ml-6 mt-4 space-y-4 rounded-md border p-4">
+                                  <p className="text-default text-sm">
+                                    {t("conditional_question_description")}
+                                  </p>
+
+                                  {/* Parent Field Selector */}
+                                  <SelectField
+                                    label={t("parent_field")}
+                                    value={
+                                      value?.parent
+                                        ? eligibleParentFields.find((f) => f.name === value.parent)
+                                        : undefined
+                                    }
+                                    onChange={(selected) => {
+                                      if (!selected) return;
+                                      onChange({
+                                        parent: selected.name,
+                                        values: [], // Reset trigger values when parent changes
+                                      });
+                                    }}
+                                    options={eligibleParentFields.map((f) => ({
+                                      label: f.label || f.name,
+                                      value: f.name,
+                                      name: f.name,
+                                    }))}
+                                    placeholder={t("select_parent_field")}
+                                  />
+
+                                  {/* Trigger Values Selector */}
+                                  {value?.parent &&
+                                    (() => {
+                                      const parentField = fields.find((f) => f.name === value.parent);
+                                      if (!parentField) return null;
+
+                                      // For boolean fields, offer true/false
+                                      if (parentField.type === "boolean") {
+                                        return (
+                                          <div>
+                                            <Label>{t("show_when")}</Label>
+                                            <div className="mt-2 space-x-4">
+                                              <CheckboxField
+                                                label={t("checked")}
+                                                checked={value.values.includes("true")}
+                                                onChange={(e) => {
+                                                  const newValues = e.target.checked
+                                                    ? [...value.values.filter((v) => v !== "false"), "true"]
+                                                    : value.values.filter((v) => v !== "true");
+                                                  onChange({ ...value, values: newValues });
+                                                }}
+                                              />
+                                              <CheckboxField
+                                                label={t("unchecked")}
+                                                checked={value.values.includes("false")}
+                                                onChange={(e) => {
+                                                  const newValues = e.target.checked
+                                                    ? [...value.values.filter((v) => v !== "true"), "false"]
+                                                    : value.values.filter((v) => v !== "false");
+                                                  onChange({ ...value, values: newValues });
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+
+                                      // For fields with options (radio, select, checkbox, multiselect)
+                                      if (parentField.options && parentField.options.length > 0) {
+                                        return (
+                                          <div>
+                                            <Label>{t("show_when_parent_value_is")}</Label>
+                                            <div className="mt-2 space-y-2">
+                                              {parentField.options.map((option) => (
+                                                <CheckboxField
+                                                  key={option.value}
+                                                  label={option.label}
+                                                  checked={value.values.includes(option.value)}
+                                                  onChange={(e) => {
+                                                    const newValues = e.target.checked
+                                                      ? [...value.values, option.value]
+                                                      : value.values.filter((v) => v !== option.value);
+                                                    onChange({ ...value, values: newValues });
+                                                  }}
+                                                />
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <p className="text-subtle text-sm">
+                                          {t("parent_field_has_no_options")}
+                                        </p>
+                                      );
+                                    })()}
+                                </div>
+                              )}
+                            </>
                           );
                         }}
                       />
