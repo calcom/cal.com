@@ -14,5 +14,6 @@ export interface CalendarEvent {
     color?: string;
     className?: string;
     "data-test-id"?: string;
+    borderOnly?: boolean;
   };
 }
