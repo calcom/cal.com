@@ -153,7 +153,7 @@ export class AgentService {
 
       await this.deps.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -222,7 +222,7 @@ export class AgentService {
         });
       }
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -302,7 +302,7 @@ export class AgentService {
         removedTools: [],
       };
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -396,7 +396,7 @@ export class AgentService {
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 
@@ -664,7 +664,7 @@ export class AgentService {
           error,
         });
 
-        if (error instanceof HttpError) {
+        if (error instanceof ErrorWithCode) {
           throw error;
         }
 
