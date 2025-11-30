@@ -2,6 +2,7 @@ import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFrom
 
 import { TRPCError } from "@trpc/server";
 
+// Copied from `TRPC_ERROR_CODE_KEY` from `@trpc/server/unstable-core-do-not-import`
 type TRPCErrorCode =
   | "PARSE_ERROR"
   | "BAD_REQUEST"
