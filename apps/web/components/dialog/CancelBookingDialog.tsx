@@ -125,8 +125,12 @@ export const CancelBookingDialog = ({
     ? (getAppMetadata(appId) as Record<string, unknown> | null)?.autoChargeNoShowFeeTimeUnit
     : null;
 
+  // Determine organizer from booking.user
+  const organizer = booking.user;
+  const isCancellationUserHost = isHost || organizer?.email === currentUserEmail;
+
   const autoChargeNoShowFee = () => {
-    if (isHost) return false; // Hosts/organizers are exempt
+    if (isCancellationUserHost) return false; // Hosts/organizers are exempt
 
     if (!booking.startTime) return false;
 
@@ -143,15 +147,11 @@ export const CancelBookingDialog = ({
 
   const cancellationNoShowFeeWarning = autoChargeNoShowFee();
 
-  // Determine organizer from booking.user
-  const organizer = booking.user;
-  const isCancellationUserHost = isHost || organizer?.email === currentUserEmail;
-
   const hostMissingCancellationReason =
     isCancellationUserHost &&
     (!cancellationReason?.trim() || (internalNotePresets.length > 0 && !internalNote?.id));
   const cancellationNoShowFeeNotAcknowledged =
-    !isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
+    !isCancellationUserHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
