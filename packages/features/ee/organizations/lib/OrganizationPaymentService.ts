@@ -14,8 +14,8 @@ import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
@@ -181,10 +181,10 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "You do not have permission to modify the default payment settings"
+      );
     }
 
     await this.permissionService.validatePermissions(input);

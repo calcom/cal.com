@@ -102,6 +102,17 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
   const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
 
   switch (errorCode) {
+    // Generic HTTP error codes
+    case ErrorCode.BadRequest:
+      return 400;
+    case ErrorCode.Unauthorized:
+      return 401;
+    case ErrorCode.Forbidden:
+      return 403;
+    case ErrorCode.NotFound:
+      return 404;
+    case ErrorCode.InternalServerError:
+      return 500;
     // 400 Bad Request
     case ErrorCode.RequestBodyWithouEnd:
     case ErrorCode.MissingPaymentCredential:
