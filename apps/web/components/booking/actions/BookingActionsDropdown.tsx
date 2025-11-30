@@ -23,6 +23,8 @@ import { TextAreaField } from "@calcom/ui/components/form";
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { isUserHost } from "@lib/booking/bookingHelpers";
+
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -203,15 +205,7 @@ export function BookingActionsDropdown({
     return userSeat?.referenceUid;
   };
 
-  const loggedInUserId = booking.loggedInUser.userId;
-  const isHost =
-    booking.user?.id === loggedInUserId ||
-    booking.eventType?.hosts?.some(
-      ({ user: hostUser }) =>
-        hostUser?.id === loggedInUserId &&
-        hostUser?.email &&
-        booking.attendees.some((attendee) => attendee.email === hostUser.email)
-    );
+  const isHost = isUserHost(booking);
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {

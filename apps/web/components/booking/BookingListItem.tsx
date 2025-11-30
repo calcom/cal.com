@@ -44,6 +44,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
+import { isUserHost } from "@lib/booking/bookingHelpers";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { CancelBookingDialog } from "../dialog/CancelBookingDialog";
@@ -239,15 +240,7 @@ function BookingListItem(booking: BookingItemProps) {
     return userSeat?.referenceUid;
   };
 
-  const loggedInUserId = booking.loggedInUser.userId;
-  const isHost =
-    booking.user?.id === loggedInUserId ||
-    booking.eventType?.hosts?.some(
-      ({ user: hostUser }) =>
-        hostUser?.id === loggedInUserId &&
-        hostUser?.email &&
-        booking.attendees.some((attendee) => attendee.email === hostUser.email)
-    );
+  const isHost = isUserHost(booking);
 
   const actionContext: BookingActionContext = {
     booking,
