@@ -1737,26 +1737,34 @@ model SelectedSlots {
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
 
+enum OAuthClientType {
+  CONFIDENTIAL @map("confidential")
+  PUBLIC       @map("public")
+}
+
 model OAuthClient {
-  clientId     String       @id @unique
+  clientId     String          @id @unique
   redirectUri  String
-  clientSecret String
+  clientSecret String?
+  clientType   OAuthClientType @default(CONFIDENTIAL)
   name         String
   logo         String?
   accessCodes  AccessCode[]
 }
 
 model AccessCode {
-  id        Int           @id @default(autoincrement())
-  code      String
-  clientId  String?
-  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  expiresAt DateTime
-  scopes    AccessScope[]
-  userId    Int?
-  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId    Int?
-  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id                  Int           @id @default(autoincrement())
+  code                String
+  clientId            String?
+  client              OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt           DateTime
+  scopes              AccessScope[]
+  userId              Int?
+  user                User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId              Int?
+  team                Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  codeChallenge       String?
+  codeChallengeMethod String?       @default("S256")
 }
 
 enum AccessScope {
@@ -2671,7 +2679,7 @@ enum AuditActorType {
 }
 
 model AuditActor {
-  id   String         @id @default(uuid())
+  id   String         @id @default(uuid(7)) @db.Uuid
   type AuditActorType
 
   // References for different actor types (soft references, no FK constraints)
@@ -2712,7 +2720,7 @@ model BookingAudit {
 
   // Actor who performed the action (USER, GUEST, or SYSTEM)
   // Stored in AuditActor table to maintain audit trail even after user deletion
-  actorId String
+  actorId String     @db.Uuid
   // Restrict onDelete to prevent deletion of audit actor if there are any booking audits associated with it
   actor   AuditActor @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
