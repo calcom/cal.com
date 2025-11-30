@@ -552,7 +552,7 @@ async function handler(
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
-      throw new ErrorWithCode(ErrorCode.Forbidden, error.message);
+      throw new HttpError({ statusCode: 403, message: error.message });
     }
     throw error;
   }
