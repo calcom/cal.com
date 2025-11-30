@@ -21,10 +21,9 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -100,15 +99,21 @@ async function handler(input: CancelBookingInput) {
    * We want to avoid deleting them by a subsequent cancellation attempt.
    */
   if (bookingToDelete.status === BookingStatus.CANCELLED) {
-    throw new ErrorWithCode(ErrorCode.InvalidOperation, "This booking has already been cancelled.");
+    throw new HttpError({
+      statusCode: 400,
+      message: "This booking has already been cancelled.",
+    });
   }
 
   if (!bookingToDelete.userId || !bookingToDelete.user) {
-    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User not found");
+    throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
   if (bookingToDelete.eventType?.disableCancelling) {
-    throw new ErrorWithCode(ErrorCode.InvalidOperation, "This event type does not allow cancellations");
+    throw new HttpError({
+      statusCode: 400,
+      message: "This event type does not allow cancellations",
+    });
   }
 
   const isCancellationUserHost =
@@ -120,14 +125,17 @@ async function handler(input: CancelBookingInput) {
     isCancellationUserHost &&
     !skipCancellationReasonValidation
   ) {
-    throw new ErrorWithCode(
-      ErrorCode.RequestBodyInvalid,
-      "Cancellation reason is required when you are the host"
-    );
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cancellation reason is required when you are the host",
+    });
   }
 
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
-    throw new ErrorWithCode(ErrorCode.InvalidOperation, "Cannot cancel a booking that has already ended");
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cannot cancel a booking that has already ended",
+    });
   }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
@@ -146,10 +154,10 @@ async function handler(input: CancelBookingInput) {
       ));
 
     if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
-      throw new ErrorWithCode(
-        ErrorCode.Unauthorized,
-        "User not a host of this event or an admin of the booking user"
-      );
+      throw new HttpError({
+        statusCode: 401,
+        message: "User not a host of this event or an admin of the booking user",
+      });
     }
   }
 

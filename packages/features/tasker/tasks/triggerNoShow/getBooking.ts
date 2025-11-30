@@ -1,5 +1,4 @@
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -69,10 +68,10 @@ export const getBooking = async (bookingId: number) => {
       })
     );
 
-    throw new ErrorWithCode(
-      ErrorCode.ResourceNotFound,
-      `Booking of id ${bookingId} does not exist or does not contain daily video as location`
-    );
+    throw new HttpError({
+      message: `Booking of id ${bookingId} does not exist or does not contain daily video as location`,
+      statusCode: 404,
+    });
   }
   return booking;
 };

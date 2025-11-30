@@ -2,7 +2,7 @@ import type { Logger } from "tslog";
 
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventType } from "@calcom/prisma/client";
@@ -50,12 +50,11 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
 
     if (error instanceof BookingDateInPastError) {
       logger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
-      throw new ErrorWithCode(ErrorCode.InvalidInput, error.message);
+      throw new HttpError({ statusCode: 400, message: error.message });
     }
   }
 
-  if (timeOutOfBounds)
-    throw new ErrorWithCode(ErrorCode.BookingTimeOutOfBounds, ErrorCode.BookingTimeOutOfBounds);
+  if (timeOutOfBounds) throw new HttpError({ statusCode: 400, message: ErrorCode.BookingTimeOutOfBounds });
 };
 
 export const validateBookingTimeIsNotOutOfBounds = withReporting(

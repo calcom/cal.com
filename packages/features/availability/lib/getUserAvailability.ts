@@ -17,7 +17,7 @@ import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-r
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
@@ -308,7 +308,7 @@ export class UserAvailabilityService {
     );
 
     if (!dateFrom.isValid() || !dateTo.isValid()) {
-      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid time range given.");
+      throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
     }
 
     const where: Prisma.UserWhereInput = {};
@@ -318,7 +318,7 @@ export class UserAvailabilityService {
     const user = initialData?.user || (await this.getUser(where));
 
     if (!user) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No user found in getUserAvailability");
+      throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
     }
 
     let eventType: EventType | null = initialData?.eventType || null;
@@ -506,10 +506,7 @@ export class UserAvailabilityService {
         (eventType?.availability.length ? eventType.availability : user.availability)
       )
     ) {
-      throw new ErrorWithCode(
-        ErrorCode.AvailabilityNotFoundInSchedule,
-        ErrorCode.AvailabilityNotFoundInSchedule
-      );
+      throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
     }
 
     const availability = (

@@ -5,7 +5,7 @@ import { uuid } from "short-uuid";
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -54,7 +54,7 @@ const combineTwoSeatedBookings = async (
     attendeesToMove.length + newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
       eventType.seatsPerTimeSlot
   ) {
-    throw new ErrorWithCode(ErrorCode.NotEnoughAvailableSeats, ErrorCode.NotEnoughAvailableSeats);
+    throw new HttpError({ statusCode: 409, message: ErrorCode.NotEnoughAvailableSeats });
   }
 
   const moveAttendeeCalls = [];
@@ -105,7 +105,7 @@ const combineTwoSeatedBookings = async (
   });
 
   if (!updatedNewBooking) {
-    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Updated booking not found");
+    throw new HttpError({ statusCode: 404, message: "Updated booking not found" });
   }
 
   // Update the evt object with the new attendees

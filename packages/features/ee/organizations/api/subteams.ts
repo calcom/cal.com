@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -14,7 +13,7 @@ const querySchema = z.object({
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const parsedQuery = querySchema.safeParse(req.query);
 
-  if (!parsedQuery.success) throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, parsedQuery.error.message);
+  if (!parsedQuery.success) throw new HttpError({ statusCode: 400, message: parsedQuery.error.message });
 
   const {
     data: { org: slug },

@@ -44,7 +44,7 @@ const DuplicateDialog = () => {
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, _setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // react hook form
@@ -158,7 +158,7 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
-                onChange={(e) => {
+                 onChange={(e) => {
                   form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                 }}
               />

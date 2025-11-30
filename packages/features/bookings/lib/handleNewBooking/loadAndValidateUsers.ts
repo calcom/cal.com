@@ -6,9 +6,8 @@ import { getQualifiedHostsService } from "@calcom/features/di/containers/Qualifi
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -102,10 +101,10 @@ const _loadAndValidateUsers = async ({
     logger.warn({
       message: "NewBooking: Some of the users in this group do not allow dynamic booking",
     });
-    throw new ErrorWithCode(
-      ErrorCode.InvalidOperation,
-      "Some of the users in this group do not allow dynamic booking"
-    );
+    throw new HttpError({
+      message: "Some of the users in this group do not allow dynamic booking",
+      statusCode: 400,
+    });
   }
 
   // If this event was pre-relationship migration
@@ -124,12 +123,12 @@ const _loadAndValidateUsers = async ({
     });
     if (!eventTypeUser) {
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "eventTypeUser.notFound");
+      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
     users.push(withSelectedCalendars(eventTypeUser));
   }
 
-  if (!users) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "eventTypeUser.notFound");
+  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   // Determine if users are locked
   const containsBlockedUser = await checkIfUsersAreBlocked({
@@ -138,7 +137,7 @@ const _loadAndValidateUsers = async ({
     span: sentrySpan,
   });
 
-  if (containsBlockedUser) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "eventTypeUser.notFound");
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   // map fixed users
   users = users.map((user) => ({
