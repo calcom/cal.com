@@ -17,8 +17,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -96,7 +96,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   ]);
 
   if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Profile not found");
   }
 
   const memberships = profileMemberships.map((membership) => ({
@@ -118,11 +118,15 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const mapEventType = async (eventType: UserEventTypes) => {
     const userRepo = new UserRepository(prisma);
+    const usersSource =
+      eventType.hosts && eventType.hosts.length > 0
+        ? eventType.hosts.map((host) => host.user)
+        : eventType.users;
     return {
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        usersSource.map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,
