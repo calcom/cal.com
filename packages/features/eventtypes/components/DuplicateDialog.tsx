@@ -44,7 +44,7 @@ const DuplicateDialog = () => {
   const {
     data: { pageSlug, slug, ...defaultValues },
   } = useTypedQuery(querySchema);
-  const [searchTerm, _setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // react hook form
