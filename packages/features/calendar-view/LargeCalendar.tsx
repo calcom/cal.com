@@ -42,7 +42,7 @@ export const LargeCalendar = ({
     .add(extraDays - 1, "day")
     .toDate();
 
-  const { data: bookings, isPending: isFetchingBookings } = useBookings({
+  const { data: bookings, isPending: _isFetchingBookings } = useBookings({
     take: 150,
     skip: 0,
     eventTypeId: event?.data?.id,
@@ -65,7 +65,7 @@ export const LargeCalendar = ({
     );
   });
 
-  const { data: overlayBusyDates, isPending: isFetchingOverlayBusyDates } = useCalendarsBusyTimes({
+  const { data: overlayBusyDates } = useCalendarsBusyTimes({
     loggedInUsersTz: timezone,
     dateFrom: startDate.toISOString(),
     dateTo: endDate.toISOString(),
@@ -78,24 +78,40 @@ export const LargeCalendar = ({
 
   useEffect(() => {}, [displayOverlay]);
 
+  const sortedBookingRanges = useMemo(
+    () =>
+      (bookings ?? [])
+        .map((booking) => ({
+          booking,
+          startTime: dayjs(booking.start).valueOf(),
+          endTime: dayjs(booking.end).valueOf(),
+        }))
+        .sort((a, b) => a.startTime - b.startTime),
+    [bookings]
+  );
+
+  const filteredBusyDates = useMemo(() => {
+    const overlay = overlayBusyDates?.data ?? [];
+    if (!sortedBookingRanges.length) return overlay;
+
+    return overlay.filter((busy) => {
+      const busyStart = dayjs(busy.start).valueOf();
+      const busyEnd = dayjs(busy.end).valueOf();
+
+      for (const { startTime, endTime } of sortedBookingRanges) {
+        if (startTime >= busyEnd) break;
+        if (endTime <= busyStart) continue;
+        return false;
+      }
+
+      return true;
+    });
+  }, [overlayBusyDates?.data, sortedBookingRanges]);
+
   const overlayEventsForDate = useMemo(() => {
-    const overlayEvents = overlayBusyDates?.data ?? [];
     const allBookings = bookings ?? [];
     // since busy dates comes straight from the calendar, it contains slots have bookings and also slots that are marked as busy by user but are not bookings
     // hence we filter overlayBusyDates to exclude anything that overlaps with bookings
-    const filteredBusyDates = overlayEvents.filter((busySlot) => {
-      const hasOverlap = allBookings.some((booking) => {
-        const busyStart = dayjs(busySlot.start);
-        const busyEnd = dayjs(busySlot.end);
-        const bookingStart = dayjs(booking.start);
-        const bookingEnd = dayjs(booking.end);
-
-        return busyStart.isBefore(bookingEnd) && bookingStart.isBefore(busyEnd);
-      });
-
-      return !hasOverlap;
-    });
-
     const busyEvents = filteredBusyDates.map((busyData, index) => ({
       id: index,
       title: `Busy`,
@@ -121,7 +137,7 @@ export const LargeCalendar = ({
     }));
 
     return [...bookingEvents, ...busyEvents];
-  }, [bookings, overlayBusyDates?.data, isFetchingOverlayBusyDates, isFetchingBookings]);
+  }, [bookings, filteredBusyDates]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
