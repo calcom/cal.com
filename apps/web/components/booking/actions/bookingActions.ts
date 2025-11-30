@@ -63,15 +63,11 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 }
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
-  const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
-  const seatReferenceUid = getSeatReferenceUid();
+  const { isTabRecurring, isRecurring, t } = context;
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${
-      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),

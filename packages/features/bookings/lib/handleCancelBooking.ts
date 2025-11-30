@@ -399,8 +399,9 @@ async function handler(input: CancelBookingInput) {
     (allRemainingBookings || cancelSubsequentBookings)
   ) {
     const recurringEventId = bookingToDelete.recurringEventId;
-    const gte = cancelSubsequentBookings ? bookingToDelete.startTime : new Date();
-    // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
+    // When cancelling all remaining bookings or subsequent bookings, start from the clicked booking's start time
+    const gte = bookingToDelete.startTime;
+    // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to the booking's start time)
     await prisma.booking.updateMany({
       where: {
         recurringEventId,
@@ -418,7 +419,7 @@ async function handler(input: CancelBookingInput) {
       where: {
         recurringEventId: bookingToDelete.recurringEventId,
         startTime: {
-          gte: new Date(),
+          gte,
         },
       },
       select: {

@@ -46,6 +46,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
+import { CancelBookingDialog } from "../dialog/CancelBookingDialog";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
   useBookingActionsStoreContext,
@@ -149,6 +150,7 @@ function BookingListItem(booking: BookingItemProps) {
   const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   const attendeeList = booking.attendees.map((attendee) => {
     return {
@@ -236,6 +238,16 @@ function BookingListItem(booking: BookingItemProps) {
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;
   };
+
+  // Calculate isHost (from get.handler.ts lines 694-708)
+  const loggedInUserId = booking.loggedInUser.userId;
+  const isHost =
+    booking.user?.id === loggedInUserId ||
+    booking.eventType?.hosts?.some(
+      ({ user: hostUser }) =>
+        hostUser?.id === loggedInUserId &&
+        booking.attendees.some((attendee) => attendee.email === hostUser.email)
+    );
 
   const actionContext: BookingActionContext = {
     booking,
@@ -351,12 +363,20 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CancelBookingDialog
+        isOpenDialog={isCancelDialogOpen}
+        setIsOpenDialog={setIsCancelDialogOpen}
+        booking={booking}
+        isHost={isHost}
+        allRemainingBookings={isTabRecurring && isRecurring}
+        seatReferenceUid={getSeatReferenceUid()}
+      />
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}
         className="hover:bg-cal-muted group w-full">
         <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-48">
+          <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
@@ -497,10 +517,20 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </ConditionalLink>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 stack-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:stack-y-0 sm:pl-0">
+          <div className="stack-y-2 sm:stack-y-0 flex w-full flex-col flex-wrap items-end justify-end space-x-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
             <BookingActionsDropdown booking={booking} context="list" />
-            {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+            {shouldShowRecurringCancelAction(actionContext) && (
+              <Button
+                type="button"
+                color="destructive"
+                StartIcon={cancelEventAction.icon}
+                onClick={() => setIsCancelDialogOpen(true)}
+                disabled={cancelEventAction.disabled}
+                data-testid={cancelEventAction.id}>
+                {cancelEventAction.label}
+              </Button>
+            )}
             {shouldShowIndividualReportButton(actionContext) && (
               <div className="flex items-center space-x-2">
                 <Button

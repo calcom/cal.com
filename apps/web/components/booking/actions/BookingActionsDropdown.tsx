@@ -24,6 +24,7 @@ import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
+import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
@@ -105,6 +106,8 @@ export function BookingActionsDropdown({
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
   const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
+  const isCancelDialogOpen = useBookingActionsStoreContext((state) => state.isCancelDialogOpen);
+  const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
 
   const cardCharged = booking?.payment[0]?.success;
 
@@ -200,6 +203,17 @@ export function BookingActionsDropdown({
     return userSeat?.referenceUid;
   };
 
+  // Calculate isHost (from get.handler.ts lines 694-708)
+  const loggedInUserId = booking.loggedInUser.userId;
+  const isHost =
+    booking.user?.id === loggedInUserId ||
+    booking.eventType?.hosts?.some(
+      ({ user: hostUser }) =>
+        hostUser?.id === loggedInUserId &&
+        hostUser?.email &&
+        booking.attendees.some((attendee) => attendee.email === hostUser.email)
+    );
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -260,7 +274,10 @@ export function BookingActionsDropdown({
     t,
   } as BookingActionContext;
 
-  const cancelEventAction = getCancelEventAction(actionContext);
+  const cancelEventAction = {
+    ...getCancelEventAction(actionContext),
+    onClick: () => setIsCancelDialogOpen(true),
+  };
 
   // Get pending actions (accept/reject) - only for details context
   const shouldShowPending = shouldShowPendingActions(actionContext);
@@ -510,6 +527,14 @@ export function BookingActionsDropdown({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CancelBookingDialog
+        isOpenDialog={isCancelDialogOpen}
+        setIsOpenDialog={setIsCancelDialogOpen}
+        booking={booking}
+        isHost={!!isHost}
+        allRemainingBookings={!!(isTabRecurring && isRecurring)}
+        seatReferenceUid={getSeatReferenceUid()}
+      />
       {isBookingFromRoutingForm &&
         parsedBooking.eventType &&
         parsedBooking.eventType.id !== undefined &&
@@ -687,7 +712,7 @@ export function BookingActionsDropdown({
                 href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
                 onClick={(e) => {
                   e.stopPropagation();
-                  cancelEventAction.onClick?.(e);
+                  cancelEventAction.onClick?.();
                 }}
                 disabled={cancelEventAction.disabled}
                 data-bookingid={cancelEventAction.bookingId}
