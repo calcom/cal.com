@@ -1,14 +1,23 @@
-import { TRPCError } from "@trpc/server";
-
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 
+import { TRPCError } from "@trpc/server";
+
 type TRPCErrorCode =
+  | "PARSE_ERROR"
   | "BAD_REQUEST"
+  | "INTERNAL_SERVER_ERROR"
+  | "NOT_IMPLEMENTED"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "NOT_FOUND"
+  | "METHOD_NOT_SUPPORTED"
+  | "TIMEOUT"
   | "CONFLICT"
-  | "INTERNAL_SERVER_ERROR";
+  | "PRECONDITION_FAILED"
+  | "PAYLOAD_TOO_LARGE"
+  | "UNPROCESSABLE_CONTENT"
+  | "TOO_MANY_REQUESTS"
+  | "CLIENT_CLOSED_REQUEST";
 
 function httpStatusToTrpcCode(status: number): TRPCErrorCode {
   switch (status) {
@@ -20,8 +29,24 @@ function httpStatusToTrpcCode(status: number): TRPCErrorCode {
       return "FORBIDDEN";
     case 404:
       return "NOT_FOUND";
+    case 405:
+      return "METHOD_NOT_SUPPORTED";
+    case 408:
+      return "TIMEOUT";
     case 409:
       return "CONFLICT";
+    case 412:
+      return "PRECONDITION_FAILED";
+    case 413:
+      return "PAYLOAD_TOO_LARGE";
+    case 422:
+      return "UNPROCESSABLE_CONTENT";
+    case 429:
+      return "TOO_MANY_REQUESTS";
+    case 499:
+      return "CLIENT_CLOSED_REQUEST";
+    case 501:
+      return "NOT_IMPLEMENTED";
     default:
       return "INTERNAL_SERVER_ERROR";
   }
@@ -29,11 +54,6 @@ function httpStatusToTrpcCode(status: number): TRPCErrorCode {
 
 /**
  * Converts an unknown error to a TRPCError.
- * This function uses the existing getServerErrorFromUnknown to map ErrorWithCode
- * and other error types to proper HTTP status codes, then converts to TRPCError.
- *
- * Use this in tRPC handlers when catching errors from feature layer code that
- * throws ErrorWithCode instead of TRPCError.
  */
 export function toTRPCError(cause: unknown): TRPCError {
   if (cause instanceof TRPCError) {
