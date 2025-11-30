@@ -24,6 +24,66 @@ export default function Booker( props : BookerProps ) {
 }
 ```
 
+## Dynamic Bookings
+
+Dynamic bookings allow you to show combined availability across multiple users. This is useful for scenarios like:
+- Group meetings where all participants must be available
+- Sales calls that require multiple team members
+- Consultations with multiple experts
+
+### Using Dynamic Bookings
+
+Pass an array of usernames to create a dynamic booking:
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function DynamicBooker() {
+  return (
+    <Booker
+      // Pass multiple usernames for combined availability
+      username={["alice", "bob", "charlie"]}
+      eventSlug="group-meeting"
+      onCreateBookingSuccess={() => {
+        console.log("Dynamic booking created!");
+      }}
+    />
+  )
+}
+```
+
+<Note>
+**Requirements for Dynamic Bookings:**
+- All specified users must have `allowDynamicBooking` enabled in their settings
+- The event type slug should be a valid dynamic event type (or use "dynamic" as the slug)
+- For organization-scoped dynamic bookings, provide the `entity.orgSlug` prop
+</Note>
+
+### Dynamic Booking with Organization Context
+
+When booking within an organization, provide the `entity` prop to ensure correct availability resolution:
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function OrgDynamicBooker() {
+  return (
+    <Booker
+      username={["sales-lead", "account-manager"]}
+      eventSlug="consultation"
+      entity={{
+        considerUnpublished: false,
+        orgSlug: "acme-corp",  // Required for org-scoped availability
+        name: "ACME Corporation"
+      }}
+      onCreateBookingSuccess={() => {
+        console.log("Org dynamic booking created!");
+      }}
+    />
+  )
+}
+```
+
 For a demonstration of the booker atom, please refer to the video below.
 
 <p></p>
@@ -85,8 +145,9 @@ Below is a list of props that can be passed to the booker atom.
 
 | Name                            | Required | Description                                                                                                                                                                                                    |
 | :------------------------------ | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| username                        | Yes      | Username of the person whose schedule is to be displayed                                                                                                                                                       |
+| username                        | Yes      | Username(s) of the person(s) whose schedule is to be displayed. Pass a string for single user, or an array of strings for dynamic bookings (e.g., `["alice", "bob"]`)                                         |
 | eventSlug                       | Yes      | Unique slug created for a particular event                                                                                                                                                                     |
+| entity                          | No       | Configuration object for organizational context. See [Entity Configuration](#entity-configuration) below for details                                                                                          |
 | orgBannerUrl                    | No       | URL of the user's current organization                                                                                                                                                                         |
 | customClassNames                | No       | To pass in custom classnames from outside for styling the atom                                                                                                                                                 |
 | month                           | No       | The exact month for displaying a user's availability; defaults to the current month                                                                                                                            |
@@ -288,3 +349,56 @@ export default function Booker( props : BookerProps ) {
   )
 }
 ```
+
+## Entity Configuration
+
+The `entity` prop provides organizational context for the booking flow. It's essential for proper availability resolution, especially for organization-scoped events and dynamic bookings.
+
+### Entity Properties
+
+| Property              | Required | Description                                                                                                              |
+| :-------------------- | :------- | :----------------------------------------------------------------------------------------------------------------------- |
+| considerUnpublished   | Yes      | If true, shows "unpublished" state for orgs that aren't live yet. Set to false for reschedule links                     |
+| orgSlug               | No       | Organization's slug. Required for org-scoped availability lookups. Auto-resolved from event data if not provided        |
+| teamSlug              | No       | Team's slug within the organization                                                                                      |
+| name                  | No       | Display name of the organization or team                                                                                 |
+| logoUrl               | No       | URL to the organization or team logo                                                                                     |
+| eventTypeId           | No       | Specific event type ID for routing purposes                                                                              |
+| fromRedirectOfNonOrgLink | No    | Indicates if user was redirected from a non-org link                                                                     |
+| isUnpublished         | No       | Whether the org/team is currently unpublished                                                                            |
+
+### When to Use Entity
+
+**Dynamic Bookings**: When passing multiple usernames, the `entity.orgSlug` ensures users are resolved within the correct organizational scope:
+
+```js
+<Booker
+  username={["alice", "bob"]}
+  eventSlug="pair-programming"
+  entity={{
+    considerUnpublished: false,
+    orgSlug: "tech-startup"
+  }}
+/>
+```
+
+**Organization Events**: For events within an organization, provide the org context:
+
+```js
+<Booker
+  username="sales-rep"
+  eventSlug="demo-call"
+  entity={{
+    considerUnpublished: false,
+    orgSlug: "enterprise-co",
+    name: "Enterprise Co",
+    logoUrl: "https://example.com/logo.png"
+  }}
+/>
+```
+
+**Automatic Resolution**: If you don't provide `entity.orgSlug`, the Booker platform wrapper will attempt to resolve it from the event data returned by the API. This works for most cases but may cause issues with dynamic bookings where the org context isn't clear from the event alone.
+
+<Tip>
+For dynamic bookings or multi-user scenarios, always explicitly provide `entity.orgSlug` to ensure correct availability resolution.
+</Tip>

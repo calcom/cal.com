@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
 import debounce from "lodash/debounce";
 import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
@@ -47,7 +46,35 @@ import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
   BookerStoreValues,
+  BookerEntityConfig,
 } from "./types";
+
+/**
+ * Resolves the orgSlug from multiple sources with the following priority:
+ * 1. Explicitly provided entity.orgSlug
+ * 2. Event data's entity.orgSlug (from API response)
+ * 3. Falls back to undefined (lets the backend handle resolution)
+ *
+ * This allows the Booker to work transparently with dynamic bookings
+ * without requiring the caller to always provide orgSlug.
+ */
+function resolveOrgSlug(
+  entityFromProps: BookerEntityConfig | undefined,
+  eventData: { entity?: { orgSlug?: string | null } } | null | undefined
+): string | undefined {
+  // Priority 1: Explicit prop
+  if (entityFromProps?.orgSlug) {
+    return entityFromProps.orgSlug;
+  }
+
+  // Priority 2: From event data (API response)
+  if (eventData?.entity?.orgSlug) {
+    return eventData.entity.orgSlug;
+  }
+
+  // Priority 3: Let backend resolve
+  return undefined;
+}
 
 const BookerPlatformWrapperComponent = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
@@ -71,6 +98,7 @@ const BookerPlatformWrapperComponent = (
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
     defaultPhoneCountry,
+    entity: entityFromProps,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -150,13 +178,7 @@ const BookerPlatformWrapperComponent = (
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.duration]);
-
-  useEffect(() => {
-    setOrg(props.entity?.orgSlug ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -170,6 +192,16 @@ const BookerPlatformWrapperComponent = (
     selectedDuration,
   });
 
+  // Resolve orgSlug transparently from props or event data
+  const resolvedOrgSlug = useMemo(() => {
+    return resolveOrgSlug(entityFromProps, event.data);
+  }, [entityFromProps, event.data]);
+
+  // Update org in store when resolved orgSlug changes
+  useEffect(() => {
+    setOrg(resolvedOrgSlug ?? null);
+  }, [resolvedOrgSlug]);
+
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
     ...props,
@@ -181,7 +213,7 @@ const BookerPlatformWrapperComponent = (
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: layout,
-    org: props.entity?.orgSlug,
+    org: resolvedOrgSlug,
     username,
     bookingData,
     isPlatform: true,
@@ -198,7 +230,7 @@ const BookerPlatformWrapperComponent = (
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: layout,
-    org: props.entity?.orgSlug,
+    org: resolvedOrgSlug,
     username,
     bookingData,
     isPlatform: true,
@@ -230,7 +262,6 @@ const BookerPlatformWrapperComponent = (
       name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultName, defaultGuests]);
 
   const extraOptions = useMemo(() => {
@@ -304,7 +335,8 @@ const BookerPlatformWrapperComponent = (
       Boolean(timezone) &&
       !event?.isPending &&
       event?.data?.id != null,
-    orgSlug: props.entity?.orgSlug ?? undefined,
+    // Use resolved orgSlug for availability - falls back gracefully if not available
+    orgSlug: resolvedOrgSlug,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
@@ -463,7 +495,6 @@ const BookerPlatformWrapperComponent = (
   );
   useEffect(() => {
     setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateProp]);
 
   useEffect(() => {
@@ -485,7 +516,6 @@ const BookerPlatformWrapperComponent = (
         setBookingData(null);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

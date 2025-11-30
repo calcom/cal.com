@@ -1,5 +1,5 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -21,20 +21,42 @@ import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
+  BookerEntityConfig,
 } from "../../booker/types";
 import { useAtomGetPublicEvent } from "../../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
+/**
+ * Resolves the orgSlug from multiple sources with the following priority:
+ * 1. Explicitly provided entity.orgSlug
+ * 2. Event data's entity.orgSlug (from API response)
+ * 3. Falls back to undefined (lets the backend handle resolution)
+ */
+function resolveOrgSlug(
+  entityFromProps: BookerEntityConfig | undefined,
+  eventData: { entity?: { orgSlug?: string | null } } | null | undefined
+): string | undefined {
+  if (entityFromProps?.orgSlug) {
+    return entityFromProps.orgSlug;
+  }
+  if (eventData?.entity?.orgSlug) {
+    return eventData.entity.orgSlug;
+  }
+  return undefined;
+}
+
 type CalendarViewPlatformWrapperAtomPropsForIndividual = {
   username: string | string[];
   eventSlug: string;
+  entity?: BookerEntityConfig;
 };
 
 type CalendarViewPlatformWrapperAtomPropsForTeam = {
   teamId: number;
   eventSlug: string;
+  entity?: BookerEntityConfig;
 };
 
 const CalendarViewPlatformWrapperComponent = (
@@ -56,6 +78,7 @@ const CalendarViewPlatformWrapperComponent = (
   const { isPending: isTeamPending } = useTeamEventType(teamId, props.eventSlug, isTeamEvent);
 
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const setOrg = useBookerStoreContext((state) => state.setOrg);
 
   const event = useAtomGetPublicEvent({
     username,
@@ -64,6 +87,16 @@ const CalendarViewPlatformWrapperComponent = (
     teamId,
     selectedDuration,
   });
+
+  // Resolve orgSlug transparently from props or event data
+  const resolvedOrgSlug = useMemo(() => {
+    return resolveOrgSlug(props.entity, event.data);
+  }, [props.entity, event.data]);
+
+  // Update org in store when resolved orgSlug changes
+  useEffect(() => {
+    setOrg(resolvedOrgSlug ?? null);
+  }, [resolvedOrgSlug]);
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
 
@@ -106,6 +139,7 @@ const CalendarViewPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams: false,
+    org: resolvedOrgSlug,
   });
 
   const schedule = useAvailableSlots({
@@ -128,7 +162,8 @@ const CalendarViewPlatformWrapperComponent = (
       Boolean(timezone) &&
       (isTeamEvent ? !isTeamPending : !isPending) &&
       Boolean(event?.data?.id),
-    orgSlug: undefined,
+    // Use resolved orgSlug for availability
+    orgSlug: resolvedOrgSlug,
     eventTypeSlug: isDynamic ? "dynamic" : props.eventSlug || "",
   });
 
