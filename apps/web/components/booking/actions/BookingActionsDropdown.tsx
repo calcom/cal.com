@@ -708,7 +708,6 @@ export function BookingActionsDropdown({
                 type="button"
                 color={cancelEventAction.color}
                 StartIcon={cancelEventAction.icon}
-                href={cancelEventAction.disabled ? undefined : cancelEventAction.href}
                 onClick={(e) => {
                   e.stopPropagation();
                   cancelEventAction.onClick?.();
