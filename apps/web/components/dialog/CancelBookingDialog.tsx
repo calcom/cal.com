@@ -137,7 +137,7 @@ export const CancelBookingDialog = ({
       booking: {
         startTime: new Date(booking.startTime),
       },
-      payment: paymentAppData as { appId?: string | null },
+      payment: { ...paymentAppData, appId },
     });
   };
 
