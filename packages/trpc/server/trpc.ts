@@ -4,6 +4,7 @@ import { initTRPC } from "@trpc/server";
 
 import type { createContextInner } from "./createContext";
 import { errorFormatter } from "./errorFormatter";
+import { errorMappingMiddleware } from "./middlewares/errorMappingMiddleware";
 
 export const tRPCContext = initTRPC.context<typeof createContextInner>().create({
   transformer: superjson,
@@ -13,5 +14,10 @@ export const tRPCContext = initTRPC.context<typeof createContextInner>().create(
 export const router = tRPCContext.router;
 export const mergeRouters = tRPCContext.mergeRouters;
 export const middleware = tRPCContext.middleware;
-export const procedure = tRPCContext.procedure;
+/**
+ * Base procedure with error mapping middleware.
+ * This converts ErrorWithCode thrown by feature layer code into TRPCError,
+ * allowing features to remain transport-agnostic.
+ */
+export const procedure = tRPCContext.procedure.use(errorMappingMiddleware);
 export const createCallerFactory = tRPCContext.createCallerFactory;
