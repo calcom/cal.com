@@ -5,8 +5,6 @@ import {
   getNormalizedHosts,
 } from "@calcom/features/users/lib/getRoutedUsers";
 import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -72,9 +70,9 @@ export const loadUsers = async ({
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
-      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, error.message);
+      throw new HttpError({ statusCode: 400, message: error.message });
     }
-    throw new ErrorWithCode(ErrorCode.InternalServerError, "Unable to load users");
+    throw new HttpError({ statusCode: 500, message: "Unable to load users" });
   }
 };
 
