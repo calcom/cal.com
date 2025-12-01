@@ -3,6 +3,7 @@
 import type { TFunction } from "i18next";
 import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
+import posthog from "posthog-js";
 
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -42,6 +43,7 @@ function DownloadButton({ selectedPeriod, searchQuery }: DownloadButtonProps) {
     e.preventDefault(); // Prevent default form submission
 
     try {
+      posthog.capture("insights_routing_download_clicked", { teamId: routingParams.selectedTeamId });
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
         ...routingParams,
         period: selectedPeriod,
