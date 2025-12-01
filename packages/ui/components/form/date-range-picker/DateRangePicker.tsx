@@ -1,8 +1,9 @@
 "use client";
 
 import * as Popover from "@radix-ui/react-popover";
-import { format } from "date-fns";
+import { format, isBefore, isSameDay } from "date-fns";
 import * as React from "react";
+import type { DateRange } from "react-day-picker";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -34,6 +35,8 @@ export function DatePickerWithRange({
   strictlyBottom,
   allowPastDates = false,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
+  const [hoveredDate, setHoveredDate] = React.useState<Date | undefined>(undefined);
+
   function handleDayClick(date: Date) {
     const newDates = calculateNewDateRange({
       startDate: dates.startDate,
@@ -41,9 +44,42 @@ export function DatePickerWithRange({
       clickedDate: date,
     });
     onDatesChange(newDates);
+    setHoveredDate(undefined);
+  }
+
+  function handleDayMouseEnter(date: Date) {
+    if (dates.startDate && !dates.endDate) {
+      setHoveredDate(date);
+    }
+  }
+
+  function handleDayMouseLeave() {
+    setHoveredDate(undefined);
   }
 
   const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
+
+  const getHoverRange = (): DateRange | undefined => {
+    if (!dates.startDate || dates.endDate || !hoveredDate) {
+      return undefined;
+    }
+    if (isSameDay(dates.startDate, hoveredDate)) {
+      return undefined;
+    }
+    if (isBefore(hoveredDate, dates.startDate)) {
+      return { from: hoveredDate, to: dates.startDate };
+    }
+    return { from: dates.startDate, to: hoveredDate };
+  };
+
+  const hoverRange = getHoverRange();
+
+  const hoverRangeModifier = hoverRange
+    ? {
+        from: hoverRange.from,
+        to: hoverRange.to,
+      }
+    : undefined;
 
   const calendar = (
     <Calendar
@@ -54,9 +90,13 @@ export function DatePickerWithRange({
       defaultMonth={dates?.startDate}
       selected={{ from: dates?.startDate, to: dates?.endDate }}
       onDayClick={(day) => handleDayClick(day)}
+      onDayMouseEnter={handleDayMouseEnter}
+      onDayMouseLeave={handleDayMouseLeave}
       numberOfMonths={1}
       disabled={disabled}
       data-testid={testId}
+      modifiers={hoverRangeModifier ? { hoverRange: hoverRangeModifier } : undefined}
+      modifiersClassNames={hoverRangeModifier ? { hoverRange: "bg-emphasis" } : undefined}
     />
   );
 
