@@ -173,12 +173,11 @@ function BookingListInner({
         <FilterButton
           table={table}
           displayedFilterCount={displayedFilterCount}
-          showFilters={showFilters}
           setShowFilters={setShowFilters}
         />
 
         {/* Desktop: auto-pushed to right via flex-grow spacer, Mobile: continue on second row */}
-        <div className="hidden flex-grow md:block" />
+        <div className="hidden grow md:block" />
 
         <DataTableSegment.Select shortLabel />
         {bookingsV3Enabled && <ViewToggleButton />}
