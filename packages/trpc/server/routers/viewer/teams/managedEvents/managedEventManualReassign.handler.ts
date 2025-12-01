@@ -1,19 +1,22 @@
-import { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
+import { managedEventManualReassignment } from "@calcom/features/ee/managed-event-types/reassignment";
 import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TRoundRobinManualReassignInputSchema } from "./roundRobinManualReassign.schema";
+import type { TManagedEventManualReassignInputSchema } from "./managedEventManualReassign.schema";
 
-type RoundRobinManualReassignOptions = {
+type ManagedEventManualReassignOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TRoundRobinManualReassignInputSchema;
+  input: TManagedEventManualReassignInputSchema;
 };
 
-export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobinManualReassignOptions) => {
+export const managedEventManualReassignHandler = async ({
+  ctx,
+  input,
+}: ManagedEventManualReassignOptions) => {
   const { bookingId, teamMemberId, reassignReason } = input;
 
   // Check if user has access to change booking
@@ -27,10 +30,10 @@ export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobin
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
   }
 
-  await roundRobinManualReassignment({
+  await managedEventManualReassignment({
     bookingId,
     newUserId: teamMemberId,
-    orgId: ctx.user.organizationId,
+    orgId: ctx.user.organizationId ?? null,
     reassignReason,
     reassignedById: ctx.user.id,
   });
@@ -38,4 +41,5 @@ export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobin
   return { success: true };
 };
 
-export default roundRobinManualReassignHandler;
+export default managedEventManualReassignHandler;
+
