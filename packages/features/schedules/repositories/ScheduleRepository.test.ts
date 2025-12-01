@@ -36,9 +36,11 @@ vi.mock("@calcom/lib/schedules/transformers", () => ({
 
 describe("ScheduleRepository", () => {
   let prisma: PrismaClient;
+  let scheduleRepository: ScheduleRepository;
 
   beforeEach(() => {
     prisma = new PrismaClient();
+    scheduleRepository = new ScheduleRepository(prisma);
     vi.clearAllMocks();
   });
 
@@ -51,7 +53,7 @@ describe("ScheduleRepository", () => {
         defaultScheduleId,
       });
 
-      const result = await ScheduleRepository.getDefaultScheduleId(userId, prisma);
+      const result = await scheduleRepository.getDefaultScheduleId(userId);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
@@ -72,7 +74,7 @@ describe("ScheduleRepository", () => {
         id: scheduleId,
       });
 
-      const result = await ScheduleRepository.getDefaultScheduleId(userId, prisma);
+      const result = await scheduleRepository.getDefaultScheduleId(userId);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
@@ -94,7 +96,7 @@ describe("ScheduleRepository", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
-      await expect(ScheduleRepository.getDefaultScheduleId(userId, prisma)).rejects.toThrow(
+      await expect(scheduleRepository.getDefaultScheduleId(userId)).rejects.toThrow(
         "No schedules found for user"
       );
     });
@@ -104,7 +106,7 @@ describe("ScheduleRepository", () => {
     it("should return true if user has defaultScheduleId", async () => {
       const user = { id: 1, defaultScheduleId: 123 };
 
-      const result = await ScheduleRepository.hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(result).toBe(true);
     });
@@ -116,7 +118,7 @@ describe("ScheduleRepository", () => {
         id: 456,
       });
 
-      const result = await ScheduleRepository.hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(prisma.schedule.findFirst).toHaveBeenCalledWith({
         where: { userId: user.id },
@@ -129,7 +131,7 @@ describe("ScheduleRepository", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.schedule.findFirst as any).mockResolvedValue(null);
 
-      const result = await ScheduleRepository.hasDefaultSchedule(user, prisma);
+      const result = await scheduleRepository.hasDefaultSchedule(user);
 
       expect(prisma.schedule.findFirst).toHaveBeenCalledWith({
         where: { userId: user.id },
@@ -146,7 +148,7 @@ describe("ScheduleRepository", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (prisma.user.update as any).mockResolvedValue(updatedUser);
 
-      const result = await ScheduleRepository.setupDefaultSchedule(userId, scheduleId, prisma);
+      const result = await scheduleRepository.setupDefaultSchedule(userId, scheduleId);
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },

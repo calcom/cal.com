@@ -11,7 +11,8 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  return await ScheduleRepository.findDetailedScheduleById({
+  const scheduleRepo = new ScheduleRepository(ctx.prisma);
+  return await scheduleRepo.findDetailedScheduleById({
     scheduleId: input.scheduleId,
     isManagedEventType: input.isManagedEventType,
     userId: ctx.user.id,

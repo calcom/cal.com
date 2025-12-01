@@ -48,7 +48,8 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     });
   }
 
-  const defaultScheduleId = await ScheduleRepository.getDefaultScheduleId(input.userId, prisma);
+  const scheduleRepository = new ScheduleRepository(prisma);
+  const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(input.userId);
 
   return {
     schedules: schedules.map((schedule) => {

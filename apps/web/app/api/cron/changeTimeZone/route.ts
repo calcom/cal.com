@@ -3,8 +3,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import prisma from "@calcom/prisma";
 
 const travelScheduleSelect = {
   id: true,
@@ -40,7 +40,8 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    const defaultScheduleId = await ScheduleRepository.getDefaultScheduleId(user.id, prisma);
+    const scheduleRepository = new ScheduleRepository(prisma);
+    const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {
       // set default schedule if not already set

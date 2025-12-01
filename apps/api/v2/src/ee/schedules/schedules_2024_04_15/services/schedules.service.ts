@@ -53,8 +53,8 @@ export class SchedulesService_2024_04_15 {
     const user = await this.usersRepository.findById(userId);
 
     if (!user?.defaultScheduleId) return null;
-
-    return await ScheduleRepository.findDetailedScheduleById({
+    const scheduleRepo = new ScheduleRepository(this.dbWrite.prisma as unknown as PrismaClient);
+    return await scheduleRepo.findDetailedScheduleById({
       scheduleId: user.defaultScheduleId,
       isManagedEventType: undefined,
       userId,
@@ -70,7 +70,8 @@ export class SchedulesService_2024_04_15 {
       throw new NotFoundException(`User with ID=${userId} does not exist.`);
     }
 
-    const existingSchedule = await ScheduleRepository.findDetailedScheduleById({
+    const scheduleRepo = new ScheduleRepository(this.dbWrite.prisma as unknown as PrismaClient);
+    const existingSchedule = await scheduleRepo.findDetailedScheduleById({
       scheduleId: scheduleId,
       isManagedEventType: undefined,
       userId,
@@ -88,7 +89,8 @@ export class SchedulesService_2024_04_15 {
   }
 
   async getUserSchedules(userId: number, timeZone: string, defaultScheduleId: number | null) {
-    return ScheduleRepository.findManyDetailedScheduleByUserId({ userId, timeZone, defaultScheduleId });
+    const scheduleRepo = new ScheduleRepository(this.dbWrite.prisma as unknown as PrismaClient);
+    return scheduleRepo.findManyDetailedScheduleByUserId({ userId, timeZone, defaultScheduleId });
   }
 
   async updateUserSchedule(
