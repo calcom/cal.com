@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 
 const travelScheduleSelect = {
   id: true,
@@ -40,7 +40,7 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    const defaultScheduleId = await ScheduleRepository.getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
       // set default schedule if not already set
