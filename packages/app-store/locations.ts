@@ -459,7 +459,7 @@ export function getSuccessPageLocationMessage(
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
-      locationToDisplay == t("web_conference");
+      locationToDisplay = t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay = `${getHumanReadableLocationValue(location, t)}: ${t(
         "meeting_url_in_confirmation_email"
