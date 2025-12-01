@@ -250,16 +250,16 @@ export class PermissionRepository implements IPermissionRepository {
           AND m."customRoleId" IS NOT NULL
           AND (
             SELECT COUNT(*)
-            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm
             WHERE EXISTS (
               SELECT 1
               FROM "RolePermission" rp
               WHERE rp."roleId" = r.id
                 AND (
                   (rp."resource" = '*' AND rp."action" = '*') OR
-                  (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                  (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                  (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+                  (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+                  (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+                  (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
                 )
             )
           ) = ${permissions.length}
@@ -276,16 +276,16 @@ export class PermissionRepository implements IPermissionRepository {
           AND org_m."customRoleId" IS NOT NULL
           AND (
             SELECT COUNT(*)
-            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm
             WHERE EXISTS (
               SELECT 1
               FROM "RolePermission" rp
               WHERE rp."roleId" = org_r.id
                 AND (
                   (rp."resource" = '*' AND rp."action" = '*') OR
-                  (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                  (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                  (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+                  (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+                  (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+                  (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
                 )
             )
           ) = ${permissions.length}
