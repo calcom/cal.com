@@ -70,9 +70,14 @@ export function calculatePeriodLimits({
     case PeriodType.ROLLING: {
       // We use booker's timezone to calculate the end of the rolling period(for both ROLLING and ROLLING_WINDOW). This is because we want earliest possible timeslot to be available to be booked which could be on an earlier day(compared to event timezone) as per booker's timezone.
       // So, if 2 day rolling period is set and 2024-07-24T8:30:00 slot is available in event timezone, the corresponding slot in GMT-11 would be 2024-07-24T21:30:00. So, 24th should be bookable for that timeslot, which could only be made available if we consider things in booker timezone.
+
+      // Treat periodDays as inclusive of current day to support same-day bookings
+      // periodDays=1 means "today only", periodDays=2 means "today + tomorrow", etc.
+      const daysToAdd = Math.max(0, periodDays - 1);
+
       const rollingEndDay = periodCountCalendarDays
-        ? currentTimeInBookerTz.add(periodDays, "days")
-        : currentTimeInBookerTz.businessDaysAdd(periodDays);
+        ? currentTimeInBookerTz.add(daysToAdd, "days")
+        : currentTimeInBookerTz.businessDaysAdd(daysToAdd);
       // The future limit talks in terms of days so we take the end of the day here to consider the entire day
       return {
         endOfRollingPeriodEndDayInBookerTz: rollingEndDay.endOf("day"),
