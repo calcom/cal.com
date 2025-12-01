@@ -19,7 +19,7 @@ import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
   version: VERSION_2024_08_13_VALUE,
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Bookings / Location")
+@DocsTags("Bookings")
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to ${VERSION_2024_08_13}. This header is required as this endpoint does not exist in older API versions.`,

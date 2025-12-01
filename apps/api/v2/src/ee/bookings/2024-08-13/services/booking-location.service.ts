@@ -8,6 +8,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import type {
   UpdateBookingLocationInput_2024_08_13,
   BookingInputLocation_2024_08_13,
+  UpdateBookingInputLocation_2024_08_13,
 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
 
@@ -40,22 +41,13 @@ export class BookingLocationService_2024_08_13 {
     return this.bookingsService.getBooking(existingBooking.uid, user);
   }
 
-  getLocationValue(loc: BookingInputLocation_2024_08_13) {
-    if ("address" in loc) return (loc as { address: string }).address;
-    if ("link" in loc) return (loc as { link: string }).link;
-    if ("phone" in loc) return (loc as { phone: string }).phone;
-    if ("location" in loc) return (loc as { location: string }).location;
-    if ("integration" in loc) return (loc as { integration: string }).integration;
-    return undefined;
-  }
-
-  async updateLocation(
+  private async updateLocation(
     existingBooking: Booking,
-    location: BookingInputLocation_2024_08_13,
+    inputLocation: UpdateBookingInputLocation_2024_08_13,
     user: ApiAuthGuardUser
   ) {
     const bookingUid = existingBooking.uid;
-    let bookingLocation = existingBooking.location ?? "";
+    const bookingLocation = this.getLocationValue(inputLocation) ?? existingBooking.location;
 
     if (!existingBooking.userId) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
@@ -71,15 +63,14 @@ export class BookingLocationService_2024_08_13 {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
-    const locationString = this.getLocationValue(location);
-    bookingLocation = locationString ?? bookingLocation;
-
-    const transformedLocation = this.inputService.transformLocation(location);
+    const bookingFieldsLocation = this.inputService.transformLocation(
+      inputLocation as BookingInputLocation_2024_08_13
+    );
 
     const responses = (existingBooking.responses || {}) as Record<string, unknown>;
     const { location: _existingLocation, ...rest } = responses;
 
-    const updatedBookingResponses = { ...rest, location: transformedLocation };
+    const updatedBookingResponses = { ...rest, location: bookingFieldsLocation };
 
     const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
       location: bookingLocation,
@@ -87,5 +78,16 @@ export class BookingLocationService_2024_08_13 {
     });
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
+  }
+
+  private getLocationValue(loc: UpdateBookingInputLocation_2024_08_13): string | undefined {
+    if (loc.type === "address") return loc.address;
+    if (loc.type === "link") return loc.link;
+    if (loc.type === "phone") return loc.phone;
+    if (loc.type === "attendeeAddress") return loc.address;
+    if (loc.type === "attendeePhone") return loc.phone;
+    if (loc.type === "attendeeDefined") return loc.location;
+
+    return undefined;
   }
 }
