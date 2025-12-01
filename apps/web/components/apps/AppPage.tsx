@@ -184,8 +184,7 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall =
-    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+  const disableInstall = dependencyData.data ? dependencyData.data.some((dependency) => !dependency.installed) : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 
@@ -230,6 +229,7 @@ export const AppPage = ({
                 handleAppInstall();
               },
               loading: isLoading,
+              disabled: disableInstall || props.disabled,
             };
           }
           return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
@@ -250,6 +250,7 @@ export const AppPage = ({
                 handleAppInstall();
               },
               loading: isLoading,
+              disabled: disableInstall || props.disabled,
             };
           }
 
