@@ -20,7 +20,6 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
   const isMobile = useMediaQuery("(max-width: 640px)");
-
   const [isOpen, setisOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -101,7 +100,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown onOpenChange={handleOnOpen} open={isOpen}>
-      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px] focus:outline-none">
+      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-cal-muted pt-[6px] focus:outline-none">
         <div className="items-center">
           {props.isTextEditor ? (
             <>
@@ -128,9 +127,9 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-96" onKeyDown={handleKeyDown}>
-        <div className="p-4">
-          <div className="text-subtle mb-3 text-left text-xs font-medium uppercase tracking-wide">
+      <DropdownMenuContent className="w-52" onKeyDown={handleKeyDown}>
+        <div className="stack-y-2 p-1">
+          <div className="text-muted ml-1 text-left text-xs font-medium tracking-wide">
             {t("add_dynamic_variables")}
           </div>
           <div>
@@ -144,12 +143,12 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               className="border-subtle bg-default focus:ring-brand-800 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1"
             />
           </div>
-          <div className="max-h-64 overflow-y-auto md:max-h-80" ref={dropdownContainerRef}>
+          <div className="max-h-64 overflow-y-auto overflow-x-hidden md:max-h-80" ref={dropdownContainerRef}>
             {filteredVariables.length === 0 ? (
               <div className="text-subtle px-4 py-2 text-center text-sm">{t("no_variables_found")}</div>
             ) : (
               filteredVariables.map((variable, index) => (
-                <DropdownMenuItem key={variable} className="p-0 hover:ring-0 focus:outline-none">
+                <DropdownMenuItem key={variable} className="w-full p-1 hover:ring-0 focus:outline-none">
                   <button
                     ref={(el) => (itemRefs.current[index] = el)}
                     key={variable}
