@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
-import { sendBookingRedirectNotification } from "@calcom/emails";
+import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
@@ -47,7 +47,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserFullName = ctx.user.name;
 
   let isAdmin;
-  if (!!input.forUserId) {
+  if (input.forUserId) {
     isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
     if (!isAdmin) {
       throw new TRPCError({ code: "NOT_FOUND", message: "only_admin_can_create_ooo" });

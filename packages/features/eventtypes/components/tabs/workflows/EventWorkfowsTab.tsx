@@ -268,7 +268,7 @@ function EventWorkflowsTab(props: Props) {
           )}
           {data?.workflows && sortedWorkflows.length > 0 ? (
             <div>
-              <div className="space-y-4">
+              <div className="stack-y-4">
                 {sortedWorkflows.map((workflow) => {
                   return (
                     <WorkflowListItem

@@ -39,7 +39,7 @@ describe("VariableNode", () => {
     editor.update(() => {
       const node = $createVariableNode("test");
       const dom = node.createDOM(editor._config);
-      expect(dom.className).toBe("bg-info");
+      expect(dom.className).toBe("bg-cal-info");
       expect(dom.getAttribute("data-lexical-variable")).toBe("true");
     });
   });

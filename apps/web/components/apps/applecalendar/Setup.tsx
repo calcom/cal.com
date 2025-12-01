@@ -25,8 +25,8 @@ export default function AppleCalendarSetup() {
 
   return (
     <div className="bg-emphasis flex h-screen dark:bg-inherit">
-      <div className="bg-default dark:bg-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
-        <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
+      <div className="bg-default dark:bg-cal-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
+        <div className="flex flex-col stack-y-5 md:flex-row md:space-x-5 md:stack-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
@@ -75,7 +75,7 @@ export default function AppleCalendarSetup() {
                   }
                 }}>
                 <fieldset
-                  className="space-y-4"
+                  className="stack-y-4"
                   disabled={form.formState.isSubmitting}
                   data-testid="apple-calendar-form">
                   <TextField

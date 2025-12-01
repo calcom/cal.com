@@ -23,9 +23,15 @@ function removeProtocol(url: string) {
 export function EditUserSheet({
   state,
   dispatch,
+  canViewAttributes,
+  canEditAttributesForUser,
+  canChangeMemberRole,
 }: {
   state: UserTableState;
   dispatch: Dispatch<UserTableAction>;
+  canViewAttributes?: boolean;
+  canEditAttributesForUser?: boolean;
+  canChangeMemberRole?: boolean;
 }) {
   const { t } = useLocale();
   const { user: selectedUser } = state.editSheet;
@@ -47,7 +53,7 @@ export function EditUserSheet({
         userId: selectedUser?.id,
       },
       {
-        enabled: !!selectedUser?.id,
+        enabled: !!selectedUser?.id && !!canViewAttributes,
       }
     );
 
@@ -83,8 +89,8 @@ export function EditUserSheet({
                     </p>
                   </div>
                 </SheetHeader>
-                <SheetBody className="flex flex-col space-y-4 p-4">
-                  <div className="mb-4 flex flex-col space-y-4">
+                <SheetBody className="stack-y-4 flex flex-col p-4">
+                  <div className="stack-y-4 mb-4 flex flex-col">
                     <h3 className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</h3>
                     <DisplayInfo
                       label="Cal"
@@ -108,10 +114,10 @@ export function EditUserSheet({
                       icon="calendar"
                     />
                   </div>
-                  {usersAttributes && usersAttributes?.length > 0 && (
+                  {canViewAttributes && usersAttributes && usersAttributes?.length > 0 && (
                     <div className="mt-4 flex flex-col">
                       <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
-                      <div className="flex flex-col space-y-4">
+                      <div className="stack-y-4 flex flex-col">
                         {usersAttributes.map((attribute, index) => (
                           <>
                             <DisplayInfo
@@ -130,7 +136,10 @@ export function EditUserSheet({
                   )}
                 </SheetBody>
                 <SheetFooter>
-                  <SheetFooterControls />
+                  <SheetFooterControls
+                    canEditAttributesForUser={canEditAttributesForUser}
+                    canChangeMemberRole={canChangeMemberRole}
+                  />
                 </SheetFooter>
               </>
             ) : (
@@ -140,6 +149,7 @@ export function EditUserSheet({
                   avatarUrl={loadedUser.avatarUrl ?? avatarURL}
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
+                  canEditAttributesForUser={canEditAttributesForUser}
                 />
               </>
             )}

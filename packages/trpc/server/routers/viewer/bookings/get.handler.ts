@@ -498,6 +498,7 @@ export async function getBookings({
                 "EventType.currency",
                 "EventType.metadata",
                 "EventType.disableGuests",
+                "EventType.bookingFields",
                 "EventType.seatsPerTimeSlot",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
@@ -507,6 +508,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.parentId",
                 eb
                   .cast<SchedulingType | null>(
                     eb

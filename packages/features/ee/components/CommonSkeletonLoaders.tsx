@@ -7,7 +7,7 @@ export const AppearanceSkeletonLoader = () => {
       <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
         <SkeletonText className="h-8 w-1/3" />
       </div>
-      <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
+      <div className="border-subtle stack-y-6 border-x px-4 py-6 sm:px-6">
         <div className="flex w-full items-center justify-center gap-6">
           <div className="bg-emphasis h-32 flex-1 animate-pulse rounded-md p-5" />
           <div className="bg-emphasis h-32 flex-1 animate-pulse rounded-md p-5" />

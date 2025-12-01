@@ -97,7 +97,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-cal-muted">
         <SheetHeader>
           <SheetTitle>Assign: {flag.slug}</SheetTitle>
         </SheetHeader>
@@ -112,7 +112,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
           </div>
           {isPending ? (
             <SkeletonContainer>
-              <div className="space-y-3">
+              <div className="stack-y-3">
                 {[...Array(5)].map((_, i) => (
                   <SkeletonText key={i} className="h-16 w-full" />
                 ))}
@@ -120,14 +120,14 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
             </SkeletonContainer>
           ) : teams && teams.length > 0 ? (
             <>
-              <div className="space-y-2">
+              <div className="stack-y-2">
                 {teams.map((team) => (
                   <button
                     key={team.id}
                     type="button"
                     onClick={() => handleToggleTeam(team.id, team.hasFeature)}
                     disabled={isLoading}
-                    className="bg-default border-subtle hover:bg-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
+                    className="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         {team.isOrganization ? (

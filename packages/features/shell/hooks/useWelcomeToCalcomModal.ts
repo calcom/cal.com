@@ -1,7 +1,10 @@
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 
+import { sessionStorage } from "@calcom/lib/webstorage";
+
 const STORAGE_KEY = "showWelcomeToCalcomModal";
+const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
 export function useWelcomeToCalcomModal() {
   const [welcomeToCalcomModal, setWelcomeToCalcomModal] = useQueryState(
@@ -12,14 +15,19 @@ export function useWelcomeToCalcomModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check query param first
+    // Don't show personal modal if org modal flag is set (org modal takes precedence)
+    const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
+    if (hasOrgModalFlag) {
+      setIsOpen(false);
+      return;
+    }
+
     if (welcomeToCalcomModal) {
       setIsOpen(true);
       return;
     }
 
-    // Check sessionStorage as fallback (for cases where we redirect through personal onboarding)
-    if (typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY) === "true") {
+    if (sessionStorage.getItem(STORAGE_KEY) === "true") {
       setIsOpen(true);
     }
   }, [welcomeToCalcomModal]);
@@ -29,9 +37,7 @@ export function useWelcomeToCalcomModal() {
     // Remove the query param from URL
     setWelcomeToCalcomModal(null);
     // Also clear sessionStorage
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
+    sessionStorage.removeItem(STORAGE_KEY);
   };
 
   return {
@@ -40,12 +46,6 @@ export function useWelcomeToCalcomModal() {
   };
 }
 
-/**
- * Helper function to set the flag that triggers the welcome modal.
- * Use this before redirecting to ensure the modal shows after navigation.
- */
 export function setShowWelcomeToCalcomModalFlag() {
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem(STORAGE_KEY, "true");
-  }
+  sessionStorage.setItem(STORAGE_KEY, "true");
 }

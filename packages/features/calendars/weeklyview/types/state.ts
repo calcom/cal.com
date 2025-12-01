@@ -147,6 +147,11 @@ export type CalendarState = {
    * @default "default"
    */
   borderColor?: BorderColor;
+  /**
+   * Show the timezone in the empty space next to the date headers
+   * @default false
+   */
+  showTimezone?: boolean;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

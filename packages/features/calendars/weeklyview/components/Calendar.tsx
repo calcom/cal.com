@@ -34,6 +34,7 @@ function CalendarInner(props: CalendarComponentProps) {
   const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
+  const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -63,7 +64,7 @@ function CalendarInner(props: CalendarComponentProps) {
         {props.isPending && <Spinner />}
         <div
           ref={container}
-          className="bg-default dark:bg-muted relative isolate flex h-full flex-auto flex-col">
+          className="bg-default dark:bg-cal-muted relative isolate flex h-full flex-auto flex-col">
           <div
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
@@ -74,10 +75,10 @@ function CalendarInner(props: CalendarComponentProps) {
               borderColor={borderColor}
             />
             <div className="relative flex flex-auto">
-              <CurrentTime timezone={timezone} />
+              <CurrentTime timezone={timezone} scrollToCurrentTime={scrollToCurrentTime} />
               <div
                 className={classNames(
-                  "bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
+                  "bg-default dark:bg-cal-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
                   showBorder &&
                     (borderColor === "subtle"
                       ? "border-subtle border-l border-r"

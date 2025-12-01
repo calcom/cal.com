@@ -53,7 +53,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
                     size="md"
                     className="inline-flex justify-center"
                   />
-                  <div className="text-emphasis ml-2 flex flex-grow items-center font-bold">
+                  <div className="text-emphasis ml-2 flex grow items-center font-bold">
                     {group.profile.name || ""}
                   </div>
                 </div>

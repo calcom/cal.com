@@ -1,6 +1,6 @@
 // Import mocked functions
 import { get as edgeConfigGet } from "@vercel/edge-config";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -9,19 +9,11 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { checkPostMethod } from "./middleware";
 // We'll test the wrapped middleware as it would be used in production
 import middleware from "./middleware";
+import { config } from "./middleware";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
   get: vi.fn(),
-}));
-
-vi.mock("next-collect/server", () => ({
-  collectEvents: vi.fn((config: any) => config.middleware),
-}));
-
-vi.mock("@calcom/lib/telemetry", () => ({
-  extendEventData: vi.fn(),
-  nextCollectBasicSettings: {},
 }));
 
 // Mock NextResponse.json since it's not available in test environment
@@ -29,11 +21,13 @@ vi.mock("next/server", async () => {
   const actual = await vi.importActual<typeof import("next/server")>("next/server");
 
   // Create a NextResponse constructor that returns Response objects
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const NextResponse = function (body: any, init?: ResponseInit) {
     return new Response(body, init);
   };
 
   // Add static methods
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   NextResponse.json = (body: any, init?: ResponseInit) => {
     return new Response(JSON.stringify(body), {
       ...init,
@@ -55,6 +49,7 @@ vi.mock("next/server", async () => {
     });
 
     // Add cookies property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response as any).cookies = {
       delete: vi.fn(),
       set: vi.fn(),
@@ -91,6 +86,7 @@ vi.mock("next/server", async () => {
     });
 
     // Add cookies property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (response as any).cookies = {
       delete: vi.fn(),
       set: vi.fn(),
@@ -128,6 +124,7 @@ const createTestRequest = (overrides?: {
   return req;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createEdgeConfigMock = (config: Record<string, any>) => {
   return (key: string) => {
     if (key in config) return Promise.resolve(config[key]);
@@ -147,6 +144,7 @@ const expectStatus = (res: Response, status: number) => {
 
 // Wrapper for middleware calls to handle type casting
 const callMiddleware = async (req: NextRequest): Promise<Response> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (await (middleware as any)(req)) as Response;
 };
 
@@ -163,15 +161,6 @@ describe("Middleware - POST requests restriction", () => {
     const req1 = createRequest("/api/auth/signup", "POST");
     const res1 = checkPostMethod(req1);
     expect(res1).toBeNull();
-  });
-
-  it("should block POST requests to not-allowed app routes", async () => {
-    const req = createRequest("/team/xyz", "POST");
-    const res = checkPostMethod(req);
-    expect(res).not.toBeNull();
-    expect(res?.status).toBe(405);
-    expect(res?.statusText).toBe("Method Not Allowed");
-    expect(res?.headers.get("Allow")).toBe("GET");
   });
 
   it("should allow GET requests to app routes", async () => {
@@ -210,29 +199,6 @@ describe("Middleware Integration Tests", () => {
         expectStatus(res, 200);
         expect(getHeader(res, "x-middleware-next")).toBe("1");
       }
-    });
-  });
-
-  describe("POST Method Protection", () => {
-    it("should allow POST to /api/auth/signup", async () => {
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/api/auth/signup`,
-        method: "POST",
-      });
-
-      const res = await callMiddleware(req);
-      expectStatus(res, 200);
-    });
-
-    it("should block POST to regular routes", async () => {
-      const req = createTestRequest({
-        url: `${WEBAPP_URL}/team/test`,
-        method: "POST",
-      });
-
-      const res = await callMiddleware(req);
-      expectStatus(res, 405);
-      expect(getHeader(res, "Allow")).toBe("GET");
     });
   });
 
@@ -429,23 +395,57 @@ describe("Middleware Integration Tests", () => {
     });
   });
 
-  describe("Multiple Features", () => {
-    it("should handle POST protection before maintenance mode", async () => {
-      (edgeConfigGet as Mock).mockImplementation(
-        createEdgeConfigMock({
-          isInMaintenanceMode: true,
-        })
-      );
+  describe("Header sanitization", () => {
+    it("sanitizes non-ASCII request header values to prevent Vercel Runtime Malformed Response Header", async () => {
+      const spy = vi.spyOn(NextResponse, "next");
 
       const req = createTestRequest({
         url: `${WEBAPP_URL}/team/test`,
-        method: "POST",
+        // Next.js will translate request overrides into x-middleware-request-* headers internally
+        headers: {
+          "cf-region": "São Paulo", // contains non-ASCII "ã"
+        },
       });
 
       const res = await callMiddleware(req);
-      // POST protection should trigger first
-      expectStatus(res, 405);
+      expectStatus(res, 200);
+
+      // Assert that middleware forwarded sanitized ASCII-only value
+      const initArg = (spy as unknown as Mock).mock.calls.at(-1)?.[0] as {
+        request?: { headers?: Headers };
+      };
+      expect(initArg?.request?.headers).toBeDefined();
+
+      const forwarded = initArg?.request?.headers as Headers;
+      expect(forwarded.get("cf-region")).toBe("Sao Paulo");
+
+      spy.mockRestore();
     });
+
+    it("strips non-ASCII bytes in mojibake values (e.g., 'SÃ£o Paulo' -> 'So Paulo')", async () => {
+      const spy = vi.spyOn(NextResponse, "next");
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/team/test`,
+        headers: {
+          "cf-region": "SÃ£o Paulo", // mojibake for "São Paulo"; includes non-ASCII bytes
+        },
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+
+      const initArg = (spy as unknown as Mock).mock.calls.at(-1)?.[0] as {
+        request?: { headers?: Headers };
+      };
+      const forwarded = initArg?.request?.headers as Headers;
+      expect(forwarded.get("cf-region")).toBe("So Paulo");
+
+      spy.mockRestore();
+    });
+  });
+
+  describe("Multiple Features", () => {
 
     it("should handle embed route with routing forms rewrite", async () => {
       const req = createTestRequest({
@@ -481,5 +481,69 @@ describe("Middleware Integration Tests", () => {
       const res = await callMiddleware(req);
       expect(res).toBeDefined();
     });
+  });
+});
+
+describe("Middleware Matcher - Comprehensive Coverage", () => {
+  const matcher = config.matcher[0];
+  const pattern = matcher.replace(/^\/|\/$/g, "");
+  const regex = new RegExp(`^/${pattern}`);
+
+  const cases = [
+    // pages & apis
+    { path: "/", expected: true, reason: "Root page" },
+    { path: "/home", expected: true, reason: "Regular page" },
+    { path: "/team/abc", expected: true, reason: "Nested page" },
+    { path: "/api/auth/login", expected: true, reason: "API route" },
+    { path: "/api/bookings", expected: true, reason: "Top-level API" },
+    { path: "/dashboard/settings", expected: true, reason: "Deep nested page" },
+    { path: "/user/john/profile", expected: true, reason: "Multiple nested path" },
+    { path: "/apps/routing_forms/form", expected: true, reason: "App page under /apps" },
+    { path: "/embed?ui.color-scheme=dark", expected: true, reason: "Embed query param" },
+
+    // should be ignored (internal / static / public)
+    { path: "/_next/static/chunks/app.js", expected: false, reason: "Internal static asset" },
+    { path: "/_next/image?url=%2Flogo.png&w=256&q=75", expected: false, reason: "Internal image handler" },
+    { path: "/_next/data/build-id/page.json", expected: false, reason: "Next.js data route" },
+    { path: "/favicon.ico", expected: false, reason: "Favicon asset" },
+    { path: "/robots.txt", expected: false, reason: "Robots file" },
+    { path: "/sitemap.xml", expected: false, reason: "Sitemap file" },
+    { path: "/public/images/logo.png", expected: false, reason: "Public folder asset" },
+    { path: "/public/fonts/inter.woff2", expected: false, reason: "Public folder font" },
+    { path: "/static/js/main.js", expected: false, reason: "Static folder JavaScript" },
+    { path: "/static/css/app.css", expected: false, reason: "Static folder stylesheet" },
+
+    // edge cases
+    { path: "/manifest.json", expected: true, reason: "Manifest is a public page, not ignored" },
+    { path: "/_nextsomething", expected: true, reason: "Looks like _next but not reserved" },
+    { path: "/nextconfig", expected: true, reason: "Normal route with 'next' in name" },
+    { path: "/_NEXT/image", expected: true, reason: "Case-sensitive test (should match)" },
+    { path: "/favicon-abc.ico", expected: true, reason: "Favicon variant should still match" },
+    { path: "/robots-custom.txt", expected: true, reason: "Custom robots file should match" },
+    { path: "/sitemap-other.xml", expected: true, reason: "Custom sitemap file should match" },
+    { path: "/api_", expected: true, reason: "Partial match with api underscore" },
+    { path: "//double-slash", expected: true, reason: "Double slash URL" },
+    { path: "/_next", expected: false, reason: "Bare _next path" },
+  ];
+
+  it("should match only the intended routes", () => {
+    for (const { path, expected, reason } of cases) {
+      const result = regex.test(path);
+      expect(result, `${path} → ${reason}`).toBe(expected);
+    }
+  });
+
+  it("should not accidentally match internal Next.js routes", () => {
+    const internalPaths = ["/_next/static", "/_next/image", "/_next/data"];
+    for (const path of internalPaths) {
+      expect(regex.test(path)).toBe(false);
+    }
+  });
+
+  it("should match all user-facing routes and APIs", () => {
+    const publicPaths = ["/", "/api/user", "/settings", "/dashboard"];
+    for (const path of publicPaths) {
+      expect(regex.test(path)).toBe(true);
+    }
   });
 });

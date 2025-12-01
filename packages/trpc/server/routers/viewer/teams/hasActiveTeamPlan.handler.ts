@@ -1,4 +1,5 @@
-import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -36,13 +37,19 @@ export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlan
         return { isActive: true, isTrial: false };
       }
     }
-    const teamBillingService = new InternalTeamBilling(team);
+
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus === "active" || subscriptionStatus === "past_due") {
+    if (
+      subscriptionStatus === SubscriptionStatus.ACTIVE ||
+      subscriptionStatus === SubscriptionStatus.PAST_DUE
+    ) {
       return { isActive: true, isTrial: false };
     }
-    if (subscriptionStatus === "trialing") {
+    if (subscriptionStatus === SubscriptionStatus.TRIALING) {
       isTrial = true;
     }
   }

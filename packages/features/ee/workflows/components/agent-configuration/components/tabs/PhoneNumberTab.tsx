@@ -1,3 +1,4 @@
+import posthog from "posthog-js";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -35,6 +36,7 @@ interface PhoneNumberTabProps {
   workflowId?: string;
   isOrganization?: boolean;
   form?: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
 }
 
 export function PhoneNumberTab({
@@ -45,6 +47,7 @@ export function PhoneNumberTab({
   workflowId,
   isOrganization = false,
   form,
+  eventTypeIds = [],
 }: PhoneNumberTabProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -110,6 +113,9 @@ export function PhoneNumberTab({
         phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE || !phone.subscriptionStatus
     ).length > 0;
 
+  const outboundEventTypeId =
+    form?.watch("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null;
+
   if (hasActivePhoneNumbers) {
     const activePhoneNumbers = agentData.outboundPhoneNumbers.filter(
       (phone) =>
@@ -119,7 +125,7 @@ export function PhoneNumberTab({
 
     return (
       <>
-        <div className="relative space-y-2">
+        <div className="relative stack-y-2">
           {updateAgentMutation.isPending && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -237,6 +243,8 @@ export function PhoneNumberTab({
             agentId={agentId}
             teamId={teamId}
             form={form}
+            eventTypeIds={eventTypeIds}
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -248,6 +256,8 @@ export function PhoneNumberTab({
             teamId={teamId}
             isOrganization={isOrganization}
             form={form}
+            eventTypeIds={eventTypeIds}
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -265,11 +275,11 @@ export function PhoneNumberTab({
   return (
     <>
       <div className="border-subtle rounded-xl border p-8">
-        <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+        <div className="flex flex-col items-center stack-y-6 text-center">
+          <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
             <Icon name="phone" className="text-subtle h-8 w-8" />
           </div>
-          <div className="space-y-2">
+          <div className="stack-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("no_phone_numbers")}</h3>
             <p className="text-subtle text-sm">{t("buy_a_phone_number_or_import_one_you_already_have")}</p>
           </div>
@@ -277,6 +287,7 @@ export function PhoneNumberTab({
             <Button
               onClick={() => {
                 if (readOnly) return;
+                posthog.capture("calai_buy_number_modal_opened");
                 setIsBuyDialogOpen(true);
               }}
               StartIcon="external-link"
@@ -324,6 +335,8 @@ export function PhoneNumberTab({
           agentId={agentId}
           teamId={teamId}
           form={form}
+          eventTypeIds={eventTypeIds}
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 
@@ -335,6 +348,8 @@ export function PhoneNumberTab({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
+          eventTypeIds={eventTypeIds}
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 

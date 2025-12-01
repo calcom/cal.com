@@ -9,7 +9,7 @@ export const SkeletonLoader = () => {
   return (
     <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
       <SkeletonContainer>
-        <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
+        <div className="border-subtle stack-y-6 rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <SkeletonText className="h-8 w-full" />
           <SkeletonText className="h-8 w-full" />
           <SkeletonText className="h-8 w-full" />

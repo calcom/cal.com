@@ -37,10 +37,10 @@ export const AddNewTeamsForm = () => {
 
   if (isLoading) {
     return (
-      <SkeletonContainer as="div" className="space-y-6">
-        <div className="space-y-4">
+      <SkeletonContainer as="div" className="stack-y-6">
+        <div className="stack-y-4">
           <SkeletonText className="h-4 w-32" />
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {[...Array(2)].map((_, i) => (
               <div key={i} className="flex items-center space-x-2">
                 <SkeletonText className="h-5 w-5" />
@@ -49,9 +49,9 @@ export const AddNewTeamsForm = () => {
             ))}
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="stack-y-4">
           <SkeletonText className="h-4 w-32" />
-          <div className="space-y-2">
+          <div className="stack-y-2">
             {[...Array(3)].map((_, i) => (
               <SkeletonText key={i} className="h-10 w-full" />
             ))}
@@ -160,7 +160,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             <label className="text-emphasis mb-2 block text-sm font-medium leading-none">
               Move existing teams
             </label>
-            <ul className="mb-8 space-y-4">
+            <ul className="mb-8 stack-y-4">
               {moveTeams.map((team, index) => {
                 const currentTeam = teams.find((t) => t.id === team.id);
                 // If the team slug conflicts with the org slug, this team must be moved

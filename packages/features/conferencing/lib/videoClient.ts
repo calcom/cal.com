@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
+import { sendBrokenIntegrationEmail } from "@calcom/emails/integration-email-service";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -161,7 +161,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -184,7 +184,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
@@ -209,7 +209,7 @@ const getRecordingsOfCalVideoByRoomName = async (
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -235,7 +235,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -259,7 +259,7 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -283,7 +283,7 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -307,7 +307,7 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -343,7 +343,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }
@@ -368,7 +368,7 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
+  } catch {
     console.error("Error: Cal video provider is not installed.");
     return;
   }

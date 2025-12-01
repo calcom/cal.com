@@ -20,6 +20,7 @@ import { Select } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { DisableAutofillOnBookingPageSwitch } from "../components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
@@ -27,7 +28,7 @@ import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwit
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mb-8 mt-6 space-y-6">
+      <div className="mb-8 mt-6 stack-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -94,6 +95,7 @@ const OrgGeneralView = ({
           <LockEventTypeSwitch currentOrg={currentOrg} />
           <NoSlotsNotificationSwitch currentOrg={currentOrg} />
           <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} />
+          <DisableAutofillOnBookingPageSwitch currentOrg={currentOrg} />
         </>
       )}
     </LicenseRequired>

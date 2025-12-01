@@ -9,10 +9,11 @@ import { Form, Select, Input } from "@calcom/ui/components/form";
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 import { useTextFilterOperatorOptions } from "./utils";
 
 export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: ColumnFilterType.TEXT }>;
+  column: Extract<FilterableColumn, { type: Extract<FilterType, "t"> }>;
 };
 
 export function TextFilterOptions({ column }: TextFilterOptionsProps) {

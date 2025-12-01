@@ -145,7 +145,7 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
             addOnLeading && "rounded-l-none border-l-0",
             isPasswordVisible && "inline-block",
             !isPasswordVisible && "hidden",
-            "!my-0 !ring-0"
+            "my-0! ring-0!"
           )}
           {...passThrough}
           ref={ref}
@@ -160,7 +160,7 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
             addOnLeading && "rounded-l-none border-l-0",
             !isPasswordVisible && "inline-block",
             isPasswordVisible && "hidden",
-            "!my-0 !ring-0"
+            "my-0! ring-0!"
           )}
           disabled
           value={getHiddenKey()}

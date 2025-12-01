@@ -1,24 +1,35 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import type { User } from "@calcom/prisma/client";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+  TeamRepository: class {
+    constructor() {}
+    findOwnedTeamsByUserId(_: { userId: number }) {
+      return Promise.resolve([]);
+    }
+  },
+}));
+
 import { BaseOnboardingService } from "../BaseOnboardingService";
-import type { CreateOnboardingIntentInput } from "../types";
+import type { CreateOnboardingIntentInput, OnboardingIntentResult } from "../types";
 
 class TestableBaseOnboardingService extends BaseOnboardingService {
-  async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<any> {
+  async createOnboardingIntent(_input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
     throw new Error("Not implemented");
   }
 
-  public testFilterTeamsAndInvites(
+  public async testBuildTeamsAndInvites(
+    orgSlug: string,
     teams: CreateOnboardingIntentInput["teams"],
     invitedMembers: CreateOnboardingIntentInput["invitedMembers"]
   ) {
-    return this.filterTeamsAndInvites(teams, invitedMembers);
+    return this.buildTeamsAndInvites(orgSlug, teams, invitedMembers);
   }
 }
 
-const mockUser = {
+const mockUser: Pick<User, "id" | "email" | "role" | "name"> = {
   id: 1,
   email: "user@example.com",
   role: UserPermissionRole.USER,
@@ -26,9 +37,9 @@ const mockUser = {
 };
 
 describe("BaseOnboardingService", () => {
-  describe("filterTeamsAndInvites", () => {
-    it("should filter out invites with empty emails", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+  describe("buildTeamsAndInvites", () => {
+    it("should filter out invites with empty emails", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const invites = [
         { email: "valid@example.com", teamName: "Marketing", role: "MEMBER" },
@@ -37,7 +48,7 @@ describe("BaseOnboardingService", () => {
         { email: "another@example.com", teamName: "Design", role: "MEMBER" },
       ];
 
-      const { invitedMembersData } = service.testFilterTeamsAndInvites([], invites);
+      const { invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", [], invites);
 
       expect(invitedMembersData).toHaveLength(2);
       expect(invitedMembersData).toEqual([
@@ -58,8 +69,8 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should preserve all fields from invites including role", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should preserve all fields from invites including role", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const invites = [
         {
@@ -78,7 +89,7 @@ describe("BaseOnboardingService", () => {
         },
       ];
 
-      const { invitedMembersData } = service.testFilterTeamsAndInvites([], invites);
+      const { invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", [], invites);
 
       expect(invitedMembersData).toEqual([
         {
@@ -98,15 +109,15 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should handle invites without optional fields", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should handle invites without optional fields", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const invites = [
         { email: "minimal@example.com" },
         { email: "withteam@example.com", teamName: "Sales" },
       ];
 
-      const { invitedMembersData } = service.testFilterTeamsAndInvites([], invites);
+      const { invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", [], invites);
 
       expect(invitedMembersData).toEqual([
         {
@@ -126,8 +137,8 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should filter out teams with empty names", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should filter out teams with empty names", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const teams = [
         { id: 1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -136,7 +147,7 @@ describe("BaseOnboardingService", () => {
         { id: 4, name: "Engineering", isBeingMigrated: true, slug: "eng" },
       ];
 
-      const { teamsData } = service.testFilterTeamsAndInvites(teams, []);
+      const { teamsData } = await service.testBuildTeamsAndInvites("test-org", teams, []);
 
       expect(teamsData).toHaveLength(2);
       expect(teamsData).toEqual([
@@ -145,15 +156,15 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should preserve team properties including migration status", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should preserve team properties including migration status", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const teams = [
         { id: -1, name: "New Team", isBeingMigrated: false, slug: null },
         { id: 42, name: "Existing Team", isBeingMigrated: true, slug: "existing-team" },
       ];
 
-      const { teamsData } = service.testFilterTeamsAndInvites(teams, []);
+      const { teamsData } = await service.testBuildTeamsAndInvites("test-org", teams, []);
 
       expect(teamsData).toEqual([
         { id: -1, name: "New Team", isBeingMigrated: false, slug: null },
@@ -161,26 +172,26 @@ describe("BaseOnboardingService", () => {
       ]);
     });
 
-    it("should handle empty teams and invites arrays", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should handle empty teams and invites arrays", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
-      const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites([], []);
-
-      expect(teamsData).toEqual([]);
-      expect(invitedMembersData).toEqual([]);
-    });
-
-    it("should handle undefined teams and invites", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
-
-      const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites(undefined, undefined);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", [], []);
 
       expect(teamsData).toEqual([]);
       expect(invitedMembersData).toEqual([]);
     });
 
-    it("should preserve invites with teamId=-1 for new teams", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should handle undefined teams and invites", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
+
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", undefined, undefined);
+
+      expect(teamsData).toEqual([]);
+      expect(invitedMembersData).toEqual([]);
+    });
+
+    it("should preserve invites with teamId=-1 for new teams", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const teams = [
         { id: -1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -192,7 +203,7 @@ describe("BaseOnboardingService", () => {
         { email: "user2@example.com", teamId: -1, teamName: "Sales", role: "ADMIN" },
       ];
 
-      const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites(teams, invites);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", teams, invites);
 
       expect(teamsData).toHaveLength(2);
       expect(invitedMembersData).toHaveLength(2);
@@ -202,8 +213,8 @@ describe("BaseOnboardingService", () => {
       expect(invitedMembersData[1].role).toBe("ADMIN");
     });
 
-    it("should handle mixed scenarios with both org-level and team-specific invites", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+    it("should handle mixed scenarios with both org-level and team-specific invites", async () => {
+      const service = new TestableBaseOnboardingService(mockUser);
 
       const teams = [
         { id: -1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -216,7 +227,7 @@ describe("BaseOnboardingService", () => {
         { email: "eng@example.com", teamName: "Engineering", teamId: 42, role: "ADMIN" },
       ];
 
-      const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites(teams, invites);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", teams, invites);
 
       expect(teamsData).toHaveLength(2);
       expect(invitedMembersData).toHaveLength(3);

@@ -13,6 +13,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { getEventTypeIdForCalAiTest } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface WebCallDialogProps {
@@ -22,6 +23,8 @@ interface WebCallDialogProps {
   teamId?: number;
   isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
+  outboundEventTypeId?: number | null;
 }
 
 interface TranscriptEntry {
@@ -39,6 +42,8 @@ export function WebCallDialog({
   teamId,
   isOrganization = false,
   form,
+  eventTypeIds = [],
+  outboundEventTypeId,
 }: WebCallDialogProps) {
   const { t } = useLocale();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
@@ -195,9 +200,16 @@ export function WebCallDialog({
   };
 
   const handleStartCall = () => {
-    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
-    if (!firstEventTypeId) {
-      showToast(t("choose_at_least_one_event_type_test_call"), "error");
+    const eventTypeValidation = getEventTypeIdForCalAiTest({
+      trigger: form.getValues("trigger"),
+      outboundEventTypeId,
+      eventTypeIds,
+      activeOnEventTypeId: form.getValues("activeOn")?.[0]?.value,
+      t,
+    });
+
+    if (eventTypeValidation.error || !eventTypeValidation.eventTypeId) {
+      showToast(eventTypeValidation.error || t("no_event_type_selected"), "error");
       return;
     }
 
@@ -208,7 +220,7 @@ export function WebCallDialog({
       createWebCallMutation.mutate({
         agentId: agentId,
         teamId: teamId,
-        eventTypeId: parseInt(firstEventTypeId, 10),
+        eventTypeId: eventTypeValidation.eventTypeId,
       });
     }
   };
@@ -278,7 +290,6 @@ export function WebCallDialog({
 
   useEffect(() => {
     if (transcriptEndRef.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
       transcriptEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [transcript]);
@@ -391,7 +402,7 @@ export function WebCallDialog({
             )}
           </div>
 
-          <div className="h-60 space-y-3 overflow-y-auto p-2">
+          <div className="h-60 stack-y-3 overflow-y-auto p-2">
             {transcript.length === 0 ? (
               <div className="flex h-40 items-center justify-center text-center">
                 <div>

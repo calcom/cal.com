@@ -10,15 +10,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { useAgentsData } from "../hooks/useAgentsData";
-import { isCalAIAction, isFormTrigger, isSMSAction } from "../lib/actionHelperFunctions";
+import { isCalAIAction, isSMSAction, isFormTrigger, isWhatsappAction } from "../lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "../lib/constants";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
@@ -36,13 +35,23 @@ interface Props {
   user: User;
   isOrg: boolean;
   allOptions: Option[];
+  eventTypeOptions: Option[];
   onSaveWorkflow?: () => Promise<void>;
   permissions: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
-    props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    eventTypeOptions,
+    permissions,
+  } = props;
   const { t, i18n } = useLocale();
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
@@ -194,6 +203,7 @@ export default function WorkflowDetailsPage(props: Props) {
               setSelectedOptions={setSelectedOptions}
               isOrganization={isOrg}
               allOptions={allOptions}
+              eventTypeOptions={eventTypeOptions}
               onSaveWorkflow={props.onSaveWorkflow}
               actionOptions={transformedActionOptions}
               updateTemplate={updateTemplate}
@@ -202,7 +212,7 @@ export default function WorkflowDetailsPage(props: Props) {
           </FormCardBody>
         </FormCard>
 
-        <div className="!mt-0 ml-7 h-3 w-2 border-l" />
+        <div className="mt-0! ml-7 h-3 w-2 border-l" />
         {form.getValues("steps") && (
           <div className="">
             {form.getValues("steps")?.map((step, index) => {
@@ -215,7 +225,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="mb-0 bg-muted border-muted"
+                    className="mb-0 bg-cal-muted border-muted"
                     collapsible={false}
                     label={
                       <div className="flex gap-2 items-center pt-1 pb-2">
@@ -267,6 +277,7 @@ export default function WorkflowDetailsPage(props: Props) {
                         setReload={setReload}
                         teamId={teamId}
                         readOnly={permissions.readOnly}
+                        eventTypeOptions={eventTypeOptions}
                         onSaveWorkflow={props.onSaveWorkflow}
                         setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
@@ -282,7 +293,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     </FormCardBody>
                   </FormCard>
                   {index !== form.getValues("steps").length - 1 && (
-                    <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
+                    <div className="border-default mt-0! ml-7 h-3 w-2 border-l" />
                   )}
                 </div>
               );
@@ -291,7 +302,7 @@ export default function WorkflowDetailsPage(props: Props) {
         )}
         {!permissions.readOnly && (
           <>
-            <div className="border-default !mt-0 ml-7 h-3 w-2 border-l" />
+            <div className="border-default mt-0! ml-7 h-3 w-2 border-l" />
             <Button
               type="button"
               onClick={() => setIsAddActionDialogOpen(true)}

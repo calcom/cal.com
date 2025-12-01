@@ -37,7 +37,7 @@ export default function OIDCConnection({
           </p>
         </div>
         {!connection && (
-          <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
+          <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
             <Button data-testid="sso-oidc-configure" color="secondary" onClick={() => setOpenModal(true)}>
               {t("configure")}
             </Button>
@@ -97,7 +97,7 @@ const CreateConnectionDialog = ({
             {t("sso_oidc_configuration_title")}
           </h2>
           <p className="text-subtle mb-4 mt-1 text-sm">{t("sso_oidc_configuration_description")}</p>
-          <div className="space-y-5">
+          <div className="stack-y-5">
             <Controller
               control={form.control}
               name="clientId"

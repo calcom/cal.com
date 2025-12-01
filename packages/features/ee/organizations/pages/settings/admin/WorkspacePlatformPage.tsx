@@ -137,7 +137,7 @@ function EmptyState({ onAdd }: Pick<Props, "onAdd">) {
   const { t } = useLocale();
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+    <div className="flex flex-col items-center justify-center stack-y-4 py-10">
       <p className="text-gray-500">{t("no_workspace_platforms")}</p>
       <Button color="secondary" onClick={onAdd}>
         {t("add")}
@@ -185,7 +185,7 @@ function ServiceAccountFields() {
   const form = useFormContext();
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <TextAreaField
         required
         label={t("service_account_key")}
@@ -421,7 +421,7 @@ function PlatformFormFields({ isCreate }: Pick<Props, "isCreate">) {
   const form = useFormContext();
 
   return (
-    <div className="space-y-4">
+    <div className="stack-y-4">
       <TextField required label={t("name")} {...form.register("name")} />
       <TextAreaField required label={t("description")} {...form.register("description")} />
       {isCreate && <TextField required label={t("slug")} {...form.register("slug")} />}

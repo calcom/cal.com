@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZRequestRescheduleInputSchema = z.object({
-  bookingId: z.string(),
+  bookingUid: z.string(),
   rescheduleReason: z.string().optional(),
 });
 

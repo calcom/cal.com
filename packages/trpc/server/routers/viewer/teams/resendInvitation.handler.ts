@@ -1,4 +1,4 @@
-import { sendTeamInviteEmail } from "@calcom/emails";
+import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";

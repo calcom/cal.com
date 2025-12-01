@@ -78,6 +78,7 @@ function createTestEmbedElement(data: {
   element.innerHTML = inlineHTML({
     layout: dataset?.layout,
     pageType: dataset?.pageType as EmbedPageType | null,
+    externalThemeClass: dataset?.theme === "dark" ? EMBED_DARK_THEME_CLASS : EMBED_LIGHT_THEME_CLASS,
   });
 
   document.body.appendChild(element);
@@ -132,7 +133,6 @@ function mockGetComputedStyle() {
 
 describe("EmbedElement", () => {
   let element: EmbedElement;
-  let mockGetSkeletonData: Mock;
 
   beforeEach(() => {
     // Register the custom element

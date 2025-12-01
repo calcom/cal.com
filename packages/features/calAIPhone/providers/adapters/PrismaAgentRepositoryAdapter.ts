@@ -90,4 +90,9 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     const agentRepo = new PrismaAgentRepository(prisma);
     await agentRepo.linkInboundAgentToWorkflow(params);
   }
+
+  async updateOutboundEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void> {
+    const agentRepo = new PrismaAgentRepository(prisma);
+    await agentRepo.updateOutboundEventTypeId(params);
+  }
 }

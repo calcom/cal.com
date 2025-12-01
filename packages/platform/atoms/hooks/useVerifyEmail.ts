@@ -33,6 +33,7 @@ export const useVerifyEmail = ({
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
+  const isRescheduling = useBookerStore((state) => Boolean(state.rescheduleUid && state.bookingData));
   const debouncedEmail = useDebounce(email, 600);
   const { data: user } = useMe();
 
@@ -53,7 +54,7 @@ export const useVerifyEmail = ({
           throw new Error(res.data.error.message);
         });
     },
-    enabled: !!debouncedEmail,
+    enabled: !!debouncedEmail && !isRescheduling,
   });
 
   const sendEmailVerificationMutation = useMutation<
@@ -90,6 +91,7 @@ export const useVerifyEmail = ({
   const isVerificationCodeSending = sendEmailVerificationMutation.isPending;
 
   const renderConfirmNotVerifyEmailButtonCond =
+    isRescheduling ||
     (!requiresBookerEmailVerification && !isEmailVerificationRequired) ||
     (email && verifiedEmail && verifiedEmail === email);
 

@@ -473,7 +473,7 @@ function WorkflowPage({
                 ) : (
                   <div className="group flex items-center gap-1">
                     <span
-                      className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
+                      className="text-default hover:bg-cal-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
                       onClick={() => setIsEditingName(true)}>
                       {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
                     </span>
@@ -547,6 +547,7 @@ function WorkflowPage({
                             ? routingFormOptions
                             : allEventTypeOptions
                         }
+                        eventTypeOptions={allEventTypeOptions}
                         onSaveWorkflow={handleSaveWorkflow}
                         permissions={permissions}
                       />

@@ -7,7 +7,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -44,7 +44,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     })
     .parse(body);
 
-  const billingService = new StripeBillingService();
+  const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
@@ -154,6 +154,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       },
     });
     if (team) {
+      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
       const user = await prisma.user.upsert({
         where: { email },
         update: {
@@ -166,12 +167,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
               update: { hash: hashedPassword },
             },
           },
+          organizationId,
         },
         create: {
           username,
           email,
           identityProvider: IdentityProvider.CAL,
           password: { create: { hash: hashedPassword } },
+          organizationId,
         },
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
@@ -213,11 +216,15 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
-    sendEmailVerification({
-      email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
-      username: username || "",
-    });
+    // Only send verification email for non-premium usernames
+    // Premium usernames will get a magic link after payment in paymentCallback
+    if (!checkoutSessionId) {
+      sendEmailVerification({
+        email,
+        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+        username: username || "",
+      });
+    }
   }
 
   if (checkoutSessionId) {

@@ -13,7 +13,7 @@ export const BookingKPICards = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingKPIStats.useQuery(
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.bookingKPIStats.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -70,15 +70,20 @@ export const BookingKPICards = () => {
 
   if (isPending) {
     return (
-      <LoadingKPICards eventCategories={eventCategories} performanceCategories={performanceCategories} />
+      <LoadingKPICards
+        eventCategories={eventCategories}
+        performanceCategories={performanceCategories}
+        isPending={isPending}
+        isError={isError}
+      />
     );
   }
 
   if (!isSuccess || !data) return null;
 
   return (
-    <div className="space-y-4">
-      <ChartCard title={t("events")}>
+    <div className="stack-y-4">
+      <ChartCard title={t("events")} isPending={isPending} isError={isError}>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -92,7 +97,7 @@ export const BookingKPICards = () => {
         </StatContainer>
       </ChartCard>
 
-      <ChartCard title={t("performance")}>
+      <ChartCard title={t("performance")} isPending={isPending} isError={isError}>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -112,13 +117,15 @@ export const BookingKPICards = () => {
 const LoadingKPICards = (props: {
   eventCategories: { title: string; index: string }[];
   performanceCategories: { title: string; index: string }[];
+  isPending: boolean;
+  isError: boolean;
 }) => {
-  const { eventCategories, performanceCategories } = props;
+  const { eventCategories, performanceCategories, isPending, isError } = props;
   const { t } = useLocale();
 
   return (
-    <div className="space-y-4">
-      <ChartCard title={t("events")}>
+    <div className="stack-y-4">
+      <ChartCard title={t("events")} isPending={isPending} isError={isError}>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -136,7 +143,7 @@ const LoadingKPICards = (props: {
         </StatContainer>
       </ChartCard>
 
-      <ChartCard title={t("performance")}>
+      <ChartCard title={t("performance")} isPending={isPending} isError={isError}>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
