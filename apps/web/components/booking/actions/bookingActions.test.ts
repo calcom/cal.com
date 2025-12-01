@@ -138,7 +138,7 @@ describe("Booking Actions", () => {
       expect(actions).toHaveLength(2);
       expect(actions[0]).toEqual({
         id: "confirm",
-        bookingId: 1,
+        bookingUid: "booking-123",
         label: "confirm",
         icon: "check",
         disabled: false,
@@ -183,6 +183,7 @@ describe("Booking Actions", () => {
         icon: "circle-x",
         color: "destructive",
         disabled: false,
+        bookingUid: "booking-123",
       });
     });
 
