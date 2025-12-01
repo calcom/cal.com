@@ -188,7 +188,8 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
-      For seated slots each object will have attendeesCount and bookingUid properties.`,
+      For seated slots each object will have attendeesCount and bookingUid properties.
+      If no slots are available, the data field will be an empty object {}.`,
     schema: {
       oneOf: [
         {
@@ -246,12 +247,10 @@ export class SlotsController_2024_09_04 {
     @Query(new GetSlotsInputPipe()) query: GetSlotsInput_2024_09_04
   ): Promise<GetSlotsOutput_2024_09_04> {
     const slots = await this.slotsService.getAvailableSlots(query);
-    const hasSlotsAvailable = Object.keys(slots).length > 0;
 
     return {
       data: slots,
       status: SUCCESS_STATUS,
-      ...(hasSlotsAvailable ? {} : { message: "No slots available" }),
     };
   }
 
