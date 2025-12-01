@@ -13,12 +13,15 @@ export const RoutingKPICards = () => {
   const { t } = useLocale();
   const insightsRoutingParameters = useInsightsRoutingParameters();
 
-  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(insightsRoutingParameters, {
-    staleTime: 30000,
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.routingFormsByStatus.useQuery(
+    insightsRoutingParameters,
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const categories: {
     title: string;
@@ -39,38 +42,41 @@ export const RoutingKPICards = () => {
   ];
 
   if (isPending) {
-    return <LoadingKPICards categories={categories} />;
-  }
-
-  if (!data) {
-    return null;
+    return <LoadingKPICards categories={categories} isPending={isPending} isError={isError} />;
   }
 
   return (
-    <ChartCard title={t("stats")}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {categories.map((item) => (
-          <div
-            key={item.title}
-            className={classNames(
-              "border-muted border-b p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
-            )}>
-            <div className="text-default text-sm">{item.title}</div>
-            <div className="flex items-baseline justify-start space-x-3 truncate">
-              <div className="text-emphasis text-2xl font-semibold">{valueFormatter(data[item.index])}</div>
+    <ChartCard title={t("stats")} isPending={isPending} isError={isError}>
+      {isSuccess && data ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {categories.map((item) => (
+            <div
+              key={item.title}
+              className={classNames(
+                "border-muted border-b p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
+              )}>
+              <div className="text-default text-sm">{item.title}</div>
+              <div className="flex items-baseline justify-start space-x-3 truncate">
+                <div className="text-emphasis text-2xl font-semibold">{valueFormatter(data[item.index])}</div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
     </ChartCard>
   );
 };
 
-const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
+const LoadingKPICards = (props: {
+  categories: { title: string; index: string }[];
+  isPending: boolean;
+  isError: boolean;
+}) => {
   const { t } = useLocale();
-  const { categories } = props;
+  const { categories, isPending, isError } = props;
+
   return (
-    <ChartCard title={t("stats")}>
+    <ChartCard title={t("stats")} isPending={isPending} isError={isError}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {categories.map((item) => (
           <div

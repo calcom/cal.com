@@ -1,6 +1,8 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useTransition } from "react";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,34 +12,60 @@ import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
+import { OnboardingCard } from "../components/OnboardingCard";
+import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
-import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
-  userName: string;
   userEmail: string;
 };
 
-export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
+export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const previousPlanRef = useRef<PlanType | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Plan order mapping for determining direction
+  const planOrder: Record<PlanType, number> = {
+    personal: 0,
+    team: 1,
+    organization: 2,
+  };
+
+  // Calculate animation direction synchronously
+  const getDirection = (): "up" | "down" => {
+    if (!selectedPlan || !previousPlanRef.current) return "down";
+    const previousOrder = planOrder[previousPlanRef.current];
+    const currentOrder = planOrder[selectedPlan];
+    return currentOrder > previousOrder ? "up" : "down";
+  };
+
+  const direction = getDirection();
+
+  // Update previous plan ref after render
+  useEffect(() => {
+    previousPlanRef.current = selectedPlan;
+  }, [selectedPlan]);
 
   const handleContinue = () => {
-    if (selectedPlan === "organization") {
-      router.push("/onboarding/organization/details");
-    } else if (selectedPlan === "team") {
-      router.push("/onboarding/teams/details");
-    } else if (selectedPlan === "personal") {
-      router.push("/onboarding/personal/settings");
-    }
+    startTransition(() => {
+      if (selectedPlan === "organization") {
+        router.push("/onboarding/organization/details");
+      } else if (selectedPlan === "team") {
+        router.push("/onboarding/teams/details");
+      } else if (selectedPlan === "personal") {
+        router.push("/onboarding/personal/settings");
+      }
+    });
   };
 
   const planIconByType: Record<PlanType, IconName> = {
     personal: "user",
-    team: "users",
+    team: "user",
     organization: "users",
   };
 
@@ -56,7 +84,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_team_badge"),
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
-      variant: "single" as const,
+      variant: "team" as const,
     },
     {
       id: "organization" as PlanType,
@@ -64,7 +92,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
-      variant: "double" as const,
+      variant: "organization" as const,
     },
   ];
 
@@ -76,26 +104,30 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
     return true;
   });
 
+  const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
+
   return (
     <>
       <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={1}>
-        <div className="flex w-full flex-col gap-6">
+      <OnboardingLayout userEmail={userEmail}>
+        {/* Left column - Main content */}
+        <OnboardingCard
+          title={t("onboarding_select_plan")}
+          subtitle={t("onboarding_welcome_question")}
+          footer={
+            <div className="flex w-full justify-end gap-2">
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                disabled={isPending}>
+                {isPending ? t("loading") : t("continue")}
+              </Button>
+            </div>
+          }>
           {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
+          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">
-                    {t("onboarding_welcome_message", { userName })}
-                  </h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {t("onboarding_welcome_question")}
-                  </p>
-                </div>
-              </div>
-
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
@@ -114,46 +146,45 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                         "pr-12 [&>button]:left-auto [&>button]:right-6 [&>button]:mt-0 [&>button]:transform"
                       )}
                       classNames={{
-                        container: "flex w-full items-center gap-4 p-4 pl-5 pr-12 md:p-5 md:pr-14",
+                        container: "flex w-full items-center gap-3 p-5 pr-12",
                       }}>
-                      <div className="flex w-full items-center gap-4">
-                        <PlanIcon icon={plan.icon} variant={plan.variant} />
-                        <div className="flex flex-1 flex-col gap-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
-                            <Badge
-                              variant="gray"
-                              size="md"
-                              className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
-                              <span className="text-emphasis text-xs font-medium leading-3">
-                                {plan.badge}
-                              </span>
-                            </Badge>
-                          </div>
+                      <div className="flex w-full flex-col gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <p className="text-emphasis text-sm font-semibold leading-4">{plan.title}</p>
                           <Badge
                             variant="gray"
                             size="md"
-                            className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                            className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
                             <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                           </Badge>
-                          <p className="text-subtle max-w-full text-sm font-normal leading-tight">
-                            {plan.description}
-                          </p>
                         </div>
+                        <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                          <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                        </Badge>
+                        <p className="text-subtle max-w-full text-sm font-medium leading-[1.25]">
+                          {plan.description}
+                        </p>
                       </div>
                     </RadioAreaGroup.Item>
                   );
                 })}
               </RadioAreaGroup.Group>
-
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                  {t("continue")}
-                </Button>
-              </div>
             </div>
           </div>
+        </OnboardingCard>
+
+        {/* Right column - Icon display */}
+        <div className="bg-cal-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
+          <AnimatePresence mode="wait">
+            {selectedPlanData && (
+              <PlanIcon
+                key={selectedPlan}
+                icon={selectedPlanData.icon}
+                variant={selectedPlanData.variant}
+                animationDirection={direction}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </OnboardingLayout>
     </>

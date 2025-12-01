@@ -1,7 +1,8 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+import { TimezoneBadge } from "@calcom/features/insights/components/booking";
+
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -14,29 +15,37 @@ import {
   DataTableSegment,
   ColumnFilterType,
   convertMapToFacetedValues,
+  useFilterValue,
+  ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc";
 
 import { RoutingFormResponsesDownload } from "../../filters/Download";
 import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "../../hooks/useInsightsColumns";
-import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsOrgTeams } from "../../hooks/useInsightsOrgTeams";
 import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const createdAtColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "createdAt",
   title: "createdAt",
   type: ColumnFilterType.DATE_RANGE,
 };
 
 export function RoutingFormResponsesTable() {
-  const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
+  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
+
+  const { t } = useLocale();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -130,6 +139,14 @@ export function RoutingFormResponsesTable() {
               <DataTableSegment.SaveButton />
               <DataTableSegment.Select />
             </>
+          }
+          EmptyView={
+            <EmptyScreen
+              headline={t("no_results")}
+              className="bg-muted mb-16"
+              iconWrapperClassName="bg-default"
+              dashedBorder={false}
+            />
           }>
           <RoutingKPICards />
         </DataTableWrapper>
@@ -138,8 +155,9 @@ export function RoutingFormResponsesTable() {
       {ctaContainerRef.current &&
         createPortal(
           <>
-            <DateRangeFilter column={createdAtColumn} />
+            <DateRangeFilter column={createdAtColumn} options={{ convertToTimeZone: true }} />
             <RoutingFormResponsesDownload sorting={sorting} />
+            <TimezoneBadge />
           </>,
           ctaContainerRef.current
         )}
