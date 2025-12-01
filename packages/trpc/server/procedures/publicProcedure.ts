@@ -1,7 +1,7 @@
-import { errorMappingMiddleware } from "../middlewares/errorMappingMiddleware";
+import { errorConversionMiddleware } from "../middlewares/errorConversionMiddleware";
 import perfMiddleware from "../middlewares/perfMiddleware";
 import { tRPCContext } from "../trpc";
 
-const publicProcedure = tRPCContext.procedure.use(perfMiddleware).use(errorMappingMiddleware);
+const publicProcedure = tRPCContext.procedure.use(perfMiddleware).use(errorConversionMiddleware);
 
 export default publicProcedure;

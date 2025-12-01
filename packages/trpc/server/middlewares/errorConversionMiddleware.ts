@@ -4,7 +4,7 @@ import { middleware } from "../trpc";
 /**
  * Middleware that catches errors thrown by other layers and converts them to TRPCError.
  */
-export const errorMappingMiddleware = middleware(async ({ next }) => {
+export const errorConversionMiddleware = middleware(async ({ next }) => {
   try {
     return await next();
   } catch (e) {
