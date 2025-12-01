@@ -65,7 +65,7 @@ export class WorkflowReminderRepository {
   }
 
   async updateRemindersToEmail({ reminderIds }: { reminderIds: number[] }): Promise<void> {
-    this.prismaClient.workflowReminder.updateMany({
+    return this.prismaClient.workflowReminder.updateMany({
       where: {
         id: {
           in: reminderIds,
