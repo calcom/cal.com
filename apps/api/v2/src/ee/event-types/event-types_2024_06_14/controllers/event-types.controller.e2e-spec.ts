@@ -524,7 +524,6 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: false,
         hideCalendarEventDetails: false,
         hideOrganizerEmail: false,
-        hideOrganizerName: false,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -567,7 +566,6 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(createdEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(createdEventType.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
-          expect(createdEventType.hideOrganizerName).toEqual(body.hideOrganizerName);
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
@@ -683,7 +681,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
       expect(fetchedEventType?.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType?.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
-      expect(fetchedEventType?.hideOrganizerName).toEqual(eventType.hideOrganizerName);
       expect(fetchedEventType?.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
@@ -773,7 +770,6 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
       expect(fetchedEventType?.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
       expect(fetchedEventType?.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
-      expect(fetchedEventType?.hideOrganizerName).toEqual(eventType.hideOrganizerName);
       expect(fetchedEventType?.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
@@ -1218,7 +1214,6 @@ describe("Event types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         hideOrganizerEmail: true,
-        hideOrganizerName: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -1287,7 +1282,6 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(updatedEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(updatedEventType.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
-          expect(updatedEventType.hideOrganizerName).toEqual(body.hideOrganizerName);
           expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
@@ -1327,7 +1321,6 @@ describe("Event types Endpoints", () => {
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
           eventType.hideOrganizerEmail = updatedEventType.hideOrganizerEmail;
-          eventType.hideOrganizerName = updatedEventType.hideOrganizerName;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
