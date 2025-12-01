@@ -169,7 +169,7 @@ export const BaseScheduledEmail = (
       {hasRecurringCancellations && (
         <Info label={t("cancelled_occurrences")} description={formatCancelledDates()} withSpacer />
       )}
-      <WhoInfo calEvent={props.calEvent} t={t} />
+      <WhoInfo calEvent={props.calEvent} t={t} attendee={props.attendee} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
