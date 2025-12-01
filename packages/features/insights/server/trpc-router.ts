@@ -1008,6 +1008,16 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  mostSubmittedAnswers: userBelongsToTeamProcedure
+    .input(insightsRoutingServiceInputSchema)
+    .query(async ({ ctx, input }) => {
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      try {
+        return await insightsRoutingService.getMostSubmittedAnswers();
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
   bookingsByHourStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
