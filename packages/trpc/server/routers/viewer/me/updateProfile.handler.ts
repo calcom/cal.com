@@ -22,7 +22,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { getDefaultScheduleId } from "../availability/util";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
@@ -263,7 +263,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
     // on timezone change update timezone of default schedule
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    const defaultScheduleId = await ScheduleRepository.getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
       // set default schedule if not already set
