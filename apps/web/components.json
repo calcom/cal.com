@@ -1,19 +1,22 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
+  "style": "new-york",
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "css": "./styles.css",
+    "config": "",
+    "css": "../../packages/coss-ui/styles.css",
     "baseColor": "zinc",
     "cssVariables": true
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@coss/ui/components",
-    "utils": "@coss/ui/lib/utils",
+    "components": "@/components",
     "hooks": "@coss/ui/hooks",
-    "lib": "@coss/ui/lib",
+    "utils": "@coss/ui/lib/utils",
     "ui": "@coss/ui/components"
+  },
+  "registries": {
+    "@coss": "https://coss.com/ui/r/{name}.json"
   }
 }

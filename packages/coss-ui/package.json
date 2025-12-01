@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "exports": {
-    "./styles.css": "./styles.css",
+    "./globals.css": "./styles/globals.css",
+    "./lib/*": "./lib/*.ts",
     "./components/*": "./components/*.tsx",
-    "./lib/*": "./lib/*.ts"
+    "./hooks/*": "./hooks/*.ts"
   },
   "scripts": {
     "lint": "eslint .",

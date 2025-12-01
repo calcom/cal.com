@@ -5,7 +5,7 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@coss/ui/*": ["./*"]
     }
   },
   "exclude": ["dist", "build", "**/node_modules/**"]
