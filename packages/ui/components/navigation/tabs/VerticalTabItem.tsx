@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Fragment } from "react";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
@@ -29,6 +30,8 @@ export type VerticalTabItemProps = {
   isActive?: boolean;
   isBadged?: boolean;
   "data-testid"?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trackingMetadata?: Record<string, any>;
 };
 
 const VerticalTabItem = ({
@@ -50,6 +53,9 @@ const VerticalTabItem = ({
         <>
           <Link
             onClick={(e) => {
+              if (props.trackingMetadata) {
+                posthog.capture("settings_sidebar_button_clicked", props.trackingMetadata);
+              }
               if (props.onClick) {
                 e.preventDefault();
                 props.onClick(name);
@@ -64,7 +70,7 @@ const VerticalTabItem = ({
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",
               "hover:bg-subtle [&[aria-current='page']]:bg-subtle [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-full flex-row items-center rounded-md p-2 transition ",
-              props.disabled && "pointer-events-none !opacity-30",
+              props.disabled && "pointer-events-none opacity-30!",
               (isChild || !props.icon) && "ml-7",
               props.className
             )}
