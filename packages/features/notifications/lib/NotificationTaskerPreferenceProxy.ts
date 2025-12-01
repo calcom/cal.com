@@ -1,20 +1,25 @@
-import type { Tasker, TaskTypes, TaskPayloads } from "@calcom/features/tasker/tasker";
 import type { Logger } from "tslog";
-import { NotificationPreferenceService, type NotificationPreferenceCheck } from "./NotificationPreferenceService";
-import type { INotificationMetadataExtractor } from "./NotificationMetadataExtractor";
 
-export class NotificationPreferenceTaskerProxy implements Tasker {
+import type { Tasker as ITasker, TaskTypes, TaskerCreate } from "@calcom/features/tasker/tasker";
+
+import type { INotificationMetadataExtractor } from "./NotificationMetadataExtractor";
+import {
+  NotificationPreferenceService,
+  type NotificationPreferenceCheck,
+} from "./NotificationPreferenceService";
+
+export class NotificationTaskerPreferenceProxy implements ITasker {
   constructor(
-    private readonly tasker: Tasker,
+    private readonly tasker: ITasker,
     private readonly preferenceService: NotificationPreferenceService,
     private readonly metadataExtractor: INotificationMetadataExtractor,
-    private readonly logger: Logger
+    private readonly logger: Logger<unknown>
   ) {}
 
-  async create<TaskKey extends keyof TaskPayloads>(
+  async create<TaskKey extends TaskTypes>(
     type: TaskKey,
-    payload: TaskPayloads[TaskKey],
-    options?: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string }
+    payload: Parameters<TaskerCreate>[1],
+    options?: Parameters<TaskerCreate>[2]
   ): Promise<string> {
     // Extract notification metadata
     const metadata = this.metadataExtractor.extract(type as string, payload);
@@ -35,7 +40,8 @@ export class NotificationPreferenceTaskerProxy implements Tasker {
     }
 
     // If preference check passes or not a notification task, dispatch to actual tasker
-    return this.tasker.create(type, payload, options);
+    // Type assertion needed because Parameters<TaskerCreate>[1] loses the generic relationship
+    return this.tasker.create(type, payload as any, options);
   }
 
   async cleanup(): Promise<void> {
@@ -50,4 +56,3 @@ export class NotificationPreferenceTaskerProxy implements Tasker {
     return this.tasker.cancelWithReference(referenceUid, type);
   }
 }
-
