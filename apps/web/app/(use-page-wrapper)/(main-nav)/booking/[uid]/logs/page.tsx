@@ -16,12 +16,12 @@ export const generateMetadata = async ({ params }: { params: Promise<{ bookingui
         (t) => t("booking_history_description"),
         undefined,
         undefined,
-        `/booking/logs/${(await params).bookinguid}`
+        `/booking/${(await params).bookinguid}/logs`
     );
 
 const Page = async ({ params }: PageProps) => {
     const resolvedParams = await params;
-    const bookingUid = resolvedParams.bookinguid;
+    const bookingUid = resolvedParams.uid;
 
     if (!bookingUid || typeof bookingUid !== "string") {
         redirect("/bookings/upcoming");

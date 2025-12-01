@@ -156,15 +156,16 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Act: Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
+        action: "CREATED",
+        data: {
           startTime: booking!.startTime.toISOString(),
           endTime: booking!.endTime.toISOString(),
           status: booking!.status,
-        }
-      );
+        },
+      });
 
       // Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
@@ -208,15 +209,16 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
+        action: "CREATED",
+        data: {
           startTime: booking!.startTime.toISOString(),
           endTime: booking!.endTime.toISOString(),
           status: booking!.status,
-        }
-      );
+        },
+      });
 
       // Act: Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
@@ -244,15 +246,16 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
+        action: "CREATED",
+        data: {
           startTime: booking!.startTime.toISOString(),
           endTime: booking!.endTime.toISOString(),
           status: booking!.status,
-        }
-      );
+        },
+      });
 
       // Act & Assert: Booking owner can view
       const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking(

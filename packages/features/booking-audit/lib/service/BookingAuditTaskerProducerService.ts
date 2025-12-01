@@ -29,6 +29,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
      * 
      * Single method that handles all audit types using discriminated union.
      * TypeScript ensures type safety between action and data.
+     * Timestamp is automatically captured when the task is queued.
      * 
      * @param bookingUid - The booking UID
      * @param actor - The actor performing the action
@@ -47,10 +48,13 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
             return;
         }
 
+        console.log('this.tasker', this.tasker)
+
         await this.tasker.create("bookingAudit", {
             bookingUid,
             actor,
             organizationId,
+            timestamp: Date.now(),
             ...actionData,
         });
     }

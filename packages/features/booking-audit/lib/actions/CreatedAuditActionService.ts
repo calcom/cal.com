@@ -27,8 +27,12 @@ export class CreatedAuditActionService implements IAuditActionService<typeof fie
         version: z.literal(1),
         fields: fieldsSchemaV1,
     });
+    private static fieldsSchemaV1 = fieldsSchemaV1;
     public static readonly latestFieldsSchema = fieldsSchemaV1;
+    // Union of all versions
     public static readonly storedDataSchema = CreatedAuditActionService.dataSchemaV1;
+    // Union of all versions
+    public static readonly storedFieldsSchema = CreatedAuditActionService.fieldsSchemaV1;
     private helper: AuditActionServiceHelper<typeof CreatedAuditActionService.latestFieldsSchema, typeof CreatedAuditActionService.storedDataSchema>;
 
     constructor() {
