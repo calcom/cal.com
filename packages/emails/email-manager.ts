@@ -135,7 +135,16 @@ const _sendScheduledEmailsAndSMS = async (
 
   if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
-      ...formattedCalEvent.attendees.map((attendee) => {
+      (!formattedCalEvent.seatsShowAttendess
+        ? [
+            ...formattedCalEvent.attendees.find((e) =>
+              e.email
+                ? e.email === formattedCalEvent.responses.email.value
+                : e.attendeePhoneNumber === formattedCalEvent.responses.attendeePhoneNumber.value
+            ),
+          ]
+        : [...formattedCalEvent.attendees]
+      ).map((attendee) => {
         return sendEmail(
           () =>
             new AttendeeScheduledEmail(

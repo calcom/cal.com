@@ -488,7 +488,7 @@ export const IntervalLimitsManager = memo(
     const [animateRef] = useAutoAnimate<HTMLUListElement>();
     const watchIntervalLimits = watch(propertyName);
 
-    const isFieldDisabled = fieldPermissions.getFieldState(propertyName).isDisabled;
+    const isFieldDisabled = fieldPermissions?.getFieldState(propertyName).isDisabled;
     const effectiveDisabled = disabled || isFieldDisabled;
 
     const addLimit = useCallback(() => {
@@ -885,6 +885,7 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
 
   // Field permissions management
   const fieldPermissions = useFieldPermissions({ eventType, translate: t, formMethods });
+  console.log("fieldPermissions:", fieldPermissions);
 
   const watchPeriodType = formMethods.watch("periodType");
   const { value: watchPeriodTypeUiValue, rollingExcludeUnavailableDays } =
