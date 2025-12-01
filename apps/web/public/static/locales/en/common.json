@@ -308,6 +308,8 @@
   "conditional_field_must_have_parent_and_trigger": "Conditional field must have a parent field and at least one trigger value",
   "parent_field_not_found": "Parent field '{{parent}}' not found",
   "field_cannot_be_conditional_on_itself": "A field cannot be conditional on itself",
+  "conditional_on": "Conditional on",
+  "conditional_field_order_error": "\"{{childField}}\" is conditional on \"{{parentField}}\", which must come before it in the list",
   "required": "Required",
   "optional": "Optional",
   "input_type": "Input type",

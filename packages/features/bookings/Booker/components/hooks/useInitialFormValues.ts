@@ -185,7 +185,7 @@ export function useInitialFormValues({
       }, {});
 
       // Filter out conditional field responses where condition is no longer met
-      const validatedResponses = { ...responses };
+      const validatedResponses: Record<string, unknown> = { ...responses };
       eventType.bookingFields.forEach((field) => {
         if (field.conditionalOn && validatedResponses[field.name] !== undefined) {
           // Check if condition is still met
