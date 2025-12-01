@@ -3317,6 +3317,55 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
+      it("should return 403 when unauthorized user tries to access recordings", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-unauthorized-recordings-${randomString()}`,
+          title: "Test Unauthorized Access Recordings",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const unauthorizedUserEmail = `unauthorized-recordings-user-${randomString()}@api.com`;
+        const unauthorizedUser = await userRepositoryFixture.create({
+          email: unauthorizedUserEmail,
+          locale: "en",
+          name: `unauthorized-recordings-user-${randomString()}`,
+        });
+
+        const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+        const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/recordings`)
+          .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
+      });
     });
 
     describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
@@ -3363,6 +3412,55 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
+      it("should return 403 when unauthorized user tries to access transcripts", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-unauthorized-transcripts-${randomString()}`,
+          title: "Test Unauthorized Access Transcripts",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const unauthorizedUserEmail = `unauthorized-transcripts-user-${randomString()}@api.com`;
+        const unauthorizedUser = await userRepositoryFixture.create({
+          email: unauthorizedUserEmail,
+          locale: "en",
+          name: `unauthorized-transcripts-user-${randomString()}`,
+        });
+
+        const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+        const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/transcripts`)
+          .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
+      });
     });
 
     afterAll(async () => {

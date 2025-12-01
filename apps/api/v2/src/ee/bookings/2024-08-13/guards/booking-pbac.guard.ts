@@ -46,7 +46,7 @@ export class BookingPbacGuard implements CanActivate {
       );
     }
 
-    request.pbacAuthorizedRequest = false;
+    request.pbacAuthorizedRequest = true;
     return true;
   }
 }
