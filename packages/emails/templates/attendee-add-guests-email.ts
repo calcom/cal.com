@@ -20,7 +20,7 @@ export default class AttendeeAddGuestsEmail extends AttendeeScheduledEmail {
         status: "CONFIRMED",
       }),
       to: `${this.attendee.name} <${this.attendee.email}>`,
-      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.hideOrganizerName ? this.attendee.language.translate("organizer") : this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       ...getReplyToHeader(this.calEvent),
       subject: `${this.t("guests_added_event_type_subject", {
         eventType: this.calEvent.type,
