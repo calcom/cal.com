@@ -350,6 +350,7 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         hideOrganizerEmail: true,
+        hideOrganizerName: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -387,6 +388,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
+          expect(data.hideOrganizerName).toEqual(body.hideOrganizerName);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
@@ -1141,6 +1143,7 @@ describe("Organizations Event Types Endpoints", () => {
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
         hideOrganizerEmail: true,
+        hideOrganizerName: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -1173,6 +1176,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
+          expect(data.hideOrganizerName).toEqual(body.hideOrganizerName);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");

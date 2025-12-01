@@ -34,14 +34,22 @@ const testIcsStringContains = ({
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
   // expect(icsString).toEqual(expect.stringContaining(`SUMMARY:${event.title}`));
   expect(icsString).toEqual(expect.stringContaining(`DTSTART:${DTSTART}`));
+  
+  // Check organizer name visibility
+  if (event.hideOrganizerName) {
+    expect(icsString).toEqual(expect.stringContaining(`ORGANIZER;CN=Organizer`));
+    expect(icsString).not.toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
+  } else {
+    expect(icsString).toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
+  }
+  
+  // Check organizer email visibility
   if (event.hideOrganizerEmail && !isOrganizerExempt) {
-    expect(icsString).toEqual(expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}`));
     expect(icsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
   } else {
-    expect(icsString).toEqual(
-      expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:${event.organizer.email}`)
-    );
+    expect(icsString).toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
   }
+  
   expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
   //   Getting an error expected icsString to deeply equal stringMatching
@@ -164,6 +172,53 @@ describe("generateIcsString", () => {
       assertHasIcsString(icsString);
 
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
+    });
+  });
+  describe("hideOrganizerName", () => {
+    test("when hideOrganizerName is true", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+        hideOrganizerName: true,
+      });
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      // Should contain "Organizer" as the name
+      expect(assertedIcsString).toEqual(expect.stringContaining(`ORGANIZER;CN=Organizer`));
+      // Should NOT contain the actual organizer name
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
+      // Email should still be present (unless hideOrganizerEmail is also true)
+      expect(assertedIcsString).toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
+    });
+    test("when both hideOrganizerName and hideOrganizerEmail are true", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+        hideOrganizerName: true,
+        hideOrganizerEmail: true,
+      });
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      // Should contain "Organizer" as the name
+      expect(assertedIcsString).toEqual(expect.stringContaining(`ORGANIZER;CN=Organizer`));
+      // Should NOT contain the actual organizer name
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
+      // Should NOT contain the actual organizer email
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
     });
   });
 });

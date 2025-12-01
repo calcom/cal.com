@@ -32,6 +32,7 @@ export type ICSCalendarEvent = Pick<
   | "type"
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
+  | "hideOrganizerName"
 >;
 
 const toICalDateArray = (date: string): DateArray => {
@@ -80,7 +81,7 @@ const generateIcsString = ({
     title: event.title,
     description: getRichDescription(event, t),
     organizer: {
-      name: event.organizer.name,
+      name: event.hideOrganizerName ? "Organizer" : event.organizer.name,
       ...(event.hideOrganizerEmail && !isOrganizerExempt
         ? { email: "no-reply@cal.com" }
         : { email: event.organizer.email }),
