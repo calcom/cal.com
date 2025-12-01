@@ -18,7 +18,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={classNames(
         !props.asChild &&
-          `focus:bg-subtle hover:bg-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 transition ${className}`
+          `focus:bg-subtle hover:bg-cal-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 transition ${className}`
       )}
       ref={forwardedRef}
     />
@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown bg-default border-subtle relative z-50 origin-top-right space-y-[1px] rounded-xl border p-1 text-sm",
+          "shadow-dropdown bg-default border-subtle relative z-50 origin-top-right stack-y-px rounded-xl border p-1 text-sm",
           "w-[220px]",
           props.className
         )}
@@ -63,7 +63,7 @@ type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["Chec
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`focus:ring-brand-default hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:ring-0 focus:outline-none focus:ring-1 ${className}`}
+      className={`hover:bg-subtle hover:text-emphasis text-default text-sm ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:ring-0 focus:outline-none focus:bg-subtle focus:text-emphasis ${className}`}
       {...props}
       ref={forwardedRef}
     />

@@ -348,7 +348,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               />
             </div>
 
-            <div className="bg-muted my-4 rounded-xl p-5">
+            <div className="bg-cal-muted my-4 rounded-xl p-5">
               <div className="flex flex-row">
                 <Switch
                   disabled={!hasTeamPlan}

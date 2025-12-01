@@ -138,7 +138,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       {/* Left column - Main content */}
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
-          title={t("invite_via_email")}
+          title={t("invite")}
           subtitle={t("team_invite_subtitle")}
           footer={
             <div className="flex w-full items-center justify-end gap-4">
