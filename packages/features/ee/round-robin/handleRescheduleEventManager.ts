@@ -13,6 +13,7 @@ import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent, AdditionalInformation } from "@calcom/types/Calendar";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 
 type InitParams = {
   user: {
@@ -163,9 +164,16 @@ export const handleRescheduleEventManager = async ({
 
     const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-    evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-      ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
-      : calendarResult?.updatedEvent?.iCalUID || bookingICalUID || undefined;
+    if (changedOrganizer) {
+      const providerICalUID = evt.iCalUID = Array.isArray(calendarResult?.createdEvent)
+        ? calendarResult?.createdEvent[0]?.iCalUID
+        : calendarResult?.createdEvent?.iCalUID;
+      evt.iCalUID = providerICalUID || getICalUID({});
+    } else {
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID || bookingICalUID
+        : calendarResult?.updatedEvent?.iCalUID || bookingICalUID || undefined;
+    }
   }
 
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
