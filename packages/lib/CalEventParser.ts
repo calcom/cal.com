@@ -62,19 +62,21 @@ export const getWho = (
     role: t("organizer"),
     hideOrganizerName: calEvent.hideOrganizerName,
     hideOrganizerEmail: calEvent.hideOrganizerEmail,
-  }, t);
+  });
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => formatPersonText({
-          name: member.name,
-          email: member.email,
-          role: t("team_member"),
-          hideOrganizerName: calEvent.hideOrganizerName,
-          hideOrganizerEmail: calEvent.hideOrganizerEmail,
-        }, t))
+        .map((member) =>
+          formatPersonText({
+            name: member.name,
+            email: member.email,
+            role: t("team_member"),
+            hideOrganizerName: calEvent.hideOrganizerName,
+            hideOrganizerEmail: calEvent.hideOrganizerEmail,
+          })
+        )
         .join("\n")
-    : [];
+    : "";
 
   return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
     teamMembers.length ? `\n${teamMembers}` : ""

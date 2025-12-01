@@ -196,7 +196,11 @@ export default function Success(props: PageProps) {
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
-  const { organizer, teamMembers, attendees: regularAttendees } = useBookingHosts({
+  const {
+    organizer,
+    teamMembers,
+    attendees: regularAttendees,
+  } = useBookingHosts({
     bookingUser: bookingInfo?.user,
     eventTypeUsers: eventType.users,
     attendees: bookingInfo?.attendees,
@@ -647,7 +651,7 @@ export default function Success(props: PageProps) {
                                   testId="booking-host-name"
                                 />
                               )}
-                              
+
                               {teamMembers.map((member) => (
                                 <HostDisplay
                                   key={member.id}
@@ -659,9 +663,9 @@ export default function Success(props: PageProps) {
                                   hideOrganizerEmail={bookingInfo.eventType?.hideOrganizerEmail}
                                 />
                               ))}
-                              
+
                               {regularAttendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                <div key={attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
                                     <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
                                   )}

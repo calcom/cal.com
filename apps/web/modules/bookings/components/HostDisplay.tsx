@@ -22,7 +22,7 @@ export function HostDisplay({
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">
-        {!hideOrganizerName && <span data-testid={testId}>{name}</span>}
+        {!hideOrganizerName && name && <span data-testid={testId}>{name}</span>}
         <span className="text-default">{role}</span>
         {showBadge && <Badge variant="blue">Host</Badge>}
       </div>
@@ -34,4 +34,3 @@ export function HostDisplay({
     </div>
   );
 }
-

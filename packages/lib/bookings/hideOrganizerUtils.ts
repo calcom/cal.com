@@ -1,3 +1,6 @@
+const ANONYMOUS_ORGANIZER_NAME = "Organizer";
+const NO_REPLY_EMAIL = "no-reply@cal.com";
+
 export interface PersonDisplayOptions {
   name: string;
   email: string;
@@ -23,7 +26,7 @@ export function formatPersonDisplay(options: PersonDisplayOptions) {
 /**
  * Formats person text for calendar descriptions
  */
-export function formatPersonText(options: PersonDisplayOptions, _t: (key: string) => string): string {
+export function formatPersonText(options: PersonDisplayOptions): string {
   const { displayName, displayEmail } = formatPersonDisplay(options);
 
   if (displayName) {
@@ -46,8 +49,8 @@ export function getIcsAttendee(
   isOrganizerExempt: boolean,
   icsConfig?: { partstat: string; role: string; rsvp: boolean }
 ) {
-  const displayName = hideFlags.hideOrganizerName ? "Organizer" : person.name;
-  const displayEmail = hideFlags.hideOrganizerEmail && !isOrganizerExempt ? "no-reply@cal.com" : person.email;
+  const displayName = hideFlags.hideOrganizerName ? ANONYMOUS_ORGANIZER_NAME : person.name;
+  const displayEmail = hideFlags.hideOrganizerEmail && !isOrganizerExempt ? NO_REPLY_EMAIL : person.email;
 
   const baseResult = {
     name: displayName,
