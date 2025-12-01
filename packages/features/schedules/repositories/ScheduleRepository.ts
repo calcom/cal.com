@@ -8,12 +8,16 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
-  ReturnType<typeof ScheduleRepository.findDetailedScheduleById>
+  ReturnType<ScheduleRepository["findDetailedScheduleById"]>
 >;
 
 export class ScheduleRepository {
   // when instantiating, prismaClient injection is required
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private readonly prismaClient: PrismaClient) {
+    if (!prismaClient) {
+      throw new Error("PrismaClient is required for ScheduleRepository");
+    }
+  }
 
   async findScheduleByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }) {
     const schedule = await this.prismaClient.schedule.findUnique({
@@ -62,7 +66,7 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  static async findScheduleById({ id }: { id: number }) {
+  async findScheduleById({ id }: { id: number }) {
     const schedule = await this.prismaClient.schedule.findUnique({
       where: {
         id,
@@ -79,7 +83,7 @@ export class ScheduleRepository {
     return schedule;
   }
 
-  static async findDetailedScheduleById({
+  async findDetailedScheduleById({
     isManagedEventType,
     scheduleId,
     userId,
@@ -140,7 +144,7 @@ export class ScheduleRepository {
     };
   }
 
-  static async findManyDetailedScheduleByUserId({
+  async findManyDetailedScheduleByUserId({
     isManagedEventType,
     userId,
     defaultScheduleId,

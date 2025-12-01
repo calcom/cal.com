@@ -44,6 +44,18 @@ describe("ScheduleRepository", () => {
     vi.clearAllMocks();
   });
 
+  describe("constructor", () => {
+    it("should throw error if prismaClient is not provided", () => {
+      expect(() => new ScheduleRepository(null as any)).toThrow("PrismaClient is required for ScheduleRepository");
+      expect(() => new ScheduleRepository(undefined as any)).toThrow("PrismaClient is required for ScheduleRepository");
+    });
+
+    it("should create instance successfully with valid prismaClient", () => {
+      const repo = new ScheduleRepository(prisma);
+      expect(repo).toBeInstanceOf(ScheduleRepository);
+    });
+  });
+
   describe("getDefaultScheduleId", () => {
     it("should return defaultScheduleId if user has one", async () => {
       const userId = 1;
