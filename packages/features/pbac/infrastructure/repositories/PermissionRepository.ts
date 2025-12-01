@@ -237,6 +237,9 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
+    // Convert permission pairs to JSONB for proper serialization
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
     // Query 1: PBAC enabled - teams where user has PBAC permissions (direct or via org)
     const pbacTeamsPromise = this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT "teamId"
@@ -245,12 +248,19 @@ export class PermissionRepository implements IPermissionRepository {
         SELECT m."teamId"
         FROM "Membership" m
         INNER JOIN "Role" r ON m."customRoleId" = r.id
+        INNER JOIN "Team" t ON m."teamId" = t.id
         WHERE m."userId" = ${userId}
           AND m."accepted" = true
           AND m."customRoleId" IS NOT NULL
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" f
+            WHERE f."teamId" = t.id
+              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+          )
           AND (
             SELECT COUNT(*)
-            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm
+            FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
             WHERE EXISTS (
               SELECT 1
               FROM "RolePermission" rp
@@ -270,13 +280,20 @@ export class PermissionRepository implements IPermissionRepository {
         SELECT child."id" as "teamId"
         FROM "Membership" org_m
         INNER JOIN "Role" org_r ON org_m."customRoleId" = org_r.id
+        INNER JOIN "Team" org_t ON org_m."teamId" = org_t.id
         INNER JOIN "Team" child ON child."parentId" = org_m."teamId"
         WHERE org_m."userId" = ${userId}
           AND org_m."accepted" = true
           AND org_m."customRoleId" IS NOT NULL
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" f
+            WHERE f."teamId" = org_t.id
+              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+          )
           AND (
             SELECT COUNT(*)
-            FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm
+            FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
             WHERE EXISTS (
               SELECT 1
               FROM "RolePermission" rp
