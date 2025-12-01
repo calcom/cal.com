@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "exports": {
-    "./globals.css": "./styles/globals.css",
+    "./styles.css": "./styles.css",
     "./lib/*": "./lib/*.ts",
     "./components/*": "./components/*.tsx",
     "./hooks/*": "./hooks/*.ts"
