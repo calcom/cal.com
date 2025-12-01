@@ -335,6 +335,12 @@ export class PermissionRepository implements IPermissionRepository {
 
     const [pbacTeams, fallbackTeams] = await Promise.all([pbacTeamsPromise, fallbackTeamsPromise]);
 
+    // Debug logging
+    console.log("DEBUG getTeamIdsWithPermissions - pbacTeams:", pbacTeams);
+    console.log("DEBUG getTeamIdsWithPermissions - fallbackTeams:", fallbackTeams);
+    console.log("DEBUG getTeamIdsWithPermissions - permissionPairsJson:", permissionPairsJson);
+    console.log("DEBUG getTeamIdsWithPermissions - permissions.length:", permissions.length);
+
     const allTeamIds = Array.from(
       new Set([...pbacTeams.map((team) => team.teamId), ...fallbackTeams.map((team) => team.teamId)])
     );
