@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
@@ -202,10 +203,10 @@ function UserListTableContent({
           const filterType = isNumber
             ? ColumnFilterType.NUMBER
             : isText
-            ? ColumnFilterType.TEXT
-            : isSingleSelect
-            ? ColumnFilterType.SINGLE_SELECT
-            : ColumnFilterType.MULTI_SELECT;
+              ? ColumnFilterType.TEXT
+              : isSingleSelect
+                ? ColumnFilterType.SINGLE_SELECT
+                : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -449,16 +450,19 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
-            canRemove: permissionsRaw.canRemove && !isSelf,
+            canEdit:
+              ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
+              user.accepted &&
+              !isSelf,
+            canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
             canImpersonate:
               user.accepted &&
               !user.disableImpersonation &&
               !isSelf &&
               !!org?.canAdminImpersonate &&
-              permissionsRaw.canImpersonate,
+              (permissionsRaw.canImpersonate ?? false),
             canLeave: user.accepted && isSelf,
-            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
+            canResendInvitation: (permissionsRaw.canResendInvitation ?? false) && !user.accepted,
           };
 
           return (
@@ -613,12 +617,12 @@ function UserListTableContent({
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
-          <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
+          <DataTableSelectionBar.Root className="bottom-[7.3rem]! md:bottom-32!">
             <DynamicLink table={table} domain={domain} />
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
+          <DataTableSelectionBar.Root className="bottom-16! justify-center md:w-max">
             <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
@@ -633,7 +637,7 @@ function UserListTableContent({
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
+                {(permissions?.canEditAttributesForUser ?? adminOrOwner) && (
                   <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
                 )}
                 {(permissions?.canChangeMemberRole ?? adminOrOwner) && (
@@ -655,7 +659,15 @@ function UserListTableContent({
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
-      {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
+      {state.editSheet.showModal && (
+        <EditUserSheet
+          dispatch={dispatch}
+          state={state}
+          canViewAttributes={permissions?.canViewAttributes}
+          canEditAttributesForUser={permissions?.canEditAttributesForUser}
+          canChangeMemberRole={permissions?.canChangeMemberRole ?? adminOrOwner}
+        />
+      )}
 
       {ctaContainerRef.current &&
         createPortal(
@@ -674,14 +686,15 @@ function UserListTableContent({
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                onClick={() =>
+                onClick={() => {
                   dispatch({
                     type: "INVITE_MEMBER",
                     payload: {
                       showModal: true,
                     },
-                  })
-                }
+                  });
+                  posthog.capture("add_organization_member_clicked")
+                }}
                 data-testid="new-organization-member-button">
                 {t("add")}
               </DataTableToolbar.CTA>

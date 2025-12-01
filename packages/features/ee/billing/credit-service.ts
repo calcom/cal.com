@@ -48,6 +48,8 @@ type LowCreditBalanceWarningResult = LowCreditBalanceResultBase & {
 
 type LowCreditBalanceResult = LowCreditBalanceLimitReachedResult | LowCreditBalanceWarningResult | null;
 
+export type CreditCheckFn = CreditService["hasAvailableCredits"];
+
 export class CreditService {
   async chargeCredits({
     userId,
@@ -158,7 +160,13 @@ export class CreditService {
   /*
     also returns true if team has no available credits but limitReachedAt is not yet set
   */
-  async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
+  async hasAvailableCredits({
+    userId,
+    teamId,
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  }): Promise<boolean> {
     return await prisma.$transaction(async (tx) => {
       if (!IS_SMS_CREDITS_ENABLED) return true;
 

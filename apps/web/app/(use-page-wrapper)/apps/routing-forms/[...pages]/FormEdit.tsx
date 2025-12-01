@@ -97,7 +97,7 @@ function Field({
               data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
               label="Label"
-              className="flex-grow"
+              className="grow"
               placeholder={t("this_is_what_your_users_would_see")}
               defaultValue={label || routerField?.label || "Field"}
               required
@@ -189,7 +189,7 @@ function Field({
             />
           </div>
           {["select", "multiselect"].includes(fieldType) ? (
-            <div className="bg-muted w-full rounded-[10px] p-2">
+            <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
                 fieldArrayName={`${hookFieldNamespace}.options`}
@@ -319,7 +319,7 @@ const FormEdit = ({
   ) : (
     <div className="w-full py-4 lg:py-8">
       {/* TODO: remake empty screen for V3 */}
-      <div className="border-sublte bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
+      <div className="border-sublte bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
         <div className="mb-3 grid">
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
