@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React, { Fragment, useState, useEffect, useRef } from "react";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -53,6 +54,13 @@ const useBuildHref = () => {
   };
 
   return buildHref;
+};
+
+const trackNavigationClick = (itemName: string, parentItemName?: string) => {
+  posthog.capture("navigation_item_clicked", {
+    item_name: itemName,
+    parent_name: parentItemName,
+  });
 };
 
 export type NavigationItemType = {
@@ -133,7 +141,10 @@ export const NavigationItem: React.FC<{
                         key={childItem.name}
                         href={buildHref(childItem)}
                         aria-current={childIsCurrent ? "page" : undefined}
-                        onClick={() => setIsTooltipOpen(false)}
+                        onClick={() => {
+                          setIsTooltipOpen(false);
+                          trackNavigationClick(childItem.name, item.name);
+                        }}
                         className={classNames(
                           "group relative block rounded-md px-3 py-1 text-sm font-medium",
                           childIsCurrent
@@ -199,6 +210,7 @@ export const NavigationItem: React.FC<{
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <Link
             data-test-id={item.name}
+            onClick={() => trackNavigationClick(item.name)}
             href={isChild ? buildHref(item) : item.href}
             aria-label={t(item.name)}
             target={item.target}
@@ -208,9 +220,8 @@ export const NavigationItem: React.FC<{
                 ? `aria-[aria-current='page']:bg-transparent!`
                 : `[&[aria-current='page']]:bg-emphasis`,
               isChild
-                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
-                    props.index === 0 ? "mt-0" : "mt-px"
-                  }`
+                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${props.index === 0 ? "mt-0" : "mt-px"
+                }`
                 : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
