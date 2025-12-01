@@ -3507,6 +3507,8 @@
   "platform_customer_cant_create_organization": "You are already part of a platform organization which is why you can't create a new organization. Each user can only belong to one organization. Please, create a new cal.com account with a different email and use that account to subscribe to the organizations plan.",
   "organization_customer_cant_create_platform": "You are already part of an organization which is why you can't create a platform organization. Each user can only belong to one organization. Please, create a new cal.com account with a different email and use that account to subscribe to the platform plan.",
   "hide_organizer_email_description": "Hide organizer's email address from the booking screen, email notifications, and calendar events. <0>Learn more</0>",
+  "hide_organizer_name": "Hide organizer's name",
+  "hide_organizer_name_description": "Hide organizer's name from the booking screen, email notifications, and calendar events. Only 'Organizer' will be shown. <0>Learn more</0>",
   "you_and_conjunction": "You &",
   "select_verified_email": "Select a verified email",
   "add_verified_email": "Add verified email",

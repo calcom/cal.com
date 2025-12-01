@@ -490,6 +490,14 @@ export class BaseCreateEventTypeInput {
   hideOrganizerEmail?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "Boolean to Hide organizer's name from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerName?: boolean;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => CalVideoSettings)
   @DocsPropertyOptional({

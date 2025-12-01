@@ -440,6 +440,14 @@ class BaseEventTypeOutput_2024_06_14 {
   hideOrganizerEmail?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "Boolean to Hide organizer's name from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerName?: boolean;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => CalVideoSettings)
   @ApiPropertyOptional({

@@ -11,7 +11,7 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
 
   return (
     <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-      {name} - {role} {formattedPhoneNumber}
+      {name ? `${name} - ` : ""}{role} {formattedPhoneNumber}
       {displayEmail && (
         <span style={{ color: "#4B5563" }}>
           <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
@@ -31,7 +31,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
       description={
         <>
           <PersonInfo
-            name={props.calEvent.organizer.name}
+            name={props.calEvent.hideOrganizerName ? "" : props.calEvent.organizer.name}
             role={t("organizer")}
             email={props.calEvent.hideOrganizerEmail ? "" : props.calEvent.organizer.email}
           />

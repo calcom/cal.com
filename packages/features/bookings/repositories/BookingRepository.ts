@@ -339,6 +339,7 @@ export class BookingRepository {
           requiresConfirmation: true,
           allowReschedulingPastBookings: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: true,
         },
       },
       ...(seatedEvent && {
@@ -573,6 +574,7 @@ export class BookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             hosts: {
               select: {
                 userId: true,
@@ -1159,6 +1161,7 @@ export class BookingRepository {
           select: {
             title: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             teamId: true,
             metadata: true,
           },
@@ -1238,6 +1241,7 @@ export class BookingRepository {
             hideCalendarNotes: true,
             hideCalendarEventDetails: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             schedulingType: true,
             seatsPerTimeSlot: true,
             seatsShowAttendees: true,
@@ -1398,6 +1402,7 @@ export class BookingRepository {
             parentId: true,
             slug: true,
             hideOrganizerEmail: true,
+            hideOrganizerName: true,
             customReplyToEmail: true,
             bookingFields: true,
             metadata: true,

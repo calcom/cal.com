@@ -206,6 +206,7 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
+  hideOrganizerName?: boolean;
   disableCancelling?: boolean;
   disableRescheduling?: boolean;
 

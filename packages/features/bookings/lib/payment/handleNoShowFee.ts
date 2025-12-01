@@ -35,6 +35,7 @@ export const handleNoShowFee = async ({
     eventType: {
       title: string;
       hideOrganizerEmail: boolean;
+      hideOrganizerName: boolean;
       teamId: number | null;
       metadata?: Prisma.JsonValue;
     } | null;
@@ -92,6 +93,7 @@ export const handleNoShowFee = async ({
     },
     attendees: [attendee],
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideOrganizerName: booking.eventType?.hideOrganizerName,
     paymentInfo: {
       amount: payment.amount,
       currency: payment.currency,

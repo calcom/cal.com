@@ -136,6 +136,7 @@ const handleMarkNoShow = async ({
             select: {
               id: true,
               hideOrganizerEmail: true,
+              hideOrganizerName: true,
               customReplyToEmail: true,
               schedulingType: true,
               slug: true,
@@ -289,6 +290,7 @@ const handleMarkNoShow = async ({
               rescheduleReason: null,
               cancellationReason: null,
               hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+              hideOrganizerName: booking.eventType?.hideOrganizerName,
               eventTypeId: booking.eventType?.id,
               customReplyToEmail: booking.eventType?.customReplyToEmail,
               team,

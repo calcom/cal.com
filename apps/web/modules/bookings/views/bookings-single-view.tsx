@@ -631,9 +631,11 @@ export default function Success(props: PageProps) {
                               {bookingInfo?.user && (
                                 <div className="mb-3">
                                   <div>
-                                    <span data-testid="booking-host-name" className="mr-2">
-                                      {bookingInfo.user.name}
-                                    </span>
+                                    {!bookingInfo.eventType?.hideOrganizerName && (
+                                      <span data-testid="booking-host-name" className="mr-2">
+                                        {bookingInfo.user.name}
+                                      </span>
+                                    )}
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (

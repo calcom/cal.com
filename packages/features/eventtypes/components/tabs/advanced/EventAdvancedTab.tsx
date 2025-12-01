@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -103,6 +102,7 @@ export type EventAdvancedTabCustomClassNames = {
   };
   timezoneLock?: SettingsToggleClassNames;
   hideOrganizerEmail?: SettingsToggleClassNames;
+  hideOrganizerName?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -526,6 +526,7 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const hideOrganizerNameLocked = shouldLockDisableProps("hideOrganizerName");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
@@ -1182,6 +1183,32 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
             data-testid="hide-organizer-email"
+          />
+        )}
+      />
+      <Controller
+        name="hideOrganizerName"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerName?.label)}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.hideOrganizerName?.container
+            )}
+            title={t("hide_organizer_name")}
+            {...hideOrganizerNameLocked}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="hide_organizer_name_description"
+                href="https://cal.com/help/event-types/hideorganizersname#hide-organizers-name"
+              />
+            }
+            descriptionClassName={customClassNames?.hideOrganizerName?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid="hide-organizer-name"
           />
         )}
       />

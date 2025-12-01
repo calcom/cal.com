@@ -1352,6 +1352,7 @@ async function handler(
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
+      hideOrganizerName: eventType.hideOrganizerName,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true

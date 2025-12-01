@@ -278,6 +278,7 @@ async function buildCalendarEvent(
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+    hideOrganizerName: booking.eventType?.hideOrganizerName,
     attendees: attendeesList,
     uid: booking.uid,
     iCalUID: booking.iCalUID,
