@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -40,6 +40,7 @@ interface IAddActionDialog {
     needsCredits: boolean;
     creditsTeamId?: number;
     isOrganization?: boolean;
+    needsTeamsUpgrade?: boolean;
   }[];
 }
 
@@ -157,7 +158,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               setIsEmailAddressNeeded(false);
               setIsSenderIdNeeded(false);
             }}>
-            <div className="space-y-1">
+            <div className="stack-y-1">
               <Label htmlFor="label">{t("action")}:</Label>
               <Controller
                 name="action"
@@ -170,7 +171,16 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       menuPlacement="bottom"
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
-                      options={actionOptions}
+                      options={actionOptions.map((option) => ({
+                        label: option.label,
+                        value: option.value,
+                        needsTeamsUpgrade: option.needsTeamsUpgrade,
+                      }))}
+                      isOptionDisabled={(option: {
+                        label: string;
+                        value: WorkflowActions;
+                        needsTeamsUpgrade?: boolean;
+                      }) => !!option.needsTeamsUpgrade}
                     />
                   );
                 }}
@@ -180,7 +190,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               )}
             </div>
             {isPhoneNumberNeeded && (
-              <div className="mt-5 space-y-1">
+              <div className="mt-5 stack-y-1">
                 <Label htmlFor="sendTo">{t("phone_number")}</Label>
                 <div className="mb-5 mt-1">
                   <Controller

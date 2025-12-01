@@ -94,7 +94,7 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendar(credential, shouldServeCache);
       return [calendar, credential] as const;
     })
   );
@@ -193,7 +193,7 @@ function getServerUrlFromCalendarExternalId(externalId: string): string | null {
   try {
     const url = new URL(externalId);
     return `${url.protocol}//${url.host}`;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -215,7 +215,7 @@ function getServerUrlFromCredential(credential: CredentialForCalendarService): s
 
     const url = new URL(decryptedData.url);
     return `${url.protocol}//${url.host}`;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

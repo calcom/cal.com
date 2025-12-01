@@ -139,6 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
           enableAutomaticRecordingForOrganizer: true,
+          requireEmailForGuests: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,

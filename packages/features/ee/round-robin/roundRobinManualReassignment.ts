@@ -1,19 +1,19 @@
- 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinReassignedEmailsAndSMS,
-  sendRoundRobinScheduledEmailsAndSMS,
-  sendRoundRobinUpdatedEmailsAndSMS,
-} from "@calcom/emails";
+  sendReassignedEmailsAndSMS,
+  sendReassignedScheduledEmailsAndSMS,
+  sendReassignedUpdatedEmailsAndSMS,
+} from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -151,9 +151,20 @@ export const roundRobinManualReassignment = async ({
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
+
+  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts,
+    attendees: booking.attendees,
+    organizer,
+    previousHost: previousRRHost || null,
+    reassignedHost: newUser,
+  });
+
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
-    const responseSchema = getBookingResponsesSchema({
+    const responseSchema = getBookingResponsesPartialSchema({
       bookingFields: eventType.bookingFields,
       view: "reschedule",
     });
@@ -180,7 +191,8 @@ export const roundRobinManualReassignment = async ({
       attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
-      teamName: eventType.team?.name,
+      // we send on behalf of team if >1 round robin attendee | collective
+      teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
@@ -244,17 +256,7 @@ export const roundRobinManualReassignment = async ({
     hasOrganizerChanged,
   });
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
-
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-
-  const teamMembers = await getTeamMembers({
-    eventTypeHosts,
-    attendees: booking.attendees,
-    organizer,
-    previousHost: previousRRHost || null,
-    reassignedHost: newUser,
-  });
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -300,6 +302,7 @@ export const roundRobinManualReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    schedulingType: eventType.schedulingType,
     hideOrganizerEmail: eventType.hideOrganizerEmail,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
@@ -312,7 +315,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  if( hasOrganizerChanged ){
+  if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
@@ -385,11 +388,11 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {
-    await sendRoundRobinScheduledEmailsAndSMS({
+    await sendReassignedScheduledEmailsAndSMS({
       calEvent: evtWithoutCancellationReason,
       members: [
         {
@@ -419,7 +422,7 @@ export const roundRobinManualReassignment = async ({
   };
 
   if (previousRRHost && emailsEnabled) {
-    await sendRoundRobinReassignedEmailsAndSMS({
+    await sendReassignedEmailsAndSMS({
       calEvent: cancelledEvt,
       members: [
         {
@@ -438,7 +441,7 @@ export const roundRobinManualReassignment = async ({
   if (hasOrganizerChanged) {
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
-      await sendRoundRobinUpdatedEmailsAndSMS({
+      await sendReassignedUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
@@ -601,6 +604,8 @@ export async function handleWorkflowsUpdate({
     },
   });
 
+  const creditService = new CreditService();
+
   await scheduleWorkflowReminders({
     workflows: newEventWorkflows,
     smsReminderNumber: null,
@@ -611,6 +616,7 @@ export async function handleWorkflowsUpdate({
       bookerUrl,
     },
     hideBranding: !!eventType?.owner?.hideBranding,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 }
 

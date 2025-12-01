@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-
+import { mapOldToNewCssVars } from "./ui/cssVarsMap";
 import type { Message } from "./embed";
 import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
 import {
@@ -111,15 +111,15 @@ const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
 const registerNewSetter = (
   registration:
     | {
-        elementName: keyof EmbedStyles;
-        setState: SetStyles;
-        styles: true;
-      }
+      elementName: keyof EmbedStyles;
+      setState: SetStyles;
+      styles: true;
+    }
     | {
-        elementName: keyof EmbedNonStylesConfig;
-        setState: setNonStylesConfig;
-        styles: false;
-      }
+      elementName: keyof EmbedNonStylesConfig;
+      setState: setNonStylesConfig;
+      styles: false;
+    }
 ) => {
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
@@ -286,6 +286,9 @@ function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
+  if (document.body.style.opacity !== "1") {
+    document.body.style.opacity = "1";
+  }
   // Ensure that it stays visible and not reverted by React
   runAsap(() => {
     makeBodyVisible();
@@ -345,6 +348,7 @@ async function waitForRenderStateToBeCompleted() {
   });
 }
 
+
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -371,13 +375,36 @@ export const methods = {
     }
 
     // Merge new values over the old values
+    // For cssVarsPerTheme, we need to merge at the theme level to preserve variables from both old and new configs
+    const oldCssVarsPerTheme = embedStore.uiConfig?.cssVarsPerTheme;
+    const newCssVarsPerTheme = uiConfig.cssVarsPerTheme;
+    let mergedCssVarsPerTheme: UiConfig["cssVarsPerTheme"] | undefined;
+
+    if (oldCssVarsPerTheme || newCssVarsPerTheme) {
+      mergedCssVarsPerTheme = {} as Record<"light" | "dark", Record<string, string>>;
+      const themeKeys = [
+        ...(oldCssVarsPerTheme ? Object.keys(oldCssVarsPerTheme) : []),
+        ...(newCssVarsPerTheme ? Object.keys(newCssVarsPerTheme) : []),
+      ];
+      const themes = Array.from(new Set(themeKeys)) as Array<"light" | "dark">;
+
+      for (const theme of themes) {
+        mergedCssVarsPerTheme[theme] = {
+          ...oldCssVarsPerTheme?.[theme],
+          ...newCssVarsPerTheme?.[theme],
+        };
+      }
+    }
+
     uiConfig = {
       ...embedStore.uiConfig,
       ...uiConfig,
+      ...(mergedCssVarsPerTheme ? { cssVarsPerTheme: mergedCssVarsPerTheme } : {}),
     };
 
     if (uiConfig.cssVarsPerTheme) {
-      window.CalEmbed.applyCssVars(uiConfig.cssVarsPerTheme);
+      const mappedCssVarsPerTheme = mapOldToNewCssVars(uiConfig.cssVarsPerTheme);
+      window.CalEmbed.applyCssVars(mappedCssVarsPerTheme);
     }
 
     if (uiConfig.colorScheme) {

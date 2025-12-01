@@ -10,6 +10,7 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import type { FilterType } from "@calcom/types/data-table";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
@@ -53,13 +54,13 @@ export default function InsightsPage({ timeZone }: { timeZone: string }) {
   );
 }
 
-const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const createdAtColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "createdAt",
   title: "createdAt",
   type: ColumnFilterType.DATE_RANGE,
 };
 
-const startTimeColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+const startTimeColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr"> }> = {
   id: "startTime",
   title: "startTime",
   type: ColumnFilterType.DATE_RANGE,
@@ -86,9 +87,7 @@ function InsightsPageContent() {
         className="flex flex-wrap items-center gap-2"
         data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
         <OrgTeamsFilter />
-        <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-        <DataTableFilters.ActiveFilters table={table} />
-        <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+        <DataTableFilters.FilterBar table={table} />
         <DataTableFilters.ClearFiltersButton exclude={["startTime", "createdAt"]} />
         <div className="grow" />
         <Download />
@@ -102,7 +101,7 @@ function InsightsPageContent() {
         <TimezoneBadge />
       </div>
 
-      <div className="my-4 space-y-4">
+      <div className="my-4 stack-y-4">
         <BookingKPICards />
 
         <EventTrendsChart />

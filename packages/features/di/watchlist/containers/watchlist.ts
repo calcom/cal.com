@@ -1,6 +1,6 @@
 import { createContainer } from "@evyweb/ioctopus";
 
-import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
+import { moduleLoader as loggerModuleLoader } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 import {
@@ -13,7 +13,7 @@ import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/servi
 import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 import { watchlistModule } from "../modules/Watchlist.module";
@@ -21,8 +21,8 @@ import { watchlistModule } from "../modules/Watchlist.module";
 export const watchlistContainer = createContainer();
 
 prismaModuleLoader.loadModule(watchlistContainer);
+loggerModuleLoader.loadModule(watchlistContainer);
 
-watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
 watchlistContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY, watchlistModule);

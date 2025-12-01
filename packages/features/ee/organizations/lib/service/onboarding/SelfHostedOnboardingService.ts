@@ -1,6 +1,6 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -28,7 +28,7 @@ const teamsSchema = orgOnboardingTeamsSchema;
 /**
  * Handles organization onboarding when billing is disabled (self-hosted admin flow).
  *
- * Flow:
+* Flow:
  * 1. Create onboarding record
  * 2. Store teams/invites in database
  * 3. Immediately create organization, teams, and invite members
@@ -46,8 +46,12 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       })
     );
 
-    // Step 1: Filter and normalize teams/invites
-    const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
+    // Step 1: Build and validate teams/invites (includes conflict slug detection)
+    const { teamsData, invitedMembersData } = await this.buildTeamsAndInvites(
+      input.slug,
+      input.teams,
+      input.invitedMembers
+    );
 
     // Step 2: Create onboarding record with ALL data at once
     const organizationOnboarding = await this.createOnboardingRecord({
@@ -78,10 +82,10 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       invitedMembers: invitedMembersData,
       teams: teamsData,
       isPlatform: input.isPlatform,
-      logo: input.logo ?? null,
+      logo: organizationOnboarding.logo,
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
-      bannerUrl: input.bannerUrl ?? null,
+      bannerUrl: organizationOnboarding.bannerUrl,
       stripeCustomerId: null,
       isDomainConfigured: false,
     });
@@ -113,6 +117,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
   async createOrganization(
     organizationOnboarding: OrganizationOnboardingData
   ): Promise<{ organization: Team; owner: User }> {
+    const organizationRepository = getOrganizationRepository();
     log.info(
       "createOrganization (self-hosted)",
       safeStringify({
@@ -205,7 +210,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
 
     if (!organization.slug) {
       try {
-        const { slug } = await OrganizationRepository.setSlug({
+        const { slug } = await organizationRepository.setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });
