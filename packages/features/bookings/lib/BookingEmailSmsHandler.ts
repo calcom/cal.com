@@ -226,7 +226,7 @@ export class BookingEmailSmsHandler {
 
     const {
       sendRoundRobinRescheduledEmailsAndSMS,
-      sendRoundRobinScheduledEmailsAndSMS,
+      sendReassignedScheduledEmailsAndSMS,
       sendRoundRobinCancelledEmailsAndSMS,
     } = await import("@calcom/emails/email-manager");
 
@@ -237,7 +237,7 @@ export class BookingEmailSmsHandler {
           rescheduledMembers,
           metadata
         ),
-        sendRoundRobinScheduledEmailsAndSMS({
+        sendReassignedScheduledEmailsAndSMS({
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
           eventTypeMetadata: metadata,
