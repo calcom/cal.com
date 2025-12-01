@@ -129,7 +129,6 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
-    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
@@ -225,9 +224,10 @@
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
-    "NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY",
+    "MINTLIFY_CHAT_API_KEY",
     "NEXT_PUBLIC_CHAT_API_URL",
     "NEXT_PUBLIC_DOCS_URL",
+    "NEXT_PUBLIC_ENABLE_MINTLIFY_CHAT",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
@@ -282,7 +282,16 @@
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
-    "USE_POOL"
+    "USE_POOL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_API_URL",
+    "TRIGGER_DEV_PROJECT_REF",
+    "ENABLE_ASYNC_TASKER",
+    "STRIPE_ORG_PRODUCT_ID",
+    "GOOGLE_ADS_ENABLED",
+    "LINKEDIN_ADS_ENABLED",
+    "SEED_PLATFORM_OAUTH_CLIENT_ID",
+    "SEED_PLATFORM_OAUTH_CLIENT_SECRET"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -375,7 +384,8 @@
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
-        "USE_POOL"
+        "USE_POOL",
+        "LOGGER_BRIDGE_LOG_LEVEL"
       ]
     },
     "@calcom/ai#build": {
@@ -445,6 +455,16 @@
     },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
+    "dev:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
+    },
+    "deploy:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
       "cache": false
     },
     "dx": {
