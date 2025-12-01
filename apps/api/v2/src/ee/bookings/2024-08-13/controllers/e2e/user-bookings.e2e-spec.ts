@@ -17,6 +17,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { advanceTo, clear } from "jest-date-mock";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -65,6 +66,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let workflowRepositoryFixture: WorkflowRepositoryFixture;
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
@@ -105,6 +107,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       workflowReminderRepositoryFixture = new WorkflowReminderRepositoryFixture(moduleRef);
       workflowRepositoryFixture = new WorkflowRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `user-bookings-organization-${randomString()}`,
@@ -3219,6 +3222,55 @@ describe("Bookings Endpoints 2024-08-13", () => {
         await bookingsRepositoryFixture.deleteById(booking.id);
       });
 
+      it("should return 403 when unauthorized user tries to access conferencing sessions", async () => {
+        const booking = await bookingsRepositoryFixture.create({
+          uid: `test-auth-unauthorized-sessions-${randomString()}`,
+          title: "Test Unauthorized Access Sessions",
+          description: "",
+          startTime: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)),
+          endTime: new Date(Date.UTC(2030, 0, 8, 11, 0, 0)),
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          references: {
+            create: [
+              {
+                type: "daily_video",
+                uid: `daily-room-${randomString()}`,
+                meetingId: `daily-room-${randomString()}`,
+                meetingPassword: "test-password",
+                meetingUrl: `https://daily.co/test-room-${randomString()}`,
+              },
+            ],
+          },
+        });
+
+        const unauthorizedUserEmail = `unauthorized-sessions-user-${randomString()}@api.com`;
+        const unauthorizedUser = await userRepositoryFixture.create({
+          email: unauthorizedUserEmail,
+          locale: "en",
+          name: `unauthorized-sessions-user-${randomString()}`,
+        });
+
+        const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+        const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${booking.uid}/conferencing-sessions`)
+          .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+
+        await bookingsRepositoryFixture.deleteById(booking.id);
+        await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
+      });
     });
 
     describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
