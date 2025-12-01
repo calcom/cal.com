@@ -56,12 +56,13 @@ export class EmailWorkflowService {
     if (!workflowReminder) {
       throw new Error(`Workflow reminder not found with id ${workflowReminderId}`);
     }
-    if (!workflowReminder?.workflowStep?.verifiedAt) {
-      throw new Error(`Workflow step id ${workflowReminder.workflowStep?.id} is not verified`);
-    }
 
     if (!workflowReminder.workflowStep) {
       throw new Error(`Workflow step not found on reminder with id ${workflowReminderId}`);
+    }
+
+    if (!workflowReminder.workflowStep.verifiedAt) {
+      throw new Error(`Workflow step id ${workflowReminder.workflowStep.id} is not verified`);
     }
 
     const workflow = workflowReminder.workflowStep.workflow;

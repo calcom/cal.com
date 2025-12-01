@@ -108,7 +108,7 @@ describe("EmailWorkflowService", () => {
           evt: mockEvt as CalendarEvent,
           workflowReminderId: 1,
         })
-      ).rejects.toThrow("Workflow step id 1 is not verified");
+      ).rejects.toThrow("Workflow step not found on reminder with id 1");
     });
 
     test("should fetch seat attendee email for seated events", async () => {
