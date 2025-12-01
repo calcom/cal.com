@@ -462,7 +462,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  !isBackgroundTransparent &&
+                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -630,12 +631,11 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 last:mb-0">
                               {bookingInfo?.user && (
                                 <div className="mb-3">
-                                  <div>
+                                  <div className="flex items-center gap-2">
                                     {!bookingInfo.eventType?.hideOrganizerName && (
-                                      <span data-testid="booking-host-name" className="mr-2">
-                                        {bookingInfo.user.name}
-                                      </span>
+                                      <span data-testid="booking-host-name">{bookingInfo.user.name}</span>
                                     )}
+                                    <span>{t("organizer")}</span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
@@ -645,21 +645,55 @@ export default function Success(props: PageProps) {
                                   )}
                                 </div>
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                                  {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
-                                  )}
-                                  {attendee.phoneNumber && (
-                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
-                                    </p>
-                                  )}
-                                  {!isSmsCalEmail(attendee.email) && (
-                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
-                                  )}
-                                </div>
-                              ))}
+                              {/* Display additional team members/hosts who are in the attendees list (for Collective events) */}
+                              {(() => {
+                                const attendeeEmails = new Set(
+                                  bookingInfo?.attendees.map((attendee) => attendee.email) ?? []
+                                );
+                                return eventType.users
+                                  ?.filter(
+                                    (user) =>
+                                      user.id !== bookingInfo?.user?.id && attendeeEmails.has(user.email)
+                                  )
+                                  .map((user) => (
+                                    <div key={user.id} className="mb-3">
+                                      <div className="flex items-center gap-2">
+                                        {!bookingInfo.eventType?.hideOrganizerName && (
+                                          <span>{user.name}</span>
+                                        )}
+                                        <span>{t("team_member")}</span>
+                                        <Badge variant="blue">{t("Host")}</Badge>
+                                      </div>
+                                      {!bookingInfo.eventType?.hideOrganizerEmail && (
+                                        <p className="text-default">{user.email}</p>
+                                      )}
+                                    </div>
+                                  ));
+                              })()}
+                              {bookingInfo?.attendees
+                                .filter((attendee) => {
+                                  // Filter out attendees who are hosts (they're already shown above)
+                                  const hostEmails = new Set([
+                                    bookingInfo?.user?.email,
+                                    ...eventType.users?.map((u) => u.email),
+                                  ]);
+                                  return !hostEmails.has(attendee.email);
+                                })
+                                .map((attendee) => (
+                                  <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                    {attendee.name && (
+                                      <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    )}
+                                    {attendee.phoneNumber && (
+                                      <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                        {attendee.phoneNumber}
+                                      </p>
+                                    )}
+                                    {!isSmsCalEmail(attendee.email) && (
+                                      <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                    )}
+                                  </div>
+                                ))}
                             </div>
                           </>
                         )}
@@ -713,7 +747,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
+                              <p className="wrap-break-word whitespace-pre-line">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -740,7 +774,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -1055,7 +1089,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 stack-y-1 text-center">
+                      <div className="stack-y-1 my-4 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
