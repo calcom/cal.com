@@ -1,7 +1,7 @@
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
-import { getDefaultScheduleId } from "./util";
 
 type ListOptions = {
   ctx: {
@@ -37,7 +37,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   let defaultScheduleId: number | null;
   try {
-    defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    defaultScheduleId = await ScheduleRepository.getDefaultScheduleId(user.id, prisma);
 
     if (!user.defaultScheduleId) {
       await prisma.user.update({
