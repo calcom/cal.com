@@ -96,7 +96,6 @@ export const useEventTypeForm = ({
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
-      hideOrganizerName: eventType.hideOrganizerName,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       hostGroups: eventType.hostGroups || [],

@@ -89,7 +89,6 @@ type Input = Pick<
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
-  | "hideOrganizerName"
   | "calVideoSettings"
   | "hidden"
   | "bookingRequiresAuthentication"
@@ -132,7 +131,6 @@ export class OutputEventTypesService_2024_06_14 {
       useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
       hideOrganizerEmail,
-      hideOrganizerName,
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
@@ -212,7 +210,6 @@ export class OutputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
       hideOrganizerEmail,
-      hideOrganizerName,
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,

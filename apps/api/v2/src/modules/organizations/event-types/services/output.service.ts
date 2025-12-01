@@ -81,7 +81,6 @@ type Input = Pick<
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
-  | "hideOrganizerName"
   | "team"
   | "calVideoSettings"
   | "hidden"
