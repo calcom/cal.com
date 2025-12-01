@@ -57,7 +57,7 @@ export class EmailWorkflowService {
       throw new Error(`Workflow reminder not found with id ${workflowReminderId}`);
     }
     if (!workflowReminder?.workflowStep?.verifiedAt) {
-      throw new Error(`Workflow step id ${workflowReminder.id} is not verified`);
+      throw new Error(`Workflow step id ${workflowReminder.workflowStepId} is not verified`);
     }
 
     if (!workflowReminder.workflowStep) {
@@ -194,7 +194,9 @@ export class EmailWorkflowService {
       throw new Error("bookerUrl not a part of the evt");
     }
 
-    const contextData: WorkflowContextData = evt ? { evt: evt as BookingInfo } : { formData: formData as FormSubmissionData };
+    const contextData: WorkflowContextData = evt
+      ? { evt: evt as BookingInfo }
+      : { formData: formData as FormSubmissionData };
     return {
       ...commonScheduleFunctionParams,
       action: workflowStep.action,
