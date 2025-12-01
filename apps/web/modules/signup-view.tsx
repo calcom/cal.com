@@ -720,28 +720,28 @@ export default function Signup({
                     />
                   </div>
                 </div>
-                <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
-                  <div>
+                <div className="mb-6 mr-12 flex w-full flex-wrap items-center justify-center gap-4 pr-4 sm:gap-3">
+                  <div className="flex-1 min-w-[120px] max-w-[200px]">
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/producthunt.svg"
-                      className="h-[54px] w-full"
+                      className="h-[54px] w-full object-contain"
                       alt="ProductHunt Rating of 5 Stars"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-[120px] max-w-[200px]">
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/google-reviews.svg"
-                      className="h-[54px] w-full"
+                      className="h-[54px] w-full object-contain"
                       alt="Google Reviews Rating of 4.7 Stars"
                     />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-[120px] max-w-[200px]">
                     {/* eslint-disable @next/next/no-img-element */}
                     <img
                       src="/product-cards/g2.svg"
-                      className="h-[54px] w-full"
+                      className="h-[54px] w-full object-contain"
                       alt="G2 Rating of 4.7 Stars"
                     />
                   </div>
