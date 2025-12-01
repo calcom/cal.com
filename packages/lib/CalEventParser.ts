@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import { formatPersonText } from "@calcom/lib/bookings/hideOrganizerUtils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
@@ -55,33 +56,23 @@ export const getWho = (
     )
     .join("\n");
 
-  const organizerName = calEvent.hideOrganizerName ? "" : calEvent.organizer.name;
-  const organizerEmail = calEvent.hideOrganizerEmail ? "" : calEvent.organizer.email;
-  
-  const organizer = organizerName
-    ? organizerEmail
-      ? `${organizerName} - ${t("organizer")}\n${organizerEmail}`
-      : `${organizerName} - ${t("organizer")}`
-    : organizerEmail
-    ? `${t("organizer")}\n${organizerEmail}`
-    : t("organizer");
+  const organizer = formatPersonText({
+    name: calEvent.organizer.name,
+    email: calEvent.organizer.email,
+    role: t("organizer"),
+    hideOrganizerName: calEvent.hideOrganizerName,
+    hideOrganizerEmail: calEvent.hideOrganizerEmail,
+  }, t);
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => {
-          const memberName = calEvent.hideOrganizerName ? "" : member.name;
-          const memberEmail = calEvent.hideOrganizerEmail ? "" : member.email;
-          
-          if (memberName) {
-            return memberEmail
-              ? `${memberName} - ${t("team_member")}\n${memberEmail}`
-              : `${memberName} - ${t("team_member")}`;
-          } else {
-            return memberEmail
-              ? `${t("team_member")}\n${memberEmail}`
-              : t("team_member");
-          }
-        })
+        .map((member) => formatPersonText({
+          name: member.name,
+          email: member.email,
+          role: t("team_member"),
+          hideOrganizerName: calEvent.hideOrganizerName,
+          hideOrganizerEmail: calEvent.hideOrganizerEmail,
+        }, t))
         .join("\n")
     : [];
 

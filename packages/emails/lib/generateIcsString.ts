@@ -3,6 +3,7 @@ import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } f
 import { createEvent } from "ics";
 import { RRule } from "rrule";
 
+import { getIcsAttendee } from "@calcom/lib/bookings/hideOrganizerUtils";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
@@ -71,6 +72,8 @@ const generateIcsString = ({
     .filter((domain) => domain.trim() !== "")
     .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
+  const icsConfig = { partstat, role: icsRole, rsvp: true };
+
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
     sequence: event.iCalSequence || 0,
@@ -80,30 +83,26 @@ const generateIcsString = ({
     productId: "calcom/ics",
     title: event.title,
     description: getRichDescription(event, t),
-    organizer: {
-      name: event.hideOrganizerName ? "Organizer" : event.organizer.name,
-      ...(event.hideOrganizerEmail && !isOrganizerExempt
-        ? { email: "no-reply@cal.com" }
-        : { email: event.organizer.email }),
-    },
+    organizer: getIcsAttendee(
+      event.organizer,
+      { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
+      isOrganizerExempt
+    ),
     ...{ recurrenceRule },
     attendees: [
       ...event.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
-        partstat,
-        role: icsRole,
-        rsvp: true,
+        ...icsConfig,
       })),
-      ...(event.team?.members
-        ? event.team?.members.map((member: Person) => ({
-            name: event.hideOrganizerName ? "Organizer" : member.name,
-            email: event.hideOrganizerEmail && !isOrganizerExempt ? "no-reply@cal.com" : member.email,
-            partstat,
-            role: icsRole,
-            rsvp: true,
-          }))
-        : []),
+      ...(event.team?.members?.map((member: Person) =>
+        getIcsAttendee(
+          member,
+          { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
+          isOrganizerExempt,
+          icsConfig
+        )
+      ) ?? []),
     ],
     location: location ?? undefined,
     method: "REQUEST",

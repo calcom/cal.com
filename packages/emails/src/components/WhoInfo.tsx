@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import { formatPersonDisplay } from "@calcom/lib/bookings/hideOrganizerUtils";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -7,7 +8,7 @@ import { Info } from "./Info";
 
 export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => {
   const displayEmail = !isSmsCalEmail(email);
-  const formattedPhoneNumber = !!phoneNumber ? `${phoneNumber} ` : "";
+  const formattedPhoneNumber = phoneNumber ? `${phoneNumber} ` : "";
 
   return (
     <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
@@ -25,28 +26,47 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
 };
 
 export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
-  const { t } = props;
+  const { t, calEvent } = props;
+  
+  const organizerDisplay = formatPersonDisplay({
+    name: calEvent.organizer.name,
+    email: calEvent.organizer.email,
+    role: t("organizer"),
+    hideOrganizerName: calEvent.hideOrganizerName,
+    hideOrganizerEmail: calEvent.hideOrganizerEmail,
+  });
+  
   return (
     <Info
       label={t("who")}
       description={
         <>
           <PersonInfo
-            name={props.calEvent.hideOrganizerName ? "" : props.calEvent.organizer.name}
+            name={organizerDisplay.displayName}
             role={t("organizer")}
-            email={props.calEvent.hideOrganizerEmail ? "" : props.calEvent.organizer.email}
+            email={organizerDisplay.displayEmail}
           />
-          {props.calEvent.team?.members.map((member) => (
+          {calEvent.team?.members.map((member) => {
+            const memberDisplay = formatPersonDisplay({
+              name: member.name,
+              email: member.email,
+              role: t("team_member"),
+              hideOrganizerName: calEvent.hideOrganizerName,
+              hideOrganizerEmail: calEvent.hideOrganizerEmail,
+            });
+            
+            return (
+              <PersonInfo
+                key={member.email}
+                name={memberDisplay.displayName}
+                role={t("team_member")}
+                email={memberDisplay.displayEmail}
+              />
+            );
+          })}
+          {calEvent.attendees.map((attendee) => (
             <PersonInfo
-              key={member.name}
-              name={props.calEvent.hideOrganizerName ? "" : member.name}
-              role={t("team_member")}
-              email={props.calEvent.hideOrganizerEmail ? "" : member?.email}
-            />
-          ))}
-          {props.calEvent.attendees.map((attendee) => (
-            <PersonInfo
-              key={attendee.id || attendee.name}
+              key={attendee.id || attendee.email}
               name={attendee.name}
               role={t("guest")}
               email={attendee.email}

@@ -46,7 +46,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
@@ -57,6 +56,8 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { HostDisplay } from "../components/HostDisplay";
+import { useBookingHosts } from "../hooks/useBookingHosts";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -194,6 +195,12 @@ export default function Success(props: PageProps) {
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+
+  const { organizer, teamMembers, attendees: regularAttendees } = useBookingHosts({
+    bookingUser: bookingInfo?.user,
+    eventTypeUsers: eventType.users,
+    attendees: bookingInfo?.attendees,
+  });
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -629,70 +636,45 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("who")}</div>
                             <div className="col-span-2 last:mb-0">
-                              {bookingInfo?.user && (
-                                <div className="mb-3">
-                                  <div className="flex items-center gap-2">
-                                    {!bookingInfo.eventType?.hideOrganizerName && (
-                                      <span data-testid="booking-host-name">{bookingInfo.user.name}</span>
-                                    )}
-                                    <span>{t("organizer")}</span>
-                                    <Badge variant="blue">{t("Host")}</Badge>
-                                  </div>
-                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default" data-testid="booking-host-email">
-                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                              {organizer && (
+                                <HostDisplay
+                                  name={organizer.name}
+                                  email={bookingInfo?.userPrimaryEmail ?? organizer.email}
+                                  role={t("organizer")}
+                                  showBadge={true}
+                                  hideOrganizerName={bookingInfo.eventType?.hideOrganizerName}
+                                  hideOrganizerEmail={bookingInfo.eventType?.hideOrganizerEmail}
+                                  testId="booking-host-name"
+                                />
+                              )}
+                              
+                              {teamMembers.map((member) => (
+                                <HostDisplay
+                                  key={member.id}
+                                  name={member.name}
+                                  email={member.email}
+                                  role={t("team_member")}
+                                  showBadge={false}
+                                  hideOrganizerName={bookingInfo.eventType?.hideOrganizerName}
+                                  hideOrganizerEmail={bookingInfo.eventType?.hideOrganizerEmail}
+                                />
+                              ))}
+                              
+                              {regularAttendees.map((attendee) => (
+                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                  {attendee.name && (
+                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                  )}
+                                  {attendee.phoneNumber && (
+                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                      {attendee.phoneNumber}
                                     </p>
                                   )}
+                                  {!isSmsCalEmail(attendee.email) && (
+                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                  )}
                                 </div>
-                              )}
-                              {/* Display additional team members/hosts who are in the attendees list (for Collective events) */}
-                              {(() => {
-                                const attendeeEmails = new Set(
-                                  bookingInfo?.attendees.map((attendee) => attendee.email) ?? []
-                                );
-                                return eventType.users
-                                  ?.filter(
-                                    (user) =>
-                                      user.id !== bookingInfo?.user?.id && attendeeEmails.has(user.email)
-                                  )
-                                  .map((user) => (
-                                    <div key={user.id} className="mb-3">
-                                      <div className="flex items-center gap-2">
-                                        {!bookingInfo.eventType?.hideOrganizerName && (
-                                          <span>{user.name}</span>
-                                        )}
-                                        <span>{t("team_member")}</span>
-                                      </div>
-                                      {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                        <p className="text-default">{user.email}</p>
-                                      )}
-                                    </div>
-                                  ));
-                              })()}
-                              {bookingInfo?.attendees
-                                .filter((attendee) => {
-                                  // Filter out attendees who are hosts (they're already shown above)
-                                  const hostEmails = new Set([
-                                    bookingInfo?.user?.email,
-                                    ...eventType.users?.map((u) => u.email),
-                                  ]);
-                                  return !hostEmails.has(attendee.email);
-                                })
-                                .map((attendee) => (
-                                  <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                                    {attendee.name && (
-                                      <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
-                                    )}
-                                    {attendee.phoneNumber && (
-                                      <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                        {attendee.phoneNumber}
-                                      </p>
-                                    )}
-                                    {!isSmsCalEmail(attendee.email) && (
-                                      <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
-                                    )}
-                                  </div>
-                                ))}
+                              ))}
                             </div>
                           </>
                         )}
