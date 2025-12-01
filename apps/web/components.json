@@ -15,8 +15,5 @@
     "hooks": "@coss/ui/hooks",
     "utils": "@coss/ui/lib/utils",
     "ui": "@coss/ui/components"
-  },
-  "registries": {
-    "@coss": "https://coss.com/ui/r/{name}.json"
   }
 }
