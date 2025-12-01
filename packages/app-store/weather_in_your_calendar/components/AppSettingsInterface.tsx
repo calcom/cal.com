@@ -10,7 +10,7 @@ export default function AppSettings() {
   const [location, setLocation] = useState("");
 
   return (
-    <div className="space-y-4 text-sm">
+    <div className="stack-y-4 text-sm">
       <TextField
         placeholder="San Francisco"
         value={location}
