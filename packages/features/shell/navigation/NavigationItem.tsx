@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import posthog from "posthog-js";
 import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,6 +31,13 @@ const usePersistedExpansionState = (itemName: string) => {
   };
 
   return [isExpanded, setPersistedExpansion] as const;
+};
+
+const trackNavigationClick = (itemName: string, parentItemName?: string) => {
+  posthog.capture("navigation_item_clicked", {
+    item_name: itemName,
+    parent_name: parentItemName,
+  });
 };
 
 export type NavigationItemType = {
@@ -108,7 +116,10 @@ export const NavigationItem: React.FC<{
                         key={childItem.name}
                         href={childItem.href}
                         aria-current={childIsCurrent ? "page" : undefined}
-                        onClick={() => setIsTooltipOpen(false)}
+                        onClick={() => {
+                          setIsTooltipOpen(false);
+                          trackNavigationClick(childItem.name, item.name);
+                        }}
                         className={classNames(
                           "group relative block rounded-md px-3 py-1 text-sm font-medium",
                           childIsCurrent
@@ -174,6 +185,7 @@ export const NavigationItem: React.FC<{
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <Link
             data-test-id={item.name}
+            onClick={() => trackNavigationClick(item.name)}
             href={item.href}
             aria-label={t(item.name)}
             target={item.target}
