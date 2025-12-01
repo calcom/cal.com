@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { DatePicker } from "@calcom/ui/components/form";
@@ -12,7 +12,10 @@ interface WeekPickerProps {
 }
 
 export function WeekPicker({ currentWeekStart, userWeekStart, onDateChange }: WeekPickerProps) {
-  const [selectedDate, setSelectedDate] = React.useState<Date>(currentWeekStart.toDate());
+  const [selectedDate, setSelectedDate] = useState<Date>(currentWeekStart.toDate());
+  useEffect(() => {
+    setSelectedDate(currentWeekStart.toDate());
+  }, [currentWeekStart]);
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);

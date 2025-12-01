@@ -795,6 +795,7 @@ function BookingHeaderBadges({
   recurringInfo: { count: number; recurringEvent: RecurringEvent } | null;
 }) {
   const { t } = useLocale();
+  const payment = booking.payment?.[0];
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -807,11 +808,11 @@ function BookingHeaderBadges({
         </Badge>
       )}
       {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
-      {booking.paid && !booking.payment[0] ? (
+      {booking.paid && !payment ? (
         <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
         <Badge variant="green" data-testid="paid_badge">
-          {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+          {payment?.paymentOption === "HOLD" ? t("card_held") : t("paid")}
         </Badge>
       ) : null}
       {recurringInfo && (

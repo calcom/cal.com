@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,20 +23,18 @@ export function RejectionReasonDialog({
   const { t } = useLocale();
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const handleConfirm = () => {
-    onConfirm(rejectionReason);
-    setRejectionReason("");
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpenDialog(open);
-    if (!open) {
+  useEffect(() => {
+    if (!isOpenDialog) {
       setRejectionReason("");
     }
+  }, [isOpenDialog]);
+
+  const handleConfirm = () => {
+    onConfirm(rejectionReason);
   };
 
   return (
-    <Dialog open={isOpenDialog} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
         <div>
           <TextAreaField

@@ -32,6 +32,27 @@ export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetails
       eventType: {
         select: {
           teamId: true,
+          users: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      attendees: {
+        select: {
+          email: true,
         },
       },
     },
@@ -46,9 +67,18 @@ export const getBookingDetailsHandler = async ({ ctx, input }: GetBookingDetails
 
   // Check authorization:
   // 1. User is the owner of the booking
-  const isOwner = booking.userId === user.id;
+  // The logic is brought from checkIfUserIsHost in apps/web/modules/bookings/views/bookings-single-view.getServerSideProps.tsx
+  const isOwnerOrHost =
+    booking.userId === user.id ||
+    booking.eventType?.users?.some(
+      (user) => user.id === user.id && booking.attendees?.some((attendee) => attendee.email === user.email)
+    ) ||
+    booking.eventType?.hosts?.some(
+      (host) =>
+        host.user?.id === user.id && booking.attendees?.some((attendee) => attendee.email === user.email)
+    );
 
-  if (!isOwner) {
+  if (!isOwnerOrHost) {
     // 2. User has booking.read permission to the booking's team
     if (!booking.eventType?.teamId) {
       // No team associated with booking and user is not owner
