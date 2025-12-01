@@ -264,14 +264,15 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon name={StartIcon} className="hidden h-4 w-4 shrink-0 stroke-[1.5px]  md:inline-flex" />
+                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
               </>
             ) : (
               <Icon
                 data-name="start-icon"
                 name={StartIcon}
                 className={classNames(
+                  "shrink-0",
                   loading ? "invisible" : "visible",
                   "button-icon group-[:not(div):active]:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
@@ -313,13 +314,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 shrink-0 md:inline" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
             </>
           ) : (
             <Icon
               name={EndIcon}
               className={classNames(
+                "shrink-0",
                 loading ? "invisible" : "visible",
                 "group-[:not(div):active]:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
