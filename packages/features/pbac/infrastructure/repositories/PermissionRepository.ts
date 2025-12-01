@@ -249,15 +249,10 @@ export class PermissionRepository implements IPermissionRepository {
         FROM "Membership" m
         INNER JOIN "Role" r ON m."customRoleId" = r.id
         INNER JOIN "Team" t ON m."teamId" = t.id
+        INNER JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = 'pbac'
         WHERE m."userId" = ${userId}
           AND m."accepted" = true
           AND m."customRoleId" IS NOT NULL
-          AND EXISTS (
-            SELECT 1
-            FROM "TeamFeatures" f
-            WHERE f."teamId" = t.id
-              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
-          )
           AND (
             SELECT COUNT(*)
             FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
@@ -281,16 +276,11 @@ export class PermissionRepository implements IPermissionRepository {
         FROM "Membership" org_m
         INNER JOIN "Role" org_r ON org_m."customRoleId" = org_r.id
         INNER JOIN "Team" org_t ON org_m."teamId" = org_t.id
+        INNER JOIN "TeamFeatures" f ON org_t.id = f."teamId" AND f."featureId" = 'pbac'
         INNER JOIN "Team" child ON child."parentId" = org_m."teamId"
         WHERE org_m."userId" = ${userId}
           AND org_m."accepted" = true
           AND org_m."customRoleId" IS NOT NULL
-          AND EXISTS (
-            SELECT 1
-            FROM "TeamFeatures" f
-            WHERE f."teamId" = org_t.id
-              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
-          )
           AND (
             SELECT COUNT(*)
             FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
@@ -324,7 +314,7 @@ export class PermissionRepository implements IPermissionRepository {
             SELECT 1
             FROM "TeamFeatures" f
             WHERE f."teamId" = t.id
-              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+              AND f."featureId" = 'pbac'
           )
 
         UNION ALL
@@ -341,7 +331,7 @@ export class PermissionRepository implements IPermissionRepository {
             SELECT 1
             FROM "TeamFeatures" f
             WHERE f."teamId" = org_t.id
-              AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+              AND f."featureId" = 'pbac'
           )
       ) AS fallback_teams
     `;
