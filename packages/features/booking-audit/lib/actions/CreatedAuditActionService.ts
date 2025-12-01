@@ -11,49 +11,36 @@ import type { IAuditActionService } from "./IAuditActionService";
  * Handles RECORD_CREATED action with per-action versioning
  * 
  * Note: CREATED action captures initial state, so it doesn't use { old, new } pattern
- * 
- * Version History:
- * - v1: Initial schema with startTime, endTime, status
  */
 
-export const createdFieldsSchemaV1 = z.object({
+// Module-level because it is passed to IAuditActionService type outside the class scope
+const fieldsSchemaV1 = z.object({
     startTime: z.string(),
     endTime: z.string(),
     status: z.nativeEnum(BookingStatus),
 });
 
-// V1 with version wrapper (data schema stored in DB)
-export const createdDataSchemaV1 = z.object({
-    version: z.literal(1),
-    fields: createdFieldsSchemaV1,
-});
-
-// Union of all versions (currently just v1)
-export const createdDataSchemaAllVersions = createdDataSchemaV1;
-
-// Always points to the latest fields schema
-export const createdFieldsSchema = createdFieldsSchemaV1;
-
-export class CreatedAuditActionService implements IAuditActionService<typeof createdFieldsSchemaV1> {
-    private helper: AuditActionServiceHelper<typeof createdFieldsSchema, typeof createdDataSchemaAllVersions>;
-
+export class CreatedAuditActionService implements IAuditActionService<typeof fieldsSchemaV1> {
     readonly VERSION = 1;
-    readonly fieldsSchemaV1 = createdFieldsSchemaV1;
-    readonly dataSchema = z.object({
-        version: z.literal(this.VERSION),
-        fields: this.fieldsSchemaV1,
+    public static readonly TYPE = "CREATED";
+    private static dataSchemaV1 = z.object({
+        version: z.literal(1),
+        fields: fieldsSchemaV1,
     });
+    public static readonly latestFieldsSchema = fieldsSchemaV1;
+    public static readonly storedDataSchema = CreatedAuditActionService.dataSchemaV1;
+    private helper: AuditActionServiceHelper<typeof CreatedAuditActionService.latestFieldsSchema, typeof CreatedAuditActionService.storedDataSchema>;
 
     constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
-            latestFieldsSchema: createdFieldsSchema,
-            allVersionsDataSchema: createdDataSchemaAllVersions,
+            latestFieldsSchema: CreatedAuditActionService.latestFieldsSchema,
+            storedDataSchema: CreatedAuditActionService.storedDataSchema,
         });
     }
 
-    parseFieldsWithLatest(input: unknown) {
-        return this.helper.parseFieldsWithLatest(input);
+    getVersionedData(input: unknown) {
+        return this.helper.getVersionedData(input);
     }
 
     parseStored(data: unknown) {
@@ -66,15 +53,15 @@ export class CreatedAuditActionService implements IAuditActionService<typeof cre
 
     migrateToLatest(data: unknown) {
         // V1-only: validate and return as-is (no migration needed)
-        const validated = this.fieldsSchemaV1.parse(data);
+        const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
     }
 
-    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof createdFieldsSchemaV1> }, t: TFunction): string {
+    getDisplaySummary(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }, t: TFunction): string {
         return t('audit.booking_created');
     }
 
-    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof createdFieldsSchemaV1> }, t: TFunction): Record<string, string> {
+    getDisplayDetails(storedData: { version: number; fields: z.infer<typeof fieldsSchemaV1> }, t: TFunction): Record<string, string> {
         const { fields } = storedData;
         return {
             [t('audit.start_time')]: dayjs(fields.startTime).format('MMM D, YYYY h:mm A'),
@@ -84,4 +71,5 @@ export class CreatedAuditActionService implements IAuditActionService<typeof cre
     }
 }
 
-export type CreatedAuditData = z.infer<typeof createdFieldsSchemaV1>;
+export type CreatedAuditData = z.infer<typeof fieldsSchemaV1>;
+

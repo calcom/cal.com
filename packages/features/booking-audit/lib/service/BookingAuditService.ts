@@ -50,7 +50,6 @@ export class BookingAuditService {
      * @returns The created audit record
      */
     async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
-        // Log only non-sensitive metadata, excluding the data field which may contain PII
         logger.info("Creating audit record", safeStringify({
             bookingUid: input.bookingUid,
             actorId: input.actorId,

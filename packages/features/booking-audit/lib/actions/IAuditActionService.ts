@@ -17,27 +17,12 @@ export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
     readonly VERSION: number;
 
     /**
-     * Fields schema (without version wrapper) for v1
-     */
-    readonly fieldsSchemaV1: TFieldsSchema;
-
-    /**
-     * Data schema including version wrapper for the LATEST version
-     * Validates the structure stored in BookingAudit.data column: { version: number, fields: TFieldsSchema }
-     * Note: This represents the latest version schema only
-     */
-    readonly dataSchema: z.ZodObject<{
-        version: z.ZodLiteral<number>;
-        fields: TFieldsSchema;
-    }>;
-
-    /**
      * Parse input fields and wrap with version for writing to database
      * Always uses the latest version when creating new records
      * @param input - Raw input fields (just the audit fields)
      * @returns Parsed data with version wrapper { version, fields }
      */
-    parseFieldsWithLatest(input: unknown): { version: number; fields: z.infer<TFieldsSchema> };
+    getVersionedData(input: unknown): { version: number; fields: z.infer<TFieldsSchema> };
 
     /**
      * Parse stored audit record (includes version wrapper)
@@ -94,4 +79,3 @@ export interface IAuditActionService<TFieldsSchema extends z.ZodTypeAny> {
         latestData: z.infer<TFieldsSchema>;
     };
 }
-
