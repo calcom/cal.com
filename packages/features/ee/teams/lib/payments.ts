@@ -6,8 +6,6 @@ import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
-  MINIMUM_NUMBER_OF_ORG_SEATS,
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
   ORG_TRIAL_DAYS,
@@ -17,6 +15,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { TrackingData } from "@calcom/lib/tracking";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -51,11 +50,13 @@ export const generateTeamCheckoutSession = async ({
   teamSlug,
   userId,
   isOnboarding,
+  tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
+  tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -66,15 +67,15 @@ export const generateTeamCheckoutSession = async ({
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-          discounts: [
-            {
-              coupon:
-                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                  ? dubCustomer.discount.couponTestId
-                  : dubCustomer.discount.couponId,
-            },
-          ],
-        }
+        discounts: [
+          {
+            coupon:
+              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                ? dubCustomer.discount.couponTestId
+                : dubCustomer.discount.couponId,
+          },
+        ],
+      }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
@@ -102,6 +103,8 @@ export const generateTeamCheckoutSession = async ({
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
   });
   return session;
@@ -115,7 +118,6 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   teamId: number;
   /**
    * The actual number of seats in the team.
-   * The seats that we would charge for could be more than this depending on the MINIMUM_NUMBER_OF_ORG_SEATS in case of an organization
    * For a team it would be the same as this value
    */
   seatsUsed: number;
@@ -127,6 +129,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   isOrg?: boolean;
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
+  tracking?: TrackingData;
 }) => {
   const {
     teamId,
@@ -136,12 +139,13 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg,
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
+    tracking,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
 
-  // For orgs, enforce minimum of MINIMUM_NUMBER_OF_ORG_SEATS seats if `seatsToChargeFor` not set
-  const seats = isOrg ? Math.max(seatsUsed, MINIMUM_NUMBER_OF_ORG_SEATS) : seatsUsed;
+  // Use seatsUsed directly without enforcing minimum
+  const seats = seatsUsed;
   const quantity = seatsToChargeFor ? seatsToChargeFor : seats;
 
   const customer = await getStripeCustomerIdFromUserId(userId);
@@ -153,8 +157,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   if (pricePerSeat) {
     if (
       isOrg &&
-      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE &&
-      seats === ORGANIZATION_SELF_SERVE_MIN_SEATS
+      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE
     ) {
       priceId = fixedPrice as string;
     } else {
@@ -193,6 +196,8 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
     subscription_data: {
       metadata: {
@@ -292,23 +297,13 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
      **/
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId, orgSeats } = team.metadata;
-    // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
-    // We can't go below this quantity for subscription
-    const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
+    const { subscriptionId, subscriptionItemId } = team.metadata;
     const membershipCount = team.members.length;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
-
-    if (team.isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
-      console.info(
-        `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
-      );
-      return;
-    }
 
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],

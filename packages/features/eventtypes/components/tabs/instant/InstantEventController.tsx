@@ -175,7 +175,7 @@ export default function InstantEventController({
                         />
                         <div>
                           <Label>{t("only_show_if_parameter_set")}</Label>
-                          <div className="space-y-2">
+                          <div className="stack-y-2">
                             {parameters.map((parameter, index) => (
                               <div key={index} className="flex gap-2">
                                 <TextField
