@@ -152,19 +152,21 @@ function BookingListInner({
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        {/* Desktop: full width on first row, Mobile: full width on first row */}
+        {/* Desktop: full width on first row, Mobile: full width on first row with horizontal scroll */}
         <div className="w-full md:w-auto">
-          <ToggleGroup
-            value={currentTab}
-            onValueChange={(value) => {
-              if (!value) return;
-              const selectedTab = tabOptions.find((tab) => tab.value === value);
-              if (selectedTab?.href) {
-                router.push(selectedTab.href);
-              }
-            }}
-            options={tabOptions}
-          />
+          <div className="overflow-x-auto md:overflow-visible">
+            <ToggleGroup
+              value={currentTab}
+              onValueChange={(value) => {
+                if (!value) return;
+                const selectedTab = tabOptions.find((tab) => tab.value === value);
+                if (selectedTab?.href) {
+                  router.push(selectedTab.href);
+                }
+              }}
+              options={tabOptions}
+            />
+          </div>
         </div>
 
         {/* Desktop: second item on first row, Mobile: first item on second row */}
