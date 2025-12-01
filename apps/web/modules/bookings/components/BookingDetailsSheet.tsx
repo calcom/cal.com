@@ -287,12 +287,16 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                {!booking.eventType?.hideOrganizerName && (
+                  <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                )}
                 <Badge variant="blue" size="sm">
                   {t("host")}
                 </Badge>
               </div>
-              <p className="text-default truncate text-sm">{booking.user.email}</p>
+              {!booking.eventType?.hideOrganizerEmail && (
+                <p className="text-default truncate text-sm">{booking.user.email}</p>
+              )}
             </div>
           </div>
         )}

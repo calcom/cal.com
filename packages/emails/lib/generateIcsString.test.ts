@@ -34,7 +34,7 @@ const testIcsStringContains = ({
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
   // expect(icsString).toEqual(expect.stringContaining(`SUMMARY:${event.title}`));
   expect(icsString).toEqual(expect.stringContaining(`DTSTART:${DTSTART}`));
-  
+
   // Check organizer name visibility
   if (event.hideOrganizerName) {
     expect(icsString).toEqual(expect.stringContaining(`ORGANIZER;CN=Organizer`));
@@ -42,14 +42,14 @@ const testIcsStringContains = ({
   } else {
     expect(icsString).toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
   }
-  
+
   // Check organizer email visibility
   if (event.hideOrganizerEmail && !isOrganizerExempt) {
     expect(icsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
   } else {
     expect(icsString).toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
   }
-  
+
   expect(icsString).toEqual(expect.stringContaining(`DTEND:${DTEND}`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
   //   Getting an error expected icsString to deeply equal stringMatching
@@ -219,6 +219,99 @@ describe("generateIcsString", () => {
       expect(assertedIcsString).not.toEqual(expect.stringContaining(`CN=${event.organizer.name}`));
       // Should NOT contain the actual organizer email
       expect(assertedIcsString).not.toEqual(expect.stringContaining(`mailto:${event.organizer.email}`));
+    });
+  });
+  describe("team events with hideOrganizerName and hideOrganizerEmail", () => {
+    test("when hideOrganizerEmail is true for team event, all team members emails should be hidden", () => {
+      const teamMember1 = buildPerson({ name: "Team Member 1", email: "member1@example.com" });
+      const teamMember2 = buildPerson({ name: "Team Member 2", email: "member2@example.com" });
+
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+        hideOrganizerEmail: true,
+        team: {
+          id: 1,
+          name: "Test Team",
+          members: [teamMember1, teamMember2],
+        },
+      });
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      // Team members should not have their actual emails
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember1.email));
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember2.email));
+      // Should use no-reply instead
+      expect(assertedIcsString).toEqual(expect.stringContaining("no-reply@cal.com"));
+    });
+
+    test("when hideOrganizerName is true for team event, all team members names should be hidden", () => {
+      const teamMember1 = buildPerson({ name: "Team Member 1", email: "member1@example.com" });
+      const teamMember2 = buildPerson({ name: "Team Member 2", email: "member2@example.com" });
+
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+        hideOrganizerName: true,
+        team: {
+          id: 1,
+          name: "Test Team",
+          members: [teamMember1, teamMember2],
+        },
+      });
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      // Team members should not have their actual names
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember1.name));
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember2.name));
+      // Should show "Organizer" instead
+      expect(assertedIcsString).toEqual(expect.stringContaining("ATTENDEE;CN=Organizer"));
+    });
+
+    test("when both flags are true for team event, all team members details should be hidden", () => {
+      const teamMember1 = buildPerson({ name: "Team Member 1", email: "member1@example.com" });
+      const teamMember2 = buildPerson({ name: "Team Member 2", email: "member2@example.com" });
+
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+        hideOrganizerName: true,
+        hideOrganizerEmail: true,
+        team: {
+          id: 1,
+          name: "Test Team",
+          members: [teamMember1, teamMember2],
+        },
+      });
+      const status = "CONFIRMED";
+
+      const icsString = generateIcsString({
+        event: event,
+        status,
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+
+      // Team members should not have their actual names
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember1.name));
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember2.name));
+      // Team members should not have their actual emails
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember1.email));
+      expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember2.email));
     });
   });
 });

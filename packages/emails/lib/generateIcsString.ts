@@ -97,8 +97,8 @@ const generateIcsString = ({
       })),
       ...(event.team?.members
         ? event.team?.members.map((member: Person) => ({
-            name: member.name,
-            email: member.email,
+            name: event.hideOrganizerName ? "Organizer" : member.name,
+            email: event.hideOrganizerEmail && !isOrganizerExempt ? "no-reply@cal.com" : member.email,
             partstat,
             role: icsRole,
             rsvp: true,

@@ -11,7 +11,8 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
 
   return (
     <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-      {name ? `${name} - ` : ""}{role} {formattedPhoneNumber}
+      {name ? `${name} - ` : ""}
+      {role} {formattedPhoneNumber}
       {displayEmail && (
         <span style={{ color: "#4B5563" }}>
           <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
@@ -36,7 +37,12 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             email={props.calEvent.hideOrganizerEmail ? "" : props.calEvent.organizer.email}
           />
           {props.calEvent.team?.members.map((member) => (
-            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member?.email} />
+            <PersonInfo
+              key={member.name}
+              name={props.calEvent.hideOrganizerName ? "" : member.name}
+              role={t("team_member")}
+              email={props.calEvent.hideOrganizerEmail ? "" : member?.email}
+            />
           ))}
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
