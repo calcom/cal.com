@@ -106,14 +106,31 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
     });
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       emailWorkflowContentParams.sendTo.map((email) => {
-        sendCustomWorkflowEmail({
+        return sendCustomWorkflowEmail({
           to: email,
           ...emailWorkflowContent,
         });
       })
     );
+
+    const failedEmails = results
+      .map((result, index) => ({
+        result,
+        email: emailWorkflowContentParams.sendTo[index],
+      }))
+      .filter(({ result }) => result.status === "rejected");
+
+    if (failedEmails.length > 0) {
+      console.error(
+        "Failed to send workflow emails:",
+        failedEmails.map(({ email, result }) => ({
+          email,
+          reason: result.status === "rejected" ? result.reason : undefined,
+        }))
+      );
+    }
   }
 
   async generateParametersToBuildEmailWorkflowContent({
