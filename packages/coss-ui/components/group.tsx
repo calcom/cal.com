@@ -3,8 +3,8 @@ import { useRender } from "@base-ui-components/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-import { cn } from "@/lib/utils";
-import { Separator } from "@/components/separator";
+import { cn } from "@coss/ui/lib/utils";
+import { Separator } from "@coss/ui/components/separator";
 
 const groupVariants = cva(
   "flex w-fit *:focus-visible:z-10 has-[>[data-slot=group]]:gap-2 *:has-focus-visible:z-10",

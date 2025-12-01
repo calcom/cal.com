@@ -2,7 +2,7 @@
 
 import { Popover as PopoverPrimitive } from "@base-ui-components/react/popover";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@coss/ui/lib/utils";
 
 const PopoverCreateHandle = PopoverPrimitive.createHandle;
 
