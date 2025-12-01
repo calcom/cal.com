@@ -1,2 +1,5 @@
 GET /v2/event-types/{eventTypeId} added to the 'data' response property 'oneOf' list for the response status '200'
 GET /v2/event-types/{eventTypeId} added '#/components/schemas/EventTypeOutput_2024_06_14, #/components/schemas/TeamEventTypeOutput_2024_06_14' to the 'data' response property 'oneOf' list for the response status '200'
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links added the new path request parameter 'orgId'
