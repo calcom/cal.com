@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 
@@ -456,11 +456,33 @@ describe("PermissionRepository - Integration Tests", () => {
         },
       });
 
+      // Debug: Verify the permission matching logic works
+      const permissionsOk = await repository.checkRolePermissions(testRoleId, [
+        "insights.read",
+        "insights.create",
+      ]);
+      console.log("DEBUG: checkRolePermissions result:", permissionsOk);
+      console.log("DEBUG: testRoleId:", testRoleId);
+      console.log("DEBUG: testUserId:", testUserId);
+      console.log("DEBUG: testTeamId:", testTeamId);
+
+      // Debug: Log the actual data in the database
+      const rolePerms = await prisma.rolePermission.findMany({ where: { roleId: testRoleId } });
+      console.log("DEBUG: rolePermissions:", JSON.stringify(rolePerms, null, 2));
+
+      const memberships = await prisma.membership.findMany({ where: { userId: testUserId } });
+      console.log("DEBUG: memberships:", JSON.stringify(memberships, null, 2));
+
       const result = await repository.getTeamIdsWithPermissions({
         userId: testUserId,
         permissions: ["insights.read", "insights.create"],
         fallbackRoles: ["ADMIN", "OWNER"],
       });
+
+      console.log("DEBUG: getTeamIdsWithPermissions result:", result);
+
+      // First verify that checkRolePermissions works
+      expect(permissionsOk).toBe(true);
 
       expect(result).toContain(testTeamId);
     });
