@@ -6,6 +6,7 @@ import {
   defaultSeatedBookingMetadata,
 } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
@@ -126,7 +127,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: attendee.email,
+        email: OAuthClientUsersService.stripOAuthSuffix(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -147,7 +148,12 @@ export class OutputBookingsService_2024_08_13 {
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
-    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    // Strip OAuth suffix from email in bookingFieldsResponses
+    const sanitizedResponses = {
+      ...bookingResponses,
+      email: OAuthClientUsersService.stripOAuthSuffix(bookingResponses.email),
+    };
+    bookingTransformed.bookingFieldsResponses = sanitizedResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
     return bookingTransformed;
   }
@@ -198,6 +204,7 @@ export class OutputBookingsService_2024_08_13 {
 
     return {
       ...user,
+      email: OAuthClientUsersService.stripOAuthSuffix(user.email),
       username: user.username || "unknown",
     };
   }
@@ -248,7 +255,7 @@ export class OutputBookingsService_2024_08_13 {
       eventTypeId: databaseBooking.eventTypeId,
       attendees: databaseBooking.attendees.map((attendee) => ({
         name: attendee.name,
-        email: attendee.email,
+        email: OAuthClientUsersService.stripOAuthSuffix(attendee.email),
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
@@ -270,7 +277,12 @@ export class OutputBookingsService_2024_08_13 {
       strategy: "excludeAll",
     });
     // note(Lauris): I don't know why plainToClass erases bookings responses and metadata so attaching manually
-    bookingTransformed.bookingFieldsResponses = bookingResponses;
+    // Strip OAuth suffix from email in bookingFieldsResponses
+    const sanitizedResponses = {
+      ...bookingResponses,
+      email: OAuthClientUsersService.stripOAuthSuffix(bookingResponses.email),
+    };
+    bookingTransformed.bookingFieldsResponses = sanitizedResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
     return bookingTransformed;
   }
@@ -336,7 +348,7 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: attendee.email,
+            email: OAuthClientUsersService.stripOAuthSuffix(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -344,7 +356,14 @@ export class OutputBookingsService_2024_08_13 {
             bookingFieldsResponses: {},
           };
           const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-          attendeeParsed.bookingFieldsResponses = responses || {};
+          // Strip OAuth suffix from email in responses
+          const sanitizedResponses = responses
+            ? {
+                ...responses,
+                email: OAuthClientUsersService.stripOAuthSuffix(responses.email),
+              }
+            : {};
+          attendeeParsed.bookingFieldsResponses = sanitizedResponses;
           attendeeParsed.metadata = safeParse(
             seatedBookingMetadataSchema,
             attendee.bookingSeat?.metadata,
@@ -464,7 +483,7 @@ export class OutputBookingsService_2024_08_13 {
 
           const attendeeData = {
             name: attendee.name,
-            email: attendee.email,
+            email: OAuthClientUsersService.stripOAuthSuffix(attendee.email),
             timeZone: attendee.timeZone,
             language: attendee.locale,
             absent: !!attendee.noShow,
@@ -472,7 +491,14 @@ export class OutputBookingsService_2024_08_13 {
             bookingFieldsResponses: {},
           };
           const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-          attendeeParsed.bookingFieldsResponses = responses || {};
+          // Strip OAuth suffix from email in responses
+          const sanitizedResponses = responses
+            ? {
+                ...responses,
+                email: OAuthClientUsersService.stripOAuthSuffix(responses.email),
+              }
+            : {};
+          attendeeParsed.bookingFieldsResponses = sanitizedResponses;
           attendeeParsed.metadata = safeParse(
             seatedBookingMetadataSchema,
             attendee.bookingSeat?.metadata,
@@ -496,7 +522,7 @@ export class OutputBookingsService_2024_08_13 {
       reassignedTo: {
         id: databaseBooking?.user?.id || 0,
         name: databaseBooking?.user?.name || "unknown",
-        email: databaseBooking?.user?.email || "unknown",
+        email: OAuthClientUsersService.stripOAuthSuffix(databaseBooking?.user?.email || "unknown"),
       },
     };
   }

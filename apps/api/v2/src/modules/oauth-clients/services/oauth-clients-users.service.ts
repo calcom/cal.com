@@ -95,7 +95,7 @@ export class OAuthClientUsersService {
     try {
       this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
       await this.calendarsService.getCalendars(user.id);
-    } catch (err) {
+    } catch {
       this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
     }
 
@@ -159,5 +159,23 @@ export class OAuthClientUsersService {
     }
     const [username, emailDomain] = userEmail.split("@");
     return `${username}+${oAuthClientId}@${emailDomain}`;
+  }
+
+  static stripOAuthSuffix(email: string): string {
+    // Remove +{oAuthClientId} suffix from email addresses
+    // Example: aa+cmhyhz55c00001tqjyxm9fj3v@aa.com -> aa@aa.com
+    if (!email || !email.includes("+")) {
+      return email;
+    }
+    const emailParts = email.split("@");
+    if (emailParts.length !== 2) {
+      return email;
+    }
+    const [username, domain] = emailParts;
+    const usernameParts = username.split("+");
+    if (usernameParts.length > 1) {
+      return `${usernameParts[0]}@${domain}`;
+    }
+    return email;
   }
 }
