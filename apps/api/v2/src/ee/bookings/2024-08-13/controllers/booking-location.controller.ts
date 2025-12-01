@@ -38,10 +38,9 @@ export class BookingLocationController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update booking location for an existing booking",
-    description: `Update booking location for an existing booking.
+    description: `**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.
     
-    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
-    `,
+    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>`,
   })
   async updateBookingLocation(
     @Param("bookingUid") bookingUid: string,

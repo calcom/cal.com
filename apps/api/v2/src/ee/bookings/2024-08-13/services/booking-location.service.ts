@@ -88,6 +88,12 @@ export class BookingLocationService_2024_08_13 {
     if (loc.type === "attendeePhone") return loc.phone;
     if (loc.type === "attendeeDefined") return loc.location;
 
+    this.logger.log(
+      `Booking location service getLocationValue - loc ${JSON.stringify(
+        loc
+      )} was passed but the type is not supported.`
+    );
+
     return undefined;
   }
 }
