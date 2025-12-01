@@ -1,3 +1,5 @@
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
   isSMSAction,
@@ -5,24 +7,38 @@ import {
   isWhatsappAction,
   isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { scheduleAIPhoneCall } from "./aiPhoneCallManager";
-import { scheduleEmailReminder } from "./emailReminderManager";
-import { scheduleSMSReminder } from "./smsReminderManager";
+import type { BookingInfo } from "./smsReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
-import { scheduleWhatsappReminder } from "./whatsappReminderManager";
+
+export type FormSubmissionData = {
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  routedEventTypeId: number | null;
+  user: {
+    email: string;
+    timeFormat: number | null;
+    locale: string;
+  };
+};
+
+export type WorkflowContextData =
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: FormSubmissionData;
+    };
 
 export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   metadata?: { videoCallUrl: string | undefined };
@@ -36,18 +52,24 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   bookerUrl: string;
 };
 
-type ProcessWorkflowStepParams = {
+type ProcessWorkflowStepParams = (
+  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
+  | {
+      calendarEvent?: never;
+      formData: FormSubmissionData;
+    }
+) & {
   smsReminderNumber: string | null;
-  calendarEvent: ExtendedCalendarEvent;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
 };
 
-export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
+export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
-}
+  creditCheckFn: CreditCheckFn;
+};
 
 const processWorkflowStep = async (
   workflow: Workflow,
@@ -58,11 +80,17 @@ const processWorkflowStep = async (
     emailAttendeeSendToOverride,
     hideBranding,
     seatReferenceUid,
-  }: ProcessWorkflowStepParams
+    formData,
+  }: ProcessWorkflowStepParams,
+  creditCheckFn: CreditCheckFn
 ) => {
   if (!step?.verifiedAt) return;
 
-  const evt = formatCalEventExtended(calendarEvent);
+  const evt = calendarEvent ? formatCalEventExtended(calendarEvent) : undefined;
+
+  if (!evt && !formData) return;
+
+  const contextData: WorkflowContextData = evt ? { evt } : { formData: formData as FormSubmissionData };
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
@@ -71,39 +99,53 @@ const processWorkflowStep = async (
     });
   }
 
+  // Common parameters for all scheduling functions
+  const scheduleFunctionParams = {
+    triggerEvent: workflow.trigger,
+    timeSpan: {
+      time: workflow.time,
+      timeUnit: workflow.timeUnit,
+    },
+    workflowStepId: step.id,
+    template: step.template,
+    userId: workflow.userId,
+    teamId: workflow.teamId,
+    seatReferenceUid,
+    verifiedAt: step.verifiedAt,
+    creditCheckFn,
+  };
+
   if (isSMSAction(step.action)) {
+    const { scheduleSMSReminder } = await import("./smsReminderManager");
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
+
     await scheduleSMSReminder({
-      evt,
+      ...scheduleFunctionParams,
       reminderPhone: sendTo,
-      triggerEvent: workflow.trigger,
       action: step.action as ScheduleTextReminderAction,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       message: step.reminderBody || "",
-      workflowStepId: step.id,
-      template: step.template,
       sender: step.sender,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
-      seatReferenceUid,
-      verifiedAt: step.verifiedAt,
+      ...contextData,
     });
   } else if (
     step.action === WorkflowActions.EMAIL_ATTENDEE ||
     step.action === WorkflowActions.EMAIL_HOST ||
     step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
+    const { scheduleEmailReminder } = await import("./emailReminderManager");
     let sendTo: string[] = [];
 
     switch (step.action) {
       case WorkflowActions.EMAIL_ADDRESS:
         sendTo = [step.sendTo || ""];
         break;
-      case WorkflowActions.EMAIL_HOST:
+      case WorkflowActions.EMAIL_HOST: {
+        if (!evt) {
+          // EMAIL_HOST is not supported for form triggers
+          return;
+        }
+
         sendTo = [evt.organizer?.email || ""];
 
         const schedulingType = evt.eventType.schedulingType;
@@ -113,76 +155,70 @@ const processWorkflowStep = async (
           sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
+      }
       case WorkflowActions.EMAIL_ATTENDEE:
-        const attendees = !!emailAttendeeSendToOverride
-          ? [emailAttendeeSendToOverride]
-          : evt.attendees?.map((attendee) => attendee.email);
+        if (evt) {
+          const attendees = emailAttendeeSendToOverride
+            ? [emailAttendeeSendToOverride]
+            : evt.attendees?.map((attendee) => attendee.email);
 
-        const limitGuestsDate = new Date("2025-01-13");
+          const limitGuestsDate = new Date("2025-01-13");
 
-        if (workflow.userId) {
-          const user = await prisma.user.findUnique({
-            where: {
-              id: workflow.userId,
-            },
-            select: {
-              createdDate: true,
-            },
-          });
-          if (user?.createdDate && user.createdDate > limitGuestsDate) {
-            sendTo = attendees.slice(0, 1);
+          if (workflow.userId) {
+            const userRepository = new UserRepository(prisma);
+            const user = await userRepository.findById({ id: workflow.userId });
+            if (user?.createdDate && user.createdDate > limitGuestsDate) {
+              sendTo = attendees.slice(0, 1);
+            } else {
+              sendTo = attendees;
+            }
           } else {
             sendTo = attendees;
           }
-        } else {
-          sendTo = attendees;
         }
 
-        break;
+        if (formData) {
+          const submitterEmail = getSubmitterEmail(formData.responses);
+          if (submitterEmail) {
+            sendTo = [submitterEmail];
+          }
+        }
     }
 
-    await scheduleEmailReminder({
-      evt,
-      triggerEvent: workflow.trigger,
+    const emailParams = {
+      ...scheduleFunctionParams,
       action: step.action,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       sendTo,
       emailSubject: step.emailSubject || "",
       emailBody: step.reminderBody || "",
-      template: step.template,
       sender: step.sender || SENDER_NAME,
-      workflowStepId: step.id,
       hideBranding,
-      seatReferenceUid,
       includeCalendarEvent: step.includeCalendarEvent,
+      ...contextData,
       verifiedAt: step.verifiedAt,
-    });
+    } as const;
+
+    await scheduleEmailReminder(emailParams);
   } else if (isWhatsappAction(step.action)) {
+    if (!evt) {
+      // Whatsapp action not not yet supported for form triggers
+      return;
+    }
+
+    const { scheduleWhatsappReminder } = await import("./whatsappReminderManager");
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
+
     await scheduleWhatsappReminder({
-      evt,
+      ...scheduleFunctionParams,
       reminderPhone: sendTo,
-      triggerEvent: workflow.trigger,
       action: step.action as ScheduleTextReminderAction,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
       message: step.reminderBody || "",
-      workflowStepId: step.id,
-      template: step.template,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
       isVerificationPending: step.numberVerificationPending,
-      seatReferenceUid,
-      verifiedAt: step.verifiedAt,
+      evt,
     });
   } else if (isCalAIAction(step.action)) {
+    const { scheduleAIPhoneCall } = await import("./aiPhoneCallManager");
     await scheduleAIPhoneCall({
-      evt,
       triggerEvent: workflow.trigger,
       timeSpan: {
         time: workflow.time,
@@ -192,7 +228,10 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
+      submittedPhoneNumber: smsReminderNumber,
       verifiedAt: step.verifiedAt,
+      routedEventTypeId: formData ? formData.routedEventTypeId : null,
+      ...contextData,
     });
   }
 };
@@ -206,6 +245,8 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     hideBranding,
     seatReferenceUid,
     isDryRun = false,
+    formData,
+    creditCheckFn,
   } = args;
   if (isDryRun || !workflows.length) return;
 
@@ -213,13 +254,18 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
     if (workflow.steps.length === 0) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        calendarEvent: evt,
-        emailAttendeeSendToOverride,
-        smsReminderNumber,
-        hideBranding,
-        seatReferenceUid,
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          emailAttendeeSendToOverride,
+          smsReminderNumber,
+          hideBranding,
+          seatReferenceUid,
+          ...(evt ? { calendarEvent: evt } : { formData }),
+        },
+        creditCheckFn
+      );
     }
   }
 };
@@ -229,10 +275,11 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
+  creditCheckFn: CreditCheckFn;
 }
 
 const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { smsReminderNumber, evt, workflows, hideBranding } = args;
+  const { smsReminderNumber, evt, workflows, hideBranding, creditCheckFn } = args;
 
   if (!workflows.length) return;
 
@@ -240,98 +287,40 @@ const _sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        smsReminderNumber,
-        hideBranding,
-        calendarEvent: evt,
-      });
+      await processWorkflowStep(
+        workflow,
+        step,
+        {
+          smsReminderNumber,
+          hideBranding,
+          calendarEvent: evt,
+        },
+        creditCheckFn
+      );
     }
   }
 };
 
 const _cancelScheduledMessagesAndScheduleEmails = async ({
   teamId,
-  userId,
+  userIdsWithNoCredits,
 }: {
   teamId?: number | null;
-  userId?: number | null;
+  userIdsWithNoCredits: number[];
 }) => {
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const { WorkflowReminderRepository } = await import(
+    "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
+  );
 
-  let userIdsWithNoCredits: number[] = userId ? [userId] : [];
-
-  if (teamId) {
-    const teamMembers = await prisma.membership.findMany({
-      where: {
-        teamId,
-        accepted: true,
-      },
-    });
-
-    const creditService = new CreditService();
-
-    userIdsWithNoCredits = (
-      await Promise.all(
-        teamMembers.map(async (member) => {
-          const hasCredits = await creditService.hasAvailableCredits({ userId: member.userId });
-          return { userId: member.userId, hasCredits };
-        })
-      )
-    )
-      .filter(({ hasCredits }) => !hasCredits)
-      .map(({ userId }) => userId);
-  }
-
-  const scheduledMessages = await prisma.workflowReminder.findMany({
-    where: {
-      workflowStep: {
-        workflow: {
-          OR: [
-            {
-              userId: {
-                in: userIdsWithNoCredits,
-              },
-            },
-            ...(teamId ? [{ teamId }] : []),
-          ],
-        },
-      },
-      scheduled: true,
-      OR: [{ cancelled: false }, { cancelled: null }],
-      referenceId: {
-        not: null,
-      },
-      method: {
-        in: [WorkflowMethods.SMS, WorkflowMethods.WHATSAPP],
-      },
-    },
-    select: {
-      referenceId: true,
-      workflowStep: {
-        select: {
-          action: true,
-        },
-      },
-      scheduledDate: true,
-      uuid: true,
-      id: true,
-      booking: {
-        select: {
-          attendees: {
-            select: {
-              email: true,
-              locale: true,
-            },
-          },
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      },
-    },
+  const scheduledMessages = await WorkflowReminderRepository.findScheduledMessagesToCancel({
+    teamId,
+    userIdsWithNoCredits,
   });
+
+  const [twilio, { sendOrScheduleWorkflowEmails }] = await Promise.all([
+    import("./providers/twilioProvider"),
+    import("./providers/emailProvider"),
+  ]);
 
   await Promise.allSettled(scheduledMessages.map((msg) => twilio.cancelSMS(msg.referenceId ?? "")));
 
@@ -356,16 +345,8 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
     })
   );
 
-  await prisma.workflowReminder.updateMany({
-    where: {
-      id: {
-        in: scheduledMessages.map((msg) => msg.id),
-      },
-    },
-    data: {
-      method: WorkflowMethods.EMAIL,
-      referenceId: null,
-    },
+  await WorkflowReminderRepository.updateRemindersToEmail({
+    reminderIds: scheduledMessages.map((msg) => msg.id),
   });
 };
 // Export functions wrapped with withReporting

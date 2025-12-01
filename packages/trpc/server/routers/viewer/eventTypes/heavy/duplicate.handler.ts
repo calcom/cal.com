@@ -1,6 +1,6 @@
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -50,6 +50,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             disableRecordingForGuests: true,
             enableAutomaticTranscription: true,
             enableAutomaticRecordingForOrganizer: true,
+            requireEmailForGuests: true,
             redirectUrlOnExit: true,
             disableTranscriptionForGuests: true,
             disableTranscriptionForOrganizer: true,
@@ -94,13 +95,13 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       workflows,
       hashedLink,
       destinationCalendar,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       id: _id,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       webhooks: _webhooks,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       schedule: _schedule,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
@@ -146,7 +147,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     };
 
     // Validate the secondary email
-    if (!!secondaryEmailId) {
+    if (secondaryEmailId) {
       const secondaryEmail = await prisma.secondaryEmail.findUnique({
         where: {
           id: secondaryEmailId,
@@ -226,9 +227,16 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      // unique constraint violation
+      
+      if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "duplicate_event_slug_conflict",
+        });
+      }
+      
       throw new TRPCError({
-        code: "BAD_REQUEST",
+        code: "CONFLICT",
         message: "Unique constraint violation while creating a duplicate event.",
       });
     }

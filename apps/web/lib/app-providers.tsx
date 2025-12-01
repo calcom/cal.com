@@ -2,12 +2,12 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import dynamic from "next/dynamic";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
@@ -278,14 +278,14 @@ const AppProviders = (props: AppPropsWithChildren) => {
       : props.Component.isBookingPage) || isBookingPage;
 
   const RemainingProviders = (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <CustomI18nextProvider {...props}>
-        <TooltipProvider>
-          <CalcomThemeProvider
-            themeBasis={props.pageProps.themeBasis}
-            isThemeSupported={props.Component.isThemeSupported}
-            isBookingPage={props.Component.isBookingPage || isBookingPage}
-            router={props.router}>
+    <CustomI18nextProvider {...props}>
+      <TooltipProvider>
+        <CalcomThemeProvider
+          themeBasis={props.pageProps.themeBasis}
+          isThemeSupported={props.Component.isThemeSupported}
+          isBookingPage={props.Component.isBookingPage || isBookingPage}
+          router={props.router}>
+          <NuqsAdapter>
             <FeatureFlagsProvider>
               {_isBookingPage ? (
                 <OrgBrandProvider>{props.children}</OrgBrandProvider>
@@ -295,10 +295,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
                 </DynamicIntercomProvider>
               )}
             </FeatureFlagsProvider>
-          </CalcomThemeProvider>
-        </TooltipProvider>
-      </CustomI18nextProvider>
-    </EventCollectionProvider>
+          </NuqsAdapter>
+        </CalcomThemeProvider>
+      </TooltipProvider>
+    </CustomI18nextProvider>
   );
 
   if (isBookingPage) {

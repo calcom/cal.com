@@ -1,4 +1,8 @@
-import { BOOKING_DI_TOKENS } from "./bookings/tokens";
+import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
+import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
+import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
+import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),
@@ -17,6 +21,8 @@ export const DI_TOKENS = {
   USER_REPOSITORY_MODULE: Symbol("UserRepositoryModule"),
   BOOKING_REPOSITORY: Symbol("BookingRepository"),
   BOOKING_REPOSITORY_MODULE: Symbol("BookingRepositoryModule"),
+  BOOKING_ACCESS_SERVICE: Symbol("BookingAccessService"),
+  BOOKING_ACCESS_SERVICE_MODULE: Symbol("BookingAccessServiceModule"),
   EVENT_TYPE_REPOSITORY: Symbol("EventTypeRepository"),
   EVENT_TYPE_REPOSITORY_MODULE: Symbol("EventTypeRepositoryModule"),
   ROUTING_FORM_RESPONSE_REPOSITORY: Symbol("RoutingFormResponseRepository"),
@@ -29,8 +35,6 @@ export const DI_TOKENS = {
   INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
   FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
-  CACHE_SERVICE: Symbol("CacheService"),
-  CACHE_SERVICE_MODULE: Symbol("CacheServiceModule"),
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
@@ -53,6 +57,18 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
+  MEMBERSHIP_SERVICE: Symbol("MembershipService"),
+  MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
+  ASSIGNMENT_REASON_REPOSITORY: Symbol("AssignmentReasonRepository"),
+  ASSIGNMENT_REASON_REPOSITORY_MODULE: Symbol("AssignmentReasonRepositoryModule"),
+  CREDENTIAL_REPOSITORY: Symbol("CredentialRepository"),
+  CREDENTIAL_REPOSITORY_MODULE: Symbol("CredentialRepositoryModule"),
+  MANAGED_EVENT_REASSIGNMENT_SERVICE: Symbol("ManagedEventReassignmentService"),
+  MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   // Booking service tokens
+  ...BOOKING_AUDIT_DI_TOKENS,
   ...BOOKING_DI_TOKENS,
+  ...HASHED_LINK_DI_TOKENS,
+  ...WATCHLIST_DI_TOKENS,
+  ...ORGANIZATION_DI_TOKENS,
 };

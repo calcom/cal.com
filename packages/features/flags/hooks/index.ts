@@ -27,6 +27,11 @@ const initialData: AppFlags = {
   "tiered-support-chat": false,
   "calendar-subscription-cache": false,
   "calendar-subscription-sync": false,
+  "onboarding-v3": false,
+  "booker-botid": false,
+  "booking-calendar-view": false,
+  "booking-email-sms-tasker": false,
+  "bookings-v3": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

@@ -5,9 +5,10 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -171,11 +172,9 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const smsMessageWithoutOptOut = message;
+        const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
 
-        if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
-          message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
-        }
+        const creditService = new CreditService();
 
         const scheduledNotification = await scheduleSmsOrFallbackEmail({
           twilioData: {
@@ -197,6 +196,7 @@ export async function handler(req: NextRequest) {
                   workflowStepId: reminder.workflowStep.id,
                 }
               : undefined,
+          creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         });
 
         if (scheduledNotification) {

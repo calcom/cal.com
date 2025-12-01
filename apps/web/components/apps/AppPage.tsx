@@ -115,8 +115,8 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
-      setIsLoading(true);
-      mutation.mutate({ type, variant, slug });
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
       return;
     }
     setIsLoading(true);
@@ -160,13 +160,21 @@ export const AppPage = ({
     function refactorMeWithoutEffect() {
       const data = appDbQuery.data;
 
-      const credentialsCount = data?.credentials.length || 0;
-      setExistingCredentials(data?.credentials || []);
+      const credentials = data?.credentials || [];
+      setExistingCredentials(credentials);
+
+      const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
+      const installedTeamIds = new Set<number>();
+      for (const cred of credentials) {
+        if (cred.teamId) installedTeamIds.add(cred.teamId);
+      }
+
+      const totalInstalledTargets = (hasPersonalInstall ? 1 : 0) + installedTeamIds.size;
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
-          : credentialsCount > 0;
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data, availableForTeams]
@@ -244,7 +252,14 @@ export const AppPage = ({
               loading: isLoading,
             };
           }
-          return <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />;
+
+          return (
+            <InstallAppButtonChild
+              credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
+              paid={paid}
+              {...props}
+            />
+          );
         }}
       />
     );
@@ -361,6 +376,21 @@ export const AppPage = ({
         </div>
         {installOrDisconnectAppButton()}
 
+        {slug === "msteams" && (
+          <div className="bg-info mt-4 rounded-md px-4 py-3">
+            <div className="items-start space-x-2.5">
+              <div className="text-info flex items-start">
+                <div>
+                  <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">{t("msteams_calendar_warning_body")}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {dependencies &&
           (!dependencyData.isPending ? (
             <div className="mt-6">
@@ -467,7 +497,7 @@ export const AppPage = ({
           )}
         </ul>
         <hr className="border-subtle my-8 border" />
-        <span className="leading-1 text-subtle block text-xs">
+        <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>

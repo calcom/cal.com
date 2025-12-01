@@ -218,7 +218,7 @@ describe("RetellSDKClient", () => {
       client = new RetellSDKClient(mockLogger);
     });
 
-    describe("createAgent", () => {
+    describe("createOutboundAgent", () => {
       it("should create agent", async () => {
         const mockRequest: CreateAgentRequest = {
           agent_name: "Test Agent",
@@ -229,7 +229,7 @@ describe("RetellSDKClient", () => {
 
         mockRetellInstance.agent.create.mockResolvedValue(mockResponse);
 
-        const result = await client.createAgent(mockRequest);
+        const result = await client.createOutboundAgent(mockRequest);
 
         expect(mockRetellInstance.agent.create).toHaveBeenCalledWith(mockRequest);
         expect(result).toEqual(mockResponse);

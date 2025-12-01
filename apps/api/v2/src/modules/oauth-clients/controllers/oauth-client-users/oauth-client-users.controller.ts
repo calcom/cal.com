@@ -31,6 +31,7 @@ import {
   Delete,
   Query,
   NotFoundException,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
@@ -111,7 +112,7 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getUserById(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
 
@@ -127,7 +128,7 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Body() body: UpdateManagedUserInput,
     @GetOrgId() organizationId: number
   ): Promise<GetManagedUserOutput> {
@@ -153,7 +154,7 @@ export class OAuthClientUsersController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
     await this.userRepository.delete(userId);
@@ -174,7 +175,7 @@ export class OAuthClientUsersController {
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
-    @Param("userId") userId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Param("clientId") oAuthClientId: string
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);

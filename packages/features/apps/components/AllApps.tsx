@@ -4,8 +4,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/client";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -92,7 +92,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
-          <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
+          <div className="to-default flex h-12 w-5 bg-linear-to-l from-transparent" />
         </button>
       )}
       <ul
@@ -104,7 +104,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
             onCategoryChange(null);
           }}
           className={classNames(
-            selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+            selectedCategory === null ? "bg-emphasis text-default" : "bg-cal-muted text-emphasis",
             "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
           )}>
           {t("all")}
@@ -120,7 +120,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
               }
             }}
             className={classNames(
-              selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+              selectedCategory === cat ? "bg-emphasis text-default" : "bg-cal-muted text-emphasis",
               "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
             )}>
             {cat === "crm" ? cat.toUpperCase() : cat[0].toUpperCase() + cat.slice(1)}
@@ -129,7 +129,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
       </ul>
       {rightVisible && (
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
-          <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
+          <div className="to-default flex h-12 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <Icon name="chevron-right" className="text-subtle h-4 w-4" />
           </div>

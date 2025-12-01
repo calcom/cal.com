@@ -16,7 +16,7 @@ import {
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
+import type { BookingInfo, ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -26,7 +26,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
-export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -41,6 +41,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     isVerificationPending = false,
     seatReferenceUid,
     verifiedAt,
+    creditCheckFn,
   } = args;
 
   if (!verifiedAt) {
@@ -64,7 +65,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         phoneNumber: reminderPhone || "",
       },
     });
-    if (!!verifiedNumber) return true;
+    if (verifiedNumber) return true;
     return isVerificationPending;
   }
   const isNumberVerified = await getIsNumberVerified();
@@ -194,11 +195,12 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                 replyTo: evt.organizer.email,
               }
             : undefined,
+          creditCheckFn,
         });
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
-    } else if (
+    }else if (
       (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
         triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
       scheduledDate
@@ -230,6 +232,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
                   workflowStepId,
                 }
               : undefined,
+            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {

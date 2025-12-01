@@ -6,8 +6,8 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
@@ -134,13 +134,13 @@ export default function TeamListItem(props: Props) {
           }}
         />
       )}
-      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
+      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-cal-muted group")}>
         {!isInvitee ? (
           team.slug ? (
             <Link
               data-testid="team-list-item-link"
               href={`/settings/teams/${team.id}/profile`}
-              className="flex-grow cursor-pointer truncate text-sm"
+              className="grow cursor-pointer truncate text-sm"
               title={`${team.name}`}>
               {teamInfo}
             </Link>
@@ -218,7 +218,7 @@ export default function TeamListItem(props: Props) {
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      className="radix-state-open:rounded-r-md"
+                      className="ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
                       type="button"
                       color="secondary"
                       variant="icon"
@@ -367,7 +367,7 @@ const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; t
 
   return (
     <button
-      className="block flex-grow cursor-pointer truncate text-left text-sm"
+      className="block grow cursor-pointer truncate text-left text-sm"
       type="button"
       onClick={() => {
         publishTeamMutation.mutate({ teamId });

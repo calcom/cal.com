@@ -5,9 +5,6 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { Prisma } from "@calcom/prisma/client";
 
-import { TRPCError } from "@trpc/server";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
 import { stripeInvalidRequestErrorSchema } from "../stripe-error";
@@ -36,11 +33,13 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+/**
+ * Converts unknown error types to HttpError with proper status code mapping and error redaction.
+ * SERVER-ONLY: This function imports Prisma and Stripe schemas and should only be used in server-side code.
+ * Use in API routes, tRPC handlers, webhooks, and server-side services.
+ * For client-side code, use getErrorFromUnknown from @calcom/lib/errors instead.
+ */
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
-  if (cause instanceof TRPCError) {
-    const statusCode = getHTTPStatusCodeFromError(cause);
-    return new HttpError({ statusCode, message: cause.message });
-  }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
@@ -87,8 +86,10 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new HttpError({
+      statusCode: 500,
+      message: cause,
+    });
   }
 
   return new HttpError({
