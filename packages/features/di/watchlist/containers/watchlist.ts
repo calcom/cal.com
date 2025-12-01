@@ -1,7 +1,7 @@
 import { createContainer } from "@evyweb/ioctopus";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
+import { moduleLoader as loggerModuleLoader } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -30,8 +30,8 @@ import { watchlistModule } from "../modules/Watchlist.module";
 export const watchlistContainer = createContainer();
 
 prismaModuleLoader.loadModule(watchlistContainer);
+loggerModuleLoader.loadModule(watchlistContainer);
 
-watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
 watchlistContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY, watchlistModule);
