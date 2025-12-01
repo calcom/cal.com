@@ -89,6 +89,7 @@ export const FormFieldsBaseConfig = {
   types: getTypes(ConfigFor.FormFields),
   widgets: getWidgetsWithoutFactory(ConfigFor.FormFields),
   settings: getSettingsWithoutRenderFns(),
+  ctx: BasicConfig.ctx,
 };
 
 export const AttributesBaseConfig = {
@@ -97,4 +98,5 @@ export const AttributesBaseConfig = {
   types: getTypes(ConfigFor.Attributes),
   widgets: getWidgetsWithoutFactory(ConfigFor.Attributes),
   settings: getSettingsWithoutRenderFns(),
+  ctx: BasicConfig.ctx,
 };

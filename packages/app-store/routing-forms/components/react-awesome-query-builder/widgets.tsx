@@ -1,14 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import type { ChangeEvent } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
   ConjsProps,
   FieldProps,
   ProviderProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
+import dynamic from "next/dynamic";
+import type { ChangeEvent } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
@@ -339,7 +339,7 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
 }
 
 const FieldSelect = function FieldSelect(props: FieldProps) {
-  const { items, setField, selectedKey } = props;
+  const { items, setField, selectedKey, config } = props;
   const selectItems = items.map((item) => {
     return {
       ...item,
@@ -357,10 +357,25 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
       className="data-testid-field-select  mb-2"
       menuPosition="fixed"
       onChange={(item) => {
-        if (!item) {
+        if (!item || item.value === undefined) {
           return;
         }
-        setField(item.value);
+
+        if (config && config.fields && !config.fields[item.value]) {
+          console.error(
+            "Field not found in config:",
+            item.value,
+            "Available fields:",
+            Object.keys(config.fields)
+          );
+          return;
+        }
+
+        try {
+          setField(item.value);
+        } catch (error) {
+          console.error("Error setting field:", error, "Field ID:", item.value);
+        }
       }}
       defaultValue={defaultValue}
       options={selectItems}
