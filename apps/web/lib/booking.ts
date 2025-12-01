@@ -42,6 +42,7 @@ export const getEventTypesFromDB = async (id: number) => {
       bookingFields: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
+      hideOrganizerName: true,
       disableCancelling: true,
       disableRescheduling: true,
       disableGuests: true,

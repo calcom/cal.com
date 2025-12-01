@@ -282,8 +282,11 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           <div className="flex items-center gap-4">
             <Avatar
               size="md"
-              imageSrc={getPlaceholderAvatar(null, booking.user.name)}
-              alt={booking.user.name || ""}
+              imageSrc={getPlaceholderAvatar(
+                null,
+                booking.eventType?.hideOrganizerName ? t("organizer") : booking.user.name
+              )}
+              alt={booking.eventType?.hideOrganizerName ? t("organizer") : booking.user.name || ""}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
