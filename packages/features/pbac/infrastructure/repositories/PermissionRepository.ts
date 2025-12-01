@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -15,6 +16,7 @@ import {
 export class PermissionRepository implements IPermissionRepository {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
+  private readonly logger = logger.getSubLogger({ prefix: ["PermissionRepository"] });
 
   constructor(client: PrismaClientWithExtensions = db) {
     this.client = client;
@@ -237,9 +239,11 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    // Direct team memberships with PBAC permissions
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
+    // Teams with PBAC permissions (direct memberships + child teams via org membership)
     const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
+      SELECT DISTINCT m."teamId" as "teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
       WHERE m."userId" = ${userId}
@@ -247,23 +251,20 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."customRoleId" IS NOT NULL
         AND (
           SELECT COUNT(*)
-          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
           WHERE EXISTS (
             SELECT 1
             FROM "RolePermission" rp
             WHERE rp."roleId" = r.id
               AND (
                 (rp."resource" = '*' AND rp."action" = '*') OR
-                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+                (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+                (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+                (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
               )
           )
         ) = ${permissions.length}
-    `;
-
-    // Child teams where user has PBAC permissions via org membership
-    const childTeamsWithOrgPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      UNION
       SELECT DISTINCT child."id" as "teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -274,24 +275,24 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."customRoleId" IS NOT NULL
         AND (
           SELECT COUNT(*)
-          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
           WHERE EXISTS (
             SELECT 1
             FROM "RolePermission" rp
             WHERE rp."roleId" = r.id
               AND (
                 (rp."resource" = '*' AND rp."action" = '*') OR
-                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+                (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+                (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+                (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
               )
           )
         ) = ${permissions.length}
     `;
 
-    // Direct team memberships with fallback roles (PBAC disabled)
+    // Teams with fallback roles (direct memberships + child teams via org membership, PBAC disabled)
     const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
+      SELECT DISTINCT m."teamId" as "teamId"
       FROM "Membership" m
       INNER JOIN "Team" t ON m."teamId" = t.id
       LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
@@ -299,10 +300,7 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})
         AND f."teamId" IS NULL
-    `;
-
-    // Child teams where user has fallback roles via org membership (PBAC disabled on org)
-    const childTeamsWithOrgFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      UNION
       SELECT DISTINCT child."id" as "teamId"
       FROM "Membership" m
       INNER JOIN "Team" org ON m."teamId" = org.id
@@ -314,26 +312,15 @@ export class PermissionRepository implements IPermissionRepository {
         AND f."teamId" IS NULL
     `;
 
-    const [
-      teamsWithPermission,
-      childTeamsWithOrgPermission,
-      teamsWithFallbackRoles,
-      childTeamsWithOrgFallbackRoles,
-    ] = await Promise.all([
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
       teamsWithPermissionPromise,
-      childTeamsWithOrgPermissionPromise,
       teamsWithFallbackRolesPromise,
-      childTeamsWithOrgFallbackRolesPromise,
     ]);
 
     const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
-    const childTeamIdsFromOrg = childTeamsWithOrgPermission.map((team) => team.teamId);
     const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
-    const childTeamIdsFromOrgFallback = childTeamsWithOrgFallbackRoles.map((team) => team.teamId);
 
-    const allTeamIds = Array.from(
-      new Set([...pbacTeamIds, ...childTeamIdsFromOrg, ...fallbackTeamIds, ...childTeamIdsFromOrgFallback])
-    );
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
     return allTeamIds;
   }
 }
