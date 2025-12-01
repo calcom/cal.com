@@ -95,6 +95,8 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
           expect(responseBody.data.name).toEqual(user.name);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
@@ -117,6 +119,8 @@ describe("Me Endpoints", () => {
 
           expect(responseBody.data.id).toEqual(user.id);
           expect(responseBody.data.email).toEqual(user.email);
+          expect(responseBody.data.avatarUrl).toEqual(user.avatarUrl);
+          expect(responseBody.data.bio).toEqual(user.bio);
           expect(responseBody.data.timeFormat).toEqual(user.timeFormat);
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);

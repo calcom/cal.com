@@ -69,7 +69,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           }
         }
       }}>
-      <div className="bg-default dark:text-inverted text-emphasis border-subtle w-full rounded-md border dark:bg-opacity-5">
+      <div className="bg-default dark:text-inverted text-emphasis border-subtle w-full rounded-md border">
         <Schedule control={availabilityForm.control} name="schedule" weekStart={1} />
       </div>
 

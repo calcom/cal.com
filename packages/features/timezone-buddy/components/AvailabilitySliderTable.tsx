@@ -52,7 +52,7 @@ function UpgradeTeamTip() {
       background="/tips/teams"
       features={[]}
       buttons={
-        <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+        <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
           <ButtonGroup>
             <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
               {t("create_team")}
@@ -111,7 +111,7 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
-            <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
+            <div className="max-w-64 flex shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
                 size="sm"
                 user={{
