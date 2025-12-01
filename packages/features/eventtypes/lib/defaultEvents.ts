@@ -94,6 +94,7 @@ const commons = {
   allowReschedulingPastBookings: false,
   allowReschedulingCancelledBookings: false,
   hideOrganizerEmail: false,
+  hideOrganizerName: false,
   showOptimizedSlots: false,
   id: 0,
   hideCalendarNotes: false,
