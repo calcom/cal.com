@@ -35,7 +35,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
-import { TableActions } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -51,12 +50,12 @@ import {
   BookingActionsStoreProvider,
 } from "./actions/BookingActionsStoreProvider";
 import {
-  getCancelEventAction,
   shouldShowPendingActions,
   shouldShowRecurringCancelAction,
   shouldShowIndividualReportButton,
   type BookingActionContext,
   getReportAction,
+  isActionDisabled,
 } from "./actions/bookingActions";
 import type { BookingItemProps } from "./types";
 
@@ -222,8 +221,6 @@ function BookingListItem(booking: BookingItemProps) {
     t,
   } as BookingActionContext;
 
-  const cancelEventAction = getCancelEventAction(actionContext);
-
   const RequestSentMessage = () => {
     return (
       <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
@@ -258,6 +255,7 @@ function BookingListItem(booking: BookingItemProps) {
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
+  const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
 
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
@@ -428,7 +426,22 @@ function BookingListItem(booking: BookingItemProps) {
               />
             </div>
           )}
-          {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
+          {shouldShowRecurringCancelAction(actionContext) && (
+            <Button
+              className="whitespace-nowrap"
+              key="cancel"
+              data-testid="cancel"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCancelDialogOpen(true);
+              }}
+              StartIcon="circle-x"
+              disabled={isActionDisabled("cancel", actionContext)}
+              data-bookingid={booking.id}
+              color="destructive">
+              {t("cancel_all_remaining")}
+            </Button>
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden items-center md:flex">
               <RequestSentMessage />

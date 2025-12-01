@@ -7,6 +7,7 @@ import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -175,7 +176,7 @@ export default function CancelBooking(props: Props) {
   }, []);
 
   return (
-    <div className={props.className}>
+    <>
       {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
@@ -189,7 +190,7 @@ export default function CancelBooking(props: Props) {
         </div>
       )}
       {!error && (
-        <div className="mt-5 sm:mt-6">
+        <div className={classNames("mt-5 sm:mt-6", props.className)}>
           {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
@@ -324,6 +325,6 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

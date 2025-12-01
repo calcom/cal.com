@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
@@ -68,6 +69,8 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
     eventTypeMetadata,
   } = props;
 
+  const utils = trpc.useUtils();
+
   // Get the first payment if it exists and map to expected format
   const payment =
     booking.payment && booking.payment.length > 0
@@ -79,6 +82,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
       : null;
 
   const handleCanceled = () => {
+    utils.viewer.bookings.invalidate();
     showToast(t("booking_cancelled"), "success");
     setIsOpenDialog(false);
   };
