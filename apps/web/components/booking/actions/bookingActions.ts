@@ -23,6 +23,7 @@ export interface BookingActionContext {
   showPendingPayment: boolean;
   isAttendee: boolean;
   cardCharged: boolean;
+  isHost?: boolean;
   attendeeList: Array<{
     name: string;
     email: string;
@@ -69,9 +70,8 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-    href: `/booking/${booking.uid}?cancel=true${
-      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
+    href: `/booking/${booking.uid}?cancel=true${isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }${booking.seatsReferences.length && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
@@ -114,11 +114,10 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       id: "reschedule",
       icon: "clock",
       label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length && isAttendee && seatReferenceUid
-          ? `?seatReferenceUid=${seatReferenceUid}`
-          : ""
-      }`,
+      href: `/reschedule/${booking.uid}${booking.seatsReferences.length && isAttendee && seatReferenceUid
+        ? `?seatReferenceUid=${seatReferenceUid}`
+        : ""
+        }`,
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
     },
@@ -134,11 +133,11 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     },
     isBookingFromRoutingForm
       ? {
-          id: "reroute",
-          label: t("reroute"),
-          icon: "waypoints",
-          disabled: false,
-        }
+        id: "reroute",
+        label: t("reroute"),
+        icon: "waypoints",
+        disabled: false,
+      }
       : null,
     {
       id: "change_location",
@@ -149,20 +148,20 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     booking.eventType?.disableGuests
       ? null
       : {
-          id: "add_members",
-          label: t("additional_guests"),
-          icon: "user-plus",
-          disabled: false,
-        },
+        id: "add_members",
+        label: t("additional_guests"),
+        icon: "user-plus",
+        disabled: false,
+      },
     // Reassign if round robin with no or one host groups
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+      (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
       ? {
-          id: "reassign",
-          label: t("reassign"),
-          icon: "users",
-          disabled: false,
-        }
+        id: "reassign",
+        label: t("reassign"),
+        icon: "users",
+        disabled: false,
+      }
       : null,
   ];
 
@@ -188,11 +187,11 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
     ...getVideoOptionsActions(context),
     booking.status === BookingStatus.ACCEPTED && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
       ? {
-          id: "charge_card",
-          label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-          icon: "credit-card",
-          disabled: cardCharged,
-        }
+        id: "charge_card",
+        label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+        icon: "credit-card",
+        disabled: cardCharged,
+      }
       : null,
     {
       id: "no_show",
@@ -228,13 +227,15 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
+
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isHost } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
+      if (isHost && !isBookingInPast) return false;
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);

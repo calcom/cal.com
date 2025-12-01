@@ -561,7 +561,6 @@ describe("Cancel Booking", () => {
       })
     );
 
-    // This should throw an error with current implementation
     await expect(
       handleCancelBooking({
         bookingData: {
@@ -569,6 +568,7 @@ describe("Cancel Booking", () => {
           uid: uidOfBookingToBeCancelled,
           cancelledBy: organizer.email,
         },
+        userId: organizer.id,
       })
     ).rejects.toThrow("Cancellation reason is required when you are the host");
   });
