@@ -1,5 +1,4 @@
 import { createColumnHelper } from "@tanstack/react-table";
- 
 import startCase from "lodash/startCase";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -352,7 +351,7 @@ function CopyButton({ label, value }: { label: string; value: string }) {
     <Button
       color="minimal"
       size="sm"
-      className="flex w-full items-center justify-start gap-1 overflow-hidden"
+      className="overflow-hidden"
       tooltip={value}
       EndIcon={isCopied ? "check" : "clipboard"}
       onClick={() => {
