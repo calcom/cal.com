@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -171,6 +172,7 @@ export function SaveFilterSegmentButton() {
         <Button
           StartIcon="bookmark"
           color="secondary"
+          onClick={() => posthog.capture("insights_routing_save_filter_clicked")}
           disabled={!canSaveSegment}
           data-testid="save-filter-segment-button">
           {t("save")}
@@ -184,7 +186,7 @@ export function SaveFilterSegmentButton() {
               <RadioGroup
                 defaultValue="update"
                 onValueChange={(value: string) => setSaveMode(value as "create" | "update")}
-                className="space-y-2">
+                className="stack-y-2">
                 <RadioField
                   id="update_segment"
                   label={t("override_segment", { name: selectedSegment.name })}
@@ -216,7 +218,7 @@ export function SaveFilterSegmentButton() {
                 </div>
 
                 {isTeamSegment && teams && teams.length > 0 && (
-                  <div>
+                  <div className="mt-1.5">
                     <Select<{ value: string; label: string }>
                       options={teams.map((team) => ({
                         value: team.id.toString(),
