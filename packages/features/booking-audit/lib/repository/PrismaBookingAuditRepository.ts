@@ -5,6 +5,20 @@ import type { IBookingAuditRepository, BookingAuditCreateInput, BookingAuditWith
 type Dependencies = {
     prismaClient: PrismaClient;
 }
+
+/**
+ * Safe actor fields to expose in audit logs
+ * Excludes PII fields like email and phone that aren't needed for display
+ */
+const safeActorSelect = {
+    id: true,
+    type: true,
+    userUuid: true,
+    attendeeId: true,
+    name: true,
+    createdAt: true,
+} as const;
+
 export class PrismaBookingAuditRepository implements IBookingAuditRepository {
     constructor(private readonly deps: Dependencies) { }
 
@@ -27,7 +41,9 @@ export class PrismaBookingAuditRepository implements IBookingAuditRepository {
                 bookingUid,
             },
             include: {
-                actor: true,
+                actor: {
+                    select: safeActorSelect,
+                },
             },
             orderBy: {
                 timestamp: "desc",

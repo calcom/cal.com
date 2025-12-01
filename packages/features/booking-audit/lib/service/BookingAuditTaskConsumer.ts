@@ -91,7 +91,7 @@ export class BookingAuditTaskConsumer {
         }
 
         const validatedPayload = parseResult.data;
-        const { action, bookingUid, actor, organizationId, data } = validatedPayload;
+        const { action, bookingUid, actor, organizationId, data, timestamp } = validatedPayload;
 
         // Skip processing for non-organization bookings
         if (organizationId === null) {
@@ -115,7 +115,7 @@ export class BookingAuditTaskConsumer {
         if (action !== "CREATED") {
             throw new Error(`Unsupported audit action: ${action}`);
         }
-        await this.onBookingCreated(bookingUid, actor, dataInLatestFormat);
+        await this.onBookingAction({ bookingUid, actor, action, data: dataInLatestFormat, timestamp });
     }
 
     /**
@@ -158,7 +158,7 @@ export class BookingAuditTaskConsumer {
      * @param action - The booking audit action type
      * @returns The corresponding action service instance
      */
-    private getActionService(action: BookingAuditTaskConsumerPayload["action"]) {
+    private getActionService(action: BookingAuditAction) {
         if (action !== "CREATED") {
             throw new Error(`Unsupported audit action: ${action}`);
         }
@@ -251,21 +251,49 @@ export class BookingAuditTaskConsumer {
         });
     }
 
-    async onBookingCreated(
-        bookingUid: string,
-        actor: Actor,
-        action: BookingAuditAction,
-        data: CreatedAuditData
-    ): Promise<BookingAudit> {
-        const versionedData = this.createdActionService.getVersionedData(data);
+    /**
+     * Get Record Type - Derives the record type from the action
+     * 
+     * Maps booking actions to their corresponding audit record types:
+     * - CREATED → RECORD_CREATED
+     * - Future actions like CANCELLED, RESCHEDULED → RECORD_UPDATED
+     * - Future actions like DELETED → RECORD_DELETED
+     * 
+     * @param action - The booking audit action
+     * @returns The corresponding record type
+     */
+    private getRecordType(params: { action: BookingAuditAction }): BookingAuditType {
+        const { action } = params;
+
+        switch (action) {
+            case "CREATED":
+                return "RECORD_CREATED";
+            // Future actions will map to RECORD_UPDATED or RECORD_DELETED
+            default:
+                throw new Error(`Unsupported action for record type mapping: ${action}`);
+        }
+    }
+
+    async onBookingAction(params: {
+        bookingUid: string;
+        actor: Actor;
+        action: BookingAuditAction;
+        data: CreatedAuditData;
+        timestamp: number;
+    }): Promise<BookingAudit> {
+        const { bookingUid, actor, action, data, timestamp } = params;
+        const actionService = this.getActionService(action);
+        const versionedData = actionService.getVersionedData(data);
         const actorId = await this.resolveActorId(actor);
+        const recordType = this.getRecordType({ action });
+
         return this.createAuditRecord({
             bookingUid,
             actorId,
-            type: "RECORD_CREATED",
-            action: CreatedAuditActionService.TYPE,
+            type: recordType,
+            action,
             data: versionedData,
-            timestamp: new Date(),
+            timestamp: new Date(timestamp),
         });
     }
 }

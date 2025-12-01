@@ -156,22 +156,23 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Act: Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
-          startTime: booking!.startTime.toISOString(),
-          endTime: booking!.endTime.toISOString(),
+        action: "CREATED",
+        data: {
+          startTime: booking!.startTime.getTime(),
+          endTime: booking!.endTime.getTime(),
           status: booking!.status,
-        }
-      );
+        },
+        timestamp: Date.now(),
+      });
 
       // Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
         testBookingUid,
         testUserId,
-        testUserEmail,
-        "en"
+        testUserEmail
       );
 
       // Assert: Verify audit log exists and has correct data
@@ -183,18 +184,11 @@ describe("Booking Audit Integration", () => {
       expect(auditLog.action).toBe("CREATED");
       expect(auditLog.type).toBe("RECORD_CREATED");
 
-      // Verify display formatting
-      expect(auditLog.displaySummary).toBeDefined();
-      expect(auditLog.displayDetails).toBeDefined();
-      expect(typeof auditLog.displaySummary).toBe("string");
-      expect(typeof auditLog.displayDetails).toBe("object");
-
-      // Verify audit data matches
-      const storedData = auditLog.data as { version: number; fields: { startTime: string; endTime: string; status: string } };
-      expect(storedData.version).toBe(1);
-      expect(storedData.fields.startTime).toBe(booking!.startTime.toISOString());
-      expect(storedData.fields.endTime).toBe(booking!.endTime.toISOString());
-      expect(storedData.fields.status).toBe(booking!.status);
+      // Verify audit data matches (getDisplayJson returns fields only, not versioned wrapper)
+      const displayData = auditLog.data as { startTime: number; endTime: number; status: string };
+      expect(displayData.startTime).toBe(booking!.startTime.getTime());
+      expect(displayData.endTime).toBe(booking!.endTime.getTime());
+      expect(displayData.status).toBe(booking!.status);
     });
 
     it("should enrich actor information with user details", async () => {
@@ -208,22 +202,23 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
-          startTime: booking!.startTime.toISOString(),
-          endTime: booking!.endTime.toISOString(),
+        action: "CREATED",
+        data: {
+          startTime: booking!.startTime.getTime(),
+          endTime: booking!.endTime.getTime(),
           status: booking!.status,
-        }
-      );
+        },
+        timestamp: Date.now(),
+      });
 
       // Act: Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
         testBookingUid,
         testUserId,
-        testUserEmail,
-        "en"
+        testUserEmail
       );
 
       // Assert: Verify actor enrichment
@@ -244,22 +239,23 @@ describe("Booking Audit Integration", () => {
       const actor = makeUserActor(testUserUuid);
 
       // Create audit record using TaskConsumer
-      await bookingAuditTaskConsumer.onBookingCreated(
-        testBookingUid,
+      await bookingAuditTaskConsumer.onBookingAction({
+        bookingUid: testBookingUid,
         actor,
-        {
-          startTime: booking!.startTime.toISOString(),
-          endTime: booking!.endTime.toISOString(),
+        action: "CREATED",
+        data: {
+          startTime: booking!.startTime.getTime(),
+          endTime: booking!.endTime.getTime(),
           status: booking!.status,
-        }
-      );
+        },
+        timestamp: Date.now(),
+      });
 
       // Act & Assert: Booking owner can view
       const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking(
         testBookingUid,
         testUserId,
-        testUserEmail,
-        "en"
+        testUserEmail
       );
       expect(ownerResult.auditLogs).toHaveLength(1);
 
@@ -267,8 +263,7 @@ describe("Booking Audit Integration", () => {
       const attendeeResult = await bookingAuditViewerService.getAuditLogsForBooking(
         testBookingUid,
         testAttendeeUserId,
-        testAttendeeEmail,
-        "en"
+        testAttendeeEmail
       );
       expect(attendeeResult.auditLogs).toHaveLength(1);
 
@@ -280,8 +275,7 @@ describe("Booking Audit Integration", () => {
         bookingAuditViewerService.getAuditLogsForBooking(
           testBookingUid,
           unauthorizedUserId,
-          unauthorizedEmail,
-          "en"
+          unauthorizedEmail
         )
       ).rejects.toThrow("You do not have permission to view audit logs for this booking");
     });

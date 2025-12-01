@@ -1,6 +1,4 @@
 export const BOOKING_AUDIT_DI_TOKENS = {
-    BOOKING_AUDIT_SERVICE: Symbol("BookingAuditService"),
-    BOOKING_AUDIT_SERVICE_MODULE: Symbol("BookingAuditServiceModule"),
     BOOKING_AUDIT_VIEWER_SERVICE: Symbol("BookingAuditViewerService"),
     BOOKING_AUDIT_VIEWER_SERVICE_MODULE: Symbol("BookingAuditViewerServiceModule"),
     BOOKING_AUDIT_PRODUCER_SERVICE: Symbol("BookingAuditProducerService"),

@@ -2292,10 +2292,6 @@ async function handler(
     }
     : undefined;
 
-  const bookingFlowConfig = {
-    isDryRun,
-  };
-
   const bookingCreatedPayload = buildBookingCreatedPayload({
     booking,
     organizerUserId: organizerUser.id,
@@ -2319,7 +2315,9 @@ async function handler(
   if (originalRescheduledBooking) {
     await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
   } else {
-    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, makeGuestActor({ email: bookerEmail }));
+    // TODO: We need to check session in booking flow and accordingly create USER actor if applicable.
+    const auditActor = makeGuestActor({ email: bookerEmail, name: fullName });
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload, auditActor);
   }
 
   const webhookData: EventPayloadType = {

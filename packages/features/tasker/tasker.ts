@@ -40,7 +40,7 @@ type TaskPayloads = {
   bookingAudit: BookingAuditTaskConsumerPayload;
 };
 export type TaskTypes = keyof TaskPayloads;
-export type TaskHandler = (payload: string) => Promise<void>;
+export type TaskHandler = (payload: string, taskId?: string) => Promise<void>;
 export type TaskerCreate = <TaskKey extends keyof TaskPayloads>(
   type: TaskKey,
   payload: TaskPayloads[TaskKey],

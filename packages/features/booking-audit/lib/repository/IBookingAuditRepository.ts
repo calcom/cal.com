@@ -38,8 +38,6 @@ export type BookingAuditWithActor = BookingAudit & {
         type: AuditActorType;
         userUuid: string | null;
         attendeeId: number | null;
-        email: string | null;
-        phone: string | null;
         name: string | null;
         createdAt: Date;
     };

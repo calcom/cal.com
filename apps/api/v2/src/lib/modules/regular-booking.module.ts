@@ -5,6 +5,7 @@ import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.rep
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
+import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
 import { BookingEmailSmsService } from "@/lib/services/booking-emails-sms-service";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
@@ -35,6 +36,7 @@ import { Module, Scope } from "@nestjs/common";
       },
       scope: Scope.TRANSIENT,
     },
+    BookingAuditProducerService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
     CheckBookingLimitsService,

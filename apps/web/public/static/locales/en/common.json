@@ -3928,12 +3928,6 @@
   "blocklist_entry_deleted": "Blocklist entry deleted successfully",
   "history": "History",
   "no_audit_history": "No audit history available",
-  "audit": {
-    "booking_created": "Booking created",
-    "start_time": "Start Time",
-    "end_time": "End Time",
-    "initial_status": "Initial Status"
-  },
   "remove_value_from_blocklist": "Remove {{value}} from blocklist?",
   "remove_value_from_blocklist_description": "The action is irreversible",
   "delete_blocklist_entry_confirmation": "Are you sure you want to remove \"{{value}}\" from the blocklist? This action cannot be undone.",
@@ -4101,5 +4095,17 @@
   "booking_response": "Booking Response",
   "list_view": "List view",
   "calendar_view": "Calendar view",
+  "booking_history": "Booking History",
+  "booking_history_description": "View the history of actions performed on this booking",
+  "audit_action": {
+    "created": "Created"
+  },
+  "error_loading_booking_logs": "Error loading booking logs",
+  "no_audit_logs_found": "No audit logs found",
+  "hide_details": "Hide details",
+  "show_details": "Show details",
+  "actor": "Actor",
+  "timestamp": "Timestamp",
+  "json": "JSON",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
