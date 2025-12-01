@@ -443,6 +443,7 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [hideOrganizerDetailsVisible, setHideOrganizerDetailsVisible] = useState(false);
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -1160,58 +1161,52 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      <Controller
-        name="hideOrganizerEmail"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.hideOrganizerEmail?.container
-            )}
-            title={t("hide_organizer_email")}
-            {...hideOrganizerEmailLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="hide_organizer_email_description"
-                href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
-              />
-            }
-            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="hide-organizer-email"
-          />
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+          hideOrganizerDetailsVisible && "rounded-b-none"
         )}
-      />
-      <Controller
-        name="hideOrganizerName"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerName?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.hideOrganizerName?.container
-            )}
-            title={t("hide_organizer_name")}
-            {...hideOrganizerNameLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="hide_organizer_name_description"
-                href="https://cal.com/help/event-types/hideorganizersname#hide-organizers-name"
-              />
-            }
-            descriptionClassName={customClassNames?.hideOrganizerName?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="hide-organizer-name"
+        childrenClassName="lg:ml-0"
+        title={t("hide_organizer_details")}
+        description={
+          <LearnMoreLink
+            t={t}
+            i18nKey="hide_organizer_details_description"
+            href="https://cal.com/help/event-types/hide-organizer-details"
           />
-        )}
-      />
+        }
+        checked={hideOrganizerDetailsVisible}
+        onCheckedChange={(e) => setHideOrganizerDetailsVisible(e)}
+        data-testid="hide-organizer-details">
+        <div className="border-subtle flex flex-col gap-4 rounded-b-lg border border-t-0 p-6">
+          <Controller
+            name="hideOrganizerEmail"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-email-checkbox"
+                description={t("hide_organizer_email")}
+                disabled={hideOrganizerEmailLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+          <Controller
+            name="hideOrganizerName"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-name-checkbox"
+                description={t("hide_organizer_name")}
+                disabled={hideOrganizerNameLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+        </div>
+      </SettingsToggle>
       <Controller
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => {
