@@ -261,16 +261,19 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
-    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
-      FROM "Membership" m
-      INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
-      WHERE m."userId" = ${userId}
-        AND m."accepted" = true
-        AND m."role"::text = ANY(${fallbackRoles})
-        AND f."teamId" IS NULL
-    `;
+    const teamsWithFallbackRolesPromise =
+      fallbackRoles.length > 0
+        ? this.client.$queryRaw<{ teamId: number }[]>`
+            SELECT DISTINCT m."teamId"
+            FROM "Membership" m
+            INNER JOIN "Team" t ON m."teamId" = t.id
+            LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+            WHERE m."userId" = ${userId}
+              AND m."accepted" = true
+              AND m."role"::text = ANY(${fallbackRoles})
+              AND f."teamId" IS NULL
+          `
+        : Promise.resolve<{ teamId: number }[]>([]);
 
     const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
       teamsWithPermissionPromise,
