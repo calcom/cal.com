@@ -18,17 +18,17 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { TRPCError } from "@trpc/server";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
   prisma: PrismaClient;
+  isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
-  isTrpcCall?: boolean;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
@@ -38,6 +38,7 @@ export const getEventTypeById = async ({
   eventTypeId,
   userId,
   prisma,
+  isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
   const userSelect = {
@@ -61,7 +62,11 @@ export const getEventTypeById = async ({
   });
 
   if (!rawEventType) {
-    throw new ErrorWithCode(ErrorCode.NotFound, "Event type not found");
+    if (isTrpcCall) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    } else {
+      throw new Error("Event type not found");
+    }
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
@@ -162,10 +167,14 @@ export const getEventTypeById = async ({
       select: userSelect,
     });
     if (!fallbackUser) {
-      throw new ErrorWithCode(
-        ErrorCode.NotFound,
-        "The event type doesn't have user and no fallback user was found"
-      );
+      if (isTrpcCall) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "The event type doesn't have user and no fallback user was found",
+        });
+      } else {
+        throw Error("The event type doesn't have user and no fallback user was found");
+      }
     }
     eventType.users.push(fallbackUser);
   }
@@ -181,7 +190,10 @@ export const getEventTypeById = async ({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
-    throw new ErrorWithCode(ErrorCode.NotFound, "Could not find user or team");
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Could not find user or team",
+    });
   }
 
   const locationOptions = await getLocationGroupedOptions(
