@@ -6,7 +6,7 @@ import {
 } from "@calcom/lib/schedules/transformers";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+import type { User } from "@calcom/prisma/client";
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
   ReturnType<typeof ScheduleRepository.findDetailedScheduleById>
@@ -95,7 +95,7 @@ export class ScheduleRepository {
   }) {
     const schedule = await prisma.schedule.findUnique({
       where: {
-        id: scheduleId || (await getDefaultScheduleId(userId, prisma)),
+        id: scheduleId || (await ScheduleRepository.getDefaultScheduleId(userId, prisma)),
       },
       select: {
         id: true,
@@ -202,5 +202,58 @@ export class ScheduleRepository {
     });
 
     return schedulesFormatted;
+  }
+
+  // Migrated methods from availabilityUtils.ts
+  static async getDefaultScheduleId(userId: number, prisma: PrismaClient) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        defaultScheduleId: true,
+      },
+    });
+
+    if (user?.defaultScheduleId) {
+      return user.defaultScheduleId;
+    }
+
+    // If we're returning the default schedule for the first time then we should set it in the user record
+    const defaultSchedule = await prisma.schedule.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!defaultSchedule) {
+      // Handle case where defaultSchedule is null by throwing an error
+      throw new Error("No schedules found for user");
+    }
+
+    return defaultSchedule.id;
+  }
+
+  static async hasDefaultSchedule(user: Partial<User>, prisma: PrismaClient) {
+    const defaultSchedule = await prisma.schedule.findFirst({
+      where: {
+        userId: user.id,
+      },
+    });
+    return !!user.defaultScheduleId || !!defaultSchedule;
+  }
+
+  static async setupDefaultSchedule(userId: number, scheduleId: number, prisma: PrismaClient) {
+    return prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        defaultScheduleId: scheduleId,
+      },
+    });
   }
 }
