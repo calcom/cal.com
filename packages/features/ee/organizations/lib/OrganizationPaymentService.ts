@@ -2,9 +2,9 @@ import { getBillingProviderService } from "@calcom/features/ee/billing/di/contai
 import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
+  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -133,7 +133,7 @@ export class OrganizationPaymentService {
   }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
-      seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: input.seats ?? 1,
       pricePerSeat: input.pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE),
     };
   }
@@ -277,10 +277,17 @@ export class OrganizationPaymentService {
         organizationOnboardingId,
       })
     );
+
+    const subscriptionData = ORG_TRIAL_DAYS
+      ? {
+          trial_period_days: ORG_TRIAL_DAYS,
+        }
+      : undefined;
+
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
-      successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
-      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
+      successUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
+      cancelUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
       priceId,
       quantity: config.seats,
       metadata: {
@@ -289,6 +296,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      ...(subscriptionData && { subscriptionData }),
     });
   }
 

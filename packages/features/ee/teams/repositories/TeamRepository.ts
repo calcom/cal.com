@@ -334,6 +334,35 @@ export class TeamRepository {
       }));
   }
 
+  /**
+   * Get teams where the user is an OWNER or ADMIN (excludes organizations)
+   */
+  async findOwnedTeamsByUserId({ userId }: { userId: number }) {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        userId: userId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isOrganization: true,
+          },
+        },
+      },
+    });
+
+    return memberships
+      .filter((mmship) => !mmship.team.isOrganization)
+      .map((mmship) => mmship.team);
+  }
+
   async findTeamWithOrganizationSettings(teamId: number) {
     return await this.prismaClient.team.findUnique({
       where: { id: teamId },

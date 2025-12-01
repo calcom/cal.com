@@ -5,7 +5,7 @@ import {
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
 
-export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization" | "name">;
+export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
 export const TeamBillingPublishResponseStatus = {
   REQUIRES_PAYMENT: "REQUIRES_PAYMENT",
   REQUIRES_UPGRADE: "REQUIRES_UPGRADE",

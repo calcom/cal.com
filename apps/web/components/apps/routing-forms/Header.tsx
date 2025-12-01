@@ -289,7 +289,7 @@ export function Header({
           ) : (
             <div className="group flex items-center gap-1">
               <span
-                className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
+                className="text-default hover:bg-cal-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
                 onClick={() => setIsEditing(true)}>
                 {watchedName || "Loading..."}
               </span>

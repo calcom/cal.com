@@ -1,6 +1,6 @@
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserPermissionRole } from "@calcom/kysely/types";
-import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import { ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -39,7 +39,7 @@ export class OrganizationPermissionService {
    * If an onboarding is complete then it also means that org is created already.
    */
   async hasConflictingOrganization({ slug }: { slug: string }): Promise<boolean> {
-    const organizationRepository = getOrganizationRepository(); 
+    const organizationRepository = getOrganizationRepository();
     return !!(await organizationRepository.findBySlug({ slug }));
   }
 
@@ -61,9 +61,6 @@ export class OrganizationPermissionService {
     const isBillingPeriodModified =
       data.billingPeriod !== undefined && data.billingPeriod !== null && data.billingPeriod !== "MONTHLY";
 
-    const isSeatsModified =
-      data.seats !== undefined && data.seats !== null && data.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS;
-
     const isPricePerSeatModified =
       data.pricePerSeat !== undefined &&
       data.pricePerSeat !== null &&
@@ -71,9 +68,9 @@ export class OrganizationPermissionService {
 
     log.debug(
       "hasModifiedDefaultPayment",
-      safeStringify({ isBillingPeriodModified, isSeatsModified, isPricePerSeatModified })
+      safeStringify({ isBillingPeriodModified, isPricePerSeatModified })
     );
-    return isBillingPeriodModified || isSeatsModified || isPricePerSeatModified;
+    return isBillingPeriodModified || isPricePerSeatModified;
   }
 
   async hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean> {
