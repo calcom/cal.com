@@ -237,108 +237,50 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    // Convert permission pairs to JSONB for proper serialization
-    const permissionPairsJson = JSON.stringify(permissionPairs);
-
-    // Query 1: PBAC enabled - teams where user has PBAC permissions (direct or via org)
-    const pbacTeamsPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT "teamId"
-      FROM (
-        -- Direct team PBAC permissions
-        SELECT m."teamId"
-        FROM "Membership" m
-        INNER JOIN "Role" r ON m."customRoleId" = r.id
-        WHERE m."userId" = ${userId}
-          AND m."accepted" = true
-          AND m."customRoleId" IS NOT NULL
-          AND (
-            SELECT COUNT(*)
-            FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
-            WHERE EXISTS (
-              SELECT 1
-              FROM "RolePermission" rp
-              WHERE rp."roleId" = r.id
-                AND (
-                  (rp."resource" = '*' AND rp."action" = '*') OR
-                  (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
-                  (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
-                  (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
-                )
-            )
-          ) >= ${permissions.length}::bigint
-
-        UNION ALL
-
-        -- Child teams via org PBAC permissions
-        SELECT child."id" as "teamId"
-        FROM "Membership" org_m
-        INNER JOIN "Role" org_r ON org_m."customRoleId" = org_r.id
-        INNER JOIN "Team" org_t ON org_m."teamId" = org_t.id
-        INNER JOIN "Team" child ON child."parentId" = org_m."teamId"
-        WHERE org_m."userId" = ${userId}
-          AND org_m."accepted" = true
-          AND org_m."customRoleId" IS NOT NULL
-          AND (
-            SELECT COUNT(*)
-            FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
-            WHERE EXISTS (
-              SELECT 1
-              FROM "RolePermission" rp
-              WHERE rp."roleId" = org_r.id
-                AND (
-                  (rp."resource" = '*' AND rp."action" = '*') OR
-                  (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
-                  (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
-                  (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
-                )
-            )
-          ) >= ${permissions.length}::bigint
-      ) AS pbac_teams
+    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (
+          SELECT COUNT(*)
+          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+              )
+          )
+        ) = ${permissions.length}
     `;
 
-    // Query 2: PBAC disabled - teams where user has fallback roles (direct or via org)
-    const fallbackTeamsPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT "teamId"
-      FROM (
-        -- Direct team fallback roles (non-PBAC teams)
-        SELECT m."teamId"
-        FROM "Membership" m
-        INNER JOIN "Team" t ON m."teamId" = t.id
-        WHERE m."userId" = ${userId}
-          AND m."accepted" = true
-          AND m."role"::text = ANY(${fallbackRoles})
-          AND NOT EXISTS (
-            SELECT 1
-            FROM "TeamFeatures" f
-            WHERE f."teamId" = t.id
-              AND f."featureId" = 'pbac'
-          )
-
-        UNION ALL
-
-        -- Child teams via org fallback roles (non-PBAC orgs)
-        SELECT child."id" as "teamId"
-        FROM "Membership" org_m
-        INNER JOIN "Team" org_t ON org_m."teamId" = org_t.id
-        INNER JOIN "Team" child ON child."parentId" = org_m."teamId"
-        WHERE org_m."userId" = ${userId}
-          AND org_m."accepted" = true
-          AND org_m."role"::text = ANY(${fallbackRoles})
-          AND NOT EXISTS (
-            SELECT 1
-            FROM "TeamFeatures" f
-            WHERE f."teamId" = org_t.id
-              AND f."featureId" = 'pbac'
-          )
-      ) AS fallback_teams
+    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
     `;
 
-    const [pbacTeams, fallbackTeams] = await Promise.all([pbacTeamsPromise, fallbackTeamsPromise]);
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
+      teamsWithPermissionPromise,
+      teamsWithFallbackRolesPromise,
+    ]);
 
-    const allTeamIds = Array.from(
-      new Set([...pbacTeams.map((team) => team.teamId), ...fallbackTeams.map((team) => team.teamId)])
-    );
+    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
 
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
     return allTeamIds;
   }
 }
