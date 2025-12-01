@@ -84,6 +84,7 @@ const generateIcsString = ({
       ...(event.hideOrganizerEmail && !isOrganizerExempt
         ? { email: "no-reply@cal.com" }
         : { email: event.organizer.email }),
+      ...(event.organizer.scheduleAgent && { scheduleAgent: event.organizer.scheduleAgent }),
     },
     ...{ recurrenceRule },
     attendees: [
@@ -93,6 +94,7 @@ const generateIcsString = ({
         partstat,
         role: icsRole,
         rsvp: true,
+        ...(attendee.scheduleAgent && { scheduleAgent: attendee.scheduleAgent }),
       })),
       ...(event.team?.members
         ? event.team?.members.map((member: Person) => ({
@@ -101,6 +103,7 @@ const generateIcsString = ({
             partstat,
             role: icsRole,
             rsvp: true,
+            ...(member.scheduleAgent && { scheduleAgent: member.scheduleAgent }),
           }))
         : []),
     ],
