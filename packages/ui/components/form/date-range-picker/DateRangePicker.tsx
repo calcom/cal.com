@@ -2,8 +2,7 @@
 
 import * as Popover from "@radix-ui/react-popover";
 import { format, isBefore, isSameDay } from "date-fns";
-import * as React from "react";
-import type { DateRange } from "react-day-picker";
+import { useState, useMemo, type HTMLAttributes } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -34,8 +33,8 @@ export function DatePickerWithRange({
   "data-testid": testId,
   strictlyBottom,
   allowPastDates = false,
-}: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
-  const [hoveredDate, setHoveredDate] = React.useState<Date | undefined>(undefined);
+}: HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
+  const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
 
   function handleDayClick(date: Date) {
     const newDates = calculateNewDateRange({
@@ -59,7 +58,7 @@ export function DatePickerWithRange({
 
   const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
 
-  const getHoverRange = (): DateRange | undefined => {
+  const hoverRangeModifier = useMemo(() => {
     if (!dates.startDate || dates.endDate || !hoveredDate) {
       return undefined;
     }
@@ -70,16 +69,7 @@ export function DatePickerWithRange({
       return { from: hoveredDate, to: dates.startDate };
     }
     return { from: dates.startDate, to: hoveredDate };
-  };
-
-  const hoverRange = getHoverRange();
-
-  const hoverRangeModifier = hoverRange
-    ? {
-        from: hoverRange.from,
-        to: hoverRange.to,
-      }
-    : undefined;
+  }, [dates.startDate, dates.endDate, hoveredDate]);
 
   const calendar = (
     <Calendar
@@ -136,8 +126,8 @@ export function DatePickerWithRange({
             onInteractOutside={(event) => {
               if (dates?.startDate && !dates?.endDate) {
                 event.preventDefault();
-              }}}
-            >
+              }
+            }}>
             {calendar}
           </Popover.Content>
         </Popover.Portal>
