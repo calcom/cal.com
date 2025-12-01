@@ -1,8 +1,12 @@
+import type { NextApiRequest } from "next";
+
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { getTrackingFromCookies } from "@calcom/lib/tracking";
+import type { TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -14,6 +18,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    req?: NextApiRequest;
   };
   input: TCreateInputSchema;
 };
@@ -23,11 +28,13 @@ const generateCheckoutSession = async ({
   teamName,
   userId,
   isOnboarding,
+  tracking,
 }: {
   teamSlug: string;
   teamName: string;
   userId: number;
   isOnboarding?: boolean;
+  tracking?: TrackingData;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
     console.info("Team billing is disabled, not generating a checkout session.");
@@ -39,6 +46,7 @@ const generateCheckoutSession = async ({
     teamName,
     userId,
     isOnboarding,
+    tracking,
   });
 
   if (!checkoutSession.url)
@@ -51,7 +59,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, isOnboarding } = input;
+  const { slug, name, bio, isOnboarding } = input;
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
@@ -79,11 +87,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // If the user is not a part of an org, then make them pay before creating the team
   if (!isOrgChildTeam) {
+    const tracking = getTrackingFromCookies(ctx.req?.cookies);
+
     const checkoutSession = await generateCheckoutSession({
       teamSlug: slug,
       teamName: name,
       userId: user.id,
       isOnboarding,
+      tracking,
     });
 
     // If there is a checkout session, return it. Otherwise, it means it's disabled.
@@ -99,6 +110,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data: {
       slug,
       name,
+      bio: bio || null,
       members: {
         create: {
           userId: ctx.user.id,

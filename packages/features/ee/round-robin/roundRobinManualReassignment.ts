@@ -1,7 +1,5 @@
 import { cloneDeep } from "lodash";
 
-
-
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -9,16 +7,22 @@ import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
-} from "@calcom/emails";
+} from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import AssignmentReasonRecorder, { RRReassignmentType } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
-import { scheduleEmailReminder, deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import {
+  scheduleEmailReminder,
+  deleteScheduledEmailReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -33,14 +37,11 @@ import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-
-
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
-
 
 enum ErrorCode {
   InvalidRoundRobinHost = "invalid_round_robin_host",
@@ -602,6 +603,8 @@ export async function handleWorkflowsUpdate({
     },
   });
 
+  const creditService = new CreditService();
+
   await scheduleWorkflowReminders({
     workflows: newEventWorkflows,
     smsReminderNumber: null,
@@ -612,6 +615,7 @@ export async function handleWorkflowsUpdate({
       bookerUrl,
     },
     hideBranding: !!eventType?.owner?.hideBranding,
+    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
   });
 }
 

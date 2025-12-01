@@ -19,7 +19,6 @@ import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-f
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -83,6 +82,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
 }
 
@@ -99,7 +99,6 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
-  cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
@@ -149,7 +148,7 @@ function withSlotsCache(
 }
 
 export class AvailableSlotsService {
-  constructor(public readonly dependencies: IAvailableSlotsService) {}
+  constructor(public readonly dependencies: IAvailableSlotsService) { }
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -200,8 +199,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-        ? [input.usernameList]
-        : [],
+          ? [input.usernameList]
+          : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -460,7 +459,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -661,7 +660,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -791,15 +790,15 @@ export class AvailableSlotsService {
 
     const bookingLimits =
       eventType?.bookingLimits &&
-      typeof eventType?.bookingLimits === "object" &&
-      Object.keys(eventType?.bookingLimits).length > 0
+        typeof eventType?.bookingLimits === "object" &&
+        Object.keys(eventType?.bookingLimits).length > 0
         ? parseBookingLimit(eventType?.bookingLimits)
         : null;
 
     const durationLimits =
       eventType?.durationLimits &&
-      typeof eventType?.durationLimits === "object" &&
-      Object.keys(eventType?.durationLimits).length > 0
+        typeof eventType?.durationLimits === "object" &&
+        Object.keys(eventType?.durationLimits).length > 0
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
 
@@ -962,15 +961,14 @@ export class AvailableSlotsService {
       _enableTroubleshooter: enableTroubleshooter = false,
       _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
       _silentCalendarFailures: silentCalendarFailures = false,
-      _shouldServeCache,
       routingFormResponseId,
       queuedFormResponseId,
     } = input;
     const orgDetails = input?.orgSlug
       ? {
-          currentOrgDomain: input.orgSlug,
-          isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
-        }
+        currentOrgDomain: input.orgSlug,
+        isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+      }
       : orgDomainConfig(ctx?.req);
 
     if (process.env.INTEGRATION_TEST_MODE === "true") {
@@ -983,10 +981,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
-      _shouldServeCache,
-      eventType.team?.id
-    );
+    const shouldServeCache = false
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1189,10 +1184,10 @@ export class AvailableSlotsService {
         const travelSchedules =
           isDefaultSchedule && !eventType.useBookerTimezone
             ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-                startDate: dayjs(schedule.startDate),
-                endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-                timeZone: schedule.timeZone,
-              }))
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
@@ -1287,9 +1282,9 @@ export class AvailableSlotsService {
           (
             item:
               | {
-                  time: dayjs.Dayjs;
-                  userIds?: number[] | undefined;
-                }
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
               | undefined
           ): item is {
             time: dayjs.Dayjs;
@@ -1458,23 +1453,23 @@ export class AvailableSlotsService {
 
     const troubleshooterData = enableTroubleshooter
       ? {
-          troubleshooter: {
-            routedTeamMemberIds: routedTeamMemberIds,
-            // One that Salesforce asked for
-            askedContactOwner: contactOwnerEmailFromInput,
-            // One that we used as per Routing skipContactOwner flag
-            consideredContactOwner: contactOwnerEmail,
-            // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
-            routedHosts: usersWithCredentials.map((user) => {
-              return {
-                userId: user.id,
-              };
-            }),
-            hostsAfterSegmentMatching: allHosts.map((host) => ({
-              userId: host.user.id,
-            })),
-          },
-        }
+        troubleshooter: {
+          routedTeamMemberIds: routedTeamMemberIds,
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
+            return {
+              userId: user.id,
+            };
+          }),
+          hostsAfterSegmentMatching: allHosts.map((host) => ({
+            userId: host.user.id,
+          })),
+        },
+      }
       : null;
 
     return {

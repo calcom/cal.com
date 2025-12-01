@@ -4,12 +4,14 @@ import {
   getSMSMessageWithVariables,
   shouldUseTwilio,
 } from "@calcom/ee/workflows/lib/reminders/utils";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -26,6 +28,7 @@ import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
 import type { FormSubmissionData } from "./reminderScheduler";
+import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -87,6 +90,7 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
+  creditCheckFn: CreditCheckFn;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -171,6 +175,7 @@ const scheduleSMSReminderForEvt = async (
     userId,
     teamId,
     seatReferenceUid,
+    creditCheckFn,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -241,6 +246,7 @@ const scheduleSMSReminderForEvt = async (
                   replyTo: evt.organizer.email,
                 }
               : undefined,
+            creditCheckFn,
           });
         } catch (error) {
           log.error(`Error sending SMS with error ${error}`);
@@ -272,6 +278,7 @@ const scheduleSMSReminderForEvt = async (
                   workflowStepId,
                 }
               : undefined,
+            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {
@@ -316,9 +323,21 @@ const scheduleSMSReminderForForm = async (
     formData: FormSubmissionData;
   }
 ) => {
-  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
+  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData, creditCheckFn } =
+    args;
 
-  const smsMessage = message;
+  let smsMessage = message;
+
+  if (smsMessage && formData.responses) {
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+
+    const variables = {
+      responses: transformRoutingFormResponsesToVariableFormat(formData.responses),
+    };
+
+    const processedMessage = customTemplate(smsMessage, variables, formData.user.locale, timeFormat);
+    smsMessage = processedMessage.text;
+  }
 
   if (smsMessage.trim().length > 0) {
     const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
@@ -349,6 +368,7 @@ const scheduleSMSReminderForForm = async (
                 replyTo: formData.user.email,
               }
             : undefined,
+        creditCheckFn,
       });
     } catch (error) {
       log.error(`Error sending SMS with error ${error}`);

@@ -547,7 +547,7 @@ export class PrismaPhoneNumberRepository {
         userId: true,
         teamId: true,
         user: { select: { id: true, email: true, name: true } },
-        team: { select: { id: true, name: true } },
+        team: { select: { id: true, name: true, parentId: true } },
       },
     });
   }
