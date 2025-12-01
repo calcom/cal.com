@@ -612,7 +612,7 @@ export function BookingActionsDropdown({
                         e.stopPropagation();
                         action.onClick?.(e);
                       }}
-                      data-bookingid={action.bookingId}
+                      data-booking-uid={action.bookingUid}
                       data-testid={action.id}
                       className={action.disabled ? "text-muted" : undefined}>
                       {action.label}
@@ -635,7 +635,7 @@ export function BookingActionsDropdown({
                     e.stopPropagation();
                     action.onClick?.(e);
                   }}
-                  data-bookingid={action.bookingId}
+                  data-booking-uid={action.bookingUid}
                   data-testid={action.id}
                   className={action.disabled ? "text-muted" : undefined}>
                   {action.label}
@@ -656,7 +656,7 @@ export function BookingActionsDropdown({
                     action.onClick?.(e);
                   }}
                   disabled={action.disabled}
-                  data-bookingid={action.bookingId}
+                  data-booking-uid={action.bookingUid}
                   data-testid={action.id}
                   className={action.disabled ? "text-muted" : undefined}>
                   {action.label}
@@ -698,7 +698,7 @@ export function BookingActionsDropdown({
                   setIsCancelDialogOpen(true);
                 }}
                 disabled={cancelEventAction.disabled}
-                data-bookingid={cancelEventAction.bookingId}
+                data-booking-uid={cancelEventAction.bookingUid}
                 data-testid={cancelEventAction.id}
                 className={cancelEventAction.disabled ? "text-muted" : undefined}>
                 {cancelEventAction.label}

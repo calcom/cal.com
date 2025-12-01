@@ -437,7 +437,7 @@ function BookingListItem(booking: BookingItemProps) {
               }}
               StartIcon="circle-x"
               disabled={isActionDisabled("cancel", actionContext)}
-              data-bookingid={booking.id}
+              data-booking-uid={booking.uid}
               color="destructive">
               {t("cancel_all_remaining")}
             </Button>

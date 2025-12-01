@@ -45,7 +45,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
       id: "confirm",
-      bookingId: booking.id,
+      bookingUid: booking.uid,
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
       icon: "check" as const,
       disabled: false, // This would be controlled by mutation state in the component
@@ -71,6 +71,7 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
+    bookingUid: booking.uid,
   };
 }
 
