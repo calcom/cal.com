@@ -43,9 +43,9 @@ export class PrivateLinksService {
 
   async createPrivateLink(params: CreatePrivateLinkParams): Promise<PrivateLinkOutput> {
     const { eventTypeId, userId, input, orgSlug, eventTypeSlug } = params;
+    const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+
     try {
-      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
-      
       const transformedInput = this.inputService.transformCreateInput(input);
       const created = await this.repo.create(eventTypeId, {
         link: generateHashedLink(userId),
@@ -73,9 +73,9 @@ export class PrivateLinksService {
 
   async getPrivateLinks(params: GetPrivateLinksParams): Promise<PrivateLinkOutput[]> {
     const { eventTypeId, orgSlug, eventTypeSlug } = params;
+    const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+
     try {
-      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
-      
       const links = await this.repo.listByEventTypeId(eventTypeId);
       const mapped: PrivateLinkData[] = links.map((l) => ({
         id: l.link,
@@ -97,9 +97,9 @@ export class PrivateLinksService {
 
   async updatePrivateLink(params: UpdatePrivateLinkParams): Promise<PrivateLinkOutput> {
     const { eventTypeId, input, orgSlug, eventTypeSlug } = params;
+    const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+
     try {
-      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
-      
       const transformedInput = this.inputService.transformUpdateInput(input);
       const updatedResult = await this.repo.update(eventTypeId, {
         link: transformedInput.linkId,
@@ -150,17 +150,14 @@ export class PrivateLinksService {
     }
   }
 
-  private async resolveEventTypeSlug(
-    eventTypeId: number,
-    providedSlug?: string
-  ): Promise<string> {
+  private async resolveEventTypeSlug(eventTypeId: number, providedSlug?: string): Promise<string> {
     if (providedSlug) return providedSlug;
-    
+
     const slug = await this.eventTypesRepository.getEventTypeSlugById(eventTypeId);
     if (!slug) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found or has no slug`);
     }
-    
+
     return slug;
   }
 

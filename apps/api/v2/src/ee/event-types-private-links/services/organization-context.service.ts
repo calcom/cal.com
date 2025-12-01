@@ -19,7 +19,7 @@ export class OrganizationContextService {
     teamId: number,
     eventTypeId: number
   ): Promise<OrganizationEventTypeContext> {
-    const organization = await this.organizationsRepository.findById(orgId);
+    const organization = await this.organizationsRepository.findById({ id: orgId });
     const eventType = await this.teamsEventTypesRepository.getTeamEventTypeSlug(teamId, eventTypeId);
 
     if (!eventType?.slug) {
