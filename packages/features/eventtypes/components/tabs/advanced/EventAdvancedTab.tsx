@@ -1,4 +1,4 @@
-import { useState, Suspense, useMemo, useEffect, useRef } from "react";
+import { useState, Suspense, useMemo, useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -444,27 +444,12 @@ export const EventAdvancedTab = ({
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
+  // Watch both organizer hiding fields for reactive updates
   const watchedHideOrganizerEmail = formMethods.watch("hideOrganizerEmail");
   const watchedHideOrganizerName = formMethods.watch("hideOrganizerName");
 
-  // Initialize visibility based on watched values (handles async form population)
-  const [hideOrganizerDetailsVisible, setHideOrganizerDetailsVisible] = useState(
-    watchedHideOrganizerEmail || watchedHideOrganizerName
-  );
-
-  // Track if user has manually interacted with the toggle
-  const hasUserInteracted = useRef(false);
-
-  useEffect(() => {
-    // Sync visibility state when form values change
-    if (watchedHideOrganizerEmail || watchedHideOrganizerName) {
-      // If either is true, expand the section
-      setHideOrganizerDetailsVisible(true);
-    } else if (!hasUserInteracted.current) {
-      // Only auto-collapse if user hasn't manually interacted
-      setHideOrganizerDetailsVisible(false);
-    }
-  }, [watchedHideOrganizerEmail, watchedHideOrganizerName]);
+  // Derive visibility from watched values - section is visible if either checkbox is enabled
+  const hideOrganizerDetailsVisible = watchedHideOrganizerEmail || watchedHideOrganizerName;
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -1200,22 +1185,12 @@ export const EventAdvancedTab = ({
         }
         checked={hideOrganizerDetailsVisible}
         onCheckedChange={(e) => {
-          hasUserInteracted.current = true;
-          setHideOrganizerDetailsVisible(e);
-
           if (e) {
-            // When expanding, only auto-check both if user is expanding from a fully collapsed state
-            const currentEmail = formMethods.getValues("hideOrganizerEmail");
-            const currentName = formMethods.getValues("hideOrganizerName");
-
-            // Only auto-check if BOTH are currently false (user manually expanding for first time)
-            if (!currentEmail && !currentName) {
-              formMethods.setValue("hideOrganizerEmail", true, { shouldDirty: true, shouldTouch: true });
-              formMethods.setValue("hideOrganizerName", true, { shouldDirty: true, shouldTouch: true });
-            }
-            // Otherwise, let the existing values remain as-is
+            // When expanding, auto-check both checkboxes
+            formMethods.setValue("hideOrganizerEmail", true, { shouldDirty: true, shouldTouch: true });
+            formMethods.setValue("hideOrganizerName", true, { shouldDirty: true, shouldTouch: true });
           } else {
-            // When manually collapsing, uncheck both checkboxes
+            // When collapsing, uncheck both checkboxes
             formMethods.setValue("hideOrganizerEmail", false, { shouldDirty: true, shouldTouch: true });
             formMethods.setValue("hideOrganizerName", false, { shouldDirty: true, shouldTouch: true });
           }
