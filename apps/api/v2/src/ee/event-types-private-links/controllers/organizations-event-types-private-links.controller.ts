@@ -63,13 +63,13 @@ export class OrganizationsEventTypesPrivateLinksController {
       eventTypeId
     );
     
-    const privateLink = await this.privateLinksService.createPrivateLink(
+    const privateLink = await this.privateLinksService.createPrivateLink({
       eventTypeId,
-      teamId,
-      body,
+      userId: teamId,
+      input: body,
       orgSlug,
-      eventTypeSlug
-    );
+      eventTypeSlug,
+    });
     return {
       status: SUCCESS_STATUS,
       data: privateLink,
@@ -94,11 +94,11 @@ export class OrganizationsEventTypesPrivateLinksController {
       eventTypeId
     );
     
-    const privateLinks = await this.privateLinksService.getPrivateLinks(
+    const privateLinks = await this.privateLinksService.getPrivateLinks({
       eventTypeId,
       orgSlug,
-      eventTypeSlug
-    );
+      eventTypeSlug,
+    });
     return {
       status: SUCCESS_STATUS,
       data: privateLinks,
@@ -126,12 +126,12 @@ export class OrganizationsEventTypesPrivateLinksController {
     );
     
     const updateInput: UpdatePrivateLinkInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(
+    const privateLink = await this.privateLinksService.updatePrivateLink({
       eventTypeId,
-      updateInput,
+      input: updateInput,
       orgSlug,
-      eventTypeSlug
-    );
+      eventTypeSlug,
+    });
     return {
       status: SUCCESS_STATUS,
       data: privateLink,
