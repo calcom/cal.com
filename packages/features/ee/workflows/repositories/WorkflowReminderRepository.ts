@@ -84,12 +84,14 @@ export class WorkflowReminderRepository {
     method,
     scheduledDate,
     scheduled,
+    seatReferenceUid,
   }: {
     bookingUid: string;
     workflowStepId: number;
     method: WorkflowMethods;
     scheduledDate: Date;
     scheduled: boolean;
+    seatReferenceUid?: string;
   }) {
     return this.prismaClient.workflowReminder.create({
       data: {
@@ -98,6 +100,7 @@ export class WorkflowReminderRepository {
         method,
         scheduledDate,
         scheduled,
+        ...(seatReferenceUid && { seatReferenceUid }),
       },
     });
   }

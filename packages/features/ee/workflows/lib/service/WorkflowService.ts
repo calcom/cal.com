@@ -290,6 +290,7 @@ export class WorkflowService {
         method: WorkflowMethods.EMAIL,
         scheduledDate,
         scheduled: true,
+        seatReferenceUid: seatReferenceId,
       });
     } catch (error) {
       log.error(`Error creating workflowReminder: ${error}`);
