@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.9.5",
+  "version": "5.9.6",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -46,6 +46,7 @@
     "@calcom/trpc": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/ui": "workspace:*",
+    "@coss/ui": "workspace:*",
     "@daily-co/daily-js": "^0.83.1",
     "@daily-co/daily-react": "^0.23.2",
     "@dub/analytics": "^0.0.27",
@@ -119,8 +120,8 @@
     "nuqs": "^2.7.2",
     "openid-client": "6.5.0",
     "otplib": "^12.0.1",
-    "posthog-js": "^1.164.1",
-    "posthog-node": "^4.2.0",
+    "posthog-js": "^1.274.1",
+    "posthog-node": "^5.9.5",
     "qrcode": "^1.5.1",
     "raw-body": "^2.5.1",
     "react": "^18.2.0",
@@ -151,7 +152,6 @@
     "sonner": "^1.7.4",
     "stripe": "^9.16.0",
     "superjson": "1.9.1",
-    "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.3",
     "uuid": "^8.3.2",
     "zod": "^3.22.4"
@@ -163,6 +163,7 @@
     "@calcom/types": "workspace:*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.45.3",
+    "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/react": "^13.3.0",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.15",
@@ -197,8 +198,7 @@
     "node-html-parser": "^6.1.10",
     "node-mocks-http": "^1.11.0",
     "postcss": "^8.4.18",
-    "tailwindcss": "^3.3.3",
-    "tailwindcss-animate": "^1.0.6",
+    "tailwindcss": "^4",
     "ts-node": "^10.9.1",
     "turbo": "^2.5.5",
     "typescript": "^5.9.0-beta"

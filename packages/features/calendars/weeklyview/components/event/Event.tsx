@@ -31,7 +31,7 @@ const eventClasses = cva(
         false: "hover:cursor-pointer",
       },
       selected: {
-        true: "bg-inverted text-inverted border-[1px] border-transparent",
+        true: "bg-inverted text-inverted border border-transparent",
         false: "",
       },
     },
@@ -107,7 +107,7 @@ export function Event({
           {displayType === "single-line" && (
             <div
               className={classNames(
-                "flex w-full shrink-0 gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
+                "flex w-full shrink-0 gap-2 overflow-hidden text-ellipsis whitespace-nowrap text-left leading-4",
                 "items-center"
               )}>
               <span>{event.title}</span>
