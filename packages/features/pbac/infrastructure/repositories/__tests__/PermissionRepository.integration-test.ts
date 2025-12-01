@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from "vitest";
 
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { PermissionString } from "../../../domain/types/permission-registry";
 import { PermissionRepository } from "../PermissionRepository";
@@ -54,6 +55,9 @@ describe("PermissionRepository - Integration Tests", () => {
     });
     await prisma.role.deleteMany({
       where: { id: testRoleId },
+    });
+    await prisma.teamFeatures.deleteMany({
+      where: { teamId: testTeamId },
     });
     await prisma.team.deleteMany({
       where: { id: testTeamId },
@@ -322,401 +326,280 @@ describe("PermissionRepository - Integration Tests", () => {
   });
 
   describe("getTeamIdsWithPermissions", () => {
-    let orgTeamId: number;
-    let childTeamId: number;
-    let orgRoleId: string;
-    let childTeamRoleId: string;
-    let otherUserId: number;
+    it("should return empty array for empty permissions", async () => {
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: [],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
 
-    beforeEach(async () => {
-      // Ensure pbac feature exists
-      await prisma.feature.upsert({
-        where: { slug: "pbac" },
-        create: {
-          slug: "pbac",
-          enabled: false,
-          description: "Enables the PBAC feature.",
-          type: "OPERATIONAL",
-        },
-        update: {},
-      });
-      // Create org team
-      const orgTeam = await prisma.team.create({
+      expect(result).toEqual([]);
+    });
+
+    it("should return team IDs for PBAC-enabled team with matching permissions", async () => {
+      // Enable PBAC for the team
+      await prisma.teamFeatures.create({
         data: {
-          name: `Org Team ${Date.now()}`,
-          slug: `org-team-${Date.now()}`,
+          teamId: testTeamId,
+          featureId: "pbac",
+          assignedBy: "test",
         },
       });
-      orgTeamId = orgTeam.id;
+
+      // Create membership with custom role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: testRoleId,
+        },
+      });
+
+      // Create role permissions
+      await prisma.rolePermission.createMany({
+        data: [
+          { roleId: testRoleId, resource: "eventType", action: "create" },
+          { roleId: testRoleId, resource: "eventType", action: "read" },
+        ],
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create", "eventType.read"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).toContain(testTeamId);
+      expect(result.length).toBe(1);
+    });
+
+    it("should not return team IDs when permissions do not match", async () => {
+      // Enable PBAC for the team
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeamId,
+          featureId: "pbac",
+          assignedBy: "test",
+        },
+      });
+
+      // Create membership with custom role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: testRoleId,
+        },
+      });
+
+      // Create role permissions (different from requested)
+      await prisma.rolePermission.create({
+        data: {
+          roleId: testRoleId,
+          resource: "eventType",
+          action: "create",
+        },
+      });
+
+      // Request permissions that don't match
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.delete"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).not.toContain(testTeamId);
+    });
+
+    it("should return team IDs for fallback roles when PBAC is disabled", async () => {
+      // Do NOT enable PBAC for the team (fallback mode)
+
+      // Create membership with fallback role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+          customRoleId: null,
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).toContain(testTeamId);
+      expect(result.length).toBe(1);
+    });
+
+    it("should not return team IDs for fallback roles that are not in the list", async () => {
+      // Do NOT enable PBAC for the team
+
+      // Create membership with MEMBER role (not in fallbackRoles)
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: null,
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
+      expect(result).not.toContain(testTeamId);
+    });
+
+    it("should return child team IDs when user has PBAC permissions via org", async () => {
+      // Create organization
+      const org = await prisma.team.create({
+        data: {
+          name: `Test Org ${Date.now()}`,
+          slug: `test-org-${Date.now()}`,
+          isOrganization: true,
+        },
+      });
+
+      // Enable PBAC for org
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: org.id,
+          featureId: "pbac",
+          assignedBy: "test",
+        },
+      });
+
+      // Create org role
+      const orgRole = await prisma.role.create({
+        data: {
+          name: `Org Role ${Date.now()}`,
+          teamId: org.id,
+        },
+      });
+
+      // Create org membership with custom role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: orgRole.id,
+        },
+      });
+
+      // Create org role permissions
+      await prisma.rolePermission.createMany({
+        data: [
+          { roleId: orgRole.id, resource: "eventType", action: "create" },
+          { roleId: orgRole.id, resource: "eventType", action: "read" },
+        ],
+      });
 
       // Create child team
       const childTeam = await prisma.team.create({
         data: {
           name: `Child Team ${Date.now()}`,
           slug: `child-team-${Date.now()}`,
-          parentId: orgTeamId,
+          parentId: org.id,
         },
       });
-      childTeamId = childTeam.id;
 
-      // Create org role
-      const orgRole = await prisma.role.create({
-        data: {
-          name: `Org Role ${Date.now()}`,
-          teamId: orgTeamId,
-        },
-      });
-      orgRoleId = orgRole.id;
-
-      // Create child team role
-      const childTeamRole = await prisma.role.create({
-        data: {
-          name: `Child Team Role ${Date.now()}`,
-          teamId: childTeamId,
-        },
-      });
-      childTeamRoleId = childTeamRole.id;
-
-      // Create another user for negative tests
-      const otherUser = await prisma.user.create({
-        data: {
-          email: `other-${Date.now()}@example.com`,
-          username: `otheruser-${Date.now()}`,
-        },
-      });
-      otherUserId = otherUser.id;
-    });
-
-    afterEach(async () => {
-      await prisma.rolePermission.deleteMany({
-        where: {
-          roleId: { in: [orgRoleId, childTeamRoleId] },
-        },
-      });
-      await prisma.membership.deleteMany({
-        where: {
-          userId: { in: [testUserId, otherUserId] },
-        },
-      });
-      await prisma.role.deleteMany({
-        where: {
-          id: { in: [orgRoleId, childTeamRoleId] },
-        },
-      });
-      await prisma.teamFeatures.deleteMany({
-        where: {
-          teamId: { in: [orgTeamId, childTeamId] },
-        },
-      });
-      await prisma.team.deleteMany({
-        where: {
-          id: { in: [orgTeamId, childTeamId] },
-        },
-      });
-      await prisma.user.deleteMany({
-        where: {
-          id: otherUserId,
-        },
-      });
-    });
-
-    it("should return empty array for empty permissions", async () => {
       const result = await repository.getTeamIdsWithPermissions({
         userId: testUserId,
-        permissions: [],
-        fallbackRoles: ["ADMIN", "OWNER"],
+        permissions: ["eventType.create", "eventType.read"],
+        fallbackRoles: [MembershipRole.ADMIN],
       });
 
-      expect(result).toEqual([]);
+      expect(result).toContain(childTeam.id);
+
+      // Cleanup
+      await prisma.rolePermission.deleteMany({ where: { roleId: orgRole.id } });
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.role.deleteMany({ where: { id: orgRole.id } });
+      await prisma.teamFeatures.deleteMany({ where: { teamId: org.id } });
+      await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
     });
 
-    it("should return teams where user has direct PBAC permissions", async () => {
-      await prisma.rolePermission.createMany({
-        data: [
-          { roleId: testRoleId, resource: "insights", action: "read" },
-          { roleId: testRoleId, resource: "insights", action: "create" },
-        ],
+    it("should return child team IDs when user has fallback roles via org", async () => {
+      // Create organization
+      const org = await prisma.team.create({
+        data: {
+          name: `Test Org ${Date.now()}`,
+          slug: `test-org-${Date.now()}`,
+          isOrganization: true,
+        },
       });
 
+      // Do NOT enable PBAC for org
+
+      // Create org membership with fallback role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: org.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+          customRoleId: null,
+        },
+      });
+
+      // Create child team
+      const childTeam = await prisma.team.create({
+        data: {
+          name: `Child Team ${Date.now()}`,
+          slug: `child-team-${Date.now()}`,
+          parentId: org.id,
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.OWNER],
+      });
+
+      expect(result).toContain(childTeam.id);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.team.deleteMany({ where: { id: { in: [org.id, childTeam.id] } } });
+    });
+
+    it("should handle wildcard permissions for PBAC teams", async () => {
+      // Enable PBAC for the team
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeamId,
+          featureId: "pbac",
+          assignedBy: "test",
+        },
+      });
+
+      // Create membership with custom role
       await prisma.membership.create({
         data: {
           userId: testUserId,
           teamId: testTeamId,
-          role: "MEMBER",
+          role: MembershipRole.MEMBER,
           accepted: true,
           customRoleId: testRoleId,
         },
       });
 
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read", "insights.create"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toContain(testTeamId);
-    });
-
-    it("should return teams where user has fallback roles (non-PBAC teams)", async () => {
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: testTeamId,
-          role: "ADMIN",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toContain(testTeamId);
-    });
-
-    it("should return child teams where user has org-level PBAC permissions", async () => {
-      await prisma.rolePermission.createMany({
-        data: [
-          { roleId: orgRoleId, resource: "insights", action: "read" },
-          { roleId: orgRoleId, resource: "insights", action: "create" },
-        ],
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: orgTeamId,
-          role: "MEMBER",
-          accepted: true,
-          customRoleId: orgRoleId,
-        },
-      });
-
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: orgTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: childTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read", "insights.create"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toContain(childTeamId);
-      expect(result).toContain(orgTeamId);
-    });
-
-    it("should return child teams where user has org-level fallback roles (non-PBAC orgs)", async () => {
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: orgTeamId,
-          role: "ADMIN",
-          accepted: true,
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: childTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toContain(childTeamId);
-      expect(result).toContain(orgTeamId);
-    });
-
-    it("should not return teams where user lacks required permissions", async () => {
-      await prisma.rolePermission.create({
-        data: {
-          roleId: testRoleId,
-          resource: "insights",
-          action: "read",
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: testTeamId,
-          role: "MEMBER",
-          accepted: true,
-          customRoleId: testRoleId,
-        },
-      });
-
-      // Enable PBAC for team
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read", "insights.create"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).not.toContain(testTeamId);
-    });
-
-    it("should not return teams where user is MEMBER without fallback roles", async () => {
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: testTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read"],
-        fallbackRoles: ["ADMIN", "OWNER"], // MEMBER not included
-      });
-
-      expect(result).not.toContain(testTeamId);
-    });
-
-    it("should combine direct and org-level permissions", async () => {
-      await prisma.rolePermission.createMany({
-        data: [
-          { roleId: testRoleId, resource: "insights", action: "read" },
-          { roleId: orgRoleId, resource: "insights", action: "read" },
-        ],
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: testTeamId,
-          role: "MEMBER",
-          accepted: true,
-          customRoleId: testRoleId,
-        },
-      });
-
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: testTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: orgTeamId,
-          role: "MEMBER",
-          accepted: true,
-          customRoleId: orgRoleId,
-        },
-      });
-
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: orgTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: childTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).toContain(testTeamId);
-      expect(result).toContain(orgTeamId);
-      expect(result).toContain(childTeamId);
-    });
-
-    it("should not return child teams when org has PBAC enabled but user lacks org permissions", async () => {
-      await prisma.teamFeatures.create({
-        data: {
-          teamId: orgTeamId,
-          featureId: "pbac",
-          assignedBy: "test",
-        },
-      });
-
-      // Create org membership WITHOUT custom role (no PBAC permissions)
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: orgTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: childTeamId,
-          role: "MEMBER",
-          accepted: true,
-        },
-      });
-
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read"],
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
-
-      expect(result).not.toContain(childTeamId);
-      expect(result).not.toContain(orgTeamId);
-    });
-
-    it("should handle wildcard permissions correctly", async () => {
+      // Create wildcard permission
       await prisma.rolePermission.create({
         data: {
           roleId: testRoleId,
@@ -725,16 +608,17 @@ describe("PermissionRepository - Integration Tests", () => {
         },
       });
 
-      await prisma.membership.create({
-        data: {
-          userId: testUserId,
-          teamId: testTeamId,
-          role: "MEMBER",
-          accepted: true,
-          customRoleId: testRoleId,
-        },
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create", "team.delete", "role.update"],
+        fallbackRoles: [MembershipRole.ADMIN],
       });
 
+      expect(result).toContain(testTeamId);
+    });
+
+    it("should require all permissions to match (not just some)", async () => {
+      // Enable PBAC for the team
       await prisma.teamFeatures.create({
         data: {
           teamId: testTeamId,
@@ -743,13 +627,237 @@ describe("PermissionRepository - Integration Tests", () => {
         },
       });
 
-      const result = await repository.getTeamIdsWithPermissions({
-        userId: testUserId,
-        permissions: ["insights.read", "eventType.create", "team.invite"],
-        fallbackRoles: ["ADMIN", "OWNER"],
+      // Create membership with custom role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: testRoleId,
+        },
       });
 
-      // Wildcard should match all permissions
+      // Create only 2 out of 3 required permissions
+      await prisma.rolePermission.createMany({
+        data: [
+          { roleId: testRoleId, resource: "eventType", action: "create" },
+          { roleId: testRoleId, resource: "eventType", action: "read" },
+        ],
+      });
+
+      // Request 3 permissions
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create", "eventType.read", "eventType.delete"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).not.toContain(testTeamId);
+    });
+
+    it("should not return teams for non-accepted memberships", async () => {
+      // Enable PBAC for the team
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeamId,
+          featureId: "pbac",
+          assignedBy: "test",
+        },
+      });
+
+      // Create membership with accepted: false
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: false, // Not accepted
+          customRoleId: testRoleId,
+        },
+      });
+
+      await prisma.rolePermission.create({
+        data: {
+          roleId: testRoleId,
+          resource: "eventType",
+          action: "create",
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).not.toContain(testTeamId);
+    });
+
+    it("should return multiple teams when user has permissions on multiple teams", async () => {
+      // Create second team
+      const team2 = await prisma.team.create({
+        data: {
+          name: `Test Team 2 ${Date.now()}`,
+          slug: `test-team-2-${Date.now()}`,
+        },
+      });
+
+      const role2 = await prisma.role.create({
+        data: {
+          name: `Test Role 2 ${Date.now()}`,
+          teamId: team2.id,
+        },
+      });
+
+      // Enable PBAC for both teams
+      await prisma.teamFeatures.createMany({
+        data: [
+          { teamId: testTeamId, featureId: "pbac", assignedBy: "test" },
+          { teamId: team2.id, featureId: "pbac", assignedBy: "test" },
+        ],
+      });
+
+      // Create memberships for both teams
+      await prisma.membership.createMany({
+        data: [
+          {
+            userId: testUserId,
+            teamId: testTeamId,
+            role: MembershipRole.MEMBER,
+            accepted: true,
+            customRoleId: testRoleId,
+          },
+          {
+            userId: testUserId,
+            teamId: team2.id,
+            role: MembershipRole.MEMBER,
+            accepted: true,
+            customRoleId: role2.id,
+          },
+        ],
+      });
+
+      // Create permissions for both roles
+      await prisma.rolePermission.createMany({
+        data: [
+          { roleId: testRoleId, resource: "eventType", action: "create" },
+          { roleId: role2.id, resource: "eventType", action: "create" },
+        ],
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).toContain(testTeamId);
+      expect(result).toContain(team2.id);
+      expect(result.length).toBe(2);
+
+      // Cleanup
+      await prisma.rolePermission.deleteMany({ where: { roleId: role2.id } });
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.role.deleteMany({ where: { id: role2.id } });
+      await prisma.teamFeatures.deleteMany({ where: { teamId: team2.id } });
+      await prisma.team.deleteMany({ where: { id: team2.id } });
+    });
+
+    it("should combine PBAC and fallback teams in results", async () => {
+      // Create second team for fallback
+      const team2 = await prisma.team.create({
+        data: {
+          name: `Test Team 2 ${Date.now()}`,
+          slug: `test-team-2-${Date.now()}`,
+        },
+      });
+
+      // Enable PBAC for first team only
+      await prisma.teamFeatures.create({
+        data: {
+          teamId: testTeamId,
+          featureId: "pbac",
+          assignedBy: "test",
+        },
+      });
+
+      // Create PBAC membership
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+          customRoleId: testRoleId,
+        },
+      });
+
+      await prisma.rolePermission.create({
+        data: {
+          roleId: testRoleId,
+          resource: "eventType",
+          action: "create",
+        },
+      });
+
+      // Create fallback membership
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: team2.id,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+          customRoleId: null,
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).toContain(testTeamId);
+      expect(result).toContain(team2.id);
+      expect(result.length).toBe(2);
+
+      // Cleanup
+      await prisma.membership.deleteMany({ where: { userId: testUserId } });
+      await prisma.teamFeatures.deleteMany({ where: { teamId: testTeamId } });
+      await prisma.team.deleteMany({ where: { id: team2.id } });
+    });
+
+    it("should return empty array when user has no memberships", async () => {
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN],
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it("should handle multiple fallback roles", async () => {
+      // Do NOT enable PBAC
+
+      // Create membership with ADMIN role
+      await prisma.membership.create({
+        data: {
+          userId: testUserId,
+          teamId: testTeamId,
+          role: MembershipRole.ADMIN,
+          accepted: true,
+          customRoleId: null,
+        },
+      });
+
+      const result = await repository.getTeamIdsWithPermissions({
+        userId: testUserId,
+        permissions: ["eventType.create"],
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
       expect(result).toContain(testTeamId);
     });
   });
