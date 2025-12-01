@@ -15,6 +15,7 @@ describe("SlotsInputService_2024_09_04", () => {
   let service: SlotsInputService_2024_09_04;
   let eventTypesRepository: EventTypesRepository_2024_06_14;
   let teamsEventTypesRepository: TeamsEventTypesRepository;
+  let teamsRepository: TeamsRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -69,6 +70,7 @@ describe("SlotsInputService_2024_09_04", () => {
     service = module.get<SlotsInputService_2024_09_04>(SlotsInputService_2024_09_04);
     eventTypesRepository = module.get<EventTypesRepository_2024_06_14>(EventTypesRepository_2024_06_14);
     teamsEventTypesRepository = module.get<TeamsEventTypesRepository>(TeamsEventTypesRepository);
+    teamsRepository = module.get<TeamsRepository>(TeamsRepository);
 
     jest.clearAllMocks();
   });
@@ -87,7 +89,6 @@ describe("SlotsInputService_2024_09_04", () => {
         id: 1,
         slug: "test-event",
         teamId: null,
-        timeZone: "Europe/Berlin",
         schedule: {
           timeZone: "America/New_York",
         },
@@ -113,7 +114,6 @@ describe("SlotsInputService_2024_09_04", () => {
         id: 1,
         slug: "test-event",
         teamId: null,
-        timeZone: "Europe/Berlin",
         schedule: {
           timeZone: "Asia/Kolkata",
         },
@@ -135,6 +135,11 @@ describe("SlotsInputService_2024_09_04", () => {
         start: "2025-12-01T18:30:00Z",
         end: "2025-12-02T18:29:59Z",
       } as GetSlotsInput_2024_09_04;
+
+      (teamsRepository.findTeamBySlug as jest.Mock).mockResolvedValue({
+        id: 10,
+        slug: "team-slug",
+      });
 
       (teamsEventTypesRepository.getEventTypeByTeamIdAndSlug as jest.Mock).mockResolvedValue({
         id: 1,
