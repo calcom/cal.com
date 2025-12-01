@@ -9,6 +9,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,8 +19,6 @@ import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -118,15 +118,11 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const mapEventType = async (eventType: UserEventTypes) => {
     const userRepo = new UserRepository(prisma);
-    const usersSource =
-      eventType.hosts && eventType.hosts.length > 0
-        ? eventType.hosts.map((host) => host.user)
-        : eventType.users;
     return {
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: await Promise.all(
-        usersSource.map(
+        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
           async (u) =>
             await userRepo.enrichUserWithItsProfile({
               user: u,
