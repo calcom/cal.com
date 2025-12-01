@@ -33,9 +33,25 @@ export class ConferencingRepository {
   }
 
   async findTeamConferencingApps(teamId: number) {
+    const parentTeam = await this.dbRead.prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        parentId: true,
+      },
+    });
+
+    const teamIds = [teamId];
+    if (parentTeam?.parentId) {
+      teamIds.push(parentTeam.parentId);
+    }
+
     return this.dbRead.prisma.credential.findMany({
       where: {
-        teamId,
+        teamId: {
+          in: teamIds,
+        },
         type: { endsWith: "_video" },
       },
       select: this.credentialSelect,
@@ -59,6 +75,13 @@ export class ConferencingRepository {
   async findTeamConferencingApp(teamId: number, app: string) {
     return this.dbRead.prisma.credential.findFirst({
       where: { teamId, appId: app },
+      select: this.credentialSelect,
+    });
+  }
+
+  async findMultipleTeamsConferencingApp(teamIds: number[], app: string) {
+    return this.dbRead.prisma.credential.findMany({
+      where: { teamId: { in: teamIds }, appId: app },
       select: this.credentialSelect,
     });
   }

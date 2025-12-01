@@ -47,9 +47,15 @@ type LocationsProps = {
   customClassNames?: LocationCustomClassNames;
 };
 
-const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
+const getLocationFromType = (
+  type: EventLocationType["type"],
+  locationOptions: TLocationOptions,
+  credentialId?: number
+) => {
   for (const locationOption of locationOptions) {
-    const option = locationOption.options.find((option) => option.value === type);
+    const option = locationOption.options.find(
+      (option) => option.value === type && (credentialId ? option.credentialId === credentialId : true)
+    );
     if (option) {
       return option;
     }
@@ -174,7 +180,7 @@ const Locations: React.FC<LocationsProps> = ({
 
           const isCalVideo = field.type === "integrations:daily";
 
-          const option = getLocationFromType(field.type, locationOptions);
+          const option = getLocationFromType(field.type, locationOptions, field.credentialId);
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
@@ -185,6 +191,10 @@ const Locations: React.FC<LocationsProps> = ({
                   isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
+                  isOptionSelected={(option) =>
+                    (option.credentialId ? option.credentialId === selectedNewOption?.credentialId : true) &&
+                    option.value === selectedNewOption?.value
+                  }
                   className={classNames(
                     "block min-w-0 flex-1 rounded-sm text-sm",
                     customClassNames?.locationSelect?.selectWrapper
@@ -201,7 +211,10 @@ const Locations: React.FC<LocationsProps> = ({
                       }
                       const canAddLocation =
                         eventLocationType.organizerInputType ||
-                        !validLocations?.find((location) => location.type === newLocationType);
+                        !validLocations?.find(
+                          (location) =>
+                            location.type === newLocationType && location.credentialId === e.credentialId
+                        );
 
                       const shouldUpdateLink =
                         eventLocationType?.organizerInputType === "text" &&
@@ -328,6 +341,10 @@ const Locations: React.FC<LocationsProps> = ({
               placeholder={t("select")}
               options={locationOptions}
               value={selectedNewOption}
+              isOptionSelected={(option) =>
+                (option.credentialId ? option.credentialId === selectedNewOption?.credentialId : true) &&
+                option.value === selectedNewOption?.value
+              }
               isDisabled={disableLocationProp}
               defaultValue={defaultValue}
               isSearchable={false}

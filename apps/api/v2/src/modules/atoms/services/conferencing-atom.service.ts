@@ -18,6 +18,7 @@ export class ConferencingAtomsService {
       input: {
         variant: "conferencing",
         onlyInstalled: true,
+        includeTeamInstalledApps: true,
       },
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });
