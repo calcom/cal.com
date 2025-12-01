@@ -204,13 +204,14 @@ export class CalendarSubscriptionService {
    * Subscribe periodically to new calendars
    */
   async checkForNewSubscriptions() {
-    const calendarSubscriptionTeamsEnabled = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
+    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
     );
 
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
+      teamIds,
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
     await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
