@@ -5,8 +5,10 @@ import type { IDeploymentRepository } from "@calcom/lib/server/repository/deploy
 import { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma/client";
 
+type PrismaClientType = PrismaClient<Prisma.PrismaClientOptions, never, Prisma.DefaultArgs>;
+
 class InlineDeploymentRepository implements IDeploymentRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClientType) {}
 
   async getLicenseKeyWithId(id: number): Promise<string | null> {
     const deployment = await this.prisma.deployment.findUnique({
@@ -25,7 +27,7 @@ class InlineDeploymentRepository implements IDeploymentRepository {
   }
 }
 
-async function incrementUsage(prismaClient: PrismaClient, event?: UsageEvent) {
+async function incrementUsage(prismaClient: PrismaClientType, event?: UsageEvent) {
   const deploymentRepo = new InlineDeploymentRepository(prismaClient);
   try {
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
@@ -35,7 +37,7 @@ async function incrementUsage(prismaClient: PrismaClient, event?: UsageEvent) {
   }
 }
 
-export function usageTrackingExtention(prismaClient: PrismaClient) {
+export function usageTrackingExtention(prismaClient: PrismaClientType) {
   return Prisma.defineExtension({
     query: {
       booking: {

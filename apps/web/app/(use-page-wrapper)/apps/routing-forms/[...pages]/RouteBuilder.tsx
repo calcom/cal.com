@@ -1,16 +1,20 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import {
+  buildEmptyQueryValue,
+  raqbQueryValueUtils,
+  normalizeRaqbJsonTree,
+} from "@calcom/app-store/_utils/raqb/raqbUtils";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
@@ -83,6 +87,8 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
+  const actionValue = !isRouter(route) ? route.action.value : undefined;
+  
   useEffect(() => {
     if (isRouter(route)) {
       return;
@@ -103,12 +109,12 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route, actionValue]);
 }
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return !!(route.queryValue.children1 && Object.keys(route.queryValue.children1).length);
 };
 
 function getEmptyQueryValue() {
@@ -147,14 +153,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -398,7 +404,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+  }, [route, eventOptions]);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -468,6 +474,26 @@ const Route = ({
     []
   );
 
+  const memoizedFormFieldsConfig = useMemo(
+    () =>
+      withRaqbSettingsAndWidgets({
+        config: formFieldsQueryBuilderConfig,
+        configFor: ConfigFor.FormFields,
+      }),
+    [formFieldsQueryBuilderConfig]
+  );
+
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = useMemo(
+    () =>
+      attributesQueryBuilderConfig
+        ? withRaqbSettingsAndWidgets({
+            config: attributesQueryBuilderConfig,
+            configFor: ConfigFor.Attributes,
+          })
+        : null,
+    [attributesQueryBuilderConfig]
+  );
+
   if (isRouter(route)) {
     return (
       <div>
@@ -530,10 +556,7 @@ const Route = ({
         <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
       </div>
       <Query
-        {...withRaqbSettingsAndWidgets({
-          config: formFieldsQueryBuilderConfig,
-          configFor: ConfigFor.FormFields,
-        })}
+        {...memoizedFormFieldsConfig}
         value={route.formFieldsQueryBuilderState.tree}
         onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
           onChangeFormFieldsQuery(
@@ -546,13 +569,6 @@ const Route = ({
       />
     </div>
   ) : null;
-
-  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
-    ? withRaqbSettingsAndWidgets({
-        config: attributesQueryBuilderConfig,
-        configFor: ConfigFor.Attributes,
-      })
-    : null;
 
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
@@ -1055,17 +1071,48 @@ function useRoutes({
         if (isRouter(route)) {
           return route;
         }
-        return {
+
+        const normalizedQueryValue = normalizeRaqbJsonTree(route.queryValue);
+        const normalizedAttributesQueryValue = normalizeRaqbJsonTree(route.attributesQueryValue);
+        const normalizedFallbackAttributesQueryValue = normalizeRaqbJsonTree(
+          route.fallbackAttributesQueryValue
+        );
+
+        const cleanedRoute = {
           id: route.id,
-          name: route.name,
-          attributeRoutingConfig: route.attributeRoutingConfig,
           action: route.action,
-          isFallback: route.isFallback,
-          queryValue: route.queryValue,
-          attributesQueryValue: route.attributesQueryValue,
-          fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
-          attributeIdForWeights: route.attributeIdForWeights,
+          queryValue: normalizedQueryValue,
         };
+
+        if (route.name !== null && route.name !== undefined) {
+          cleanedRoute.name = route.name;
+        }
+
+        if (route.isFallback !== null && route.isFallback !== undefined) {
+          cleanedRoute.isFallback = route.isFallback;
+        }
+
+        if (route.attributeIdForWeights !== null && route.attributeIdForWeights !== undefined) {
+          cleanedRoute.attributeIdForWeights = route.attributeIdForWeights;
+        }
+
+        if (
+          route.attributeRoutingConfig &&
+          typeof route.attributeRoutingConfig === "object" &&
+          Object.keys(route.attributeRoutingConfig).length > 0
+        ) {
+          cleanedRoute.attributeRoutingConfig = route.attributeRoutingConfig;
+        }
+
+        if (normalizedAttributesQueryValue) {
+          cleanedRoute.attributesQueryValue = normalizedAttributesQueryValue;
+        }
+
+        if (normalizedFallbackAttributesQueryValue) {
+          cleanedRoute.fallbackAttributesQueryValue = normalizedFallbackAttributesQueryValue;
+        }
+
+        return cleanedRoute;
       });
     }
   };
@@ -1131,14 +1178,23 @@ const Routes = ({
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
+  const formValues = hookForm.getValues();
+  const fields = formValues.fields;
 
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
-  const attributesQueryBuilderConfig = attributes
-    ? getQueryBuilderConfigForAttributes({
-        attributes: attributes,
-        dynamicOperandFields: hookForm.getValues().fields,
-      })
-    : null;
+  const formFieldsQueryBuilderConfig = useMemo(
+    () => getQueryBuilderConfigForFormFields(formValues),
+    [formValues]
+  );
+  const attributesQueryBuilderConfig = useMemo(
+    () =>
+      attributes
+        ? getQueryBuilderConfigForAttributes({
+            attributes: attributes,
+            dynamicOperandFields: fields,
+          })
+        : null,
+    [attributes, fields]
+  );
 
   const { routes, setRoutes } = useRoutes({
     serializedRoutes,
@@ -1158,7 +1214,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
