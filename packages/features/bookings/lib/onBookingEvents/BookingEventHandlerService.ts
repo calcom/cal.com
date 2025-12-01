@@ -1,32 +1,38 @@
-import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import type { BookingAuditProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditProducerService.interface";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { Actor } from "../types/actor";
+
 
 import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
 
 interface BookingEventHandlerDeps {
   log: ISimpleLogger;
   hashedLinkService: HashedLinkService;
-  //TODO: To be made required in followup PR
-  bookingAuditService?: BookingAuditService;
+  bookingAuditProducerService: BookingAuditProducerService;
 }
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
-  private readonly hashedLinkService: BookingEventHandlerDeps["hashedLinkService"];
-
   constructor(private readonly deps: BookingEventHandlerDeps) {
     this.log = deps.log;
-    this.hashedLinkService = deps.hashedLinkService;
   }
 
-  async onBookingCreated(payload: BookingCreatedPayload) {
+  async onBookingCreated(payload: BookingCreatedPayload, actor: Actor) {
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
+    await this.deps.bookingAuditProducerService.queueAudit(payload.booking.uid, actor, payload.organizationId, {
+      action: "CREATED",
+      data: {
+        startTime: payload.booking.startTime.toISOString(),
+        endTime: payload.booking.endTime.toISOString(),
+        status: payload.booking.status,
+      },
+    });
   }
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {

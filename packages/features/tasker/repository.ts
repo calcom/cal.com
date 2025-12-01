@@ -142,6 +142,23 @@ export class Task {
     });
   }
 
+  /**
+   * Update the payload of a task
+   * 
+   * @param taskId - The ID of the task to update
+   * @param newPayload - The new payload string
+   */
+  static async updatePayload(taskId: string, newPayload: string) {
+    return db.task.update({
+      where: {
+        id: taskId,
+      },
+      data: {
+        payload: newPayload,
+      },
+    });
+  }
+
   static async cancel(taskId: string) {
     return db.task.delete({
       where: {

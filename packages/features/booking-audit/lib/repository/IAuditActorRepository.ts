@@ -13,7 +13,7 @@ type AuditActor = {
 export interface IAuditActorRepository {
   findByUserUuid(userUuid: string): Promise<AuditActor | null>;
   findSystemActorOrThrow(): Promise<AuditActor>;
-  upsertUserActor(userUuid: string): Promise<AuditActor>;
+  upsertUserActor(params: { userUuid: string }): Promise<AuditActor>;
   upsertGuestActor(email: string, name?: string, phone?: string): Promise<AuditActor>;
   findByAttendeeId(attendeeId: number): Promise<AuditActor | null>;
 }

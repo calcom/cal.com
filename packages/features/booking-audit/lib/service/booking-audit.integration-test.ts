@@ -3,22 +3,19 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { BookingAuditService } from "./BookingAuditService";
+import type { BookingAuditTaskConsumer } from "./BookingAuditTaskConsumer";
 import type { BookingAuditViewerService } from "./BookingAuditViewerService";
-import { PrismaAuditActorRepository } from "../repository/PrismaAuditActorRepository";
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { getBookingAuditService } from "../../di/BookingAuditService.container";
+import { makeUserActor } from "../../../bookings/lib/types/actor";
+import { getBookingAuditTaskConsumer } from "../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../di/BookingAuditViewerService.container";
 
 /**
  * Integration tests for booking audit system
  * Tests the complete write-read cycle using real database
  */
-describe("BookingAuditService Integration", () => {
-  let bookingAuditService: BookingAuditService;
+describe("Booking Audit Integration", () => {
+  let bookingAuditTaskConsumer: BookingAuditTaskConsumer;
   let bookingAuditViewerService: BookingAuditViewerService;
-  let actorRepository: PrismaAuditActorRepository;
-  let createdActionService: CreatedAuditActionService;
 
   // Test data holders
   let testUserId: number;
@@ -31,10 +28,8 @@ describe("BookingAuditService Integration", () => {
 
   beforeEach(async () => {
     // Initialize services from DI containers
-    bookingAuditService = getBookingAuditService();
+    bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
     bookingAuditViewerService = getBookingAuditViewerService();
-    actorRepository = new PrismaAuditActorRepository({ prismaClient: prisma });
-    createdActionService = new CreatedAuditActionService();
 
     // Create test user
     const timestamp = Date.now();
@@ -145,10 +140,7 @@ describe("BookingAuditService Integration", () => {
 
   describe("CREATED action end-to-end flow", () => {
     it("should create audit record and retrieve it with correct formatting", async () => {
-      // Arrange: Create actor
-      const actor = await actorRepository.upsertUserActor(testUserUuid);
-
-      // Get booking details for audit
+      // Arrange: Get booking details
       const booking = await prisma.booking.findUnique({
         where: { uid: testBookingUid },
         select: {
@@ -160,22 +152,19 @@ describe("BookingAuditService Integration", () => {
 
       expect(booking).toBeDefined();
 
-      // Parse fields using action service
-      const auditData = createdActionService.parseFieldsWithLatest({
-        startTime: booking!.startTime.toISOString(),
-        endTime: booking!.endTime.toISOString(),
-        status: booking!.status,
-      });
+      // Create actor using helper
+      const actor = makeUserActor(testUserUuid);
 
-      // Act: Create audit record
-      const createdAudit = await bookingAuditService.createAuditRecord({
-        bookingUid: testBookingUid,
-        actorId: actor.id,
-        type: "RECORD_CREATED",
-        action: "CREATED",
-        data: auditData,
-        timestamp: new Date(),
-      });
+      // Act: Create audit record using TaskConsumer
+      await bookingAuditTaskConsumer.onBookingCreated(
+        testBookingUid,
+        actor,
+        {
+          startTime: booking!.startTime.toISOString(),
+          endTime: booking!.endTime.toISOString(),
+          status: booking!.status,
+        }
+      );
 
       // Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
@@ -190,11 +179,9 @@ describe("BookingAuditService Integration", () => {
       expect(result.auditLogs).toHaveLength(1);
 
       const auditLog = result.auditLogs[0];
-      expect(auditLog.id).toBe(createdAudit.id);
       expect(auditLog.bookingUid).toBe(testBookingUid);
       expect(auditLog.action).toBe("CREATED");
       expect(auditLog.type).toBe("RECORD_CREATED");
-      expect(auditLog.actor.id).toBe(actor.id);
 
       // Verify display formatting
       expect(auditLog.displaySummary).toBeDefined();
@@ -211,28 +198,25 @@ describe("BookingAuditService Integration", () => {
     });
 
     it("should enrich actor information with user details", async () => {
-      // Arrange: Create actor and audit record
-      const actor = await actorRepository.upsertUserActor(testUserUuid);
-
+      // Arrange: Get booking details
       const booking = await prisma.booking.findUnique({
         where: { uid: testBookingUid },
         select: { startTime: true, endTime: true, status: true },
       });
 
-      const auditData = createdActionService.parseFieldsWithLatest({
-        startTime: booking!.startTime.toISOString(),
-        endTime: booking!.endTime.toISOString(),
-        status: booking!.status,
-      });
+      // Create actor using helper
+      const actor = makeUserActor(testUserUuid);
 
-      await bookingAuditService.createAuditRecord({
-        bookingUid: testBookingUid,
-        actorId: actor.id,
-        type: "RECORD_CREATED",
-        action: "CREATED",
-        data: auditData,
-        timestamp: new Date(),
-      });
+      // Create audit record using TaskConsumer
+      await bookingAuditTaskConsumer.onBookingCreated(
+        testBookingUid,
+        actor,
+        {
+          startTime: booking!.startTime.toISOString(),
+          endTime: booking!.endTime.toISOString(),
+          status: booking!.status,
+        }
+      );
 
       // Act: Retrieve audit logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking(
@@ -250,28 +234,25 @@ describe("BookingAuditService Integration", () => {
     });
 
     it.skip("should enforce permission checks correctly", async () => {
-      // Arrange: Create audit record
-      const actor = await actorRepository.upsertUserActor(testUserUuid);
-
+      // Arrange: Get booking details
       const booking = await prisma.booking.findUnique({
         where: { uid: testBookingUid },
         select: { startTime: true, endTime: true, status: true },
       });
 
-      const auditData = createdActionService.parseFieldsWithLatest({
-        startTime: booking!.startTime.toISOString(),
-        endTime: booking!.endTime.toISOString(),
-        status: booking!.status,
-      });
+      // Create actor using helper
+      const actor = makeUserActor(testUserUuid);
 
-      await bookingAuditService.createAuditRecord({
-        bookingUid: testBookingUid,
-        actorId: actor.id,
-        type: "RECORD_CREATED",
-        action: "CREATED",
-        data: auditData,
-        timestamp: new Date(),
-      });
+      // Create audit record using TaskConsumer
+      await bookingAuditTaskConsumer.onBookingCreated(
+        testBookingUid,
+        actor,
+        {
+          startTime: booking!.startTime.toISOString(),
+          endTime: booking!.endTime.toISOString(),
+          status: booking!.status,
+        }
+      );
 
       // Act & Assert: Booking owner can view
       const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking(

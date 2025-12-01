@@ -26,12 +26,12 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
         return actor;
     }
 
-    async upsertUserActor(userUuid: string) {
+    async upsertUserActor(params: { userUuid: string }) {
         return this.deps.prismaClient.auditActor.upsert({
-            where: { userUuid },
+            where: { userUuid: params.userUuid },
             create: {
                 type: "USER",
-                userUuid,
+                userUuid: params.userUuid,
             },
             update: {},
         });
