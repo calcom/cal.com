@@ -157,7 +157,14 @@ class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInt
     organizersDefaultApp: BookingInputOrganizersDefaultAppLocation_2024_08_13,
   };
 
-  async validate(location: { type: string }) {
+  async validate(location: { type: string } | string) {
+    if (typeof location === "string") {
+      // note(Lauris): this is for backwards compatibility because before switching to booking location objects
+      // we only received a string. If someone is complaining that their location is not displaying as a URL
+      // or whatever check that they are not providing a string for bookign location but one of the input objects.
+      return true;
+    }
+
     const { type } = location;
     if (!type) {
       this.validationMessage = `BookingInputLocationValidator_2024_08_13 - Booking 'location' must have a 'type' property.`;

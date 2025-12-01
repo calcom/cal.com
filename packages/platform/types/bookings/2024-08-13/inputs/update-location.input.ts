@@ -64,14 +64,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
     phone: UpdateBookingInputPhoneLocation_2024_08_13,
   };
 
-  async validate(location: { type: string } | string) {
-    if (typeof location === "string") {
-      // note(Lauris): this is for backwards compatibility because before switching to booking location objects
-      // we only received a string. If someone is complaining that their location is not displaying as a URL
-      // or whatever check that they are not providing a string for bookign location but one of the input objects.
-      return true;
-    }
-
+  async validate(location: { type: string }) {
     const { type } = location;
     if (!type) {
       this.validationMessage = `UpdateBookingInputLocationValidator_2024_08_13 - Booking 'location' must have a 'type' property.`;
