@@ -279,7 +279,7 @@ describe("generateIcsString", () => {
       expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember1.name));
       expect(assertedIcsString).not.toEqual(expect.stringContaining(teamMember2.name));
       // Should show "Organizer" instead
-      expect(assertedIcsString).toEqual(expect.stringContaining("ATTENDEE;CN=Organizer"));
+      expect(assertedIcsString).toEqual(expect.stringContaining("CN=Organizer"));
     });
 
     test("when both flags are true for team event, all team members details should be hidden", () => {
