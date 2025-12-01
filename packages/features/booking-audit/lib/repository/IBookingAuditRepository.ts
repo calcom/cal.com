@@ -1,11 +1,12 @@
+import type { JsonValue } from "@calcom/types/Json";
+
 export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DELETED"
-export type BookingAuditAction = "CREATED" | "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST" | "RESCHEDULED" | "ATTENDEE_ADDED" | "ATTENDEE_REMOVED" | "CANCELLATION_REASON_UPDATED" | "REJECTION_REASON_UPDATED" | "ASSIGNMENT_REASON_UPDATED" | "REASSIGNMENT_REASON_UPDATED" | "LOCATION_CHANGED" | "HOST_NO_SHOW_UPDATED" | "ATTENDEE_NO_SHOW_UPDATED" | "RESCHEDULE_REQUESTED"
+export type BookingAuditAction = "CREATED" | "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST" | "RESCHEDULED" | "ATTENDEE_ADDED" | "ATTENDEE_REMOVED" | "REASSIGNMENT" | "LOCATION_CHANGED" | "HOST_NO_SHOW_UPDATED" | "ATTENDEE_NO_SHOW_UPDATED" | "RESCHEDULE_REQUESTED"
 export type BookingAuditCreateInput = {
     bookingUid: string;
     actorId: string;
     action: BookingAuditAction;
-    data: unknown;
-    createdAt: Date;
+    data: JsonValue;
     type: BookingAuditType;
     timestamp: Date;
 }
@@ -14,9 +15,12 @@ type BookingAudit = {
     id: string;
     bookingUid: string;
     actorId: string;
-    action: string;
-    data: unknown;
+    action: BookingAuditAction;
+    type: BookingAuditType;
+    timestamp: Date;
     createdAt: Date;
+    updatedAt: Date;
+    data: JsonValue;
 }
 
 export interface IBookingAuditRepository {
