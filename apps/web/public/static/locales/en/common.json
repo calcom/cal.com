@@ -3507,7 +3507,6 @@
   "user_workflows_unwhitelisted": "User workflows unwhitelisted",
   "date_and_time": "Date & Time",
   "email_reminder_upcoming_event_notice": "This is a reminder about your upcoming event.",
-  "email_reminder_triggered_by_workflow": "This reminder was triggered by a Workflow in Cal.",
   "event_upper_case": "Event",
   "scheduling_by": "Scheduling by",
   "experience_review_prompt": "How was your recent experience?",
