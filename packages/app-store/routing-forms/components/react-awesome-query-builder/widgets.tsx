@@ -23,13 +23,13 @@ const Select = dynamic(
 
 export type CommonProps<
   TVal extends
-    | string
-    | boolean
-    | string[]
-    | {
-        value: string;
-        optionValue: string;
-      }
+  | string
+  | boolean
+  | string[]
+  | {
+    value: string;
+    optionValue: string;
+  }
 > = {
   placeholder?: string;
   readOnly?: boolean;
@@ -46,22 +46,22 @@ export type CommonProps<
 
 export type SelectLikeComponentProps<
   TVal extends
-    | string
-    | string[]
-    | {
-        value: string;
-        optionValue: string;
-      } = string
+  | string
+  | string[]
+  | {
+    value: string;
+    optionValue: string;
+  } = string
 > = {
   options: {
     label: string;
     value: TVal extends (infer P)[]
-      ? P
-      : TVal extends {
-          value: string;
-        }
-      ? TVal["value"]
-      : TVal;
+    ? P
+    : TVal extends {
+      value: string;
+    }
+    ? TVal["value"]
+    : TVal;
   }[];
 } & CommonProps<TVal>;
 
@@ -370,10 +370,21 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 };
 
 function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
-  const dateValue = value && value.trim() ? new Date(value) : (null as unknown as Date);
+  const parseLocalDate = (v: string): Date | null => {
+    const trimmed = v.trim();
+    const parts = trimmed.split("-");
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts.map((p) => Number.parseInt(p, 10));
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  };
+
+  const dateValue =
+    value && value.trim() ? parseLocalDate(value) ?? ((null as unknown) as Date) : ((null as unknown) as Date);
 
   const handleDateChange = (date: Date) => {
-    const formattedDate = date.toISOString().split("T")[0];
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
     setValue(formattedDate);
   };
 
