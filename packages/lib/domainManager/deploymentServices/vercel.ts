@@ -94,7 +94,7 @@ function handleDomainCreationError(error: {
     );
     throw new HttpError({
       message: errorMessage,
-      statusCode: 403,
+      statusCode: 400,
     });
   }
 
@@ -148,7 +148,7 @@ function handleDomainDeletionError(error: {
     );
     throw new HttpError({
       message: errorMessage,
-      statusCode: 403,
+      statusCode: 400,
     });
   }
 
