@@ -19,8 +19,10 @@ export class OrganizationContextService {
     teamId: number,
     eventTypeId: number
   ): Promise<OrganizationEventTypeContext> {
-    const organization = await this.organizationsRepository.findById({ id: orgId });
-    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeSlug(teamId, eventTypeId);
+    const [organization, eventType] = await Promise.all([
+      this.organizationsRepository.findById({ id: orgId }),
+      this.teamsEventTypesRepository.getTeamEventTypeSlug(teamId, eventTypeId),
+    ]);
 
     if (!eventType?.slug) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found or has no slug`);
