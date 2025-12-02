@@ -43,7 +43,7 @@ async function getHandler(request: NextRequest) {
     }
 
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
-  } catch {
+  } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
       `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
@@ -61,7 +61,7 @@ async function postHandler(request: NextRequest) {
     const { reason } = z.object({ reason: z.string().optional() }).parse(body || {});
 
     return await handleBookingAction(action, token, bookingUid, userId, request, reason);
-  } catch {
+  } catch (error) {
     const bookingUid = queryParams.bookingUid || "";
     return NextResponse.redirect(
       `${url.origin}/booking/${bookingUid}?error=${encodeURIComponent("Error confirming booking")}`
@@ -119,9 +119,7 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Fallback is mocked as it's not used in this context
     const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Response is mocked as it's not used in this context
     const res = {} as any;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
@@ -140,7 +138,8 @@ async function handleBookingAction(
       reason: action === DirectAction.REJECT ? reason : undefined,
     });
   } catch (e) {
-    const message = e instanceof TRPCError ? e.message : "Error confirming booking";
+    let message = "Error confirming booking";
+    if (e instanceof TRPCError) message = (e as TRPCError).message;
     return NextResponse.redirect(`${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
   }
 

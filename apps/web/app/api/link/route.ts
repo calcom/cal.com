@@ -92,8 +92,7 @@ async function handler(request: NextRequest) {
     /** @see https://trpc.io/docs/server-side-calls */
     // Create a legacy request object for compatibility
     const legacyReq = buildLegacyRequest(await headers(), await cookies());
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Response is mocked as it's not used in this context
-    const res = {} as any;
+    const res = {} as any; // Response is still mocked as it's not used in this context
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const createCaller = createCallerFactory(bookingsRouter);
@@ -119,7 +118,8 @@ async function handler(request: NextRequest) {
         : undefined,
     });
   } catch (e) {
-    const message = e instanceof TRPCError ? e.message : "Error confirming booking";
+    let message = "Error confirming booking";
+    if (e instanceof TRPCError) message = (e as TRPCError).message;
     return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
   }
 
