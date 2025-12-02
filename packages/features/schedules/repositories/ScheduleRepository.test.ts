@@ -12,9 +12,6 @@ vi.mock("@calcom/prisma", () => {
     },
     schedule: {
       findFirst: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
     },
   };
   return {
@@ -26,12 +23,6 @@ vi.mock("@calcom/prisma", () => {
 
 vi.mock("@calcom/lib/hasEditPermissionForUser", () => ({
   hasReadPermissionsForUserId: vi.fn().mockResolvedValue(true),
-}));
-
-vi.mock("@calcom/lib/schedules/transformers", () => ({
-  transformAvailabilityForAtom: vi.fn().mockReturnValue([]),
-  transformDateOverridesForAtom: vi.fn().mockReturnValue([]),
-  transformWorkingHoursForAtom: vi.fn().mockReturnValue([]),
 }));
 
 describe("ScheduleRepository", () => {
@@ -46,8 +37,12 @@ describe("ScheduleRepository", () => {
 
   describe("constructor", () => {
     it("should throw error if prismaClient is not provided", () => {
-      expect(() => new ScheduleRepository(null as any)).toThrow("PrismaClient is required for ScheduleRepository");
-      expect(() => new ScheduleRepository(undefined as any)).toThrow("PrismaClient is required for ScheduleRepository");
+      expect(() => new ScheduleRepository(null as any)).toThrow(
+        "PrismaClient is required for ScheduleRepository"
+      );
+      expect(() => new ScheduleRepository(undefined as any)).toThrow(
+        "PrismaClient is required for ScheduleRepository"
+      );
     });
 
     it("should create instance successfully with valid prismaClient", () => {
