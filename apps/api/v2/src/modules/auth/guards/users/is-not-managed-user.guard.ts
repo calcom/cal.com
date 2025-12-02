@@ -1,4 +1,3 @@
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
@@ -8,7 +7,6 @@ type RequestWithUser = Request & { user?: User };
 
 @Injectable()
 export class IsNotManagedUserGuard implements CanActivate {
-  constructor(private usersRepository: UsersRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
