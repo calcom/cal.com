@@ -118,8 +118,7 @@ async function handler(request: NextRequest) {
         : undefined,
     });
   } catch (e) {
-    let message = "Error confirming booking";
-    if (e instanceof TRPCError) message = (e as TRPCError).message;
+    const message = (e as Error).message ?? "Error confirming booking";
     return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
   }
 
