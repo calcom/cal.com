@@ -136,7 +136,7 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
       .send(body)
       .expect(403);
 
-    expect(response.body.message).toContain("Platform organizations cannot use private links");
+    expect(response.body.message).toContain("Platform organizations are not permitted to perform this action");
   });
 
   it("GET /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links - platform org should be forbidden from listing private links", async () => {
@@ -148,7 +148,7 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
       .set("x-cal-secret-key", oAuthClient.secret)
       .expect(403);
 
-    expect(response.body.message).toContain("Platform organizations cannot use private links");
+    expect(response.body.message).toContain("Platform organizations are not permitted to perform this action");
   });
 
   afterAll(async () => {

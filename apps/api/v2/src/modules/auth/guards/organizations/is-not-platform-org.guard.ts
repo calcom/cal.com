@@ -24,7 +24,7 @@ export class IsNotPlatformOrgGuard implements CanActivate {
 
     if (organization.isPlatform) {
       throw new ForbiddenException(
-        "IsNotPlatformOrgGuard - Platform organizations are not allowed."
+        "IsNotPlatformOrgGuard - Platform organizations are not permitted to perform this action."
       );
     }
 

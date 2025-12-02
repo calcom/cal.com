@@ -20,7 +20,7 @@ export class IsNotManagedUserGuard implements CanActivate {
 
     if (user.isPlatformManaged) {
       throw new ForbiddenException(
-        "IsNotManagedUserGuard - Managed users are not allowed."
+        "IsNotManagedUserGuard - Managed users are not permitted to perform this action."
       );
     }
 

@@ -328,7 +328,7 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
       .send(body)
       .expect(403);
 
-    expect(response.body.message).toContain("Managed users cannot create private links");
+    expect(response.body.message).toContain("Managed users are not permitted to perform this action");
   });
 
   it("GET /v2/event-types/:eventTypeId/private-links - managed user should be forbidden from listing private links", async () => {
@@ -337,7 +337,7 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
       .set("Authorization", `Bearer ${managedUser.accessToken}`)
       .expect(403);
 
-    expect(response.body.message).toContain("Managed users cannot create private links");
+    expect(response.body.message).toContain("Managed users are not permitted to perform this action");
   });
 
   afterAll(async () => {
@@ -353,3 +353,5 @@ describe("Event Types Private Links - Managed User Restrictions", () => {
     }
   });
 });
+
+
