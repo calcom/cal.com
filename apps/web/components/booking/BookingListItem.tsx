@@ -412,6 +412,7 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="flex space-x-2 rtl:space-x-reverse">
               <RejectBookingButton
                 bookingId={booking.id}
+                bookingUid={booking.uid}
                 recurringEventId={booking.recurringEventId}
                 isRecurring={isRecurring}
                 isTabRecurring={isTabRecurring}
@@ -419,6 +420,7 @@ function BookingListItem(booking: BookingItemProps) {
               />
               <AcceptBookingButton
                 bookingId={booking.id}
+                bookingUid={booking.uid}
                 recurringEventId={booking.recurringEventId}
                 isRecurring={isRecurring}
                 isTabRecurring={isTabRecurring}

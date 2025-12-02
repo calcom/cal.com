@@ -281,11 +281,13 @@ function BookingDetailsSheetInner({
               <>
                 <RejectBookingButton
                   bookingId={booking.id}
+                  bookingUid={booking.uid}
                   recurringEventId={booking.recurringEventId}
                   isRecurring={!!booking.recurringEventId}
                 />
                 <AcceptBookingButton
                   bookingId={booking.id}
+                  bookingUid={booking.uid}
                   recurringEventId={booking.recurringEventId}
                   isRecurring={!!booking.recurringEventId}
                 />

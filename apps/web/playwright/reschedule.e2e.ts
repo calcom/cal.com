@@ -338,11 +338,11 @@ test.describe("Reschedule Tests", async () => {
 
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
 
-    const confirmBooking = async (bookingId: number) => {
+    const confirmBooking = async (bookingUid: string) => {
       const [authedContext, authedPage] = await user.apiLoginOnNewBrowser(browser);
       await authedPage.goto("/bookings/upcoming");
       await submitAndWaitForResponse(authedPage, "/api/trpc/bookings/confirm?batch=1", {
-        action: () => authedPage.locator(`[data-booking-uid="${bookingId}"][data-testid="confirm"]`).click(),
+        action: () => authedPage.locator(`[data-booking-uid="${bookingUid}"][data-testid="confirm"]`).click(),
       });
       await authedContext.close();
     };
@@ -358,7 +358,7 @@ test.describe("Reschedule Tests", async () => {
 
     const currentBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingUID } });
     expect(currentBooking).not.toBeUndefined();
-    await confirmBooking(currentBooking.id);
+    await confirmBooking(currentBooking.uid);
 
     await page.goto(`/reschedule/${currentBooking.uid}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -371,7 +371,7 @@ test.describe("Reschedule Tests", async () => {
     });
     expect(newBooking).not.toBeUndefined();
     expect(newBooking.status).toBe(BookingStatus.PENDING);
-    await confirmBooking(newBooking.id);
+    await confirmBooking(newBooking.uid);
 
     const booking = await prisma.booking.findFirstOrThrow({ where: { id: newBooking.id } });
     expect(booking).not.toBeUndefined();

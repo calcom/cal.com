@@ -6,6 +6,7 @@ import { useBookingConfirmation } from "./hooks/useBookingConfirmation";
 
 interface RejectBookingButtonProps {
   bookingId: number;
+  bookingUid: string;
   recurringEventId?: string | null;
   isRecurring?: boolean;
   isTabRecurring?: boolean;
@@ -17,6 +18,7 @@ interface RejectBookingButtonProps {
 
 export function RejectBookingButton({
   bookingId,
+  bookingUid,
   recurringEventId,
   isRecurring = false,
   isTabRecurring = false,
@@ -51,6 +53,7 @@ export function RejectBookingButton({
         className={className}
         onClick={handleReject}
         disabled={isPending}
+        data-booking-uid={bookingUid}
         data-testid="reject">
         {rejectLabel}
       </Button>
