@@ -5,85 +5,83 @@ import { TRPCError } from "@trpc/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
-import { toTRPCError } from "./toTRPCError";
+import { convertErrorWithCodeToTRPCError } from "./toTRPCError";
 
-describe("toTRPCError", () => {
+describe("convertErrorWithCodeToTRPCError", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-  });
-
-  it("returns TRPCError unchanged", () => {
-    const original = new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
-
-    const result = toTRPCError(original);
-
-    expect(result).toBe(original);
-    expect(result.code).toBe("NOT_FOUND");
-    expect(result.message).toBe("Resource not found");
   });
 
   it("converts ErrorWithCode with Forbidden code to TRPCError with FORBIDDEN", () => {
     const error = new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account");
 
-    const result = toTRPCError(error);
+    const result = convertErrorWithCodeToTRPCError(error);
 
     expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("FORBIDDEN");
-    expect(result.message).toBe("This invitation is not for your account");
+    expect((result as TRPCError).code).toBe("FORBIDDEN");
+    expect((result as TRPCError).message).toBe("This invitation is not for your account");
   });
 
   it("converts ErrorWithCode with NotFound code to TRPCError with NOT_FOUND", () => {
     const error = new ErrorWithCode(ErrorCode.NotFound, "User not found");
 
-    const result = toTRPCError(error);
+    const result = convertErrorWithCodeToTRPCError(error);
 
     expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("NOT_FOUND");
-    expect(result.message).toBe("User not found");
+    expect((result as TRPCError).code).toBe("NOT_FOUND");
+    expect((result as TRPCError).message).toBe("User not found");
   });
 
   it("converts ErrorWithCode with Unauthorized code to TRPCError with UNAUTHORIZED", () => {
     const error = new ErrorWithCode(ErrorCode.Unauthorized, "Not authenticated");
 
-    const result = toTRPCError(error);
+    const result = convertErrorWithCodeToTRPCError(error);
 
     expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("UNAUTHORIZED");
-    expect(result.message).toBe("Not authenticated");
+    expect((result as TRPCError).code).toBe("UNAUTHORIZED");
+    expect((result as TRPCError).message).toBe("Not authenticated");
   });
 
   it("converts ErrorWithCode with BadRequest code to TRPCError with BAD_REQUEST", () => {
     const error = new ErrorWithCode(ErrorCode.BadRequest, "Invalid input");
 
-    const result = toTRPCError(error);
+    const result = convertErrorWithCodeToTRPCError(error);
 
     expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("BAD_REQUEST");
-    expect(result.message).toBe("Invalid input");
+    expect((result as TRPCError).code).toBe("BAD_REQUEST");
+    expect((result as TRPCError).message).toBe("Invalid input");
   });
 
-  it("converts generic Error to TRPCError with INTERNAL_SERVER_ERROR", () => {
+  it("returns generic Error unchanged", () => {
     const error = new Error("Something went wrong");
 
-    const result = toTRPCError(error);
+    const result = convertErrorWithCodeToTRPCError(error);
 
-    expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("INTERNAL_SERVER_ERROR");
-    expect(result.cause).toBe(error);
+    expect(result).toBe(error);
+    expect(result).not.toBeInstanceOf(TRPCError);
   });
 
-  it("converts string error to TRPCError with INTERNAL_SERVER_ERROR", () => {
-    const result = toTRPCError("Something went wrong");
+  it("returns TRPCError unchanged", () => {
+    const error = new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
 
-    expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("INTERNAL_SERVER_ERROR");
-    expect(result.message).toBe("Something went wrong");
+    const result = convertErrorWithCodeToTRPCError(error);
+
+    expect(result).toBe(error);
   });
 
-  it("converts unknown error type to TRPCError with INTERNAL_SERVER_ERROR", () => {
-    const result = toTRPCError({ unexpected: "object" });
+  it("returns string error unchanged", () => {
+    const error = "Something went wrong";
 
-    expect(result).toBeInstanceOf(TRPCError);
-    expect(result.code).toBe("INTERNAL_SERVER_ERROR");
+    const result = convertErrorWithCodeToTRPCError(error);
+
+    expect(result).toBe(error);
+  });
+
+  it("returns unknown error type unchanged", () => {
+    const error = { unexpected: "object" };
+
+    const result = convertErrorWithCodeToTRPCError(error);
+
+    expect(result).toBe(error);
   });
 });
