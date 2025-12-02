@@ -7,18 +7,46 @@ export default function OAuthCallback() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
-    // Extract code and state from URL parameters
+    // Extract code, state, and error parameters from URL
     const code = params.code as string;
     const state = params.state as string;
+    const error = params.error as string;
+    const errorDescription = params.error_description as string;
 
-    if (code) {
-      // Store the parameters temporarily and redirect back to main app
+    // Handle OAuth error response
+    if (error) {
+      const errorMessage = errorDescription || error || "OAuth authorization failed";
+      console.error("OAuth error:", error, errorDescription);
+
+      if (typeof window !== "undefined") {
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              type: "OAUTH_ERROR",
+              error: errorMessage,
+              errorCode: error,
+            },
+            "*"
+          );
+          window.close();
+        } else {
+          // Store error for main app to pick up
+          if (state) {
+            window.localStorage.setItem(`oauth_callback_error_${state}`, errorMessage);
+            window.localStorage.setItem(`oauth_callback_error_code_${state}`, error);
+          }
+          router.replace("/(tabs)");
+        }
+      }
+      return;
+    }
+
+    if (code && state) {
+      // Store the parameters temporarily using state-specific keys to prevent race conditions
       // The OAuth service should be able to pick these up
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("oauth_callback_code", code);
-        if (state) {
-          window.localStorage.setItem("oauth_callback_state", state);
-        }
+        window.localStorage.setItem(`oauth_callback_code_${state}`, code);
+        window.localStorage.setItem(`oauth_callback_state_${state}`, state);
 
         // Close the OAuth popup/tab if it exists
         if (window.opener) {
@@ -37,7 +65,7 @@ export default function OAuthCallback() {
         }
       }
     } else {
-      console.error("No authorization code in OAuth callback");
+      console.error("No authorization code or state in OAuth callback");
 
       // Handle error case
       if (typeof window !== "undefined") {

@@ -112,18 +112,23 @@ export class CalComOAuthService {
       // Generate PKCE params
       const { codeChallenge, state } = await this.generatePKCEParams();
 
-      // Check for stored callback (web only)
+      // Check for stored callback (web only) - use state-specific keys to prevent race conditions
       if (Platform.OS === "web" && typeof window !== "undefined") {
-        const storedCode = window.localStorage.getItem("oauth_callback_code");
-        const storedState = window.localStorage.getItem("oauth_callback_state");
+        const storedCode = window.localStorage.getItem(`oauth_callback_code_${state}`);
+        const storedState = window.localStorage.getItem(`oauth_callback_state_${state}`);
 
         if (storedCode && storedState) {
-          window.localStorage.removeItem("oauth_callback_code");
-          window.localStorage.removeItem("oauth_callback_state");
-
+          // Verify state matches (defense in depth)
           if (storedState !== state) {
+            // Clean up invalid state
+            window.localStorage.removeItem(`oauth_callback_code_${state}`);
+            window.localStorage.removeItem(`oauth_callback_state_${state}`);
             throw new Error("Invalid state parameter - possible CSRF attack");
           }
+
+          // Clean up after successful validation
+          window.localStorage.removeItem(`oauth_callback_code_${state}`);
+          window.localStorage.removeItem(`oauth_callback_state_${state}`);
 
           return await this.exchangeCodeForTokens(storedCode, state);
         }
@@ -237,6 +242,8 @@ export class CalComOAuthService {
 
       // If we're in an iframe, communicate with the parent window
       if (window.parent !== window) {
+        let timeoutId: NodeJS.Timeout | null = null;
+
         const messageHandler = (event: MessageEvent) => {
           // Security: Only accept messages from the parent window
           if (event.source !== window.parent) {
@@ -245,6 +252,9 @@ export class CalComOAuthService {
 
           if (event.data.type === "cal-extension-oauth-result") {
             window.removeEventListener("message", messageHandler);
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
 
             if (event.data.success) {
               resolve(event.data.responseUrl);
@@ -267,7 +277,7 @@ export class CalComOAuthService {
         );
 
         // Set a timeout in case the parent doesn't respond
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           console.error("OAuth flow timeout - no response from extension");
           window.removeEventListener("message", messageHandler);
           reject(new Error("OAuth flow timeout - no response from extension"));
@@ -408,7 +418,7 @@ export class CalComOAuthService {
       try {
         const errorJson = JSON.parse(errorData);
         console.error("Parsed error:", errorJson);
-      } catch (parseError) {
+      } catch {
         console.error("Could not parse error response as JSON");
       }
 
@@ -433,6 +443,8 @@ export class CalComOAuthService {
    */
   private async exchangeTokensViaExtension(code: string, state?: string): Promise<OAuthTokens> {
     return new Promise((resolve, reject) => {
+      let timeoutId: NodeJS.Timeout | null = null;
+
       const messageHandler = (event: MessageEvent) => {
         // Security: Only accept messages from the parent window
         if (event.source !== window.parent) {
@@ -441,6 +453,9 @@ export class CalComOAuthService {
 
         if (event.data.type === "cal-extension-token-exchange-result") {
           window.removeEventListener("message", messageHandler);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
 
           if (event.data.success) {
             resolve(event.data.tokens);
@@ -470,8 +485,8 @@ export class CalComOAuthService {
         "*"
       );
 
-      // Set a timeout
-      setTimeout(() => {
+      // Set a timeout and store ID for cleanup
+      timeoutId = setTimeout(() => {
         window.removeEventListener("message", messageHandler);
         reject(new Error("Token exchange timeout"));
       }, 30000);
