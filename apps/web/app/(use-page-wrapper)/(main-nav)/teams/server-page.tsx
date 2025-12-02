@@ -10,6 +10,7 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { revalidateTeamsList } from "./actions";
 import { TeamsCTA } from "./CTA";
 
 const getCachedTeams = unstable_cache(
@@ -49,6 +50,9 @@ export const ServerTeamsListing = async ({
       } else {
         teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
       }
+      // Revalidate the teams cache after accepting/processing an invite
+      // to ensure the updated team list is shown immediately
+      await revalidateTeamsList();
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
       if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
