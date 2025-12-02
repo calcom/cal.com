@@ -3,6 +3,6 @@ export {
   type NotificationPreferenceCheck,
 } from "./NotificationPreferenceService";
 export { NotificationTaskerPreferenceProxy } from "./NotificationTaskerPreferenceProxy";
-export { NotificationTaskerPreferenceFactory } from "./NotificationTasker";
+export { NotificationTasker } from "./NotificationTasker";
 export type { INotificationMetadataExtractor, NotificationMetadata } from "./NotificationMetadataExtractor";
 export { NotificationPreferenceRepository } from "../repositories/NotificationPreferenceRepository";

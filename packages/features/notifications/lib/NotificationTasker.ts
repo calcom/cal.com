@@ -1,7 +1,7 @@
 import type { Logger } from "tslog";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { Tasker } from "@calcom/features/tasker/tasker";
+import type { Tasker as ITasker } from "@calcom/features/tasker/tasker";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { NotificationPreferenceRepository } from "../repositories/NotificationPreferenceRepository";
@@ -9,13 +9,13 @@ import type { INotificationMetadataExtractor } from "./NotificationMetadataExtra
 import { NotificationPreferenceService } from "./NotificationPreferenceService";
 import { NotificationTaskerPreferenceProxy } from "./NotificationTaskerPreferenceProxy";
 
-export class NotificationTaskerPreferenceFactory {
+export class NotificationTasker {
   static async createProxiedTasker(
-    tasker: Tasker,
+    tasker: ITasker,
     prisma: PrismaClient,
     logger: Logger<unknown>,
     metadataExtractor: INotificationMetadataExtractor
-  ): Promise<Tasker> {
+  ): Promise<ITasker> {
     const featuresRepository = new FeaturesRepository(prisma);
     const isNotificationCenterEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
       "notification-center"
