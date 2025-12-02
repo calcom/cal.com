@@ -93,6 +93,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
+    autoTranslateTitleEnabled,
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
@@ -233,6 +234,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    // autoTranslateTitleEnabled defaults to true (opt-out), so we save the value as-is
+    autoTranslateTitleEnabled: autoTranslateTitleEnabled ?? true,
     description: newDescription,
     title: newTitle,
     bookingFields,
@@ -650,7 +653,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const hasNoTitleTranslations =
     eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.TITLE)
       .length === 0;
-  const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
+  // Only include title for translation if autoTranslateTitleEnabled is true (default is true for opt-out)
+  const shouldTranslateTitle = autoTranslateTitleEnabled ?? true;
+  const title = shouldTranslateTitle
+    ? newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined)
+    : undefined;
 
   if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
     await tasker.create("translateEventTypeData", {
