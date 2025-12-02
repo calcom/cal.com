@@ -17,6 +17,7 @@ import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-r
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HolidayService } from "@calcom/lib/holidays";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -25,6 +26,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import prisma from "@calcom/prisma";
 import type {
   Booking,
   Prisma,
@@ -556,6 +558,17 @@ export class UserAvailabilityService {
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
+    // Get holiday blocked dates
+    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
+      user.id,
+      dateFrom.toDate(),
+      dateTo.toDate(),
+      availability
+    );
+
+    // Merge holiday dates with OOO dates
+    Object.assign(datesOutOfOffice, holidayBlockedDates);
+
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
       dateFrom,
       dateTo,
@@ -680,4 +693,62 @@ export class UserAvailabilityService {
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
+
+  /**
+   * Calculate blocked dates from user's holiday settings
+   */
+  async calculateHolidayBlockedDates(
+    userId: number,
+    startDate: Date,
+    endDate: Date,
+    availability: GetUserAvailabilityParamsDTO["availability"]
+  ): Promise<IOutOfOfficeData> {
+    // Fetch user's holiday settings
+    const holidaySettings = await prisma.userHolidaySettings.findUnique({
+      where: { userId },
+    });
+
+    if (!holidaySettings || !holidaySettings.countryCode) {
+      return {};
+    }
+
+    // Get holiday dates in range
+    const holidayDates = HolidayService.getHolidayDatesInRange(
+      holidaySettings.countryCode,
+      holidaySettings.disabledIds,
+      startDate,
+      endDate
+    );
+
+    if (holidayDates.length === 0) {
+      return {};
+    }
+
+    // Get availability days to filter holidays
+    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+      (a, b) => a - b
+    );
+
+    // Convert holidays to IOutOfOfficeData format
+    const result: IOutOfOfficeData = {};
+
+    for (const { date, holiday } of holidayDates) {
+      const holidayDate = dayjs(date);
+      const dayOfWeek = holidayDate.day();
+
+      // Only include if the day is in the user's availability schedule
+      if (!flattenDays.includes(dayOfWeek)) {
+        continue;
+      }
+
+      result[date] = {
+        fromUser: null, // Holiday doesn't have a specific user
+        toUser: null, // No redirect for holidays
+        reason: holiday.name,
+        emoji: "🎄", // Holiday emoji
+      };
+    }
+
+    return result;
+  }
 }

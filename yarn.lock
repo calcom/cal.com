@@ -21830,6 +21830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"astronomia@npm:^4.1.0, astronomia@npm:^4.1.1":
+  version: 4.2.0
+  resolution: "astronomia@npm:4.2.0"
+  checksum: a909832da98234f14ef2810fe1c47e29599e6c8061eb65a56bef8aa1c4feb54b15b6706fc34e18549610858f27ac3a40941535e875d807c38e104327f89ef85f
+  languageName: node
+  linkType: hard
+
 "async-mqtt@npm:2.6.3":
   version: 2.6.3
   resolution: "async-mqtt@npm:2.6.3"
@@ -23021,6 +23028,7 @@ __metadata:
     checkly: latest
     city-timezones: ^1.2.1
     date-fns-tz: ^3.2.0
+    date-holidays: ^3.26.5
     dotenv-checker: ^1.1.5
     eslint: 9.36.0
     husky: ^8.0.0
@@ -23044,6 +23052,15 @@ __metadata:
     vitest-mock-extended: ^2.0.2
   languageName: unknown
   linkType: soft
+
+"caldate@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "caldate@npm:2.0.5"
+  dependencies:
+    moment-timezone: ^0.5.43
+  checksum: ebf233d1ff3346969a98a809e7cdd2174f834f0d22a8f1466c1d1eb8f4260808f28440cde0412b31b630b352381c4d24513ec8b2d9f76d33a2c4cd4873c00601
+  languageName: node
+  linkType: hard
 
 "call-bind-apply-helpers@npm:^1.0.0, call-bind-apply-helpers@npm:^1.0.1, call-bind-apply-helpers@npm:^1.0.2":
   version: 1.0.2
@@ -25301,6 +25318,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-bengali-revised@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "date-bengali-revised@npm:2.0.2"
+  checksum: 23f5e03b20a2334de5e8b7c42925ff4ebf24db3404e1ec272c66b0deab6bfc3cbc1fb9581d06ab72a0c3fe338c618b1f94062147a74c4544217e9a7fc70a62aa
+  languageName: node
+  linkType: hard
+
+"date-chinese@npm:^2.1.4":
+  version: 2.1.4
+  resolution: "date-chinese@npm:2.1.4"
+  dependencies:
+    astronomia: ^4.1.0
+  checksum: 1f1957f5a61d136a98342f56ba8ceb49a6663d9411c850157af0a41c2396b3201ac08069c7a2ce7ba14a7f6a0183e3a2d50547c698830443d19950355f4ece21
+  languageName: node
+  linkType: hard
+
+"date-easter@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "date-easter@npm:1.0.3"
+  checksum: f2ddf3fd6c8b9cb4e8d53f3e7ba8de8edd7fe450c152d0c743bcf1b93ea79d6289b6c312bc31c49a9ebed99fe2667d24fdd8d028e461e048db4752e5c8965535
+  languageName: node
+  linkType: hard
+
 "date-fns-tz@npm:^3.2.0":
   version: 3.2.0
   resolution: "date-fns-tz@npm:3.2.0"
@@ -25321,6 +25361,36 @@ __metadata:
   version: 3.6.0
   resolution: "date-fns@npm:3.6.0"
   checksum: 0daa1e9a436cf99f9f2ae9232b55e11f3dd46132bee10987164f3eebd29f245b2e066d7d7db40782627411ecf18551d8f4c9fcdf2226e48bb66545407d448ab7
+  languageName: node
+  linkType: hard
+
+"date-holidays-parser@npm:^3.4.7":
+  version: 3.4.7
+  resolution: "date-holidays-parser@npm:3.4.7"
+  dependencies:
+    astronomia: ^4.1.1
+    caldate: ^2.0.5
+    date-bengali-revised: ^2.0.2
+    date-chinese: ^2.1.4
+    date-easter: ^1.0.3
+    deepmerge: ^4.3.1
+    jalaali-js: ^1.2.7
+    moment-timezone: ^0.5.47
+  checksum: 040c8e1fc255024b1af7b0af64a07d67d622ee9ac761127408304b8a5ba9b5316233de5b904c97d70ebe6759b99d4dcc54837e2c6204094c7c6888515e689933
+  languageName: node
+  linkType: hard
+
+"date-holidays@npm:^3.26.5":
+  version: 3.26.5
+  resolution: "date-holidays@npm:3.26.5"
+  dependencies:
+    date-holidays-parser: ^3.4.7
+    js-yaml: ^4.1.0
+    lodash: ^4.17.21
+    prepin: ^1.0.3
+  bin:
+    holidays2json: scripts/holidays2json.cjs
+  checksum: d9db4063ee8f63faf34929925796953e71216fa71d02fc8ffa797a0f4ab3382d339d1aa0500f641eb75ba43fbcaecb3e595f5426bae19fe4a8ee55f6fad1e40f
   languageName: node
   linkType: hard
 
@@ -33253,6 +33323,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jalaali-js@npm:^1.2.7":
+  version: 1.2.8
+  resolution: "jalaali-js@npm:1.2.8"
+  checksum: ca2f2bf444c180f782dfbb6e4987e0a2f43e6066b383fe845ce0138d47b745efce7b38cbe12bf4edfabc5198b525a2554393f5b9fed4419f3643208d3ab182d3
+  languageName: node
+  linkType: hard
+
 "javascript-natural-sort@npm:0.7.1":
   version: 0.7.1
   resolution: "javascript-natural-sort@npm:0.7.1"
@@ -37234,6 +37311,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moment-timezone@npm:^0.5.43, moment-timezone@npm:^0.5.47":
+  version: 0.5.48
+  resolution: "moment-timezone@npm:0.5.48"
+  dependencies:
+    moment: ^2.29.4
+  checksum: 8a350b30205cc06aa9c029643316f4c0d538e76a3f7a92d74a3214d602377db2a1f8b7719debd4eb3e1fa1bac3de1912c1b94182af4e12810513670b578c84ab
+  languageName: node
+  linkType: hard
+
 "moment@npm:>= 2.9.0, moment@npm:^2.29.1":
   version: 2.29.3
   resolution: "moment@npm:2.29.3"
@@ -40822,6 +40908,15 @@ __metadata:
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
   checksum: cd192ec0d0a8e4c6da3bb80e4f62afe336df3f76271ac6deb0e6a36187133b6073a19e9727a1ff108cd8b9982e4768850d413baa71214dd80c7979617dca827a
+  languageName: node
+  linkType: hard
+
+"prepin@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "prepin@npm:1.0.3"
+  bin:
+    prepin: ./bin/prepin.js
+  checksum: b43f1e3b5f0d7da5e97ef707e6eebf44f88e54bbac7d87ad011c01e03f7e5ce40e02288c4df0d7853570aa3d492e10bb3c885502f9db99a905635c2f1733cd5c
   languageName: node
   linkType: hard
 

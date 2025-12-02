@@ -1,0 +1,289 @@
+"use client";
+
+import { memo, useMemo, useCallback } from "react";
+
+import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, Select } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+
+type HolidayWithStatus = RouterOutputs["viewer"]["holidays"]["getUserSettings"]["holidays"][number];
+type Country = { code: string; name: string };
+
+// Memoized country selector to prevent unnecessary re-renders
+const CountrySelector = memo(function CountrySelector({
+  countries,
+  value,
+  onChange,
+  isLoading,
+}: {
+  countries: Country[];
+  value: string;
+  onChange: (value: string) => void;
+  isLoading: boolean;
+}) {
+  const { t } = useLocale();
+
+  const options = useMemo(
+    () => [
+      { value: "", label: t("no_holidays") },
+      ...countries.map((country) => ({
+        value: country.code,
+        label: country.name,
+      })),
+    ],
+    [countries, t]
+  );
+
+  const selectedOption = useMemo(() => {
+    if (!value) return { value: "", label: t("select_country") };
+    const country = countries.find((c) => c.code === value);
+    return { value, label: country?.name || value };
+  }, [value, countries, t]);
+
+  if (isLoading) {
+    return <SkeletonText className="mt-1 h-10 w-full max-w-xs" />;
+  }
+
+  return (
+    <Select
+      className="mt-1 w-full max-w-xs"
+      value={selectedOption}
+      onChange={(option) => onChange(option?.value || "")}
+      options={options}
+    />
+  );
+});
+
+function HolidayListItem({
+  holiday,
+  onToggle,
+  isToggling,
+}: {
+  holiday: HolidayWithStatus;
+  onToggle: (holidayId: string, enabled: boolean) => void;
+  isToggling: boolean;
+}) {
+  const { t } = useLocale();
+
+  const nextDate = holiday.nextDate ? dayjs(holiday.nextDate).format("D MMM YYYY") : null;
+
+  return (
+    <div className="border-subtle flex items-center justify-between border-b px-4 py-4 last:border-b-0">
+      <div className="flex items-center gap-3">
+        <div className="text-2xl">🎄</div>
+        <div>
+          <p className="text-emphasis font-medium">{holiday.name}</p>
+          {nextDate && (
+            <p className="text-subtle text-sm">
+              {t("next")}: {nextDate}
+            </p>
+          )}
+        </div>
+      </div>
+      <Switch
+        checked={holiday.enabled}
+        onCheckedChange={(checked) => onToggle(holiday.id, checked)}
+        disabled={isToggling}
+      />
+    </div>
+  );
+}
+
+function HolidaysList({
+  holidays,
+  onToggle,
+  togglingId,
+}: {
+  holidays: HolidayWithStatus[];
+  onToggle: (holidayId: string, enabled: boolean) => void;
+  togglingId: string | null;
+}) {
+  if (holidays.length === 0) {
+    return <div className="text-subtle py-8 text-center">No holidays found for this country.</div>;
+  }
+
+  return (
+    <div className="border-subtle divide-subtle divide-y rounded-md border">
+      {holidays.map((holiday) => (
+        <HolidayListItem
+          key={holiday.id}
+          holiday={holiday}
+          onToggle={onToggle}
+          isToggling={togglingId === holiday.id}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ConflictWarning({
+  conflicts,
+}: {
+  conflicts: RouterOutputs["viewer"]["holidays"]["checkConflicts"]["conflicts"];
+}) {
+  const { t } = useLocale();
+
+  if (conflicts.length === 0) return null;
+
+  const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
+
+  return (
+    <div className="bg-attention-subtle border-attention mb-4 rounded-md border p-4">
+      <div className="flex items-start gap-3">
+        <Icon name="alert-triangle" className="text-attention mt-0.5 h-5 w-5" />
+        <div>
+          <p className="text-attention font-medium">
+            {t("holiday_booking_conflict_warning", { count: totalBookings })}
+          </p>
+          <ul className="text-subtle mt-2 space-y-1 text-sm">
+            {conflicts.slice(0, 3).map((conflict) => (
+              <li key={conflict.holidayId}>
+                {conflict.holidayName} ({dayjs(conflict.date).format("D MMM")}) - {conflict.bookings.length}{" "}
+                {conflict.bookings.length === 1 ? "booking" : "bookings"}
+              </li>
+            ))}
+            {conflicts.length > 3 && <li>... and {conflicts.length - 3} more holidays with conflicts</li>}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HolidaysView() {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  // Fetch supported countries - this is a lightweight static list
+  const { data: countries, isLoading: isLoadingCountries } =
+    trpc.viewer.holidays.getSupportedCountries.useQuery();
+
+  // Fetch user's holiday settings
+  const { data: settings, isLoading: isLoadingSettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
+
+  // Memoize disabled IDs to prevent unnecessary re-renders
+  const disabledIds = useMemo(
+    () => settings?.holidays?.filter((h) => !h.enabled).map((h) => h.id) || [],
+    [settings?.holidays]
+  );
+
+  // Check for conflicts when country is set - defer this query
+  const { data: conflictsData } = trpc.viewer.holidays.checkConflicts.useQuery(
+    {
+      countryCode: settings?.countryCode || "",
+      disabledIds,
+    },
+    {
+      enabled: !!settings?.countryCode && !isLoadingSettings,
+    }
+  );
+
+  // Mutations
+  const updateSettingsMutation = trpc.viewer.holidays.updateSettings.useMutation({
+    onSuccess: () => {
+      utils.viewer.holidays.getUserSettings.invalidate();
+      utils.viewer.holidays.checkConflicts.invalidate();
+      showToast(t("holiday_settings_updated"), "success");
+    },
+    onError: () => {
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+
+  const toggleHolidayMutation = trpc.viewer.holidays.toggleHoliday.useMutation({
+    onSuccess: () => {
+      utils.viewer.holidays.getUserSettings.invalidate();
+      utils.viewer.holidays.checkConflicts.invalidate();
+    },
+    onError: () => {
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+
+  const handleCountryChange = useCallback(
+    (countryCode: string) => {
+      updateSettingsMutation.mutate({
+        countryCode: countryCode || null,
+        resetDisabledHolidays: true,
+      });
+    },
+    [updateSettingsMutation]
+  );
+
+  const handleToggleHoliday = useCallback(
+    (holidayId: string, enabled: boolean) => {
+      toggleHolidayMutation.mutate({ holidayId, enabled });
+    },
+    [toggleHolidayMutation]
+  );
+
+  const isLoading = isLoadingCountries || isLoadingSettings;
+
+  if (isLoading) {
+    return (
+      <SkeletonContainer>
+        <div className="space-y-4">
+          <SkeletonText className="h-10 w-64" />
+          <SkeletonText className="h-64 w-full" />
+        </div>
+      </SkeletonContainer>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="border-subtle bg-default rounded-md border p-6">
+        <h2 className="text-emphasis text-lg font-semibold">{t("holidays")}</h2>
+        <p className="text-subtle mt-1 text-sm">{t("holidays_description")}</p>
+
+        {/* Country selector */}
+        <div className="mt-4">
+          <Label>{t("country_for_holidays")}</Label>
+          <CountrySelector
+            countries={countries || []}
+            value={settings?.countryCode || ""}
+            onChange={handleCountryChange}
+            isLoading={isLoadingCountries}
+          />
+        </div>
+      </div>
+
+      {/* Conflict warning */}
+      {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
+        <ConflictWarning conflicts={conflictsData.conflicts} />
+      )}
+
+      {/* Holidays list */}
+      {settings?.countryCode ? (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-emphasis font-medium">
+              {t("holidays_list")} ({settings.holidays?.filter((h) => h.enabled).length || 0} {t("enabled")})
+            </h3>
+          </div>
+          <HolidaysList
+            holidays={settings.holidays || []}
+            onToggle={handleToggleHoliday}
+            togglingId={
+              toggleHolidayMutation.isPending ? toggleHolidayMutation.variables?.holidayId || null : null
+            }
+          />
+        </div>
+      ) : (
+        <EmptyScreen
+          Icon="calendar"
+          headline={t("no_holidays_selected")}
+          description={t("select_country_to_see_holidays")}
+        />
+      )}
+    </div>
+  );
+}

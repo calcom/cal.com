@@ -9,6 +9,7 @@ import posthog from "posthog-js";
 
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { useFlags } from "@calcom/features/flags/hooks";
 import { NewScheduleButton } from "@calcom/features/schedules/components/NewScheduleButton";
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -190,10 +191,12 @@ export const AvailabilityCTA = ({ canViewTeamAvailability }: AvailabilityCTAProp
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const flags = useFlags();
 
   const toggleGroupOptions = [
     { value: "mine", label: t("my_availability") },
     ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability"), onClick: () => { posthog.capture("team_availability_toggle_clicked") } }] : []),
+    ...(flags.holidays ? [{ value: "holidays", label: t("holidays") }] : []),
   ]
 
   // Get a new searchParams string by merging the current
