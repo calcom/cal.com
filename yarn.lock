@@ -3244,6 +3244,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/databuddy@workspace:packages/app-store/databuddy":
+  version: 0.0.0-use.local
+  resolution: "@calcom/databuddy@workspace:packages/app-store/databuddy"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/dayjs@workspace:*, @calcom/dayjs@workspace:packages/dayjs":
   version: 0.0.0-use.local
   resolution: "@calcom/dayjs@workspace:packages/dayjs"
