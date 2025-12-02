@@ -9,6 +9,7 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsNotPlatformOrgGuard } from "@/modules/auth/guards/organizations/is-not-platform-org.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -47,8 +48,8 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Post("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @ApiOperation({ summary: "Create a private link for a team event type" })
+    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+    @ApiOperation({ summary: "Create a private link for a team event type" })
   async createPrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -79,8 +80,8 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Get("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @ApiOperation({ summary: "Get all private links for a team event type" })
+    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+    @ApiOperation({ summary: "Get all private links for a team event type" })
   async getPrivateLinks(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -108,8 +109,8 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Patch("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @ApiOperation({ summary: "Update a private link for a team event type" })
+    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+    @ApiOperation({ summary: "Update a private link for a team event type" })
   async updatePrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -141,8 +142,8 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Delete("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @ApiOperation({ summary: "Delete a private link for a team event type" })
+    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+    @ApiOperation({ summary: "Delete a private link for a team event type" })
   async deletePrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
