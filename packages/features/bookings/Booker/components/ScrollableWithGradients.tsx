@@ -8,11 +8,12 @@ interface ScrollGradients {
 interface ScrollableWithGradientsProps {
   children: ReactNode;
   className?: string;
+  ariaLabel?: string;
 }
 
 const SCROLL_THRESHOLD = 5; // Pixels before showing gradient
 
-export function ScrollableWithGradients({ children, className }: ScrollableWithGradientsProps) {
+export function ScrollableWithGradients({ children, className, ariaLabel }: ScrollableWithGradientsProps) {
   const [gradients, setGradients] = useState<ScrollGradients>({ top: false, bottom: false });
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,7 +55,7 @@ export function ScrollableWithGradients({ children, className }: ScrollableWithG
         className={className}
         tabIndex={0}
         role="region"
-        aria-label="Scrollable content">
+        aria-label={ariaLabel}>
         {children}
       </div>
       {gradients.top && (
@@ -70,21 +71,5 @@ export function ScrollableWithGradients({ children, className }: ScrollableWithG
         />
       )}
     </div>
-  );
-}
-
-interface EventDescriptionProps {
-  htmlContent: string;
-}
-
-export function EventDescription({ htmlContent }: EventDescriptionProps) {
-  return (
-    <ScrollableWithGradients className="wrap-break-word scroll-bar max-h-[180px] max-w-full overflow-y-auto pr-4">
-      <div
-        dangerouslySetInnerHTML={{
-          __html: htmlContent,
-        }}
-      />
-    </ScrollableWithGradients>
   );
 }
