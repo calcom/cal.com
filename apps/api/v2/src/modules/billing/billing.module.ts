@@ -2,7 +2,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/reposito
 import { BillingProcessor } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingController } from "@/modules/billing/controllers/billing.controller";
-import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-platform-billing-allowed";
+import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { BillingServiceCachingProxy } from "@/modules/billing/services/billing-service-caching-proxy";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { BillingService } from "@/modules/billing/services/billing.service";

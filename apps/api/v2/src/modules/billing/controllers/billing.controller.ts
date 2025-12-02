@@ -7,7 +7,7 @@ import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
-import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-platform-billing-allowed";
+import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import {

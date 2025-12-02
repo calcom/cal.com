@@ -30,7 +30,6 @@ export class IsUserInBillingOrg implements CanActivate {
       );
     }
 
-    request.user = user;
     return true;
   }
 }
