@@ -7,57 +7,34 @@ import "../global.css";
 function RootLayoutContent() {
   const { isAuthenticated } = useAuth();
 
-  const stackContent = (
+  const content = isAuthenticated ? (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
+  ) : (
+    <LoginScreen />
   );
 
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
-    const loginContent = <LoginScreen />;
+  const containerClass =
+    Platform.OS === "web"
+      ? "w-[400px] flex-1 flex-col self-end border-l border-gray-200 bg-white"
+      : "bg-white";
 
-    return Platform.OS === "web" ? (
-      <View
-        style={{
+  const containerStyle =
+    Platform.OS === "web"
+      ? {
           width: 400,
           flex: 1,
           display: "flex",
           flexDirection: "column",
           pointerEvents: "auto",
-        }}
-        className="w-[400px] flex-1 flex-col self-end border-l border-gray-200 bg-white"
-      >
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        {loginContent}
-      </View>
-    ) : (
-      <View style={{ flex: 1 }} className="bg-white">
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        {loginContent}
-      </View>
-    );
-  }
+        }
+      : { flex: 1 };
 
-  // Show authenticated app content
-  return Platform.OS === "web" ? (
-    <View
-      style={{
-        width: 400,
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        pointerEvents: "auto",
-      }}
-      className="w-[400px] flex-1 flex-col self-end border-l border-gray-200 bg-white"
-    >
+  return (
+    <View style={containerStyle} className={containerClass}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      {stackContent}
-    </View>
-  ) : (
-    <View style={{ flex: 1 }} className="bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      {stackContent}
+      {content}
     </View>
   );
 }
