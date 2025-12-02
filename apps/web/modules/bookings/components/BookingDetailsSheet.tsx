@@ -103,7 +103,6 @@ function BookingDetailsSheetInner({
   const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
     { uid: booking.uid },
     {
-      enabled: Boolean(booking.rescheduled || booking.fromReschedule),
       // Keep data fresh but don't refetch too aggressively
       staleTime: 5 * 60 * 1000, // 5 minutes
     }
@@ -289,6 +288,8 @@ function BookingDetailsSheetInner({
               customResponses={customResponses}
               bookingFields={booking.eventType?.bookingFields}
             />
+
+            <TrackingSection tracking={bookingDetails?.tracking} />
           </div>
         </SheetBody>
 
@@ -838,6 +839,43 @@ function BookingHeaderBadges({
         </Badge>
       )}
     </div>
+  );
+}
+
+function TrackingSection({
+  tracking,
+}: {
+  tracking?: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
+}) {
+  const { t } = useLocale();
+
+  if (!tracking) {
+    return null;
+  }
+
+  const utmEntries = Object.entries(tracking).filter(([_, value]) => Boolean(value));
+
+  if (utmEntries.length === 0) {
+    return null;
+  }
+
+  return (
+    <Section title={t("utm_params")}>
+      <div className="text-default text-sm">
+        {utmEntries.map(([key, value]) => (
+          <div key={key} className="mb-1 last:mb-0">
+            <span className="font-medium">{key}</span>:{" "}
+            <code className="bg-subtle text-default rounded px-1 py-0.5 font-mono text-xs">{value}</code>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
