@@ -4,8 +4,10 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
@@ -39,7 +41,6 @@ import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
-  SkipTakePagination,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -63,7 +64,8 @@ export class TeamsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, PbacGuard, RolesGuard)
+  @Pbac(["eventType.create"])
   @ApiHeader(API_KEY_HEADER)
   @Post("/")
   @ApiOperation({ summary: "Create an event type" })
@@ -87,7 +89,8 @@ export class TeamsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, PbacGuard, RolesGuard)
+  @Pbac(["eventType.read"])
   @ApiHeader(API_KEY_HEADER)
   @Get("/:eventTypeId")
   @ApiOperation({ summary: "Get an event type" })
@@ -111,7 +114,8 @@ export class TeamsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @Post("/:eventTypeId/create-phone-call")
-  @UseGuards(ApiAuthGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, PbacGuard, RolesGuard)
+  @Pbac(["eventType.update"])
   @ApiHeader(API_KEY_HEADER)
   @ApiOperation({ summary: "Create a phone call" })
   async createPhoneCall(
@@ -165,7 +169,8 @@ export class TeamsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, PbacGuard, RolesGuard)
+  @Pbac(["eventType.update"])
   @ApiHeader(API_KEY_HEADER)
   @Patch("/:eventTypeId")
   @ApiOperation({ summary: "Update a team event type" })
@@ -197,7 +202,8 @@ export class TeamsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(ApiAuthGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, PbacGuard, RolesGuard)
+  @Pbac(["eventType.delete"])
   @ApiHeader(API_KEY_HEADER)
   @Delete("/:eventTypeId")
   @HttpCode(HttpStatus.OK)
