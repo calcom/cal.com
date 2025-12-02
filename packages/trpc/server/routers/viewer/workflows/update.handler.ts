@@ -19,15 +19,15 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized, scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/workflowUtils";
+
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
-  isAuthorized,
   upsertSmsReminderFieldForEventTypes,
   deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
-  scheduleWorkflowNotifications,
   verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,

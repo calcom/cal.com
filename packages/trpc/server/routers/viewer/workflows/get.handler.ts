@@ -4,8 +4,9 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/workflowUtils";
+
 import type { TGetInputSchema } from "./get.schema";
-import { isAuthorized } from "./util";
 
 type GetOptions = {
   ctx: {

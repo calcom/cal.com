@@ -30,7 +30,7 @@ import {
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/workflowUtils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";

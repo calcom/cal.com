@@ -24,14 +24,6 @@ import { TRPCError } from "@trpc/server";
 
 import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
 
-// Re-export migrated functions from features layer for backward compatibility
-export {
-  isAuthorized,
-  getAllWorkflowsFromEventType,
-  scheduleWorkflowNotifications,
-  scheduleBookingReminders,
-} from "@calcom/features/ee/workflows/lib/workflowUtils";
-
 export const bookingSelect = {
   userPrimaryEmail: true,
   startTime: true,
