@@ -54,6 +54,11 @@ function httpStatusToTrpcCode(status: number): TRPCErrorCode {
   }
 }
 
+/**
+ * Converts only ErrorWithCode instances to TRPC errors to limit impact.
+ *
+ * TODO: Consider converting any unknown error into TRPC error in the future.
+ */
 export function convertErrorWithCodeToTRPCError(cause: unknown) {
   if (cause instanceof ErrorWithCode) {
     const statusCode = getHttpStatusCode(cause);
