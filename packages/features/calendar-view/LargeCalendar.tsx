@@ -48,6 +48,7 @@ export const LargeCalendar = ({
     eventTypeId: event?.data?.id,
     afterStart: startDate.toISOString(),
     beforeEnd: endDate.toISOString(),
+    status: ["upcoming", "past", "recurring"],
   });
 
   const { data: connectedCalendars, isPending: isFetchingConnectedCalendars } = useConnectedCalendars({

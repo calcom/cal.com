@@ -1,7 +1,7 @@
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { bookerLayoutOptions } from "@calcom/prisma/zod-utils";
 
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
@@ -13,7 +13,7 @@ export const CalendarViewComponent = () => {
           isCalendarView={true}
           isMyLink={true}
           eventSlug="calendar-view"
-          enabledLayouts={["month_view", "week_view", "column_view"] as unknown as BookerLayouts[]}
+          enabledLayouts={bookerLayoutOptions}
           extraDays={7}
           isMobile={false}
           nextSlots={6}
@@ -23,7 +23,7 @@ export const CalendarViewComponent = () => {
         key="large-calendar"
         area="main"
         visible={true}
-        className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
+        className="border-subtle sticky top-0 ml-px h-full md:border-l">
         <LargeCalendar extraDays={7} isLoading={false} />
       </BookerSection>
     </AtomsWrapper>
