@@ -69,8 +69,9 @@ const generateIcsString = ({
   }
 
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-    .filter((domain) => domain.trim() !== "")
-    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+    .map((domain) => domain.trim().toLowerCase())
+    .filter((domain) => domain !== "")
+    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain));
 
   const icsConfig = { partstat, role: icsRole, rsvp: true };
 
@@ -99,8 +100,9 @@ const generateIcsString = ({
         // Calculate exemption per member, not reusing organizer's exemption
         const isMemberExempt =
           ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-            .filter((domain) => domain.trim() !== "")
-            .some((domain) => member.email.toLowerCase().endsWith(domain.toLowerCase())) ?? false;
+            .map((domain) => domain.trim().toLowerCase())
+            .filter((domain) => domain !== "")
+            .some((domain) => member.email.toLowerCase().endsWith(domain)) ?? false;
         return getIcsAttendee(
           member,
           { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
