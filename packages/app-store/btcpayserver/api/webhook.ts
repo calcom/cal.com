@@ -5,8 +5,8 @@ import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
 
 import appConfig from "../config.json";
@@ -90,11 +90,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await handlePaymentSuccess(payment.id, payment.bookingId);
     return res.status(200).json({ success: true });
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
-    const statusCode = err instanceof HttpCode ? err.statusCode : 500;
-    return res.status(statusCode).send({
+    const err = getServerErrorFromUnknown(_err);
+    return res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
     });
   }
 }

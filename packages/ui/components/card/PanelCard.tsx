@@ -20,6 +20,7 @@ export function PanelCard({
   children,
   collapsible = false,
   defaultCollapsed = false,
+  ...dataAttributes
 }: {
   title: string | ReactNode;
   subtitle?: string;
@@ -30,7 +31,7 @@ export function PanelCard({
   children: ReactNode;
   collapsible?: boolean;
   defaultCollapsed?: boolean;
-}) {
+} & Record<`data-${string}`, string | undefined>) {
   const { t } = useLocale();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const contentId = useId();
@@ -48,10 +49,11 @@ export function PanelCard({
       data-testid="panel-card"
       ref={animationParent}
       className={classNames(
-        "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
+        "bg-cal-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
         !isCollapsed && "pb-1",
         className
-      )}>
+      )}
+      {...dataAttributes}>
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
         <div className="flex shrink-0 items-center gap-1">
           {collapsible && (
