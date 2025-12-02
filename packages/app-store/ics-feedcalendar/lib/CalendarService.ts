@@ -24,7 +24,7 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
     // integer validation as we can never be sure with ical.js
     if (!Number.isInteger(travelSeconds)) return 0;
     return travelSeconds;
-  } catch (e) {
+  } catch {
     return 0;
   }
 };
@@ -159,7 +159,7 @@ export default class ICSFeedCalendarService implements Calendar {
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
         const event = new ICAL.Event(vevent);
-        const title = vevent.getFirstPropertyValue("summary");
+        const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
@@ -265,7 +265,7 @@ export default class ICSFeedCalendarService implements Calendar {
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
-                title: title as string,
+                title,
               });
             }
           }
@@ -286,7 +286,7 @@ export default class ICSFeedCalendarService implements Calendar {
         return events.push({
           start: finalStartISO,
           end: finalEndISO,
-          title: title as string,
+          title,
         });
       });
     });
