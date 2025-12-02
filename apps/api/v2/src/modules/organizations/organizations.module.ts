@@ -5,7 +5,9 @@ import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_0
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
+import { IsNotPlatformOrgGuard } from "@/modules/auth/guards/organizations/is-not-platform-org.guard";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
@@ -14,7 +16,6 @@ import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.ser
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
-import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
@@ -164,6 +165,7 @@ import { Module } from "@nestjs/common";
     TeamsMembershipsRepository,
     OAuthClientRepository,
     OrganizationContextService,
+    IsNotPlatformOrgGuard,
   ],
   exports: [
     OrganizationsService,
@@ -204,4 +206,4 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesPrivateLinksController,
   ],
 })
-export class OrganizationsModule { }
+export class OrganizationsModule {}
