@@ -24,7 +24,7 @@ export class IsNotPlatformOrgGuard implements CanActivate {
 
     if (organization.isPlatform) {
       throw new ForbiddenException(
-        "IsNotPlatformOrgGuard - Platform organizations cannot use private links."
+        "IsNotPlatformOrgGuard - Platform organizations are not allowed."
       );
     }
 

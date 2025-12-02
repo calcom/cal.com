@@ -20,7 +20,7 @@ export class IsNotManagedUserGuard implements CanActivate {
 
     if (user.isPlatformManaged) {
       throw new ForbiddenException(
-        "IsNotManagedUserGuard - Managed users cannot create private links."
+        "IsNotManagedUserGuard - Managed users are not allowed."
       );
     }
 
