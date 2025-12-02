@@ -123,14 +123,15 @@ const BookerComponent = ({
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
       ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
-      : nonEmptyScheduleDays.length === extraDays
-      ? totalWeekDays
       : 0;
   // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
   const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
-  if (nonEmptyScheduleDays.length !== 0)
+  if (nonEmptyScheduleDays.length !== 0) {
+    const slotIndex =
+      availableSlots.length === extraDays + 1 ? availableSlots.length - 2 : availableSlots.length - 1;
     columnViewExtraDays.current =
-      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+      Math.abs(dayjs(selectedDate).diff(availableSlots[slotIndex], "day")) + addonDays;
+  }
 
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
@@ -222,12 +223,12 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-        return !isTimeSlotAvailable({
-          scheduleData: schedule?.data ?? null,
-          slotToCheckInIso: slot,
-          quickAvailabilityChecks: slots.quickAvailabilityChecks,
-        });
-      })
+      return !isTimeSlotAvailable({
+        scheduleData: schedule?.data ?? null,
+        slotToCheckInIso: slot,
+        quickAvailabilityChecks: slots.quickAvailabilityChecks,
+      });
+    })
     : [];
 
   const slot = getQueryParam("slot");

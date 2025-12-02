@@ -10,13 +10,17 @@ import SMSManager from "../sms-manager";
 
 vi.mock("@calcom/lib/smsLockState");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
-vi.mock("@calcom/prisma", () => ({
-  default: {
+vi.mock("@calcom/prisma", () => {
+  const mockObj = {
     team: {
       findUnique: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    default: mockObj,
+    prisma: mockObj,
+  };
+});
 
 interface TestAttendee extends Person {
   name: string;

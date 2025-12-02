@@ -15,8 +15,8 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -97,7 +97,7 @@ const usernameSlug = (username: string) => `${slugify(username)}-${randomString(
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
 
 const loginWithTotp = async (email: string) =>
-  `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
+  `/auth/login?totp=${encodeURIComponent(await (await import("./signJwt")).default({ email }))}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -557,7 +557,7 @@ export const getOptions = ({
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findByUpId(upId);
+        const profile = await ProfileRepository.findByUpIdWithAuth(upId, existingUser.id);
         if (!profile) {
           throw new Error("Profile not found");
         }
@@ -962,7 +962,7 @@ export const getOptions = ({
                 email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
-                username: getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email)),
+                username: getOrgUsernameFromEmail(user.email, getDomainFromEmail(user.email)),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,

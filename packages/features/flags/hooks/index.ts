@@ -30,6 +30,7 @@ const initialData: AppFlags = {
   "onboarding-v3": false,
   "booker-botid": false,
   "booking-calendar-view": false,
+  "booking-email-sms-tasker": false,
   "bookings-v3": false,
 };
 

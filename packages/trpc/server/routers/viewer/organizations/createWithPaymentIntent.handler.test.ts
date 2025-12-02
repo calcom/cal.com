@@ -3,7 +3,7 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import { ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -14,7 +14,6 @@ import { createHandler } from "./createWithPaymentIntent.handler";
 vi.stubEnv("STRIPE_PRIVATE_KEY", "test-stripe-private-key");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "test-stripe-org-monthly-price-id");
 vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "test-stripe-org-product-id");
-vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS", "30");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW", "37");
 
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID!;
@@ -47,7 +46,10 @@ const mockSharedStripe = vi.hoisted(() => ({
 
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
   type FakeBillingProvider = {
-    createCustomer(args: { email: string; metadata?: Record<string, unknown> }): Promise<{ stripeCustomerId: string }>;
+    createCustomer(args: {
+      email: string;
+      metadata?: Record<string, unknown>;
+    }): Promise<{ stripeCustomerId: string }>;
     createPrice(args: {
       amount: number;
       productId: string;
@@ -96,7 +98,8 @@ vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => {
   };
 
   return {
-    getBillingProviderService: () => fake as unknown as import("@calcom/features/ee/billing/service/billingProvider/StripeBillingService").StripeBillingService,
+    getBillingProviderService: () =>
+      fake as unknown as import("@calcom/features/ee/billing/service/billingProvider/StripeBillingService").StripeBillingService,
   };
 });
 
@@ -172,7 +175,7 @@ async function createOrganizationOnboarding(data: {
       orgOwnerEmail: data.orgOwnerEmail,
       createdById: data.createdById,
       stripeSubscriptionId: data.stripeSubscriptionId,
-      seats: parseInt(data.seats ?? ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: parseInt(data.seats ?? "1"),
       pricePerSeat: parseFloat(data.pricePerSeat ?? ORGANIZATION_SELF_SERVE_PRICE),
       billingPeriod: data.billingPeriod ?? "MONTHLY",
     },
@@ -517,7 +520,7 @@ describe("createWithPaymentIntent handler", () => {
       });
 
       const pricePerSeat = ORGANIZATION_SELF_SERVE_PRICE;
-      const seats = ORGANIZATION_SELF_SERVE_MIN_SEATS;
+      const seats = 5; // Using a test value, no longer enforcing minimum
       await createOrganizationOnboarding({
         id: mockInput.onboardingId,
         name: mockInput.name,

@@ -135,8 +135,10 @@ export interface BaseCardProps extends CVACardType {
   learnMore?: {
     href: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   };
   mediaLink?: string;
+  mediaLinkOnClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   thumbnailUrl?: string;
   structure?: string;
   coverPhoto?: string;
@@ -157,6 +159,7 @@ export function Card({
   learnMore,
   coverPhoto,
   buttonClassName,
+  mediaLinkOnClick,
 }: BaseCardProps) {
   const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
   return (
@@ -200,7 +203,7 @@ export function Card({
       </div>
       {variant === "SidebarCard" && mediaLink && (
         <a
-          onClick={actionButton?.onClick}
+          onClick={mediaLinkOnClick}
           target="_blank"
           rel="noreferrer noopener"
           href={mediaLink}
@@ -253,6 +256,7 @@ export function Card({
               href={learnMore.href}
               target="_blank"
               rel="noreferrer"
+              onClick={learnMore.onClick}
               className={classNames("text-default text-xs font-medium", buttonClassName)}>
               {learnMore.text}
             </LinkComponent>

@@ -9,16 +9,12 @@ import { AvailabilityCTA } from "~/availability/availability-view";
 
 export default function AvailabilityLoader() {
   const { t } = useLocale();
-  const toggleGroupOptions = [
-    { value: "mine", label: t("my_availability") },
-    { value: "team", label: t("team_availability") },
-  ];
 
   return (
     <ShellMainAppDir
       heading={t("availability")}
       subtitle={t("configure_availability")}
-      CTA={<AvailabilityCTA toggleGroupOptions={toggleGroupOptions} />}>
+      CTA={<AvailabilityCTA canViewTeamAvailability />}>
       <SkeletonLoader />
     </ShellMainAppDir>
   );

@@ -98,6 +98,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
 
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -154,7 +156,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>

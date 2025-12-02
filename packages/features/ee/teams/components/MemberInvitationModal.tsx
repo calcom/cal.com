@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -90,7 +91,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
-    async onSuccess({ inviteLink }) {
+    async onSuccess() {
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
       revalidateTeamsList();
@@ -235,8 +236,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           />
         </div>
 
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
-          <div className="mb-10 mt-6 stack-y-6">
+        <Form form={newMemberFormMethods} handleSubmit={(values) => { props.onSubmit(values, resetFields); posthog.capture("teams_modal_invite_members_button_clicked") }}>
+          <div className="mb-10 mt-6 space-y-6">
             {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
@@ -388,7 +389,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   color="minimal"
                   className="me-2 ms-2"
                   onClick={() => {
-                    props.onSettingsOpen && props.onSettingsOpen();
+                    if (props.onSettingsOpen) {
+                      props.onSettingsOpen();
+                    }
                     newMemberFormMethods.reset();
                   }}
                   data-testid="edit-invite-link-button">
@@ -410,6 +413,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
                       if (typeof ClipboardItem !== "undefined") {
                         const inviteLinkClipbardItem = new ClipboardItem({
+                          //eslint-disable-next-line no-async-promise-executor
                           "text/plain": new Promise(async (resolve) => {
                             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
                             const { inviteLink } = await createInviteMutation.mutateAsync({

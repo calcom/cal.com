@@ -88,6 +88,7 @@ export default async function handler(body: Record<string, string>) {
         }
       }
 
+      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -100,12 +101,14 @@ export default async function handler(body: Record<string, string>) {
           },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
+          organizationId,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          organizationId,
         },
       });
 

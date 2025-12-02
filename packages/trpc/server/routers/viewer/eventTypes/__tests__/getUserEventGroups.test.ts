@@ -20,7 +20,7 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => (
 
 vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
-    findByUpId: vi.fn(),
+    findByUpIdWithAuth: vi.fn(),
   },
 }));
 
@@ -70,7 +70,7 @@ describe("getUserEventGroups", () => {
   } as unknown as NonNullable<
     Awaited<
       ReturnType<
-        typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpId
+        typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpIdWithAuth
       >
     >
   >;
@@ -87,7 +87,7 @@ describe("getUserEventGroups", () => {
   describe("Basic functionality", () => {
     it("should throw TRPCError when profile is not found", async () => {
       const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(null);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(null);
 
       await expect(
         getUserEventGroups({
@@ -103,7 +103,7 @@ describe("getUserEventGroups", () => {
         "@calcom/features/membership/repositories/MembershipRepository"
       );
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([]);
 
@@ -161,7 +161,7 @@ describe("getUserEventGroups", () => {
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
@@ -223,7 +223,7 @@ describe("getUserEventGroups", () => {
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
@@ -279,7 +279,7 @@ describe("getUserEventGroups", () => {
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 
@@ -315,12 +315,12 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpId
+            typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpIdWithAuth
           >
         >
       >;
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfileWithOrg);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfileWithOrg);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([]);
 
@@ -368,7 +368,7 @@ describe("getUserEventGroups", () => {
         >
       >[0];
 
-      vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
+      vi.mocked(ProfileRepository.findByUpIdWithAuth).mockResolvedValue(mockProfile);
       vi.mocked(MembershipRepository.findAllByUpIdIncludeTeam).mockResolvedValue([mockTeamMembership]);
       mockFilterTeamsByEventTypeReadPermission.mockResolvedValue([mockTeamMembership]);
 

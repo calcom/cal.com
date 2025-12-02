@@ -8,8 +8,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { IBillingRepository } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
-import { TeamBillingService } from "../service/teams/TeamBillingService";
 import { TeamBillingPublishResponseStatus } from "../service/teams/ITeamBillingService";
+import { TeamBillingService } from "../service/teams/TeamBillingService";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");
@@ -41,7 +41,7 @@ describe("TeamBillingService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockBillingProviderService = {
       handleSubscriptionCancel: vi.fn(),
       handleSubscriptionUpdate: vi.fn(),
@@ -49,15 +49,15 @@ describe("TeamBillingService", () => {
       getSubscriptionStatus: vi.fn(),
       handleEndTrial: vi.fn(),
     } as IBillingProviderService;
-    
+
     mockTeamBillingDataRepository = {
       find: vi.fn(),
     } as unknown as ITeamBillingDataRepository;
-    
+
     mockBillingRepository = {
       create: vi.fn(),
     } as unknown as IBillingRepository;
-    
+
     teamBillingService = new TeamBillingService({
       team: mockTeam,
       billingProviderService: mockBillingProviderService,
@@ -149,25 +149,6 @@ describe("TeamBillingService", () => {
         subscriptionItemId: "si_456",
         membershipCount: 10,
       });
-    });
-
-    it("should not update if membership count is less than minimum for organizations", async () => {
-      const teamBillingServiceOrg = new TeamBillingService({
-        team: mockTeam,
-        billingProviderService: mockBillingProviderService,
-        teamBillingDataRepository: mockTeamBillingDataRepository,
-        billingRepository: mockBillingRepository,
-      });
-      prismaMock.membership.count.mockResolvedValue(2);
-      vi.spyOn(teamBillingServiceOrg, "checkIfTeamPaymentRequired").mockResolvedValue({
-        url: "http://checkout.url",
-        paymentId: "cs_789",
-        paymentRequired: false,
-      });
-
-      await teamBillingServiceOrg.updateQuantity();
-
-      expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
     });
   });
 

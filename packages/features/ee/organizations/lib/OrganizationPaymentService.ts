@@ -2,7 +2,6 @@ import { getBillingProviderService } from "@calcom/features/ee/billing/di/contai
 import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
   ORG_TRIAL_DAYS,
@@ -134,7 +133,7 @@ export class OrganizationPaymentService {
   }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
-      seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: input.seats ?? 1,
       pricePerSeat: input.pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE),
     };
   }
