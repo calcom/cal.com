@@ -3524,7 +3524,6 @@
   "add_verified_emails": "Add verified emails",
   "custom_reply_to_email_title": "Custom 'Reply-To' email",
   "custom_reply_to_email_description": "Use a different email address as the replyTo for confirmation emails instead of the organizer's email",
-  "email_survey_triggered_by_workflow": "This survey was triggered by a Workflow in Cal.",
   "skip_trial": "Skip trial period",
   "team_trials_skipped_successfully": "Team trials skipped successfully",
   "sms_workflow_consent": "By entering your phone number you consent to receive SMS messages for this event. SMS rates may apply.",
