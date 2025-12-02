@@ -24,6 +24,8 @@ export default function Authorize() {
   const client_id = (searchParams?.get("client_id") as string) || "";
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
+  const code_challenge = searchParams?.get("code_challenge") as string;
+  const code_challenge_method = searchParams?.get("code_challenge_method") as string;
 
   const queryString = searchParams?.toString();
 
@@ -45,6 +47,30 @@ export default function Authorize() {
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
       window.location.href = `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+    },
+    onError: (error) => {
+      let oauthError = "server_error";
+      if (error.data?.code === "BAD_REQUEST") {
+        oauthError = "invalid_request";
+      } else if (error.data?.code === "UNAUTHORIZED") {
+        oauthError = "unauthorized_client";
+      }
+
+      const errorParams = new URLSearchParams({
+        error: oauthError,
+      });
+
+      if (error.message) {
+        errorParams.append("error_description", error.message);
+      }
+
+      if (state) {
+        errorParams.append("state", state);
+      }
+
+      if (client?.redirectUri) {
+        window.location.href = `${client.redirectUri}${client.redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
+      }
     },
   });
 
@@ -116,7 +142,7 @@ export default function Authorize() {
           options={mappedProfiles}
         />
         <div className="mb-4 mt-5 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
-        <ul className="space-y-4 text-sm">
+        <ul className="stack-y-4 text-sm">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
             {t("associate_with_cal_account", { clientName: client.name })}
@@ -144,7 +170,7 @@ export default function Authorize() {
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
-          <div className="ml-1 ">
+          <div className="ml-1">
             <div className="mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
@@ -157,7 +183,13 @@ export default function Authorize() {
             className="mr-2"
             color="minimal"
             onClick={() => {
-              window.location.href = `${client.redirectUri}`;
+              const separator = client.redirectUri.includes("?") ? "&" : "?";
+              const params = new URLSearchParams();
+              params.set("error", "access_denied");
+              if (state) {
+                params.set("state", state);
+              }
+              window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
             }}>
             {t("go_back")}
           </Button>
@@ -169,6 +201,8 @@ export default function Authorize() {
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
+                codeChallenge: code_challenge || undefined,
+                codeChallengeMethod: (code_challenge_method as "S256") || undefined,
               });
             }}
             data-testid="allow-button">

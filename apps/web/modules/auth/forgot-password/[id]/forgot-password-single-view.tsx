@@ -21,7 +21,7 @@ function Success() {
   const { t } = useLocale();
   return (
     <>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div>
           <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">
             {t("password_updated")}
@@ -39,7 +39,7 @@ function Expired() {
   const { t } = useLocale();
   return (
     <>
-      <div className="space-y-6">
+      <div className="stack-y-6">
         <div>
           <h2 className="font-cal text-emphasis mt-6 text-center text-3xl font-extrabold">{t("whoops")}</h2>
           <h2 className="text-emphasis text-center text-3xl font-extrabold">{t("request_is_expired")}</h2>
@@ -114,7 +114,7 @@ function PasswordResetForm({
 
   return (
     <Form
-      className="space-y-6"
+      className="stack-y-6"
       form={formMethods}
       style={
         {

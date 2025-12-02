@@ -38,14 +38,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
   const { booking, isPending, isTabRecurring, isTabUnconfirmed, isRecurring, showPendingPayment, t } =
     context;
 
-  const actions: ActionType[] = [
-    {
-      id: "reject",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      icon: "ban",
-      disabled: false, // This would be controlled by mutation state in the component
-    },
-  ];
+  const actions: ActionType[] = [];
 
   // For bookings with payment, only confirm if the booking is paid for
   // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
@@ -58,6 +51,13 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
       disabled: false, // This would be controlled by mutation state in the component
     });
   }
+
+  actions.push({
+    id: "reject",
+    label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
+    icon: "ban",
+    disabled: false, // This would be controlled by mutation state in the component
+  });
 
   return actions;
 }
@@ -109,6 +109,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
+  const isReassignableRoundRobin =
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+  const isManagedChildEvent = booking.eventType.parentId != null;
+  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
@@ -154,9 +160,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
-    // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+    isReassignable
       ? {
           id: "reassign",
           label: t("reassign"),
