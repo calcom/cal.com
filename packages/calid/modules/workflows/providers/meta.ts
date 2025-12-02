@@ -43,12 +43,12 @@ export class MetaError extends Error {
 }
 
 interface MetaMessageConfiguration {
-  eventTypeId: number;
+  eventTypeId?: number | null;
   workflowId?: number;
   recipientNumber: string;
   accountId?: number | null;
   organizationId?: number | null;
-  templateType?: WorkflowTemplates;
+  templateType?: WorkflowTemplates | null;
   variableData: VariablesType;
   // Meta-specific fields
   metaTemplateName?: string | null;
@@ -767,15 +767,15 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
 // Export functions matching Twilio provider interface
 export const sendSMS = async (args: {
-  eventTypeId: number;
+  eventTypeId?: number | null;
   workflowId?: number;
   phoneNumber: string;
   userId?: number | null;
   teamId?: number | null;
-  template?: WorkflowTemplates;
+  template?: WorkflowTemplates | null;
   variableData: VariablesType;
-  metaTemplateName: string | null;
-  metaPhoneNumberId: string | null;
+  metaTemplateName?: string | null;
+  metaPhoneNumberId?: string | null;
 }) => {
   console.log("meta.sendSMS: ");
   console.log(JSON.stringify(args));
