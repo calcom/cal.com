@@ -67,8 +67,8 @@ describe("Weekday tests", () => {
 
     it("should work with Icelandic, Lithuanian, and Norwegian locales", () => {
       expect(nameOfDay("is", 1, "long")).toMatch(/mánudagur/i); // Monday in Icelandic
-      expect(nameOfDay("lt", 1, "long")).toBeTruthy(); // Monday in Lithuanian
-      expect(nameOfDay("nb", 1, "long")).toBeTruthy(); // Monday in Norwegian
+      expect(nameOfDay("lt", 1, "long")).toMatch(/pirmadienis/i); // Monday in Lithuanian
+      expect(nameOfDay("nb", 1, "long")).toMatch(/mandag/i); // Monday in Norwegian
     });
   });
 });

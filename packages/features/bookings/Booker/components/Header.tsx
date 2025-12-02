@@ -98,17 +98,14 @@ export function Header({
   const isSameYear = () => {
     return selectedDate.format("YYYY") === endDate.format("YYYY");
   };
-  const formatMonth = (date: Date) =>
-    formatDateTime(date, {
-      locale: i18n.language ?? "en",
-      month: "short",
-    });
+  const formatMonthLabel = (date: Date) =>
+    formatDateTime(date, { locale: i18n.language ?? "en", month: "short" });
   const FormattedSelectedDateRange = () => {
     return (
       <h3 className="min-w-[150px] text-base font-semibold leading-4">
-        {formatMonth(selectedDate.toDate())} {selectedDate.format("D")}
+        {formatMonthLabel(selectedDate.toDate())} {selectedDate.format("D")}
         {!isSameYear() && <span className="text-subtle">, {selectedDate.format("YYYY")} </span>}-{" "}
-        {!isSameMonth() && formatMonth(endDate.toDate())} {endDate.format("D")},{" "}
+        {!isSameMonth() && formatMonthLabel(endDate.toDate())} {endDate.format("D")},{" "}
         <span className="text-subtle">
           {isSameYear() ? selectedDate.format("YYYY") : endDate.format("YYYY")}
         </span>

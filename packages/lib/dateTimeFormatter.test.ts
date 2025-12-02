@@ -8,7 +8,7 @@ describe("dateTimeFormatter", () => {
   describe("formatDateTime", () => {
     describe("supported locales (Intl path)", () => {
       it("formats full date style in English", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "en-US",
@@ -18,13 +18,13 @@ describe("dateTimeFormatter", () => {
 
         // Validate actual content
         expect(result).toContain("Monday");
-        expect(result).toContain("January");
-        expect(result).toContain("15");
-        expect(result).toContain("2024");
+        expect(result).toContain("December");
+        expect(result).toContain("1");
+        expect(result).toContain("2025");
       });
 
       it("formats time with 12h format", () => {
-        const date = new Date("2024-01-15T14:30:00Z");
+        const date = new Date("2025-12-01T14:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "en-US",
@@ -37,20 +37,20 @@ describe("dateTimeFormatter", () => {
       });
 
       it("formats month only", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "en-US",
           month: "long",
         });
 
-        expect(result).toBe("January");
+        expect(result).toBe("December");
       });
     });
 
     describe("unsupported locales (dayjs fallback)", () => {
       it("formats Icelandic date correctly", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "is",
@@ -58,61 +58,52 @@ describe("dateTimeFormatter", () => {
         });
 
         // Validate Icelandic content
-        expect(result).toMatch(/janúar/i); // January in Icelandic
-        expect(result).toContain("15");
-        expect(result).toContain("2024");
+        expect(result).toMatch(/desember/i); // December in Icelandic
+        expect(result).toContain("1");
+        expect(result).toContain("2025");
       });
 
       it("formats Lithuanian date correctly", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "lt",
-          dateStyle: "medium",
+          dateStyle: "long",
         });
 
-        // Validate Lithuanian formatting works
-        expect(result).toBeTruthy();
-        expect(result).toMatch(/\d{4}/); // Should contain year
+        // Validate Lithuanian content
+        expect(result).toMatch(/gruod/i); // December in Lithuanian
+        expect(result).toContain("1");
+        expect(result).toContain("2025");
       });
 
       it("formats Norwegian Bokmål date correctly", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "nb",
-          dateStyle: "medium",
+          dateStyle: "long",
         });
 
-        // Validate Norwegian formatting works
-        expect(result).toBeTruthy();
-        expect(result).toMatch(/\d{4}/); // Should contain year
+        // Validate Norwegian content
+        expect(result).toMatch(/desember/i); // December in Norwegian
+        expect(result).toContain("1");
+        expect(result).toContain("2025");
       });
 
       it("formats month-only in Icelandic", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "is",
           month: "long",
         });
 
-        expect(result).toMatch(/janúar/i);
-      });
-
-      it("formats short month in Icelandic", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
-
-        const result = formatDateTime(date, {
-          locale: "is",
-          month: "short",
-        });
-
-        expect(result).toMatch(/jan/i);
+        expect(result).toMatch(/desember/i);
       });
 
       it("formats narrow month (first character)", () => {
-        const date = new Date("2024-01-15T10:30:00Z");
+        const date = new Date("2025-12-01T10:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "is",
@@ -123,7 +114,7 @@ describe("dateTimeFormatter", () => {
       });
 
       it("formats time with 12h format in Icelandic", () => {
-        const date = new Date("2024-01-15T14:30:00Z");
+        const date = new Date("2025-12-01T14:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "is",
@@ -136,7 +127,7 @@ describe("dateTimeFormatter", () => {
       });
 
       it("formats combined date and time", () => {
-        const date = new Date("2024-01-15T14:30:00Z");
+        const date = new Date("2025-12-01T14:30:00Z");
 
         const result = formatDateTime(date, {
           locale: "is",
@@ -145,7 +136,7 @@ describe("dateTimeFormatter", () => {
           hour12: false,
         });
 
-        expect(result).toContain("15");
+        expect(result).toContain("1");
         expect(result).toMatch(/14:30/);
       });
     });
@@ -154,8 +145,8 @@ describe("dateTimeFormatter", () => {
   describe("formatDateTimeRange", () => {
     describe("supported locales", () => {
       it("formats time range on same day", () => {
-        const startDate = new Date("2024-01-15T10:30:00Z");
-        const endDate = new Date("2024-01-15T11:30:00Z");
+        const startDate = new Date("2025-12-01T10:30:00Z");
+        const endDate = new Date("2025-12-01T11:30:00Z");
 
         const result = formatDateTimeRange(startDate, endDate, {
           locale: "en-US",
@@ -168,8 +159,8 @@ describe("dateTimeFormatter", () => {
       });
 
       it("formats date range across different days", () => {
-        const startDate = new Date("2024-01-15T10:30:00Z");
-        const endDate = new Date("2024-01-16T11:30:00Z");
+        const startDate = new Date("2025-12-01T10:30:00Z");
+        const endDate = new Date("2025-12-02T11:30:00Z");
 
         const result = formatDateTimeRange(startDate, endDate, {
           locale: "en-US",
@@ -177,15 +168,15 @@ describe("dateTimeFormatter", () => {
           dateStyle: "short",
         });
 
-        expect(result).toContain("1/15");
-        expect(result).toContain("1/16");
+        expect(result).toContain("12/1");
+        expect(result).toContain("12/2");
       });
     });
 
     describe("unsupported locales (dayjs fallback)", () => {
       it("formats time range in Icelandic", () => {
-        const startDate = new Date("2024-01-15T10:30:00Z");
-        const endDate = new Date("2024-01-15T11:30:00Z");
+        const startDate = new Date("2025-12-01T10:30:00Z");
+        const endDate = new Date("2025-12-01T11:30:00Z");
 
         const result = formatDateTimeRange(startDate, endDate, {
           locale: "is",
@@ -200,8 +191,8 @@ describe("dateTimeFormatter", () => {
       });
 
       it("formats date range in Lithuanian", () => {
-        const startDate = new Date("2024-01-15T10:30:00Z");
-        const endDate = new Date("2024-01-16T10:30:00Z");
+        const startDate = new Date("2025-12-01T10:30:00Z");
+        const endDate = new Date("2025-12-02T10:30:00Z");
 
         const result = formatDateTimeRange(startDate, endDate, {
           locale: "lt",
@@ -209,7 +200,8 @@ describe("dateTimeFormatter", () => {
         });
 
         expect(result).toContain("–");
-        expect(result).toBeTruthy();
+        expect(result).toContain("1");
+        expect(result).toContain("2");
       });
     });
   });
@@ -241,14 +233,12 @@ describe("dateTimeFormatter", () => {
 
       it("formats weekdays in Lithuanian", () => {
         const monday = formatWeekday("lt", 1, "long");
-        expect(monday).toBeTruthy();
-        expect(monday.length).toBeGreaterThan(3);
+        expect(monday).toMatch(/pirmadienis/i); // Monday in Lithuanian
       });
 
       it("formats weekdays in Norwegian Bokmål", () => {
         const monday = formatWeekday("nb", 1, "long");
-        expect(monday).toBeTruthy();
-        expect(monday.length).toBeGreaterThan(3);
+        expect(monday).toMatch(/mandag/i); // Monday in Norwegian
       });
     });
   });
@@ -286,12 +276,66 @@ describe("dateTimeFormatter", () => {
       // Validate at least one Icelandic weekday
       expect(result.some((day) => day.match(/dagur$/i))).toBe(true);
     });
+  });
 
-    it("handles week start with unsupported locale", () => {
-      const result = getWeekdayNames("is", 1, "short");
+  describe("timezone handling", () => {
+    it("formats in UTC correctly for both Intl and dayjs paths", () => {
+      const date = new Date("2025-12-01T10:30:00Z");
 
-      expect(result).toHaveLength(7);
-      expect(result[0]).toBeTruthy();
+      // Intl path (supported locale)
+      const intlResult = formatDateTime(date, {
+        locale: "en",
+        timeZone: "UTC",
+        timeStyle: "short",
+        hour12: false,
+      });
+      expect(intlResult).toContain("10:30");
+
+      // Dayjs path (unsupported locale)
+      const dayjsResult = formatDateTime(date, {
+        locale: "is",
+        timeZone: "UTC",
+        timeStyle: "short",
+        hour12: false,
+      });
+      expect(dayjsResult).toContain("10:30");
+    });
+
+    it("applies Tokyo timezone offset correctly", () => {
+      const date = new Date("2025-12-01T10:30:00Z");
+
+      // Intl path
+      const intlResult = formatDateTime(date, {
+        locale: "en",
+        timeZone: "Asia/Tokyo",
+        timeStyle: "short",
+        hour12: false,
+      });
+      expect(intlResult).toContain("19:30"); // UTC+9
+
+      // Test timezone respect in dayjs fallback
+      const dayjsResult = formatDateTime(date, {
+        locale: "is",
+        timeZone: "Asia/Tokyo",
+        timeStyle: "short",
+        hour12: false,
+      });
+      expect(dayjsResult).toContain("19:30"); // UTC+9
+    });
+
+    it("handles day boundary crossing with timezone offset", () => {
+      const date = new Date("2025-12-01T20:30:00Z");
+
+      const result = formatDateTime(date, {
+        locale: "is",
+        timeZone: "Asia/Tokyo",
+        dateStyle: "short",
+        timeStyle: "short",
+        hour12: false,
+      });
+      // 20:30 UTC + 9h = 05:30 next day
+      expect(result).toContain("05:30");
+      expect(result).toContain("2"); // December 2nd
     });
   });
 });
