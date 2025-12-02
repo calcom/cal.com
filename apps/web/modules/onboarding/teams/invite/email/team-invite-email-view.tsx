@@ -54,7 +54,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const formSchema = z.object({
     invites: z.array(
       z.object({
-        email: z.string().email(t("invalid_email_address")),
+        email: z.union([z.literal(""), z.string().email(t("invalid_email_address"))]),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),

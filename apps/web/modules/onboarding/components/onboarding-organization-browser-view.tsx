@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
@@ -27,8 +27,7 @@ export const OnboardingOrganizationBrowserView = ({
 }: OnboardingOrganizationBrowserViewProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl = `${webappUrl}/${slug || ""}`;
+  const displayUrl = slug ? `${slug}.${subdomainSuffix()}` : subdomainSuffix();
 
   // Animation variants for entry and exit
   const containerVariants = {
