@@ -115,7 +115,7 @@ function NewFormDialog({
               duplicateFrom: formToDuplicate,
             });
           }}>
-          <div className="mt-3 stack-y-5">
+          <div className="stack-y-5 mt-3">
             <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
@@ -256,10 +256,12 @@ function Dialogs({
               id: deleteDialogFormId,
             });
           }}>
-          <ul className="list-disc pl-3">
-            <li> {t("delete_form_confirmation")}</li>
-            <li> {t("delete_form_confirmation_2")}</li>
-          </ul>
+          <div>
+            <ul className="list-disc pl-3">
+              <li> {t("delete_form_confirmation")}</li>
+              <li> {t("delete_form_confirmation_2")}</li>
+            </ul>
+          </div>
         </ConfirmationDialogContent>
       </Dialog>
       <NewFormDialog

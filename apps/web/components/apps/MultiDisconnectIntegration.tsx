@@ -108,9 +108,9 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
               });
             }
           }}>
-          <p className="mt-5">
+          <div className="mt-5">
             {t("are_you_sure_you_want_to_remove_this_app_from")} {credentialToDelete?.name || t("unnamed")}?
-          </p>
+          </div>
         </ConfirmationDialogContent>
       </Dialog>
     </>

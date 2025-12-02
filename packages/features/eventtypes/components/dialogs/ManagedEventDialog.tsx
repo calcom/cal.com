@@ -29,7 +29,7 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
         })}
         cancelBtnText={t("go_back")}
         onConfirm={onConfirm}>
-        <p className="mt-5">
+        <div className="mt-5">
           <ServerTrans
             t={t}
             i18nKey={
@@ -47,8 +47,8 @@ export default function ManagedEventDialog(props: ManagedEventDialogProps) {
               slug,
             }}
           />
-        </p>{" "}
-        <p className="mt-5">{t("managed_event_dialog_clarification")}</p>
+        </div>
+        <div className="mt-5">{t("managed_event_dialog_clarification")}</div>
       </ConfirmationDialogContent>
     </Dialog>
   );
