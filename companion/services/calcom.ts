@@ -276,13 +276,10 @@ export class CalComAPIService {
 
       // Handle specific error cases
       if (response.status === 401) {
-        // If we have a refresh token and refresh function, attempt to refresh and retry
         if (!isRetry && authConfig.refreshToken && refreshTokenFunction && tokenRefreshCallback) {
           try {
-            // Call the refresh function to get new tokens
             const newTokens = await refreshTokenFunction(authConfig.refreshToken);
 
-            // Update auth config with new access token
             authConfig.accessToken = newTokens.accessToken;
             if (newTokens.refreshToken) {
               authConfig.refreshToken = newTokens.refreshToken;
@@ -295,7 +292,6 @@ export class CalComAPIService {
             return this.makeRequest<T>(endpoint, options, apiVersion, true);
           } catch (refreshError) {
             console.error("Token refresh failed:", refreshError);
-            // Clear auth on refresh failure
             this.clearAuth();
             throw new Error("Authentication failed. Please sign in again.");
           }
