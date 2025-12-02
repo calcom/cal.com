@@ -5,7 +5,6 @@ import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import posthog from "posthog-js";
 
-import { DataTableSkeleton } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -179,7 +178,7 @@ export function RoutedToPerPeriod() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery(
+  const { data, isLoading, isError } = trpc.viewer.insights.routedToPerPeriod.useQuery(
     {
       ...routingParams,
       period: selectedPeriod,
@@ -240,26 +239,6 @@ export function RoutedToPerPeriod() {
     });
   }, [data?.periodStats.data, flattenedUsers, uniquePeriods]);
 
-  if (isLoading) {
-    return (
-      <div className="w-full text-sm">
-        <div className="flex h-12 items-center">
-          <h2 className="text-emphasis text-md font-semibold">{t("routed_to_per_period")}</h2>
-        </div>
-
-        <FormCard
-          selectedPeriod={selectedPeriod}
-          onPeriodChange={setSelectedPeriod}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}>
-          <div className="mt-6">
-            <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
-          </div>
-        </FormCard>
-      </div>
-    );
-  }
-
   const isCurrentPeriod = (date: Date, today: Date, selectedPeriod: string): boolean => {
     if (selectedPeriod === "perDay") {
       return (
@@ -280,7 +259,7 @@ export function RoutedToPerPeriod() {
   };
 
   return (
-    <ChartCard title={t("routed_to_per_period")}>
+    <ChartCard title={t("routed_to_per_period")} isPending={isLoading} isError={isError}>
       <div className="w-full text-sm">
         <FormCard
           selectedPeriod={selectedPeriod}
