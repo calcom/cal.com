@@ -1,3 +1,4 @@
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -24,6 +25,10 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
     },
   });
 
+  const lockedDefaultAvailability = input.userId
+    ? await hasLockedDefaultAvailabilityRestriction(input.userId)
+    : false;
+
   try {
     // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
     if (!foundUserDefaultId?.defaultScheduleId) {
@@ -39,6 +44,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
     return {
       ...schedule,
       hasDefaultSchedule: true,
+      lockedDefaultAvailability,
     };
   } catch (e) {
     return {
@@ -50,6 +56,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
       workingHours: [],
       isDefault: true,
       hasDefaultSchedule: false, // This is the path that we take if the user has not completed onboarding
+      lockedDefaultAvailability,
     };
   }
 };

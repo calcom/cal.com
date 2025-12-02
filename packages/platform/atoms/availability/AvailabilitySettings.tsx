@@ -33,6 +33,7 @@ import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
@@ -94,6 +95,7 @@ export type AvailabilitySettingsScheduleType = {
   dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   schedule: Availability[];
+  lockedDefaultAvailability?: boolean;
 };
 
 type AvailabilitySettingsProps = {
@@ -134,14 +136,28 @@ const DeleteDialogButton = ({
   isPending,
   onDeleteConfirmed,
   handleDelete,
+  isDefaultSchedule,
+  lockedDefaultAvailability,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
   isPending: boolean;
+  isDefaultSchedule?: boolean;
+  lockedDefaultAvailability?: boolean;
 }) => {
   const { t } = useLocale();
+
+  const getTooltipText = () => {
+    if (!disabled) return t("delete");
+
+    if (isDefaultSchedule && lockedDefaultAvailability) {
+      return t("default_availability_is_locked");
+    }
+
+    return t("requires_at_least_one_schedule");
+  };
 
   return (
     <Dialog>
@@ -153,7 +169,7 @@ const DeleteDialogButton = ({
           aria-label={t("delete")}
           className={buttonClassName}
           disabled={disabled}
-          tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+          tooltip={getTooltipText()}
           tooltipSide="bottom"
         />
       </DialogTrigger>
@@ -191,6 +207,7 @@ const DateOverride = ({
   overridesModalClassNames,
   classNames,
   handleSubmit,
+  disabled,
   isDryRun = false,
 }: {
   workingHours: WorkingHours[];
@@ -205,6 +222,7 @@ const DateOverride = ({
     button?: string;
   };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  disabled?: boolean;
   isDryRun?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
@@ -263,7 +281,8 @@ const DateOverride = ({
               className={classNames?.button}
               color="secondary"
               StartIcon="plus"
-              data-testid="add-override">
+              data-testid="add-override"
+              disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }
@@ -450,7 +469,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           container: cn(customClassNames?.hiddenSwitchClassname?.container),
                           thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
                         }}
-                        disabled={isSaving || schedule.isDefault}
+                        disabled={isSaving || schedule.isDefault || schedule.lockedDefaultAvailability}
                         checked={value}
                         onCheckedChange={(checked) => {
                           onChange(checked);
@@ -481,9 +500,13 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
-                  disabled={schedule.isLastSchedule}
+                  disabled={
+                    schedule.isLastSchedule || (schedule.isDefault && schedule.lockedDefaultAvailability)
+                  }
                   isPending={isDeleting}
                   handleDelete={handleDelete}
+                  isDefaultSchedule={schedule.isDefault}
+                  lockedDefaultAvailability={schedule.lockedDefaultAvailability}
                 />
                 <VerticalDivider className="hidden sm:inline" />
               </>
@@ -507,12 +530,17 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       {allowDelete && (
                         <DeleteDialogButton
                           buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
-                          disabled={schedule.isLastSchedule}
+                          disabled={
+                            schedule.isLastSchedule ||
+                            (schedule.isDefault && schedule.lockedDefaultAvailability)
+                          }
                           isPending={isDeleting}
                           handleDelete={handleDelete}
                           onDeleteConfirmed={() => {
                             setOpenSidebar(false);
                           }}
+                          isDefaultSchedule={schedule.isDefault}
+                          lockedDefaultAvailability={schedule.lockedDefaultAvailability}
                         />
                       )}
                     </div>
@@ -551,7 +579,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                   thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
                                 }}
                                 id="hiddenSwitch"
-                                disabled={isSaving || value}
+                                disabled={
+                                  isSaving ||
+                                  value ||
+                                  schedule.isDefault ||
+                                  schedule.lockedDefaultAvailability
+                                }
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -584,6 +617,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                     customClassNames?.timezoneSelectClassName
                                   )}
                                   onChange={(timezone) => onChange(timezone.value)}
+                                  isDisabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                                 />
                               ) : (
                                 <SelectSkeletonLoader className="mt-1 w-72" />
@@ -625,7 +659,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               className="ml-4 lg:ml-0"
               type="submit"
               form="availability-form"
-              loading={isSaving}>
+              loading={isSaving}
+              disabled={schedule.isDefault && schedule.lockedDefaultAvailability}>
               {t("save")}
             </Button>
             <Button
@@ -637,6 +672,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             />
           </div>
         }>
+        {schedule.isDefault && schedule.lockedDefaultAvailability && (
+          <Alert
+            severity="warning"
+            title={t("default_availability_is_locked")}
+            message={t("default_availability_locked_message")}
+            className="mb-4"
+          />
+        )}
         <div className="mt-4 w-full md:mt-0">
           <Form
             form={form}
@@ -676,6 +719,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           "Saturday",
                         ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                       }
+                      disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                     />
                   )}
                 </div>
@@ -694,6 +738,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                     }
                     overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                    disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                     classNames={customClassNames?.dateOverrideClassNames}
                   />
                 </BookerStoreProvider>
@@ -718,6 +763,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           value={value}
                           className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                           onChange={(timezone) => onChange(timezone.value)}
+                          isDisabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                         />
                       ) : (
                         <SelectSkeletonLoader className="mt-1 w-72" />

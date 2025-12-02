@@ -540,6 +540,7 @@ model Team {
   hideTeamProfileLink    Boolean                 @default(false)
   isPrivate              Boolean                 @default(false)
   hideBookATeamMember    Boolean                 @default(false)
+  lockDefaultAvailability Boolean                 @default(false)
   members                Membership[]
   eventTypes             EventType[]
   workflows              Workflow[]
@@ -575,15 +576,15 @@ model Team {
   dsyncTeamGroupMapping  DSyncTeamGroupMapping[]
   isPlatform             Boolean                 @default(false)
   // Organization's OAuth clients. Organization has them but a team does not.
-  platformOAuthClient    PlatformOAuthClient[]
+  platformOAuthClient     PlatformOAuthClient[]
   // OAuth client used to create team of an organization. Team has it but organization does not.
-  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
-  createdByOAuthClientId String?
-  smsLockState           SMSLockState            @default(UNLOCKED)
-  platformBilling        PlatformBilling?
-  activeOrgWorkflows     WorkflowsOnTeams[]
-  attributes             Attribute[]
-  smsLockReviewedByAdmin Boolean                 @default(false)
+  createdByOAuthClient    PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
+  createdByOAuthClientId  String?
+  smsLockState            SMSLockState            @default(UNLOCKED)
+  platformBilling         PlatformBilling?
+  activeOrgWorkflows      WorkflowsOnTeams[]
+  attributes              Attribute[]
+  smsLockReviewedByAdmin  Boolean                 @default(false)
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
