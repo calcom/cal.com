@@ -1,7 +1,4 @@
-import { randomBytes, createHash } from "crypto";
-
-import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
 
@@ -12,26 +9,15 @@ type AddClientOptions = {
 export const addClientHandler = async ({ input }: AddClientOptions) => {
   const { name, redirectUri, logo, enablePkce } = input;
 
-  const clientId = randomBytes(32).toString("hex");
-  const clientType = enablePkce ? "PUBLIC" : "CONFIDENTIAL";
+  const oAuthClientRepository = await OAuthClientRepository.withGlobalPrisma();
 
-  // Only generate client secret for confidential clients
-  const clientData: Prisma.OAuthClientCreateInput = {
+  // Admin-created clients are auto-approved
+  const client = await oAuthClientRepository.create({
     name,
     redirectUri,
-    clientId,
-    clientType,
     logo,
-  };
-
-  let secret: string | undefined;
-  if (!enablePkce) {
-    const [hashedSecret, plainSecret] = generateSecret();
-    clientData.clientSecret = hashedSecret;
-    secret = plainSecret;
-  }
-  const client = await prisma.oAuthClient.create({
-    data: clientData,
+    enablePkce,
+    approvalStatus: "APPROVED",
   });
 
   return {
@@ -40,12 +26,7 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
     redirectUri: client.redirectUri,
     logo: client.logo,
     clientType: client.clientType,
-    clientSecret: secret, // Only return plain secret for confidential clients
+    clientSecret: client.clientSecret,
     isPkceEnabled: enablePkce,
   };
 };
-
-const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
-
-// Generate a random secret
-export const generateSecret = (secret = randomBytes(32).toString("hex")) => [hashSecretKey(secret), secret];

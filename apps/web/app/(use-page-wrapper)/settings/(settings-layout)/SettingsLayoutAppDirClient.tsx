@@ -64,19 +64,20 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       icon: "credit-card",
       children: [{ name: "manage_billing", href: "/settings/billing", trackingMetadata: { section: "billing", page: "manage_billing" } }],
     },
-    {
-      name: "developer",
-      href: "/settings/developer",
-      icon: "terminal",
-      children: [
-        //
-        { name: "webhooks", href: "/settings/developer/webhooks", trackingMetadata: { section: "developer", page: "webhooks" } },
-        { name: "api_keys", href: "/settings/developer/api-keys", trackingMetadata: { section: "developer", page: "api_keys" } },
-        { name: "admin_api", href: "/settings/organizations/admin-api", trackingMetadata: { section: "developer", page: "admin_api" } },
-        // TODO: Add profile level for embeds
-        // { name: "embeds", href: "/v2/settings/developer/embeds" },
-      ],
-    },
+        {
+          name: "developer",
+          href: "/settings/developer",
+          icon: "terminal",
+          children: [
+            //
+            { name: "webhooks", href: "/settings/developer/webhooks", trackingMetadata: { section: "developer", page: "webhooks" } },
+            { name: "api_keys", href: "/settings/developer/api-keys", trackingMetadata: { section: "developer", page: "api_keys" } },
+            { name: "oauth_clients", href: "/settings/developer/oauth", trackingMetadata: { section: "developer", page: "oauth_clients" } },
+            { name: "admin_api", href: "/settings/organizations/admin-api", trackingMetadata: { section: "developer", page: "admin_api" } },
+            // TODO: Add profile level for embeds
+            // { name: "embeds", href: "/v2/settings/developer/embeds" },
+          ],
+        },
     {
       name: "organization",
       href: "/settings/organizations",

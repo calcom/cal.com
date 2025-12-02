@@ -37,6 +37,8 @@ export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail
 export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";
 export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificationEmail";
+export { AdminOAuthClientNotificationEmail } from "./AdminOAuthClientNotificationEmail";
+export { OAuthClientApprovedNotificationEmail } from "./OAuthClientApprovedNotificationEmail";
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
