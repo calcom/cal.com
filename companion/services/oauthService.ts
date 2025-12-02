@@ -1,3 +1,5 @@
+/// <reference types="chrome" />
+
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import * as Crypto from "expo-crypto";
@@ -167,15 +169,163 @@ export class CalComOAuthService {
   }
 
   /**
-   * Get authorization result (web or mobile)
+   * Check if running in a browser extension environment
+   */
+  private isBrowserExtension(): boolean {
+    if (Platform.OS !== "web" || typeof window === "undefined") {
+      return false;
+    }
+
+    // Check if we have chrome extension APIs available
+    if (typeof chrome !== "undefined") {
+      // Check for various chrome extension indicators
+      if (chrome.runtime && chrome.runtime.id) {
+        return true;
+      }
+      if (chrome.extension) {
+        return true;
+      }
+    }
+
+    // Check if we're in an extension context by looking at the URL
+    if (window.location.protocol === "chrome-extension:") {
+      return true;
+    }
+
+    // For localhost iframe in extension context, check for specific indicators
+    if (window.parent !== window) {
+      try {
+        // Try to access parent chrome APIs
+        if (window.parent.chrome) {
+          return true;
+        }
+      } catch (e) {
+        // Cross-origin iframe access blocked
+      }
+
+      // Check if we're localhost in an iframe (likely extension)
+      if (window.location.hostname === "localhost" && window.location.port === "8081") {
+        // Additional check: see if parent has different origin (extension content script)
+        try {
+          const parentOrigin = window.parent.location.origin;
+          if (parentOrigin !== window.location.origin) {
+            return true;
+          }
+        } catch (e) {
+          // Cross-origin access blocked, likely extension
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Launch Chrome extension auth flow via postMessage to parent window
+   */
+  private async launchExtensionAuthFlow(authUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Check if we can directly access chrome APIs
+      if (typeof chrome !== "undefined" && chrome.identity) {
+        chrome.identity.launchWebAuthFlow(
+          {
+            url: authUrl,
+            interactive: true,
+          },
+          (responseUrl) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(`OAuth flow failed: ${chrome.runtime.lastError.message}`));
+            } else if (responseUrl) {
+              resolve(responseUrl);
+            } else {
+              reject(new Error("OAuth flow cancelled or failed"));
+            }
+          }
+        );
+        return;
+      }
+
+      // If we're in an iframe, communicate with the parent window
+      if (window.parent !== window) {
+        console.log("Setting up OAuth communication with parent window");
+
+        const messageHandler = (event: MessageEvent) => {
+          console.log("Received message from parent:", event.data);
+
+          if (event.data.type === "cal-extension-oauth-result") {
+            window.removeEventListener("message", messageHandler);
+
+            if (event.data.success) {
+              console.log("OAuth flow successful, received URL:", event.data.responseUrl);
+              resolve(event.data.responseUrl);
+            } else {
+              console.error("OAuth flow failed:", event.data.error);
+              reject(new Error(event.data.error || "OAuth flow failed"));
+            }
+          }
+        };
+
+        window.addEventListener("message", messageHandler);
+
+        // Send request to parent window to start OAuth flow
+        console.log("Sending OAuth request to parent window:", authUrl);
+        window.parent.postMessage(
+          {
+            type: "cal-extension-oauth-request",
+            authUrl: authUrl,
+          },
+          "*"
+        );
+
+        // Set a timeout in case the parent doesn't respond
+        setTimeout(() => {
+          console.error("OAuth flow timeout - no response from extension");
+          window.removeEventListener("message", messageHandler);
+          reject(new Error("OAuth flow timeout - no response from extension"));
+        }, 30000);
+      } else {
+        reject(new Error("Chrome extension context not detected"));
+      }
+    });
+  }
+
+  /**
+   * Get authorization result (web, extension, or mobile)
    */
   private async getAuthorizationResult(
     codeChallenge: string,
     state: string
   ): Promise<AuthSession.AuthSessionResult | { type: string; params: Record<string, string> }> {
-    const discovery = await this.getDiscoveryEndpoints();
+    const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
 
-    if (Platform.OS === "web") {
+    const isExtension = this.isBrowserExtension();
+    console.log("OAuth flow detection:", {
+      isExtension,
+      platform: Platform.OS,
+      hasChrome: typeof chrome !== "undefined",
+      hostname: window?.location?.hostname,
+      port: window?.location?.port,
+      inIframe: window.parent !== window,
+    });
+
+    if (isExtension) {
+      // Browser extension: use Chrome's launchWebAuthFlow
+      try {
+        console.log("Using extension OAuth flow with URL:", authUrl);
+        const responseUrl = await this.launchExtensionAuthFlow(authUrl);
+        const params = this.parseCallbackUrl(responseUrl);
+        return { type: "success" as const, params };
+      } catch (error) {
+        console.error("Extension OAuth flow failed:", error);
+        return { type: "error", params: { error: error.message } } as {
+          type: string;
+          params: Record<string, string>;
+        };
+      }
+    } else if (Platform.OS === "web") {
+      // Regular web: use AuthSession
+      const discovery = await this.getDiscoveryEndpoints();
       const request = new AuthSession.AuthRequest({
         clientId: this.config.clientId,
         redirectUri: this.config.redirectUri,
@@ -188,7 +338,6 @@ export class CalComOAuthService {
       return await request.promptAsync(discovery);
     } else {
       // Mobile: build URL manually and use WebBrowser
-      const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
       const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri);
 
       if (result.type === "success") {
@@ -248,6 +397,11 @@ export class CalComOAuthService {
       throw new Error("No code verifier available");
     }
 
+    // If in extension context, use extension APIs for token exchange to avoid CORS
+    if (this.isBrowserExtension() && window.parent !== window) {
+      return await this.exchangeTokensViaExtension(code);
+    }
+
     const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
 
     // Use URLSearchParams.append() for more reliable encoding
@@ -293,6 +447,53 @@ export class CalComOAuthService {
     };
 
     return tokens;
+  }
+
+  /**
+   * Exchange tokens via extension to avoid CORS issues
+   */
+  private async exchangeTokensViaExtension(code: string): Promise<OAuthTokens> {
+    return new Promise((resolve, reject) => {
+      console.log("Exchanging tokens via extension...");
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.data.type === "cal-extension-token-exchange-result") {
+          window.removeEventListener("message", messageHandler);
+
+          if (event.data.success) {
+            console.log("Token exchange successful via extension");
+            resolve(event.data.tokens);
+          } else {
+            console.error("Token exchange failed via extension:", event.data.error);
+            reject(new Error(event.data.error || "Token exchange failed"));
+          }
+        }
+      };
+
+      window.addEventListener("message", messageHandler);
+
+      // Send token exchange request to parent window
+      window.parent.postMessage(
+        {
+          type: "cal-extension-token-exchange-request",
+          tokenRequest: {
+            grant_type: "authorization_code",
+            client_id: this.config.clientId,
+            code: code,
+            redirect_uri: this.config.redirectUri,
+            code_verifier: this.codeVerifier,
+          },
+          tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
+        },
+        "*"
+      );
+
+      // Set a timeout
+      setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        reject(new Error("Token exchange timeout"));
+      }, 30000);
+    });
   }
 
   /**
@@ -355,23 +556,27 @@ export class CalComOAuthService {
 }
 
 /**
+ * Check if running in a browser extension environment
+ */
+function isBrowserExtension(): boolean {
+  return (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    typeof chrome !== "undefined" &&
+    chrome.extension !== undefined
+  );
+}
+
+/**
  * Create OAuth service instance with default configuration
  */
 export function createCalComOAuthService(overrides: Partial<OAuthConfig> = {}): CalComOAuthService {
   // Determine the appropriate redirect URI based on platform
   let defaultRedirectUri: string;
 
-  if (Platform.OS === "web") {
-    // For web, use the current origin with /oauth/callback
-    defaultRedirectUri = `${window.location.origin}/oauth/callback`;
-  } else {
-    // For mobile, use the custom URL scheme
-    defaultRedirectUri = "expo-wxt-app://oauth/callback";
-  }
-
   const defaultConfig: OAuthConfig = {
     clientId: process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID || "",
-    redirectUri: defaultRedirectUri,
+    redirectUri: process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI,
     calcomBaseUrl: "https://app.cal.com",
     ...overrides,
   };
