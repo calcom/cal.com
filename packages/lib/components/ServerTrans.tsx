@@ -23,7 +23,7 @@ const ServerTrans: FC<ServerTransProps> = ({
   children,
   parent,
 }) => {
-  const translationOptions = { ...values, interpolation: { escapeValue: false } };
+  const translationOptions = { ...values};
   // Get translated content
   const content = t(i18nKey, translationOptions);
 
