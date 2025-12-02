@@ -120,7 +120,7 @@ describe("Event Types Private Links Endpoints", () => {
     expect(response.body.data.maxUsageCount).toBe(5);
     expect(response.body.data.usageCount).toBeDefined();
 
-    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
     const linkId = response.body.data.linkId;
     const expectedUrl = `${baseUrl}/d/${linkId}/${eventType.slug}`;
     expect(response.body.data.bookingUrl).toBe(expectedUrl);
@@ -136,7 +136,7 @@ describe("Event Types Private Links Endpoints", () => {
     expect(Array.isArray(response.body.data)).toBe(true);
     expect(response.body.data.length).toBeGreaterThanOrEqual(1);
 
-    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
     response.body.data.forEach((link: { bookingUrl: string; linkId: string }) => {
       expect(link.bookingUrl).toBeDefined();
       expect(link.bookingUrl).toContain(`${baseUrl}/d/`);
@@ -162,7 +162,7 @@ describe("Event Types Private Links Endpoints", () => {
     expect(response.body.status).toBe(SUCCESS_STATUS);
     expect(response.body.data.maxUsageCount).toBe(10);
 
-    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
     const expectedUrl = `${baseUrl}/d/${linkId}/${eventType.slug}`;
     expect(response.body.data.bookingUrl).toBe(expectedUrl);
   });

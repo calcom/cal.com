@@ -164,7 +164,7 @@ export class PrivateLinksService {
   private generateBookingUrl(hashedLink: string, eventTypeSlug: string, orgSlug?: string): string {
     const origin = orgSlug
       ? getOrgFullOrigin(orgSlug, { protocol: true }).replace(/\/$/, "")
-      : process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+      : process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com";
     return `${origin}/d/${hashedLink}/${eventTypeSlug}`;
   }
 }
