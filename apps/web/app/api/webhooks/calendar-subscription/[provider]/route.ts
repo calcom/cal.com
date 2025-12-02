@@ -34,10 +34,10 @@ function extractAndValidateProviderFromParams(params: Params): CalendarSubscript
  * If the provider is unsupported, it returns a 400 response.
  * If the webhook is processed successfully, it returns a 200 response.
  * In case of errors during processing, it returns a 500 response with the error message.
- * @param {NextRequest} request - The incoming request object.
- * @param {Object} context - The context object containing route parameters.
- * @param {Promise<Params>} context.params - A promise that resolves to the route parameters.
- * @returns {Promise<NextResponse>} - A promise that resolves to the response object.
+ * @param request - The incoming request object.
+ * @param context - The context object containing route parameters.
+ * @param context.params - A promise that resolves to the route parameters.
+ * @returns A promise that resolves to the response object.
  */
 async function postHandler(request: NextRequest, ctx: { params: Promise<Params> }) {
   const providerFromParams = extractAndValidateProviderFromParams(await ctx.params);

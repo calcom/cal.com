@@ -1,4 +1,5 @@
 import { getCredentialForSelectedCalendar } from "@calcom/app-store/delegationCredential";
+import dayjs from "@calcom/dayjs";
 import type {
   AdapterFactory,
   CalendarSubscriptionProvider,
@@ -12,7 +13,8 @@ import type { CalendarSyncService } from "@calcom/features/calendar-subscription
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
-import { SelectedCalendar } from "@calcom/prisma/client";
+import * as telemetry from "@calcom/lib/telemetry";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
@@ -166,8 +168,9 @@ export class CalendarSubscriptionService {
     let events: CalendarSubscriptionEvent | null = null;
     try {
       events = await calendarSubscriptionAdapter.fetchEvents(selectedCalendar, credential);
+      this.computeTelemetry(events);
     } catch (err) {
-      log.debug("Error fetching events", { channelId: selectedCalendar.channelId, err });
+      log.error("Error fetching events", { channelId: selectedCalendar.channelId, err });
       await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
         syncErrorAt: new Date(),
         syncErrorCount: { increment: 1 },
@@ -176,7 +179,7 @@ export class CalendarSubscriptionService {
     }
 
     if (!events?.items?.length) {
-      log.debug("No events fetched", { channelId: selectedCalendar.channelId });
+      log.info("No events fetched", { channelId: selectedCalendar.channelId });
       return;
     }
 
@@ -265,5 +268,19 @@ export class CalendarSubscriptionService {
           }
         : null,
     };
+  }
+
+  computeTelemetry(event: CalendarSubscriptionEvent): void {
+    const now = dayjs();
+
+    const diffs = event.items
+      .map((i) => i.updatedAt)
+      .filter((d): d is Date => d instanceof Date)
+      .map((d) => now.diff(dayjs(d), "millisecond"));
+
+    const avgMs = diffs.reduce((acc, v) => acc + v, 0) / diffs.length;
+    telemetry.event();
+
+    console.log("avgMs", avgMs);
   }
 }
