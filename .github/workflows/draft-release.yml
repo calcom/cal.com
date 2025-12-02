@@ -17,13 +17,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: 'main'
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Configure git
         run: |
