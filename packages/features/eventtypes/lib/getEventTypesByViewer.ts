@@ -9,6 +9,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,8 +19,6 @@ import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -39,7 +39,7 @@ export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer
 
 export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const userProfile = user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = filters && hasFilter(filters);
@@ -96,7 +96,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   ]);
 
   if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Profile not found");
   }
 
   const memberships = profileMemberships.map((membership) => ({

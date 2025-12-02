@@ -198,10 +198,10 @@ export class CalendarEventBuilder {
     }
 
     // Video
-    if (videoCallData && videoCallData.id && videoCallData.url) {
+    if (videoCallData && videoCallData.url) {
       builder.withVideoCallData({
         ...videoCallData,
-        id: videoCallData.id,
+        id: videoCallData.id ?? "",
         password: videoCallData.password ?? "",
         url: videoCallData.url,
       });

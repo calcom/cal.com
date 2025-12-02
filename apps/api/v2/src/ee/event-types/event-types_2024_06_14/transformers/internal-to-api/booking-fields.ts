@@ -331,7 +331,7 @@ const CustomFieldsSchema = z.object({
       id: z.literal("user"),
       type: z.literal("user"),
       label: z.literal("User"),
-      fieldRequired: z.literal(true),
+      fieldRequired: z.boolean().optional(),
     })
   ),
   editable: z.enum(["user", "user-readonly"]),

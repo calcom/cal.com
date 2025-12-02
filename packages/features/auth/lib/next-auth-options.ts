@@ -557,7 +557,7 @@ export const getOptions = ({
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findByUpId(upId);
+        const profile = await ProfileRepository.findByUpIdWithAuth(upId, existingUser.id);
         if (!profile) {
           throw new Error("Profile not found");
         }

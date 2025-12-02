@@ -1168,6 +1168,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     sendEmailVerificationCodeMutation.mutate({
                       email,
                       isVerifyingEmail: true,
+                      language: i18n.language || "en",
                     });
                   }}>
                   {t("send_code")}
