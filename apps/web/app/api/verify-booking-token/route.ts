@@ -138,8 +138,7 @@ async function handleBookingAction(
       reason: action === DirectAction.REJECT ? reason : undefined,
     });
   } catch (e) {
-    let message = "Error confirming booking";
-    if (e instanceof TRPCError) message = (e as TRPCError).message;
+    const message = (e as Error).message ?? "Error confirming booking";
     return NextResponse.redirect(`${url.origin}/booking/${booking.uid}?error=${encodeURIComponent(message)}`);
   }
 
