@@ -8,7 +8,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  get-token:
+    uses: calcom/calcom-ci-secrets/.github/workflows/mint-github-app-token.yml@main
+    with:
+      repositories: 'cal.com'
+    secrets: inherit
+
   i18n:
+    needs: get-token
     name: Run i18n
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
@@ -21,15 +28,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - name: Generate GitHub App token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.CI_CAL_APP_ID }}
-          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
       - uses: lingodotdev/lingo.dev@main
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ needs.get-token.outputs.token }}
         with:
           api-key: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
           pull-request: true

@@ -13,23 +13,23 @@ permissions:
   contents: write
 
 jobs:
+  get-token:
+    uses: calcom/calcom-ci-secrets/.github/workflows/mint-github-app-token.yml@main
+    with:
+      repositories: 'cal.com'
+    secrets: inherit
+
   draft_release:
+    needs: get-token
     runs-on: ubuntu-latest
 
     steps:
-      - name: Generate GitHub App token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.CI_CAL_APP_ID }}
-          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: 'main'
-          token: ${{ steps.generate-token.outputs.token }}
+          token: ${{ needs.get-token.outputs.token }}
 
       - name: Configure git
         run: |
