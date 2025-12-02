@@ -1,4 +1,6 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { IsNotPlatformOrgGuard } from "@/modules/auth/guards/organizations/is-not-platform-org.guard";
+import { IsNotManagedUserGuard } from "@/modules/auth/guards/users/is-not-managed-user.guard";
 import { EventTypeOwnershipGuard } from "@/modules/event-types/guards/event-type-ownership.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -19,6 +21,8 @@ import { PrivateLinksService } from "./services/private-links.service";
     PrivateLinksOutputService,
     PrivateLinksRepository,
     EventTypeOwnershipGuard,
+    IsNotManagedUserGuard,
+    IsNotPlatformOrgGuard,
   ],
   exports: [PrivateLinksService],
 })
