@@ -10,6 +10,8 @@
   "accept_invitation": "Accept Invitation",
   "max_characters": "Max. Characters",
   "min_characters": "Min. Characters",
+  "min_characters_required": "Min. {{count}} characters required",
+  "max_characters_allowed": "Max. {{count}} characters allowed",
   "calcom_explained": "{{appName}} provides scheduling infrastructure for absolutely everyone.",
   "calcom_explained_new_user": "Finish setting up your {{appName}} account! You're just a few steps away from solving all your scheduling problems.",
   "have_any_questions": "Have questions? We're here to help.",
