@@ -5,6 +5,7 @@ import { RRule } from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getIcsAttendee } from "@calcom/lib/bookings/hideOrganizerUtils";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -32,6 +33,7 @@ export type ICSCalendarEvent = Pick<
   | "type"
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
+  | "hideOrganizerName"
 >;
 
 const toICalDateArray = (date: string): DateArray => {
@@ -67,8 +69,11 @@ const generateIcsString = ({
   }
 
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-    .filter((domain) => domain.trim() !== "")
-    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+    .map((domain) => domain.trim().toLowerCase())
+    .filter((domain) => domain !== "")
+    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain));
+
+  const icsConfig = { partstat, role: icsRole, rsvp: true };
 
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
@@ -79,30 +84,32 @@ const generateIcsString = ({
     productId: "calcom/ics",
     title: event.title,
     description: getRichDescription(event, t),
-    organizer: {
-      name: event.organizer.name,
-      ...(event.hideOrganizerEmail && !isOrganizerExempt
-        ? { email: "no-reply@cal.com" }
-        : { email: event.organizer.email }),
-    },
+    organizer: getIcsAttendee(
+      event.organizer,
+      { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
+      isOrganizerExempt
+    ),
     ...{ recurrenceRule },
     attendees: [
       ...event.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
-        partstat,
-        role: icsRole,
-        rsvp: true,
+        ...icsConfig,
       })),
-      ...(event.team?.members
-        ? event.team?.members.map((member: Person) => ({
-            name: member.name,
-            email: member.email,
-            partstat,
-            role: icsRole,
-            rsvp: true,
-          }))
-        : []),
+      ...(event.team?.members?.map((member: Person) => {
+        // Calculate exemption per member, not reusing organizer's exemption
+        const isMemberExempt =
+          ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+            .map((domain) => domain.trim().toLowerCase())
+            .filter((domain) => domain !== "")
+            .some((domain) => member.email.toLowerCase().endsWith(domain)) ?? false;
+        return getIcsAttendee(
+          member,
+          { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
+          isMemberExempt,
+          icsConfig
+        );
+      }) ?? []),
     ],
     location: location ?? undefined,
     method: "REQUEST",

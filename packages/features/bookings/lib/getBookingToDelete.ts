@@ -80,6 +80,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           seatsShowAttendees: true,
           metadata: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: true,
           schedulingType: true,
           customReplyToEmail: true,
           hosts: {

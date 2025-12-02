@@ -849,6 +849,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -935,6 +936,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1034,6 +1036,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: "COLLECTIVE",
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1171,6 +1174,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1250,6 +1254,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: 10,
           seatsShowAttendees: true,
@@ -1340,6 +1345,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1383,6 +1389,38 @@ describe("CalendarEventBuilder", () => {
         expect(builtEvent.oneTimePassword).toBe("otp-456");
         expect(builtEvent.customInputs).toEqual({ oldField: "oldValue" });
         expect(builtEvent.responses).toBeDefined();
+      }
+    });
+
+    it("should handle hideOrganizerName property", () => {
+      const event = new CalendarEventBuilder()
+        .withBasicDetails({
+          bookerUrl: "https://cal.com/test",
+          title: "Test Event",
+          startTime: mockStartTime,
+          endTime: mockEndTime,
+        })
+        .withEventType({
+          id: 999,
+          slug: "test-slug",
+          description: "Test",
+          hideOrganizerEmail: false,
+          hideOrganizerName: false,
+          hideOrganizerName: true,
+        })
+        .withOrganizer({
+          id: 1,
+          name: "John Doe",
+          email: "john@example.com",
+          timeZone: "America/New_York",
+          language: { translate: mockTranslate, locale: "en" },
+        })
+        .build();
+
+      expect(event).not.toBeNull();
+      if (event) {
+        expect(event.hideOrganizerName).toBe(true);
+        expect(event.hideOrganizerEmail).toBe(false);
       }
     });
 
@@ -1432,6 +1470,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1488,6 +1527,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1548,6 +1588,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
           hideOrganizerEmail: false,
+          hideOrganizerName: false,
           schedulingType: null,
           seatsPerTimeSlot: null,
           seatsShowAttendees: false,
@@ -1680,6 +1721,7 @@ describe("CalendarEventBuilder", () => {
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
           hideOrganizerEmail: true,
+          hideOrganizerName: false,
           schedulingType: "COLLECTIVE",
           seatsPerTimeSlot: 20,
           seatsShowAttendees: true,

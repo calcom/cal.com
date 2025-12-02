@@ -31,6 +31,7 @@ class CalendarEventClass implements CalendarEvent {
   hideCalendarNotes?: boolean;
   hideCalendarEventDetails?: boolean;
   hideOrganizerEmail?: boolean;
+  hideOrganizerName?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
   iCalUID?: string | null;

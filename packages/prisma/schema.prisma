@@ -236,6 +236,7 @@ model EventType {
   selectedCalendars                        SelectedCalendar[]
   allowReschedulingPastBookings            Boolean                   @default(false)
   hideOrganizerEmail                       Boolean                   @default(false)
+  hideOrganizerName                        Boolean                   @default(false)
   maxActiveBookingsPerBooker               Int?
   maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)

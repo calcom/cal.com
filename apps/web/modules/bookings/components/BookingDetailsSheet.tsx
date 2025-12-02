@@ -282,17 +282,24 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           <div className="flex items-center gap-4">
             <Avatar
               size="md"
-              imageSrc={getPlaceholderAvatar(null, booking.user.name)}
-              alt={booking.user.name || ""}
+              imageSrc={getPlaceholderAvatar(
+                null,
+                booking.eventType?.hideOrganizerName ? t("organizer") : booking.user.name
+              )}
+              alt={booking.eventType?.hideOrganizerName ? t("organizer") : booking.user.name || ""}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                {!booking.eventType?.hideOrganizerName && (
+                  <p className="text-emphasis truncate text-sm font-medium">{booking.user.name}</p>
+                )}
                 <Badge variant="blue" size="sm">
                   {t("host")}
                 </Badge>
               </div>
-              <p className="text-default truncate text-sm">{booking.user.email}</p>
+              {!booking.eventType?.hideOrganizerEmail && (
+                <p className="text-default truncate text-sm">{booking.user.email}</p>
+              )}
             </div>
           </div>
         )}

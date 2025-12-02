@@ -311,6 +311,7 @@ async function handler(input: CancelBookingInput) {
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
+    hideOrganizerName: bookingToDelete.eventType?.hideOrganizerName,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
   };

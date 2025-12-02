@@ -148,6 +148,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
     hideOrganizerEmail: eventTypeRaw.hideOrganizerEmail,
+    hideOrganizerName: eventTypeRaw.hideOrganizerName,
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
       return {
         ...field,

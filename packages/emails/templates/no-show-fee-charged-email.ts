@@ -8,7 +8,7 @@ export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
     if (!this.calEvent.paymentInfo?.amount) throw new Error("No payment into");
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
-      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.hideOrganizerName ? this.attendee.language.translate("organizer") : this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       ...getReplyToHeader(this.calEvent),
       subject: `${this.attendee.language.translate("no_show_fee_charged_email_subject", {
         title: this.calEvent.title,

@@ -157,6 +157,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     hideOrganizerEmail: eventType?.hideOrganizerEmail,
+    hideOrganizerName: eventType?.hideOrganizerName,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],

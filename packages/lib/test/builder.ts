@@ -158,6 +158,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
+    hideOrganizerName: false,
     customReplyToEmail: null,
     restrictionScheduleId: null,
     useBookerTimezone: false,

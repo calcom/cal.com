@@ -78,6 +78,7 @@ const getEventTypesFromDBSelect = {
   hideCalendarNotes: true,
   hideCalendarEventDetails: true,
   hideOrganizerEmail: true,
+  hideOrganizerName: true,
   seatsPerTimeSlot: true,
   recurringEvent: true,
   seatsShowAttendees: true,

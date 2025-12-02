@@ -856,6 +856,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
   hideOrganizerEmail: true,
+  hideOrganizerName: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
   customReplyToEmail: true,

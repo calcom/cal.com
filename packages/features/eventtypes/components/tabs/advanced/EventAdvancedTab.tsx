@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -103,6 +102,7 @@ export type EventAdvancedTabCustomClassNames = {
   };
   timezoneLock?: SettingsToggleClassNames;
   hideOrganizerEmail?: SettingsToggleClassNames;
+  hideOrganizerName?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -177,7 +177,7 @@ const destinationCalendarComponents = {
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
       <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -222,7 +222,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis py-0! min-w-fit px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -301,7 +301,7 @@ const destinationCalendarComponents = {
   DestinationCalendarSettingsSkeleton() {
     return (
       <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div className="flex w-full flex-col">
             <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
             <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
@@ -444,6 +444,13 @@ export const EventAdvancedTab = ({
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
+  // Watch both organizer hiding fields for reactive updates
+  const watchedHideOrganizerEmail = formMethods.watch("hideOrganizerEmail");
+  const watchedHideOrganizerName = formMethods.watch("hideOrganizerName");
+
+  // Derive visibility from watched values - section is visible if either checkbox is enabled
+  const hideOrganizerDetailsVisible = watchedHideOrganizerEmail || watchedHideOrganizerName;
+
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
@@ -526,6 +533,7 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const hideOrganizerNameLocked = shouldLockDisableProps("hideOrganizerName");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
@@ -614,7 +622,7 @@ export const EventAdvancedTab = ({
   }, [isPlatform]);
 
   return (
-    <div className="flex flex-col stack-y-4">
+    <div className="stack-y-4 flex flex-col">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
@@ -643,7 +651,7 @@ export const EventAdvancedTab = ({
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
             <LearnMoreLink
               t={t}
               i18nKey="booking_questions_description"
@@ -1159,32 +1167,62 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      <Controller
-        name="hideOrganizerEmail"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.hideOrganizerEmail?.container
-            )}
-            title={t("hide_organizer_email")}
-            {...hideOrganizerEmailLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="hide_organizer_email_description"
-                href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
-              />
-            }
-            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="hide-organizer-email"
-          />
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+          hideOrganizerDetailsVisible && "rounded-b-none"
         )}
-      />
+        childrenClassName="lg:ml-0"
+        title={t("hide_organizer_details")}
+        description={
+          <LearnMoreLink
+            t={t}
+            i18nKey="hide_organizer_details_description"
+            href="https://cal.com/help/event-types/hide-organizer-details"
+          />
+        }
+        checked={hideOrganizerDetailsVisible}
+        onCheckedChange={(e) => {
+          if (e) {
+            // When expanding, auto-check both checkboxes
+            formMethods.setValue("hideOrganizerEmail", true, { shouldDirty: true, shouldTouch: true });
+            formMethods.setValue("hideOrganizerName", true, { shouldDirty: true, shouldTouch: true });
+          } else {
+            // When collapsing, uncheck both checkboxes
+            formMethods.setValue("hideOrganizerEmail", false, { shouldDirty: true, shouldTouch: true });
+            formMethods.setValue("hideOrganizerName", false, { shouldDirty: true, shouldTouch: true });
+          }
+        }}
+        data-testid="hide-organizer-details">
+        <div className="border-subtle flex flex-col gap-4 rounded-b-lg border border-t-0 p-6">
+          <Controller
+            name="hideOrganizerEmail"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-email-checkbox"
+                description={t("hide_organizer_email")}
+                disabled={hideOrganizerEmailLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+          <Controller
+            name="hideOrganizerName"
+            render={({ field: { value, onChange } }) => (
+              <CheckboxField
+                data-testid="hide-organizer-name-checkbox"
+                description={t("hide_organizer_name")}
+                disabled={hideOrganizerNameLocked.disabled}
+                onChange={(e) => onChange(e)}
+                checked={value}
+              />
+            )}
+          />
+        </div>
+      </SettingsToggle>
       <Controller
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => {

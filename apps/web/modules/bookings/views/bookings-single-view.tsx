@@ -46,7 +46,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
@@ -57,6 +56,8 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import { HostDisplay } from "../components/HostDisplay";
+import { useBookingHosts } from "../hooks/useBookingHosts";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -194,6 +195,16 @@ export default function Success(props: PageProps) {
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+
+  const {
+    organizer,
+    teamMembers,
+    attendees: regularAttendees,
+  } = useBookingHosts({
+    bookingUser: bookingInfo?.user,
+    eventTypeUsers: eventType.users,
+    attendees: bookingInfo?.attendees,
+  });
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -462,7 +473,8 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  !isBackgroundTransparent &&
+                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -628,23 +640,32 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("who")}</div>
                             <div className="col-span-2 last:mb-0">
-                              {bookingInfo?.user && (
-                                <div className="mb-3">
-                                  <div>
-                                    <span data-testid="booking-host-name" className="mr-2">
-                                      {bookingInfo.user.name}
-                                    </span>
-                                    <Badge variant="blue">{t("Host")}</Badge>
-                                  </div>
-                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default" data-testid="booking-host-email">
-                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
-                                    </p>
-                                  )}
-                                </div>
+                              {organizer && (
+                                <HostDisplay
+                                  name={organizer.name}
+                                  email={bookingInfo?.userPrimaryEmail ?? organizer.email}
+                                  role={t("organizer")}
+                                  showBadge={true}
+                                  hideOrganizerName={bookingInfo.eventType?.hideOrganizerName}
+                                  hideOrganizerEmail={bookingInfo.eventType?.hideOrganizerEmail}
+                                  testId="booking-host-name"
+                                />
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+
+                              {teamMembers.map((member) => (
+                                <HostDisplay
+                                  key={member.id}
+                                  name={member.name}
+                                  email={member.email}
+                                  role={t("team_member")}
+                                  showBadge={false}
+                                  hideOrganizerName={bookingInfo.eventType?.hideOrganizerName}
+                                  hideOrganizerEmail={bookingInfo.eventType?.hideOrganizerEmail}
+                                />
+                              ))}
+
+                              {regularAttendees.map((attendee) => (
+                                <div key={attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
                                     <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
                                   )}
@@ -711,7 +732,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
+                              <p className="wrap-break-word whitespace-pre-line">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -738,7 +759,7 @@ export default function Success(props: PageProps) {
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
                                   0 ? (
-                                    <ul className="list-disc stack-y-1 p-1 pl-5 sm:w-80">
+                                    <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
@@ -1053,7 +1074,7 @@ export default function Success(props: PageProps) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-4 stack-y-1 text-center">
+                      <div className="stack-y-1 my-4 text-center">
                         <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
