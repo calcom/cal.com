@@ -311,7 +311,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     res.redirect(
       getSafeRedirectUrl(state?.returnTo) ??
-        getInstalledAppPath({ variant: "messaging", slug: "whatsapp-connector" })
+        getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })
     );
     return;
   } catch (error) {
@@ -326,7 +326,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     res.redirect(
       `${
         getSafeRedirectUrl(state?.onErrorReturnTo) ??
-        getInstalledAppPath({ variant: "messaging", slug: "whatsapp-connector" })
+        getInstalledAppPath({ variant: "messaging", slug: "whatsapp-business" })
       }?error=${errorMessage}`
     );
     return;
