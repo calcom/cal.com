@@ -459,7 +459,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       />
                     )}
                   />
-                  <VerticalDivider className="hidden sm:inline" />
                 </>
               ) : null}
             </div>
@@ -479,6 +478,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
             {allowDelete && (
               <>
+                <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                   disabled={schedule.isLastSchedule}
@@ -645,7 +645,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               handleSubmit(props);
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
-            <div className="flex-1 flex-row xl:mr-0">
+            <div className="flex-1">
               <div
                 className={cn(
                   "border-subtle mb-6 rounded-md border",
