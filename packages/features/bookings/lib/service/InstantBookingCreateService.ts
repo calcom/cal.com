@@ -200,9 +200,21 @@ export async function handler(
 
   const fullName = getFullName(bookerName);
 
+  // Fetch instant meeting specific config (expiry offset and auto-translate setting)
+  // We do this early so we can use autoTranslateTitleEnabled for the booking title
+  const eventTypeConfig = await prisma.eventType.findUniqueOrThrow({
+    where: {
+      id: bookingData.eventTypeId,
+    },
+    select: {
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+      autoTranslateTitleEnabled: true,
+    },
+  });
+
   // Determine whether to translate the booking title based on the event type setting
   // Default is true (opt-out), so we only skip translation when explicitly set to false
-  const shouldTranslateTitle = eventType.autoTranslateTitleEnabled ?? true;
+  const shouldTranslateTitle = eventTypeConfig.autoTranslateTitleEnabled ?? true;
 
   // Get the booking title - either translated to attendee's language or in English
   const bookingTitle = shouldTranslateTitle
@@ -288,17 +300,8 @@ export async function handler(
 
   const token = randomBytes(32).toString("hex");
 
-  const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
-    where: {
-      id: bookingData.eventTypeId,
-    },
-    select: {
-      instantMeetingExpiryTimeOffsetInSeconds: true,
-    },
-  });
-
   const instantMeetingExpiryTimeOffsetInSeconds =
-    eventTypeWithExpiryTimeOffset?.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+    eventTypeConfig.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
 
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {

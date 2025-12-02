@@ -175,7 +175,6 @@ const getEventTypesFromDBSelect = {
   assignRRMembersUsingSegment: true,
   rrSegmentQueryValue: true,
   useEventLevelSelectedCalendars: true,
-  autoTranslateTitleEnabled: true,
   hostGroups: {
     select: {
       id: true,
