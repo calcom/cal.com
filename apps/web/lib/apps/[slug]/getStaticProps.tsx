@@ -28,6 +28,7 @@ export const sourceSchema = z.object({
 export type AppDataProps = NonNullable<Awaited<ReturnType<typeof getStaticProps>>>;
 
 export const getStaticProps = async (slug: string) => {
+  console.log("HIHIHI")
   const appMeta = await getAppWithMetadata({
     slug,
   });

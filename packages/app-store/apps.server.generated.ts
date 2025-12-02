@@ -104,6 +104,7 @@ export const apiHandlers = {
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
   webex: import("./webex/api"),
   whatsapp: import("./whatsapp/api"),
+  "whatsapp-business": import("./whatsapp-business/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
   wordpress: import("./wordpress/api"),

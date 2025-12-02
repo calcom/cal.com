@@ -81,7 +81,11 @@ const handleDeleteCredential = async ({
   });
 
   if (!credential) {
-    throw new Error("Credential not found");
+    throw new Error(`Credential not found: {
+      ${credentialId},
+      ${calIdTeamId},
+      ${userId},
+    }`);
   }
 
   if (credential.appId === "onehash-chat") {

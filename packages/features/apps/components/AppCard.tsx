@@ -69,6 +69,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       });
     } else if (
       !doesAppSupportTeamInstall({
+        slug: app.slug,
         appCategories: app.categories,
         concurrentMeetings: app.concurrentMeetings,
         isPaid: !!app.paid,
