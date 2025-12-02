@@ -98,10 +98,12 @@ export async function getBookings({
   const fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"];
 
   // Get team IDs where user has booking.read permission (PBAC with ADMIN/OWNER fallback)
+  // Scope to user's organization when orgId is provided (matching old behavior)
   const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({
     userId: user.id,
     permission: "booking.read",
     fallbackRoles,
+    scopedOrgId: user.orgId ?? undefined,
   });
 
   const [

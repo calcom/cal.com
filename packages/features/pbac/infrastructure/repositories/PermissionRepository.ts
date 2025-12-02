@@ -212,22 +212,26 @@ export class PermissionRepository implements IPermissionRepository {
     userId,
     permission,
     fallbackRoles,
+    scopedOrgId,
   }: {
     userId: number;
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
+    scopedOrgId?: number;
   }): Promise<number[]> {
-    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles });
+    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles, scopedOrgId });
   }
 
   async getTeamIdsWithPermissions({
     userId,
     permissions,
     fallbackRoles,
+    scopedOrgId,
   }: {
     userId: number;
     permissions: PermissionString[];
     fallbackRoles: MembershipRole[];
+    scopedOrgId?: number;
   }): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
@@ -241,8 +245,29 @@ export class PermissionRepository implements IPermissionRepository {
 
     const permissionPairsJson = JSON.stringify(permissionPairs);
 
-    // Teams with PBAC permissions (direct memberships + child teams via org membership)
-    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
+      this.getTeamsWithPBACPermissions(userId, permissionPairsJson, permissions.length, scopedOrgId),
+      this.getTeamsWithFallbackRoles(userId, fallbackRoles, scopedOrgId),
+    ]);
+
+    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
+
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
+    return allTeamIds;
+  }
+
+  /**
+   * Gets teams where user has PBAC permissions (direct memberships + child teams via org membership)
+   * @param scopedOrgId Optional organization ID to scope results. When null/undefined, returns all teams.
+   */
+  private async getTeamsWithPBACPermissions(
+    userId: number,
+    permissionPairsJson: string,
+    permissionsCount: number,
+    scopedOrgId?: number | null
+  ): Promise<{ teamId: number }[]> {
+    return this.client.$queryRaw<{ teamId: number }[]>`
       WITH required_permissions AS (
         SELECT 
           required_perm->>'resource' as resource,
@@ -252,9 +277,11 @@ export class PermissionRepository implements IPermissionRepository {
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
+      INNER JOIN "Team" t ON m."teamId" = t.id
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
         AND m."customRoleId" IS NOT NULL
+        AND (${scopedOrgId}::bigint IS NULL OR t."id" = ${scopedOrgId} OR t."parentId" = ${scopedOrgId})
         AND (
           SELECT COUNT(*)
           FROM required_permissions rp_req
@@ -269,7 +296,7 @@ export class PermissionRepository implements IPermissionRepository {
                 (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
               )
           )
-        ) = ${permissions.length}
+        ) = ${permissionsCount}
       UNION
       SELECT DISTINCT child."id"
       FROM "Membership" m
@@ -279,6 +306,7 @@ export class PermissionRepository implements IPermissionRepository {
       WHERE m."userId" = ${userId}
         AND m."accepted" = true
         AND m."customRoleId" IS NOT NULL
+        AND (${scopedOrgId}::bigint IS NULL OR org."id" = ${scopedOrgId} OR child."id" = ${scopedOrgId} OR child."parentId" = ${scopedOrgId})
         AND (
           SELECT COUNT(*)
           FROM required_permissions rp_req
@@ -293,11 +321,20 @@ export class PermissionRepository implements IPermissionRepository {
                 (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
               )
           )
-        ) = ${permissions.length}
+        ) = ${permissionsCount}
     `;
+  }
 
-    // Teams with fallback roles (direct memberships + child teams via org membership, PBAC disabled)
-    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+  /**
+   * Gets teams where user has fallback roles (direct memberships + child teams via org membership, PBAC disabled)
+   * @param scopedOrgId Optional organization ID to scope results. When null/undefined, returns all teams.
+   */
+  private async getTeamsWithFallbackRoles(
+    userId: number,
+    fallbackRoles: MembershipRole[],
+    scopedOrgId?: number | null
+  ): Promise<{ teamId: number }[]> {
+    return this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Team" t ON m."teamId" = t.id
@@ -306,6 +343,7 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})
         AND f."teamId" IS NULL
+        AND (${scopedOrgId}::bigint IS NULL OR t."id" = ${scopedOrgId} OR t."parentId" = ${scopedOrgId})
       UNION
       SELECT DISTINCT child."id"
       FROM "Membership" m
@@ -316,17 +354,7 @@ export class PermissionRepository implements IPermissionRepository {
         AND m."accepted" = true
         AND m."role"::text = ANY(${fallbackRoles})
         AND f."teamId" IS NULL
+        AND (${scopedOrgId}::bigint IS NULL OR org."id" = ${scopedOrgId} OR child."id" = ${scopedOrgId} OR child."parentId" = ${scopedOrgId})
     `;
-
-    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
-      teamsWithPermissionPromise,
-      teamsWithFallbackRolesPromise,
-    ]);
-
-    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
-    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
-
-    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
-    return allTeamIds;
   }
 }
