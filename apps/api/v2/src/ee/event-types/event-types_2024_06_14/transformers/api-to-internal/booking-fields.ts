@@ -37,6 +37,10 @@ export function transformBookingFieldsApiToInternal(bookingFields: InputBookingF
     const options =
       "options" in field && field.options ? transformSelectOptionsApiToInternal(field.options) : undefined;
 
+    // Note: conditionalOn property is not supported in API v2 2024_06_14.
+    // Conditional fields can be configured through the web UI (FormBuilder).
+    // Future API versions may add support for conditionalOn in input types.
+
     if (!options) {
       return baseProperties;
     }

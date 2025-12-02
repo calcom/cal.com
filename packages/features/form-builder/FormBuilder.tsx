@@ -144,6 +144,115 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
+  // Helper to get all children indices for a parent field
+  const getChildrenIndices = (parentName: string): number[] => {
+    const indices: number[] = [];
+    fields.forEach((field, idx) => {
+      if (field.conditionalOn?.parent === parentName) {
+        indices.push(idx);
+      }
+    });
+    return indices.sort((a, b) => a - b);
+  };
+
+  // Helper to get the "group" for a field (parent + all children, or just the field itself)
+  const getFieldGroup = (index: number): number[] => {
+    const field = fields[index];
+
+    if (field.conditionalOn) {
+      // This is a conditional child - return empty, we shouldn't move children independently
+      return [];
+    }
+
+    // Get this field and all its children
+    const childrenIndices = getChildrenIndices(field.name);
+    return [index, ...childrenIndices].sort((a, b) => a - b);
+  };
+
+  // Helper to find the next/previous logical group
+  const findAdjacentGroup = (fromIndex: number, direction: "up" | "down"): number[] | null => {
+    const isMovingUp = direction === "up";
+    const currentGroup = getFieldGroup(fromIndex);
+
+    if (currentGroup.length === 0) {
+      // This is a conditional child, shouldn't be moving it as a group
+      return null;
+    }
+
+    // Start searching from just outside our current group
+    let searchIndex = isMovingUp
+      ? Math.min(...currentGroup) - 1
+      : Math.max(...currentGroup) + 1;
+
+    while (searchIndex >= 0 && searchIndex < fields.length) {
+      const candidateField = fields[searchIndex];
+
+      if (candidateField.conditionalOn) {
+        // This is a conditional child - find its parent
+        const parentIndex = fields.findIndex((f) => f.name === candidateField.conditionalOn?.parent);
+        if (parentIndex !== -1) {
+          const parentGroup = getFieldGroup(parentIndex);
+          return parentGroup;
+        }
+        // Shouldn't happen, but skip if parent not found
+        searchIndex += isMovingUp ? -1 : 1;
+      } else {
+        // This is a top-level field (parent or regular field)
+        const group = getFieldGroup(searchIndex);
+        return group;
+      }
+    }
+
+    return null;
+  };
+
+  const handleSwap = (sourceIndex: number, targetGroupIndices: number[]) => {
+    const sourceField = fields[sourceIndex];
+
+    if (sourceField.conditionalOn) {
+      // Moving a conditional child - only allow reordering within siblings
+      const parent = sourceField.conditionalOn.parent;
+      const siblings = fields
+        .map((f, idx) => ({ field: f, index: idx }))
+        .filter(({ field }) => field.conditionalOn?.parent === parent);
+
+      const currentSiblingIndex = siblings.findIndex(({ index }) => index === sourceIndex);
+      const targetSiblingIndex = currentSiblingIndex + (targetGroupIndices[0] < sourceIndex ? -1 : 1);
+
+      if (targetSiblingIndex < 0 || targetSiblingIndex >= siblings.length) {
+        return; // Can't move outside sibling group
+      }
+
+      const targetFieldIndex = siblings[targetSiblingIndex].index;
+      swap(sourceIndex, targetFieldIndex);
+    } else {
+      // Moving a top-level field (parent or regular) - swap entire groups
+      const sourceGroup = getFieldGroup(sourceIndex);
+      const sourceElements = sourceGroup.map((idx) => fields[idx]);
+
+      // Remove source group from fields
+      const remainingFields = fields.filter((_, idx) => !sourceGroup.includes(idx));
+
+      // Find where to insert in the remaining fields
+      // The target group position tells us where to insert
+      const targetGroupFirstIndex = targetGroupIndices[0];
+      const numSourceFieldsBeforeTarget = sourceGroup.filter((idx) => idx < targetGroupFirstIndex).length;
+      const insertPosition = targetGroupFirstIndex - numSourceFieldsBeforeTarget;
+
+      // Build new array
+      const newFields = [
+        ...remainingFields.slice(0, insertPosition),
+        ...sourceElements,
+        ...remainingFields.slice(insertPosition),
+      ];
+
+      // Apply the new order
+      newFields.forEach((field, idx) => {
+        update(idx, field);
+      });
+    }
+  };
+
   return (
     <div>
       <div>
@@ -266,26 +375,70 @@ export const FormBuilder = function FormBuilder({
               return groupBy;
             }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
+            // Check if this field is conditional
+            const isConditional = !!field.conditionalOn;
+            const parentField = isConditional ? fields.find((f) => f.name === field.conditionalOn?.parent) : null;
+
+            // Determine if field can move up or down
+            let canMoveUp = false;
+            let canMoveDown = false;
+            let targetGroupUp: number[] | null = null;
+            let targetGroupDown: number[] | null = null;
+
+            if (isConditional) {
+              // Conditional fields can only move within their sibling group
+              const siblings = fields.filter((f) => f.conditionalOn?.parent === field.conditionalOn?.parent);
+              const siblingIndices = siblings.map((s) => fields.findIndex((f) => f.name === s.name));
+              const currentSiblingPosition = siblingIndices.indexOf(index);
+
+              canMoveUp = currentSiblingPosition > 0;
+              canMoveDown = currentSiblingPosition < siblings.length - 1;
+
+              // For conditionals, the "target group" is just the sibling field
+              if (canMoveUp) targetGroupUp = [siblingIndices[currentSiblingPosition - 1]];
+              if (canMoveDown) targetGroupDown = [siblingIndices[currentSiblingPosition + 1]];
+            } else {
+              // Top-level fields move by groups
+              targetGroupUp = findAdjacentGroup(index, "up");
+              targetGroupDown = findAdjacentGroup(index, "down");
+
+              canMoveUp = targetGroupUp !== null;
+              canMoveDown = targetGroupDown !== null;
+            }
+
             return (
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-cal-muted group relative flex items-center justify-between p-4 transition">
+                className={classNames(
+                  "hover:bg-cal-muted group relative flex items-center justify-between p-4 transition",
+                  isConditional && "ml-8" // Indent conditional fields
+                )}>
+                {/* Conditional field indicator */}
+                {isConditional && (
+                  <div className="absolute -left-8 top-1/2 flex h-full -translate-y-1/2 items-center">
+                    <div className="flex items-center gap-1">
+                      {/* Visual connector line */}
+                      <div className="bg-subtle h-px w-4" />
+                      <Icon name="corner-down-right" className="text-muted h-3 w-3" />
+                    </div>
+                  </div>
+                )}
                 {!disabled && (
                   <>
-                    {index >= 1 && (
+                    {canMoveUp && targetGroupUp && (
                       <button
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index - 1)}>
+                        onClick={() => handleSwap(index, targetGroupUp)}>
                         <Icon name="arrow-up" className="h-5 w-5" />
                       </button>
                     )}
-                    {index < fields.length - 1 && (
+                    {canMoveDown && targetGroupDown && (
                       <button
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                        onClick={() => swap(index, index + 1)}>
+                        onClick={() => handleSwap(index, targetGroupDown)}>
                         <Icon name="arrow-down" className="h-5 w-5" />
                       </button>
                     )}
@@ -303,6 +456,19 @@ export const FormBuilder = function FormBuilder({
                       ) : (
                         <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
                           {isRequired ? t("required") : t("optional")}
+                        </Badge>
+                      )}
+                      {/* Conditional field badge */}
+                      {isConditional && parentField && (
+                        <Badge variant="gray" className="text-xs">
+                          <Icon name="git-branch" className="mr-1 h-3 w-3" />
+                          {t("conditional_on")}: {parentField.label || parentField.name}
+                          {field.conditionalOn?.values && field.conditionalOn.values.length > 0 && (
+                            <span className="text-muted ml-1">
+                              ({field.conditionalOn.values.slice(0, 2).join(", ")}
+                              {field.conditionalOn.values.length > 2 && "..."})
+                            </span>
+                          )}
                         </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
@@ -371,6 +537,7 @@ export const FormBuilder = function FormBuilder({
       {fieldDialog.isOpen && (
         <FieldEditDialog
           dialog={fieldDialog}
+          fields={fields}
           onOpenChange={(isOpen) =>
             setFieldDialog({
               isOpen,
@@ -391,6 +558,29 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+
+            // Validate conditional configuration
+            if (data.conditionalOn) {
+              const { parent, values } = data.conditionalOn;
+
+              if (!parent || values.length === 0) {
+                showToast(t("conditional_field_must_have_parent_and_trigger"), "error");
+                return;
+              }
+
+              const parentField = fields.find((f) => f.name === parent);
+              if (!parentField) {
+                showToast(t("parent_field_not_found", { parent }), "error");
+                return;
+              }
+
+              // Prevent self-reference
+              if (parent === data.name) {
+                showToast(t("field_cannot_be_conditional_on_itself"), "error");
+                return;
+              }
+            }
+
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
             } else {
@@ -568,6 +758,7 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
 
 function FieldEditDialog({
   dialog,
+  fields,
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
@@ -575,6 +766,7 @@ function FieldEditDialog({
   paymentCurrency,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
+  fields: RhfFormFields;
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
@@ -791,6 +983,148 @@ function FieldEditDialog({
                               }}
                               description={t("make_field_required")}
                             />
+                          );
+                        }}
+                      />
+                    </div>
+
+                    {/* Conditional Logic Section */}
+                    <div className="border-subtle mt-6 border-t pt-6">
+                      <Controller
+                        name="conditionalOn"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          const isConditional = !!value;
+                          const VALID_PARENT_TYPES = [
+                            "radio",
+                            "select",
+                            "checkbox",
+                            "boolean",
+                            "multiselect",
+                          ];
+                          const eligibleParentFields = fields.filter((f) => {
+                            return (
+                              VALID_PARENT_TYPES.includes(f.type) &&
+                              f.name !== fieldForm.getValues("name") && // Can't be parent of itself
+                              !f.conditionalOn // Parents can't be conditional (no nesting for v1)
+                            );
+                          });
+
+                          return (
+                            <>
+                              <CheckboxField
+                                checked={isConditional}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    // Enable conditional logic with empty config
+                                    onChange({ parent: "", values: [] });
+                                  } else {
+                                    // Disable conditional logic
+                                    onChange(undefined);
+                                  }
+                                }}
+                                description={t("make_conditional_question")}
+                              />
+
+                              {isConditional && (
+                                <div className="border-subtle ml-6 mt-4 space-y-4 rounded-md border p-4">
+                                  <p className="text-default text-sm">
+                                    {t("conditional_question_description")}
+                                  </p>
+
+                                  {/* Parent Field Selector */}
+                                  <SelectField
+                                    label={t("parent_field")}
+                                    value={
+                                      value?.parent
+                                        ? eligibleParentFields.find((f) => f.name === value.parent)
+                                        : undefined
+                                    }
+                                    onChange={(selected) => {
+                                      if (!selected) return;
+                                      onChange({
+                                        parent: selected.name,
+                                        values: [], // Reset trigger values when parent changes
+                                      });
+                                    }}
+                                    options={eligibleParentFields.map((f) => ({
+                                      label: f.label || f.name,
+                                      value: f.name,
+                                      name: f.name,
+                                    }))}
+                                    placeholder={t("select_parent_field")}
+                                  />
+
+                                  {/* Trigger Values Selector */}
+                                  {value?.parent &&
+                                    (() => {
+                                      const parentField = fields.find((f) => f.name === value.parent);
+                                      if (!parentField) return null;
+
+                                      // For boolean fields, offer true/false
+                                      if (parentField.type === "boolean") {
+                                        return (
+                                          <div>
+                                            <Label>{t("show_when")}</Label>
+                                            <div className="mt-2 space-x-4">
+                                              <CheckboxField
+                                                label={t("checked")}
+                                                checked={value.values.includes("true")}
+                                                onChange={(e) => {
+                                                  const newValues = e.target.checked
+                                                    ? [...value.values.filter((v) => v !== "false"), "true"]
+                                                    : value.values.filter((v) => v !== "true");
+                                                  onChange({ ...value, values: newValues });
+                                                }}
+                                              />
+                                              <CheckboxField
+                                                label={t("unchecked")}
+                                                checked={value.values.includes("false")}
+                                                onChange={(e) => {
+                                                  const newValues = e.target.checked
+                                                    ? [...value.values.filter((v) => v !== "true"), "false"]
+                                                    : value.values.filter((v) => v !== "false");
+                                                  onChange({ ...value, values: newValues });
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+
+                                      // For fields with options (radio, select, checkbox, multiselect)
+                                      if (parentField.options && parentField.options.length > 0) {
+                                        return (
+                                          <div>
+                                            <Label>{t("show_when_parent_value_is")}</Label>
+                                            <div className="mt-2 space-y-2">
+                                              {parentField.options.map((option) => (
+                                                <CheckboxField
+                                                  key={option.value}
+                                                  label={option.label}
+                                                  checked={value.values.includes(option.value)}
+                                                  onChange={(e) => {
+                                                    const newValues = e.target.checked
+                                                      ? [...value.values, option.value]
+                                                      : value.values.filter((v) => v !== option.value);
+                                                    onChange({ ...value, values: newValues });
+                                                  }}
+                                                />
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <p className="text-subtle text-sm">
+                                          {t("parent_field_has_no_options")}
+                                        </p>
+                                      );
+                                    })()}
+                                </div>
+                              )}
+                            </>
                           );
                         }}
                       />

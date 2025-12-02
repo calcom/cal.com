@@ -42,7 +42,7 @@ const buildKey = ({
   hasSession,
   stableHashExtraOptions,
 }: {
-  values: Record<string, any>;
+  values: Record<string, unknown>;
   hasSession: boolean;
   stableHashExtraOptions: string;
 }) => {
@@ -183,8 +183,34 @@ export function useInitialFormValues({
           [field.name]: bookingData?.responses[field.name],
         };
       }, {});
+
+      // Filter out conditional field responses where condition is no longer met
+      const validatedResponses: Record<string, unknown> = { ...responses };
+      eventType.bookingFields.forEach((field) => {
+        if (field.conditionalOn && validatedResponses[field.name] !== undefined) {
+          // Check if condition is still met
+          const { parent, values } = field.conditionalOn;
+          const parentValue = validatedResponses[parent];
+
+          const parentField = eventType.bookingFields.find((f) => f.name === parent);
+          let conditionMet = false;
+
+          if (parentField?.type === "checkbox" || parentField?.type === "multiselect") {
+            conditionMet = Array.isArray(parentValue) && parentValue.some((v) => values.includes(v));
+          } else if (parentField?.type === "boolean") {
+            conditionMet = values.includes(String(parentValue));
+          } else {
+            conditionMet = values.includes(String(parentValue));
+          }
+
+          if (!conditionMet) {
+            delete validatedResponses[field.name];
+          }
+        }
+      });
+
       defaults.responses = {
-        ...responses,
+        ...validatedResponses,
         name: defaultUserValues.name,
         email: defaultUserValues.email ?? "",
       };
@@ -193,8 +219,6 @@ export function useInitialFormValues({
         key: buildKey({ values: defaults, hasSession, stableHashExtraOptions }),
       });
     })();
-    // TODO: Remove it. It was initially added so that we don't add extraOptions in deps but that is handled using stableHashExtraOptions now.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     eventType?.bookingFields,
     formValues,

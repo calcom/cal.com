@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,6 +25,48 @@ const PhoneLocationSchema = z.object({
   value: z.literal(DefaultEventLocationTypeEnum.Phone),
   optionValue: z.string().optional(),
 });
+
+/**
+ * Determines if a field should be shown based on conditionalOn logic
+ * Matches the backend validation logic for consistency
+ */
+function shouldShowField(
+  field: Fields[number],
+  formValues: Record<string, unknown>,
+  allFields: Fields
+): boolean {
+  if (!field.conditionalOn) return true;
+
+  const { parent, values: triggerValues } = field.conditionalOn;
+  const parentValue = formValues[parent];
+
+  if (parentValue === undefined || parentValue === null || parentValue === "") {
+    return false;
+  }
+
+  // Find parent field to check its type
+  const parentField = allFields.find((f) => f.name === parent);
+  if (!parentField) return false;
+
+  // Handle different parent field types (match backend logic)
+  if (parentField.type === "boolean") {
+    return triggerValues.includes(String(parentValue));
+  }
+
+  if (parentField.type === "checkbox" || parentField.type === "multiselect") {
+    if (!Array.isArray(parentValue)) return false;
+    return parentValue.some((val) => triggerValues.includes(val));
+  }
+
+  // Radio/Select/RadioInput
+  if (parentField.type === "radioInput") {
+    // radioInput stores { value, optionValue }, check the value property
+    const radioValue = typeof parentValue === "object" ? parentValue.value : parentValue;
+    return triggerValues.includes(String(radioValue));
+  }
+
+  return triggerValues.includes(String(parentValue));
+}
 export const BookingFields = ({
   fields,
   locations,
@@ -48,6 +90,9 @@ export const BookingFields = ({
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
+  // Watch all parent field values for conditional logic
+  const allResponses = watch("responses");
+
   // Identify all phone fields (except location field)
   const otherPhoneFieldNames = useMemo(
     () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
@@ -56,6 +101,24 @@ export const BookingFields = ({
 
   // Track last synced value to avoid redundant updates
   const lastSyncedPhoneRef = useRef<string | null>(null);
+
+  // Effect to clear conditional field values when they become hidden
+  useEffect(() => {
+    fields.forEach((field) => {
+      if (!field.conditionalOn) return;
+
+      const isVisible = shouldShowField(field, allResponses || {}, fields);
+      const currentValue = allResponses?.[field.name];
+
+      // If field is now hidden but has a value, clear it
+      if (!isVisible && currentValue !== undefined) {
+        setValue(`responses.${field.name}`, undefined, {
+          shouldDirty: true,
+          shouldValidate: false,
+        });
+      }
+    });
+  }, [allResponses, fields, setValue]);
 
   // Event-driven sync function
   const syncPhoneFields = (locationValue: unknown) => {
@@ -130,6 +193,12 @@ export const BookingFields = ({
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
     <div>
       {fields.map((field, index) => {
+        // Check if conditional field should be shown
+        if (field.conditionalOn) {
+          const isVisible = shouldShowField(field, allResponses || {}, fields);
+          if (!isVisible) return null;
+        }
+
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
 
