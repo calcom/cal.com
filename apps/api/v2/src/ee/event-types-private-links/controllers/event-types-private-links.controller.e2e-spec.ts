@@ -3,7 +3,14 @@ import { AppModule } from "@/app.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { Locales } from "@/lib/enums/locales";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { MembershipsModule } from "@/modules/memberships/memberships.module";
+import {
+  CreateManagedUserData,
+  CreateManagedUserOutput,
+} from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -11,7 +18,9 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -19,6 +28,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreatePrivateLinkInput } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 describe("Event Types Private Links Endpoints", () => {
   let app: INestApplication;
@@ -185,5 +195,161 @@ describe("Event Types Private Links Endpoints", () => {
       console.error("Error cleaning up test data:", error);
     }
     await app.close();
+  });
+});
+
+describe("Event Types Private Links - Managed User Restrictions", () => {
+  let app: INestApplication;
+
+  let oAuthClient: PlatformOAuthClient;
+  let platformOrganization: Team;
+  let userRepositoryFixture: UserRepositoryFixture;
+  let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+  let teamRepositoryFixture: TeamRepositoryFixture;
+  let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+  let profilesRepositoryFixture: ProfileRepositoryFixture;
+  let membershipsRepositoryFixture: MembershipRepositoryFixture;
+
+  let platformAdmin: User;
+  const platformAdminEmail = `private-links-managed-user-admin-${randomString()}@api.com`;
+
+  let managedUser: CreateManagedUserData;
+  const managedUserEmail = `private-links-managed-user-${randomString()}@api.com`;
+
+  let managedUserEventType: { id: number; slug: string };
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      providers: [PrismaExceptionFilter, HttpExceptionFilter],
+      imports: [AppModule, UsersModule, MembershipsModule, EventTypesModule_2024_06_14, TokensModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    bootstrap(app as NestExpressApplication);
+
+    oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+    teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+    eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+    profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+    membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+
+    platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
+
+    platformOrganization = await teamRepositoryFixture.create({
+      name: `private-links-platform-org-${randomString()}`,
+      isPlatform: true,
+      isOrganization: true,
+      platformBilling: {
+        create: {
+          customerId: `cus_private_links_${randomString()}`,
+          plan: "SCALE",
+          subscriptionId: `sub_private_links_${randomString()}`,
+        },
+      },
+    });
+
+    oAuthClient = await createOAuthClient(platformOrganization.id);
+
+    await profilesRepositoryFixture.create({
+      uid: `private-links-profile-${randomString()}`,
+      username: platformAdminEmail,
+      organization: { connect: { id: platformOrganization.id } },
+      user: { connect: { id: platformAdmin.id } },
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "OWNER",
+      user: { connect: { id: platformAdmin.id } },
+      team: { connect: { id: platformOrganization.id } },
+      accepted: true,
+    });
+
+    await app.init();
+  });
+
+  async function createOAuthClient(organizationId: number) {
+    const data = {
+      logo: "logo-url",
+      name: "private-links-oauth-client",
+      redirectUris: ["http://localhost:4321"],
+      permissions: 1023,
+    };
+    const secret = "secret";
+
+    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+    return client;
+  }
+
+  it("should create a managed user", async () => {
+    const requestBody: CreateManagedUserInput = {
+      email: managedUserEmail,
+      timeZone: "Europe/London",
+      weekStart: "Monday",
+      timeFormat: 24,
+      locale: Locales.EN,
+      name: "Managed User",
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send(requestBody)
+      .expect(201);
+
+    const responseBody: CreateManagedUserOutput = response.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data).toBeDefined();
+    expect(responseBody.data.accessToken).toBeDefined();
+
+    managedUser = responseBody.data;
+  });
+
+  it("should create an event type for managed user", async () => {
+    managedUserEventType = await eventTypesRepositoryFixture.create(
+      {
+        title: `private-links-managed-user-event-type-${randomString()}`,
+        slug: `private-links-managed-user-event-type-${randomString()}`,
+        length: 30,
+        locations: [],
+      },
+      managedUser.user.id
+    );
+  });
+
+  it("POST /v2/event-types/:eventTypeId/private-links - managed user should be forbidden from creating private links", async () => {
+    const body: CreatePrivateLinkInput = {
+      maxUsageCount: 5,
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v2/event-types/${managedUserEventType.id}/private-links`)
+      .set("Authorization", `Bearer ${managedUser.accessToken}`)
+      .send(body)
+      .expect(403);
+
+    expect(response.body.message).toContain("Managed users cannot create private links");
+  });
+
+  it("GET /v2/event-types/:eventTypeId/private-links - managed user should be forbidden from listing private links", async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/api/v2/event-types/${managedUserEventType.id}/private-links`)
+      .set("Authorization", `Bearer ${managedUser.accessToken}`)
+      .expect(403);
+
+    expect(response.body.message).toContain("Managed users cannot create private links");
+  });
+
+  afterAll(async () => {
+    try {
+      if (managedUserEventType?.id) {
+        await eventTypesRepositoryFixture.delete(managedUserEventType.id);
+      }
+    } catch (error) {
+      console.error("Error cleaning up test data:", error);
+    }
+    if (app) {
+      await app.close();
+    }
   });
 });
