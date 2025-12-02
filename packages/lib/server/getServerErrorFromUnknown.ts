@@ -61,7 +61,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
   }
   if (cause instanceof ErrorWithCode) {
-    const statusCode = getStatusCode(cause);
+    const statusCode = getHttpStatusCode(cause);
     return new HttpError({
       statusCode,
       message: cause.message ?? "",
@@ -82,7 +82,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     };
   }
   if (cause instanceof Error) {
-    const statusCode = getStatusCode(cause);
+    const statusCode = getHttpStatusCode(cause);
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
@@ -98,10 +98,23 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   });
 }
 
-function getStatusCode(cause: Error | ErrorWithCode): number {
+export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
   const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
 
   switch (errorCode) {
+    // Generic HTTP error codes
+    case ErrorCode.BadRequest:
+      return 400;
+    case ErrorCode.Unauthorized:
+      return 401;
+    case ErrorCode.Forbidden:
+      return 403;
+    case ErrorCode.NotFound:
+      return 404;
+    case ErrorCode.InternalServerError:
+      return 500;
+
+    // Domain-specific error codes
     // 400 Bad Request
     case ErrorCode.RequestBodyWithouEnd:
     case ErrorCode.MissingPaymentCredential:
