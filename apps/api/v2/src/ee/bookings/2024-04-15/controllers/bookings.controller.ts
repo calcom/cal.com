@@ -209,7 +209,10 @@ export class BookingsController_2024_04_15 {
 
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
-        bookingData: bookingRequest.body,
+        bookingData: {
+          ...bookingRequest.body,
+          roundRobinHostId: body.roundRobinHostId,
+        },
         bookingMeta: {
           userId: bookingRequest.userId,
           hostname: bookingRequest.headers?.host || "",

@@ -791,8 +791,20 @@ async function handler(
     routingFormResponse,
   });
 
-  // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
+
+  if (rawBookingData.roundRobinHostId) {
+    const selectedHost = users.find((user) => user.id === rawBookingData.roundRobinHostId);
+    if (!selectedHost) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `Round robin host with id ${rawBookingData.roundRobinHostId} is not available for this event type`,
+        data: { traceId: traceContext.traceId },
+      });
+    }
+    const fixedHosts = users.filter((user) => user.isFixed);
+    users = [...fixedHosts, selectedHost];
+  }
 
   const firstUser = users[0];
 

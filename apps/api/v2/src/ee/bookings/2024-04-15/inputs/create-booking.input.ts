@@ -226,4 +226,10 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   crmOwnerRecordType?: string;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  roundRobinHostId?: number;
 }

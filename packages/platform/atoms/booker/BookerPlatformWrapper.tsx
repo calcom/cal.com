@@ -71,6 +71,7 @@ const BookerPlatformWrapperComponent = (
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
     defaultPhoneCountry,
+    roundRobinHostId,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -308,6 +309,7 @@ const BookerPlatformWrapperComponent = (
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
+    roundRobinHostId,
   });
 
   useEffect(() => {
@@ -444,6 +446,7 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    roundRobinHostId,
   });
 
   const onOverlaySwitchStateChange = useCallback(
