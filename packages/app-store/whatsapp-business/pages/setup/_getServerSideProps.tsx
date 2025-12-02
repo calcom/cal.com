@@ -11,7 +11,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (typeof ctx.params?.slug !== "string") return notFound;
   let inviteLink = "";
-  const appKeys = await getAppKeysFromSlug("whatsapp-connector");
+  const appKeys = await getAppKeysFromSlug("whatsapp-business");
   if (typeof appKeys.invite_link === "string") inviteLink = appKeys.invite_link;
 
   return {
