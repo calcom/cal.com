@@ -17,6 +17,7 @@ import { BookingEmailAndSmsSyncTaskerService } from "@/lib/services/tasker/booki
 import { BookingEmailAndSmsTaskService } from "@/lib/services/tasker/booking-emails-sms-task.service";
 import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-sms-tasker.service";
 import { BookingEmailAndSmsTriggerTaskerService } from "@/lib/services/tasker/booking-emails-sms-trigger-tasker.service";
+import { TaskerService } from "@/lib/services/tasker.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module, Scope } from "@nestjs/common";
 
@@ -47,6 +48,7 @@ import { Module, Scope } from "@nestjs/common";
     BookingEmailAndSmsSyncTaskerService,
     BookingEmailAndSmsTriggerTaskerService,
     BookingEmailAndSmsTasker,
+    TaskerService,
     RegularBookingService,
   ],
   exports: [RegularBookingService],

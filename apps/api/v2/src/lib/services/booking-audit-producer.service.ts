@@ -1,13 +1,13 @@
+import { TaskerService } from "@/lib/services/tasker.service";
 import { Injectable } from "@nestjs/common";
 
-import { BookingAuditTaskerProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditTaskerProducerService";
-import { getTasker } from "@calcom/features/tasker/tasker-factory";
+import { BookingAuditTaskerProducerService } from "@calcom/platform-libraries/bookings";
 
 @Injectable()
 export class BookingAuditProducerService extends BookingAuditTaskerProducerService {
-  constructor() {
+  constructor(taskerService: TaskerService) {
     super({
-      tasker: getTasker(),
+      tasker: taskerService.getTasker(),
     });
   }
 }
