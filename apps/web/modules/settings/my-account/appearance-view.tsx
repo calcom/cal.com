@@ -22,6 +22,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -419,7 +420,7 @@ const AppearanceView = ({
             </div>
           </Form>
 
-          <div className="border-subtle mb-16 mt-6 rounded-md border p-6">
+          <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("disable_branding")}

@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -913,10 +914,18 @@ const BookingItemBadges = ({
       {booking.paid && !booking.payment[0] ? (
         <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
-        <Badge variant="green" data-testid="paid_badge">
-          {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-        </Badge>
+        booking.paid &&
+        (isPrismaObjOrUndefined(booking.metadata)?.paymentStatus === "refunded" ? (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="red" data-testid="refunded_badge">
+            {t("refunded")}
+          </Badge>
+        ) : (
+          <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+            {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+          </Badge>
+        ))
       ) : null}
+
       {recurringDates !== undefined && (
         <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip

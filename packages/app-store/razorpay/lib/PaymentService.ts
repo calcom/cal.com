@@ -44,6 +44,7 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    bookingSeat?: BookingSeat["id"],
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
@@ -53,8 +54,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string,
-    responses: Prisma.JsonValue,
-    bookingSeat?: BookingSeat["id"]
+    responses: Prisma.JsonValue
   ) {
     try {
       if (!this.credentials) {
@@ -119,8 +119,18 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
-      throw new Error(ErrorCode.PaymentCreationFailure);
+      if (error instanceof AxiosError) {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        log.error(
+          "Razorpay: Axios error while creating payment link",
+          bookingId,
+          safeStringify(error.response?.data)
+        );
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      } else {
+        log.error("Razorpay: Payment could not be created for bookingId", bookingId, safeStringify(error));
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      }
     }
   }
   async update(): Promise<Payment> {
@@ -189,6 +199,7 @@ export class PaymentService implements IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
+    bookingSeat: BookingSeat["id"],
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
@@ -208,7 +219,8 @@ export class PaymentService implements IAbstractPaymentService {
           currency: paymentData.currency,
         },
       },
-      eventTypeMetadata
+      eventTypeMetadata,
+      bookingSeat
     );
   }
 

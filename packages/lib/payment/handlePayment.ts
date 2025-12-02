@@ -92,6 +92,7 @@ const handlePayment = async ({
         currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
+      bookingSeat?.id,
       booking.userId,
       booking.user?.username ?? null,
       bookerName,
@@ -102,7 +103,6 @@ const handlePayment = async ({
       selectedEventType.title,
       evt.title,
       booking.responses ?? responses,
-      bookingSeat?.id
     );
   }
 
@@ -111,7 +111,7 @@ const handlePayment = async ({
     throw new Error("Payment data is null");
   }
   try {
-    await paymentInstance.afterPayment(evt, booking, paymentData, selectedEventType?.metadata);
+    await paymentInstance.afterPayment(evt, booking, bookingSeat?.id, paymentData, selectedEventType?.metadata);
   } catch (e) {
     console.error(e);
   }

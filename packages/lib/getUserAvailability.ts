@@ -246,10 +246,11 @@ const _getCurrentSeats = async (
             select: {
               payment: {
                 select: {
-                  success: true
-                }
-              }
-            }
+                  success: true,
+                  refunded: true,
+                },
+              },
+            },
           },
         },
       },
@@ -261,7 +262,12 @@ const _getCurrentSeats = async (
       ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
       : booking.attendees;
 
-    const paidAttendees = attendees.filter((attendee) => ((attendee?.bookingSeat?.payment?.[0]?.success ?? true)))
+    console.log("All attendees: ", attendees);
+    const paidAttendees = attendees.filter((attendee) =>
+      attendee?.bookingSeat?.payment?.length > 0
+        ? attendee?.bookingSeat?.payment?.some((p) => p.success && !p.refunded) ?? true
+        : true
+    );
 
     return {
       uid: booking.uid,

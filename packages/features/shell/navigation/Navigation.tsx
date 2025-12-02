@@ -23,13 +23,18 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 declare global {
   interface Window {
-    openOneHashChat?: () => void;
+    openCrispChat?: () => void;
   }
 }
 
 export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): NavigationItemType[] => [
+  {
+    name: "home",
+    href: "/home",
+    icon: "house",
+  },
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -83,8 +88,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): 
     onClick: (e) => {
       e.preventDefault();
       if (typeof window !== "undefined") {
-        if (window.openOneHashChat) {
-          window.openOneHashChat();
+        if (window.openCrispChat) {
+          window.openCrispChat();
         } else {
         }
       } else {
@@ -303,7 +308,7 @@ const IntegrationRequests = () => {
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
   return (
-    <nav className="mt-8 flex-1 md:px-2 lg:px-0">
+    <nav className="mt-10 flex-1 md:px-2 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}

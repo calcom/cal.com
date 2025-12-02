@@ -430,7 +430,7 @@ export const FormLinkDisplay = ({ routingFormId }: { routingFormId?: string | nu
   const orgBranding = useOrgBranding();
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
 
-  return <div>{formLink}</div>;
+  return <div className="truncate">{formLink}</div>;
 };
 
 type FormActionProps<T> = {

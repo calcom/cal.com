@@ -17,6 +17,15 @@ export const updateUserMetadataAllowedKeys = z.object({
       verified: z.boolean().optional(),
     })
     .optional(),
+  gettingStartedActions: z
+    .object({
+      viewPublicPage: z.boolean().optional(),
+      updateUsername: z.boolean().optional(),
+      addOrEditEvents: z.boolean().optional(),
+      setAvailability: z.boolean().optional(),
+      shareYourCalID: z.boolean().optional(),
+    })
+    .optional(),
   usePhoneForWhatsApp: z.boolean().optional(),
 });
 

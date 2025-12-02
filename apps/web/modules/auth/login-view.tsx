@@ -90,7 +90,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams?.get("callbackUrl") || "/event-types";
+  let callbackUrl = searchParams?.get("callbackUrl") || "/home";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 

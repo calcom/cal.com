@@ -13,7 +13,10 @@ import { useFormContext } from "react-hook-form";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { getTeamsFiltersFromQuery, filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import {
+  getTeamsFiltersFromQuery,
+  filterQuerySchema,
+} from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -69,8 +72,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
   // Wire TeamsFilter selection to URL query params
-  const { data: query, setQuery: setTypedQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } =
-    useTypedQuery(filterQuerySchema);
+  const {
+    data: query,
+    setQuery: setTypedQuery,
+    removeByKey,
+    pushItemToKey,
+    removeItemByKeyAndValue,
+  } = useTypedQuery(filterQuerySchema);
 
   const selectedTeamIds = query.teamIds ?? [];
   const selectedUserId = (query.userIds && query.userIds[0]) ?? null;
@@ -160,7 +168,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         setNewFormDialogState={setNewFormDialogState}
         selectTeamDialogState={selectTeamDialogState}
         setSelectTeamDialogState={setSelectTeamDialogState}>
-        <div className="mb-10 w-full">
+        <div className="my-0 w-full md:my-8">
           <div className="mb-2 flex flex-row justify-between">
             {teams && teams.length > 0 && (
               <TeamsFilter
@@ -240,7 +248,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                       key={form.id}
                       onClick={() => handleFormClick(form.id)}>
                       <div
-                        className="flex flex-col gap-1"
+                        className="flex flex-shrink-0 flex-col gap-1"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         {!(firstItem && firstItem.id === form.id) && (
                           <ArrowButton onClick={() => moveRoutingForm(index, -1)} arrowDirection="up" />
@@ -249,92 +257,99 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                           <ArrowButton onClick={() => moveRoutingForm(index, 1)} arrowDirection="down" />
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="min-w-0 flex-1">
                         <ListItemAdvanced
                           heading={form.name}
                           headingTrailingItem={
-                            <div className="flex w-full flex-row items-center justify-between">
-                              <div className="bg-muted dark:bg-default py-.5 flex h-6 flex-row items-center space-x-1 rounded px-2 rtl:space-x-reverse">
-                                <FormLinkDisplay routingFormId={form.id} />
-                                <Tooltip content={t("copy_link_to_form")}>
-                                  <div onClick={(e) => e.stopPropagation()}>
-                                    <FormAction
-                                      routingForm={form}
-                                      action="copyLink"
-                                      color="secondary"
-                                      variant="icon"
-                                      size="xs">
-                                      <Icon name="link" className="h-3 w-3" />
-                                    </FormAction>
-                                  </div>
-                                </Tooltip>
-                                <Tooltip content={t("preview")}>
-                                  <div onClick={(e) => e.stopPropagation()}>
-                                    <FormAction
-                                      action="preview"
-                                      routingForm={form}
-                                      target="_blank"
-                                      color="secondary"
-                                      variant="icon"
-                                      size="xs">
-                                      <Icon name="external-link" className="h-3 w-3" />
-                                    </FormAction>
-                                  </div>
-                                </Tooltip>
-                                <Tooltip content={t("embed")}>
-                                  <div onClick={(e) => e.stopPropagation()}>
-                                    <FormAction
-                                      routingForm={form}
-                                      action="embed"
-                                      color="secondary"
-                                      variant="icon"
-                                      size="xs">
-                                      <Icon name="code" className="h-3 w-3" />
-                                    </FormAction>
-                                  </div>
-                                </Tooltip>
-                              </div>
-
-                              <div className="flex-1" />
-                              {form.calIdTeam?.name && (
-                                <div className="border-subtle mr-2 border-r-2">
-                                  <Badge className="ltr:mr-2 rtl:ml-2" variant="secondary">
-                                    {form.calIdTeam.name}
-                                  </Badge>
+                            <div className="flex w-full min-w-0 flex-row flex-wrap items-center justify-between gap-2">
+                              <div className="bg-muted dark:bg-default py-.5 flex h-6 min-w-0 max-w-full flex-1 flex-row items-center space-x-1 rounded px-2 sm:max-w-none sm:flex-initial rtl:space-x-reverse">
+                                <div className="min-w-0 flex-1">
+                                  <FormLinkDisplay routingFormId={form.id} />
                                 </div>
-                              )}
-
-                              <div onClick={(e) => e.stopPropagation()}>
-                                <FormAction
-                                  disabled={readOnly}
-                                  className="mr-2"
-                                  action="toggle"
-                                  routingForm={form}
-                                />
+                                <div className="flex flex-shrink-0 items-center space-x-1">
+                                  <Tooltip content={t("copy_link_to_form")}>
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <FormAction
+                                        routingForm={form}
+                                        action="copyLink"
+                                        color="secondary"
+                                        variant="icon"
+                                        size="xs">
+                                        <Icon name="link" className="h-3 w-3" />
+                                      </FormAction>
+                                    </div>
+                                  </Tooltip>
+                                  <Tooltip content={t("preview")}>
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <FormAction
+                                        action="preview"
+                                        routingForm={form}
+                                        target="_blank"
+                                        color="secondary"
+                                        variant="icon"
+                                        size="xs">
+                                        <Icon name="external-link" className="h-3 w-3" />
+                                      </FormAction>
+                                    </div>
+                                  </Tooltip>
+                                  <Tooltip content={t("embed")}>
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <FormAction
+                                        routingForm={form}
+                                        action="embed"
+                                        color="secondary"
+                                        variant="icon"
+                                        size="xs">
+                                        <Icon name="code" className="h-3 w-3" />
+                                      </FormAction>
+                                    </div>
+                                  </Tooltip>
+                                </div>
                               </div>
 
-                              <div onClick={(e) => e.stopPropagation()}>
-                                <FormActionsDropdown disabled={readOnly}>
+                              <div className="flex flex-shrink-0 items-center gap-2">
+                                {form.calIdTeam?.name && (
+                                  <div className="border-subtle flex-shrink-0 border-r-2 pr-2 sm:mr-2">
+                                    <Badge
+                                      className="max-w-[100px] truncate sm:max-w-none ltr:mr-0 sm:ltr:mr-2 rtl:ml-0 sm:rtl:ml-2"
+                                      variant="secondary">
+                                      {form.calIdTeam.name}
+                                    </Badge>
+                                  </div>
+                                )}
+
+                                <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                   <FormAction
-                                    action="edit"
-                                    color="minimal"
+                                    disabled={readOnly}
+                                    className="mr-2"
+                                    action="toggle"
                                     routingForm={form}
-                                    extraClassNames="!flex p-0">
-                                    {t("edit")}
-                                  </FormAction>
-                                  <FormAction action="download" routingForm={form}>
-                                    {t("download_responses")}
-                                  </FormAction>
-                                  <FormAction action="duplicate" routingForm={form} className="w-full">
-                                    {t("duplicate")}
-                                  </FormAction>
-                                  <FormAction
-                                    action="_delete"
-                                    routingForm={form}
-                                    className="text-cal-destructive w-full ">
-                                    {t("delete")}
-                                  </FormAction>
-                                </FormActionsDropdown>
+                                  />
+                                </div>
+
+                                <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                  <FormActionsDropdown disabled={readOnly}>
+                                    <FormAction
+                                      action="edit"
+                                      color="minimal"
+                                      routingForm={form}
+                                      extraClassNames="!flex p-0">
+                                      {t("edit")}
+                                    </FormAction>
+                                    <FormAction action="download" routingForm={form}>
+                                      {t("download_responses")}
+                                    </FormAction>
+                                    <FormAction action="duplicate" routingForm={form} className="w-full">
+                                      {t("duplicate")}
+                                    </FormAction>
+                                    <FormAction
+                                      action="_delete"
+                                      routingForm={form}
+                                      className="text-cal-destructive w-full ">
+                                      {t("delete")}
+                                    </FormAction>
+                                  </FormActionsDropdown>
+                                </div>
                               </div>
                             </div>
                           }

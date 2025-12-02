@@ -160,19 +160,20 @@ export function TeamsList({
                 <li
                   key={team.id}
                   className="border-subtle flex items-center justify-between rounded-md border p-4">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex min-w-0 flex-1 items-center space-x-2">
                     <Avatar
                       size="md"
                       shape="square"
                       imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
                       alt="Team logo"
+                      className="flex-shrink-0"
                     />
-                    <span className="text-default text-md font-semibold">{team.name}</span>
-                    <Badge variant="secondary" publicUrl={url}>
-                      {url}
+                    <span className="text-default text-md truncate font-semibold">{team.name}</span>
+                    <Badge variant="secondary" publicUrl={url} className="min-w-0 max-w-full">
+                      <span className="truncate">{url}</span>
                     </Badge>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="ml-4 flex flex-shrink-0 items-center space-x-2">
                     <Badge variant="attention">{t("pending")}</Badge>
                     <Button
                       type="button"
@@ -229,24 +230,24 @@ export function TeamsList({
                   key={team.id}
                   className="border-default bg-default group relative rounded-md border transition hover:shadow-md">
                   <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex min-w-0 flex-1 items-center space-x-3">
                       <Avatar
                         size="md"
                         shape="square"
                         imageSrc={getDefaultAvatar(team?.logoUrl, team?.name as string)}
                         alt="Team logo"
-                        className="bg-default h-10 w-10"
+                        className="bg-default h-10 w-10 flex-shrink-0"
                       />
-                      <div>
-                        <h3 className="text-default text-base font-semibold">{team.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" publicUrl={url}>
-                            {url}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-default truncate text-base font-semibold">{team.name}</h3>
+                        <div className="mt-1 flex min-w-0 items-center gap-2">
+                          <Badge variant="secondary" publicUrl={url} className="min-w-0 max-w-full">
+                            <span className="truncate">{url}</span>
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="ml-4 flex flex-shrink-0 items-center space-x-2">
                       <Badge variant="secondary">
                         {team.role.charAt(0).toUpperCase() + team.role.slice(1).toLowerCase()}
                       </Badge>
