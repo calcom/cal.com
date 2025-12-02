@@ -75,7 +75,6 @@ export function TimezoneSelectComponent({
   classNames: timezoneClassNames,
   timezoneSelectCustomClassname,
   components,
-  variant = "default",
   isPending,
   value,
   size = "md",
@@ -198,7 +197,7 @@ export function TimezoneSelectComponent({
           ),
         menu: (state) =>
           classNames(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle p-1",
             state.selectProps.menuIsOpen && "shadow-dropdown", // Add box-shadow when menu is open
             timezoneClassNames?.menu && timezoneClassNames.menu(state)
           ),
