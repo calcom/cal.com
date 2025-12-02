@@ -1,6 +1,9 @@
-import { OAuthClientRepository } from "@calcom/lib/server/repository/oAuthClient";
+import { OAuthClientRepository, generateSecret } from "@calcom/lib/server/repository/oAuthClient";
 
 import type { TAddClientInputSchema } from "./addClient.schema";
+
+// Re-export generateSecret for backward compatibility
+export { generateSecret };
 
 type AddClientOptions = {
   input: TAddClientInputSchema;

@@ -3,6 +3,14 @@ import { randomBytes, createHash } from "crypto";
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientApprovalStatus } from "@calcom/prisma/enums";
 
+const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
+
+// Generate a random secret - exported for backward compatibility
+export const generateSecret = (secret = randomBytes(32).toString("hex")): [string, string] => [
+  hashSecretKey(secret),
+  secret,
+];
+
 export class OAuthClientRepository {
   constructor(private prismaClient: PrismaClient) {}
 
@@ -101,7 +109,7 @@ export class OAuthClientRepository {
     let clientSecret: string | undefined;
     let hashedSecret: string | undefined;
     if (!enablePkce) {
-      const [hashed, plain] = this.generateSecret();
+      const [hashed, plain] = generateSecret();
       hashedSecret = hashed;
       clientSecret = plain;
     }
@@ -160,13 +168,5 @@ export class OAuthClientRepository {
     return this.prismaClient.oAuthClient.delete({
       where: { clientId },
     });
-  }
-
-  private hashSecretKey(apiKey: string): string {
-    return createHash("sha256").update(apiKey).digest("hex");
-  }
-
-  private generateSecret(secret = randomBytes(32).toString("hex")): [string, string] {
-    return [this.hashSecretKey(secret), secret];
   }
 }
