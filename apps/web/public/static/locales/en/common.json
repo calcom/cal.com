@@ -4069,5 +4069,9 @@
   "holiday_overlap_message_single": "{{date}} is {{holiday}}, which is already blocked as a holiday",
   "holiday_overlap_message_multiple": "{{count}} days in this range are holidays ({{holidays}})",
   "next": "Next",
+  "no_holidays_found_for_country": "No holidays found for this country.",
+  "one_booking": "1 booking",
+  "multiple_bookings": "{{count}} bookings",
+  "and_more_holidays_with_conflicts": "... and {{count}} more holidays with conflicts",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

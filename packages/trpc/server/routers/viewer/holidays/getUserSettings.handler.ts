@@ -1,7 +1,7 @@
 import { HolidayService } from "@calcom/lib/holidays";
 import prisma from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
 import type { TGetUserSettingsSchema } from "./getUserSettings.schema";
 
 type GetUserSettingsOptions = {
@@ -14,7 +14,6 @@ type GetUserSettingsOptions = {
 export async function getUserSettingsHandler({ ctx }: GetUserSettingsOptions) {
   const userId = ctx.user.id;
 
-  // Get user's holiday settings
   const settings = await prisma.userHolidaySettings.findUnique({
     where: { userId },
   });
@@ -26,7 +25,6 @@ export async function getUserSettingsHandler({ ctx }: GetUserSettingsOptions) {
     };
   }
 
-  // Get holidays with enabled status
   const holidays = HolidayService.getHolidaysWithStatus(settings.countryCode, settings.disabledIds);
 
   return {
@@ -35,3 +33,4 @@ export async function getUserSettingsHandler({ ctx }: GetUserSettingsOptions) {
   };
 }
 
+export default getUserSettingsHandler;

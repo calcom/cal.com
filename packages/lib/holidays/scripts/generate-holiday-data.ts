@@ -32,9 +32,8 @@ const SUPPORTED_COUNTRIES = [
   { code: "CH", name: "Switzerland" },
 ];
 
-// Generate dates for 2025 and 2026 only (2 years for now/next year coverage)
-const YEARS_TO_GENERATE = 2;
-const START_YEAR = 2025;
+// Import constants for data generation configuration
+import { HOLIDAY_DATA_YEARS, HOLIDAY_DATA_START_YEAR } from "../constants";
 
 interface HolidayDate {
   year: number;
@@ -73,7 +72,7 @@ function extractHolidaysForCountry(countryCode: string, countryName: string): Co
   const hd = new Holidays(countryCode);
   const holidayMap = new Map<string, Holiday>();
 
-  for (let year = START_YEAR; year < START_YEAR + YEARS_TO_GENERATE; year++) {
+  for (let year = HOLIDAY_DATA_START_YEAR; year < HOLIDAY_DATA_START_YEAR + HOLIDAY_DATA_YEARS; year++) {
     const holidays = hd.getHolidays(year);
 
     for (const holiday of holidays) {
@@ -117,8 +116,8 @@ function generateHolidayData(): HolidayData {
   console.log("🎄 Generating holiday data...\n");
 
   const yearsIncluded: number[] = [];
-  for (let i = 0; i < YEARS_TO_GENERATE; i++) {
-    yearsIncluded.push(START_YEAR + i);
+  for (let i = 0; i < HOLIDAY_DATA_YEARS; i++) {
+    yearsIncluded.push(HOLIDAY_DATA_START_YEAR + i);
   }
 
   const countries: CountryHolidays[] = [];

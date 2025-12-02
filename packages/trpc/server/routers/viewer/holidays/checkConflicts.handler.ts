@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { CONFLICT_CHECK_MONTHS } from "@calcom/lib/holidays/constants";
 import { HolidayService } from "@calcom/lib/holidays";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -32,14 +33,12 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
   const userId = ctx.user.id;
   const { countryCode, disabledIds } = input;
 
-  // Quick return if no country selected
   if (!countryCode) {
     return { conflicts: [] };
   }
 
-  // Only check next 3 months for conflicts (performance optimization)
   const startDate = new Date();
-  const endDate = dayjs().add(3, "months").toDate();
+  const endDate = dayjs().add(CONFLICT_CHECK_MONTHS, "months").toDate();
 
   const holidayDates = HolidayService.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate);
 
@@ -47,17 +46,22 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
     return { conflicts: [] };
   }
 
-  // Get all confirmed bookings for this user in the date range
+  // Build OR conditions for each holiday date - more efficient than fetching all bookings
+  const dateConditions = holidayDates.map((h) => {
+    const holidayStart = dayjs(h.date).startOf("day").toDate();
+    const holidayEnd = dayjs(h.date).endOf("day").toDate();
+    return {
+      AND: [{ startTime: { lt: holidayEnd } }, { endTime: { gt: holidayStart } }],
+    };
+  });
+
   const bookings = await prisma.booking.findMany({
     where: {
       userId,
       status: {
         in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
       },
-      startTime: {
-        gte: startDate,
-        lte: endDate,
-      },
+      OR: dateConditions,
     },
     select: {
       id: true,
@@ -73,7 +77,10 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
     },
   });
 
-  // Check for conflicts
+  if (bookings.length === 0) {
+    return { conflicts: [] };
+  }
+
   const conflicts: HolidayConflict[] = [];
 
   for (const holidayDate of holidayDates) {
@@ -83,8 +90,6 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
     const conflictingBookings = bookings.filter((booking) => {
       const bookingStart = dayjs(booking.startTime);
       const bookingEnd = dayjs(booking.endTime);
-
-      // Check if booking overlaps with holiday
       return bookingStart.isBefore(holidayEnd) && bookingEnd.isAfter(holidayStart);
     });
 
@@ -106,3 +111,5 @@ export async function checkConflictsHandler({ ctx, input }: CheckConflictsOption
 
   return { conflicts };
 }
+
+export default checkConflictsHandler;

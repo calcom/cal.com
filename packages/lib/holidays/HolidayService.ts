@@ -1,39 +1,41 @@
-// Import JSON directly - bundler will handle this efficiently
 import holidayData from "./data/holidays.json";
 import type { Country, Holiday, HolidayData, HolidayWithStatus } from "./types";
 
-/**
- * HolidayService provides methods to work with holiday data.
- * Uses static import for optimal bundling - no runtime file reading.
- */
 class HolidayServiceClass {
   private data: HolidayData;
+  private countriesCache: Country[] | null = null;
+  private holidaysByCountryCache: Map<string, Holiday[]> = new Map();
 
   constructor() {
     this.data = holidayData as HolidayData;
   }
 
-  /**
-   * Get list of supported countries
-   */
   getSupportedCountries(): Country[] {
-    return this.data.countries.map((c) => ({
+    if (this.countriesCache) {
+      return this.countriesCache;
+    }
+
+    this.countriesCache = this.data.countries.map((c) => ({
       code: c.code,
       name: c.name,
     }));
+
+    return this.countriesCache;
   }
 
-  /**
-   * Get all holidays for a specific country
-   */
   getHolidaysForCountry(countryCode: string): Holiday[] {
+    const cached = this.holidaysByCountryCache.get(countryCode);
+    if (cached) {
+      return cached;
+    }
+
     const country = this.data.countries.find((c) => c.code === countryCode);
-    return country?.holidays || [];
+    const holidays = country?.holidays || [];
+
+    this.holidaysByCountryCache.set(countryCode, holidays);
+    return holidays;
   }
 
-  /**
-   * Get holidays with enabled status for a user
-   */
   getHolidaysWithStatus(countryCode: string, disabledIds: string[]): HolidayWithStatus[] {
     const holidays = this.getHolidaysForCountry(countryCode);
     const disabledSet = new Set(disabledIds);
@@ -45,9 +47,6 @@ class HolidayServiceClass {
     }));
   }
 
-  /**
-   * Get the next occurrence date for a holiday
-   */
   getNextOccurrence(holiday: Holiday): string | null {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -62,9 +61,6 @@ class HolidayServiceClass {
     return null;
   }
 
-  /**
-   * Get the date for a specific holiday in a specific year
-   */
   getHolidayDate(holidayId: string, countryCode: string, year: number): string | null {
     const holidays = this.getHolidaysForCountry(countryCode);
     const holiday = holidays.find((h) => h.id === holidayId);
@@ -75,10 +71,6 @@ class HolidayServiceClass {
     return dateInfo?.date || null;
   }
 
-  /**
-   * Check if a specific date is a holiday for a given country
-   * Returns the holiday info if it is, null otherwise
-   */
   getHolidayOnDate(date: Date, countryCode: string, disabledIds: string[] = []): Holiday | null {
     const holidays = this.getHolidaysForCountry(countryCode);
     const dateStr = date.toISOString().split("T")[0];
@@ -97,10 +89,6 @@ class HolidayServiceClass {
     return null;
   }
 
-  /**
-   * Get all holiday dates within a date range for a country
-   * Returns array of { date, holiday } objects
-   */
   getHolidayDatesInRange(
     countryCode: string,
     disabledIds: string[],
@@ -127,27 +115,18 @@ class HolidayServiceClass {
       }
     }
 
-    // Sort by date
     return results.sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  /**
-   * Check if any enabled holidays exist in a date range
-   */
   hasHolidaysInRange(countryCode: string, disabledIds: string[], startDate: Date, endDate: Date): boolean {
     return this.getHolidayDatesInRange(countryCode, disabledIds, startDate, endDate).length > 0;
   }
 
-  /**
-   * Get years included in the data
-   */
   getYearsIncluded(): number[] {
     return this.data.yearsIncluded;
   }
 }
 
-// Export singleton instance
 export const HolidayService = new HolidayServiceClass();
 
-// Also export class for testing
 export { HolidayServiceClass };

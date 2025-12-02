@@ -6,10 +6,10 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -61,7 +61,7 @@ const CountrySelector = memo(function CountrySelector({
   );
 });
 
-function HolidayListItem({
+const HolidayListItem = memo(function HolidayListItem({
   holiday,
   onToggle,
   isToggling,
@@ -94,7 +94,7 @@ function HolidayListItem({
       />
     </div>
   );
-}
+});
 
 function HolidaysList({
   holidays,
@@ -105,8 +105,10 @@ function HolidaysList({
   onToggle: (holidayId: string, enabled: boolean) => void;
   togglingId: string | null;
 }) {
+  const { t } = useLocale();
+
   if (holidays.length === 0) {
-    return <div className="text-subtle py-8 text-center">No holidays found for this country.</div>;
+    return <div className="text-subtle py-8 text-center">{t("no_holidays_found_for_country")}</div>;
   }
 
   return (
@@ -134,26 +136,29 @@ function ConflictWarning({
 
   const totalBookings = conflicts.reduce((sum, c) => sum + c.bookings.length, 0);
 
+  const conflictMessage = (
+    <ul className="mt-1 space-y-1">
+      {conflicts.slice(0, 3).map((conflict) => (
+        <li key={conflict.holidayId}>
+          {conflict.holidayName} ({dayjs(conflict.date).format("D MMM")}) -{" "}
+          {conflict.bookings.length === 1
+            ? t("one_booking")
+            : t("multiple_bookings", { count: conflict.bookings.length })}
+        </li>
+      ))}
+      {conflicts.length > 3 && (
+        <li>{t("and_more_holidays_with_conflicts", { count: conflicts.length - 3 })}</li>
+      )}
+    </ul>
+  );
+
   return (
-    <div className="bg-attention-subtle border-attention mb-4 rounded-md border p-4">
-      <div className="flex items-start gap-3">
-        <Icon name="alert-triangle" className="text-attention mt-0.5 h-5 w-5" />
-        <div>
-          <p className="text-attention font-medium">
-            {t("holiday_booking_conflict_warning", { count: totalBookings })}
-          </p>
-          <ul className="text-subtle mt-2 space-y-1 text-sm">
-            {conflicts.slice(0, 3).map((conflict) => (
-              <li key={conflict.holidayId}>
-                {conflict.holidayName} ({dayjs(conflict.date).format("D MMM")}) - {conflict.bookings.length}{" "}
-                {conflict.bookings.length === 1 ? "booking" : "bookings"}
-              </li>
-            ))}
-            {conflicts.length > 3 && <li>... and {conflicts.length - 3} more holidays with conflicts</li>}
-          </ul>
-        </div>
-      </div>
-    </div>
+    <Alert
+      severity="warning"
+      title={t("holiday_booking_conflict_warning", { count: totalBookings })}
+      message={conflictMessage}
+      className="mb-4"
+    />
   );
 }
 
@@ -161,12 +166,17 @@ export function HolidaysView() {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  // Fetch supported countries - this is a lightweight static list
-  const { data: countries, isLoading: isLoadingCountries } =
-    trpc.viewer.holidays.getSupportedCountries.useQuery();
+  const {
+    data: countries,
+    isLoading: isLoadingCountries,
+    error: countriesError,
+  } = trpc.viewer.holidays.getSupportedCountries.useQuery();
 
-  // Fetch user's holiday settings
-  const { data: settings, isLoading: isLoadingSettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
+  const {
+    data: settings,
+    isLoading: isLoadingSettings,
+    error: settingsError,
+  } = trpc.viewer.holidays.getUserSettings.useQuery({});
 
   // Memoize disabled IDs to prevent unnecessary re-renders
   const disabledIds = useMemo(
@@ -225,6 +235,7 @@ export function HolidaysView() {
   );
 
   const isLoading = isLoadingCountries || isLoadingSettings;
+  const hasError = countriesError || settingsError;
 
   if (isLoading) {
     return (
@@ -234,6 +245,16 @@ export function HolidaysView() {
           <SkeletonText className="h-64 w-full" />
         </div>
       </SkeletonContainer>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Alert
+        severity="error"
+        title={t("something_went_wrong")}
+        message={countriesError?.message || settingsError?.message}
+      />
     );
   }
 

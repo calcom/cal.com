@@ -4,3 +4,4 @@ export async function getSupportedCountriesHandler() {
   return HolidayService.getSupportedCountries();
 }
 
+export default getSupportedCountriesHandler;
