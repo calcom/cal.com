@@ -190,7 +190,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
       notes: input.notes,
-      showNotePublicly: input.showNotePublicly ?? false,
+      ...(input.showNotePublicly !== undefined && { showNotePublicly: input.showNotePublicly }),
       userId: oooUserId,
       reasonId: input.reasonId,
       toUserId: toUserId ? toUserId : null,
