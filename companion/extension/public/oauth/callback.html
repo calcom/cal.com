@@ -3,41 +3,8 @@
 <head>
     <meta charset="utf-8">
     <title>Cal.com OAuth Callback</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 40px 20px;">
-        <h1>Authentication Complete</h1>
-        <p>You can close this window now.</p>
-        <div id="status" style="margin-top: 20px; color: #666;"></div>
-    </div>
-
-    <script>
-        // This page serves as the OAuth callback handler for the extension
-        // The extension's launchWebAuthFlow will automatically capture the URL and close the window
-
-        // Extract parameters from the URL for debugging purposes
-        const urlParams = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-
-        const code = urlParams.get('code') || hashParams.get('code');
-        const error = urlParams.get('error') || hashParams.get('error');
-        const state = urlParams.get('state') || hashParams.get('state');
-
-        const statusEl = document.getElementById('status');
-
-        if (error) {
-            statusEl.textContent = `Error: ${error}`;
-            statusEl.style.color = '#d32f2f';
-        } else if (code) {
-            statusEl.textContent = 'Authorization successful! Processing...';
-            statusEl.style.color = '#2e7d32';
-        } else {
-            statusEl.textContent = 'Waiting for authorization...';
-        }
-
-        // The extension will automatically handle this and close the window
-        // No additional action is needed here
-    </script>
+    <p>Processing authentication...</p>
 </body>
 </html>

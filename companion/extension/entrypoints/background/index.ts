@@ -6,16 +6,14 @@ export default defineBackground(() => {
     if (tab.id) {
       chrome.tabs.sendMessage(tab.id, { action: "icon-clicked" }, (response) => {
         if (chrome.runtime.lastError) {
-          // Content script not loaded or not responding - this is expected on some pages
+          // Expected on pages where content script isn't loaded
         }
       });
     }
   });
 
-  // Handle messages from content script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "fetch-event-types") {
-      // Fetch event types from Cal.com API
       fetchEventTypes()
         .then((eventTypes) => {
           sendResponse({ data: eventTypes });
@@ -24,18 +22,15 @@ export default defineBackground(() => {
           sendResponse({ error: error.message });
         });
 
-      // Return true to indicate we'll respond asynchronously
       return true;
     }
 
     if (message.action === "start-extension-oauth") {
-      // Extract and store state from authUrl for CSRF validation
       const authUrl = message.authUrl;
       const urlObj = new URL(authUrl);
       const state = urlObj.searchParams.get("state");
 
       if (state) {
-        // Store state in chrome.storage for later validation during token exchange
         chrome.storage.local.set({ oauth_state: state }, () => {
           if (chrome.runtime.lastError) {
             console.warn("Failed to store OAuth state:", chrome.runtime.lastError.message);
@@ -43,7 +38,6 @@ export default defineBackground(() => {
         });
       }
 
-      // Handle OAuth flow using Chrome extension APIs
       handleExtensionOAuth(authUrl)
         .then((responseUrl) => {
           sendResponse({ success: true, responseUrl });
@@ -52,12 +46,10 @@ export default defineBackground(() => {
           sendResponse({ success: false, error: error.message });
         });
 
-      // Return true to indicate we'll respond asynchronously
       return true;
     }
 
     if (message.action === "exchange-oauth-tokens") {
-      // Handle token exchange using background script to avoid CORS
       handleTokenExchange(message.tokenRequest, message.tokenEndpoint, message.state)
         .then((tokens) => {
           sendResponse({ success: true, tokens });
@@ -66,7 +58,6 @@ export default defineBackground(() => {
           sendResponse({ success: false, error: error.message });
         });
 
-      // Return true to indicate we'll respond asynchronously
       return true;
     }
 
@@ -106,38 +97,31 @@ async function handleTokenExchange(
   tokenEndpoint: string,
   state?: string
 ): Promise<any> {
-  // CSRF Protection: Validate state parameter if provided
-  // Note: State is already validated in the iframe context before token exchange is initiated.
-  // This is defense-in-depth validation. If state validation fails here, we log but don't block
-  // to avoid breaking the flow if chrome.storage is unavailable in iframe context.
+  // CSRF protection: validate state parameter (defense-in-depth)
+  // State is already validated in iframe context; this validates in background script
   if (state) {
     try {
-      // Retrieve stored state from chrome.storage
       const result = await chrome.storage.local.get(["oauth_state"]);
       const storedState = result.oauth_state;
 
       if (storedState && storedState !== state) {
-        // Clean up stored state on mismatch
         await chrome.storage.local.remove("oauth_state");
         console.error("State parameter mismatch - possible CSRF attack");
         throw new Error("Invalid state parameter - possible CSRF attack");
       }
 
       if (storedState && storedState === state) {
-        // State is valid, clean it up
         await chrome.storage.local.remove("oauth_state");
       }
     } catch (error) {
-      // Only throw if it's a state mismatch error
       if (error instanceof Error && error.message.includes("Invalid state parameter")) {
         throw error;
       }
-      // For other errors (like storage unavailable), log but continue
+      // For storage errors, log but continue (non-blocking)
       console.warn("State validation warning (non-blocking):", error);
     }
   }
 
-  // Use URLSearchParams for proper form encoding
   const body = new URLSearchParams();
   Object.keys(tokenRequest).forEach((key) => {
     body.append(key, tokenRequest[key]);
@@ -177,70 +161,63 @@ async function handleTokenExchange(
 }
 
 async function fetchEventTypes() {
-  try {
-    const API_BASE_URL = "https://api.cal.com/v2";
+  const API_BASE_URL = "https://api.cal.com/v2";
 
-    // Get OAuth tokens from storage
-    const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
-    const oauthTokens = result.cal_oauth_tokens
-      ? JSON.parse(result.cal_oauth_tokens as string)
-      : null;
+  const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
+  const oauthTokens = result.cal_oauth_tokens
+    ? JSON.parse(result.cal_oauth_tokens as string)
+    : null;
 
-    if (!oauthTokens?.accessToken) {
-      throw new Error("No OAuth access token found. Please sign in with OAuth.");
-    }
-
-    // First, get current user to get username
-    const userResponse = await fetch(`${API_BASE_URL}/me`, {
-      headers: {
-        Authorization: `Bearer ${oauthTokens.accessToken}`,
-        "Content-Type": "application/json",
-        "cal-api-version": "2024-06-11",
-      },
-    });
-
-    if (!userResponse.ok) {
-      throw new Error(`Failed to get user: ${userResponse.statusText}`);
-    }
-
-    const userData = await userResponse.json();
-    const username = userData?.data?.username;
-
-    // Build query string with username
-    const params = new URLSearchParams();
-    if (username) {
-      params.append("username", username);
-    }
-
-    const queryString = params.toString();
-    const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
-
-    const response = await fetch(endpoint, {
-      headers: {
-        Authorization: `Bearer ${oauthTokens.accessToken}`,
-        "Content-Type": "application/json",
-        "cal-api-version": "2024-06-14",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch event types: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    // Extract event types array from response
-    let eventTypesArray = [];
-    if (Array.isArray(data)) {
-      eventTypesArray = data;
-    } else if (data?.data && Array.isArray(data.data)) {
-      eventTypesArray = data.data;
-    } else if (data?.eventTypes && Array.isArray(data.eventTypes)) {
-      eventTypesArray = data.eventTypes;
-    }
-
-    return eventTypesArray;
-  } catch (error) {
-    throw error;
+  if (!oauthTokens?.accessToken) {
+    throw new Error("No OAuth access token found. Please sign in with OAuth.");
   }
+
+  // Get current user to retrieve username
+  const userResponse = await fetch(`${API_BASE_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-06-11",
+    },
+  });
+
+  if (!userResponse.ok) {
+    throw new Error(`Failed to get user: ${userResponse.statusText}`);
+  }
+
+  const userData = await userResponse.json();
+  const username = userData?.data?.username;
+
+  const params = new URLSearchParams();
+  if (username) {
+    params.append("username", username);
+  }
+
+  const queryString = params.toString();
+  const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
+
+  const response = await fetch(endpoint, {
+    headers: {
+      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-06-14",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch event types: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  // Handle different response formats
+  if (Array.isArray(data)) {
+    return data;
+  } else if (data?.data && Array.isArray(data.data)) {
+    return data.data;
+  } else if (data?.eventTypes && Array.isArray(data.eventTypes)) {
+    return data.eventTypes;
+  }
+
+  return [];
 }
