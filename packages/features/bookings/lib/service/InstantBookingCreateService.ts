@@ -200,6 +200,15 @@ export async function handler(
 
   const fullName = getFullName(bookerName);
 
+  // Determine whether to translate the booking title based on the event type setting
+  // Default is true (opt-out), so we only skip translation when explicitly set to false
+  const shouldTranslateTitle = eventType.autoTranslateTitleEnabled ?? true;
+
+  // Get the booking title - either translated to attendee's language or in English
+  const bookingTitle = shouldTranslateTitle
+    ? tAttendees("instant_meeting_with_title", { name: fullName })
+    : `Instant meeting with ${fullName}`;
+
   const invitee = [
     {
       email: bookerEmail,
@@ -242,7 +251,7 @@ export async function handler(
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
     responses: reqBody.responses === null ? Prisma.JsonNull : reqBody.responses,
-    title: tAttendees("instant_meeting_with_title", { name: invitee[0].name }),
+    title: bookingTitle,
     startTime: dayjs.utc(reqBody.start).toDate(),
     endTime: dayjs.utc(reqBody.end).toDate(),
     description: reqBody.notes,
