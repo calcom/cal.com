@@ -180,7 +180,7 @@ function BookingListInner({
         <div className="hidden grow md:block" />
 
         <DataTableSegment.Select shortLabel />
-        {bookingsV3Enabled && <ViewToggleButton />}
+        {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
