@@ -125,6 +125,23 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     },
   });
 
+  const validateWhatsAppTemplateVariables = useCallback((body: string): string | null => {
+    if (!body) return null;
+
+    // Extract all variables in format {{variable_name}}
+    const variableRegex = /\{\{([A-Z0-9a-z_]+)\}\}/g;
+    const matches = Array.from(body.matchAll(variableRegex));
+
+    for (const match of matches) {
+      const variableName = match[1];
+      if (!DYNAMIC_TEXT_VARIABLES.includes(variableName)) {
+        return variableName;
+      }
+    }
+
+    return null;
+  }, []);
+
   // Watch steps from form - THIS REPLACES THE ACTIONS STATE
   const steps = useWatch({
     control: form.control,
@@ -162,6 +179,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   );
 
   const [selectedPhoneNumberId, setSelectedPhoneNumberId] = useState<string | null>(null);
+
+  const [invalidVariables, setInvalidVariables] = useState<{ [stepId: string]: string | null }>({});
 
   const { data: whatsAppTemplates } = trpc.viewer.workflows.getWhatsAppTemplates.useQuery(
     {
@@ -735,21 +754,23 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         if (step.id === stepId) {
           const updatedStep = { ...step, [field]: value };
 
-          console.log("Got here: ", field);
           if (field === "metaTemplateName" && isWhatsappAction(step.action)) {
             const selectedTemplate = whatsAppTemplates?.find((t) => t.name === value);
 
-            console.log("Whatsapp templates: ", whatsAppTemplates);
-            console.log("Value: ", value);
-            console.log("selected template: ", selectedTemplate);
             if (selectedTemplate) {
               // Check if template needs variable mapping
 
               // Auto-fill reminderBody with template body (optional)
               const bodyComponent = selectedTemplate.components.find((c: any) => c.type === "BODY");
               if (bodyComponent?.text) {
-                console.log("Text to: ", bodyComponent.text);
                 updatedStep.reminderBody = bodyComponent.text;
+
+                // Validate the template body
+                const invalidVar = validateWhatsAppTemplateVariables(bodyComponent.text);
+                setInvalidVariables((prev) => ({
+                  ...prev,
+                  [stepId.toString()]: invalidVar,
+                }));
               }
 
               triggerTemplateUpdate(stepId);
@@ -764,10 +785,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             if (!isWhatsappAction(newAction)) {
               updatedStep.metaTemplateName = null;
               updatedStep.metaTemplatePhoneNumberId = null;
-              setVariableMappings((prev) => {
-                const { [stepId.toString()]: removed, ...rest } = prev;
-                return rest;
-              });
             }
 
             // Get fresh template content and completely replace reminderBody
@@ -819,15 +836,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           if (field === "template") {
             const newTemplate = value as WorkflowTemplates;
             const actionType = updatedStep.action;
-
-            console.log(
-              "Action type: ",
-              actionType,
-              " Template: ",
-              newTemplate,
-              " Body: ",
-              updatedStep.reminderBody
-            );
 
             const freshTemplateBody = getTemplateBodyForAction({
               action: actionType,
@@ -911,10 +919,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     let isEmpty = false;
     let isVerified = true;
     let hasMappingErrors = false;
+    let hasInvalidVariables = false; // Add this
 
     // Get the latest form values - this now has the correct HTML
     const formValues = form.getValues();
     const formSteps = formValues.steps || [];
+
+    formSteps.forEach((step) => {
+      const stepId = step.id.toString();
+      if (isWhatsappAction(step.action) && invalidVariables[stepId]) {
+        hasInvalidVariables = true;
+        triggerToast(`Invalid variable {{${invalidVariables[stepId]}}} in WhatsApp template`, "error");
+      }
+    });
 
     // Validate and prepare steps
     const validatedSteps = formSteps.map((step, index) => {
@@ -974,7 +991,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
     console.log("Validated steps: ", validatedSteps);
 
-    if (!isEmpty && isVerified && workflowId && !hasMappingErrors) {
+    if (!isEmpty && isVerified && workflowId && !hasMappingErrors && !hasInvalidVariables) {
       if (selectedOptions.length > 0) {
         activeOnIds = selectedOptions
           .filter((option) => option.value !== "all")
@@ -995,6 +1012,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       });
     }
   }, [
+    invalidVariables,
     selectedOptions,
     workflowName,
     trigger,
@@ -1592,31 +1610,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             isDisabled={readOnly}
                                             className="mt-1"
                                           />
-
-                                          {/* Show template info */}
-                                          {step.metaTemplateName &&
-                                            whatsAppTemplates.find(
-                                              (t) => t.name === step.metaTemplateName
-                                            ) && (
-                                              <div className="mt-2 text-sm text-gray-600">
-                                                <p>
-                                                  <strong>Category:</strong>{" "}
-                                                  {
-                                                    whatsAppTemplates.find(
-                                                      (t) => t.name === step.metaTemplateName
-                                                    )?.category
-                                                  }
-                                                </p>
-                                                <p>
-                                                  <strong>Status:</strong>{" "}
-                                                  {
-                                                    whatsAppTemplates.find(
-                                                      (t) => t.name === step.metaTemplateName
-                                                    )?.status
-                                                  }
-                                                </p>
-                                              </div>
-                                            )}
                                         </div>
                                       )}
 
@@ -1846,6 +1839,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             plainText={isSMSAction(step.action)}
                                           />
                                         </div>
+
+                                        {/* Show error message for invalid variables */}
+                                        {invalidVariables[stepId] && isWhatsappAction(step.action) && (
+                                          <Alert
+                                            severity="error"
+                                            className="mt-2"
+                                            message={`'${invalidVariables[stepId]}' is not in the allowed variables list.`}></Alert>
+                                        )}
 
                                         {/* Include Calendar Event for Email Actions */}
                                         {isEmailAction(step.action) && (
