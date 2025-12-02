@@ -1,4 +1,4 @@
-import { toTRPCError } from "../lib/toTRPCError";
+import { convertErrorWithCodeToTRPCError } from "../lib/toTRPCError";
 import { middleware } from "../trpc";
 
 /**
@@ -8,6 +8,6 @@ export const errorConversionMiddleware = middleware(async ({ next }) => {
   try {
     return await next();
   } catch (e) {
-    throw toTRPCError(e);
+    throw convertErrorWithCodeToTRPCError(e);
   }
 });

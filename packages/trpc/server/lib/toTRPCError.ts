@@ -1,4 +1,5 @@
-import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 import { TRPCError } from "@trpc/server";
 
@@ -53,19 +54,15 @@ function httpStatusToTrpcCode(status: number): TRPCErrorCode {
   }
 }
 
-/**
- * Converts an unknown error to a TRPCError.
- */
-export function toTRPCError(cause: unknown): TRPCError {
-  if (cause instanceof TRPCError) {
-    return cause;
+export function convertErrorWithCodeToTRPCError(cause: unknown) {
+  if (cause instanceof ErrorWithCode) {
+    const statusCode = getHttpStatusCode(cause);
+    return new TRPCError({
+      code: httpStatusToTrpcCode(statusCode),
+      message: cause.message ?? "",
+      cause: cause,
+    });
   }
 
-  const httpErr = getServerErrorFromUnknown(cause);
-
-  return new TRPCError({
-    code: httpStatusToTrpcCode(httpErr.statusCode),
-    message: httpErr.message,
-    cause: cause instanceof Error ? cause : undefined,
-  });
+  return cause;
 }
