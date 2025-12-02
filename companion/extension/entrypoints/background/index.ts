@@ -135,19 +135,20 @@ async function handleTokenExchange(tokenRequest: any, tokenEndpoint: string): Pr
 
 async function fetchEventTypes() {
   try {
-    // Get API key from environment variable (injected at build time)
-    // @ts-ignore - Vite injects this at build time
-    const API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY;
     const API_BASE_URL = "https://api.cal.com/v2";
 
-    if (!API_KEY) {
-      throw new Error("API key not found. Please set EXPO_PUBLIC_CAL_API_KEY in your .env file");
+    // Get OAuth tokens from storage
+    const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
+    const oauthTokens = result.cal_oauth_tokens ? JSON.parse(result.cal_oauth_tokens) : null;
+
+    if (!oauthTokens?.accessToken) {
+      throw new Error("No OAuth access token found. Please sign in with OAuth.");
     }
 
     // First, get current user to get username
     const userResponse = await fetch(`${API_BASE_URL}/me`, {
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${oauthTokens.accessToken}`,
         "Content-Type": "application/json",
         "cal-api-version": "2024-06-11",
       },
@@ -171,7 +172,7 @@ async function fetchEventTypes() {
 
     const response = await fetch(endpoint, {
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${oauthTokens.accessToken}`,
         "Content-Type": "application/json",
         "cal-api-version": "2024-06-14",
       },

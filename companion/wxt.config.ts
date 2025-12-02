@@ -44,9 +44,6 @@ export default defineConfig({
       global: "globalThis",
       __DEV__: JSON.stringify(false),
       // Expose environment variables to the extension
-      "import.meta.env.EXPO_PUBLIC_CAL_API_KEY": JSON.stringify(
-        process.env.EXPO_PUBLIC_CAL_API_KEY
-      ),
       "import.meta.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID": JSON.stringify(
         process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID
       ),

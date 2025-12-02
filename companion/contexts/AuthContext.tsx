@@ -15,7 +15,6 @@ interface AuthContextType {
   refreshToken: string | null;
   userInfo: any;
   isWebSession: boolean;
-  login: (accessToken: string, refreshToken: string) => Promise<void>;
   loginFromWebSession: (userInfo: any) => Promise<void>;
   loginWithOAuth: () => Promise<void>;
   logout: () => Promise<void>;
@@ -29,7 +28,7 @@ const REFRESH_TOKEN_KEY = "cal_refresh_token";
 const OAUTH_TOKENS_KEY = "cal_oauth_tokens";
 const AUTH_TYPE_KEY = "cal_auth_type";
 
-type AuthType = "oauth" | "api_key" | "web_session";
+type AuthType = "oauth" | "web_session";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -94,16 +93,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Common post-login setup: configure API service and fetch user profile
-  const setupAfterLogin = async (
-    token: string,
-    refreshToken?: string,
-    useOAuth: boolean = false
-  ) => {
-    if (useOAuth && refreshToken) {
-      CalComAPIService.setAccessToken(token, refreshToken);
-    } else {
-      CalComAPIService.setApiKey(token);
-    }
+  const setupAfterLogin = async (token: string, refreshToken?: string) => {
+    CalComAPIService.setAccessToken(token, refreshToken);
 
     try {
       await CalComAPIService.getUserProfile();
@@ -195,24 +186,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsWebSession(false);
 
     // Setup API service and refresh function
-    await setupAfterLogin(tokens.accessToken, tokens.refreshToken, true);
+    await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
     if (tokens.refreshToken) {
       setupRefreshTokenFunction(oauthService);
-    }
-  };
-
-  // Handle API key authentication
-  const handleApiKeyAuth = async () => {
-    const legacyToken =
-      Platform.OS === "web"
-        ? localStorage.getItem("cal_access_token")
-        : await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-
-    if (legacyToken) {
-      setAccessToken(legacyToken);
-      setIsAuthenticated(true);
-      setIsWebSession(false);
-      await setupAfterLogin(legacyToken);
     }
   };
 
@@ -229,8 +205,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (authType === "oauth" && storedTokens && oauthService) {
         await handleOAuthAuth(storedTokens);
-      } else if (authType === "api_key") {
-        await handleApiKeyAuth();
       } else if (authType === "web_session") {
         handleWebSessionAuth();
       }
@@ -238,28 +212,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error("Failed to check auth state:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const login = async (newAccessToken: string, newRefreshToken: string) => {
-    try {
-      // Store tokens
-      await storage.set(ACCESS_TOKEN_KEY, newAccessToken);
-      if (newRefreshToken) {
-        await storage.set(REFRESH_TOKEN_KEY, newRefreshToken);
-      }
-      await storage.set(AUTH_TYPE_KEY, "api_key");
-
-      setAccessToken(newAccessToken);
-      setRefreshToken(newRefreshToken);
-      setIsAuthenticated(true);
-      setIsWebSession(false);
-
-      // Setup API service
-      await setupAfterLogin(newAccessToken);
-    } catch (error) {
-      console.error("Failed to save auth tokens:", error);
-      throw error;
     }
   };
 
@@ -275,7 +227,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (tokens.accessToken) {
         setAccessToken(tokens.accessToken);
         setRefreshToken(tokens.refreshToken || null);
-        await setupAfterLogin(tokens.accessToken);
+        await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       }
     } catch (error) {
       console.error("Failed to login from web session:", error);
@@ -305,7 +257,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsWebSession(false);
 
       // Setup API service and refresh function
-      await setupAfterLogin(tokens.accessToken, tokens.refreshToken, true);
+      await setupAfterLogin(tokens.accessToken, tokens.refreshToken);
       if (tokens.refreshToken) {
         setupRefreshTokenFunction(oauthService);
       }
@@ -335,7 +287,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshToken,
     userInfo,
     isWebSession,
-    login,
     loginFromWebSession,
     loginWithOAuth,
     logout,

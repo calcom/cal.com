@@ -24,13 +24,10 @@ const API_BASE_URL = "https://api.cal.com/v2";
 interface AuthConfig {
   accessToken?: string;
   refreshToken?: string;
-  apiKey?: string;
 }
 
 // Global auth state
-const authConfig: AuthConfig = {
-  apiKey: process.env.EXPO_PUBLIC_CAL_API_KEY,
-};
+const authConfig: AuthConfig = {};
 
 // Token refresh callback - will be set by AuthContext
 let tokenRefreshCallback: ((accessToken: string, refreshToken?: string) => Promise<void>) | null =
@@ -98,7 +95,6 @@ export class CalComAPIService {
     if (refreshToken) {
       authConfig.refreshToken = refreshToken;
     }
-    authConfig.apiKey = undefined; // Clear API key when using OAuth
   }
 
   /**
@@ -111,20 +107,11 @@ export class CalComAPIService {
   }
 
   /**
-   * Set API key for authentication (fallback)
-   */
-  static setApiKey(apiKey: string): void {
-    authConfig.apiKey = apiKey;
-    authConfig.accessToken = undefined; // Clear OAuth token when using API key
-  }
-
-  /**
    * Clear all authentication
    */
   static clearAuth(): void {
     authConfig.accessToken = undefined;
     authConfig.refreshToken = undefined;
-    authConfig.apiKey = undefined;
     tokenRefreshCallback = null;
     refreshTokenFunction = null;
   }
@@ -144,12 +131,8 @@ export class CalComAPIService {
   private static getAuthHeader(): string {
     if (authConfig.accessToken) {
       return `Bearer ${authConfig.accessToken}`;
-    } else if (authConfig.apiKey) {
-      return `Bearer ${authConfig.apiKey}`;
     } else {
-      throw new Error(
-        "No authentication configured. Please set either OAuth access token or API key."
-      );
+      throw new Error("No authentication configured. Please sign in with OAuth.");
     }
   }
 
