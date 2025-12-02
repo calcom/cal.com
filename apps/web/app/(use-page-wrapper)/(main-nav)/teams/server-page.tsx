@@ -50,7 +50,8 @@ export const ServerTeamsListing = async ({
         teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
       }
     } catch (e) {
-      errorMsgFromInvite = (e as Error).message ?? "Error while fetching teams";
+      errorMsgFromInvite = "Error while fetching teams";
+      if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
     }
   }
 
