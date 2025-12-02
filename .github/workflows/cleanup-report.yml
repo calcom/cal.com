@@ -12,9 +12,7 @@ jobs:
     uses: calcom/calcom-ci-secrets/.github/workflows/mint-github-app-token.yml@main
     with:
       repositories: 'test-results-2'
-    secrets:
-      CI_CAL_APP_ID: ${{ secrets.CI_CAL_APP_ID }}
-      CI_CAL_APP_PRIVATE_KEY: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+    # Secrets come from calcom-ci-secrets environment, not needed here
 
   cleanup-report:
     needs: get-token
