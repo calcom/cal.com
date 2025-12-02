@@ -77,18 +77,10 @@ const getReminderPhoneNumber = async (
   }
 
   if (seatReferenceUid) {
-    const seatAttendeeData = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: seatReferenceUid,
-      },
-      select: {
-        attendee: {
-          select: {
-            phoneNumber: true,
-          },
-        },
-      },
-    });
+    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+      seatReferenceUid
+    );
     return seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
   }
 

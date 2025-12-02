@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
@@ -64,14 +65,10 @@ export async function handler(req: NextRequest) {
       // For seated events, get the correct attendee based on seatReferenceId
       let targetAttendee = reminder.booking?.attendees[0];
       if (reminder.seatReferenceId) {
-        const seatAttendeeData = await prisma.bookingSeat.findUnique({
-          where: {
-            referenceUid: reminder.seatReferenceId,
-          },
-          select: {
-            attendee: true,
-          },
-        });
+        const bookingSeatRepository = new BookingSeatRepository(prisma);
+        const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
+          reminder.seatReferenceId
+        );
         if (seatAttendeeData?.attendee) {
           targetAttendee = seatAttendeeData.attendee;
         }
@@ -157,12 +154,8 @@ export async function handler(req: NextRequest) {
           cancelLink,
           rescheduleLink,
           attendeeTimezone: targetAttendee?.timeZone,
-          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
-            targetAttendee?.timeZone
-          ),
-          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
-            targetAttendee?.timeZone
-          ),
+          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(targetAttendee?.timeZone),
+          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(targetAttendee?.timeZone),
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
