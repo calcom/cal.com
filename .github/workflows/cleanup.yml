@@ -19,7 +19,9 @@ jobs:
     uses: calcom/calcom-ci-secrets/.github/workflows/mint-github-app-token.yml@main
     with:
       repositories: 'test-results-2'
-    # Secrets come from calcom-ci-secrets environment, not needed here
+    secrets:
+      CI_CAL_APP_ID: ${{ secrets.CI_CAL_APP_ID }}
+      CI_CAL_APP_PRIVATE_KEY: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
 
   delete_reports:
     needs: get-token
