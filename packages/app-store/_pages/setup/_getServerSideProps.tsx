@@ -6,7 +6,7 @@ export const AppSetupPageMap = {
   alby: import("../../alby/pages/setup/_getServerSideProps"),
   make: import("../../make/pages/setup/_getServerSideProps"),
   zapier: import("../../zapier/pages/setup/_getServerSideProps"),
-  "whatsapp-connector": import("../../whatsapp-connector/pages/setup/_getServerSideProps"),
+  "whatsapp-business": import("../../whatsapp-business/pages/setup/_getServerSideProps"),
   stripe: import("../../stripepayment/pages/setup/_getServerSideProps"),
   hitpay: import("../../hitpay/pages/setup/_getServerSideProps"),
   btcpayserver: import("../../btcpayserver/pages/setup/_getServerSideProps"),
