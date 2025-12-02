@@ -27,7 +27,6 @@ export interface CrmEvent {
   type?: string;
   password?: string;
   url?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalInfo?: any;
 }
 
@@ -49,7 +48,6 @@ export interface CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) => Promise<Contact[]>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getAppOptions: () => any;
   handleAttendeeNoShow?: (
     bookingUid: string,

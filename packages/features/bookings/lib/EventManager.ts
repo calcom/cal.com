@@ -56,7 +56,7 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const _delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
 };
 
@@ -127,20 +127,20 @@ type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export type EventManagerInitParams = {
   user: EventManagerUser;
-  eventTypeAppMetadata?: Record<string, unknown>;
+  eventTypeAppMetadata?: Record<string, any>;
 };
 
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
-  appOptions?: Record<string, unknown>;
+  appOptions?: Record<string, any>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, unknown>) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: Record<string, any>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -853,7 +853,10 @@ export default class EventManager {
           const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
           const crm = new CrmManager(credential, currentAppOption);
           await crm.addContacts(reference.uid, event).catch((error) => {
-            log.warn(`Error adding contacts to CRM event for ${credential.type} for booking ${event?.uid}`, error);
+            log.warn(
+              `Error adding contacts to CRM event for ${credential.type} for booking ${event?.uid}`,
+              error
+            );
           });
         }
       }
@@ -1210,9 +1213,9 @@ export default class EventManager {
 
       return Promise.all(result);
     } catch (error) {
-      let _message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
+      let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
       if (error instanceof Error) {
-        _message = _message.replace("{thing}", error.message);
+        message = message.replace("{thing}", error.message);
       }
 
       return Promise.resolve(

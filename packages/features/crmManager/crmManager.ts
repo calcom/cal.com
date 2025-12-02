@@ -8,9 +8,7 @@ const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export default class CrmManager {
   crmService: CRM | null | undefined = null;
   credential: CredentialPayload;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   appOptions: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(credential: CredentialPayload, appOptions?: any) {
     this.credential = credential;
     this.appOptions = appOptions;
