@@ -1,25 +1,19 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-export const BLOCKED_ROUTE_SEGMENTS = ["_get", "_post", "_patch", "_delete", "_auth-middleware"] as const;
-
-const pathContainsBlockedSegment = (pathname: string) =>
-  pathname
-    .split("/")
-    .filter(Boolean)
-    .some((segment) => BLOCKED_ROUTE_SEGMENTS.includes(segment as (typeof BLOCKED_ROUTE_SEGMENTS)[number]));
-
-export function middleware(request: NextRequest) {
-  if (pathContainsBlockedSegment(request.nextUrl.pathname)) {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-  }
-
-  return NextResponse.next();
+export function middleware(_request: NextRequest) {
+  // Matcher guarantees the last segment is one of the blocked segments, so we can
+  // immediately return a 403 without further path checks.
+  return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 }
 
 export const config = {
-  matcher: BLOCKED_ROUTE_SEGMENTS.flatMap((segment) => [
-    `/:path*/${segment}/:rest*`,
-    `/:path*/${segment}`,
-  ]),
+  // The blocked segment is always the last part of the path, so we only need this matcher.
+  matcher: [
+    "/:path*/_get",
+    "/:path*/_post",
+    "/:path*/_patch",
+    "/:path*/_delete",
+    "/:path*/_auth-middleware",
+  ],
 };
