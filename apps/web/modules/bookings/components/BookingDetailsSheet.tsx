@@ -194,7 +194,7 @@ function BookingDetailsSheetInner({
                 recurringInfo={recurringInfo}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Button
                 variant="icon"
                 color="minimal"
@@ -351,7 +351,11 @@ function WhenSection({
           />
         </div>
       )}
-      <div className={classNames("text-default flex flex-col text-sm", rescheduled && "line-through")}>
+      <div
+        className={classNames(
+          "text-emphasis flex flex-col text-sm font-medium",
+          rescheduled && "line-through"
+        )}>
         <DisplayTimestamp startTime={startTime} endTime={endTime} timeZone={timeZone} />
       </div>
     </Section>
@@ -398,7 +402,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm font-medium leading-[1.2]">
+                <p className="text-emphasis truncate text-sm leading-[1.2]">
                   {booking.user.name || booking.user.email}
                 </p>
                 <Badge variant="purple" size="sm" className="capitalize">
@@ -424,7 +428,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
                 alt={name}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-emphasis truncate text-sm font-medium">{name}</p>
+                <p className="text-emphasis truncate text-sm">{name}</p>
                 <p className="text-default truncate text-sm">{attendee.email}</p>
               </div>
             </div>
@@ -473,7 +477,7 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-default shrink-0">{provider?.label}:</span>
+          <span className="text-emphasis shrink-0 font-medium">{provider?.label}:</span>
           <a
             href={locationToDisplay}
             target="_blank"
@@ -500,7 +504,7 @@ function RecurringInfoSection({
 
   return (
     <Section title={t("recurring_event")}>
-      <p className="text-default text-sm">
+      <p className="text-emphasis text-sm font-medium">
         {getEveryFreqFor({
           t,
           recurringEvent: recurringInfo.recurringEvent,
@@ -526,7 +530,7 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("assignment_reason")}>
-      <div className="text-default text-sm">{reason.reasonString}</div>
+      <div className="text-emphasis text-sm font-medium">{reason.reasonString}</div>
     </Section>
   );
 }
@@ -563,7 +567,7 @@ function PaymentSection({
 
   return (
     <Section title={t("payment")}>
-      <p className="text-default text-sm font-medium">{formattedPrice}</p>
+      <p className="text-emphasis text-sm font-medium">{formattedPrice}</p>
       {paymentStatusMessage && <p className="text-subtle text-xs">{paymentStatusMessage}</p>}
     </Section>
   );
@@ -585,7 +589,7 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("slots")}>
-      <p className="text-default text-sm">{t("slots_taken", { takenSeats, totalSeats })}</p>
+      <p className="text-emphasis text-sm font-medium">{t("slots_taken", { takenSeats, totalSeats })}</p>
     </Section>
   );
 }
@@ -639,7 +643,7 @@ function CustomQuestionsSection({
         const title: string = fieldLabels.get(fieldNameStr) ?? fieldNameStr;
         return (
           <Section key={idx} title={title}>
-            <p className="text-default text-sm">{String(answer)}</p>
+            <p className="text-emphasis text-sm font-medium">{String(answer)}</p>
           </Section>
         );
       })}
@@ -680,17 +684,17 @@ function OldRescheduledBookingInfo({
       )}
       {rescheduledBy && (
         <Section title={t("rescheduled_by")}>
-          <p className="text-default text-sm">{rescheduledBy}</p>
+          <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
         </Section>
       )}
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-default text-sm">{cancelledBy}</p>
+          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
         </Section>
       )}
     </>
@@ -713,7 +717,7 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
     <>
       {booking.fromReschedule && (
         <Section title={t("rescheduled_by")}>
-          {rescheduledBy && <p className="text-default text-sm">{rescheduledBy}</p>}
+          {rescheduledBy && <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>}
           <Link href={`/booking/${booking.fromReschedule}`}>
             <div className="text-default flex items-center gap-1 text-sm underline">
               {t("original_booking")}
@@ -724,12 +728,12 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
       )}
       {!booking.fromReschedule && rescheduledBy && (
         <Section title={t("rescheduled_by")}>
-          <p className="text-default text-sm">{rescheduledBy}</p>
+          <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reschedule_reason")}>
-          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
         </Section>
       )}
     </>
@@ -759,12 +763,12 @@ function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
     <>
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-default text-sm">{cancelledBy}</p>
+          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-default whitespace-pre-wrap text-sm">{cancellationReason}</p>
+          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
         </Section>
       )}
     </>
@@ -780,7 +784,7 @@ function AdditionalNotesSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("additional_notes")}>
-      <p className="text-default whitespace-pre-wrap text-sm">{booking.description}</p>
+      <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{booking.description}</p>
     </Section>
   );
 }
@@ -838,7 +842,7 @@ function Section({
 }) {
   return (
     <div className={classNames("flex flex-col gap-1", className)}>
-      <h3 className="text-subtle text-xs font-semibold">{title}</h3>
+      <h3 className="text-subtle text-xs font-medium">{title}</h3>
       {children}
     </div>
   );
