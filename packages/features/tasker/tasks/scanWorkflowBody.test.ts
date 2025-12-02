@@ -3,7 +3,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { lockUser, LockReason } from "@calcom/features/ee/api-keys/lib/autoLock";
-import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/workflowUtils";
 
 import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
 

@@ -857,4 +857,156 @@ export class WorkflowRepository {
       },
     });
   }
+
+  static bookingSelectForReminders = {
+    userPrimaryEmail: true,
+    startTime: true,
+    endTime: true,
+    title: true,
+    uid: true,
+    metadata: true,
+    smsReminderNumber: true,
+    responses: true,
+    attendees: {
+      select: {
+        name: true,
+        email: true,
+        timeZone: true,
+        locale: true,
+      },
+    },
+    eventType: {
+      select: {
+        slug: true,
+        id: true,
+        schedulingType: true,
+        hideOrganizerEmail: true,
+        customReplyToEmail: true,
+        hosts: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                destinationCalendar: {
+                  select: {
+                    primaryEmail: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    user: {
+      select: {
+        name: true,
+        timeZone: true,
+        timeFormat: true,
+        locale: true,
+        email: true,
+      },
+    },
+  };
+
+  static async getBookingsForWorkflowReminders({
+    activeOn,
+    isOrg,
+    alreadyScheduledActiveOnIds = [],
+  }: {
+    activeOn: number[];
+    isOrg: boolean;
+    alreadyScheduledActiveOnIds?: number[];
+  }) {
+    if (activeOn.length === 0) return [];
+
+    if (isOrg) {
+      return await prisma.booking.findMany({
+        where: {
+          OR: [
+            {
+              // bookings from team event types + children managed event types
+              eventType: {
+                OR: [
+                  {
+                    teamId: {
+                      in: activeOn,
+                    },
+                  },
+                  {
+                    teamId: null,
+                    parent: {
+                      teamId: {
+                        in: activeOn,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              // user bookings
+              user: {
+                teams: {
+                  some: {
+                    teamId: {
+                      in: activeOn,
+                    },
+                    accepted: true,
+                  },
+                },
+              },
+              eventType: {
+                teamId: null,
+                parentId: null, // children managed event types are handled above with team event types
+              },
+              // if user is already part of an already scheduled activeOn connecting reminders are already scheduled
+              NOT: {
+                user: {
+                  teams: {
+                    some: {
+                      teamId: {
+                        in: alreadyScheduledActiveOnIds,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          status: "ACCEPTED",
+          startTime: {
+            gte: new Date(),
+          },
+        },
+        select: this.bookingSelectForReminders,
+        orderBy: {
+          startTime: "asc",
+        },
+      });
+    } else {
+      return await prisma.booking.findMany({
+        where: {
+          OR: [
+            { eventTypeId: { in: activeOn } },
+            {
+              eventType: {
+                parentId: {
+                  in: activeOn, // child event type can not disable workflows, so this should work
+                },
+              },
+            },
+          ],
+          status: "ACCEPTED",
+          startTime: {
+            gte: new Date(),
+          },
+        },
+        select: this.bookingSelectForReminders,
+        orderBy: {
+          startTime: "asc",
+        },
+      });
+    }
+  }
 }
