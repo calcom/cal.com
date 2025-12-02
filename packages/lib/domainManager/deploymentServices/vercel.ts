@@ -12,8 +12,8 @@ const vercelDomainApiResponseSchema = z.object({
     .object({
       code: z.string().nullish(),
       domain: z.any().nullish(),
-      message: z.string().optional(),
-      invalidToken: z.boolean().optional(),
+      message: z.string().nullish(),
+      invalidToken: z.boolean().nullish(),
     })
     .optional(),
 });
@@ -79,9 +79,9 @@ export const deleteDomain = async (domain: string) => {
 function handleDomainCreationError(error: {
   code?: string | null;
   domain?: string | null;
-  message?: string;
-  invalidToken?: boolean;
-}) {
+  message?: string | null;
+  invalidToken?: boolean | null;
+}){
   // Vercel returns "forbidden" for various permission issues, not just domain ownership
   if (error.code === "forbidden") {
     const errorMessage =
@@ -128,9 +128,9 @@ function handleDomainCreationError(error: {
 function handleDomainDeletionError(error: {
   code?: string | null;
   domain?: string | null;
-  message?: string;
-  invalidToken?: boolean;
-}) {
+  message?: string | null;
+  invalidToken?: boolean | null;
+}){
   if (error.code === "not_found") {
     // Domain is already deleted
     return true;
