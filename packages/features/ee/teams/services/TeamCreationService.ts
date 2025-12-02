@@ -113,7 +113,17 @@ export class TeamCreationService {
     log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
 
     const finalSlug = newSlug ?? team.slug;
-    const orgMetadata = teamMetadataSchema.parse(org.metadata);
+    const orgMetadataParseResult = teamMetadataSchema.safeParse(org.metadata);
+
+    if (!orgMetadataParseResult.success) {
+      log.error(
+        "Invalid organization metadata when moving team",
+        safeStringify({ teamId, orgId: org.id, parseError: orgMetadataParseResult.error })
+      );
+      throw new ErrorWithCode(ErrorCode.InvalidOrganizationMetadata, "invalid_organization_metadata");
+    }
+
+    const orgMetadata = orgMetadataParseResult.data;
 
     try {
       await this.teamRepository.updateTeamSlugAndParent({
@@ -169,7 +179,8 @@ export class TeamCreationService {
       throw new ErrorWithCode(ErrorCode.InvalidOrganizationMetadata, "invalid_organization_metadata");
     }
 
-    const metadata = parseTeams.success ? parseTeams.data : undefined;
+    // After the check above, parseTeams.success is guaranteed to be true
+    const metadata = parseTeams.data;
 
     if (!metadata?.requestedSlug && !organization?.slug) {
       throw new ErrorWithCode(ErrorCode.NoOrganizationSlug, "no_organization_slug");
@@ -233,10 +244,10 @@ export class TeamCreationService {
     orgId: number;
     teamNames: string[];
   }): Promise<string[]> {
-    const [teamSlugs, userSlugs] = [
-      await this.teamRepository.findTeamsByParentId(orgId),
-      await this.userRepository.findManyByOrganization({ organizationId: orgId }),
-    ];
+    const [teamSlugs, userSlugs] = await Promise.all([
+      this.teamRepository.findTeamsByParentId(orgId),
+      this.userRepository.findManyByOrganization({ organizationId: orgId }),
+    ]);
 
     const existingSlugs = teamSlugs
       .flatMap((ts) => ts.slug ?? [])
@@ -355,22 +366,29 @@ export class TeamCreationService {
       log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
       await stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      log.error("Error while cancelling stripe subscription", error);
+      // We intentionally don't re-throw here because canceling the subscription is a cleanup operation.
+      // If it fails, we don't want to fail the entire team migration. The team has already been moved
+      // and credits transferred, so subscription cancellation failure shouldn't block the migration.
+      log.error("Error while cancelling stripe subscription", safeStringify(error));
     }
   }
 
   private getSubscriptionId(metadata: unknown): string | undefined {
     const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
-    if (parsedMetadata.success) {
-      const subscriptionId = parsedMetadata.data?.subscriptionId;
-      if (!subscriptionId || subscriptionId === null) {
-        log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
-        return undefined;
-      }
-      return subscriptionId;
-    } else {
-      log.warn(`There has been an error parsing metadata`, parsedMetadata.error);
+    if (!parsedMetadata.success) {
+      log.warn(
+        "Error parsing team metadata for subscription ID",
+        safeStringify({ parseError: parsedMetadata.error })
+      );
       return undefined;
     }
+
+    const subscriptionId = parsedMetadata.data?.subscriptionId;
+    if (!subscriptionId || subscriptionId === null) {
+      log.warn("No subscriptionId found in team metadata", safeStringify({ metadata }));
+      return undefined;
+    }
+
+    return subscriptionId;
   }
 }
