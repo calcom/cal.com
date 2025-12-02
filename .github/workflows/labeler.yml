@@ -20,6 +20,7 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
+    if: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: equitybee/team-label-action@main
