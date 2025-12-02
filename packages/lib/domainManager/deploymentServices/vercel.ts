@@ -75,9 +75,10 @@ export const deleteDomain = async (domain: string) => {
 };
 
 function handleDomainCreationError(error: { code?: string | null; domain?: string | null }) {
-  // Domain is already owned by another team but you can request delegation to access it
+  // Vercel returns "forbidden" for various permission issues, not just domain ownership
   if (error.code === "forbidden") {
-    const errorMessage = "Domain is already owned by another team";
+    const errorMessage =
+      "Vercel denied permission to manage this domain. Please verify your Vercel project, team, and domain permissions.";
     log.error(
       safeStringify({
         errorMessage,
@@ -86,7 +87,7 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
     );
     throw new HttpError({
       message: errorMessage,
-      statusCode: 400,
+      statusCode: 403,
     });
   }
 
@@ -123,9 +124,10 @@ function handleDomainDeletionError(error: { code?: string | null; domain?: strin
     return true;
   }
 
-  // Domain is already owned by another team but you can request delegation to access it
+  // Vercel returns "forbidden" for various permission issues, not just domain ownership
   if (error.code === "forbidden") {
-    const errorMessage = "Domain is owned by another team";
+    const errorMessage =
+      "Vercel denied permission to manage this domain. Please verify your Vercel project, team, and domain permissions.";
     log.error(
       safeStringify({
         errorMessage,
@@ -134,7 +136,7 @@ function handleDomainDeletionError(error: { code?: string | null; domain?: strin
     );
     throw new HttpError({
       message: errorMessage,
-      statusCode: 400,
+      statusCode: 403,
     });
   }
 
