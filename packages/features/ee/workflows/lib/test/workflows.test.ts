@@ -28,11 +28,8 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
 } from "@calcom/prisma/enums";
-import {
-  deleteRemindersOfActiveOnIds,
-  scheduleBookingReminders,
-  bookingSelect,
-} from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/workflowUtils";
+import { deleteRemindersOfActiveOnIds, bookingSelect } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";

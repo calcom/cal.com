@@ -15,7 +15,7 @@ vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
   };
 });
 
-vi.mock("@calcom/trpc/server/routers/viewer/workflows/util", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/workflowUtils", () => ({
   scheduleWorkflowNotifications: vi.fn(),
 }));
 
