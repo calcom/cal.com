@@ -369,28 +369,41 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
-function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
-  const parseLocalDate = (v: string): Date | null => {
+function DateWidget({ value, setValue, timezone, ...remainingProps }: TextLikeComponentPropsRAQB & { timezone?: string | null }) {
+
+  const parseDate = (v: string): Date | null => {
     const trimmed = v.trim();
     const parts = trimmed.split("-");
     if (parts.length !== 3) return null;
     const [y, m, d] = parts.map((p) => Number.parseInt(p, 10));
     if (!y || !m || !d) return null;
-    return new Date(y, m - 1, d);
+
+    if (timezone) {
+      return dayjs.tz(`${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`, timezone).toDate();
+    } else {
+      return new Date(y, m - 1, d);
+    }
   };
 
   const dateValue =
-    value && value.trim() ? parseLocalDate(value) ?? ((null as unknown) as Date) : ((null as unknown) as Date);
+    value && value.trim() ? parseDate(value) ?? ((null as unknown) as Date) : ((null as unknown) as Date);
 
   const handleDateChange = (date: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    let formattedDate: string;
+
+    if (timezone) {
+      formattedDate = dayjs(date).tz(timezone).format("YYYY-MM-DD");
+    } else {
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
     setValue(formattedDate);
   };
 
   return (
     <div className="mb-2 w-full">
-      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} timezone={timezone} {...remainingProps} />
     </div>
   );
 }
