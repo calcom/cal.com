@@ -1,3 +1,4 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 
 interface HostDisplayProps {
@@ -19,12 +20,14 @@ export function HostDisplay({
   hideOrganizerEmail,
   testId,
 }: HostDisplayProps) {
+  const { t } = useLocale();
+
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">
         {!hideOrganizerName && name && <span data-testid={testId}>{name}</span>}
         <span className="text-default">{role}</span>
-        {showBadge && <Badge variant="blue">Host</Badge>}
+        {showBadge && <Badge variant="blue">{t("host")}</Badge>}
       </div>
       {!hideOrganizerEmail && email && (
         <p className="text-default" data-testid={testId ? `${testId}-email` : undefined}>

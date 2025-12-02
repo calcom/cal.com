@@ -3,9 +3,9 @@ import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } f
 import { createEvent } from "ics";
 import { RRule } from "rrule";
 
-import { getIcsAttendee } from "@calcom/lib/bookings/hideOrganizerUtils";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getIcsAttendee } from "@calcom/lib/bookings/hideOrganizerUtils";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -95,14 +95,19 @@ const generateIcsString = ({
         email: attendee.email,
         ...icsConfig,
       })),
-      ...(event.team?.members?.map((member: Person) =>
-        getIcsAttendee(
+      ...(event.team?.members?.map((member: Person) => {
+        // Calculate exemption per member, not reusing organizer's exemption
+        const isMemberExempt =
+          ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+            .filter((domain) => domain.trim() !== "")
+            .some((domain) => member.email.toLowerCase().endsWith(domain.toLowerCase())) ?? false;
+        return getIcsAttendee(
           member,
           { hideOrganizerName: event.hideOrganizerName, hideOrganizerEmail: event.hideOrganizerEmail },
-          isOrganizerExempt,
+          isMemberExempt,
           icsConfig
-        )
-      ) ?? []),
+        );
+      }) ?? []),
     ],
     location: location ?? undefined,
     method: "REQUEST",
