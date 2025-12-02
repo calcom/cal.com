@@ -11,12 +11,24 @@ export function LogoutButton({ className = "" }: LogoutButtonProps) {
   const { logout } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-      Alert.alert("Error", "Failed to sign out. Please try again.");
-    }
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error("Logout error:", error);
+            Alert.alert("Error", "Failed to sign out. Please try again.");
+          }
+        },
+      },
+    ]);
   };
 
   return (
