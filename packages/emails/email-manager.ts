@@ -135,21 +135,36 @@ const _sendScheduledEmailsAndSMS = async (
 
   if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
-      ...formattedCalEvent.attendees.map((attendee) => {
-        return sendEmail(
-          () =>
-            new AttendeeScheduledEmail(
-              {
-                ...formattedCalEvent,
-                ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
-                ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
-                }),
-              },
-              attendee
-            )
-        );
-      })
+      ...(
+        !formattedCalEvent.seatsShowAttendees
+          ? [
+            formattedCalEvent.attendees.find((e) =>
+              e.email
+                ? e.email === formattedCalEvent.responses?.email?.value
+                : e.phoneNumber === formattedCalEvent.responses?.attendeePhoneNumber?.value
+            ),
+          ]
+          : [...formattedCalEvent.attendees]
+      )
+        .filter((a): a is Person => Boolean(a))
+        .map((attendee) => {
+          return sendEmail(
+            () =>
+              new AttendeeScheduledEmail(
+                {
+                  ...formattedCalEvent,
+                  ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
+                  ...(eventNameObject && {
+                    title: getEventName({
+                      ...eventNameObject,
+                      t: attendee.language.translate,
+                    }),
+                  }),
+                },
+                attendee
+              )
+          );
+        })
     );
   }
 

@@ -154,7 +154,21 @@ const OnboardingPage = (props: PageProps) => {
         email_address: data.email,
       };
 
-      console.log("Pushed gtm onboarding event: ", gtmEvent);
+      if (
+        typeof window !== "undefined" &&
+        window.cioanalytics &&
+        typeof window.cioanalytics.identify === "function"
+      ) {
+        try {
+          console.log("Identifying user with CIO Analytics:");
+          window.cioanalytics.identify({
+            id: data.id,
+            onboarding_completed: true,
+          });
+        } catch (error) {
+          console.error("Error identifying user with CIO Analytics:", error);
+        }
+      }
 
       if (!data.completedOnboarding) {
         window.dataLayer.push(gtmEvent);
