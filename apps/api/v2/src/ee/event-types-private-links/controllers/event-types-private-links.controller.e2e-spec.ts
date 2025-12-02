@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -9,17 +10,15 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreatePrivateLinkInput } from "@calcom/platform-types";
-
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { withApiAuth } from "test/utils/withApiAuth";
-import { randomString } from "test/utils/randomString";
 
 describe("Event Types Private Links Endpoints", () => {
   let app: INestApplication;
@@ -56,16 +55,16 @@ describe("Event Types Private Links Endpoints", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
-    organization = await teamRepositoryFixture.create({
+    organization = (await teamRepositoryFixture.create({
       name: `private-links-organization-${randomString()}`,
       slug: `private-links-org-slug-${randomString()}`,
-    });
+    })) as { id: number; name: string; slug: string };
     await createOAuthClient(organization.id);
-    user = await userRepositoryFixture.create({
+    user = (await userRepositoryFixture.create({
       email: userEmail,
       name: `private-links-user-${randomString()}`,
       username: `private-links-user-${randomString()}`,
-    });
+    })) as { id: number; email: string; name: string; username: string };
 
     // create an event type owned by user
     eventType = await eventTypesRepositoryFixture.create(
@@ -180,8 +179,7 @@ describe("Event Types Private Links Endpoints", () => {
   afterAll(async () => {
     try {
       if (eventType?.id) {
-        const repo = new EventTypesRepositoryFixture((app as NestExpressApplication).select(AppModule));
-        await repo.delete(eventType.id);
+        await eventTypesRepositoryFixture.delete(eventType.id);
       }
     } catch (error) {
       console.error("Error cleaning up test data:", error);
@@ -189,5 +187,3 @@ describe("Event Types Private Links Endpoints", () => {
     await app.close();
   });
 });
-
-
