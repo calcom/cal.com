@@ -9,10 +9,11 @@ export default defineConfig({
     name: "Cal.com Companion",
     version: "1.7.0",
     description: "Your calendar companion for quick booking and scheduling",
-    permissions: ["activeTab", "storage"],
+    permissions: ["activeTab", "storage", "identity"],
     host_permissions: [
       "http://localhost:8081/*",
       "https://api.cal.com/*",
+      "https://app.cal.com/*",
       "https://mail.google.com/*",
     ],
     content_security_policy: {
@@ -42,9 +43,12 @@ export default defineConfig({
     define: {
       global: "globalThis",
       __DEV__: JSON.stringify(false),
-      // Expose EXPO_PUBLIC_CAL_API_KEY to the extension
-      "import.meta.env.EXPO_PUBLIC_CAL_API_KEY": JSON.stringify(
-        process.env.EXPO_PUBLIC_CAL_API_KEY
+      // Expose environment variables to the extension
+      "import.meta.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID": JSON.stringify(
+        process.env.EXPO_PUBLIC_CALCOM_OAUTH_CLIENT_ID
+      ),
+      "import.meta.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI": JSON.stringify(
+        process.env.EXPO_PUBLIC_CALCOM_OAUTH_REDIRECT_URI
       ),
     },
     optimizeDeps: {

@@ -1,3 +1,5 @@
+/// <reference types="chrome" />
+
 export default defineContentScript({
   matches: ["<all_urls>"],
   main() {
@@ -57,7 +59,7 @@ export default defineContentScript({
 
     iframeContainer.appendChild(iframe);
 
-    // Listen for messages from iframe to control width
+    // Listen for messages from iframe to control width and handle OAuth
     window.addEventListener("message", (event) => {
       // Security: Only accept messages from our iframe's origin
       // This prevents malicious scripts on the host page from manipulating the companion
@@ -78,8 +80,121 @@ export default defineContentScript({
         iframe.style.width = "400px";
         iframeContainer.style.pointerEvents = "none";
         iframeContainer.style.justifyContent = "flex-end";
+      } else if (event.data.type === "cal-extension-oauth-request") {
+        // Handle OAuth request from iframe
+        handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
+      } else if (event.data.type === "cal-extension-token-exchange-request") {
+        // Handle token exchange request from iframe
+        handleTokenExchangeRequest(
+          event.data.tokenRequest,
+          event.data.tokenEndpoint,
+          event.data.state, // Pass state for CSRF validation
+          iframe.contentWindow
+        );
       }
     });
+
+    // Handle OAuth requests by forwarding to background script
+    function handleOAuthRequest(authUrl: string, iframeWindow: Window | null) {
+      // Send request to background script
+      chrome.runtime.sendMessage(
+        { action: "start-extension-oauth", authUrl: authUrl },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(
+              "Failed to communicate with background script:",
+              chrome.runtime.lastError.message
+            );
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-oauth-result",
+                success: false,
+                error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              },
+              "*"
+            );
+            return;
+          }
+
+          // Forward the response back to iframe
+          if (response.success) {
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-oauth-result",
+                success: true,
+                responseUrl: response.responseUrl,
+              },
+              "*"
+            );
+          } else {
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-oauth-result",
+                success: false,
+                error: response.error || "OAuth flow failed",
+              },
+              "*"
+            );
+          }
+        }
+      );
+    }
+
+    // Handle token exchange requests by forwarding to background script
+    function handleTokenExchangeRequest(
+      tokenRequest: any,
+      tokenEndpoint: string,
+      state: string | undefined,
+      iframeWindow: Window | null
+    ) {
+      // Send request to background script
+      chrome.runtime.sendMessage(
+        {
+          action: "exchange-oauth-tokens",
+          tokenRequest: tokenRequest,
+          tokenEndpoint: tokenEndpoint,
+          state: state, // Include state for CSRF validation
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(
+              "Failed to communicate with background script:",
+              chrome.runtime.lastError.message
+            );
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-token-exchange-result",
+                success: false,
+                error: `Extension communication failed: ${chrome.runtime.lastError.message}`,
+              },
+              "*"
+            );
+            return;
+          }
+
+          // Forward the response back to iframe
+          if (response.success) {
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-token-exchange-result",
+                success: true,
+                tokens: response.tokens,
+              },
+              "*"
+            );
+          } else {
+            iframeWindow?.postMessage(
+              {
+                type: "cal-extension-token-exchange-result",
+                success: false,
+                error: response.error || "Token exchange failed",
+              },
+              "*"
+            );
+          }
+        }
+      );
+    }
 
     sidebarContainer.appendChild(iframeContainer);
 

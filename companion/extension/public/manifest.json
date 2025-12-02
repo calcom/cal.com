@@ -3,7 +3,7 @@
   "name": "Cal.com Companion",
   "version": "1.7.0",
   "description": "Your calendar companion for quick booking and scheduling",
-  "permissions": ["activeTab", "http://localhost:8081/*"],
+  "permissions": ["activeTab", "http://localhost:8081/*", "identity"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' http://localhost:8081;"
   },

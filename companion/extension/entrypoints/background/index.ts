@@ -6,16 +6,14 @@ export default defineBackground(() => {
     if (tab.id) {
       chrome.tabs.sendMessage(tab.id, { action: "icon-clicked" }, (response) => {
         if (chrome.runtime.lastError) {
-          // Content script not loaded or not responding - this is expected on some pages
+          // Expected on pages where content script isn't loaded
         }
       });
     }
   });
 
-  // Handle messages from content script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "fetch-event-types") {
-      // Fetch event types from Cal.com API
       fetchEventTypes()
         .then((eventTypes) => {
           sendResponse({ data: eventTypes });
@@ -24,7 +22,42 @@ export default defineBackground(() => {
           sendResponse({ error: error.message });
         });
 
-      // Return true to indicate we'll respond asynchronously
+      return true;
+    }
+
+    if (message.action === "start-extension-oauth") {
+      const authUrl = message.authUrl;
+      const urlObj = new URL(authUrl);
+      const state = urlObj.searchParams.get("state");
+
+      if (state) {
+        chrome.storage.local.set({ oauth_state: state }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn("Failed to store OAuth state:", chrome.runtime.lastError.message);
+          }
+        });
+      }
+
+      handleExtensionOAuth(authUrl)
+        .then((responseUrl) => {
+          sendResponse({ success: true, responseUrl });
+        })
+        .catch((error) => {
+          sendResponse({ success: false, error: error.message });
+        });
+
+      return true;
+    }
+
+    if (message.action === "exchange-oauth-tokens") {
+      handleTokenExchange(message.tokenRequest, message.tokenEndpoint, message.state)
+        .then((tokens) => {
+          sendResponse({ success: true, tokens });
+        })
+        .catch((error) => {
+          sendResponse({ success: false, error: error.message });
+        });
+
       return true;
     }
 
@@ -32,68 +65,159 @@ export default defineBackground(() => {
   });
 });
 
-async function fetchEventTypes() {
+async function handleExtensionOAuth(authUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!chrome.identity) {
+      reject(new Error("Chrome identity API not available"));
+      return;
+    }
+
+    chrome.identity.launchWebAuthFlow(
+      {
+        url: authUrl,
+        interactive: true,
+      },
+      (responseUrl) => {
+        if (chrome.runtime.lastError) {
+          console.error("OAuth flow failed:", chrome.runtime.lastError.message);
+          reject(new Error(`OAuth flow failed: ${chrome.runtime.lastError.message}`));
+        } else if (responseUrl) {
+          resolve(responseUrl);
+        } else {
+          console.error("OAuth flow returned no response URL");
+          reject(new Error("OAuth flow cancelled or failed"));
+        }
+      }
+    );
+  });
+}
+
+async function handleTokenExchange(
+  tokenRequest: any,
+  tokenEndpoint: string,
+  state?: string
+): Promise<any> {
+  // CSRF protection: validate state parameter (defense-in-depth)
+  // State is already validated in iframe context; this validates in background script
+  if (state) {
+    try {
+      const result = await chrome.storage.local.get(["oauth_state"]);
+      const storedState = result.oauth_state;
+
+      if (storedState && storedState !== state) {
+        await chrome.storage.local.remove("oauth_state");
+        console.error("State parameter mismatch - possible CSRF attack");
+        throw new Error("Invalid state parameter - possible CSRF attack");
+      }
+
+      if (storedState && storedState === state) {
+        await chrome.storage.local.remove("oauth_state");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Invalid state parameter")) {
+        throw error;
+      }
+      // For storage errors, log but continue (non-blocking)
+      console.warn("State validation warning (non-blocking):", error);
+    }
+  }
+
+  const body = new URLSearchParams();
+  Object.keys(tokenRequest).forEach((key) => {
+    body.append(key, tokenRequest[key]);
+  });
+
   try {
-    // Get API key from environment variable (injected at build time)
-    // @ts-ignore - Vite injects this at build time
-    const API_KEY = import.meta.env.EXPO_PUBLIC_CAL_API_KEY;
-    const API_BASE_URL = "https://api.cal.com/v2";
-
-    if (!API_KEY) {
-      throw new Error("API key not found. Please set EXPO_PUBLIC_CAL_API_KEY in your .env file");
-    }
-
-    // First, get current user to get username
-    const userResponse = await fetch(`${API_BASE_URL}/me`, {
+    const response = await fetch(tokenEndpoint, {
+      method: "POST",
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        "cal-api-version": "2024-06-11",
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
       },
-    });
-
-    if (!userResponse.ok) {
-      throw new Error(`Failed to get user: ${userResponse.statusText}`);
-    }
-
-    const userData = await userResponse.json();
-    const username = userData?.data?.username;
-
-    // Build query string with username
-    const params = new URLSearchParams();
-    if (username) {
-      params.append("username", username);
-    }
-
-    const queryString = params.toString();
-    const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
-
-    const response = await fetch(endpoint, {
-      headers: {
-        Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        "cal-api-version": "2024-06-14",
-      },
+      body: body.toString(),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch event types: ${response.statusText}`);
+      const errorData = await response.text();
+      console.error("Token exchange error response:", errorData);
+      throw new Error(`Token exchange failed: ${response.status} ${errorData}`);
     }
 
-    const data = await response.json();
+    const tokenData = await response.json();
 
-    // Extract event types array from response
-    let eventTypesArray = [];
-    if (Array.isArray(data)) {
-      eventTypesArray = data;
-    } else if (data?.data && Array.isArray(data.data)) {
-      eventTypesArray = data.data;
-    } else if (data?.eventTypes && Array.isArray(data.eventTypes)) {
-      eventTypesArray = data.eventTypes;
-    }
+    const tokens = {
+      accessToken: tokenData.access_token,
+      refreshToken: tokenData.refresh_token,
+      tokenType: tokenData.token_type || "Bearer",
+      expiresAt: tokenData.expires_in ? Date.now() + tokenData.expires_in * 1000 : undefined,
+      scope: tokenData.scope,
+    };
 
-    return eventTypesArray;
+    return tokens;
   } catch (error) {
-    throw error;
+    console.error("Token exchange failed:", error);
+    throw error instanceof Error ? error : new Error(String(error));
   }
+}
+
+async function fetchEventTypes() {
+  const API_BASE_URL = "https://api.cal.com/v2";
+
+  const result = await chrome.storage.local.get(["cal_oauth_tokens"]);
+  const oauthTokens = result.cal_oauth_tokens
+    ? JSON.parse(result.cal_oauth_tokens as string)
+    : null;
+
+  if (!oauthTokens?.accessToken) {
+    throw new Error("No OAuth access token found. Please sign in with OAuth.");
+  }
+
+  // Get current user to retrieve username
+  const userResponse = await fetch(`${API_BASE_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-06-11",
+    },
+  });
+
+  if (!userResponse.ok) {
+    throw new Error(`Failed to get user: ${userResponse.statusText}`);
+  }
+
+  const userData = await userResponse.json();
+  const username = userData?.data?.username;
+
+  const params = new URLSearchParams();
+  if (username) {
+    params.append("username", username);
+  }
+
+  const queryString = params.toString();
+  const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
+
+  const response = await fetch(endpoint, {
+    headers: {
+      Authorization: `Bearer ${oauthTokens.accessToken}`,
+      "Content-Type": "application/json",
+      "cal-api-version": "2024-06-14",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch event types: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  // Handle different response formats
+  if (Array.isArray(data)) {
+    return data;
+  } else if (data?.data && Array.isArray(data.data)) {
+    return data.data;
+  } else if (data?.eventTypes && Array.isArray(data.eventTypes)) {
+    return data.eventTypes;
+  }
+
+  return [];
 }
