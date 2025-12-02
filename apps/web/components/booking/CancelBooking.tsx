@@ -107,8 +107,8 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
+  renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
-  className?: string;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
 };
@@ -175,6 +175,8 @@ export default function CancelBooking(props: Props) {
     }
   }, []);
 
+  const isRenderedAsCancelDialog = props.renderContext === "dialog";
+
   return (
     <>
       {error && !props.showErrorAsToast && (
@@ -190,7 +192,7 @@ export default function CancelBooking(props: Props) {
         </div>
       )}
       {!error && (
-        <div className={classNames("mt-5 sm:mt-6", props.className)}>
+        <div className={classNames(isRenderedAsCancelDialog ? "mb-8" : "mt-5 sm:mt-6")}>
           {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
@@ -223,13 +225,13 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mb-4 mt-2 w-full "
+            className={classNames("mb-4 w-full", !isRenderedAsCancelDialog && "mt-2")}
             rows={3}
           />
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-default text-subtle text-sm leading-none">
+              <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
             </div>

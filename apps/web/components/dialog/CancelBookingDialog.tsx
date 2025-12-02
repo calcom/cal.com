@@ -92,7 +92,7 @@ export const CancelBookingDialog = (props: ICancelBookingDialog) => {
       <DialogContent enableOverflow data-testid="cancel-dialog">
         <DialogHeader title={allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")} />
         <CancelBooking
-          className="mb-8 mt-0 sm:mt-0"
+          renderContext="dialog"
           booking={{
             uid: booking.uid,
             id: booking.id,
