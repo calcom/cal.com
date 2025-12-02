@@ -151,7 +151,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   {t("onboarding_skip_for_now")}
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
                   color="primary"
                   className="rounded-[10px]"
                   disabled={!hasValidInvites || isSubmitting}
