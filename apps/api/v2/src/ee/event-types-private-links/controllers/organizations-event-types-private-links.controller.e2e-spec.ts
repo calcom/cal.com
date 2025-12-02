@@ -164,3 +164,189 @@ describe("Organizations Event Types Private Links - Platform Org Restrictions", 
     }
   });
 });
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+
+describe("Organizations Event Types Private Links - Regular Org Can Create Private Links", () => {
+  let app: INestApplication;
+
+  let oAuthClient: PlatformOAuthClient;
+  let regularOrganization: Team;
+  let regularTeam: Team;
+  let userRepositoryFixture: UserRepositoryFixture;
+  let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+  let teamRepositoryFixture: TeamRepositoryFixture;
+  let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+  let profilesRepositoryFixture: ProfileRepositoryFixture;
+  let membershipsRepositoryFixture: MembershipRepositoryFixture;
+
+  let orgAdmin: User;
+  const orgAdminEmail = `private-links-regular-org-admin-${randomString()}@api.com`;
+
+  let teamEventType: EventType;
+  let createdLinkId: string;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      providers: [PrismaExceptionFilter, HttpExceptionFilter],
+      imports: [AppModule, UsersModule, MembershipsModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    bootstrap(app as NestExpressApplication);
+
+    oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+    teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+    eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+    profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+    membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+
+    orgAdmin = await userRepositoryFixture.create({ email: orgAdminEmail });
+
+    // Create a regular organization (isPlatform = false)
+    regularOrganization = await teamRepositoryFixture.create({
+      name: `private-links-regular-org-test-${randomString()}`,
+      slug: `private-links-regular-org-test-${randomString()}`,
+      isPlatform: false,
+      isOrganization: true,
+    });
+
+    regularTeam = await teamRepositoryFixture.create({
+      name: `private-links-regular-team-${randomString()}`,
+      slug: `private-links-regular-team-${randomString()}`,
+      parent: { connect: { id: regularOrganization.id } },
+    });
+
+    oAuthClient = await createOAuthClient(regularOrganization.id);
+
+    await profilesRepositoryFixture.create({
+      uid: `private-links-regular-profile-${randomString()}`,
+      username: orgAdminEmail,
+      organization: { connect: { id: regularOrganization.id } },
+      user: { connect: { id: orgAdmin.id } },
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "OWNER",
+      user: { connect: { id: orgAdmin.id } },
+      team: { connect: { id: regularOrganization.id } },
+      accepted: true,
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: orgAdmin.id } },
+      team: { connect: { id: regularTeam.id } },
+      accepted: true,
+    });
+
+    teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+      schedulingType: "ROUND_ROBIN",
+      team: { connect: { id: regularTeam.id } },
+      title: `private-links-regular-team-event-type-${randomString()}`,
+      slug: `private-links-regular-team-event-type-${randomString()}`,
+      length: 30,
+    });
+
+    await app.init();
+  });
+
+  async function createOAuthClient(organizationId: number) {
+    const data = {
+      logo: "logo-url",
+      name: "private-links-regular-oauth-client",
+      redirectUris: ["http://localhost:4321"],
+      permissions: 1023,
+    };
+    const secret = "secret";
+
+    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+    return client;
+  }
+
+  it("POST /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links - regular org should be able to create private links", async () => {
+    const body: CreatePrivateLinkInput = {
+      maxUsageCount: 5,
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(
+        `/api/v2/organizations/${regularOrganization.id}/teams/${regularTeam.id}/event-types/${teamEventType.id}/private-links`
+      )
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send(body)
+      .expect(201);
+
+    expect(response.body.status).toBe(SUCCESS_STATUS);
+    expect(response.body.data.linkId).toBeDefined();
+    expect(response.body.data.maxUsageCount).toBe(5);
+    expect(response.body.data.bookingUrl).toBeDefined();
+    expect(response.body.data.bookingUrl).toContain("/d/");
+    expect(response.body.data.bookingUrl).toContain(`/${teamEventType.slug}`);
+
+    createdLinkId = response.body.data.linkId;
+  });
+
+  it("GET /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links - regular org should be able to list private links", async () => {
+    const response = await request(app.getHttpServer())
+      .get(
+        `/api/v2/organizations/${regularOrganization.id}/teams/${regularTeam.id}/event-types/${teamEventType.id}/private-links`
+      )
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .expect(200);
+
+    expect(response.body.status).toBe(SUCCESS_STATUS);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const link = response.body.data.find((l: { linkId: string }) => l.linkId === createdLinkId);
+    expect(link).toBeDefined();
+    expect(link.bookingUrl).toContain("/d/");
+    expect(link.bookingUrl).toContain(`/${teamEventType.slug}`);
+  });
+
+  it("PATCH /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links/:linkId - regular org should be able to update private links", async () => {
+    const response = await request(app.getHttpServer())
+      .patch(
+        `/api/v2/organizations/${regularOrganization.id}/teams/${regularTeam.id}/event-types/${teamEventType.id}/private-links/${createdLinkId}`
+      )
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .send({ maxUsageCount: 10 })
+      .expect(200);
+
+    expect(response.body.status).toBe(SUCCESS_STATUS);
+    expect(response.body.data.maxUsageCount).toBe(10);
+    expect(response.body.data.bookingUrl).toContain("/d/");
+    expect(response.body.data.bookingUrl).toContain(`/${teamEventType.slug}`);
+  });
+
+  it("DELETE /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links/:linkId - regular org should be able to delete private links", async () => {
+    const response = await request(app.getHttpServer())
+      .delete(
+        `/api/v2/organizations/${regularOrganization.id}/teams/${regularTeam.id}/event-types/${teamEventType.id}/private-links/${createdLinkId}`
+      )
+      .set("x-cal-client-id", oAuthClient.id)
+      .set("x-cal-secret-key", oAuthClient.secret)
+      .expect(200);
+
+    expect(response.body.status).toBe(SUCCESS_STATUS);
+    expect(response.body.data.linkId).toBe(createdLinkId);
+  });
+
+  afterAll(async () => {
+    try {
+      if (teamEventType?.id) {
+        await eventTypesRepositoryFixture.delete(teamEventType.id);
+      }
+    } catch (error) {
+      console.error("Error cleaning up test data:", error);
+    }
+    if (app) {
+      await app.close();
+    }
+  });
+});
