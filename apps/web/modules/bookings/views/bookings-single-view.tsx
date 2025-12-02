@@ -310,6 +310,10 @@ export default function Success(props: PageProps) {
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
+
+    if (eventType.seatsPerTimeSlot) {
+      return t("group_session_event_details");
+    }
     if (bookingInfo.user) {
       const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
@@ -595,7 +599,15 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                          {eventType.seatsPerTimeSlot
+                            ? t("event_group_title_default", {
+                                eventName: eventType.title,
+                                host: props.profile.name || "Nameless",
+                                interpolation: { escapeValue: false },
+                              })
+                            : isRoundRobin
+                            ? bookingInfo.title
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">

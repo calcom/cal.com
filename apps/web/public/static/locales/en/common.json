@@ -501,6 +501,8 @@
   "no_status_bookings_yet": "No {{status}} bookings",
   "no_status_bookings_yet_description": "You have no {{status}} bookings. {{description}}",
   "event_between_users": "{{eventName}} between {{host}} and {{attendeeName}}",
+  "event_group_title_default": "{{eventName}} with {{host}}",
+  "group_session_event_details": "This is a group session. Here are your event details.",
   "bookings": "Bookings",
   "booking_not_found": "Booking not found",
   "bookings_description": "See upcoming and past events booked through your event type links.",
