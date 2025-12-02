@@ -1,3 +1,5 @@
+/// <reference types="chrome" />
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
@@ -34,34 +36,96 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Unified storage helper to abstract web/mobile differences
+// Check if chrome.storage is available (browser extension context)
+const isChromeStorageAvailable = (): boolean => {
+  return (
+    Platform.OS === "web" &&
+    typeof chrome !== "undefined" &&
+    chrome.storage !== undefined &&
+    chrome.storage.local !== undefined
+  );
+};
+
+// Unified storage helper to abstract web/mobile/extension differences
 const storage = {
   get: async (key: string): Promise<string | null> => {
+    // Use chrome.storage in browser extension context (most secure)
+    if (isChromeStorageAvailable()) {
+      return new Promise((resolve) => {
+        chrome.storage.local.get([key], (result) => {
+          resolve(result[key] || null);
+        });
+      });
+    }
+    // Fall back to localStorage for regular web apps
     if (Platform.OS === "web") {
       return localStorage.getItem(key);
     }
+    // Use SecureStore for mobile
     return await SecureStore.getItemAsync(key);
   },
   set: async (key: string, value: string): Promise<void> => {
+    // Use chrome.storage in browser extension context (most secure)
+    if (isChromeStorageAvailable()) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.set({ [key]: value }, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+    // Fall back to localStorage for regular web apps
     if (Platform.OS === "web") {
       localStorage.setItem(key, value);
-    } else {
-      await SecureStore.setItemAsync(key, value);
+      return;
     }
+    // Use SecureStore for mobile
+    await SecureStore.setItemAsync(key, value);
   },
   remove: async (key: string): Promise<void> => {
+    // Use chrome.storage in browser extension context (most secure)
+    if (isChromeStorageAvailable()) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.remove(key, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+    // Fall back to localStorage for regular web apps
     if (Platform.OS === "web") {
       localStorage.removeItem(key);
-    } else {
-      await SecureStore.deleteItemAsync(key);
+      return;
     }
+    // Use SecureStore for mobile
+    await SecureStore.deleteItemAsync(key);
   },
   removeAll: async (keys: string[]): Promise<void> => {
+    // Use chrome.storage in browser extension context (most secure)
+    if (isChromeStorageAvailable()) {
+      return new Promise((resolve, reject) => {
+        chrome.storage.local.remove(keys, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+    // Fall back to localStorage for regular web apps
     if (Platform.OS === "web") {
       keys.forEach((key) => localStorage.removeItem(key));
-    } else {
-      await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
+      return;
     }
+    // Use SecureStore for mobile
+    await Promise.all(keys.map((key) => SecureStore.deleteItemAsync(key)));
   },
 };
 
@@ -242,10 +306,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       setLoading(true);
-      console.log("Starting OAuth flow...");
 
       const tokens = await oauthService.startAuthorizationFlow();
-      console.log("OAuth flow completed, tokens received");
 
       // Save tokens
       await saveOAuthTokens(tokens);

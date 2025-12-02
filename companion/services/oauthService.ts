@@ -125,9 +125,12 @@ export class CalComOAuthService {
             throw new Error("Invalid state parameter - possible CSRF attack");
           }
 
-          return await this.exchangeCodeForTokens(storedCode);
+          return await this.exchangeCodeForTokens(storedCode, state);
         }
       }
+
+      // Note: State will be stored in background script when OAuth flow starts
+      // (iframe may not have chrome.storage access)
 
       // Get authorization result
       const authResult = await this.getAuthorizationResult(codeChallenge, state);
@@ -145,7 +148,7 @@ export class CalComOAuthService {
           throw new Error("No authorization code received");
         }
 
-        return await this.exchangeCodeForTokens(code);
+        return await this.exchangeCodeForTokens(code, state);
       }
 
       // Handle errors
@@ -170,49 +173,35 @@ export class CalComOAuthService {
 
   /**
    * Check if running in a browser extension environment
+   * Uses reliable indicators to detect extension context
    */
   private isBrowserExtension(): boolean {
     if (Platform.OS !== "web" || typeof window === "undefined") {
       return false;
     }
 
-    // Check if we have chrome extension APIs available
-    if (typeof chrome !== "undefined") {
-      // Check for various chrome extension indicators
-      if (chrome.runtime && chrome.runtime.id) {
-        return true;
-      }
-      if (chrome.extension) {
-        return true;
-      }
+    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+      return true;
     }
 
-    // Check if we're in an extension context by looking at the URL
     if (window.location.protocol === "chrome-extension:") {
       return true;
     }
 
-    // For localhost iframe in extension context, check for specific indicators
+    // Check if we're in an iframe (extension content script injects companion app as iframe)
     if (window.parent !== window) {
       try {
-        // Try to access parent chrome APIs
-        if (window.parent.chrome) {
+        const parentOrigin = window.parent.location.origin;
+        const currentOrigin = window.location.origin;
+
+        // Cross-origin parent with localhost indicates extension iframe
+        if (parentOrigin !== currentOrigin && window.location.hostname === "localhost") {
           return true;
         }
-      } catch (e) {
-        // Cross-origin iframe access blocked
-      }
-
-      // Check if we're localhost in an iframe (likely extension)
-      if (window.location.hostname === "localhost" && window.location.port === "8081") {
-        // Additional check: see if parent has different origin (extension content script)
-        try {
-          const parentOrigin = window.parent.location.origin;
-          if (parentOrigin !== window.location.origin) {
-            return true;
-          }
-        } catch (e) {
-          // Cross-origin access blocked, likely extension
+      } catch {
+        // Cross-origin access blocked - expected for extension iframes
+        // Only return true for localhost to avoid false positives
+        if (window.location.hostname === "localhost") {
           return true;
         }
       }
@@ -248,16 +237,16 @@ export class CalComOAuthService {
 
       // If we're in an iframe, communicate with the parent window
       if (window.parent !== window) {
-        console.log("Setting up OAuth communication with parent window");
-
         const messageHandler = (event: MessageEvent) => {
-          console.log("Received message from parent:", event.data);
+          // Security: Only accept messages from the parent window
+          if (event.source !== window.parent) {
+            return;
+          }
 
           if (event.data.type === "cal-extension-oauth-result") {
             window.removeEventListener("message", messageHandler);
 
             if (event.data.success) {
-              console.log("OAuth flow successful, received URL:", event.data.responseUrl);
               resolve(event.data.responseUrl);
             } else {
               console.error("OAuth flow failed:", event.data.error);
@@ -269,7 +258,6 @@ export class CalComOAuthService {
         window.addEventListener("message", messageHandler);
 
         // Send request to parent window to start OAuth flow
-        console.log("Sending OAuth request to parent window:", authUrl);
         window.parent.postMessage(
           {
             type: "cal-extension-oauth-request",
@@ -300,19 +288,10 @@ export class CalComOAuthService {
     const authUrl = this.buildAuthorizationUrl(codeChallenge, state);
 
     const isExtension = this.isBrowserExtension();
-    console.log("OAuth flow detection:", {
-      isExtension,
-      platform: Platform.OS,
-      hasChrome: typeof chrome !== "undefined",
-      hostname: window?.location?.hostname,
-      port: window?.location?.port,
-      inIframe: window.parent !== window,
-    });
 
     if (isExtension) {
       // Browser extension: use Chrome's launchWebAuthFlow
       try {
-        console.log("Using extension OAuth flow with URL:", authUrl);
         const responseUrl = await this.launchExtensionAuthFlow(authUrl);
         const params = this.parseCallbackUrl(responseUrl);
         return { type: "success" as const, params };
@@ -392,14 +371,14 @@ export class CalComOAuthService {
   /**
    * Exchange authorization code for access/refresh tokens
    */
-  private async exchangeCodeForTokens(code: string): Promise<OAuthTokens> {
+  private async exchangeCodeForTokens(code: string, state?: string): Promise<OAuthTokens> {
     if (!this.codeVerifier) {
       throw new Error("No code verifier available");
     }
 
     // If in extension context, use extension APIs for token exchange to avoid CORS
     if (this.isBrowserExtension() && window.parent !== window) {
-      return await this.exchangeTokensViaExtension(code);
+      return await this.exchangeTokensViaExtension(code, state);
     }
 
     const tokenEndpoint = `${this.config.calcomBaseUrl}/api/auth/oauth/token`;
@@ -452,16 +431,18 @@ export class CalComOAuthService {
   /**
    * Exchange tokens via extension to avoid CORS issues
    */
-  private async exchangeTokensViaExtension(code: string): Promise<OAuthTokens> {
+  private async exchangeTokensViaExtension(code: string, state?: string): Promise<OAuthTokens> {
     return new Promise((resolve, reject) => {
-      console.log("Exchanging tokens via extension...");
-
       const messageHandler = (event: MessageEvent) => {
+        // Security: Only accept messages from the parent window
+        if (event.source !== window.parent) {
+          return;
+        }
+
         if (event.data.type === "cal-extension-token-exchange-result") {
           window.removeEventListener("message", messageHandler);
 
           if (event.data.success) {
-            console.log("Token exchange successful via extension");
             resolve(event.data.tokens);
           } else {
             console.error("Token exchange failed via extension:", event.data.error);
@@ -483,6 +464,7 @@ export class CalComOAuthService {
             redirect_uri: this.config.redirectUri,
             code_verifier: this.codeVerifier,
           },
+          state: state, // Include state for CSRF validation in background script
           tokenEndpoint: `${this.config.calcomBaseUrl}/api/auth/oauth/token`,
         },
         "*"
@@ -553,18 +535,6 @@ export class CalComOAuthService {
     this.codeVerifier = null;
     this.state = null;
   }
-}
-
-/**
- * Check if running in a browser extension environment
- */
-function isBrowserExtension(): boolean {
-  return (
-    Platform.OS === "web" &&
-    typeof window !== "undefined" &&
-    typeof chrome !== "undefined" &&
-    chrome.extension !== undefined
-  );
 }
 
 /**

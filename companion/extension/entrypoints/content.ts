@@ -75,14 +75,13 @@ export default defineContentScript({
         iframeContainer.style.justifyContent = "flex-end";
       } else if (event.data.type === "cal-extension-oauth-request") {
         // Handle OAuth request from iframe
-        console.log("Content script received OAuth request:", event.data.authUrl);
         handleOAuthRequest(event.data.authUrl, iframe.contentWindow);
       } else if (event.data.type === "cal-extension-token-exchange-request") {
         // Handle token exchange request from iframe
-        console.log("Content script received token exchange request");
         handleTokenExchangeRequest(
           event.data.tokenRequest,
           event.data.tokenEndpoint,
+          event.data.state, // Pass state for CSRF validation
           iframe.contentWindow
         );
       }
@@ -90,8 +89,6 @@ export default defineContentScript({
 
     // Handle OAuth requests by forwarding to background script
     function handleOAuthRequest(authUrl: string, iframeWindow: Window | null) {
-      console.log("Forwarding OAuth request to background script:", authUrl);
-
       // Send request to background script
       chrome.runtime.sendMessage(
         { action: "start-extension-oauth", authUrl: authUrl },
@@ -111,8 +108,6 @@ export default defineContentScript({
             );
             return;
           }
-
-          console.log("Received response from background script:", response);
 
           // Forward the response back to iframe
           if (response.success) {
@@ -142,16 +137,16 @@ export default defineContentScript({
     function handleTokenExchangeRequest(
       tokenRequest: any,
       tokenEndpoint: string,
+      state: string | undefined,
       iframeWindow: Window | null
     ) {
-      console.log("Forwarding token exchange request to background script");
-
       // Send request to background script
       chrome.runtime.sendMessage(
         {
           action: "exchange-oauth-tokens",
           tokenRequest: tokenRequest,
           tokenEndpoint: tokenEndpoint,
+          state: state, // Include state for CSRF validation
         },
         (response) => {
           if (chrome.runtime.lastError) {
@@ -169,8 +164,6 @@ export default defineContentScript({
             );
             return;
           }
-
-          console.log("Received token exchange response from background script:", response);
 
           // Forward the response back to iframe
           if (response.success) {
