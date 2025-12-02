@@ -5,6 +5,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
@@ -46,11 +47,13 @@ export function useCreateTeam() {
         return;
       }
 
-      if (result.team) {
-        // Store the teamId and redirect to invite flow after team creation
-        setTeamId(result.team.id);
-        router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
-      }
+            if (result.team) {
+              // Revalidate the teams cache to ensure the new team shows on /teams page
+              revalidateTeamsList();
+              // Store the teamId and redirect to invite flow after team creation
+              setTeamId(result.team.id);
+              router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
+            }
     } catch (error) {
       console.error("Failed to create team:", error);
       throw error;
