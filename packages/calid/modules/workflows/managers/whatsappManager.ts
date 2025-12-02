@@ -11,6 +11,7 @@ import {
   WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
+  WorkflowStatus
 } from "@calcom/prisma/enums";
 
 import type { timeUnitLowerCase } from "../config/constants";
@@ -132,8 +133,8 @@ const executeImmediateWhatsapp = async ({
     metaTemplateName,
     metaPhoneNumberId,
    } : {
-    eventTypeId: number;
-    workflowId: number | null;
+    eventTypeId?: number | null;
+    workflowId?: number;
     reminderPhone: string;
     action: WorkflowActions;
     template?: WorkflowTemplates | null;
@@ -147,7 +148,7 @@ const executeImmediateWhatsapp = async ({
   }
 ): Promise<void> => {
   try {
-const response = await meta.sendSMS(
+    const response = await meta.sendSMS(
       {
         eventTypeId,
         workflowId,
@@ -161,15 +162,17 @@ const response = await meta.sendSMS(
       }
     );
 
-    await prisma.calIdWorkflowInsights.create({
-      data: {
-        workflowId,
-        msgId: result.messagesId,
-        eventTypeId: Number(eventTypeId),
-        type: WorkflowMethods.WHATSAPP,
-        status: WorkflowStatus.QUEUED,
-      },
-    });
+    if(response?.messageId) {
+      await prisma.calIdWorkflowInsights.create({
+        data: {
+          workflowId,
+          msgId: response?.messageId,
+          eventTypeId: Number(eventTypeId),
+          type: WorkflowMethods.WHATSAPP,
+          status: WorkflowStatus.QUEUED,
+        },
+      });
+    }
 
   } catch (error) {
     console.log(`Error sending WHATSAPP with error ${error}`);
@@ -412,6 +415,7 @@ export const scheduleWhatsappReminder = async (args: CalIdScheduleWhatsAppRemind
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
+  console.log("Event was: ", JSON.stringify(evt));
 
   // Always calculate scheduled date, even for traditionally immediate events
   const scheduledDate = calculateScheduledDateTime(triggerEvent, startTime, endTime, {
