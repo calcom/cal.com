@@ -9,7 +9,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { TeamsCTA } from "./CTA";
 
@@ -52,7 +52,7 @@ export const ServerTeamsListing = async ({
       }
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
     }
   }
 
