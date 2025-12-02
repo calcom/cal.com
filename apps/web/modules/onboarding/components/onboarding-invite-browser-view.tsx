@@ -63,6 +63,7 @@ export const OnboardingInviteBrowserView = ({
   const displayName = useOrganizationInvites
     ? organizationDetails.name || teamName || "Deel"
     : teamName || teamDetails.name || "Deel";
+  const displayBio = useOrganizationInvites ? organizationDetails.bio || "" : teamDetails.bio || "";
   const avatar = useOrganizationInvites ? organizationBrand.logo || null : teamBrand.logo || null;
 
   // Get invites based on context - use watched invites if provided, otherwise fall back to store
@@ -117,7 +118,7 @@ export const OnboardingInviteBrowserView = ({
   }
 
   return (
-    <div className="border-subtle bg-muted hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border xl:flex">
+    <div className="border-subtle bg-cal-muted hidden h-full w-full flex-col overflow-hidden rounded-l-2xl border xl:flex">
       {/* Content */}
       <div className="h-full px-6 pt-6">
         <AnimatePresence mode="wait">
@@ -142,21 +143,23 @@ export const OnboardingInviteBrowserView = ({
                 />
                 <div className="flex w-full flex-col items-start gap-1">
                   <h2 className="text-emphasis font-cal w-full text-left text-xl font-semibold leading-tight">
-                    {displayInviterName} invited you to join {displayName}
+                    {displayName}
                   </h2>
                   <p className="text-subtle text-left text-sm font-normal leading-tight">
-                    We&apos;re emailing you all the details
+                    {displayBio || "We're emailing you all the details"}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Email Body */}
-            <div className="bg-default border-subtle mt-3 grid grid-cols-3 gap-4 rounded-t-2xl border p-6 opacity-60">
+            <div className="bg-default border-subtle mt-3 grid grid-cols-3 gap-4 rounded-t-2xl border p-6">
               {displayItems.map((item, index) => (
                 <div
                   key={`${item.email}-${index}`}
-                  className="bg-default border-subtle flex aspect-square w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-4">
+                  className={`bg-default border-subtle flex aspect-square w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-4 ${
+                    !item.isReal ? "opacity-60" : ""
+                  }`}>
                   <Avatar size="mdLg" imageSrc={undefined} alt={item.name} className="mt-4" />
                   <div className="flex w-full min-w-0 flex-col items-center gap-4">
                     <div className="flex w-full min-w-0 flex-col items-center">

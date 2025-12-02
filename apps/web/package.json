@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.9.5",
+  "version": "5.9.7",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -120,8 +120,8 @@
     "nuqs": "^2.7.2",
     "openid-client": "6.5.0",
     "otplib": "^12.0.1",
-    "posthog-js": "^1.164.1",
-    "posthog-node": "^4.2.0",
+    "posthog-js": "^1.274.1",
+    "posthog-node": "^5.9.5",
     "qrcode": "^1.5.1",
     "raw-body": "^2.5.1",
     "react": "^18.2.0",
