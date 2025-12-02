@@ -679,22 +679,30 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <BookerStoreProvider>
-                  <DateOverride
-                    isDryRun={isDryRun}
-                    workingHours={schedule.workingHours}
-                    userTimeFormat={timeFormat}
-                    handleSubmit={handleSubmit}
-                    travelSchedules={travelSchedules}
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                    classNames={customClassNames?.dateOverrideClassNames}
-                  />
-                </BookerStoreProvider>
+                <div className="border-subtle rounded-md border">
+                  <BookerStoreProvider>
+                    <DateOverride
+                      isDryRun={isDryRun}
+                      workingHours={schedule.workingHours}
+                      userTimeFormat={timeFormat}
+                      handleSubmit={handleSubmit}
+                      travelSchedules={travelSchedules}
+                      weekStart={
+                        [
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                      }
+                      overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                      classNames={customClassNames?.dateOverrideClassNames}
+                    />
+                  </BookerStoreProvider>
+                </div>
               )}
             </div>
             <div className="min-w-40 stack-y-2 col-span-3 hidden md:block lg:col-span-1">
