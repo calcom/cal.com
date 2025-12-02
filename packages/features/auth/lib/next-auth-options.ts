@@ -97,7 +97,7 @@ const usernameSlug = (username: string) => `${slugify(username)}-${randomString(
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
 
 const loginWithTotp = async (email: string) =>
-  `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
+  `/auth/login?totp=${encodeURIComponent(await (await import("./signJwt")).default({ email }))}`;
 
 type UserTeams = {
   teams: (Membership & {
@@ -557,7 +557,7 @@ export const getOptions = ({
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findByUpId(upId);
+        const profile = await ProfileRepository.findByUpIdWithAuth(upId, existingUser.id);
         if (!profile) {
           throw new Error("Profile not found");
         }
