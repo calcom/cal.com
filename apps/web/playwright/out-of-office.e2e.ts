@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { addFilter } from "./filter-helpers";
@@ -244,8 +244,6 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
-
     await selectToAndFromDates(page, "13", "22", true);
 
     // send request
@@ -293,8 +291,6 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
-
     await selectToAndFromDates(page, "13", "22");
 
     // send request
@@ -305,8 +301,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "11", "24");
 
@@ -334,8 +328,6 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
-
     await selectToAndFromDates(page, "13", "22");
 
     // send request
@@ -346,8 +338,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -367,7 +357,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
     );
@@ -376,7 +365,6 @@ test.describe("Out of office", () => {
 
     //Creates 2 OOO entries:
     //First OOO is created on Next month 1st - 3rd
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
@@ -384,7 +372,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
     await addOOOButton.click();
     await reasonListRespPromise;
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "6");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
   });
@@ -411,7 +398,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
 
     const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
     );
@@ -419,7 +405,6 @@ test.describe("Out of office", () => {
     await reasonListRespPromise;
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
     await expect(
       page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
@@ -432,7 +417,6 @@ test.describe("Out of office", () => {
     await entriesListRespPromise;
     await addOOOButton.click();
     await reasonListRespPromise;
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "5", owner.id);
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
   });
@@ -459,15 +443,8 @@ test.describe("Out of office", () => {
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
     await test.step("As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'", async () => {
-      await addOOOButton.click();
-      await reasonListRespPromise;
-      await dateButton.click();
+      await page.getByTestId("add_entry_ooo").click();
       await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
       await expect(
         page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
@@ -478,10 +455,7 @@ test.describe("Out of office", () => {
       await member1User?.apiLogin();
       await page.goto("/settings/my-account/out-of-office");
       await page.waitForLoadState("domcontentloaded");
-      await entriesListRespPromise;
-      await addOOOButton.click();
-      await reasonListRespPromise;
-      await dateButton.click();
+      await page.getByTestId("add_entry_ooo").click();
       await selectDateAndCreateOOO(page, "2", "5", owner.id, 400);
       await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
     });
@@ -513,7 +487,6 @@ test.describe("Out of office", () => {
       await entriesListRespPromise;
 
       const addOOOButton = page.getByTestId("add_entry_ooo");
-      const dateButton = page.locator('[data-testid="date-range"]');
       const reasonListRespPromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
       );
@@ -528,7 +501,6 @@ test.describe("Out of office", () => {
       await test.step("Admin can create OOO for team member and add redirect", async () => {
         //OOO is created for 'member-1' on Next month 1st - 3rd, forwarding to 'member-2'
         await page.getByTestId(`ooofor_username_select_${member1User?.id}`).click();
-        await dateButton.click();
 
         await selectDateAndCreateOOO(page, "1", "3", member2User?.id, 200, true);
         await expect(
@@ -544,7 +516,6 @@ test.describe("Out of office", () => {
         await legacyListMembersRespPromise;
 
         await page.getByTestId(`ooofor_username_select_${member2User?.id}`).click();
-        await dateButton.click();
         await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 400, true);
         expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
         await page.locator(`text=${t("cancel")}`).click();
@@ -697,8 +668,6 @@ test.describe("Out of office", () => {
           teammates: teamMatesObj,
         }
       );
-      const member1User = users.get().find((user) => user.name === member1Name);
-      const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (future ooo)
       await prisma.outOfOfficeEntry.create({
@@ -747,7 +716,6 @@ test.describe("Out of office", () => {
           teammates: teamMatesObj,
         }
       );
-      const member1User = users.get().find((user) => user.name === member1Name);
       const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate-2Days, end:currentDate-4days (for Last 7 Days)
@@ -809,7 +777,6 @@ test.describe("Out of office", () => {
         }
       );
       const member1User = users.get().find((user) => user.name === member1Name);
-      const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
       await prisma.outOfOfficeEntry.create({
@@ -872,6 +839,9 @@ async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
 }
 
 async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
+  await page.getByTestId("date-range").click();
+  await page.locator(".rdp").waitFor({ state: "visible" });
+
   const month = isRangeInPast ? "previous" : "next";
 
   await page.locator(`button[name="${month}-month"]`).click();
@@ -891,14 +861,25 @@ async function selectDateAndCreateOOO(
   editMode = false
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="${month}-month"]`).click();
+
+  await page.getByTestId("date-range").click();
+  await page.locator(".rdp").waitFor({ state: "visible" });
+
+  // Look for month navigation button
+  const monthButtonSelector = `button[name="${month}-month"]`;
+
+  await page.locator(monthButtonSelector).click();
+
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
+
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
-  editMode
-    ? await page.locator(`text=${t("edit_an_out_of_office")}`).click()
-    : forTeamMember
-    ? await page.locator(`text=${t("create_ooo_dialog_team_title")}`).click()
-    : await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  if (editMode) {
+    await page.locator(`text=${t("edit_an_out_of_office")}`).click();
+  } else if (forTeamMember) {
+    await page.locator(`text=${t("create_ooo_dialog_team_title")}`).click();
+  } else {
+    await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  }
   await page.getByTestId("reason_select").click();
   await page.getByTestId("select-option-4").click();
   await page.getByTestId("notes_input").click();
