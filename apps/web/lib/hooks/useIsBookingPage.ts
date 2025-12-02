@@ -13,6 +13,7 @@ export default function useIsBookingPage(): boolean {
     "/d", // Private Link of booking page
     "/apps/routing-forms/routing-link", // Routing Form page
     "/forms/", // Rewrites to /apps/routing-forms/routing-link
+    "/router", // Headless router page - Loads as a page when redirect type is customPageMessage
   ].some((route) => pathname?.startsWith(route));
   const isBookingsListPage = ["/upcoming", "/unconfirmed", "/recurring", "/cancelled", "/past"].some(
     (route) => pathname?.endsWith(route)
