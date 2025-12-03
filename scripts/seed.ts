@@ -184,19 +184,34 @@ async function createPlatformAndSetupUser({
       },
     });
 
-    const clientId = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID;
-    const secret = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET;
-
-    if (clientId && secret) {
+    const exampleAppClientId = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID;
+    const exampleAppClientSecret = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET;
+    if (exampleAppClientId && exampleAppClientSecret) {
       await prisma.platformOAuthClient.create({
         data: {
-          name: "Acme",
+          name: "examples-app",
           redirectUris: ["http://localhost:4321"],
           permissions: 1023,
           areEmailsEnabled: true,
           organizationId: team.id,
-          id: clientId,
-          secret,
+          id: exampleAppClientId,
+          secret: exampleAppClientSecret,
+        },
+      });
+    }
+
+    const exampleAppClientIdE2e = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID_E2E;
+    const exampleAppClientSecretE2e = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET_E2E;
+    if (exampleAppClientIdE2e && exampleAppClientSecretE2e) {
+      await prisma.platformOAuthClient.create({
+        data: {
+          name: "examples-app-e2e",
+          redirectUris: ["http://localhost:4322"],
+          permissions: 1023,
+          areEmailsEnabled: true,
+          organizationId: team.id,
+          id: exampleAppClientIdE2e,
+          secret: exampleAppClientSecretE2e,
         },
       });
     }
