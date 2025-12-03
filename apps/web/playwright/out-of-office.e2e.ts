@@ -455,10 +455,12 @@ test.describe("Out of office", () => {
     const entriesListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
     );
+    const legacyListMembersRespPromise = page.waitForResponse(
+      (response) => response.url().includes("legacyListMembers") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
-
     const addOOOButton = page.getByTestId("add_entry_ooo");
     const dateButton = page.locator('[data-testid="date-range"]');
     const reasonListRespPromise = page.waitForResponse(
@@ -467,6 +469,7 @@ test.describe("Out of office", () => {
     await test.step("As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'", async () => {
       await addOOOButton.click();
       await reasonListRespPromise;
+      await legacyListMembersRespPromise;
       await dateButton.click();
       await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
       await expect(
