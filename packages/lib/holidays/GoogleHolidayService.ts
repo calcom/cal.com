@@ -6,6 +6,7 @@ import { GOOGLE_HOLIDAY_CALENDARS, getHolidayCacheDays } from "./constants";
 interface GoogleCalendarEvent {
   id: string;
   summary: string;
+  description?: string;
   start: {
     date?: string;
     dateTime?: string;
@@ -76,19 +77,26 @@ class GoogleHolidayServiceClass {
       return [];
     }
 
-    return data.items.map((event) => {
-      const dateStr = event.start.date || event.start.dateTime?.split("T")[0];
-      const date = dateStr ? dayjs(dateStr).toDate() : new Date();
+    // Keep only official public holidays (filter out observances)
+    return data.items
+      .filter((event) => {
+        // Include events with "Public holiday" in description
+        const desc = event.description?.toLowerCase() || "";
+        return desc.includes("public holiday");
+      })
+      .map((event) => {
+        const dateStr = event.start.date || event.start.dateTime?.split("T")[0];
+        const date = dateStr ? dayjs(dateStr).toDate() : new Date();
 
-      return {
-        id: `${countryCode}_${event.id}`,
-        countryCode,
-        eventId: event.id,
-        name: event.summary,
-        date,
-        year,
-      };
-    });
+        return {
+          id: `${countryCode}_${event.id}`,
+          countryCode,
+          eventId: event.id,
+          name: event.summary,
+          date,
+          year,
+        };
+      });
   }
 
   /**
@@ -191,11 +199,7 @@ class GoogleHolidayServiceClass {
   /**
    * Get holidays for a date range
    */
-  async getHolidaysInRange(
-    countryCode: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<CachedHoliday[]> {
+  async getHolidaysInRange(countryCode: string, startDate: Date, endDate: Date): Promise<CachedHoliday[]> {
     const startYear = dayjs(startDate).year();
     const endYear = dayjs(endDate).year();
 
@@ -232,4 +236,3 @@ class GoogleHolidayServiceClass {
 }
 
 export const GoogleHolidayService = new GoogleHolidayServiceClass();
-
