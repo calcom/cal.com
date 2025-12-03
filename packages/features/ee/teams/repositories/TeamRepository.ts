@@ -308,9 +308,18 @@ export class TeamRepository {
             slug: true,
             logoUrl: true,
             isOrganization: true,
-            metadata: true,
+            // Exclude metadata to prevent exposing payment IDs
             inviteTokens: true,
-            parent: true,
+            parent: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logoUrl: true,
+                isOrganization: true,
+                // Exclude parent metadata to prevent exposing payment IDs
+              },
+            },
             parentId: true,
           },
         },
@@ -323,14 +332,34 @@ export class TeamRepository {
         if (includeOrgs) return true;
         return !mmship.team.isOrganization;
       })
-      .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
-        role: membership.role,
-        accepted: membership.accepted,
-        ...team,
-        metadata: teamMetadataSchema.parse(team.metadata),
-        /** To prevent breaking we only return non-email attached token here, if we have one */
-        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
-      }));
+      .map(({ team: { inviteTokens, parent, ...team }, ...membership }) => {
+        // Only return inviteToken if user is OWNER or ADMIN
+        const inviteToken =
+          membership.role === "OWNER" || membership.role === "ADMIN"
+            ? inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`)
+            : null;
+
+        return {
+          role: membership.role,
+          accepted: membership.accepted,
+          ...team,
+          parent: parent
+            ? {
+                id: parent.id,
+                name: parent.name,
+                slug: parent.slug,
+                logoUrl: parent.logoUrl,
+                isOrganization: parent.isOrganization,
+                // Exclude metadata - not needed and contains sensitive payment IDs
+                metadata: {},
+              }
+            : null,
+          // Exclude metadata - not needed and contains sensitive payment IDs
+          metadata: {},
+          /** To prevent breaking we only return non-email attached token here, if we have one */
+          inviteToken,
+        };
+      });
   }
 
   /**
@@ -357,9 +386,7 @@ export class TeamRepository {
       },
     });
 
-    return memberships
-      .filter((mmship) => !mmship.team.isOrganization)
-      .map((mmship) => mmship.team);
+    return memberships.filter((mmship) => !mmship.team.isOrganization).map((mmship) => mmship.team);
   }
 
   async findTeamWithOrganizationSettings(teamId: number) {

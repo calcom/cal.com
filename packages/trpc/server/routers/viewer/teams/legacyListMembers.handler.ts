@@ -1,7 +1,4 @@
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -78,7 +75,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   ];
 
   // Fetch unique users through memberships
-  const memberships = await prisma.membership.findMany({
+    const memberships = await prisma.membership.findMany({
     where: {
       accepted: true,
       teamId: { in: teamsToQuery },
@@ -110,28 +107,23 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     ],
   });
 
-  const enrichedMembers = await Promise.all(
-    memberships.map(async (membership) =>
-      new UserRepository(prisma).enrichUserWithItsProfile({
-        user: {
-          ...membership.user,
-          accepted: membership.accepted,
-          membershipId: membership.id,
-        },
-      })
-    )
-  );
+  const members = memberships.map((membership) => ({
+    id: membership.user.id,
+    name: membership.user.name,
+    username: membership.user.username,
+    avatarUrl: membership.user.avatarUrl,
+  }));
 
-  const usersFetched = enrichedMembers.length;
+  const usersFetched = members.length;
 
   let nextCursor: typeof cursor | undefined = undefined;
   if (usersFetched > limit) {
-    const nextItem = enrichedMembers.pop();
-    nextCursor = nextItem?.membershipId;
+    const nextItem = memberships.pop();
+    nextCursor = nextItem?.id;
   }
 
   return {
-    members: enrichedMembers,
+    members,
     nextCursor,
   };
 };
