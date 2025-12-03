@@ -16,7 +16,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import { isEmailAction } from "../actionHelperFunctions";
@@ -171,12 +171,10 @@ export class EmailWorkflowService {
         sendTo = [evt.organizer?.email || ""];
 
         const schedulingType = evt.schedulingType;
-
-        if (schedulingType === SchedulingType.COLLECTIVE && evt.team?.members) {
-          const hosts = evt.team.members.map((member) => member.email);
-          if (hosts) {
-            sendTo = sendTo.concat(hosts);
-          }
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
       }
@@ -408,35 +406,19 @@ export class EmailWorkflowService {
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
-    const calendarEvent = evt as CalendarEvent;
+    const attendeeT = await getTranslation(evt.attendees[0].language.locale || "en", "common");
 
-    if (calendarEvent.schedulingType !== SchedulingType.COLLECTIVE) {
-      calendarEvent.team = undefined;
-    }
-
-    const teamMemberEmails = new Set(
-      calendarEvent.team?.members.map((member) => member.email.toLowerCase()) || []
-    );
-    const uniqueAttendees = evt.attendees.filter(
-      (attendee) => !teamMemberEmails.has(attendee.email.toLowerCase())
-    );
-
-    const processedAttendees = await Promise.all(
-      uniqueAttendees.map(async (attendee) => {
-        const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
-        return {
-          ...attendee,
-          name: preprocessNameFieldDataWithVariant("fullName", attendee.name) as string,
-          language: { ...attendee.language, translate: attendeeT },
-        };
-      })
-    );
+    const attendee = {
+      ...evt.attendees[0],
+      name: preprocessNameFieldDataWithVariant("fullName", evt.attendees[0].name) as string,
+      language: { ...evt.attendees[0].language, translate: attendeeT },
+    };
 
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
-      attendees: processedAttendees,
+      attendees: [attendee],
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
