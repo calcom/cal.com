@@ -51,14 +51,21 @@ export class BookingAccessService {
   async doesUserIdHaveAccessToBooking({
     userId,
     bookingUid,
+    bookingId,
   }: {
     userId: number;
-    bookingUid: string;
+    bookingUid?: string;
+    bookingId?: number;
   }): Promise<boolean> {
     const bookingRepo = new BookingRepository(this.prismaClient);
     const userRepo = new UserRepository(this.prismaClient);
 
-    const booking = await bookingRepo.findByUidIncludeEventType({ bookingUid });
+    // Fetch booking by UID or ID
+    const booking = bookingUid
+      ? await bookingRepo.findByUidIncludeEventType({ bookingUid })
+      : bookingId
+        ? await bookingRepo.findByIdIncludeEventType({ bookingId })
+        : null;
 
     if (!booking) return false;
 
@@ -79,6 +86,15 @@ export class BookingAccessService {
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
       return hasAccess;
+    }
+
+    // For managed events (child event types), check the parent's teamId
+    if (booking.eventType?.parent?.teamId) {
+      const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
+        userId,
+        teamId: booking.eventType.parent.teamId,
+      });
+      return isAdminOrUser;
     }
 
     if (!booking.userId) return false;
