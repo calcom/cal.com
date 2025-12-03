@@ -111,7 +111,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         />
       </div>
       <div className="flex items-center">
-        <h3 className="text-emphasis font-medium">
+        <h3 className="text-emphasis truncate font-medium" title={app.name}>
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
