@@ -47,12 +47,12 @@ export const CAL_URL = new URL(WEBAPP_URL).hostname.endsWith(".vercel.app")
   ? WEBAPP_URL
   : process.env.NEXT_PUBLIC_WEBSITE_URL || WEBAPP_URL;
 
-export const IS_CALCOM = true;
-// WEBAPP_URL &&
-// (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
-//   new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"))
+export const IS_CALCOM =
+  WEBAPP_URL &&
+  (new URL(WEBAPP_URL).hostname.endsWith("cal.com") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
+    new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
