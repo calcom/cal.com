@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'packages/platform/atoms/**'
-      - 'packages/platform/examples/base/**'
-      - 'apps/api/v2/**'
-      - '.github/workflows/e2e-atoms.yml'
+      - "packages/platform/atoms/**"
+      - "packages/platform/examples/base/**"
+      - "apps/api/v2/**"
+      - ".github/workflows/e2e-atoms.yml"
 
 permissions:
   actions: write
@@ -40,14 +40,14 @@ env:
   NODE_ENV: ${{ vars.CI_NODE_ENV }}
 
   ## atoms e2e examples app env
-  ATOMS_E2E_OAUTH_CLIENT_ID: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID }}
-  ATOMS_E2E_OAUTH_CLIENT_SECRET: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_SECRET }}
-  ATOMS_E2E_API_URL: ${{ secrets.ATOMS_E2E_API_URL }}
-  ATOMS_E2E_ORG_ID: ${{ secrets.ATOMS_E2E_ORG_ID }}
-  ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED }}
-  ATOMS_E2E_APPLE_ID: ${{ secrets.ATOMS_E2E_APPLE_ID }}
-  ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE: ${{ secrets.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE }}
-  
+  ATOMS_E2E_OAUTH_CLIENT_ID_2025_12: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID_2025_12 }}
+  ATOMS_E2E_OAUTH_CLIENT_SECRET_2025_12: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_SECRET_2025_12 }}
+  ATOMS_E2E_API_URL_2025_12: ${{ secrets.ATOMS_E2E_API_URL_2025_12 }}
+  ATOMS_E2E_ORG_ID_2025_12: ${{ secrets.ATOMS_E2E_ORG_ID_2025_12 }}
+  ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED_2025_12: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED_2025_12 }}
+  ATOMS_E2E_APPLE_ID_2025_12: ${{ secrets.ATOMS_E2E_APPLE_ID_2025_12 }}
+  ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE_2025_12: ${{ secrets.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE_2025_12 }}
+
   ## env variables needed for both api v2 and examples app
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
@@ -104,7 +104,7 @@ jobs:
           yarn dev:no-docker &
           API_PID=$!
           echo "API_PID=$API_PID" >> $GITHUB_ENV
-          
+
           # Wait for API to be ready
           echo "Waiting for API v2 to be ready on port ${{ vars.CI_API_V2_PORT }}..."
           timeout 300 bash -c 'until curl -f http://localhost:${{ vars.CI_API_V2_PORT }}/health > /dev/null 2>&1; do sleep 2; done'

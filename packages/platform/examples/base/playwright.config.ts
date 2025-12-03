@@ -62,6 +62,9 @@ export default defineConfig({
               process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED_2025_12 ?? "",
             VITE_BOOKER_EMBED_API_URL: process.env.ATOMS_E2E_API_URL_2025_12 ?? "",
             ORGANIZATION_ID: String(process.env.ATOMS_E2E_ORG_ID_2025_12 ?? ""),
+            ATOMS_E2E_APPLE_ID: process.env.ATOMS_E2E_APPLE_ID_2025_12 ?? "",
+            ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE:
+              process.env.ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE_2025_12 ?? "",
           },
         }
       : {}),
