@@ -184,7 +184,8 @@ export class CalendarEventBuilder {
       })
       .withRecurring(recurring)
       .withUid(uid)
-      .withOneTimePassword(oneTimePassword);
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId);
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -198,10 +199,10 @@ export class CalendarEventBuilder {
     }
 
     // Video
-    if (videoCallData && videoCallData.id && videoCallData.url) {
+    if (videoCallData && videoCallData.url) {
       builder.withVideoCallData({
         ...videoCallData,
-        id: videoCallData.id,
+        id: videoCallData.id ?? "",
         password: videoCallData.password ?? "",
         url: videoCallData.url,
       });
@@ -495,6 +496,14 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
+    };
+    return this;
+  }
+
+  withOrganization(organizationId?: number | null) {
+    this.event = {
+      ...this.event,
+      organizationId,
     };
     return this;
   }

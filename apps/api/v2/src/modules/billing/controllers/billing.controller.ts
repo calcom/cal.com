@@ -1,11 +1,13 @@
 import { AppConfig } from "@/config/type";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
 import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
 import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers/outputs/SubscribeTeamToBillingResponse.dto";
+import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import {
@@ -49,8 +51,9 @@ export class BillingController {
   }
 
   @Get("/:teamId/check")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard, IsUserInBillingOrg)
   @MembershipRoles(["OWNER", "ADMIN", "MEMBER"])
+  @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
   async checkTeamBilling(
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
@@ -66,8 +69,9 @@ export class BillingController {
   }
 
   @Post("/:teamId/subscribe")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard, IsUserInBillingOrg)
   @MembershipRoles(["OWNER", "ADMIN"])
+  @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
   async subscribeTeamToStripe(
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
@@ -84,8 +88,9 @@ export class BillingController {
   }
 
   @Post("/:teamId/upgrade")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard, IsUserInBillingOrg)
   @MembershipRoles(["OWNER", "ADMIN"])
+  @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
   async upgradeTeamBillingInStripe(
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
@@ -100,13 +105,12 @@ export class BillingController {
     };
   }
 
-  @Delete("/:organizationId/unsubscribe")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard)
+  @Delete("/:teamId/unsubscribe")
+  @UseGuards(ApiAuthGuard, OrganizationRolesGuard, IsUserInBillingOrg)
   @MembershipRoles(["OWNER", "ADMIN"])
-  async cancelTeamSubscriptionInStripe(
-    @Param("organizationId") organizationId: number
-  ): Promise<ApiResponse> {
-    await this.billingService.cancelTeamSubscription(organizationId);
+  @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
+  async cancelTeamSubscriptionInStripe(@Param("teamId") teamId: number): Promise<ApiResponse> {
+    await this.billingService.cancelTeamSubscription(teamId);
 
     return {
       status: "success",
