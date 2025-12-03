@@ -411,7 +411,6 @@ export class EmailWorkflowService {
 
     const organizerT = await getTranslation(evt.organizer.language.locale || "en", "common");
 
-    // Process all attendees, not just the first one
     const processedAttendees = await Promise.all(
       evt.attendees.map(async (attendee) => {
         const attendeeT = await getTranslation(attendee.language.locale || "en", "common");
