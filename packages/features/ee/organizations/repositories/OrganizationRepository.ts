@@ -271,42 +271,7 @@ export class OrganizationRepository {
         },
       },
       include: {
-        team: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logoUrl: true,
-            calVideoLogo: true,
-            appLogo: true,
-            appIconLogo: true,
-            bio: true,
-            hideBranding: true,
-            hideTeamProfileLink: true,
-            isPrivate: true,
-            hideBookATeamMember: true,
-            createdAt: true,
-            // Exclude metadata to prevent exposing payment IDs
-            theme: true,
-            rrResetInterval: true,
-            rrTimestampBasis: true,
-            brandColor: true,
-            darkBrandColor: true,
-            bannerUrl: true,
-            parentId: true,
-            timeFormat: true,
-            timeZone: true,
-            weekStart: true,
-            isOrganization: true,
-            pendingPayment: true,
-            isPlatform: true,
-            createdByOAuthClientId: true,
-            smsLockState: true,
-            smsLockReviewedByAdmin: true,
-            bookingLimits: true,
-            includeManagedEventsInLimits: true,
-          },
-        },
+        team: true,
       },
     });
 
@@ -331,6 +296,8 @@ export class OrganizationRepository {
       throw new Error("You do not have a membership to your organization");
     }
 
+    const metadata = teamMetadataSchema.parse(membership?.team.metadata);
+
     return {
       canAdminImpersonate: !!organizationSettings?.isAdminReviewed,
       organizationSettings: {
@@ -348,8 +315,9 @@ export class OrganizationRepository {
         accepted: membership?.accepted,
       },
       ...membership?.team,
-      // Exclude metadata - not needed and contains sensitive payment IDs
-      metadata: {},
+      metadata: {
+        requestedSlug: metadata?.requestedSlug ?? null,
+      },
     };
   }
 

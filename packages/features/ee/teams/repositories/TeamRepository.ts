@@ -308,16 +308,14 @@ export class TeamRepository {
             slug: true,
             logoUrl: true,
             isOrganization: true,
-            // Exclude metadata to prevent exposing payment IDs
             inviteTokens: true,
             parent: {
               select: {
                 id: true,
-                name: true,
                 slug: true,
                 logoUrl: true,
+                name: true,
                 isOrganization: true,
-                // Exclude parent metadata to prevent exposing payment IDs
               },
             },
             parentId: true,
@@ -332,7 +330,7 @@ export class TeamRepository {
         if (includeOrgs) return true;
         return !mmship.team.isOrganization;
       })
-      .map(({ team: { inviteTokens, parent, ...team }, ...membership }) => {
+      .map(({ team: { inviteTokens, ...team }, ...membership }) => {
         // Only return inviteToken if user is OWNER or ADMIN
         const inviteToken =
           membership.role === "OWNER" || membership.role === "ADMIN"
@@ -343,19 +341,6 @@ export class TeamRepository {
           role: membership.role,
           accepted: membership.accepted,
           ...team,
-          parent: parent
-            ? {
-                id: parent.id,
-                name: parent.name,
-                slug: parent.slug,
-                logoUrl: parent.logoUrl,
-                isOrganization: parent.isOrganization,
-                // Exclude metadata - not needed and contains sensitive payment IDs
-                metadata: {},
-              }
-            : null,
-          // Exclude metadata - not needed and contains sensitive payment IDs
-          metadata: {},
           /** To prevent breaking we only return non-email attached token here, if we have one */
           inviteToken,
         };
