@@ -125,8 +125,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           ? `?seatReferenceUid=${seatReferenceUid}`
           : ""
       }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+      disabled: isActionDisabled("reschedule", {
+        ...context,
+        booking,
+        isBookingInPast,
+        isDisabledRescheduling,
+      }),
     },
     {
       id: "reschedule_request",
@@ -134,9 +138,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
-        isDisabledRescheduling ||
-        booking.seatsReferences.length > 0,
+        isActionDisabled("reschedule_request", {
+          ...context,
+          booking,
+          isBookingInPast,
+          isDisabledRescheduling,
+        }) || booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
@@ -231,13 +238,38 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
   return !booking.report && !hasDropdown && (isCancelled || isRejected || (isPending && isUpcoming));
 }
 
+function isWithinMinimumRescheduleNotice(
+  bookingStartTime: Date | null,
+  minimumRescheduleNotice: number | null
+): boolean {
+  if (!minimumRescheduleNotice || minimumRescheduleNotice <= 0 || !bookingStartTime) {
+    return false;
+  }
+
+  const now = new Date();
+  const bookingStart = new Date(bookingStartTime);
+  const timeUntilBooking = bookingStart.getTime() - now.getTime();
+  const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
+
+  // Return true if we're within the minimum notice period (but booking hasn't started yet)
+  return timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs;
+}
+
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
   const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
-      return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
+      const isWithinMinimumNotice = isWithinMinimumRescheduleNotice(
+        booking.startTime,
+        booking.eventType.minimumRescheduleNotice ?? null
+      );
+      return (
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        isWithinMinimumNotice
+      );
     case "cancel":
       return isDisabledCancelling || isBookingInPast;
     case "view_recordings":

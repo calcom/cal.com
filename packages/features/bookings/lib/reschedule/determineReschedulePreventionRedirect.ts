@@ -10,12 +10,14 @@ export type ReschedulePreventionRedirectInput = {
   booking: {
     uid: string;
     status: BookingStatus;
+    startTime: Date | null;
     endTime: Date | null;
     responses?: JsonValue;
     eventType: {
       disableRescheduling: boolean;
       allowReschedulingPastBookings: boolean;
       allowBookingFromCancelledBookingReschedule: boolean;
+      minimumRescheduleNotice: number | null;
       teamId: number | null;
     };
   };
@@ -81,6 +83,20 @@ export function determineReschedulePreventionRedirect(
       booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
 
     return allowedToBeBookedThroughCancelledBookingRescheduleLink ? eventUrl : `/booking/${booking.uid}`;
+  }
+
+  // Check if rescheduling is prevented due to minimum reschedule notice
+  const { minimumRescheduleNotice } = booking.eventType;
+  if (minimumRescheduleNotice && minimumRescheduleNotice > 0 && booking.startTime) {
+    const now = new Date();
+    const bookingStartTime = new Date(booking.startTime);
+    const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
+    const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
+
+    if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
+      // Rescheduling is not allowed within the minimum notice period
+      return `/booking/${booking.uid}`;
+    }
   }
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();

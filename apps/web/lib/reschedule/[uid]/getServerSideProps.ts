@@ -59,6 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
           allowReschedulingCancelledBookings: true,
+          minimumRescheduleNotice: true,
           team: {
             select: {
               id: true,
@@ -122,12 +123,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking: {
       uid,
       status: booking.status,
+      startTime: booking.startTime,
       endTime: booking.endTime,
       responses: booking.responses,
       eventType: {
         disableRescheduling: !!eventType?.disableRescheduling,
         allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
         allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice,
         teamId: eventType.team?.id ?? null,
       },
     },

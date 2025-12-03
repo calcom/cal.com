@@ -94,6 +94,7 @@ export const useEventTypeForm = ({
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
