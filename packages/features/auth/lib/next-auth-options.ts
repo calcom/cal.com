@@ -133,6 +133,216 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   return { orgUsername, orgId: existingOrg?.id };
 };
 
+// =============================================================================
+// AUTHORIZATION GUARDS - "Deny Unless Allow" Pattern
+// =============================================================================
+// The authorize() function below is implemented as a linear sequence of guards.
+// Each guard throws on failure (deny) and we only construct/return a user
+// at the very end once all guards have passed ("deny unless allow").
+//
+// This pattern ensures:
+// 1. No accidental "allow" paths can be introduced
+// 2. Each security check is explicit and named
+// 3. The function is easy to audit and extend safely
+// =============================================================================
+
+type CredentialsInput = {
+  email: string;
+  password: string;
+  totpCode?: string;
+  backupCode?: string;
+};
+
+/**
+ * Guard: Ensures credentials are present in the request
+ * Throws InternalServerError if credentials are missing
+ */
+function ensureCredentialsPresent(
+  credentials: CredentialsInput | undefined
+): asserts credentials is CredentialsInput {
+  if (!credentials) {
+    console.error("For some reason credentials are missing");
+    throw new Error(ErrorCode.InternalServerError);
+  }
+}
+
+/**
+ * Guard: Finds user by email or throws
+ * Throws IncorrectEmailPassword if user not found (intentionally vague to prevent enumeration)
+ */
+async function findUserOrThrow(userRepo: UserRepository, email: string): Promise<UserWithProfiles> {
+  const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
+  if (!user) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+  return user;
+}
+
+/**
+ * Guard: Ensures user account is not locked
+ * Throws UserAccountLocked if the account has been locked
+ */
+function ensureUserNotLocked(user: UserWithProfiles): void {
+  if (user.locked) {
+    throw new Error(ErrorCode.UserAccountLocked);
+  }
+}
+
+/**
+ * Guard: Ensures user has a password set (not using external IdP only)
+ * Throws IncorrectEmailPassword if no password hash exists
+ */
+function ensureUserHasPassword(user: UserWithProfiles): asserts user is UserWithProfiles & {
+  password: NonNullable<UserWithProfiles["password"]>;
+} {
+  if (!user.password?.hash) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+}
+
+/**
+ * Guard: Verifies the provided password matches the stored hash
+ * Throws IncorrectEmailPassword if password is incorrect
+ */
+async function verifyPasswordOrThrow(password: string, passwordHash: string): Promise<void> {
+  const isCorrectPassword = await verifyPassword(password, passwordHash);
+  if (!isCorrectPassword) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+}
+
+/**
+ * Guard: Verifies two-factor authentication if enabled
+ * Handles both TOTP codes and backup codes
+ * Throws appropriate error codes on 2FA failure
+ */
+async function verifyTwoFactorOrThrow(
+  credentials: CredentialsInput,
+  user: UserWithProfiles
+): Promise<void> {
+  // If 2FA is not enabled, no verification needed
+  if (!user.twoFactorEnabled) {
+    return;
+  }
+
+  // Handle backup code authentication
+  if (credentials.backupCode) {
+    await verifyBackupCodeOrThrow(credentials.backupCode, user);
+    return;
+  }
+
+  // Handle TOTP authentication
+  await verifyTotpOrThrow(credentials.totpCode, user);
+}
+
+/**
+ * Guard: Verifies backup code for 2FA
+ * Throws appropriate errors if backup code is invalid or missing
+ */
+async function verifyBackupCodeOrThrow(backupCode: string, user: UserWithProfiles): Promise<void> {
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    console.error("Missing encryption key; cannot proceed with backup code login.");
+    throw new Error(ErrorCode.InternalServerError);
+  }
+
+  if (!user.backupCodes) {
+    throw new Error(ErrorCode.MissingBackupCodes);
+  }
+
+  const backupCodes = JSON.parse(
+    symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
+  );
+
+  // Check if user-supplied code matches one
+  const index = backupCodes.indexOf(backupCode.replaceAll("-", ""));
+  if (index === -1) {
+    throw new Error(ErrorCode.IncorrectBackupCode);
+  }
+
+  // Delete verified backup code and re-encrypt remaining
+  backupCodes[index] = null;
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+    },
+  });
+}
+
+/**
+ * Guard: Verifies TOTP code for 2FA
+ * Throws appropriate errors if TOTP is invalid or missing
+ */
+async function verifyTotpOrThrow(totpCode: string | undefined, user: UserWithProfiles): Promise<void> {
+  if (!totpCode) {
+    throw new Error(ErrorCode.SecondFactorRequired);
+  }
+
+  if (!user.twoFactorSecret) {
+    console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+    throw new Error(ErrorCode.InternalServerError);
+  }
+
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    console.error("Missing encryption key; cannot proceed with two factor login.");
+    throw new Error(ErrorCode.InternalServerError);
+  }
+
+  const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+  if (secret.length !== 32) {
+    console.error(
+      `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+    );
+    throw new Error(ErrorCode.InternalServerError);
+  }
+
+  const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(totpCode, secret);
+  if (!isValidToken) {
+    throw new Error(ErrorCode.IncorrectTwoFactorCode);
+  }
+}
+
+/**
+ * Computes effective role using "deny unless allow" pattern for admin access
+ * For CAL-authenticated admins, defaults to INACTIVE_ADMIN and only grants
+ * full ADMIN when explicit security conditions are met
+ */
+function computeEffectiveRole(
+  role: UserPermissionRole,
+  user: UserWithProfiles,
+  password: string
+): UserPermissionRole | "INACTIVE_ADMIN" {
+  // Non-admin users keep their role as-is
+  if (role !== UserPermissionRole.ADMIN) {
+    return role;
+  }
+
+  // Non-CAL identity providers (Google/SAML) keep their admin role
+  // (they have their own security guarantees from the IdP)
+  if (user.identityProvider !== IdentityProvider.CAL) {
+    return role;
+  }
+
+  // For CAL-authenticated admins, apply "deny unless allow" pattern:
+  // Default to INACTIVE_ADMIN, only allow full ADMIN access if security conditions are met
+
+  // Define explicit conditions that ALLOW full admin access
+  const isE2ETestingEnvironment = Boolean(process.env.NEXT_PUBLIC_IS_E2E);
+  const isDevelopmentEnvironment = isENVDev;
+  const hasStrongSecurityCredentials = isPasswordValid(password, false, true) && user.twoFactorEnabled;
+
+  // Only grant full ADMIN if at least one allow condition is met
+  const shouldAllowFullAdminAccess =
+    isE2ETestingEnvironment || isDevelopmentEnvironment || hasStrongSecurityCredentials;
+
+  if (isE2ETestingEnvironment) {
+    console.warn("E2E testing is enabled, granting full admin access");
+  }
+
+  // "Deny unless allow": return INACTIVE_ADMIN by default, ADMIN only when explicitly allowed
+  return shouldAllowFullAdminAccess ? role : "INACTIVE_ADMIN";
+}
+
 const providers: Provider[] = [
   CredentialsProvider({
     id: "credentials",
@@ -144,141 +354,50 @@ const providers: Provider[] = [
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
       backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
+    /**
+     * Authorize function implemented as a linear sequence of guards.
+     * Each guard throws on failure (deny) and we only construct/return a user
+     * at the very end once all guards have passed ("deny unless allow").
+     */
     async authorize(credentials): Promise<User | null> {
       log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
-      if (!credentials) {
-        console.error(`For some reason credentials are missing`);
-        throw new Error(ErrorCode.InternalServerError);
-      }
 
+      // =======================================================================
+      // GUARD PIPELINE - Each guard throws on failure, ensuring "deny unless allow"
+      // =======================================================================
+
+      // Guard 1: Ensure credentials are present
+      ensureCredentialsPresent(credentials);
+
+      // Guard 2: Find user or throw (prevents user enumeration with generic error)
       const userRepo = new UserRepository(prisma);
-      const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
-        email: credentials.email,
-      });
-      // Don't leak information about it being username or password that is invalid
-      if (!user) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+      const user = await findUserOrThrow(userRepo, credentials.email);
 
-      // Locked users cannot login
-      if (user.locked) {
-        throw new Error(ErrorCode.UserAccountLocked);
-      }
+      // Guard 3: Ensure user account is not locked
+      ensureUserNotLocked(user);
 
+      // Guard 4: Rate limit check (throws if exceeded)
       await checkRateLimitAndThrowError({
         identifier: hashEmail(user.email),
       });
 
-      // Users without a password must use their identity provider (Google/SAML) to login
-      if (!user.password?.hash) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+      // Guard 5: Ensure user has a password (not IdP-only user)
+      ensureUserHasPassword(user);
 
-      // Always verify password for users who have one
-      const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-      if (!isCorrectPassword) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
+      // Guard 6: Verify password matches stored hash
+      await verifyPasswordOrThrow(credentials.password, user.password.hash);
 
-      if (user.twoFactorEnabled && credentials.backupCode) {
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error("Missing encryption key; cannot proceed with backup code login.");
-          throw new Error(ErrorCode.InternalServerError);
-        }
+      // Guard 7: Verify two-factor authentication if enabled
+      await verifyTwoFactorOrThrow(credentials, user);
 
-        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+      // =======================================================================
+      // ALL GUARDS PASSED - Construct and return authorized user
+      // =======================================================================
 
-        const backupCodes = JSON.parse(
-          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
-        );
-
-        // check if user-supplied code matches one
-        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
-        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
-
-        // delete verified backup code and re-encrypt remaining
-        backupCodes[index] = null;
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
-          },
-        });
-      } else if (user.twoFactorEnabled) {
-        if (!credentials.totpCode) {
-          throw new Error(ErrorCode.SecondFactorRequired);
-        }
-
-        if (!user.twoFactorSecret) {
-          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-        if (secret.length !== 32) {
-          console.error(
-            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-          );
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
-          credentials.totpCode,
-          secret
-        );
-        if (!isValidToken) {
-          throw new Error(ErrorCode.IncorrectTwoFactorCode);
-        }
-      }
-      // Check if the user you are logging into has any active teams
       const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+      const effectiveRole = computeEffectiveRole(user.role, user, credentials.password);
 
-      // Compute effective role using "deny unless allow" pattern for security-sensitive admin access
-      // For CAL-authenticated admins, we start from INACTIVE_ADMIN and only grant full ADMIN
-      // when explicit security conditions are met
-      const computeEffectiveRole = (role: UserPermissionRole): UserPermissionRole | "INACTIVE_ADMIN" => {
-        // Non-admin users keep their role as-is
-        if (role !== UserPermissionRole.ADMIN) {
-          return role;
-        }
-
-        // Non-CAL identity providers (Google/SAML) keep their admin role
-        // (they have their own security guarantees from the IdP)
-        if (user.identityProvider !== IdentityProvider.CAL) {
-          return role;
-        }
-
-        // For CAL-authenticated admins, apply "deny unless allow" pattern:
-        // Default to INACTIVE_ADMIN, only allow full ADMIN access if security conditions are met
-        // Note: We've already confirmed role === ADMIN && identityProvider === CAL at this point
-
-        // Define explicit conditions that ALLOW full admin access
-        const isE2ETestingEnvironment = Boolean(process.env.NEXT_PUBLIC_IS_E2E);
-        const isDevelopmentEnvironment = isENVDev;
-        const hasStrongSecurityCredentials =
-          isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled;
-
-        // Only grant full ADMIN if at least one allow condition is met
-        const shouldAllowFullAdminAccess =
-          isE2ETestingEnvironment || isDevelopmentEnvironment || hasStrongSecurityCredentials;
-
-        if (isE2ETestingEnvironment) {
-          console.warn("E2E testing is enabled, granting full admin access");
-        }
-
-        // "Deny unless allow": return INACTIVE_ADMIN by default, ADMIN only when explicitly allowed
-        return shouldAllowFullAdminAccess ? role : "INACTIVE_ADMIN";
-      };
-
-      // Create a NextAuth compatible user object using our presenter
-      return AdapterUserPresenter.fromCalUser(user, computeEffectiveRole(user.role), hasActiveTeams);
+      return AdapterUserPresenter.fromCalUser(user, effectiveRole, hasActiveTeams);
     },
   }),
   ImpersonationProvider,
