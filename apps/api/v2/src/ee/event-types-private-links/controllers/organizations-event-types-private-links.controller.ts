@@ -5,6 +5,7 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -13,7 +14,6 @@ import { IsNotPlatformOrgGuard } from "@/modules/auth/guards/organizations/is-no
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationContextService } from "@/ee/event-types-private-links/services/organization-context.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -41,35 +41,36 @@ import { PrivateLinksService } from "../services/private-links.service";
 export class OrganizationsEventTypesPrivateLinksController {
   constructor(
     private readonly privateLinksService: PrivateLinksService,
-    private readonly teamsEventTypesService: TeamsEventTypesService,
-    private readonly organizationContextService: OrganizationContextService
+    private readonly teamsEventTypesService: TeamsEventTypesService
   ) {}
 
   @Post("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-    @ApiOperation({ summary: "Create a private link for a team event type" })
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    IsNotPlatformOrgGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
+  @ApiOperation({ summary: "Create a private link for a team event type" })
   async createPrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Body() body: CreatePrivateLinkInput
+    @Body() body: CreatePrivateLinkInput,
+    @GetOrg("slug") orgSlug?: string
   ): Promise<CreatePrivateLinkOutput> {
-    await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    
-    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
-      orgId,
-      teamId,
-      eventTypeId
-    );
-    
+    const eventType = await this.teamsEventTypesService.getTeamEventType(teamId, eventTypeId);
     const privateLink = await this.privateLinksService.createPrivateLink({
       eventTypeId,
       userId: teamId,
       input: body,
       orgSlug,
-      eventTypeSlug,
+      eventTypeSlug: eventType!.slug,
     });
     return {
       status: SUCCESS_STATUS,
@@ -80,25 +81,27 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Get("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-    @ApiOperation({ summary: "Get all private links for a team event type" })
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    IsNotPlatformOrgGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
+  @ApiOperation({ summary: "Get all private links for a team event type" })
   async getPrivateLinks(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @GetOrg("slug") orgSlug?: string
   ): Promise<GetPrivateLinksOutput> {
-    await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    
-    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
-      orgId,
-      teamId,
-      eventTypeId
-    );
-    
+    const eventType = await this.teamsEventTypesService.getTeamEventType(teamId, eventTypeId);
     const privateLinks = await this.privateLinksService.getPrivateLinks({
       eventTypeId,
       orgSlug,
-      eventTypeSlug,
+      eventTypeSlug: eventType!.slug,
     });
     return {
       status: SUCCESS_STATUS,
@@ -109,29 +112,31 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Patch("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-    @ApiOperation({ summary: "Update a private link for a team event type" })
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    IsNotPlatformOrgGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
+  @ApiOperation({ summary: "Update a private link for a team event type" })
   async updatePrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">
+    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">,
+    @GetOrg("slug") orgSlug?: string
   ): Promise<UpdatePrivateLinkOutput> {
-    await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    
-    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
-      orgId,
-      teamId,
-      eventTypeId
-    );
-    
+    const eventType = await this.teamsEventTypesService.getTeamEventType(teamId, eventTypeId);
     const updateInput: UpdatePrivateLinkInput = { ...body, linkId };
     const privateLink = await this.privateLinksService.updatePrivateLink({
       eventTypeId,
       input: updateInput,
       orgSlug,
-      eventTypeSlug,
+      eventTypeSlug: eventType?.slug,
     });
     return {
       status: SUCCESS_STATUS,
@@ -142,8 +147,16 @@ export class OrganizationsEventTypesPrivateLinksController {
   @Delete("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-    @UseGuards(ApiAuthGuard, IsOrgGuard, IsNotPlatformOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-    @ApiOperation({ summary: "Delete a private link for a team event type" })
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    IsNotPlatformOrgGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
+  @ApiOperation({ summary: "Delete a private link for a team event type" })
   async deletePrivateLink(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,

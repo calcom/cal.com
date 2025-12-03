@@ -1,3 +1,4 @@
+import { GetOrgReturnType } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
@@ -7,19 +8,18 @@ export class IsNotPlatformOrgGuard implements CanActivate {
   constructor(private organizationsRepository: OrganizationsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<Request & { organization?: GetOrgReturnType }>();
     const orgId = request.params.orgId;
 
     if (!orgId) {
       throw new ForbiddenException("IsNotPlatformOrgGuard - No organization id found in request params.");
     }
 
-    const organization = await this.organizationsRepository.findById({ id: Number(orgId) });
+    const organization =
+      request.organization ?? (await this.organizationsRepository.findById({ id: Number(orgId) }));
 
     if (!organization) {
-      throw new ForbiddenException(
-        `IsNotPlatformOrgGuard - Organization with id=${orgId} not found.`
-      );
+      throw new ForbiddenException(`IsNotPlatformOrgGuard - Organization with id=${orgId} not found.`);
     }
 
     if (organization.isPlatform) {

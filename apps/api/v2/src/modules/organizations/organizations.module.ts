@@ -1,6 +1,5 @@
 import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
 import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
-import { OrganizationContextService } from "@/ee/event-types-private-links/services/organization-context.service";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
@@ -164,7 +163,6 @@ import { Module } from "@nestjs/common";
     TeamsMembershipsService,
     TeamsMembershipsRepository,
     OAuthClientRepository,
-    OrganizationContextService,
     IsNotPlatformOrgGuard,
   ],
   exports: [
