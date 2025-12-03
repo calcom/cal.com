@@ -206,7 +206,14 @@ const nextConfig = (phase) => {
     ],
     experimental: {
       // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-      optimizePackageImports: ["@calcom/ui"],
+      optimizePackageImports: [
+        "@calcom/ui",
+        "@calcom/app-store",
+        "@calcom/features",
+        "@calcom/lib",
+        "lucide-react",
+        "@radix-ui/react-icons",
+      ],
       webpackMemoryOptimizations: true,
       webpackBuildWorker: true,
     },
