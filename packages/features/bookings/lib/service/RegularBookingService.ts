@@ -428,6 +428,71 @@ export interface IBookingServiceDependencies {
  * TODO: Ideally we should send organizationId directly to handleNewBooking.
  * webapp can derive from domain and API V2 knows it already through its endpoint URL
  */
+/**
+ * Validates if rescheduling is allowed based on minimum reschedule notice and user permissions
+ * Throws HttpError if rescheduling is not allowed
+ * This is called early in the booking flow to fail fast if rescheduling restrictions apply
+ */
+async function validateRescheduleRestrictions({
+  rescheduleUid,
+  userId,
+  eventType,
+}: {
+  rescheduleUid: string | null | undefined;
+  userId: number | null;
+  eventType: { seatsPerTimeSlot: boolean | null } | null;
+}): Promise<void> {
+  if (!rescheduleUid || !eventType) {
+    return; // Not a reschedule, skip validation
+  }
+
+  const bookingSeat = rescheduleUid ? await getSeatedBooking(rescheduleUid) : null;
+  const actualRescheduleUid = bookingSeat ? bookingSeat.booking.uid : rescheduleUid;
+
+  if (!actualRescheduleUid) {
+    return; // No valid reschedule UID
+  }
+
+  try {
+    const originalRescheduledBooking = await getOriginalRescheduledBooking(
+      actualRescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+
+    // Check if user is the organizer
+    const isUserOrganizer =
+      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
+
+    // Check minimum reschedule notice (only for non-organizers)
+    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
+    if (
+      !isUserOrganizer &&
+      minimumRescheduleNotice &&
+      minimumRescheduleNotice > 0 &&
+      originalRescheduledBooking.startTime
+    ) {
+      const now = new Date();
+      const bookingStartTime = new Date(originalRescheduledBooking.startTime);
+      const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
+      const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
+
+      if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "Rescheduling is not allowed within the minimum notice period before the event",
+        });
+      }
+    }
+  } catch (error) {
+    // Re-throw HttpError (including our 403 validation error)
+    if (error instanceof HttpError) {
+      throw error;
+    }
+    // For other errors (like booking not found), let the service handle it later
+    // We don't want to fail early validation for these cases
+  }
+}
+
 async function getEventOrganizationId({
   eventType,
 }: {
@@ -501,6 +566,13 @@ async function handler(
   const eventType = await getEventType({
     eventTypeId: rawBookingData.eventTypeId,
     eventTypeSlug: rawBookingData.eventTypeSlug,
+  });
+
+  // Early validation: Check reschedule restrictions if rescheduling
+  await validateRescheduleRestrictions({
+    rescheduleUid: rawBookingData.rescheduleUid,
+    userId: userId,
+    eventType: eventType,
   });
 
   const bookingDataSchema = bookingDataSchemaGetter({
@@ -628,32 +700,6 @@ async function handler(
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
-
-  // Backend validation: Check minimum reschedule notice if rescheduling
-  if (originalRescheduledBooking && rescheduleUid) {
-    const isUserOrganizer =
-      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
-    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
-
-    if (
-      !isUserOrganizer &&
-      minimumRescheduleNotice &&
-      minimumRescheduleNotice > 0 &&
-      originalRescheduledBooking.startTime
-    ) {
-      const now = new Date();
-      const bookingStartTime = new Date(originalRescheduledBooking.startTime);
-      const timeUntilBooking = bookingStartTime.getTime() - now.getTime();
-      const minimumRescheduleNoticeMs = minimumRescheduleNotice * 60 * 1000; // Convert minutes to milliseconds
-
-      if (timeUntilBooking > 0 && timeUntilBooking < minimumRescheduleNoticeMs) {
-        throw new HttpError({
-          statusCode: 403,
-          message: "Rescheduling is not allowed within the minimum notice period before the event",
-        });
-      }
-    }
-  }
 
   const paymentAppData = getPaymentAppData({
     ...eventType,
