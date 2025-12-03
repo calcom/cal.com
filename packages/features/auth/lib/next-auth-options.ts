@@ -257,7 +257,7 @@ export async function authorizeCredentials(
   return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
 }
 
-export const calComCredentialsProvider = CredentialsProvider({
+export const CalComCredentialsProvider = CredentialsProvider({
   id: "credentials",
   name: "Cal.com",
   type: "credentials",
@@ -270,7 +270,7 @@ export const calComCredentialsProvider = CredentialsProvider({
   authorize: authorizeCredentials,
 });
 
-const providers: Provider[] = [calComCredentialsProvider, ImpersonationProvider];
+const providers: Provider[] = [CalComCredentialsProvider, ImpersonationProvider];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
