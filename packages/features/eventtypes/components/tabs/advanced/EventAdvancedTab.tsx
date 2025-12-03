@@ -548,8 +548,6 @@ export const EventAdvancedTab = ({
     eventType.allowReschedulingCancelledBookings ?? false
   );
 
-  const minimumRescheduleNoticeLocked = shouldLockDisableProps("minimumRescheduleNotice");
-
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -742,39 +740,6 @@ export const EventAdvancedTab = ({
               />
             )}
           />
-
-          {!disableRescheduling && (
-            <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
-              <Label htmlFor="minimumRescheduleNotice" className="text-sm font-medium">
-                {t("minimum_reschedule_notice")}
-                {shouldLockIndicator("minimumRescheduleNotice")}
-              </Label>
-              <p className="text-subtle text-sm leading-tight">
-                {t("minimum_reschedule_notice_description")}
-              </p>
-              <Controller
-                name="minimumRescheduleNotice"
-                render={({ field: { value, onChange } }) => (
-                  <div className="mt-2 flex items-center gap-2">
-                    <TextField
-                      id="minimumRescheduleNotice"
-                      type="number"
-                      min={0}
-                      disabled={minimumRescheduleNoticeLocked.disabled}
-                      value={value ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
-                        onChange(isNaN(val as number) ? null : val);
-                      }}
-                      placeholder="0"
-                      className="w-32"
-                    />
-                    <span className="text-subtle text-sm">{t("minutes")}</span>
-                  </div>
-                )}
-              />
-            </div>
-          )}
         </>
       )}
 

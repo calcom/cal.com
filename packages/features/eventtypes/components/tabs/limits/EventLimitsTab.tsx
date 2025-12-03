@@ -34,6 +34,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
+import MinimumRescheduleNoticeController from "./MinimumRescheduleNoticeController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -136,7 +137,7 @@ function RangeLimitRadioItem({
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
             <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
           </RadioGroup.Item>
         )}
@@ -145,7 +146,7 @@ function RangeLimitRadioItem({
       <div>
         <div
           className={classNames(
-            "mr-2 ml-0 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
+            "ml-0 mr-2 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -214,7 +215,7 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
           <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
@@ -404,6 +405,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
+  const minimumRescheduleNoticeLocked = shouldLockDisableProps("minimumRescheduleNotice");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
   const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
@@ -423,7 +425,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           "border-subtle stack-y-6 rounded-lg border p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-col stack-y-4  lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex  flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -517,7 +519,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="flex flex-col stack-y-4 lg:flex-row lg:space-x-4 lg:stack-y-0">
+        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -708,6 +710,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
+      <MinimumRescheduleNoticeController minimumRescheduleNoticeLocked={minimumRescheduleNoticeLocked} />
       <MaxActiveBookingsPerBookerController
         maxActiveBookingsPerBookerLocked={maxActiveBookingsPerBookerLocked}
       />
