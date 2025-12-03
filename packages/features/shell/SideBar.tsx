@@ -18,7 +18,7 @@ import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { KBarTrigger } from "../kbar/Kbar";
+const KBarTrigger = dynamic(() => import("../kbar/Kbar").then((mod) => mod.KBarTrigger), { ssr: false });
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";

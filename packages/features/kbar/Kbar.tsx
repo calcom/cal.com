@@ -75,7 +75,7 @@ const useAppStoreActions = () => {
         const apps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
           id: slug,
           name,
-          section: "Installable Apps",
+          section: "available_apps",
           keywords: `app ${name}`,
         }));
         setAppActions(apps);

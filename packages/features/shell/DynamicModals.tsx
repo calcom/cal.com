@@ -1,8 +1,18 @@
 "use client";
 
-import { WelcomeToOrganizationsModal } from "@calcom/features/ee/organizations/components/WelcomeToOrganizationsModal";
+import dynamic from "next/dynamic";
 
-import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
+const WelcomeToOrganizationsModal = dynamic(
+  () =>
+    import("@calcom/features/ee/organizations/components/WelcomeToOrganizationsModal").then(
+      (mod) => mod.WelcomeToOrganizationsModal
+    ),
+  { ssr: false }
+);
+
+const WelcomeToCalcomModal = dynamic(() => import("./components/WelcomeToCalcomModal").then((mod) => mod.WelcomeToCalcomModal), {
+  ssr: false,
+});
 
 /**
  * Container for all query-param driven modals that should appear globally across the app.

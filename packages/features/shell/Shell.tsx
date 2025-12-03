@@ -1,16 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement } from "react";
+import React, { cloneElement, useEffect } from "react";
 import { Toaster } from "sonner";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useFormbricks } from "@calcom/features/formbricks/formbricks-client";
-import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
-import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -25,10 +23,29 @@ import { useBanners } from "./banners/useBanners";
 import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
+const KBarRoot = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarRoot), {
+  ssr: false,
+});
+
+const KBarContent = dynamic(() => import("@calcom/features/kbar/Kbar").then((mod) => mod.KBarContent), {
+  ssr: false,
+});
+
+const TimezoneChangeDialog = dynamic(
+  () => import("@calcom/features/settings/TimezoneChangeDialog"),
+  { ssr: false }
+);
+
+const useLazyFormbricks = () => {
+  useEffect(() => {
+    import("@calcom/features/formbricks/formbricks-client");
+  }, []);
+};
+
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
 
-  useFormbricks();
+  useLazyFormbricks();
 
   return (
     <>
