@@ -219,7 +219,9 @@ describe("EmailWorkflowService", () => {
       numberRequired: false,
     };
 
-    test("should send to organizer only for ROUND_ROBIN scheduling type", async () => {
+    test("should send to organizer and team members for ROUND_ROBIN scheduling type", async () => {
+      // Note: For ROUND_ROBIN, the CalendarEventBuilder filters team members to only include
+      // those assigned to the booking. EmailWorkflowService sends to all team members in evt.team.members.
       const mockEvt: Partial<CalendarEvent> = {
         ...baseMockEvt,
         schedulingType: SchedulingType.ROUND_ROBIN,
@@ -255,8 +257,12 @@ describe("EmailWorkflowService", () => {
         hideBranding: false,
       });
 
-      expect(result.sendTo).toEqual(["organizer@example.com"]);
-      expect(result.sendTo.length).toBe(1);
+      // EmailWorkflowService sends to organizer + all team members in evt.team.members
+      // The filtering of team members happens in CalendarEventBuilder, not here
+      expect(result.sendTo).toContain("organizer@example.com");
+      expect(result.sendTo).toContain("team1@example.com");
+      expect(result.sendTo).toContain("team2@example.com");
+      expect(result.sendTo.length).toBe(3);
     });
 
     test("should send to organizer and team members for COLLECTIVE scheduling type", async () => {
