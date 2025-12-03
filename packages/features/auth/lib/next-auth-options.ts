@@ -240,28 +240,45 @@ const providers: Provider[] = [
       // Check if the user you are logging into has any active teams
       const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
 
-      // authentication success- but does it meet the minimum password requirements?
-      const validateRole = (role: UserPermissionRole) => {
-        // User's role is not "ADMIN"
-        if (role !== UserPermissionRole.ADMIN) return role;
-        // User's identity provider is not "CAL"
-        if (user.identityProvider !== IdentityProvider.CAL) return role;
-
-        if (process.env.NEXT_PUBLIC_IS_E2E) {
-          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+      // Compute effective role using "deny unless allow" pattern for security-sensitive admin access
+      // For CAL-authenticated admins, we start from INACTIVE_ADMIN and only grant full ADMIN
+      // when explicit security conditions are met
+      const computeEffectiveRole = (role: UserPermissionRole): UserPermissionRole | "INACTIVE_ADMIN" => {
+        // Non-admin users keep their role as-is
+        if (role !== UserPermissionRole.ADMIN) {
           return role;
         }
 
-        // User's password is valid and two-factor authentication is enabled
-        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
-        // Code is running in a development environment
-        if (isENVDev) return role;
-        // By this point it is an ADMIN without valid security conditions
-        return "INACTIVE_ADMIN";
+        // Non-CAL identity providers (Google/SAML) keep their admin role
+        // (they have their own security guarantees from the IdP)
+        if (user.identityProvider !== IdentityProvider.CAL) {
+          return role;
+        }
+
+        // For CAL-authenticated admins, apply "deny unless allow" pattern:
+        // Default to INACTIVE_ADMIN, only allow full ADMIN access if security conditions are met
+        // Note: We've already confirmed role === ADMIN && identityProvider === CAL at this point
+
+        // Define explicit conditions that ALLOW full admin access
+        const isE2ETestingEnvironment = Boolean(process.env.NEXT_PUBLIC_IS_E2E);
+        const isDevelopmentEnvironment = isENVDev;
+        const hasStrongSecurityCredentials =
+          isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled;
+
+        // Only grant full ADMIN if at least one allow condition is met
+        const shouldAllowFullAdminAccess =
+          isE2ETestingEnvironment || isDevelopmentEnvironment || hasStrongSecurityCredentials;
+
+        if (isE2ETestingEnvironment) {
+          console.warn("E2E testing is enabled, granting full admin access");
+        }
+
+        // "Deny unless allow": return INACTIVE_ADMIN by default, ADMIN only when explicitly allowed
+        return shouldAllowFullAdminAccess ? role : "INACTIVE_ADMIN";
       };
 
       // Create a NextAuth compatible user object using our presenter
-      return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
+      return AdapterUserPresenter.fromCalUser(user, computeEffectiveRole(user.role), hasActiveTeams);
     },
   }),
   ImpersonationProvider,
