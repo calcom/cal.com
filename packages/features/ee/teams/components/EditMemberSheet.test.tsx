@@ -317,8 +317,6 @@ describe("EditMemberSheet", () => {
         />
       );
 
-      // The fix ensures that permissions?.canChangeMemberRole is passed
-      // Previously, this prop was not being passed, causing the Edit button to not appear
       expect(capturedProps).toContainEqual(
         expect.objectContaining({
           canChangeMemberRole: true,
