@@ -75,7 +75,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   ];
 
   // Fetch unique users through memberships
-    const memberships = await prisma.membership.findMany({
+  const memberships = await prisma.membership.findMany({
     where: {
       accepted: true,
       teamId: { in: teamsToQuery },
@@ -107,20 +107,18 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     ],
   });
 
+  let nextCursor: typeof cursor | undefined = undefined;
+  if (memberships.length > limit) {
+    const nextItem = memberships.pop();
+    nextCursor = nextItem?.id;
+  }
+
   const members = memberships.map((membership) => ({
     id: membership.user.id,
     name: membership.user.name,
     username: membership.user.username,
     avatarUrl: membership.user.avatarUrl,
   }));
-
-  const usersFetched = members.length;
-
-  let nextCursor: typeof cursor | undefined = undefined;
-  if (usersFetched > limit) {
-    const nextItem = memberships.pop();
-    nextCursor = nextItem?.id;
-  }
 
   return {
     members,
